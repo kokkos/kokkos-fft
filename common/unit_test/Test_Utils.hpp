@@ -44,4 +44,12 @@ void multiply(ViewType& x, T a) {
   );
 }
 
+template <typename T>
+void display(std::string name, std::vector<T>& values) {
+  std::cout << name << std::endl;
+  for(auto value: values) {
+    std::cout << value << std::endl;
+  }
+}
+
 #endif
