@@ -3,6 +3,9 @@
 
 #include <Kokkos_Core.hpp>
 #include <vector>
+#include <set>
+#include <algorithm>
+#include <numeric>
 
 namespace KokkosFFT {
   template <typename T>
@@ -42,6 +45,37 @@ namespace KokkosFFT {
       out.push_back(values.at(index));
     }
     values = std::move(out);
+  }
+
+  template <typename T>
+  bool is_found(std::vector<T>& values, const T& key) {
+    return std::find(values.begin(), values.end(), key) != values.end();
+  }
+
+  template <typename T>
+  bool has_duplicate_values(const std::vector<T>& values) {
+    std::set<T> set_values(values.begin(), values.end());
+    return set_values.size() < values.size();
+  }
+
+  template <std::size_t DIM=1>
+  bool is_transpose_needed(std::array<int, DIM> map) {
+    std::array<int, DIM> contiguous_map;
+    std::iota(contiguous_map.begin(), contiguous_map.end(), 0);
+    return map != contiguous_map;
+  }
+
+  template <typename T>
+  std::size_t get_index(std::vector<T>& values, const T& key) {
+    auto it = find(values.begin(), values.end(), key);
+    std::size_t index = 0;
+    if(it != values.end()) {
+      index = it - values.begin();
+    } else {
+      throw std::runtime_error("key is not included in values");
+    }
+
+    return index;
   }
 };
 
