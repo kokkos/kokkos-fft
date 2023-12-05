@@ -3,6 +3,7 @@
 
 #include <Kokkos_Core.hpp>
 #include "KokkosFFT_default_types.hpp"
+#include "KokkosFFT_transpose.hpp"
 #include "KokkosFFT_utils.hpp"
 
 #if defined(KOKKOS_ENABLE_CUDA)
@@ -30,12 +31,21 @@ namespace KokkosFFT {
     using float_type = real_type_t<in_value_type>;
     using fft_plan_type = typename FFTPlanType< float_type >::type;
     using fft_size_type = std::size_t;
+    using map_type = axis_type<InViewType::rank()>;
+    using nonConstInViewType = std::remove_cv_t<InViewType>;
+    using nonConstOutViewType = std::remove_cv_t<OutViewType>;
 
     fft_plan_type m_plan;
     fft_size_type m_fft_size;
+    map_type m_map, m_map_inv;
+    bool m_is_transpose_needed;
+
+    // Only used when transpose needed
+    nonConstInViewType m_in_T;
+    nonConstOutViewType m_out_T;
 
   public:
-    explicit Plan(InViewType& in, OutViewType& out) : m_fft_size(1) {
+    explicit Plan(InViewType& in, OutViewType& out) : m_fft_size(1), m_is_transpose_needed(false) {
       // Available only for R2C or C2R
       // For C2C, direction should be given by an user
       static_assert(Kokkos::is_view<InViewType>::value,
@@ -58,7 +68,7 @@ namespace KokkosFFT {
       m_fft_size = _create(m_plan, in, out, direction);
     }
 
-    explicit Plan(InViewType& in, OutViewType& out, axis_type<DIM> axes) : m_fft_size(1) {
+    explicit Plan(InViewType& in, OutViewType& out, axis_type<DIM> axes) : m_fft_size(1), m_is_transpose_needed(false) {
       // Available only for R2C or C2R
       // For C2C, direction should be given by an user
       static_assert(Kokkos::is_view<InViewType>::value,
@@ -81,18 +91,20 @@ namespace KokkosFFT {
       m_fft_size = _create(m_plan, in, out, direction, axes);
     }
 
-    explicit Plan(InViewType& in, OutViewType& out, FFTDirectionType direction) : m_fft_size(1) {
+    explicit Plan(InViewType& in, OutViewType& out, FFTDirectionType direction) : m_fft_size(1), m_is_transpose_needed(false) {
       /* Apply FFT over entire axes or along inner most directions */
       m_fft_size = _create(m_plan, in, out, direction);
     }
 
-    explicit Plan(InViewType& in, OutViewType& out, FFTDirectionType direction, int axis) : m_fft_size(1) {
-      // Not implemented yet
+    explicit Plan(InViewType& in, OutViewType& out, FFTDirectionType direction, int axis) : m_fft_size(1), m_is_transpose_needed(false) {
+      std::tie(m_map, m_map_inv) = KokkosFFT::get_map_axes(in, axis);
+      m_is_transpose_needed = KokkosFFT::is_transpose_needed(m_map);
       m_fft_size = _create(m_plan, in, out, direction, axis_type<1>{axis});
     }
 
-    explicit Plan(InViewType& in, OutViewType& out, FFTDirectionType direction, axis_type<DIM> axes) : m_fft_size(1) {
-      // Not implemented yet
+    explicit Plan(InViewType& in, OutViewType& out, FFTDirectionType direction, axis_type<DIM> axes) : m_fft_size(1), m_is_transpose_needed(false) {
+      std::tie(m_map, m_map_inv) = KokkosFFT::get_map_axes(in, axes);
+      m_is_transpose_needed = KokkosFFT::is_transpose_needed(m_map);
       m_fft_size = _create(m_plan, in, out, direction, axes);
     }
 
@@ -100,8 +112,13 @@ namespace KokkosFFT {
       _destroy<float_type>(m_plan);
     }
 
-    fft_plan_type plan() const { return m_plan; };
+    fft_plan_type plan() const { return m_plan; }
     fft_size_type fft_size() const { return m_fft_size; }
+    bool is_transpose_needed() const { return m_is_transpose_needed; }
+    map_type map() const { return m_map; }
+    map_type map_inv() const { return m_map_inv; }
+    nonConstInViewType& in_T() { return m_in_T; }
+    nonConstOutViewType& out_T() { return m_out_T; }
   };
 };
 

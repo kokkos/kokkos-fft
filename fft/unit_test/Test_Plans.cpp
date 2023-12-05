@@ -94,14 +94,23 @@ TEST(Plans, 1DFFT_2DRightDefaultAxis) {
   LeftView2D<Kokkos::complex<double>> x_cin("x_cin", n0, n1), x_cout("x_cout", n0, n1);
 
   // R2C plan
-  KokkosFFT::Plan plan_r2c(x, x_c, -1);
+  KokkosFFT::Plan plan_r2c_axis_0(x, x_c, 0);
+  KokkosFFT::Plan plan_r2c_axis_1(x, x_c, 1);
+  KokkosFFT::Plan plan_r2c_axis_minus1(x, x_c, -1);
 
   // C2R plan
-  KokkosFFT::Plan plan_c2r(x_c, x, -1);
+  KokkosFFT::Plan plan_c2r_axis_0(x_c, x, 0);
+  KokkosFFT::Plan plan_c2r_axis_1(x_c, x, 1);
+  KokkosFFT::Plan plan_c2r_axis_minus1(x_c, x, -1);
 
   // C2C plan
-  KokkosFFT::Plan plan_c2c_f(x_cin, x_cout, KOKKOS_FFT_FORWARD, -1);
-  KokkosFFT::Plan plan_c2c_b(x_cin, x_cout, KOKKOS_FFT_BACKWARD, -1);
+  KokkosFFT::Plan plan_c2c_f_axis_0(x_cin, x_cout, KOKKOS_FFT_FORWARD, 0);
+  KokkosFFT::Plan plan_c2c_f_axis_1(x_cin, x_cout, KOKKOS_FFT_FORWARD, 1);
+  KokkosFFT::Plan plan_c2c_f_axis_minus1(x_cin, x_cout, KOKKOS_FFT_FORWARD, -1);
+
+  KokkosFFT::Plan plan_c2c_b_axis_0(x_cin, x_cout, KOKKOS_FFT_BACKWARD, 0);
+  KokkosFFT::Plan plan_c2c_b_axis_1(x_cin, x_cout, KOKKOS_FFT_BACKWARD, 1);
+  KokkosFFT::Plan plan_c2c_b_axis_minus1(x_cin, x_cout, KOKKOS_FFT_BACKWARD, -1);
 }
 
 TEST(Plans, 1DFFT_3DRightDefaultAxis) {
