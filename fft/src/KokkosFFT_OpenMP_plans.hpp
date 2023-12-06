@@ -175,6 +175,7 @@ namespace KokkosFFT {
                                      istride,
                                      idist,
                                      odata,
+                                     out_extents.data(),
                                      ostride,
                                      odist,
                                      FFTW_ESTIMATE
