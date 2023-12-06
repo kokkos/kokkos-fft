@@ -77,6 +77,21 @@ namespace KokkosFFT {
 
     return index;
   }
+
+  template <typename T, std::size_t... I>
+  std::array<T, sizeof...(I)> make_sequence_array(std::index_sequence<I...>) {
+    return std::array<T, sizeof...(I)>{ {I...} };
+  }
+
+  template <int N, typename T>
+  std::array<T, N> index_sequence(T const& start) {
+    auto sequence = make_sequence_array<T>(std::make_index_sequence<N>());
+    std::transform(sequence.begin(), sequence.end(), sequence.begin(),
+                   [=](const T sequence) -> T {return start + sequence;});
+    return sequence;
+  }
+
+
 };
 
 #endif
