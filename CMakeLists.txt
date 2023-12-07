@@ -4,6 +4,9 @@ project(kokkos-fft LANGUAGES CXX)
 # Add cmake helpers for FFTW
 list(INSERT CMAKE_MODULE_PATH 0 "${CMAKE_SOURCE_DIR}/cmake")
 
+# Options
+option(BUILD_EXAMPLES "Build kokkos-fft examples" ON)
+
 find_package(Kokkos CONFIG)
 if(NOT kokkos_FOUND)
     add_subdirectory(tpls/kokkos)
@@ -20,3 +23,6 @@ endif()
 
 add_subdirectory(common)
 add_subdirectory(fft)
+if(BUILD_EXAMPLES)
+    add_subdirectory(examples)
+endif()
