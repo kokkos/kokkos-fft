@@ -1,0 +1,4 @@
+add_subdirectory(01_1DFFT)
+add_subdirectory(02_2DFFT)
+add_subdirectory(03_NDFFT)
+add_subdirectory(04_batchedFFT)
