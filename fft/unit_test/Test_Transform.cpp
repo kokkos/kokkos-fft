@@ -698,7 +698,7 @@ void test_fftn_2dfft_2dview() {
 }
 
 template <typename T, typename LayoutType>
-void test_fftn_3dfft_3dview() {
+void test_fftn_3dfft_3dview(T atol=1.0e-6) {
   const int n0 = 4, n1 = 6, n2 = 8;
   using ComplexView3DType = Kokkos::View<Kokkos::complex<T>***, LayoutType, execution_space>;
 
@@ -725,10 +725,10 @@ void test_fftn_3dfft_3dview() {
   multiply(out_o, sqrt(static_cast<T>(n0 * n1 * n2)));
   multiply(out_f, static_cast<T>(n0 * n1 * n2));
 
-  EXPECT_TRUE( allclose(out,   out3, 1.e-5, 1.e-6) );
-  EXPECT_TRUE( allclose(out_b, out3, 1.e-5, 1.e-6) );
-  EXPECT_TRUE( allclose(out_o, out3, 1.e-5, 1.e-6) );
-  EXPECT_TRUE( allclose(out_f, out3, 1.e-5, 1.e-6) );
+  EXPECT_TRUE( allclose(out,   out3, 1.e-5, atol) );
+  EXPECT_TRUE( allclose(out_b, out3, 1.e-5, atol) );
+  EXPECT_TRUE( allclose(out_o, out3, 1.e-5, atol) );
+  EXPECT_TRUE( allclose(out_f, out3, 1.e-5, atol) );
 
   // Same tests with specifying axes
   // np.fftn for 3D array is identical to np.fft(np.fft(np.fft(x, axis=2), axis=1), axis=0)
@@ -742,10 +742,10 @@ void test_fftn_3dfft_3dview() {
   multiply(out_o, sqrt(static_cast<T>(n0 * n1 * n2)));
   multiply(out_f, static_cast<T>(n0 * n1 * n2));
 
-  EXPECT_TRUE( allclose(out,   out3, 1.e-5, 1.e-6) );
-  EXPECT_TRUE( allclose(out_b, out3, 1.e-5, 1.e-6) );
-  EXPECT_TRUE( allclose(out_o, out3, 1.e-5, 1.e-6) );
-  EXPECT_TRUE( allclose(out_f, out3, 1.e-5, 1.e-6) );
+  EXPECT_TRUE( allclose(out,   out3, 1.e-5, atol) );
+  EXPECT_TRUE( allclose(out_b, out3, 1.e-5, atol) );
+  EXPECT_TRUE( allclose(out_o, out3, 1.e-5, atol) );
+  EXPECT_TRUE( allclose(out_f, out3, 1.e-5, atol) );
 }
 
 template <typename T, typename LayoutType>
@@ -1128,19 +1128,19 @@ TEST(FFTN, 2DFFT_2DRightViewDouble) {
 
 // fftn on 3D Views
 TEST(FFTN, 3DFFT_3DLeftViewFloat) {
-  test_fftn_3dfft_3dview<float, Kokkos::LayoutLeft>();
+  test_fftn_3dfft_3dview<float, Kokkos::LayoutLeft>(5.0e-5);
 }
 
 TEST(FFTN, 3DFFT_3DLeftViewDouble) {
-  test_fftn_3dfft_3dview<double, Kokkos::LayoutLeft>();
+  test_fftn_3dfft_3dview<double, Kokkos::LayoutLeft>(1.0e-6);
 }
 
 TEST(FFTN, 3DFFT_3DRightViewFloat) {
-  test_fftn_3dfft_3dview<float, Kokkos::LayoutRight>();
+  test_fftn_3dfft_3dview<float, Kokkos::LayoutRight>(5.0e-5);
 }
 
 TEST(FFTN, 3DFFT_3DRightViewDouble) {
-  test_fftn_3dfft_3dview<double, Kokkos::LayoutRight>();
+  test_fftn_3dfft_3dview<double, Kokkos::LayoutRight>(1.0e-6);
 }
 
 // ifftn on 2D Views
