@@ -2,9 +2,11 @@
 #include "KokkosFFT_utils.hpp"
 #include "Test_Types.hpp"
 
-TEST(ConvertNegativeAxis, 1D) {
+template <typename LayoutType>
+void test_convert_negative_axes_1d() {
   const int len = 30;
-  View1D<double> x("x", len);
+  using RealView1Dtype = Kokkos::View<double*, LayoutType, execution_space>;
+  RealView1Dtype x("x", len);
 
   int converted_axis_0 = KokkosFFT::convert_negative_axis(x, /*axis=*/0);
   int converted_axis_minus1 = KokkosFFT::convert_negative_axis(x, /*axis=*/-1);
@@ -16,16 +18,26 @@ TEST(ConvertNegativeAxis, 1D) {
   EXPECT_EQ( converted_axis_minus1, ref_converted_axis_minus1 );
 }
 
-TEST(ConvertNegativeAxis, 2DLeft) {
-  const int n0 = 3, n1 = 5;
-  LeftView2D<double> x("x", n0, n1);
+TEST(ConvertNegativeAxis, 1DLeftView) {
+  test_convert_negative_axes_1d<Kokkos::LayoutLeft>();
+}
 
-  int converted_axis_0 = KokkosFFT::convert_negative_axis(x, /*axis=*/0);
-  int converted_axis_1 = KokkosFFT::convert_negative_axis(x, /*axis=*/1);
+TEST(ConvertNegativeAxis, 1DRightView) {
+  test_convert_negative_axes_1d<Kokkos::LayoutRight>();
+}
+
+template <typename LayoutType>
+void test_convert_negative_axes_2d() {
+  const int n0 = 3, n1 = 5;
+  using RealView2Dtype = Kokkos::View<double**, LayoutType, execution_space>;
+  RealView2Dtype x("x", n0, n1);
+
+  int converted_axis_0      = KokkosFFT::convert_negative_axis(x, /*axis=*/0);
+  int converted_axis_1      = KokkosFFT::convert_negative_axis(x, /*axis=*/1);
   int converted_axis_minus1 = KokkosFFT::convert_negative_axis(x, /*axis=*/-1);
 
-  int ref_converted_axis_0 = 0;
-  int ref_converted_axis_1 = 1;
+  int ref_converted_axis_0      = 0;
+  int ref_converted_axis_1      = 1;
   int ref_converted_axis_minus1 = 1;
 
   EXPECT_EQ( converted_axis_0, ref_converted_axis_0 );
@@ -33,36 +45,29 @@ TEST(ConvertNegativeAxis, 2DLeft) {
   EXPECT_EQ( converted_axis_minus1, ref_converted_axis_minus1 );
 }
 
-TEST(ConvertNegativeAxis, 2DRight) {
-  const int n0 = 3, n1 = 5;
-  RightView2D<double> x("x", n0, n1);
-
-  int converted_axis_0 = KokkosFFT::convert_negative_axis(x, /*axis=*/0);
-  int converted_axis_1 = KokkosFFT::convert_negative_axis(x, /*axis=*/1);
-  int converted_axis_minus1 = KokkosFFT::convert_negative_axis(x, /*axis=*/-1);
-
-  int ref_converted_axis_0 = 0;
-  int ref_converted_axis_1 = 1;
-  int ref_converted_axis_minus1 = 1;
-
-  EXPECT_EQ( converted_axis_0, ref_converted_axis_0 );
-  EXPECT_EQ( converted_axis_1, ref_converted_axis_1 );
-  EXPECT_EQ( converted_axis_minus1, ref_converted_axis_minus1 );
+TEST(ConvertNegativeAxis, 2DLeftView) {
+  test_convert_negative_axes_2d<Kokkos::LayoutLeft>();
 }
 
-TEST(ConvertNegativeAxis, 3DLeft) {
+TEST(ConvertNegativeAxis, 2DRightView) {
+  test_convert_negative_axes_2d<Kokkos::LayoutRight>();
+}
+
+template <typename LayoutType>
+void test_convert_negative_axes_3d() {
   const int n0 = 3, n1 = 5, n2 = 8;
-  LeftView3D<double> x("x", n0, n1, n2);
+  using RealView3Dtype = Kokkos::View<double***, LayoutType, execution_space>;
+  RealView3Dtype x("x", n0, n1, n2);
 
-  int converted_axis_0 = KokkosFFT::convert_negative_axis(x, /*axis=*/0);
-  int converted_axis_1 = KokkosFFT::convert_negative_axis(x, /*axis=*/1);
-  int converted_axis_2 = KokkosFFT::convert_negative_axis(x, /*axis=*/2);
+  int converted_axis_0      = KokkosFFT::convert_negative_axis(x, /*axis=*/0);
+  int converted_axis_1      = KokkosFFT::convert_negative_axis(x, /*axis=*/1);
+  int converted_axis_2      = KokkosFFT::convert_negative_axis(x, /*axis=*/2);
   int converted_axis_minus1 = KokkosFFT::convert_negative_axis(x, /*axis=*/-1);
   int converted_axis_minus2 = KokkosFFT::convert_negative_axis(x, /*axis=*/-2);
 
-  int ref_converted_axis_0 = 0;
-  int ref_converted_axis_1 = 1;
-  int ref_converted_axis_2 = 2;
+  int ref_converted_axis_0      = 0;
+  int ref_converted_axis_1      = 1;
+  int ref_converted_axis_2      = 2;
   int ref_converted_axis_minus1 = 2;
   int ref_converted_axis_minus2 = 1;
 
@@ -73,27 +78,51 @@ TEST(ConvertNegativeAxis, 3DLeft) {
   EXPECT_EQ( converted_axis_minus2, ref_converted_axis_minus2 );
 }
 
-TEST(ConvertNegativeAxis, 3DRight) {
-  const int n0 = 3, n1 = 5, n2 = 8;
-  RightView3D<double> x("x", n0, n1, n2);
+TEST(ConvertNegativeAxis, 3DLeftView) {
+  test_convert_negative_axes_3d<Kokkos::LayoutLeft>();
+}
 
-  int converted_axis_0 = KokkosFFT::convert_negative_axis(x, /*axis=*/0);
-  int converted_axis_1 = KokkosFFT::convert_negative_axis(x, /*axis=*/1);
-  int converted_axis_2 = KokkosFFT::convert_negative_axis(x, /*axis=*/2);
+TEST(ConvertNegativeAxis, 3DRightView) {
+  test_convert_negative_axes_3d<Kokkos::LayoutRight>();
+}
+
+template <typename LayoutType>
+void test_convert_negative_axes_4d() {
+  const int n0 = 3, n1 = 5, n2 = 8, n3 = 13;
+  using RealView4Dtype = Kokkos::View<double****, LayoutType, execution_space>;
+  RealView4Dtype x("x", n0, n1, n2, n3);
+
+  int converted_axis_0      = KokkosFFT::convert_negative_axis(x, /*axis=*/0);
+  int converted_axis_1      = KokkosFFT::convert_negative_axis(x, /*axis=*/1);
+  int converted_axis_2      = KokkosFFT::convert_negative_axis(x, /*axis=*/2);
+  int converted_axis_3      = KokkosFFT::convert_negative_axis(x, /*axis=*/3);
   int converted_axis_minus1 = KokkosFFT::convert_negative_axis(x, /*axis=*/-1);
   int converted_axis_minus2 = KokkosFFT::convert_negative_axis(x, /*axis=*/-2);
+  int converted_axis_minus3 = KokkosFFT::convert_negative_axis(x, /*axis=*/-3);
 
-  int ref_converted_axis_0 = 0;
-  int ref_converted_axis_1 = 1;
-  int ref_converted_axis_2 = 2;
-  int ref_converted_axis_minus1 = 2;
-  int ref_converted_axis_minus2 = 1;
+  int ref_converted_axis_0      = 0;
+  int ref_converted_axis_1      = 1;
+  int ref_converted_axis_2      = 2;
+  int ref_converted_axis_3      = 3;
+  int ref_converted_axis_minus1 = 3;
+  int ref_converted_axis_minus2 = 2;
+  int ref_converted_axis_minus3 = 1;
 
   EXPECT_EQ( converted_axis_0, ref_converted_axis_0 );
   EXPECT_EQ( converted_axis_1, ref_converted_axis_1 );
   EXPECT_EQ( converted_axis_2, ref_converted_axis_2 );
+  EXPECT_EQ( converted_axis_3, ref_converted_axis_3 );
   EXPECT_EQ( converted_axis_minus1, ref_converted_axis_minus1 );
   EXPECT_EQ( converted_axis_minus2, ref_converted_axis_minus2 );
+  EXPECT_EQ( converted_axis_minus3, ref_converted_axis_minus3 );
+}
+
+TEST(ConvertNegativeAxis, 4DLeftView) {
+  test_convert_negative_axes_4d<Kokkos::LayoutLeft>();
+}
+
+TEST(ConvertNegativeAxis, 4DRightView) {
+  test_convert_negative_axes_4d<Kokkos::LayoutRight>();
 }
 
 TEST(IsTransposeNeeded, 1Dto3D) {
@@ -122,11 +151,11 @@ TEST(IsTransposeNeeded, 1Dto3D) {
 TEST(GetIndex, Vectors) {
   std::vector<int> v = {0, 1, 4, 2, 3};
 
-  EXPECT_EQ( KokkosFFT::get_index(v, 0), 0);
-  EXPECT_EQ( KokkosFFT::get_index(v, 1), 1);
-  EXPECT_EQ( KokkosFFT::get_index(v, 2), 3);
-  EXPECT_EQ( KokkosFFT::get_index(v, 3), 4);
-  EXPECT_EQ( KokkosFFT::get_index(v, 4), 2);
+  EXPECT_EQ( KokkosFFT::get_index(v, 0), 0 );
+  EXPECT_EQ( KokkosFFT::get_index(v, 1), 1 );
+  EXPECT_EQ( KokkosFFT::get_index(v, 2), 3 );
+  EXPECT_EQ( KokkosFFT::get_index(v, 3), 4 );
+  EXPECT_EQ( KokkosFFT::get_index(v, 4), 2 );
 
   EXPECT_THROW(
     KokkosFFT::get_index(v, -1),
