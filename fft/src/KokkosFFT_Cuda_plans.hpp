@@ -1,5 +1,5 @@
-#ifndef __KOKKOSFFT_CUDA_PLANS_HPP__
-#define __KOKKOSFFT_CUDA_PLANS_HPP__
+#ifndef KOKKOSFFT_CUDA_PLANS_HPP
+#define KOKKOSFFT_CUDA_PLANS_HPP
 
 #include <numeric>
 #include "KokkosFFT_Cuda_types.hpp"

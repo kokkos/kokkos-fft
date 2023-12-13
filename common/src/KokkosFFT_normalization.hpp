@@ -1,5 +1,5 @@
-#ifndef __KOKKOSFFT_NORMALIZATION_HPP__
-#define __KOKKOSFFT_NORMALIZATION_HPP__
+#ifndef KOKKOSFFT_NORMALIZATION_HPP
+#define KOKKOSFFT_NORMALIZATION_HPP
 
 #include <tuple>
 #include "KokkosFFT_default_types.hpp"

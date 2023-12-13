@@ -1,5 +1,5 @@
-#ifndef __KOKKOSFFT_HIP_PLANS_HPP__
-#define __KOKKOSFFT_HIP_PLANS_HPP__
+#ifndef KOKKOSFFT_HIP_PLANS_HPP
+#define KOKKOSFFT_HIP_PLANS_HPP
 
 #include <numeric>
 #include "KokkosFFT_HIP_types.hpp"

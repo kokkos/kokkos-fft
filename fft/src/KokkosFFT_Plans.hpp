@@ -1,5 +1,5 @@
-#ifndef __KOKKOSFFT_PLANS_HPP__
-#define __KOKKOSFFT_PLANS_HPP__
+#ifndef KOKKOSFFT_PLANS_HPP
+#define KOKKOSFFT_PLANS_HPP
 
 #include <Kokkos_Core.hpp>
 #include "KokkosFFT_default_types.hpp"

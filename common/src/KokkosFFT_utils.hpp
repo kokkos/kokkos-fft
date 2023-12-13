@@ -1,5 +1,5 @@
-#ifndef __KOKKOSFFT_UTILS_HPP__
-#define __KOKKOSFFT_UTILS_HPP__
+#ifndef KOKKOSFFT_UTILS_HPP
+#define KOKKOSFFT_UTILS_HPP
 
 #include <Kokkos_Core.hpp>
 #include <vector>

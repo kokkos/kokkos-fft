@@ -1,5 +1,5 @@
-#ifndef __KOKKOSFFT_HIP_TYPES_HPP__
-#define __KOKKOSFFT_HIP_TYPES_HPP__
+#ifndef KOKKOSFFT_HIP_TYPES_HPP
+#define KOKKOSFFT_HIP_TYPES_HPP
 
 #include <hipfft/hipfft.h>
 

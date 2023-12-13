@@ -1,5 +1,5 @@
-#ifndef __KOKKOSFFT_TRANSFORM_HPP__
-#define __KOKKOSFFT_TRANSFORM_HPP__
+#ifndef KOKKOSFFT_TRANSFORM_HPP
+#define KOKKOSFFT_TRANSFORM_HPP
 
 #include <Kokkos_Core.hpp>
 #include "KokkosFFT_default_types.hpp"
