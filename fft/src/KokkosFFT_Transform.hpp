@@ -28,7 +28,7 @@
 // 1D Transform
 namespace KokkosFFT {
   template <typename PlanType, typename InViewType, typename OutViewType>
-  void _fft(PlanType& plan, const InViewType& in, OutViewType& out, FFT_Normalization norm=FFT_Normalization::BACKWARD) {
+  void _fft(PlanType& plan, const InViewType& in, OutViewType& out, KokkosFFT::Normalization norm=KokkosFFT::Normalization::BACKWARD) {
     static_assert(Kokkos::is_view<InViewType>::value,
                 "KokkosFFT::_fft: InViewType is not a Kokkos::View.");
     static_assert(Kokkos::is_view<OutViewType>::value,
@@ -45,7 +45,7 @@ namespace KokkosFFT {
   }
 
   template <typename PlanType, typename InViewType, typename OutViewType>
-  void _ifft(PlanType& plan, const InViewType& in, OutViewType& out, FFT_Normalization norm=FFT_Normalization::BACKWARD) {
+  void _ifft(PlanType& plan, const InViewType& in, OutViewType& out, KokkosFFT::Normalization norm=KokkosFFT::Normalization::BACKWARD) {
     static_assert(Kokkos::is_view<InViewType>::value,
                 "KokkosFFT::_ifft: InViewType is not a Kokkos::View.");
     static_assert(Kokkos::is_view<OutViewType>::value,
@@ -62,7 +62,7 @@ namespace KokkosFFT {
   }
 
   template <typename InViewType, typename OutViewType>
-  void fft(const InViewType& in, OutViewType& out, FFT_Normalization norm=FFT_Normalization::BACKWARD, int axis=-1) {
+  void fft(const InViewType& in, OutViewType& out, KokkosFFT::Normalization norm=KokkosFFT::Normalization::BACKWARD, int axis=-1) {
     static_assert(Kokkos::is_view<InViewType>::value,
                   "KokkosFFT::fft: InViewType is not a Kokkos::View.");
     static_assert(Kokkos::is_view<OutViewType>::value,
@@ -86,7 +86,7 @@ namespace KokkosFFT {
   }
 
   template <typename InViewType, typename OutViewType>
-  void ifft(const InViewType& in, OutViewType& out, FFT_Normalization norm=FFT_Normalization::BACKWARD, int axis=-1) {
+  void ifft(const InViewType& in, OutViewType& out, KokkosFFT::Normalization norm=KokkosFFT::Normalization::BACKWARD, int axis=-1) {
     static_assert(Kokkos::is_view<InViewType>::value,
                 "KokkosFFT::ifft: InViewType is not a Kokkos::View.");
     static_assert(Kokkos::is_view<OutViewType>::value,
@@ -110,7 +110,7 @@ namespace KokkosFFT {
   }
 
   template <typename InViewType, typename OutViewType>
-  void rfft(const InViewType& in, OutViewType& out, FFT_Normalization norm=FFT_Normalization::BACKWARD, int axis=-1) {
+  void rfft(const InViewType& in, OutViewType& out, KokkosFFT::Normalization norm=KokkosFFT::Normalization::BACKWARD, int axis=-1) {
     static_assert(Kokkos::is_view<InViewType>::value,
                 "KokkosFFT::rfft: InViewType is not a Kokkos::View.");
     static_assert(Kokkos::is_view<OutViewType>::value,
@@ -128,7 +128,7 @@ namespace KokkosFFT {
   }
 
   template <typename InViewType, typename OutViewType>
-  void irfft(const InViewType& in, OutViewType& out, FFT_Normalization norm=FFT_Normalization::BACKWARD, int axis=-1) {
+  void irfft(const InViewType& in, OutViewType& out, KokkosFFT::Normalization norm=KokkosFFT::Normalization::BACKWARD, int axis=-1) {
     static_assert(Kokkos::is_view<InViewType>::value,
                 "KokkosFFT::irfft: InViewType is not a Kokkos::View.");
     static_assert(Kokkos::is_view<OutViewType>::value,
@@ -148,7 +148,7 @@ namespace KokkosFFT {
 
 namespace KokkosFFT {
   template <typename InViewType, typename OutViewType>
-  void fft2(const InViewType& in, OutViewType& out, FFT_Normalization norm=FFT_Normalization::BACKWARD, axis_type<2> axes={-2, -1}) {
+  void fft2(const InViewType& in, OutViewType& out, KokkosFFT::Normalization norm=KokkosFFT::Normalization::BACKWARD, axis_type<2> axes={-2, -1}) {
     static_assert(Kokkos::is_view<InViewType>::value,
                 "KokkosFFT::fft2: InViewType is not a Kokkos::View.");
     static_assert(Kokkos::is_view<OutViewType>::value,
@@ -171,7 +171,7 @@ namespace KokkosFFT {
   }
 
   template <typename InViewType, typename OutViewType>
-  void ifft2(const InViewType& in, OutViewType& out, FFT_Normalization norm=FFT_Normalization::BACKWARD, axis_type<2> axes={-2, -1}) {
+  void ifft2(const InViewType& in, OutViewType& out, KokkosFFT::Normalization norm=KokkosFFT::Normalization::BACKWARD, axis_type<2> axes={-2, -1}) {
     static_assert(Kokkos::is_view<InViewType>::value,
                 "KokkosFFT::ifft2: InViewType is not a Kokkos::View.");
     static_assert(Kokkos::is_view<OutViewType>::value,
@@ -194,7 +194,7 @@ namespace KokkosFFT {
   }
 
   template <typename InViewType, typename OutViewType>
-  void rfft2(const InViewType& in, OutViewType& out, FFT_Normalization norm=FFT_Normalization::BACKWARD, axis_type<2> axes={-2, -1}) {
+  void rfft2(const InViewType& in, OutViewType& out, KokkosFFT::Normalization norm=KokkosFFT::Normalization::BACKWARD, axis_type<2> axes={-2, -1}) {
     static_assert(Kokkos::is_view<InViewType>::value,
                 "KokkosFFT::rfft2: InViewType is not a Kokkos::View.");
     static_assert(Kokkos::is_view<OutViewType>::value,
@@ -212,7 +212,7 @@ namespace KokkosFFT {
   }
 
   template <typename InViewType, typename OutViewType>
-  void irfft2(const InViewType& in, OutViewType& out, FFT_Normalization norm=FFT_Normalization::BACKWARD, axis_type<2> axes={-2, -1}) {
+  void irfft2(const InViewType& in, OutViewType& out, KokkosFFT::Normalization norm=KokkosFFT::Normalization::BACKWARD, axis_type<2> axes={-2, -1}) {
     static_assert(Kokkos::is_view<InViewType>::value,
                 "KokkosFFT::irfft2: InViewType is not a Kokkos::View.");
     static_assert(Kokkos::is_view<OutViewType>::value,
@@ -232,7 +232,7 @@ namespace KokkosFFT {
 
 namespace KokkosFFT {
   template <typename InViewType, typename OutViewType>
-  void fftn(const InViewType& in, OutViewType& out, FFT_Normalization norm=FFT_Normalization::BACKWARD) {
+  void fftn(const InViewType& in, OutViewType& out, KokkosFFT::Normalization norm=KokkosFFT::Normalization::BACKWARD) {
     static_assert(Kokkos::is_view<InViewType>::value,
                 "KokkosFFT::fftn: InViewType is not a Kokkos::View.");
     static_assert(Kokkos::is_view<OutViewType>::value,
@@ -260,7 +260,7 @@ namespace KokkosFFT {
   }
 
   template <typename InViewType, typename OutViewType, std::size_t DIM=1>
-  void fftn(const InViewType& in, OutViewType& out, axis_type<DIM> axes, FFT_Normalization norm=FFT_Normalization::BACKWARD) {
+  void fftn(const InViewType& in, OutViewType& out, axis_type<DIM> axes, KokkosFFT::Normalization norm=KokkosFFT::Normalization::BACKWARD) {
     static_assert(Kokkos::is_view<InViewType>::value,
                 "KokkosFFT::fftn: InViewType is not a Kokkos::View.");
     static_assert(Kokkos::is_view<OutViewType>::value,
@@ -283,7 +283,7 @@ namespace KokkosFFT {
   }
 
   template <typename InViewType, typename OutViewType>
-  void ifftn(const InViewType& in, OutViewType& out, FFT_Normalization norm=FFT_Normalization::BACKWARD) {
+  void ifftn(const InViewType& in, OutViewType& out, KokkosFFT::Normalization norm=KokkosFFT::Normalization::BACKWARD) {
     static_assert(Kokkos::is_view<InViewType>::value,
                 "KokkosFFT::ifftn: InViewType is not a Kokkos::View.");
     static_assert(Kokkos::is_view<OutViewType>::value,
@@ -311,7 +311,7 @@ namespace KokkosFFT {
   }
 
   template <typename InViewType, typename OutViewType, std::size_t DIM=1>
-  void ifftn(const InViewType& in, OutViewType& out, axis_type<DIM> axes, FFT_Normalization norm=FFT_Normalization::BACKWARD) {
+  void ifftn(const InViewType& in, OutViewType& out, axis_type<DIM> axes, KokkosFFT::Normalization norm=KokkosFFT::Normalization::BACKWARD) {
     static_assert(Kokkos::is_view<InViewType>::value,
                 "KokkosFFT::ifftn: InViewType is not a Kokkos::View.");
     static_assert(Kokkos::is_view<OutViewType>::value,
@@ -334,7 +334,7 @@ namespace KokkosFFT {
   }
 
   template <typename InViewType, typename OutViewType>
-  void rfftn(const InViewType& in, OutViewType& out, FFT_Normalization norm=FFT_Normalization::BACKWARD) {
+  void rfftn(const InViewType& in, OutViewType& out, KokkosFFT::Normalization norm=KokkosFFT::Normalization::BACKWARD) {
     static_assert(Kokkos::is_view<InViewType>::value,
                 "KokkosFFT::rfftn: InViewType is not a Kokkos::View.");
     static_assert(Kokkos::is_view<OutViewType>::value,
@@ -352,7 +352,7 @@ namespace KokkosFFT {
   }
 
   template <typename InViewType, typename OutViewType, std::size_t DIM=1>
-  void rfftn(const InViewType& in, OutViewType& out, axis_type<DIM> axes, FFT_Normalization norm=FFT_Normalization::BACKWARD) {
+  void rfftn(const InViewType& in, OutViewType& out, axis_type<DIM> axes, KokkosFFT::Normalization norm=KokkosFFT::Normalization::BACKWARD) {
     static_assert(Kokkos::is_view<InViewType>::value,
                 "KokkosFFT::rfftn: InViewType is not a Kokkos::View.");
     static_assert(Kokkos::is_view<OutViewType>::value,
@@ -370,7 +370,7 @@ namespace KokkosFFT {
   }
 
   template <typename InViewType, typename OutViewType>
-  void irfftn(const InViewType& in, OutViewType& out, FFT_Normalization norm=FFT_Normalization::BACKWARD) {
+  void irfftn(const InViewType& in, OutViewType& out, KokkosFFT::Normalization norm=KokkosFFT::Normalization::BACKWARD) {
     static_assert(Kokkos::is_view<InViewType>::value,
                 "KokkosFFT::irfftn: InViewType is not a Kokkos::View.");
     static_assert(Kokkos::is_view<OutViewType>::value,
@@ -388,7 +388,7 @@ namespace KokkosFFT {
   }
 
   template <typename InViewType, typename OutViewType, std::size_t DIM=1>
-  void irfftn(const InViewType& in, OutViewType& out, axis_type<DIM> axes, FFT_Normalization norm=FFT_Normalization::BACKWARD) {
+  void irfftn(const InViewType& in, OutViewType& out, axis_type<DIM> axes, KokkosFFT::Normalization norm=KokkosFFT::Normalization::BACKWARD) {
     static_assert(Kokkos::is_view<InViewType>::value,
                 "KokkosFFT::irfftn: InViewType is not a Kokkos::View.");
     static_assert(Kokkos::is_view<OutViewType>::value,
