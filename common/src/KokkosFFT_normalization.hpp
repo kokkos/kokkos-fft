@@ -1,11 +1,12 @@
-#ifndef __KOKKOSFFT_NORMALIZATION_HPP__
-#define __KOKKOSFFT_NORMALIZATION_HPP__
+#ifndef KOKKOSFFT_NORMALIZATION_HPP
+#define KOKKOSFFT_NORMALIZATION_HPP
 
+#include <tuple>
 #include "KokkosFFT_default_types.hpp"
 #include "KokkosFFT_utils.hpp"
 
 namespace KokkosFFT {
-  enum class FFT_Normalization {
+  enum class Normalization {
     FORWARD,
     BACKWARD,
     ORTHO
@@ -23,32 +24,39 @@ namespace KokkosFFT {
   }
 
   template <typename ViewType>
-  auto _coefficients(const ViewType& inout, FFTDirectionType direction, FFT_Normalization normalization, std::size_t fft_size) {
-    using value_type = real_type_t<typename ViewType::value_type>;
+  auto _coefficients(const ViewType& inout, FFTDirectionType direction, Normalization normalization, std::size_t fft_size) {
+    using value_type = real_type_t<typename ViewType::non_const_value_type>;
     value_type coef = 1;
+    bool to_normalize = false;
 
     switch (normalization) {
-    case FFT_Normalization::FORWARD:
-      coef = direction == KOKKOS_FFT_FORWARD
-             ? static_cast<value_type>(1) / static_cast<value_type>(fft_size)
-             : 1;
+    case Normalization::FORWARD:
+      if(direction == KOKKOS_FFT_FORWARD) {
+        coef = static_cast<value_type>(1) / static_cast<value_type>(fft_size);
+        to_normalize = true;
+      }
+
       break;
-    case FFT_Normalization::BACKWARD:
-      coef = direction == KOKKOS_FFT_BACKWARD
-             ? static_cast<value_type>(1) / static_cast<value_type>(fft_size)
-             : 1;
+    case Normalization::BACKWARD:
+      if(direction == KOKKOS_FFT_BACKWARD) {
+        coef = static_cast<value_type>(1) / static_cast<value_type>(fft_size);
+        to_normalize = true;
+      }
+
       break;
-    case FFT_Normalization::ORTHO:
+    case Normalization::ORTHO:
       coef = static_cast<value_type>(1) / Kokkos::sqrt(static_cast<value_type>(fft_size));
+      to_normalize = true;
+
       break;
     };
-    return coef;
+    return std::tuple<value_type, bool> ({coef, to_normalize});
   }
 
   template <typename ViewType>
-  void normalize(ViewType& inout, FFTDirectionType direction, FFT_Normalization normalization, std::size_t fft_size) {
-    auto coef = _coefficients(inout, direction, normalization, fft_size);
-    _normalize(inout, coef);
+  void normalize(ViewType& inout, FFTDirectionType direction, Normalization normalization, std::size_t fft_size) {
+    auto [coef, to_normalize] = _coefficients(inout, direction, normalization, fft_size);
+    if(to_normalize) _normalize(inout, coef);
   }
 };
 

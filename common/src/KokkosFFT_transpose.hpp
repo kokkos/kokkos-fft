@@ -1,5 +1,5 @@
-#ifndef __KOKKOSFFT_TRANSPOSE_HPP__
-#define __KOKKOSFFT_TRANSPOSE_HPP__
+#ifndef KOKKOSFFT_TRANSPOSE_HPP
+#define KOKKOSFFT_TRANSPOSE_HPP
 
 #include <numeric>
 #include <tuple>

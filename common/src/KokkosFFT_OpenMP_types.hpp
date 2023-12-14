@@ -1,5 +1,5 @@
-#ifndef __KOKKOSFFT_OPENMP_TYPES_HPP__
-#define __KOKKOSFFT_OPENMP_TYPES_HPP__
+#ifndef KOKKOSFFT_OPENMP_TYPES_HPP
+#define KOKKOSFFT_OPENMP_TYPES_HPP
 
 #include <fftw3.h>
 #include "KokkosFFT_utils.hpp"

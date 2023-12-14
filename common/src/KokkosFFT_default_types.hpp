@@ -1,5 +1,5 @@
-#ifndef __KOKKOSFFT_DEFAULT_TYPES_HPP__
-#define __KOKKOSFFT_DEFAULT_TYPES_HPP__
+#ifndef KOKKOSFFT_DEFAULT_TYPES_HPP
+#define KOKKOSFFT_DEFAULT_TYPES_HPP
 
 #include <Kokkos_Core.hpp>
 

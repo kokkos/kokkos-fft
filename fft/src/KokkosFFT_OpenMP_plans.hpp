@@ -1,5 +1,5 @@
-#ifndef __KOKKOSFFT_OPENMP_PLANS_HPP__
-#define __KOKKOSFFT_OPENMP_PLANS_HPP__
+#ifndef KOKKOSFFT_OPENMP_PLANS_HPP
+#define KOKKOSFFT_OPENMP_PLANS_HPP
 
 #include <numeric>
 #include "KokkosFFT_OpenMP_types.hpp"
@@ -57,6 +57,7 @@ namespace KokkosFFT {
                                      istride,
                                      idist,
                                      odata,
+                                     out_extents.data(),
                                      ostride,
                                      odist,
                                      FFTW_ESTIMATE

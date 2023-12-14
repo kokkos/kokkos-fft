@@ -1,5 +1,5 @@
-#ifndef __KOKKOSFFT_LAYOUTS_HPP__
-#define __KOKKOSFFT_LAYOUTS_HPP__
+#ifndef KOKKOSFFT_LAYOUTS_HPP
+#define KOKKOSFFT_LAYOUTS_HPP
 
 
 #include <vector>
