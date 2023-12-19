@@ -79,13 +79,13 @@ namespace KokkosFFT {
     return get_map_axes(view, axis_type<1>({axis}));
   }
 
-  template <typename InViewType, typename OutViewType,
+  template <typename ExecutionSpace, typename InViewType, typename OutViewType,
             std::enable_if_t<InViewType::rank()==1, std::nullptr_t> = nullptr>
-  void _transpose(InViewType& in, OutViewType& out, [[maybe_unused]] axis_type<1> _map) {
+  void _transpose(const ExecutionSpace& exec_space, InViewType& in, OutViewType& out, [[maybe_unused]] axis_type<1> _map) {
   }
 
-  template <typename InViewType, typename OutViewType>
-  void _transpose(InViewType& in, OutViewType& out, axis_type<2> _map) {
+  template <typename ExecutionSpace, typename InViewType, typename OutViewType>
+  void _transpose(const ExecutionSpace& exec_space, InViewType& in, OutViewType& out, axis_type<2> _map) {
     constexpr std::size_t DIM = 2;
     static_assert(InViewType::rank() == DIM,
                   "KokkosFFT::_transpose: Rank of View must be equal to Rank of transpose axes.");
@@ -93,7 +93,7 @@ namespace KokkosFFT {
     constexpr std::size_t rank = InViewType::rank();
     using array_layout_type = typename InViewType::array_layout;
 
-    using range_type = Kokkos::MDRangePolicy< Kokkos::Rank<DIM, Kokkos::Iterate::Default, Kokkos::Iterate::Default> >;
+    using range_type = Kokkos::MDRangePolicy<ExecutionSpace,  Kokkos::Rank<DIM, Kokkos::Iterate::Default, Kokkos::Iterate::Default> >;
     using tile_type = typename range_type::tile_type;
     using point_type = typename range_type::point_type;
 
@@ -126,15 +126,15 @@ namespace KokkosFFT {
     );
   }
 
-  template <typename InViewType, typename OutViewType>
-  void _transpose(InViewType& in, OutViewType& out, axis_type<3> _map) {
+  template <typename ExecutionSpace, typename InViewType, typename OutViewType>
+  void _transpose(const ExecutionSpace& exec_space, InViewType& in, OutViewType& out, axis_type<3> _map) {
     constexpr std::size_t DIM = 3;
     static_assert(InViewType::rank() == DIM,
                   "KokkosFFT::_transpose: Rank of View must be equal to Rank of transpose axes.");
     constexpr std::size_t rank = InViewType::rank();
     using array_layout_type = typename InViewType::array_layout;
 
-    using range_type = Kokkos::MDRangePolicy< Kokkos::Rank<DIM, Kokkos::Iterate::Default, Kokkos::Iterate::Default> >;
+    using range_type = Kokkos::MDRangePolicy<ExecutionSpace, Kokkos::Rank<DIM, Kokkos::Iterate::Default, Kokkos::Iterate::Default> >;
     using tile_type = typename range_type::tile_type;
     using point_type = typename range_type::point_type;
 
@@ -197,8 +197,8 @@ namespace KokkosFFT {
           D (5, 7) and axis = -1 -> D' (5, 7)
    *
   */
-  template <typename InViewType, typename OutViewType, std::size_t DIM = 1>
-  void transpose(InViewType& in, OutViewType& out, axis_type<DIM> _map) {
+  template <typename ExecutionSpace, typename InViewType, typename OutViewType, std::size_t DIM = 1>
+  void transpose(const ExecutionSpace& exec_space, InViewType& in, OutViewType& out, axis_type<DIM> _map) {
     using in_value_type = typename InViewType::non_const_value_type;
     using out_value_type = typename OutViewType::non_const_value_type;
     using array_layout_type = typename InViewType::array_layout;
@@ -215,7 +215,7 @@ namespace KokkosFFT {
       throw std::runtime_error("KokkosFFT::transpose: transpose not necessary");
     }
 
-    _transpose(in, out, _map);
+    _transpose(exec_space, in, out, _map);
   }
 };
 

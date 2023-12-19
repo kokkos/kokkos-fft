@@ -289,7 +289,7 @@ void test_transpose_1d() {
   Kokkos::fence();
 
   EXPECT_THROW(
-    KokkosFFT::transpose(x, xt, axes_type<1>({0})),
+    KokkosFFT::transpose(execution_space(), x, xt, axes_type<1>({0})),
     std::runtime_error
   );
 }
@@ -325,11 +325,11 @@ TEST(Transpose, 2DLeftView) {
   Kokkos::fence();
 
   EXPECT_THROW(
-    KokkosFFT::transpose(x, xt_axis0, axes_type<2>({0, 1})), // xt is identical to x
+    KokkosFFT::transpose(execution_space(), x, xt_axis0, axes_type<2>({0, 1})), // xt is identical to x
     std::runtime_error
   );
 
-  KokkosFFT::transpose(x, xt_axis1, axes_type<2>({1, 0})); // xt is the transpose of x
+  KokkosFFT::transpose(execution_space(), x, xt_axis1, axes_type<2>({1, 0})); // xt is the transpose of x
   EXPECT_TRUE( allclose(xt_axis1, ref_axis1, 1.e-5, 1.e-12) );
 }
 
@@ -354,11 +354,11 @@ TEST(Transpose, 2DRightView) {
   Kokkos::deep_copy(ref_axis0, h_ref_axis0);
   Kokkos::fence();
 
-  KokkosFFT::transpose(x, xt_axis0, axes_type<2>({1, 0})); // xt is the transpose of x
+  KokkosFFT::transpose(execution_space(), x, xt_axis0, axes_type<2>({1, 0})); // xt is the transpose of x
   EXPECT_TRUE( allclose(xt_axis0, ref_axis0, 1.e-5, 1.e-12) );
 
   EXPECT_THROW(
-    KokkosFFT::transpose(x, xt_axis1, axes_type<2>({0, 1})), // xt is identical to x
+    KokkosFFT::transpose(execution_space(), x, xt_axis1, axes_type<2>({0, 1})), // xt is identical to x
     std::runtime_error
   );
 }
@@ -404,23 +404,23 @@ TEST(Transpose, 3DLeftView) {
   Kokkos::fence();
 
   EXPECT_THROW(
-    KokkosFFT::transpose(x, xt_axis012, axes_type<3>({0, 1, 2})), // xt is identical to x
+    KokkosFFT::transpose(execution_space(), x, xt_axis012, axes_type<3>({0, 1, 2})), // xt is identical to x
     std::runtime_error
   );
 
-  KokkosFFT::transpose(x, xt_axis021, axes_type<3>({0, 2, 1})); // xt is the transpose of x
+  KokkosFFT::transpose(execution_space(), x, xt_axis021, axes_type<3>({0, 2, 1})); // xt is the transpose of x
   EXPECT_TRUE( allclose(xt_axis021, ref_axis021, 1.e-5, 1.e-12) );
 
-  KokkosFFT::transpose(x, xt_axis102, axes_type<3>({1, 0, 2})); // xt is the transpose of x
+  KokkosFFT::transpose(execution_space(), x, xt_axis102, axes_type<3>({1, 0, 2})); // xt is the transpose of x
   EXPECT_TRUE( allclose(xt_axis102, ref_axis102, 1.e-5, 1.e-12) );
 
-  KokkosFFT::transpose(x, xt_axis120, axes_type<3>({1, 2, 0})); // xt is the transpose of x
+  KokkosFFT::transpose(execution_space(), x, xt_axis120, axes_type<3>({1, 2, 0})); // xt is the transpose of x
   EXPECT_TRUE( allclose(xt_axis120, ref_axis120, 1.e-5, 1.e-12) );
 
-  KokkosFFT::transpose(x, xt_axis201, axes_type<3>({2, 0, 1})); // xt is the transpose of x
+  KokkosFFT::transpose(execution_space(), x, xt_axis201, axes_type<3>({2, 0, 1})); // xt is the transpose of x
   EXPECT_TRUE( allclose(xt_axis201, ref_axis201, 1.e-5, 1.e-12) );
 
-  KokkosFFT::transpose(x, xt_axis210, axes_type<3>({2, 1, 0})); // xt is the transpose of x
+  KokkosFFT::transpose(execution_space(), x, xt_axis210, axes_type<3>({2, 1, 0})); // xt is the transpose of x
   EXPECT_TRUE( allclose(xt_axis210, ref_axis210, 1.e-5, 1.e-12) );
 }
 
@@ -465,22 +465,22 @@ TEST(Transpose, 3DRightView) {
   Kokkos::fence();
 
   EXPECT_THROW(
-    KokkosFFT::transpose(x, xt_axis012, axes_type<3>({0, 1, 2})), // xt is identical to x
+    KokkosFFT::transpose(execution_space(), x, xt_axis012, axes_type<3>({0, 1, 2})), // xt is identical to x
     std::runtime_error
   );
 
-  KokkosFFT::transpose(x, xt_axis021, axes_type<3>({0, 2, 1})); // xt is the transpose of x
+  KokkosFFT::transpose(execution_space(), x, xt_axis021, axes_type<3>({0, 2, 1})); // xt is the transpose of x
   EXPECT_TRUE( allclose(xt_axis021, ref_axis021, 1.e-5, 1.e-12) );
 
-  KokkosFFT::transpose(x, xt_axis102, axes_type<3>({1, 0, 2})); // xt is the transpose of x
+  KokkosFFT::transpose(execution_space(), x, xt_axis102, axes_type<3>({1, 0, 2})); // xt is the transpose of x
   EXPECT_TRUE( allclose(xt_axis102, ref_axis102, 1.e-5, 1.e-12) );
 
-  KokkosFFT::transpose(x, xt_axis120, axes_type<3>({1, 2, 0})); // xt is the transpose of x
+  KokkosFFT::transpose(execution_space(), x, xt_axis120, axes_type<3>({1, 2, 0})); // xt is the transpose of x
   EXPECT_TRUE( allclose(xt_axis120, ref_axis120, 1.e-5, 1.e-12) );
 
-  KokkosFFT::transpose(x, xt_axis201, axes_type<3>({2, 0, 1})); // xt is the transpose of x
+  KokkosFFT::transpose(execution_space(), x, xt_axis201, axes_type<3>({2, 0, 1})); // xt is the transpose of x
   EXPECT_TRUE( allclose(xt_axis201, ref_axis201, 1.e-5, 1.e-12) );
 
-  KokkosFFT::transpose(x, xt_axis210, axes_type<3>({2, 1, 0})); // xt is the transpose of x
+  KokkosFFT::transpose(execution_space(), x, xt_axis210, axes_type<3>({2, 1, 0})); // xt is the transpose of x
   EXPECT_TRUE( allclose(xt_axis210, ref_axis210, 1.e-5, 1.e-12) );
 }
