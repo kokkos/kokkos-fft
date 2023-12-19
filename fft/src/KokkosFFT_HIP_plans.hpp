@@ -6,10 +6,10 @@
 #include "KokkosFFT_layouts.hpp"
 
 namespace KokkosFFT {
-  // 1D transform 
-  template <typename PlanType, typename InViewType, typename OutViewType,
+  // 1D transform
+  template <typename ExecutionSpace, typename PlanType, typename InViewType, typename OutViewType,
             std::enable_if_t<InViewType::rank()==1, std::nullptr_t> = nullptr>
-  auto _create(PlanType& plan, const InViewType& in, const OutViewType& out, [[maybe_unused]] FFTDirectionType direction) {
+  auto _create(const ExecutionSpace& exec_space, PlanType& plan, const InViewType& in, const OutViewType& out, [[maybe_unused]] FFTDirectionType direction) {
     static_assert(Kokkos::is_view<InViewType>::value,
                 "KokkosFFT::_create: InViewType is not a Kokkos::View.");
     static_assert(Kokkos::is_view<InViewType>::value,
@@ -28,24 +28,24 @@ namespace KokkosFFT {
     auto [in_extents, out_extents, fft_extents] = get_extents(in, out, axis);
     const int nx = fft_extents.at(0);
     int fft_size = std::accumulate(fft_extents.begin(), fft_extents.end(), 1, std::multiplies<>());
-    
+
     hipfft_rt = hipfftPlan1d(&plan, nx, type, batch);
     if(hipfft_rt != HIPFFT_SUCCESS)
       throw std::runtime_error("hipfftPlan1d failed");
     return fft_size;
   }
 
-  // 2D transform 
-  template <typename PlanType, typename InViewType, typename OutViewType,
+  // 2D transform
+  template <typename ExecutionSpace, typename PlanType, typename InViewType, typename OutViewType,
             std::enable_if_t<InViewType::rank()==2, std::nullptr_t> = nullptr>
-  auto _create(PlanType& plan, const InViewType& in, const OutViewType& out, [[maybe_unused]] FFTDirectionType direction) {
+  auto _create(const ExecutionSpace& exec_space, PlanType& plan, const InViewType& in, const OutViewType& out, [[maybe_unused]] FFTDirectionType direction) {
     static_assert(Kokkos::is_view<InViewType>::value,
                 "KokkosFFT::_create: InViewType is not a Kokkos::View.");
     static_assert(Kokkos::is_view<InViewType>::value,
                 "KokkosFFT::_create: OutViewType is not a Kokkos::View.");
     using in_value_type = typename InViewType::non_const_value_type;
     using out_value_type = typename OutViewType::non_const_value_type;
-    
+
     hipfftResult hipfft_rt = hipfftCreate(&plan);
     if(hipfft_rt != HIPFFT_SUCCESS)
       throw std::runtime_error("hipfftCreate failed");
@@ -62,10 +62,10 @@ namespace KokkosFFT {
     return fft_size;
   }
 
-  // 3D transform 
-  template <typename PlanType, typename InViewType, typename OutViewType,
+  // 3D transform
+  template <typename ExecutionSpace, typename PlanType, typename InViewType, typename OutViewType,
             std::enable_if_t<InViewType::rank()==3, std::nullptr_t> = nullptr>
-  auto _create(PlanType& plan, const InViewType& in, const OutViewType& out, [[maybe_unused]] FFTDirectionType direction) {
+  auto _create(const ExecutionSpace& exec_space, PlanType& plan, const InViewType& in, const OutViewType& out, [[maybe_unused]] FFTDirectionType direction) {
     static_assert(Kokkos::is_view<InViewType>::value,
                 "KokkosFFT::_create: InViewType is not a Kokkos::View.");
     static_assert(Kokkos::is_view<InViewType>::value,
@@ -82,7 +82,7 @@ namespace KokkosFFT {
 
     auto type = transform_type<in_value_type, out_value_type>::type();
     auto [in_extents, out_extents, fft_extents] = get_extents(in, out, axis);
-    
+
     const int nx = fft_extents.at(0), ny = fft_extents.at(1), nz = fft_extents.at(2);
     int fft_size = std::accumulate(fft_extents.begin(), fft_extents.end(), 1, std::multiplies<>());
 
@@ -92,10 +92,10 @@ namespace KokkosFFT {
     return fft_size;
   }
 
-  // ND transform 
-  template <typename PlanType, typename InViewType, typename OutViewType,
+  // ND transform
+  template <typename ExecutionSpace, typename PlanType, typename InViewType, typename OutViewType,
             std::enable_if_t< std::isgreater(InViewType::rank(), 3), std::nullptr_t> = nullptr>
-  auto _create(PlanType& plan, const InViewType& in, const OutViewType& out, [[maybe_unused]] FFTDirectionType direction) {
+  auto _create(const ExecutionSpace& exec_space, PlanType& plan, const InViewType& in, const OutViewType& out, [[maybe_unused]] FFTDirectionType direction) {
     static_assert(Kokkos::is_view<InViewType>::value,
                 "KokkosFFT::_create: InViewType is not a Kokkos::View.");
     static_assert(Kokkos::is_view<InViewType>::value,
@@ -115,9 +115,9 @@ namespace KokkosFFT {
     int idist = std::accumulate(in_extents.begin(), in_extents.end(), 1, std::multiplies<>());
     int odist = std::accumulate(out_extents.begin(), out_extents.end(), 1, std::multiplies<>());
     int fft_size = std::accumulate(fft_extents.begin(), fft_extents.end(), 1, std::multiplies<>());
-    
+
     hipfft_rt = hipfftPlanMany(
-                 &plan, 
+                 &plan,
                  rank,
                  fft_extents.data(),
                  nullptr,
@@ -134,8 +134,8 @@ namespace KokkosFFT {
   }
 
   // batched transform, over ND Views
-  template <typename PlanType, typename InViewType, typename OutViewType, std::size_t fft_rank=1>
-  auto _create(PlanType& plan, const InViewType& in, const OutViewType& out, [[maybe_unused]] FFTDirectionType direction, axis_type<fft_rank> axes) {
+  template <typename ExecutionSpace, typename PlanType, typename InViewType, typename OutViewType, std::size_t fft_rank=1>
+  auto _create(const ExecutionSpace& exec_space, PlanType& plan, const InViewType& in, const OutViewType& out, [[maybe_unused]] FFTDirectionType direction, axis_type<fft_rank> axes) {
     static_assert(Kokkos::is_view<InViewType>::value,
                 "KokkosFFT::_create: InViewType is not a Kokkos::View.");
     static_assert(Kokkos::is_view<InViewType>::value,
@@ -163,7 +163,7 @@ namespace KokkosFFT {
       throw std::runtime_error("hipfftCreate failed");
 
     hipfft_rt = hipfftPlanMany(
-                 &plan, 
+                 &plan,
                  rank,
                  fft_extents.data(),
                  in_extents.data(),

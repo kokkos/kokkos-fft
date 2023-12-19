@@ -7,9 +7,9 @@
 
 namespace KokkosFFT {
   // 1D transform
-  template <typename PlanType, typename InViewType, typename OutViewType,
+  template <typename ExecutionSpace, typename PlanType, typename InViewType, typename OutViewType,
             std::enable_if_t<InViewType::rank()==1, std::nullptr_t> = nullptr>
-  auto _create(PlanType& plan, const InViewType& in, const OutViewType& out, [[maybe_unused]] FFTDirectionType direction) {
+  auto _create(const ExecutionSpace& exec_space, PlanType& plan, const InViewType& in, const OutViewType& out, [[maybe_unused]] FFTDirectionType direction) {
     static_assert(Kokkos::is_view<InViewType>::value,
                 "KokkosFFT::_create: InViewType is not a Kokkos::View.");
     static_assert(Kokkos::is_view<InViewType>::value,
@@ -36,9 +36,9 @@ namespace KokkosFFT {
   }
 
   // 2D transform
-  template <typename PlanType, typename InViewType, typename OutViewType,
+  template <typename ExecutionSpace, typename PlanType, typename InViewType, typename OutViewType,
             std::enable_if_t<InViewType::rank()==2, std::nullptr_t> = nullptr>
-  auto _create(PlanType& plan, const InViewType& in, const OutViewType& out, [[maybe_unused]] FFTDirectionType direction) {
+  auto _create(const ExecutionSpace& exec_space, PlanType& plan, const InViewType& in, const OutViewType& out, [[maybe_unused]] FFTDirectionType direction) {
     static_assert(Kokkos::is_view<InViewType>::value,
                 "KokkosFFT::_create: InViewType is not a Kokkos::View.");
     static_assert(Kokkos::is_view<InViewType>::value,
@@ -63,9 +63,9 @@ namespace KokkosFFT {
   }
 
   // 3D transform
-  template <typename PlanType, typename InViewType, typename OutViewType,
+  template <typename ExecutionSpace, typename PlanType, typename InViewType, typename OutViewType,
             std::enable_if_t<InViewType::rank()==3, std::nullptr_t> = nullptr>
-  auto _create(PlanType& plan, const InViewType& in, const OutViewType& out, [[maybe_unused]] FFTDirectionType direction) {
+  auto _create(const ExecutionSpace& exec_space, PlanType& plan, const InViewType& in, const OutViewType& out, [[maybe_unused]] FFTDirectionType direction) {
     static_assert(Kokkos::is_view<InViewType>::value,
                 "KokkosFFT::_create: InViewType is not a Kokkos::View.");
     static_assert(Kokkos::is_view<InViewType>::value,
@@ -92,9 +92,9 @@ namespace KokkosFFT {
   }
 
   // ND transform
-  template <typename PlanType, typename InViewType, typename OutViewType,
+  template <typename ExecutionSpace, typename PlanType, typename InViewType, typename OutViewType,
             std::enable_if_t< std::isgreater(InViewType::rank(), 3), std::nullptr_t> = nullptr>
-  auto _create(PlanType& plan, const InViewType& in, const OutViewType& out, [[maybe_unused]] FFTDirectionType direction) {
+  auto _create(const ExecutionSpace& exec_space, PlanType& plan, const InViewType& in, const OutViewType& out, [[maybe_unused]] FFTDirectionType direction) {
     static_assert(Kokkos::is_view<InViewType>::value,
                 "KokkosFFT::_create: InViewType is not a Kokkos::View.");
     static_assert(Kokkos::is_view<InViewType>::value,
@@ -133,8 +133,8 @@ namespace KokkosFFT {
   }
 
   // batched transform, over ND Views
-  template <typename PlanType, typename InViewType, typename OutViewType, std::size_t fft_rank=1>
-  auto _create(PlanType& plan, const InViewType& in, const OutViewType& out, [[maybe_unused]] FFTDirectionType direction, axis_type<fft_rank> axes) {
+  template <typename ExecutionSpace, typename PlanType, typename InViewType, typename OutViewType, std::size_t fft_rank=1>
+  auto _create(const ExecutionSpace& exec_space, PlanType& plan, const InViewType& in, const OutViewType& out, [[maybe_unused]] FFTDirectionType direction, axis_type<fft_rank> axes) {
     static_assert(Kokkos::is_view<InViewType>::value,
                 "KokkosFFT::_create: InViewType is not a Kokkos::View.");
     static_assert(Kokkos::is_view<InViewType>::value,

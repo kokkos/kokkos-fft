@@ -12,13 +12,13 @@ namespace KokkosFFT {
     ORTHO
   };
 
-  template <typename ViewType, typename T>
-  void _normalize(ViewType& inout, const T coef) {
+  template <typename ExecutionSpace, typename ViewType, typename T>
+  void _normalize(const ExecutionSpace& exec_space, ViewType& inout, const T coef) {
     std::size_t size = inout.size();
     auto* data = inout.data();
 
     Kokkos::parallel_for(
-      Kokkos::RangePolicy<Kokkos::IndexType<std::size_t>>{0, size},
+      Kokkos::RangePolicy<ExecutionSpace, Kokkos::IndexType<std::size_t>>(exec_space, 0, size),
       KOKKOS_LAMBDA(const int& i) { data[i] *= coef; }
     );
   }
@@ -53,10 +53,10 @@ namespace KokkosFFT {
     return std::tuple<value_type, bool> ({coef, to_normalize});
   }
 
-  template <typename ViewType>
-  void normalize(ViewType& inout, FFTDirectionType direction, Normalization normalization, std::size_t fft_size) {
+  template <typename ExecutionSpace, typename ViewType>
+  void normalize(const ExecutionSpace& exec_space, ViewType& inout, FFTDirectionType direction, Normalization normalization, std::size_t fft_size) {
     auto [coef, to_normalize] = _coefficients(inout, direction, normalization, fft_size);
-    if(to_normalize) _normalize(inout, coef);
+    if(to_normalize) _normalize(exec_space, inout, coef);
   }
 };
 
