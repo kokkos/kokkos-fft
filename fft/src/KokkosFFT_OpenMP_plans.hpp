@@ -6,26 +6,22 @@
 #include "KokkosFFT_layouts.hpp"
 
 namespace KokkosFFT {
-  template <typename T>
-  void _init_threads() {
-    #if defined(KOKKOS_ENABLE_OPENMP)
-      int nthreads=0;
-      #pragma omp parallel
-      nthreads = omp_get_num_threads();
+  template <typename ExecutionSpace, typename T>
+  void _init_threads(const ExecutionSpace& exec_space) {
+    int nthreads = exec_space.concurrency();
 
-      if constexpr (std::is_same_v<T, float>) {
-        fftwf_init_threads();
-        fftwf_plan_with_nthreads(nthreads);
-      } else {
-        fftw_init_threads();
-        fftw_plan_with_nthreads(nthreads);
-      }
-    #endif
+    if constexpr (std::is_same_v<T, float>) {
+      fftwf_init_threads();
+      fftwf_plan_with_nthreads(nthreads);
+    } else {
+      fftw_init_threads();
+      fftw_plan_with_nthreads(nthreads);
+    }
   }
 
   // ND transform
-  template <typename PlanType, typename InViewType, typename OutViewType>
-  auto _create(PlanType& plan, const InViewType& in, const OutViewType& out, [[maybe_unused]] FFTDirectionType sign) {
+  template <typename ExecutionSpace, typename PlanType, typename InViewType, typename OutViewType>
+  auto _create(const ExecutionSpace& exec_space, PlanType& plan, const InViewType& in, const OutViewType& out, [[maybe_unused]] FFTDirectionType sign) {
     static_assert(Kokkos::is_view<InViewType>::value,
                 "KokkosFFT::_create: InViewType is not a Kokkos::View.");
     static_assert(Kokkos::is_view<InViewType>::value,
@@ -33,7 +29,7 @@ namespace KokkosFFT {
     using in_value_type = typename InViewType::non_const_value_type;
     using out_value_type = typename OutViewType::non_const_value_type;
 
-    _init_threads<real_type_t<in_value_type>>();
+    _init_threads<ExecutionSpace, real_type_t<in_value_type>>(exec_space);
 
     const int rank = InViewType::rank();
     const int axis = -1;
@@ -140,8 +136,8 @@ namespace KokkosFFT {
   }
 
   // batched transform, over ND Views
-  template <typename PlanType, typename InViewType, typename OutViewType, std::size_t fft_rank=1>
-  auto _create(PlanType& plan, const InViewType& in, const OutViewType& out, [[maybe_unused]] FFTDirectionType sign, axis_type<fft_rank> axes) {
+  template <typename ExecutionSpace, typename PlanType, typename InViewType, typename OutViewType, std::size_t fft_rank=1>
+  auto _create(const ExecutionSpace& exec_space, PlanType& plan, const InViewType& in, const OutViewType& out, [[maybe_unused]] FFTDirectionType sign, axis_type<fft_rank> axes) {
     static_assert(Kokkos::is_view<InViewType>::value,
                   "KokkosFFT::_create: InViewType is not a Kokkos::View.");
     static_assert(Kokkos::is_view<InViewType>::value,
@@ -153,7 +149,7 @@ namespace KokkosFFT {
                   "KokkosFFT::_create: Rank of View must be larger than Rank of FFT.");
     const int rank = fft_rank;
 
-    _init_threads<real_type_t<in_value_type>>();
+    _init_threads<ExecutionSpace, real_type_t<in_value_type>>(exec_space);
 
     constexpr auto type = transform_type<in_value_type, out_value_type>::type();
     auto [in_extents, out_extents, fft_extents, howmany] = get_extents_batched(in, out, axes);
