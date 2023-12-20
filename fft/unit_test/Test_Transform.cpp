@@ -84,6 +84,37 @@ void ifft1(ViewType& in, ViewType& out) {
   );
 }
 
+using test_types = ::testing::Types<
+  std::pair<float, Kokkos::LayoutLeft>,
+  std::pair<float, Kokkos::LayoutRight>,
+  std::pair<double, Kokkos::LayoutLeft>,
+  std::pair<double, Kokkos::LayoutRight>
+>;
+
+// Basically the same fixtures, used for labeling tests
+template <typename T>
+struct FFT1D : public ::testing::Test {
+  using float_type = typename T::first_type;
+  using layout_type = typename T::second_type;
+};
+
+template <typename T>
+struct FFT2D : public ::testing::Test {
+  using float_type = typename T::first_type;
+  using layout_type = typename T::second_type;
+};
+
+template <typename T>
+struct FFTND : public ::testing::Test {
+  using float_type = typename T::first_type;
+  using layout_type = typename T::second_type;
+};
+
+TYPED_TEST_SUITE(FFT1D, test_types);
+TYPED_TEST_SUITE(FFT2D, test_types);
+TYPED_TEST_SUITE(FFTND, test_types);
+
+// Tests for 1D FFT
 template <typename T, typename LayoutType>
 void test_fft1_identity(T atol=1.0e-12) {
   const int maxlen = 30;
@@ -345,89 +376,47 @@ void test_fft1_1dfft_3dview(T atol=1.e-12) {
   EXPECT_TRUE( allclose(xr_axis2, ref_xr, 1.e-5, atol) );
 }
 
-// Identity tests of fft on 1D Views
-TEST(FFT1D, Identity_1DLeftViewFloat) {
-  test_fft1_identity<float, Kokkos::LayoutLeft>(1.0e-6);
-}
+// Identity tests on 1D Views
+TYPED_TEST(FFT1D, Identity_1DView) {
+  using float_type = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
 
-TEST(FFT1D, Identity_1DLeftViewDouble) {
-  test_fft1_identity<double, Kokkos::LayoutLeft>(1.0e-12);
-}
-
-TEST(FFT1D, Identity_1DRightViewFloat) {
-  test_fft1_identity<float, Kokkos::LayoutRight>(1.0e-6);
-}
-
-TEST(FFT1D, Identity_1DRightViewDouble) {
-  test_fft1_identity<double, Kokkos::LayoutRight>(1.0e-12);
+  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
+  test_fft1_identity<float_type, layout_type>(atol);
 }
 
 // fft on 1D Views
-TEST(FFT1D, 1DFFT_1DLeftViewFloat) {
-  test_fft1_1dfft_1dview<float, Kokkos::LayoutLeft>();
-}
+TYPED_TEST(FFT1D, FFT_1DView) {
+  using float_type = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
 
-TEST(FFT1D, 1DFFT_1DLeftViewDouble) {
-  test_fft1_1dfft_1dview<double, Kokkos::LayoutLeft>();
-}
-
-TEST(FFT1D, 1DFFT_1DRightViewFloat) {
-  test_fft1_1dfft_1dview<float, Kokkos::LayoutRight>();
-}
-
-TEST(FFT1D, 1DFFT_1DRightViewDouble) {
-  test_fft1_1dfft_1dview<double, Kokkos::LayoutRight>();
+  test_fft1_1dfft_1dview<float_type, layout_type>();
 }
 
 // ifft on 1D Views
-TEST(FFT1D, 1DIFFT_1DLeftViewFloat) {
-  test_fft1_1difft_1dview<float, Kokkos::LayoutLeft>();
-}
+TYPED_TEST(FFT1D, IFFT_1DView) {
+  using float_type = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
 
-TEST(FFT1D, 1DIFFT_1DLeftViewDouble) {
-  test_fft1_1difft_1dview<double, Kokkos::LayoutLeft>();
-}
-
-TEST(FFT1D, 1DIFFT_1DRightViewFloat) {
-  test_fft1_1difft_1dview<float, Kokkos::LayoutRight>();
-}
-
-TEST(FFT1D, 1DIFFT_1DRightViewDouble) {
-  test_fft1_1difft_1dview<double, Kokkos::LayoutRight>();
+  test_fft1_1difft_1dview<float_type, layout_type>();
 }
 
 // batced fft1 on 2D Views
-TEST(FFT1D, 1DBatchedFFT_2DLeftViewFloat) {
-  test_fft1_1dfft_2dview<float, Kokkos::LayoutLeft>(1.0e-6);
-}
+TYPED_TEST(FFT1D, FFT_batched_2DView) {
+  using float_type = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
 
-TEST(FFT1D, 1DBatchedFFT_2DLeftViewDouble) {
-  test_fft1_1dfft_2dview<double, Kokkos::LayoutLeft>(1.0e-12);
-}
-
-TEST(FFT1D, 1DBatchedFFT_2DRightViewFloat) {
-  test_fft1_1dfft_2dview<float, Kokkos::LayoutRight>(1.0e-6);
-}
-
-TEST(FFT1D, 1DBatchedFFT_2DRightViewDouble) {
-  test_fft1_1dfft_2dview<double, Kokkos::LayoutRight>(1.0e-12);
+  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
+  test_fft1_1dfft_2dview<float_type, layout_type>(atol);
 }
 
 // batced fft1 on 3D Views
-TEST(FFT1D, 1DBatchedFFT_3DLeftViewFloat) {
-  test_fft1_1dfft_3dview<float, Kokkos::LayoutLeft>(1.0e-6);
-}
+TYPED_TEST(FFT1D, FFT_batched_3DView) {
+  using float_type = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
 
-TEST(FFT1D, 1DBatchedFFT_3DLeftViewDouble) {
-  test_fft1_1dfft_3dview<double, Kokkos::LayoutLeft>(1.0e-12);
-}
-
-TEST(FFT1D, 1DBatchedFFT_3DRightViewFloat) {
-  test_fft1_1dfft_3dview<float, Kokkos::LayoutRight>(1.0e-6);
-}
-
-TEST(FFT1D, 1DBatchedFFT_3DRightViewDouble) {
-  test_fft1_1dfft_3dview<double, Kokkos::LayoutRight>(1.0e-12);
+  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
+  test_fft1_1dfft_3dview<float_type, layout_type>(atol);
 }
 
 // Tests for FFT2
@@ -579,71 +568,35 @@ void test_fft2_2dirfft_2dview() {
 }
 
 // fft2 on 2D Views
-TEST(FFT2D, 2DFFT_2DLeftViewFloat) {
-  test_fft2_2dfft_2dview<float, Kokkos::LayoutLeft>();
-}
+TYPED_TEST(FFT2D, FFT2_2DView) {
+  using float_type = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
 
-TEST(FFT2D, 2DFFT_2DLeftViewDouble) {
-  test_fft2_2dfft_2dview<double, Kokkos::LayoutLeft>();
-}
-
-TEST(FFT2D, 2DFFT_2DRightViewFloat) {
-  test_fft2_2dfft_2dview<float, Kokkos::LayoutRight>();
-}
-
-TEST(FFT2D, 2DFFT_2DRightViewDouble) {
-  test_fft2_2dfft_2dview<double, Kokkos::LayoutRight>();
+  test_fft2_2dfft_2dview<float_type, layout_type>();
 }
 
 // ifft2 on 2D Views
-TEST(FFT2D, 2DIFFT_2DLeftViewFloat) {
-  test_fft2_2difft_2dview<float, Kokkos::LayoutLeft>();
-}
+TYPED_TEST(FFT2D, IFFT2_2DView) {
+  using float_type = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
 
-TEST(FFT2D, 2DIFFT_2DLeftViewDouble) {
-  test_fft2_2difft_2dview<double, Kokkos::LayoutLeft>();
-}
-
-TEST(FFT2D, 2DIFFT_2DRightViewFloat) {
-  test_fft2_2difft_2dview<float, Kokkos::LayoutRight>();
-}
-
-TEST(FFT2D, 2DIFFT_2DRightViewDouble) {
-  test_fft2_2difft_2dview<double, Kokkos::LayoutRight>();
+  test_fft2_2difft_2dview<float_type, layout_type>();
 }
 
 // rfft2 on 2D Views
-TEST(FFT2D, 2DRFFT_2DLeftViewFloat) {
-  test_fft2_2drfft_2dview<float, Kokkos::LayoutLeft>();
-}
+TYPED_TEST(FFT2D, RFFT2_2DView) {
+  using float_type = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
 
-TEST(FFT2D, 2DRFFT_2DLeftViewDouble) {
-  test_fft2_2drfft_2dview<double, Kokkos::LayoutLeft>();
-}
-
-TEST(FFT2D, 2DRFFT_2DRightViewFloat) {
-  test_fft2_2drfft_2dview<float, Kokkos::LayoutRight>();
-}
-
-TEST(FFT2D, 2DRFFT_2DRightViewDouble) {
-  test_fft2_2drfft_2dview<double, Kokkos::LayoutRight>();
+  test_fft2_2drfft_2dview<float_type, layout_type>();
 }
 
 // irfft2 on 2D Views
-TEST(FFT2D, 2DIRFFT_2DLeftViewFloat) {
-  test_fft2_2dirfft_2dview<float, Kokkos::LayoutLeft>();
-}
+TYPED_TEST(FFT2D, IRFFT2_2DView) {
+  using float_type = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
 
-TEST(FFT2D, 2DIRFFT_2DLeftViewDouble) {
-  test_fft2_2dirfft_2dview<double, Kokkos::LayoutLeft>();
-}
-
-TEST(FFT2D, 2DIRFFT_2DRightViewFloat) {
-  test_fft2_2dirfft_2dview<float, Kokkos::LayoutRight>();
-}
-
-TEST(FFT2D, 2DIRFFT_2DRightViewDouble) {
-  test_fft2_2dirfft_2dview<double, Kokkos::LayoutRight>();
+  test_fft2_2dirfft_2dview<float_type, layout_type>();
 }
 
 // Tests for FFTN
@@ -1110,137 +1063,66 @@ void test_irfftn_3dfft_3dview() {
 }
 
 // fftn on 2D Views
-TEST(FFTN, 2DFFT_2DLeftViewFloat) {
-  test_fftn_2dfft_2dview<float, Kokkos::LayoutLeft>();
-}
+TYPED_TEST(FFTND, 2DFFT_2DView) {
+  using float_type = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
 
-TEST(FFTN, 2DFFT_2DLeftViewDouble) {
-  test_fftn_2dfft_2dview<double, Kokkos::LayoutLeft>();
-}
-
-TEST(FFTN, 2DFFT_2DRightViewFloat) {
-  test_fftn_2dfft_2dview<float, Kokkos::LayoutRight>();
-}
-
-TEST(FFTN, 2DFFT_2DRightViewDouble) {
-  test_fftn_2dfft_2dview<double, Kokkos::LayoutRight>();
+  test_fftn_2dfft_2dview<float_type, layout_type>();
 }
 
 // fftn on 3D Views
-TEST(FFTN, 3DFFT_3DLeftViewFloat) {
-  test_fftn_3dfft_3dview<float, Kokkos::LayoutLeft>(5.0e-5);
-}
+TYPED_TEST(FFTND, 3DFFT_3DView) {
+  using float_type = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
 
-TEST(FFTN, 3DFFT_3DLeftViewDouble) {
-  test_fftn_3dfft_3dview<double, Kokkos::LayoutLeft>(1.0e-6);
-}
-
-TEST(FFTN, 3DFFT_3DRightViewFloat) {
-  test_fftn_3dfft_3dview<float, Kokkos::LayoutRight>(5.0e-5);
-}
-
-TEST(FFTN, 3DFFT_3DRightViewDouble) {
-  test_fftn_3dfft_3dview<double, Kokkos::LayoutRight>(1.0e-6);
+  float_type atol = std::is_same_v<float_type, float> ? 5.0e-5 : 1.0e-6;
+  test_fftn_3dfft_3dview<float_type, layout_type>();
 }
 
 // ifftn on 2D Views
-TEST(FFTN, 2DIFFT_2DLeftViewFloat) {
-  test_ifftn_2dfft_2dview<float, Kokkos::LayoutLeft>();
-}
+TYPED_TEST(FFTND, 2DIFFT_2DView) {
+  using float_type = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
 
-TEST(FFTN, 2DIFFT_2DLeftViewDouble) {
-  test_ifftn_2dfft_2dview<double, Kokkos::LayoutLeft>();
-}
-
-TEST(FFTN, 2DIFFT_2DRightViewFloat) {
-  test_ifftn_2dfft_2dview<float, Kokkos::LayoutRight>();
-}
-
-TEST(FFTN, 2DIFFT_2DRightViewDouble) {
-  test_ifftn_2dfft_2dview<double, Kokkos::LayoutRight>();
+  test_ifftn_2dfft_2dview<float_type, layout_type>();
 }
 
 // ifftn on 3D Views
-TEST(FFTN, 3DIFFT_3DLeftViewFloat) {
-  test_ifftn_3dfft_3dview<float, Kokkos::LayoutLeft>();
-}
+TYPED_TEST(FFTND, 3DIFFT_3DView) {
+  using float_type = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
 
-TEST(FFTN, 3DIFFT_3DLeftViewDouble) {
-  test_ifftn_3dfft_3dview<double, Kokkos::LayoutLeft>();
-}
-
-TEST(FFTN, 3DIFFT_3DRightViewFloat) {
-  test_ifftn_3dfft_3dview<float, Kokkos::LayoutRight>();
-}
-
-TEST(FFTN, 3DIFFT_3DRightViewDouble) {
-  test_ifftn_3dfft_3dview<double, Kokkos::LayoutRight>();
+  test_ifftn_3dfft_3dview<float_type, layout_type>();
 }
 
 // rfftn on 2D Views
-TEST(FFTN, 2DRFFT_2DLeftViewFloat) {
-  test_rfftn_2dfft_2dview<float, Kokkos::LayoutLeft>();
-}
+TYPED_TEST(FFTND, 2DRFFT_2DView) {
+  using float_type = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
 
-TEST(FFTN, 2DRFFT_2DLeftViewDouble) {
-  test_rfftn_2dfft_2dview<double, Kokkos::LayoutLeft>();
-}
-
-TEST(FFTN, 2DRFFT_2DRightViewFloat) {
-  test_rfftn_2dfft_2dview<float, Kokkos::LayoutRight>();
-}
-
-TEST(FFTN, 2DRFFT_2DRightViewDouble) {
-  test_rfftn_2dfft_2dview<double, Kokkos::LayoutRight>();
+  test_rfftn_2dfft_2dview<float_type, layout_type>();
 }
 
 // rfftn on 3D Views
-TEST(FFTN, 3DRFFT_3DLeftViewFloat) {
-  test_rfftn_3dfft_3dview<float, Kokkos::LayoutLeft>();
-}
+TYPED_TEST(FFTND, 3DRFFT_3DView) {
+  using float_type = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
 
-TEST(FFTN, 3DRFFT_3DLeftViewDouble) {
-  test_rfftn_3dfft_3dview<double, Kokkos::LayoutLeft>();
-}
-
-TEST(FFTN, 3DRFFT_3DRightViewFloat) {
-  test_rfftn_3dfft_3dview<float, Kokkos::LayoutRight>();
-}
-
-TEST(FFTN, 3DRFFT_3DRightViewDouble) {
-  test_rfftn_3dfft_3dview<double, Kokkos::LayoutRight>();
+  test_rfftn_3dfft_3dview<float_type, layout_type>();
 }
 
 // irfftn on 2D Views
-TEST(FFTN, 2DIRFFT_2DLeftViewFloat) {
-  test_irfftn_2dfft_2dview<float, Kokkos::LayoutLeft>();
-}
+TYPED_TEST(FFTND, 2DIRFFT_2DView) {
+  using float_type = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
 
-TEST(FFTN, 2DIRFFT_2DLeftViewDouble) {
-  test_irfftn_2dfft_2dview<double, Kokkos::LayoutLeft>();
-}
-
-TEST(FFTN, 2DIRFFT_2DRightViewFloat) {
-  test_irfftn_2dfft_2dview<float, Kokkos::LayoutRight>();
-}
-
-TEST(FFTN, 2DIRFFT_2DRightViewDouble) {
-  test_irfftn_2dfft_2dview<double, Kokkos::LayoutRight>();
+  test_irfftn_2dfft_2dview<float_type, layout_type>();
 }
 
 // irfftn on 3D Views
-TEST(FFTN, 3DIRFFT_3DLeftViewFloat) {
-  test_irfftn_3dfft_3dview<float, Kokkos::LayoutLeft>();
-}
+TYPED_TEST(FFTND, 3DIRFFT_3DView) {
+  using float_type = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
 
-TEST(FFTN, 3DIRFFT_3DLeftViewDouble) {
-  test_irfftn_3dfft_3dview<double, Kokkos::LayoutLeft>();
-}
-
-TEST(FFTN, 3DIRFFT_3DRightViewFloat) {
-  test_irfftn_3dfft_3dview<float, Kokkos::LayoutRight>();
-}
-
-TEST(FFTN, 3DIRFFT_3DRightViewDouble) {
-  test_irfftn_3dfft_3dview<double, Kokkos::LayoutRight>();
+  test_irfftn_3dfft_3dview<float_type, layout_type>();
 }
