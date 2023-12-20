@@ -11,6 +11,7 @@
 #include "KokkosFFT_transpose.hpp"
 
 namespace KokkosFFT {
+namespace Impl {
   /* Input and output extents exposed to the fft library
      i.e extents are converted into Layout Right
   */
@@ -21,7 +22,7 @@ namespace KokkosFFT {
     using array_layout_type = typename InViewType::array_layout;
 
     // index map after transpose over axis
-    auto [map, map_inv] = get_map_axes(in, _axes);
+    auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(in, _axes);
 
     constexpr std::size_t rank = InViewType::rank;
     int inner_most_axis = std::is_same_v<array_layout_type, typename Kokkos::LayoutLeft> ? 0 : rank - 1;
@@ -77,7 +78,7 @@ namespace KokkosFFT {
     using array_layout_type = typename InViewType::array_layout;
 
     // index map after transpose over axis
-    auto [map, map_inv] = get_map_axes(in, _axes);
+    auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(in, _axes);
 
     static_assert(InViewType::rank() >= DIM,
                   "KokkosFFT::get_map_axes: Rank of View must be larger thane or equal to the Rank of FFT axes.");
@@ -168,6 +169,7 @@ namespace KokkosFFT {
   auto get_extents_batched(InViewType& in, OutViewType& out, int _axis) {
      return get_extents_batched(in, out, axis_type<1>{_axis});
   }
-};
+} // namespace Impl
+}; // namespace KokkosFFT
 
 #endif

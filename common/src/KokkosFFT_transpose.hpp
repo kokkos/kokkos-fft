@@ -7,6 +7,7 @@
 #include "KokkosFFT_utils.hpp"
 
 namespace KokkosFFT {
+namespace Impl {
   template <typename ViewType, std::size_t DIM>
   auto get_map_axes(const ViewType& view, axis_type<DIM> _axes) {
     static_assert(ViewType::rank() >= DIM,
@@ -20,12 +21,12 @@ namespace KokkosFFT {
     // Convert the input axes to be in the range of [0, rank-1]
     std::vector<int> axes;
     for(std::size_t i=0; i<DIM; i++) {
-      int axis = convert_negative_axis(view, _axes.at(i));
+      int axis = KokkosFFT::Impl::convert_negative_axis(view, _axes.at(i));
       axes.push_back(axis);
     }
 
     // Assert if the elements are overlapped
-    assert( ! has_duplicate_values(axes) );
+    assert( ! KokkosFFT::Impl::has_duplicate_values(axes) );
 
     // how indices are map
     // For 5D View and axes are (2,3), map would be (0, 1, 4, 2, 3)
@@ -211,12 +212,13 @@ namespace KokkosFFT {
     static_assert(InViewType::rank() == OutViewType::rank(),
                   "KokkosFFT::transpose: InViewType and OutViewType must have the same rank.");
 
-    if(!is_transpose_needed(_map)) {
+    if(!KokkosFFT::Impl::is_transpose_needed(_map)) {
       throw std::runtime_error("KokkosFFT::transpose: transpose not necessary");
     }
 
     _transpose(exec_space, in, out, _map);
   }
-};
+} // namespace Impl
+} // namespace KokkosFFT
 
 #endif

@@ -8,6 +8,7 @@
 #include <numeric>
 
 namespace KokkosFFT {
+namespace Impl {
   template <typename T>
   struct real_type {
     using type = T;
@@ -90,8 +91,7 @@ namespace KokkosFFT {
                    [=](const T sequence) -> T {return start + sequence;});
     return sequence;
   }
-
-
-};
+} // namespace Impl
+}; // namespace KokkosFFT
 
 #endif

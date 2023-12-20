@@ -24,12 +24,13 @@
 #endif
 
 namespace KokkosFFT {
+namespace Impl {
   template <typename ExecutionSpace, typename InViewType, typename OutViewType, std::size_t DIM = 1>
   class Plan {
     using in_value_type = typename InViewType::non_const_value_type;
     using out_value_type = typename OutViewType::non_const_value_type;
-    using float_type = real_type_t<in_value_type>;
-    using fft_plan_type = typename FFTPlanType< float_type >::type;
+    using float_type = KokkosFFT::Impl::real_type_t<in_value_type>;
+    using fft_plan_type = typename KokkosFFT::Impl::FFTPlanType< float_type >::type;
     using fft_size_type = std::size_t;
     using map_type = axis_type<InViewType::rank()>;
     using nonConstInViewType = std::remove_cv_t<InViewType>;
@@ -45,82 +46,26 @@ namespace KokkosFFT {
     nonConstOutViewType m_out_T;
 
   public:
-    explicit Plan(const ExecutionSpace& exec_space, InViewType& in, OutViewType& out) : m_fft_size(1), m_is_transpose_needed(false) {
-      // Available only for R2C or C2R
-      // For C2C, direction should be given by an user
+    explicit Plan(const ExecutionSpace& exec_space, InViewType& in, OutViewType& out, KokkosFFT::Impl::FFTDirectionType direction, int axis) : m_fft_size(1), m_is_transpose_needed(false) {
       static_assert(Kokkos::is_view<InViewType>::value,
                     "KokkosFFT::Plan: InViewType is not a Kokkos::View.");
       static_assert(Kokkos::is_view<OutViewType>::value,
                     "KokkosFFT::Plan: OutViewType is not a Kokkos::View.");
 
-      using in_value_type = typename InViewType::non_const_value_type;
-      using out_value_type = typename OutViewType::non_const_value_type;
-      constexpr auto type = transform_type<in_value_type, out_value_type>::type();
-      FFTDirectionType direction;
-      if constexpr (type == KOKKOS_FFT_R2C || type == KOKKOS_FFT_D2Z) {
-        direction = KOKKOS_FFT_FORWARD;
-      } else if constexpr (type == KOKKOS_FFT_C2R || type == KOKKOS_FFT_Z2D) {
-        direction = KOKKOS_FFT_BACKWARD;
-      } else {
-        throw std::runtime_error("direction not specified for Complex to Complex transform");
-      }
-
-      m_fft_size = _create(exec_space, m_plan, in, out, direction);
+      std::tie(m_map, m_map_inv) = KokkosFFT::Impl::get_map_axes(in, axis);
+      m_is_transpose_needed = KokkosFFT::Impl::is_transpose_needed(m_map);
+      m_fft_size = KokkosFFT::Impl::_create(exec_space, m_plan, in, out, direction, axis_type<1>{axis});
     }
 
-    explicit Plan(const ExecutionSpace& exec_space, InViewType& in, OutViewType& out, axis_type<DIM> axes) : m_fft_size(1), m_is_transpose_needed(false) {
-      // Available only for R2C or C2R
-      // For C2C, direction should be given by an user
+    explicit Plan(const ExecutionSpace& exec_space, InViewType& in, OutViewType& out, KokkosFFT::Impl::FFTDirectionType direction, axis_type<DIM> axes) : m_fft_size(1), m_is_transpose_needed(false) {
       static_assert(Kokkos::is_view<InViewType>::value,
                     "KokkosFFT::Plan: InViewType is not a Kokkos::View.");
       static_assert(Kokkos::is_view<OutViewType>::value,
                     "KokkosFFT::Plan: OutViewType is not a Kokkos::View.");
 
-      using in_value_type = typename InViewType::non_const_value_type;
-      using out_value_type = typename OutViewType::non_const_value_type;
-      constexpr auto type = transform_type<in_value_type, out_value_type>::type();
-      FFTDirectionType direction;
-      if constexpr (type == KOKKOS_FFT_R2C || type == KOKKOS_FFT_D2Z) {
-        direction = KOKKOS_FFT_FORWARD;
-      } else if constexpr (type == KOKKOS_FFT_C2R || type == KOKKOS_FFT_Z2D) {
-        direction = KOKKOS_FFT_BACKWARD;
-      } else {
-        throw std::runtime_error("direction not specified for Complex to Complex transform");
-      }
-
-      m_fft_size = _create(exec_space, m_plan, in, out, direction, axes);
-    }
-
-    explicit Plan(const ExecutionSpace& exec_space, InViewType& in, OutViewType& out, FFTDirectionType direction) : m_fft_size(1), m_is_transpose_needed(false) {
-      static_assert(Kokkos::is_view<InViewType>::value,
-                    "KokkosFFT::Plan: InViewType is not a Kokkos::View.");
-      static_assert(Kokkos::is_view<OutViewType>::value,
-                    "KokkosFFT::Plan: OutViewType is not a Kokkos::View.");
-
-      /* Apply FFT over entire axes or along inner most directions */
-      m_fft_size = _create(exec_space, m_plan, in, out, direction);
-    }
-
-    explicit Plan(const ExecutionSpace& exec_space, InViewType& in, OutViewType& out, FFTDirectionType direction, int axis) : m_fft_size(1), m_is_transpose_needed(false) {
-      static_assert(Kokkos::is_view<InViewType>::value,
-                    "KokkosFFT::Plan: InViewType is not a Kokkos::View.");
-      static_assert(Kokkos::is_view<OutViewType>::value,
-                    "KokkosFFT::Plan: OutViewType is not a Kokkos::View.");
-
-      std::tie(m_map, m_map_inv) = KokkosFFT::get_map_axes(in, axis);
-      m_is_transpose_needed = KokkosFFT::is_transpose_needed(m_map);
-      m_fft_size = _create(exec_space, m_plan, in, out, direction, axis_type<1>{axis});
-    }
-
-    explicit Plan(const ExecutionSpace& exec_space, InViewType& in, OutViewType& out, FFTDirectionType direction, axis_type<DIM> axes) : m_fft_size(1), m_is_transpose_needed(false) {
-      static_assert(Kokkos::is_view<InViewType>::value,
-                    "KokkosFFT::Plan: InViewType is not a Kokkos::View.");
-      static_assert(Kokkos::is_view<OutViewType>::value,
-                    "KokkosFFT::Plan: OutViewType is not a Kokkos::View.");
-
-      std::tie(m_map, m_map_inv) = KokkosFFT::get_map_axes(in, axes);
-      m_is_transpose_needed = KokkosFFT::is_transpose_needed(m_map);
-      m_fft_size = _create(exec_space, m_plan, in, out, direction, axes);
+      std::tie(m_map, m_map_inv) = KokkosFFT::Impl::get_map_axes(in, axes);
+      m_is_transpose_needed = KokkosFFT::Impl::is_transpose_needed(m_map);
+      m_fft_size = KokkosFFT::Impl::_create(exec_space, m_plan, in, out, direction, axes);
     }
 
     ~Plan() {
@@ -135,6 +80,7 @@ namespace KokkosFFT {
     nonConstInViewType& in_T() { return m_in_T; }
     nonConstOutViewType& out_T() { return m_out_T; }
   };
-};
+} // namespace Impl
+}; // namespace KokkosFFT
 
 #endif

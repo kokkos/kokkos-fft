@@ -13,8 +13,8 @@ void test_map_axes1d() {
   using RealView1Dtype = Kokkos::View<double*, LayoutType, execution_space>;
   RealView1Dtype x("x", len);
 
-  auto [map_axis, map_inv_axis] = KokkosFFT::get_map_axes(x, /*axis=*/0);
-  auto [map_axes, map_inv_axes] = KokkosFFT::get_map_axes(x, /*axes=*/ axes_type<1>({0}));
+  auto [map_axis, map_inv_axis] = KokkosFFT::Impl::get_map_axes(x, /*axis=*/0);
+  auto [map_axes, map_inv_axes] = KokkosFFT::Impl::get_map_axes(x, /*axes=*/ axes_type<1>({0}));
 
   axes_type<1> ref_map_axis = {0};
   axes_type<1> ref_map_axes = {0};
@@ -39,16 +39,16 @@ void test_map_axes2d() {
   using RealView2Dtype = Kokkos::View<double**, LayoutType, execution_space>;
   RealView2Dtype x("x", n0, n1);
 
-  auto [map_axis_0, map_inv_axis_0]               = KokkosFFT::get_map_axes(x, /*axis=*/0);
-  auto [map_axis_1, map_inv_axis_1]               = KokkosFFT::get_map_axes(x, /*axis=*/1);
-  auto [map_axis_minus1, map_inv_axis_minus1]     = KokkosFFT::get_map_axes(x, /*axis=*/-1);
-  auto [map_axes_0, map_inv_axes_0]               = KokkosFFT::get_map_axes(x, /*axes=*/ axes_type<1>({0}));
-  auto [map_axes_1, map_inv_axes_1]               = KokkosFFT::get_map_axes(x, /*axes=*/ axes_type<1>({1}));
-  auto [map_axes_minus1, map_inv_axes_minus1]     = KokkosFFT::get_map_axes(x, /*axes=*/ axes_type<1>({-1}));
-  auto [map_axes_0_minus1, map_inv_axes_0_minus1] = KokkosFFT::get_map_axes(x, /*axes=*/ axes_type<2>({0, -1}));
-  auto [map_axes_minus1_0, map_inv_axes_minus1_0] = KokkosFFT::get_map_axes(x, /*axes=*/ axes_type<2>({-1, 0}));
-  auto [map_axes_0_1, map_inv_axes_0_1]           = KokkosFFT::get_map_axes(x, /*axes=*/ axes_type<2>({0, 1}));
-  auto [map_axes_1_0, map_inv_axes_1_0]           = KokkosFFT::get_map_axes(x, /*axes=*/ axes_type<2>({1, 0}));
+  auto [map_axis_0, map_inv_axis_0]               = KokkosFFT::Impl::get_map_axes(x, /*axis=*/0);
+  auto [map_axis_1, map_inv_axis_1]               = KokkosFFT::Impl::get_map_axes(x, /*axis=*/1);
+  auto [map_axis_minus1, map_inv_axis_minus1]     = KokkosFFT::Impl::get_map_axes(x, /*axis=*/-1);
+  auto [map_axes_0, map_inv_axes_0]               = KokkosFFT::Impl::get_map_axes(x, /*axes=*/ axes_type<1>({0}));
+  auto [map_axes_1, map_inv_axes_1]               = KokkosFFT::Impl::get_map_axes(x, /*axes=*/ axes_type<1>({1}));
+  auto [map_axes_minus1, map_inv_axes_minus1]     = KokkosFFT::Impl::get_map_axes(x, /*axes=*/ axes_type<1>({-1}));
+  auto [map_axes_0_minus1, map_inv_axes_0_minus1] = KokkosFFT::Impl::get_map_axes(x, /*axes=*/ axes_type<2>({0, -1}));
+  auto [map_axes_minus1_0, map_inv_axes_minus1_0] = KokkosFFT::Impl::get_map_axes(x, /*axes=*/ axes_type<2>({-1, 0}));
+  auto [map_axes_0_1, map_inv_axes_0_1]           = KokkosFFT::Impl::get_map_axes(x, /*axes=*/ axes_type<2>({0, 1}));
+  auto [map_axes_1_0, map_inv_axes_1_0]           = KokkosFFT::Impl::get_map_axes(x, /*axes=*/ axes_type<2>({1, 0}));
 
   axes_type<2> ref_map_axis_0, ref_map_inv_axis_0;
   axes_type<2> ref_map_axis_1, ref_map_inv_axis_1;
@@ -129,27 +129,27 @@ void test_map_axes3d() {
   using RealView3Dtype = Kokkos::View<double***, LayoutType, execution_space>;
   RealView3Dtype x("x", n0, n1, n2);
 
-  auto [map_axis_0, map_inv_axis_0]    = KokkosFFT::get_map_axes(x, 0);
-  auto [map_axis_1, map_inv_axis_1]    = KokkosFFT::get_map_axes(x, 1);
-  auto [map_axis_2, map_inv_axis_2]    = KokkosFFT::get_map_axes(x, 2);
-  auto [map_axes_0, map_inv_axes_0]    = KokkosFFT::get_map_axes(x, axes_type<1>({0}));
-  auto [map_axes_1, map_inv_axes_1]    = KokkosFFT::get_map_axes(x, axes_type<1>({1}));
-  auto [map_axes_2, map_inv_axes_2]    = KokkosFFT::get_map_axes(x, axes_type<1>({2}));
+  auto [map_axis_0, map_inv_axis_0]    = KokkosFFT::Impl::get_map_axes(x, 0);
+  auto [map_axis_1, map_inv_axis_1]    = KokkosFFT::Impl::get_map_axes(x, 1);
+  auto [map_axis_2, map_inv_axis_2]    = KokkosFFT::Impl::get_map_axes(x, 2);
+  auto [map_axes_0, map_inv_axes_0]    = KokkosFFT::Impl::get_map_axes(x, axes_type<1>({0}));
+  auto [map_axes_1, map_inv_axes_1]    = KokkosFFT::Impl::get_map_axes(x, axes_type<1>({1}));
+  auto [map_axes_2, map_inv_axes_2]    = KokkosFFT::Impl::get_map_axes(x, axes_type<1>({2}));
 
-  auto [map_axes_0_1, map_inv_axes_0_1] = KokkosFFT::get_map_axes(x, axes_type<2>({0, 1}));
-  auto [map_axes_0_2, map_inv_axes_0_2] = KokkosFFT::get_map_axes(x, axes_type<2>({0, 2}));
-  auto [map_axes_1_0, map_inv_axes_1_0] = KokkosFFT::get_map_axes(x, axes_type<2>({1, 0}));
-  auto [map_axes_1_2, map_inv_axes_1_2] = KokkosFFT::get_map_axes(x, axes_type<2>({1, 2}));
-  auto [map_axes_2_0, map_inv_axes_2_0] = KokkosFFT::get_map_axes(x, axes_type<2>({2, 0}));
-  auto [map_axes_2_1, map_inv_axes_2_1] = KokkosFFT::get_map_axes(x, axes_type<2>({2, 1}));
+  auto [map_axes_0_1, map_inv_axes_0_1] = KokkosFFT::Impl::get_map_axes(x, axes_type<2>({0, 1}));
+  auto [map_axes_0_2, map_inv_axes_0_2] = KokkosFFT::Impl::get_map_axes(x, axes_type<2>({0, 2}));
+  auto [map_axes_1_0, map_inv_axes_1_0] = KokkosFFT::Impl::get_map_axes(x, axes_type<2>({1, 0}));
+  auto [map_axes_1_2, map_inv_axes_1_2] = KokkosFFT::Impl::get_map_axes(x, axes_type<2>({1, 2}));
+  auto [map_axes_2_0, map_inv_axes_2_0] = KokkosFFT::Impl::get_map_axes(x, axes_type<2>({2, 0}));
+  auto [map_axes_2_1, map_inv_axes_2_1] = KokkosFFT::Impl::get_map_axes(x, axes_type<2>({2, 1}));
 
-  auto [map_axes_0_1_2, map_inv_axes_0_1_2] = KokkosFFT::get_map_axes(x, axes_type<3>({0, 1, 2}));
-  auto [map_axes_0_2_1, map_inv_axes_0_2_1] = KokkosFFT::get_map_axes(x, axes_type<3>({0, 2, 1}));
+  auto [map_axes_0_1_2, map_inv_axes_0_1_2] = KokkosFFT::Impl::get_map_axes(x, axes_type<3>({0, 1, 2}));
+  auto [map_axes_0_2_1, map_inv_axes_0_2_1] = KokkosFFT::Impl::get_map_axes(x, axes_type<3>({0, 2, 1}));
 
-  auto [map_axes_1_0_2, map_inv_axes_1_0_2] = KokkosFFT::get_map_axes(x, axes_type<3>({1, 0, 2}));
-  auto [map_axes_1_2_0, map_inv_axes_1_2_0] = KokkosFFT::get_map_axes(x, axes_type<3>({1, 2, 0}));
-  auto [map_axes_2_0_1, map_inv_axes_2_0_1] = KokkosFFT::get_map_axes(x, axes_type<3>({2, 0, 1}));
-  auto [map_axes_2_1_0, map_inv_axes_2_1_0] = KokkosFFT::get_map_axes(x, axes_type<3>({2, 1, 0}));
+  auto [map_axes_1_0_2, map_inv_axes_1_0_2] = KokkosFFT::Impl::get_map_axes(x, axes_type<3>({1, 0, 2}));
+  auto [map_axes_1_2_0, map_inv_axes_1_2_0] = KokkosFFT::Impl::get_map_axes(x, axes_type<3>({1, 2, 0}));
+  auto [map_axes_2_0_1, map_inv_axes_2_0_1] = KokkosFFT::Impl::get_map_axes(x, axes_type<3>({2, 0, 1}));
+  auto [map_axes_2_1_0, map_inv_axes_2_1_0] = KokkosFFT::Impl::get_map_axes(x, axes_type<3>({2, 1, 0}));
 
   axes_type<3> ref_map_axis_0, ref_map_inv_axis_0;
   axes_type<3> ref_map_axis_1, ref_map_inv_axis_1;
@@ -289,7 +289,7 @@ void test_transpose_1d() {
   Kokkos::fence();
 
   EXPECT_THROW(
-    KokkosFFT::transpose(execution_space(), x, xt, axes_type<1>({0})),
+    KokkosFFT::Impl::transpose(execution_space(), x, xt, axes_type<1>({0})),
     std::runtime_error
   );
 }
@@ -325,11 +325,11 @@ TEST(Transpose, 2DLeftView) {
   Kokkos::fence();
 
   EXPECT_THROW(
-    KokkosFFT::transpose(execution_space(), x, xt_axis0, axes_type<2>({0, 1})), // xt is identical to x
+    KokkosFFT::Impl::transpose(execution_space(), x, xt_axis0, axes_type<2>({0, 1})), // xt is identical to x
     std::runtime_error
   );
 
-  KokkosFFT::transpose(execution_space(), x, xt_axis1, axes_type<2>({1, 0})); // xt is the transpose of x
+  KokkosFFT::Impl::transpose(execution_space(), x, xt_axis1, axes_type<2>({1, 0})); // xt is the transpose of x
   EXPECT_TRUE( allclose(xt_axis1, ref_axis1, 1.e-5, 1.e-12) );
 }
 
@@ -354,11 +354,11 @@ TEST(Transpose, 2DRightView) {
   Kokkos::deep_copy(ref_axis0, h_ref_axis0);
   Kokkos::fence();
 
-  KokkosFFT::transpose(execution_space(), x, xt_axis0, axes_type<2>({1, 0})); // xt is the transpose of x
+  KokkosFFT::Impl::transpose(execution_space(), x, xt_axis0, axes_type<2>({1, 0})); // xt is the transpose of x
   EXPECT_TRUE( allclose(xt_axis0, ref_axis0, 1.e-5, 1.e-12) );
 
   EXPECT_THROW(
-    KokkosFFT::transpose(execution_space(), x, xt_axis1, axes_type<2>({0, 1})), // xt is identical to x
+    KokkosFFT::Impl::transpose(execution_space(), x, xt_axis1, axes_type<2>({0, 1})), // xt is identical to x
     std::runtime_error
   );
 }
@@ -404,23 +404,23 @@ TEST(Transpose, 3DLeftView) {
   Kokkos::fence();
 
   EXPECT_THROW(
-    KokkosFFT::transpose(execution_space(), x, xt_axis012, axes_type<3>({0, 1, 2})), // xt is identical to x
+    KokkosFFT::Impl::transpose(execution_space(), x, xt_axis012, axes_type<3>({0, 1, 2})), // xt is identical to x
     std::runtime_error
   );
 
-  KokkosFFT::transpose(execution_space(), x, xt_axis021, axes_type<3>({0, 2, 1})); // xt is the transpose of x
+  KokkosFFT::Impl::transpose(execution_space(), x, xt_axis021, axes_type<3>({0, 2, 1})); // xt is the transpose of x
   EXPECT_TRUE( allclose(xt_axis021, ref_axis021, 1.e-5, 1.e-12) );
 
-  KokkosFFT::transpose(execution_space(), x, xt_axis102, axes_type<3>({1, 0, 2})); // xt is the transpose of x
+  KokkosFFT::Impl::transpose(execution_space(), x, xt_axis102, axes_type<3>({1, 0, 2})); // xt is the transpose of x
   EXPECT_TRUE( allclose(xt_axis102, ref_axis102, 1.e-5, 1.e-12) );
 
-  KokkosFFT::transpose(execution_space(), x, xt_axis120, axes_type<3>({1, 2, 0})); // xt is the transpose of x
+  KokkosFFT::Impl::transpose(execution_space(), x, xt_axis120, axes_type<3>({1, 2, 0})); // xt is the transpose of x
   EXPECT_TRUE( allclose(xt_axis120, ref_axis120, 1.e-5, 1.e-12) );
 
-  KokkosFFT::transpose(execution_space(), x, xt_axis201, axes_type<3>({2, 0, 1})); // xt is the transpose of x
+  KokkosFFT::Impl::transpose(execution_space(), x, xt_axis201, axes_type<3>({2, 0, 1})); // xt is the transpose of x
   EXPECT_TRUE( allclose(xt_axis201, ref_axis201, 1.e-5, 1.e-12) );
 
-  KokkosFFT::transpose(execution_space(), x, xt_axis210, axes_type<3>({2, 1, 0})); // xt is the transpose of x
+  KokkosFFT::Impl::transpose(execution_space(), x, xt_axis210, axes_type<3>({2, 1, 0})); // xt is the transpose of x
   EXPECT_TRUE( allclose(xt_axis210, ref_axis210, 1.e-5, 1.e-12) );
 }
 
@@ -465,22 +465,22 @@ TEST(Transpose, 3DRightView) {
   Kokkos::fence();
 
   EXPECT_THROW(
-    KokkosFFT::transpose(execution_space(), x, xt_axis012, axes_type<3>({0, 1, 2})), // xt is identical to x
+    KokkosFFT::Impl::transpose(execution_space(), x, xt_axis012, axes_type<3>({0, 1, 2})), // xt is identical to x
     std::runtime_error
   );
 
-  KokkosFFT::transpose(execution_space(), x, xt_axis021, axes_type<3>({0, 2, 1})); // xt is the transpose of x
+  KokkosFFT::Impl::transpose(execution_space(), x, xt_axis021, axes_type<3>({0, 2, 1})); // xt is the transpose of x
   EXPECT_TRUE( allclose(xt_axis021, ref_axis021, 1.e-5, 1.e-12) );
 
-  KokkosFFT::transpose(execution_space(), x, xt_axis102, axes_type<3>({1, 0, 2})); // xt is the transpose of x
+  KokkosFFT::Impl::transpose(execution_space(), x, xt_axis102, axes_type<3>({1, 0, 2})); // xt is the transpose of x
   EXPECT_TRUE( allclose(xt_axis102, ref_axis102, 1.e-5, 1.e-12) );
 
-  KokkosFFT::transpose(execution_space(), x, xt_axis120, axes_type<3>({1, 2, 0})); // xt is the transpose of x
+  KokkosFFT::Impl::transpose(execution_space(), x, xt_axis120, axes_type<3>({1, 2, 0})); // xt is the transpose of x
   EXPECT_TRUE( allclose(xt_axis120, ref_axis120, 1.e-5, 1.e-12) );
 
-  KokkosFFT::transpose(execution_space(), x, xt_axis201, axes_type<3>({2, 0, 1})); // xt is the transpose of x
+  KokkosFFT::Impl::transpose(execution_space(), x, xt_axis201, axes_type<3>({2, 0, 1})); // xt is the transpose of x
   EXPECT_TRUE( allclose(xt_axis201, ref_axis201, 1.e-5, 1.e-12) );
 
-  KokkosFFT::transpose(execution_space(), x, xt_axis210, axes_type<3>({2, 1, 0})); // xt is the transpose of x
+  KokkosFFT::Impl::transpose(execution_space(), x, xt_axis210, axes_type<3>({2, 1, 0})); // xt is the transpose of x
   EXPECT_TRUE( allclose(xt_axis210, ref_axis210, 1.e-5, 1.e-12) );
 }

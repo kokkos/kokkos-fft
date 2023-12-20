@@ -23,27 +23,37 @@
 #include "KokkosFFT_utils.hpp"
 
 // Check the size of complex type
-static_assert(sizeof(KokkosFFT::FFTDataType::complex64) == sizeof(Kokkos::complex<float>));
-static_assert(alignof(KokkosFFT::FFTDataType::complex64) <= alignof(Kokkos::complex<float>));
+static_assert(sizeof(KokkosFFT::Impl::FFTDataType::complex64) == sizeof(Kokkos::complex<float>));
+static_assert(alignof(KokkosFFT::Impl::FFTDataType::complex64) <= alignof(Kokkos::complex<float>));
 
-static_assert(sizeof(KokkosFFT::FFTDataType::complex128) == sizeof(Kokkos::complex<double>));
-static_assert(alignof(KokkosFFT::FFTDataType::complex128) <= alignof(Kokkos::complex<double>));
+static_assert(sizeof(KokkosFFT::Impl::FFTDataType::complex128) == sizeof(Kokkos::complex<double>));
+static_assert(alignof(KokkosFFT::Impl::FFTDataType::complex128) <= alignof(Kokkos::complex<double>));
 
 namespace KokkosFFT {
+  // Define type to specify transform axis
+  template <std::size_t DIM>
+  using axis_type = std::array<int, DIM>;
+
+  enum class Normalization {
+    FORWARD,
+    BACKWARD,
+    ORTHO
+  };
+} // namespace KokkosFFT
+
+namespace KokkosFFT {
+namespace Impl {
   // Define fft data types
   template <typename T>
   struct fft_data_type {
-    using type = std::conditional_t<std::is_same_v<T, float>, KokkosFFT::FFTDataType::float32, KokkosFFT::FFTDataType::float64>;
+    using type = std::conditional_t<std::is_same_v<T, float>, KokkosFFT::Impl::FFTDataType::float32, KokkosFFT::Impl::FFTDataType::float64>;
   };
 
   template <typename T>
   struct fft_data_type<Kokkos::complex<T>> {
-    using type = std::conditional_t<std::is_same_v<T, float>, KokkosFFT::FFTDataType::complex64, KokkosFFT::FFTDataType::complex128>;
+    using type = std::conditional_t<std::is_same_v<T, float>, KokkosFFT::Impl::FFTDataType::complex64, KokkosFFT::Impl::FFTDataType::complex128>;
   };
-
-  // Define type to specify transform axis
-  template <std::size_t DIM>
-  using axis_type = std::array<int, DIM>;
-}
+} // namespace Impl
+} // namespace KokkosFFT
 
 #endif

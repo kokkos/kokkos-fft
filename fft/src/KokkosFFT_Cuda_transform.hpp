@@ -4,6 +4,7 @@
 #include <cufft.h>
 
 namespace KokkosFFT {
+namespace Impl {
   void _exec(cufftHandle plan, cufftReal* idata, cufftComplex* odata, [[maybe_unused]] int direction) {
     cufftResult cufft_rt = cufftExecR2C(plan, idata, odata);
     if(cufft_rt != CUFFT_SUCCESS)
@@ -39,6 +40,7 @@ namespace KokkosFFT {
     if(cufft_rt != CUFFT_SUCCESS)
       throw std::runtime_error("cufftExecZ2Z failed");
   }
-};
+} // namespace Impl
+} // namespace KokkosFFT
 
 #endif
