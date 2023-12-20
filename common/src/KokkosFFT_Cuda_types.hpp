@@ -4,6 +4,7 @@
 #include <cufft.h>
 
 namespace KokkosFFT {
+namespace Impl {
   #define KOKKOS_FFT_FORWARD CUFFT_FORWARD
   #define KOKKOS_FFT_BACKWARD CUFFT_INVERSE
   #define KOKKOS_FFT_R2C CUFFT_R2C
@@ -54,6 +55,7 @@ namespace KokkosFFT {
     static constexpr TransformType m_type = std::is_same_v<T1, float> ? KOKKOS_FFT_C2C : KOKKOS_FFT_Z2Z;
     static constexpr TransformType type() { return m_type; };
   };
-};
+} // namespace Impl
+}; // namespace KokkosFFT
 
 #endif

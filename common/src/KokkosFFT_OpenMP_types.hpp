@@ -5,6 +5,7 @@
 #include "KokkosFFT_utils.hpp"
 
 namespace KokkosFFT {
+namespace Impl {
   enum class TransformType {
     R2C,
     D2Z,
@@ -32,7 +33,7 @@ namespace KokkosFFT {
 
   template <typename T>
   struct FFTPlanType {
-    using type = std::conditional_t<std::is_same_v<real_type_t<T>, float>, fftwf_plan, fftw_plan>;
+    using type = std::conditional_t<std::is_same_v<KokkosFFT::Impl::real_type_t<T>, float>, fftwf_plan, fftw_plan>;
   };
 
   using FFTResultType = int;
@@ -63,6 +64,7 @@ namespace KokkosFFT {
     static constexpr TransformType m_type = std::is_same_v<T1, float> ? KOKKOS_FFT_C2C : KOKKOS_FFT_Z2Z;
     static constexpr TransformType type() { return m_type; };
   };
-};
+} // namespace Impl
+}; // namespace KokkosFFT
 
 #endif

@@ -6,12 +6,7 @@
 #include "KokkosFFT_utils.hpp"
 
 namespace KokkosFFT {
-  enum class Normalization {
-    FORWARD,
-    BACKWARD,
-    ORTHO
-  };
-
+namespace Impl {
   template <typename ExecutionSpace, typename ViewType, typename T>
   void _normalize(const ExecutionSpace& exec_space, ViewType& inout, const T coef) {
     std::size_t size = inout.size();
@@ -25,7 +20,7 @@ namespace KokkosFFT {
 
   template <typename ViewType>
   auto _coefficients(const ViewType& inout, FFTDirectionType direction, Normalization normalization, std::size_t fft_size) {
-    using value_type = real_type_t<typename ViewType::non_const_value_type>;
+    using value_type = KokkosFFT::Impl::real_type_t<typename ViewType::non_const_value_type>;
     value_type coef = 1;
     bool to_normalize = false;
 
@@ -58,6 +53,7 @@ namespace KokkosFFT {
     auto [coef, to_normalize] = _coefficients(inout, direction, normalization, fft_size);
     if(to_normalize) _normalize(exec_space, inout, coef);
   }
-};
+} // namespace Impl
+}; // namespace KokkosFFT
 
 #endif

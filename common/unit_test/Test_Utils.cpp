@@ -8,8 +8,8 @@ void test_convert_negative_axes_1d() {
   using RealView1Dtype = Kokkos::View<double*, LayoutType, execution_space>;
   RealView1Dtype x("x", len);
 
-  int converted_axis_0 = KokkosFFT::convert_negative_axis(x, /*axis=*/0);
-  int converted_axis_minus1 = KokkosFFT::convert_negative_axis(x, /*axis=*/-1);
+  int converted_axis_0 = KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/0);
+  int converted_axis_minus1 = KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/-1);
 
   int ref_converted_axis_0 = 0;
   int ref_converted_axis_minus1 = 0;
@@ -32,9 +32,9 @@ void test_convert_negative_axes_2d() {
   using RealView2Dtype = Kokkos::View<double**, LayoutType, execution_space>;
   RealView2Dtype x("x", n0, n1);
 
-  int converted_axis_0      = KokkosFFT::convert_negative_axis(x, /*axis=*/0);
-  int converted_axis_1      = KokkosFFT::convert_negative_axis(x, /*axis=*/1);
-  int converted_axis_minus1 = KokkosFFT::convert_negative_axis(x, /*axis=*/-1);
+  int converted_axis_0      = KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/0);
+  int converted_axis_1      = KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/1);
+  int converted_axis_minus1 = KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/-1);
 
   int ref_converted_axis_0      = 0;
   int ref_converted_axis_1      = 1;
@@ -59,11 +59,11 @@ void test_convert_negative_axes_3d() {
   using RealView3Dtype = Kokkos::View<double***, LayoutType, execution_space>;
   RealView3Dtype x("x", n0, n1, n2);
 
-  int converted_axis_0      = KokkosFFT::convert_negative_axis(x, /*axis=*/0);
-  int converted_axis_1      = KokkosFFT::convert_negative_axis(x, /*axis=*/1);
-  int converted_axis_2      = KokkosFFT::convert_negative_axis(x, /*axis=*/2);
-  int converted_axis_minus1 = KokkosFFT::convert_negative_axis(x, /*axis=*/-1);
-  int converted_axis_minus2 = KokkosFFT::convert_negative_axis(x, /*axis=*/-2);
+  int converted_axis_0      = KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/0);
+  int converted_axis_1      = KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/1);
+  int converted_axis_2      = KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/2);
+  int converted_axis_minus1 = KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/-1);
+  int converted_axis_minus2 = KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/-2);
 
   int ref_converted_axis_0      = 0;
   int ref_converted_axis_1      = 1;
@@ -92,13 +92,13 @@ void test_convert_negative_axes_4d() {
   using RealView4Dtype = Kokkos::View<double****, LayoutType, execution_space>;
   RealView4Dtype x("x", n0, n1, n2, n3);
 
-  int converted_axis_0      = KokkosFFT::convert_negative_axis(x, /*axis=*/0);
-  int converted_axis_1      = KokkosFFT::convert_negative_axis(x, /*axis=*/1);
-  int converted_axis_2      = KokkosFFT::convert_negative_axis(x, /*axis=*/2);
-  int converted_axis_3      = KokkosFFT::convert_negative_axis(x, /*axis=*/3);
-  int converted_axis_minus1 = KokkosFFT::convert_negative_axis(x, /*axis=*/-1);
-  int converted_axis_minus2 = KokkosFFT::convert_negative_axis(x, /*axis=*/-2);
-  int converted_axis_minus3 = KokkosFFT::convert_negative_axis(x, /*axis=*/-3);
+  int converted_axis_0      = KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/0);
+  int converted_axis_1      = KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/1);
+  int converted_axis_2      = KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/2);
+  int converted_axis_3      = KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/3);
+  int converted_axis_minus1 = KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/-1);
+  int converted_axis_minus2 = KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/-2);
+  int converted_axis_minus3 = KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/-3);
 
   int ref_converted_axis_0      = 0;
   int ref_converted_axis_1      = 1;
@@ -127,11 +127,11 @@ TEST(ConvertNegativeAxis, 4DRightView) {
 
 TEST(IsTransposeNeeded, 1Dto3D) {
   std::array<int, 1> map1D ={0};
-  EXPECT_FALSE( KokkosFFT::is_transpose_needed(map1D) );
+  EXPECT_FALSE( KokkosFFT::Impl::is_transpose_needed(map1D) );
 
   std::array<int, 2> map2D ={0, 1}, map2D_axis0 = {1, 0};
-  EXPECT_FALSE( KokkosFFT::is_transpose_needed(map2D) );
-  EXPECT_TRUE( KokkosFFT::is_transpose_needed(map2D_axis0) );
+  EXPECT_FALSE( KokkosFFT::Impl::is_transpose_needed(map2D) );
+  EXPECT_TRUE( KokkosFFT::Impl::is_transpose_needed(map2D_axis0) );
 
   std::array<int, 3> map3D =     {0, 1, 2};
   std::array<int, 3> map3D_021 = {0, 2, 1};
@@ -140,30 +140,30 @@ TEST(IsTransposeNeeded, 1Dto3D) {
   std::array<int, 3> map3D_201 = {2, 0, 1};
   std::array<int, 3> map3D_210 = {2, 1, 0};
 
-  EXPECT_FALSE( KokkosFFT::is_transpose_needed(map3D) );
-  EXPECT_TRUE( KokkosFFT::is_transpose_needed(map3D_021) );
-  EXPECT_TRUE( KokkosFFT::is_transpose_needed(map3D_102) );
-  EXPECT_TRUE( KokkosFFT::is_transpose_needed(map3D_120) );
-  EXPECT_TRUE( KokkosFFT::is_transpose_needed(map3D_201) );
-  EXPECT_TRUE( KokkosFFT::is_transpose_needed(map3D_210) );
+  EXPECT_FALSE( KokkosFFT::Impl::is_transpose_needed(map3D) );
+  EXPECT_TRUE( KokkosFFT::Impl::is_transpose_needed(map3D_021) );
+  EXPECT_TRUE( KokkosFFT::Impl::is_transpose_needed(map3D_102) );
+  EXPECT_TRUE( KokkosFFT::Impl::is_transpose_needed(map3D_120) );
+  EXPECT_TRUE( KokkosFFT::Impl::is_transpose_needed(map3D_201) );
+  EXPECT_TRUE( KokkosFFT::Impl::is_transpose_needed(map3D_210) );
 }
 
 TEST(GetIndex, Vectors) {
   std::vector<int> v = {0, 1, 4, 2, 3};
 
-  EXPECT_EQ( KokkosFFT::get_index(v, 0), 0 );
-  EXPECT_EQ( KokkosFFT::get_index(v, 1), 1 );
-  EXPECT_EQ( KokkosFFT::get_index(v, 2), 3 );
-  EXPECT_EQ( KokkosFFT::get_index(v, 3), 4 );
-  EXPECT_EQ( KokkosFFT::get_index(v, 4), 2 );
+  EXPECT_EQ( KokkosFFT::Impl::get_index(v, 0), 0 );
+  EXPECT_EQ( KokkosFFT::Impl::get_index(v, 1), 1 );
+  EXPECT_EQ( KokkosFFT::Impl::get_index(v, 2), 3 );
+  EXPECT_EQ( KokkosFFT::Impl::get_index(v, 3), 4 );
+  EXPECT_EQ( KokkosFFT::Impl::get_index(v, 4), 2 );
 
   EXPECT_THROW(
-    KokkosFFT::get_index(v, -1),
+    KokkosFFT::Impl::get_index(v, -1),
     std::runtime_error
   );
 
   EXPECT_THROW(
-    KokkosFFT::get_index(v, 5),
+    KokkosFFT::Impl::get_index(v, 5),
     std::runtime_error
   );
 }
