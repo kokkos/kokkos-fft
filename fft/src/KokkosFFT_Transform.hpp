@@ -25,8 +25,9 @@
   #include "KokkosFFT_OpenMP_transform.hpp"
 #endif
 
-// 1D Transform
+// General Transform Interface
 namespace KokkosFFT {
+namespace Impl {
   template <typename ExecutionSpace, typename PlanType, typename InViewType, typename OutViewType>
   void _fft(const ExecutionSpace& exec_space, PlanType& plan, const InViewType& in, OutViewType& out, KokkosFFT::Normalization norm=KokkosFFT::Normalization::BACKWARD) {
     static_assert(Kokkos::is_view<InViewType>::value,
@@ -37,11 +38,11 @@ namespace KokkosFFT {
     using in_value_type = typename InViewType::non_const_value_type;
     using out_value_type = typename OutViewType::non_const_value_type;
 
-    auto* idata = reinterpret_cast<typename fft_data_type<in_value_type>::type*>(in.data());
-    auto* odata = reinterpret_cast<typename fft_data_type<out_value_type>::type*>(out.data());
+    auto* idata = reinterpret_cast<typename KokkosFFT::Impl::fft_data_type<in_value_type>::type*>(in.data());
+    auto* odata = reinterpret_cast<typename KokkosFFT::Impl::fft_data_type<out_value_type>::type*>(out.data());
 
-    _exec(plan.plan(), idata, odata, KOKKOS_FFT_FORWARD);
-    normalize(exec_space, out, KOKKOS_FFT_FORWARD, norm, plan.fft_size());
+    KokkosFFT::Impl::_exec(plan.plan(), idata, odata, KOKKOS_FFT_FORWARD);
+    KokkosFFT::Impl::normalize(exec_space, out, KOKKOS_FFT_FORWARD, norm, plan.fft_size());
   }
 
   template <typename ExecutionSpace, typename PlanType, typename InViewType, typename OutViewType>
@@ -54,13 +55,16 @@ namespace KokkosFFT {
     using in_value_type = typename InViewType::non_const_value_type;
     using out_value_type = typename OutViewType::non_const_value_type;
 
-    auto* idata = reinterpret_cast<typename fft_data_type<in_value_type>::type*>(in.data());
-    auto* odata = reinterpret_cast<typename fft_data_type<out_value_type>::type*>(out.data());
+    auto* idata = reinterpret_cast<typename KokkosFFT::Impl::fft_data_type<in_value_type>::type*>(in.data());
+    auto* odata = reinterpret_cast<typename KokkosFFT::Impl::fft_data_type<out_value_type>::type*>(out.data());
 
-    _exec(plan.plan(), idata, odata, KOKKOS_FFT_BACKWARD);
-    normalize(exec_space, out, KOKKOS_FFT_BACKWARD, norm, plan.fft_size());
+    KokkosFFT::Impl::_exec(plan.plan(), idata, odata, KOKKOS_FFT_BACKWARD);
+    KokkosFFT::Impl::normalize(exec_space, out, KOKKOS_FFT_BACKWARD, norm, plan.fft_size());
   }
+} // namespace Impl
+} // namespace KokkosFFT
 
+namespace KokkosFFT {
   template <typename ExecutionSpace, typename InViewType, typename OutViewType>
   void fft(const ExecutionSpace& exec_space, const InViewType& in, OutViewType& out, KokkosFFT::Normalization norm=KokkosFFT::Normalization::BACKWARD, int axis=-1) {
     static_assert(Kokkos::is_view<InViewType>::value,
@@ -80,20 +84,20 @@ namespace KokkosFFT {
                                  "KokkosFFT::fft: execution_space cannot access data in OutViewType"
     );
 
-    Plan plan(exec_space, in, out, KOKKOS_FFT_FORWARD, axis);
+    KokkosFFT::Impl::Plan plan(exec_space, in, out, KOKKOS_FFT_FORWARD, axis);
     if(plan.is_transpose_needed()) {
       InViewType in_T;
       OutViewType out_T;
 
-      KokkosFFT::transpose(exec_space, in, in_T, plan.map());
-      KokkosFFT::transpose(exec_space, out, out_T, plan.map());
+      KokkosFFT::Impl::transpose(exec_space, in, in_T, plan.map());
+      KokkosFFT::Impl::transpose(exec_space, out, out_T, plan.map());
 
-      _fft(exec_space, plan, in_T, out_T, norm);
+      KokkosFFT::Impl::_fft(exec_space, plan, in_T, out_T, norm);
 
-      KokkosFFT::transpose(exec_space, out_T, out, plan.map_inv());
+      KokkosFFT::Impl::transpose(exec_space, out_T, out, plan.map_inv());
 
     } else {
-      _fft(exec_space, plan, in, out, norm);
+      KokkosFFT::Impl::_fft(exec_space, plan, in, out, norm);
     }
   }
 
@@ -104,20 +108,20 @@ namespace KokkosFFT {
     static_assert(Kokkos::is_view<OutViewType>::value,
                 "KokkosFFT::ifft: OutViewType is not a Kokkos::View.");
 
-    Plan plan(exec_space, in, out, KOKKOS_FFT_BACKWARD, axis);
+    KokkosFFT::Impl::Plan plan(exec_space, in, out, KOKKOS_FFT_BACKWARD, axis);
     if(plan.is_transpose_needed()) {
       InViewType in_T;
       OutViewType out_T;
 
-      KokkosFFT::transpose(exec_space, in, in_T, plan.map());
-      KokkosFFT::transpose(exec_space, out, out_T, plan.map());
+      KokkosFFT::Impl::transpose(exec_space, in, in_T, plan.map());
+      KokkosFFT::Impl::transpose(exec_space, out, out_T, plan.map());
 
-      _ifft(exec_space, plan, in_T, out_T, norm);
+      KokkosFFT::Impl::_ifft(exec_space, plan, in_T, out_T, norm);
 
-      KokkosFFT::transpose(exec_space, out_T, out, plan.map_inv());
+      KokkosFFT::Impl::transpose(exec_space, out_T, out, plan.map_inv());
 
     } else {
-      _ifft(exec_space, plan, in, out, norm);
+      KokkosFFT::Impl::_ifft(exec_space, plan, in, out, norm);
     }
   }
 
@@ -133,7 +137,7 @@ namespace KokkosFFT {
 
     static_assert(std::is_floating_point<in_value_type>::value,
                   "KokkosFFT::rfft: InViewType must be real");
-    static_assert(is_complex<out_value_type>::value,
+    static_assert(KokkosFFT::Impl::is_complex<out_value_type>::value,
                   "KokkosFFT::rfft: OutViewType must be complex");
 
     fft(exec_space, in, out, norm, axis);
@@ -149,7 +153,7 @@ namespace KokkosFFT {
     using in_value_type = typename InViewType::non_const_value_type;
     using out_value_type = typename OutViewType::non_const_value_type;
 
-    static_assert(is_complex<in_value_type>::value,
+    static_assert(KokkosFFT::Impl::is_complex<in_value_type>::value,
                   "KokkosFFT::irfft: InViewType must be complex");
     static_assert(std::is_floating_point<out_value_type>::value,
                   "KokkosFFT::irfft: OutViewType must be real");
@@ -164,19 +168,19 @@ namespace KokkosFFT {
     static_assert(Kokkos::is_view<OutViewType>::value,
                 "KokkosFFT::fft2: OutViewType is not a Kokkos::View.");
 
-    Plan plan(exec_space, in, out, KOKKOS_FFT_FORWARD, axes);
+    KokkosFFT::Impl::Plan plan(exec_space, in, out, KOKKOS_FFT_FORWARD, axes);
     if(plan.is_transpose_needed()) {
       InViewType in_T;
       OutViewType out_T;
 
-      KokkosFFT::transpose(exec_space, in, in_T, plan.map());
-      KokkosFFT::transpose(exec_space, out, out_T, plan.map());
+      KokkosFFT::Impl::transpose(exec_space, in, in_T, plan.map());
+      KokkosFFT::Impl::transpose(exec_space, out, out_T, plan.map());
 
-      _fft(exec_space, plan, in_T, out_T, norm);
+      KokkosFFT::Impl::_fft(exec_space, plan, in_T, out_T, norm);
 
-      KokkosFFT::transpose(exec_space, out_T, out, plan.map_inv());
+      KokkosFFT::Impl::transpose(exec_space, out_T, out, plan.map_inv());
     } else {
-      _fft(exec_space, plan, in, out, norm);
+      KokkosFFT::Impl::_fft(exec_space, plan, in, out, norm);
     }
   }
 
@@ -187,19 +191,19 @@ namespace KokkosFFT {
     static_assert(Kokkos::is_view<OutViewType>::value,
                 "KokkosFFT::ifft2: OutViewType is not a Kokkos::View.");
 
-    Plan plan(exec_space, in, out, KOKKOS_FFT_BACKWARD, axes);
+    KokkosFFT::Impl::Plan plan(exec_space, in, out, KOKKOS_FFT_BACKWARD, axes);
     if(plan.is_transpose_needed()) {
       InViewType in_T;
       OutViewType out_T;
 
-      KokkosFFT::transpose(exec_space, in, in_T, plan.map());
-      KokkosFFT::transpose(exec_space, out, out_T, plan.map());
+      KokkosFFT::Impl::transpose(exec_space, in, in_T, plan.map());
+      KokkosFFT::Impl::transpose(exec_space, out, out_T, plan.map());
 
-      _ifft(exec_space, plan, in_T, out_T, norm);
+      KokkosFFT::Impl::_ifft(exec_space, plan, in_T, out_T, norm);
 
-      KokkosFFT::transpose(exec_space, out_T, out, plan.map_inv());
+      KokkosFFT::Impl::transpose(exec_space, out_T, out, plan.map_inv());
     } else {
-      _ifft(exec_space, plan, in, out, norm);
+      KokkosFFT::Impl::_ifft(exec_space, plan, in, out, norm);
     }
   }
 
@@ -215,7 +219,7 @@ namespace KokkosFFT {
 
     static_assert(std::is_floating_point<in_value_type>::value,
                   "KokkosFFT::rfft2: InViewType must be real");
-    static_assert(is_complex<out_value_type>::value,
+    static_assert(KokkosFFT::Impl::is_complex<out_value_type>::value,
                   "KokkosFFT::rfft2: OutViewType must be complex");
 
     fft2(exec_space, in, out, norm, axes);
@@ -231,7 +235,7 @@ namespace KokkosFFT {
     using in_value_type = typename InViewType::non_const_value_type;
     using out_value_type = typename OutViewType::non_const_value_type;
 
-    static_assert(is_complex<in_value_type>::value,
+    static_assert(KokkosFFT::Impl::is_complex<in_value_type>::value,
                   "KokkosFFT::irfft2: InViewType must be complex");
     static_assert(std::is_floating_point<out_value_type>::value,
                   "KokkosFFT::irfft2: OutViewType must be real");
@@ -249,21 +253,21 @@ namespace KokkosFFT {
     // Create a default sequence of axes {-rank, -(rank-1), ..., -1}
     constexpr std::size_t rank = InViewType::rank();
     constexpr int start = -static_cast<int>(rank);
-    axis_type<rank> axes = index_sequence<rank>(start);
+    axis_type<rank> axes = KokkosFFT::Impl::index_sequence<rank>(start);
 
-    Plan plan(exec_space, in, out, KOKKOS_FFT_FORWARD, axes);
+    KokkosFFT::Impl::Plan plan(exec_space, in, out, KOKKOS_FFT_FORWARD, axes);
     if(plan.is_transpose_needed()) {
       InViewType in_T;
       OutViewType out_T;
 
-      KokkosFFT::transpose(exec_space, in, in_T, plan.map());
-      KokkosFFT::transpose(exec_space, out, out_T, plan.map());
+      KokkosFFT::Impl::transpose(exec_space, in, in_T, plan.map());
+      KokkosFFT::Impl::transpose(exec_space, out, out_T, plan.map());
 
-      _fft(exec_space, plan, in_T, out_T, norm);
+      KokkosFFT::Impl::_fft(exec_space, plan, in_T, out_T, norm);
 
-      KokkosFFT::transpose(exec_space, out_T, out, plan.map_inv());
+      KokkosFFT::Impl::transpose(exec_space, out_T, out, plan.map_inv());
     } else {
-      _fft(exec_space, plan, in, out, norm);
+      KokkosFFT::Impl::_fft(exec_space, plan, in, out, norm);
     }
   }
 
@@ -274,19 +278,19 @@ namespace KokkosFFT {
     static_assert(Kokkos::is_view<OutViewType>::value,
                 "KokkosFFT::fftn: OutViewType is not a Kokkos::View.");
 
-    Plan plan(exec_space, in, out, KOKKOS_FFT_FORWARD, axes);
+    KokkosFFT::Impl::Plan plan(exec_space, in, out, KOKKOS_FFT_FORWARD, axes);
     if(plan.is_transpose_needed()) {
       InViewType in_T;
       OutViewType out_T;
 
-      KokkosFFT::transpose(exec_space, in, in_T, plan.map());
-      KokkosFFT::transpose(exec_space, out, out_T, plan.map());
+      KokkosFFT::Impl::transpose(exec_space, in, in_T, plan.map());
+      KokkosFFT::Impl::transpose(exec_space, out, out_T, plan.map());
 
-      _fft(exec_space, plan, in_T, out_T, norm);
+      KokkosFFT::Impl::_fft(exec_space, plan, in_T, out_T, norm);
 
-      KokkosFFT::transpose(exec_space, out_T, out, plan.map_inv());
+      KokkosFFT::Impl::transpose(exec_space, out_T, out, plan.map_inv());
     } else {
-      _fft(exec_space, plan, in, out, norm);
+      KokkosFFT::Impl::_fft(exec_space, plan, in, out, norm);
     }
   }
 
@@ -300,21 +304,21 @@ namespace KokkosFFT {
     // Create a default sequence of axes {-rank, -(rank-1), ..., -1}
     constexpr std::size_t rank = InViewType::rank();
     constexpr int start = -static_cast<int>(rank);
-    axis_type<rank> axes = index_sequence<rank>(start);
+    axis_type<rank> axes = KokkosFFT::Impl::index_sequence<rank>(start);
 
-    Plan plan(exec_space, in, out, KOKKOS_FFT_BACKWARD, axes);
+    KokkosFFT::Impl::Plan plan(exec_space, in, out, KOKKOS_FFT_BACKWARD, axes);
     if(plan.is_transpose_needed()) {
       InViewType in_T;
       OutViewType out_T;
 
-      KokkosFFT::transpose(exec_space, in, in_T, plan.map());
-      KokkosFFT::transpose(exec_space, out, out_T, plan.map());
+      KokkosFFT::Impl::transpose(exec_space, in, in_T, plan.map());
+      KokkosFFT::Impl::transpose(exec_space, out, out_T, plan.map());
 
-      _ifft(exec_space, plan, in_T, out_T, norm);
+      KokkosFFT::Impl::_ifft(exec_space, plan, in_T, out_T, norm);
 
-      KokkosFFT::transpose(exec_space, out_T, out, plan.map_inv());
+      KokkosFFT::Impl::transpose(exec_space, out_T, out, plan.map_inv());
     } else {
-      _ifft(exec_space, plan, in, out, norm);
+      KokkosFFT::Impl::_ifft(exec_space, plan, in, out, norm);
     }
   }
 
@@ -325,19 +329,19 @@ namespace KokkosFFT {
     static_assert(Kokkos::is_view<OutViewType>::value,
                 "KokkosFFT::ifftn: OutViewType is not a Kokkos::View.");
 
-    Plan plan(exec_space, in, out, KOKKOS_FFT_BACKWARD, axes);
+    KokkosFFT::Impl::Plan plan(exec_space, in, out, KOKKOS_FFT_BACKWARD, axes);
     if(plan.is_transpose_needed()) {
       InViewType in_T;
       OutViewType out_T;
 
-      KokkosFFT::transpose(exec_space, in, in_T, plan.map());
-      KokkosFFT::transpose(exec_space, out, out_T, plan.map());
+      KokkosFFT::Impl::transpose(exec_space, in, in_T, plan.map());
+      KokkosFFT::Impl::transpose(exec_space, out, out_T, plan.map());
 
-      _ifft(exec_space, plan, in_T, out_T, norm);
+      KokkosFFT::Impl::_ifft(exec_space, plan, in_T, out_T, norm);
 
-      KokkosFFT::transpose(exec_space, out_T, out, plan.map_inv());
+      KokkosFFT::Impl::transpose(exec_space, out_T, out, plan.map_inv());
     } else {
-      _ifft(exec_space, plan, in, out, norm);
+      KokkosFFT::Impl::_ifft(exec_space, plan, in, out, norm);
     }
   }
 
@@ -353,7 +357,7 @@ namespace KokkosFFT {
 
     static_assert(std::is_floating_point<in_value_type>::value,
                   "KokkosFFT::rfftn: InViewType must be real");
-    static_assert(is_complex<out_value_type>::value,
+    static_assert(KokkosFFT::Impl::is_complex<out_value_type>::value,
                   "KokkosFFT::rfftn: OutViewType must be complex");
 
     fftn(exec_space, in, out, norm);
@@ -371,7 +375,7 @@ namespace KokkosFFT {
 
     static_assert(std::is_floating_point<in_value_type>::value,
                   "KokkosFFT::rfftn: InViewType must be real");
-    static_assert(is_complex<out_value_type>::value,
+    static_assert(KokkosFFT::Impl::is_complex<out_value_type>::value,
                   "KokkosFFT::rfftn: OutViewType must be complex");
 
     fftn(exec_space, in, out, axes, norm);
@@ -387,7 +391,7 @@ namespace KokkosFFT {
     using in_value_type = typename InViewType::non_const_value_type;
     using out_value_type = typename OutViewType::non_const_value_type;
 
-    static_assert(is_complex<in_value_type>::value,
+    static_assert(KokkosFFT::Impl::is_complex<in_value_type>::value,
                   "KokkosFFT::irfftn: InViewType must be complex");
     static_assert(std::is_floating_point<out_value_type>::value,
                   "KokkosFFT::irfftn: OutViewType must be real");
@@ -405,7 +409,7 @@ namespace KokkosFFT {
     using in_value_type = typename InViewType::non_const_value_type;
     using out_value_type = typename OutViewType::non_const_value_type;
 
-    static_assert(is_complex<in_value_type>::value,
+    static_assert(KokkosFFT::Impl::is_complex<in_value_type>::value,
                   "KokkosFFT::irfftn: InViewType must be complex");
     static_assert(std::is_floating_point<out_value_type>::value,
                   "KokkosFFT::irfftn: OutViewType must be real");

@@ -4,6 +4,7 @@
 #include <hipfft/hipfft.h>
 
 namespace KokkosFFT {
+namespace Impl {
   void _exec(hipfftHandle plan, hipfftReal* idata, hipfftComplex* odata, [[maybe_unused]] int direction) {
     hipfftResult hipfft_rt = hipfftExecR2C(plan, idata, odata);
     if(hipfft_rt != HIPFFT_SUCCESS)
@@ -39,6 +40,7 @@ namespace KokkosFFT {
     if(hipfft_rt != HIPFFT_SUCCESS)
       throw std::runtime_error("hipfftExecZ2Z failed");
   }
-};
+} // namespace Impl
+} // namespace KokkosFFT
 
 #endif
