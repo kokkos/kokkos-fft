@@ -2,6 +2,20 @@
 #include "KokkosFFT_utils.hpp"
 #include "Test_Types.hpp"
 
+using test_types = ::testing::Types<
+  Kokkos::LayoutLeft,
+  Kokkos::LayoutRight
+>;
+
+// Basically the same fixtures, used for labeling tests
+template <typename T>
+struct ConvertNegativeAxis : public ::testing::Test {
+  using layout_type = T;
+};
+
+TYPED_TEST_SUITE(ConvertNegativeAxis, test_types);
+
+// Tests for convert_negative_axes over ND views
 template <typename LayoutType>
 void test_convert_negative_axes_1d() {
   const int len = 30;
@@ -16,14 +30,6 @@ void test_convert_negative_axes_1d() {
 
   EXPECT_EQ( converted_axis_0, ref_converted_axis_0 );
   EXPECT_EQ( converted_axis_minus1, ref_converted_axis_minus1 );
-}
-
-TEST(ConvertNegativeAxis, 1DLeftView) {
-  test_convert_negative_axes_1d<Kokkos::LayoutLeft>();
-}
-
-TEST(ConvertNegativeAxis, 1DRightView) {
-  test_convert_negative_axes_1d<Kokkos::LayoutRight>();
 }
 
 template <typename LayoutType>
@@ -43,14 +49,6 @@ void test_convert_negative_axes_2d() {
   EXPECT_EQ( converted_axis_0, ref_converted_axis_0 );
   EXPECT_EQ( converted_axis_1, ref_converted_axis_1 );
   EXPECT_EQ( converted_axis_minus1, ref_converted_axis_minus1 );
-}
-
-TEST(ConvertNegativeAxis, 2DLeftView) {
-  test_convert_negative_axes_2d<Kokkos::LayoutLeft>();
-}
-
-TEST(ConvertNegativeAxis, 2DRightView) {
-  test_convert_negative_axes_2d<Kokkos::LayoutRight>();
 }
 
 template <typename LayoutType>
@@ -76,14 +74,6 @@ void test_convert_negative_axes_3d() {
   EXPECT_EQ( converted_axis_2, ref_converted_axis_2 );
   EXPECT_EQ( converted_axis_minus1, ref_converted_axis_minus1 );
   EXPECT_EQ( converted_axis_minus2, ref_converted_axis_minus2 );
-}
-
-TEST(ConvertNegativeAxis, 3DLeftView) {
-  test_convert_negative_axes_3d<Kokkos::LayoutLeft>();
-}
-
-TEST(ConvertNegativeAxis, 3DRightView) {
-  test_convert_negative_axes_3d<Kokkos::LayoutRight>();
 }
 
 template <typename LayoutType>
@@ -117,12 +107,32 @@ void test_convert_negative_axes_4d() {
   EXPECT_EQ( converted_axis_minus3, ref_converted_axis_minus3 );
 }
 
-TEST(ConvertNegativeAxis, 4DLeftView) {
-  test_convert_negative_axes_4d<Kokkos::LayoutLeft>();
+// Tests for 1D View
+TYPED_TEST(ConvertNegativeAxis, 1DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_convert_negative_axes_1d<layout_type>();
 }
 
-TEST(ConvertNegativeAxis, 4DRightView) {
-  test_convert_negative_axes_4d<Kokkos::LayoutRight>();
+// Tests for 2D View
+TYPED_TEST(ConvertNegativeAxis, 2DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_convert_negative_axes_2d<layout_type>();
+}
+
+// Tests for 3D View
+TYPED_TEST(ConvertNegativeAxis, 3DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_convert_negative_axes_3d<layout_type>();
+}
+
+// Tests for 4D View
+TYPED_TEST(ConvertNegativeAxis, 4DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_convert_negative_axes_4d<layout_type>();
 }
 
 TEST(IsTransposeNeeded, 1Dto3D) {

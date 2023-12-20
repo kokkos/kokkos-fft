@@ -5,6 +5,26 @@
 #include "Test_Types.hpp"
 #include "Test_Utils.hpp"
 
+using test_types = ::testing::Types<
+  Kokkos::LayoutLeft,
+  Kokkos::LayoutRight
+>;
+
+// Basically the same fixtures, used for labeling tests
+template <typename T>
+struct Layouts1D : public ::testing::Test {
+  using layout_type = T;
+};
+
+template <typename T>
+struct Layouts2D : public ::testing::Test {
+  using layout_type = T;
+};
+
+TYPED_TEST_SUITE(Layouts1D, test_types);
+TYPED_TEST_SUITE(Layouts2D, test_types);
+
+// Tests for 1D FFT
 template <typename LayoutType>
 void test_layouts_1d() {
   const int n0 = 6;
@@ -47,77 +67,6 @@ void test_layouts_1d() {
   EXPECT_TRUE( in_extents_c2c == ref_in_extents_c2c );
   EXPECT_TRUE( out_extents_c2c == ref_out_extents_c2c );
   EXPECT_TRUE( fft_extents_c2c == ref_fft_extents_c2c );
-}
-
-TEST(Layouts, 1DLeftView) {
-  test_layouts_1d<Kokkos::LayoutLeft>();
-}
-
-TEST(Layouts, 1DRightView) {
-  test_layouts_1d<Kokkos::LayoutRight>();
-}
-
-template <typename LayoutType>
-void test_layouts_2d() {
-  const int n0 = 6, n1 = 10;
-  using RealView2Dtype = Kokkos::View<double**, LayoutType, execution_space>;
-  using ComplexView2Dtype = Kokkos::View<Kokkos::complex<double>**, LayoutType, execution_space>;
-
-  RealView2Dtype xr2("xr2", n0, n1);
-  ComplexView2Dtype xc2_axis0("xc2_axis0", n0/2+1, n1);
-  ComplexView2Dtype xc2_axis1("xc2_axis1", n0, n1/2+1);
-  ComplexView2Dtype xcin2("xcin2", n0, n1), xcout2("xcout2", n0, n1);
-
-  std::vector<int> ref_in_extents_r2c_axis0{n1, n0};
-  std::vector<int> ref_in_extents_r2c_axis1{n0, n1};
-  std::vector<int> ref_fft_extents_r2c_axis0{n1, n0};
-  std::vector<int> ref_fft_extents_r2c_axis1{n0, n1};
-  std::vector<int> ref_out_extents_r2c_axis0{n1, n0/2+1};
-  std::vector<int> ref_out_extents_r2c_axis1{n0, n1/2+1};
-
-  // R2C
-  auto [in_extents_r2c_axis0, out_extents_r2c_axis0, fft_extents_r2c_axis0] = KokkosFFT::Impl::get_extents(xr2, xc2_axis0, 0);
-  auto [in_extents_r2c_axis1, out_extents_r2c_axis1, fft_extents_r2c_axis1] = KokkosFFT::Impl::get_extents(xr2, xc2_axis1, 1);
-  EXPECT_TRUE( in_extents_r2c_axis0 == ref_in_extents_r2c_axis0 );
-  EXPECT_TRUE( in_extents_r2c_axis1 == ref_in_extents_r2c_axis1 );
-
-  EXPECT_TRUE( fft_extents_r2c_axis0 == ref_fft_extents_r2c_axis0 );
-  EXPECT_TRUE( fft_extents_r2c_axis1 == ref_fft_extents_r2c_axis1 );
-
-  EXPECT_TRUE( out_extents_r2c_axis0 == ref_out_extents_r2c_axis0 );
-  EXPECT_TRUE( out_extents_r2c_axis1 == ref_out_extents_r2c_axis1 );
-
-  // C2R
-  auto [in_extents_c2r_axis0, out_extents_c2r_axis0, fft_extents_c2r_axis0] = KokkosFFT::Impl::get_extents(xc2_axis0, xr2, 0);
-  auto [in_extents_c2r_axis1, out_extents_c2r_axis1, fft_extents_c2r_axis1] = KokkosFFT::Impl::get_extents(xc2_axis1, xr2, 1);
-  EXPECT_TRUE( in_extents_c2r_axis0 == ref_out_extents_r2c_axis0 );
-  EXPECT_TRUE( in_extents_c2r_axis1 == ref_out_extents_r2c_axis1 );
-
-  EXPECT_TRUE( fft_extents_c2r_axis0 == ref_fft_extents_r2c_axis0 );
-  EXPECT_TRUE( fft_extents_c2r_axis1 == ref_fft_extents_r2c_axis1 );
-
-  EXPECT_TRUE( out_extents_c2r_axis0 == ref_in_extents_r2c_axis0 );
-  EXPECT_TRUE( out_extents_c2r_axis1 == ref_in_extents_r2c_axis1 );
-
-  // C2C
-  auto [in_extents_c2c_axis0, out_extents_c2c_axis0, fft_extents_c2c_axis0] = KokkosFFT::Impl::get_extents(xcin2, xcout2, 0);
-  auto [in_extents_c2c_axis1, out_extents_c2c_axis1, fft_extents_c2c_axis1] = KokkosFFT::Impl::get_extents(xcin2, xcout2, 1);
-  EXPECT_TRUE( in_extents_c2c_axis0 == ref_in_extents_r2c_axis0 );
-  EXPECT_TRUE( in_extents_c2c_axis1 == ref_in_extents_r2c_axis1 );
-
-  EXPECT_TRUE( fft_extents_c2c_axis0 == ref_fft_extents_r2c_axis0 );
-  EXPECT_TRUE( fft_extents_c2c_axis1 == ref_fft_extents_r2c_axis1 );
-
-  EXPECT_TRUE( out_extents_c2c_axis0 == ref_in_extents_r2c_axis0 );
-  EXPECT_TRUE( out_extents_c2c_axis1 == ref_in_extents_r2c_axis1 );
-}
-
-TEST(Layouts, 2DLeftView) {
-  test_layouts_2d<Kokkos::LayoutLeft>();
-}
-
-TEST(Layouts, 2DRightView) {
-  test_layouts_2d<Kokkos::LayoutRight>();
 }
 
 template <typename LayoutType>
@@ -176,14 +125,6 @@ void test_layouts_1d_batched_FFT_2d() {
   EXPECT_TRUE( fft_extents_c2c_axis1 == ref_fft_extents_r2c_axis1 );
   EXPECT_TRUE( out_extents_c2c_axis1 == ref_in_extents_r2c_axis1 );
   EXPECT_EQ( howmany_c2c_axis1, ref_howmany_r2c_axis1 );
-}
-
-TEST(Layouts, 1DBatchedFFT_2DLeftView) {
-  test_layouts_1d_batched_FFT_2d<Kokkos::LayoutLeft>();
-}
-
-TEST(Layouts, 1DBatchedFFT_2DRightView) {
-  test_layouts_1d_batched_FFT_2d<Kokkos::LayoutRight>();
 }
 
 template <typename LayoutType>
@@ -272,12 +213,78 @@ void test_layouts_1d_batched_FFT_3d() {
   EXPECT_EQ( howmany_c2c_axis2, ref_howmany_r2c_axis2 );
 }
 
-TEST(Layouts, 1DBatchedFFT_3DLeftView) {
-  test_layouts_1d_batched_FFT_3d<Kokkos::LayoutLeft>();
+TYPED_TEST(Layouts1D, 1DFFT_1DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_layouts_1d<layout_type>();
 }
 
-TEST(Layouts, 1DBatchedFFT_3DRightView) {
-  test_layouts_1d_batched_FFT_3d<Kokkos::LayoutRight>();
+TYPED_TEST(Layouts1D, 1DFFT_batched_2DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_layouts_1d_batched_FFT_2d<layout_type>();
+}
+
+TYPED_TEST(Layouts1D, 1DFFT_batched_3DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_layouts_1d_batched_FFT_3d<layout_type>();
+}
+
+// Tests for 2D FFT
+template <typename LayoutType>
+void test_layouts_2d() {
+  const int n0 = 6, n1 = 10;
+  using RealView2Dtype = Kokkos::View<double**, LayoutType, execution_space>;
+  using ComplexView2Dtype = Kokkos::View<Kokkos::complex<double>**, LayoutType, execution_space>;
+
+  RealView2Dtype xr2("xr2", n0, n1);
+  ComplexView2Dtype xc2_axis0("xc2_axis0", n0/2+1, n1);
+  ComplexView2Dtype xc2_axis1("xc2_axis1", n0, n1/2+1);
+  ComplexView2Dtype xcin2("xcin2", n0, n1), xcout2("xcout2", n0, n1);
+
+  std::vector<int> ref_in_extents_r2c_axis0{n1, n0};
+  std::vector<int> ref_in_extents_r2c_axis1{n0, n1};
+  std::vector<int> ref_fft_extents_r2c_axis0{n1, n0};
+  std::vector<int> ref_fft_extents_r2c_axis1{n0, n1};
+  std::vector<int> ref_out_extents_r2c_axis0{n1, n0/2+1};
+  std::vector<int> ref_out_extents_r2c_axis1{n0, n1/2+1};
+
+  // R2C
+  auto [in_extents_r2c_axis0, out_extents_r2c_axis0, fft_extents_r2c_axis0] = KokkosFFT::Impl::get_extents(xr2, xc2_axis0, 0);
+  auto [in_extents_r2c_axis1, out_extents_r2c_axis1, fft_extents_r2c_axis1] = KokkosFFT::Impl::get_extents(xr2, xc2_axis1, 1);
+  EXPECT_TRUE( in_extents_r2c_axis0 == ref_in_extents_r2c_axis0 );
+  EXPECT_TRUE( in_extents_r2c_axis1 == ref_in_extents_r2c_axis1 );
+
+  EXPECT_TRUE( fft_extents_r2c_axis0 == ref_fft_extents_r2c_axis0 );
+  EXPECT_TRUE( fft_extents_r2c_axis1 == ref_fft_extents_r2c_axis1 );
+
+  EXPECT_TRUE( out_extents_r2c_axis0 == ref_out_extents_r2c_axis0 );
+  EXPECT_TRUE( out_extents_r2c_axis1 == ref_out_extents_r2c_axis1 );
+
+  // C2R
+  auto [in_extents_c2r_axis0, out_extents_c2r_axis0, fft_extents_c2r_axis0] = KokkosFFT::Impl::get_extents(xc2_axis0, xr2, 0);
+  auto [in_extents_c2r_axis1, out_extents_c2r_axis1, fft_extents_c2r_axis1] = KokkosFFT::Impl::get_extents(xc2_axis1, xr2, 1);
+  EXPECT_TRUE( in_extents_c2r_axis0 == ref_out_extents_r2c_axis0 );
+  EXPECT_TRUE( in_extents_c2r_axis1 == ref_out_extents_r2c_axis1 );
+
+  EXPECT_TRUE( fft_extents_c2r_axis0 == ref_fft_extents_r2c_axis0 );
+  EXPECT_TRUE( fft_extents_c2r_axis1 == ref_fft_extents_r2c_axis1 );
+
+  EXPECT_TRUE( out_extents_c2r_axis0 == ref_in_extents_r2c_axis0 );
+  EXPECT_TRUE( out_extents_c2r_axis1 == ref_in_extents_r2c_axis1 );
+
+  // C2C
+  auto [in_extents_c2c_axis0, out_extents_c2c_axis0, fft_extents_c2c_axis0] = KokkosFFT::Impl::get_extents(xcin2, xcout2, 0);
+  auto [in_extents_c2c_axis1, out_extents_c2c_axis1, fft_extents_c2c_axis1] = KokkosFFT::Impl::get_extents(xcin2, xcout2, 1);
+  EXPECT_TRUE( in_extents_c2c_axis0 == ref_in_extents_r2c_axis0 );
+  EXPECT_TRUE( in_extents_c2c_axis1 == ref_in_extents_r2c_axis1 );
+
+  EXPECT_TRUE( fft_extents_c2c_axis0 == ref_fft_extents_r2c_axis0 );
+  EXPECT_TRUE( fft_extents_c2c_axis1 == ref_fft_extents_r2c_axis1 );
+
+  EXPECT_TRUE( out_extents_c2c_axis0 == ref_in_extents_r2c_axis0 );
+  EXPECT_TRUE( out_extents_c2c_axis1 == ref_in_extents_r2c_axis1 );
 }
 
 template <typename LayoutType>
@@ -439,10 +446,14 @@ void test_layouts_2d_batched_FFT_3d() {
   EXPECT_EQ( howmany_c2c_axis_21, ref_howmany_r2c_axis_21 );
 }
 
-TEST(Layouts, 2DBatchedFFT_3DLeftView) {
-  test_layouts_2d_batched_FFT_3d<Kokkos::LayoutLeft>();
+TYPED_TEST(Layouts2D, 2DFFT_2DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_layouts_2d<layout_type>();
 }
 
-TEST(Layouts, 2DBatchedFFT_3DRightView) {
-  test_layouts_2d_batched_FFT_3d<Kokkos::LayoutRight>();
+TYPED_TEST(Layouts2D, 2DFFT_3DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_layouts_2d_batched_FFT_3d<layout_type>();
 }

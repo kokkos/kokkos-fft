@@ -7,6 +7,26 @@
 template <std::size_t DIM>
 using axes_type = std::array<int, DIM>;
 
+using test_types = ::testing::Types<
+  Kokkos::LayoutLeft,
+  Kokkos::LayoutRight
+>;
+
+// Basically the same fixtures, used for labeling tests
+template <typename T>
+struct MapAxes : public ::testing::Test {
+  using layout_type = T;
+};
+
+template <typename T>
+struct Transpose : public ::testing::Test {
+  using layout_type = T;
+};
+
+TYPED_TEST_SUITE(MapAxes, test_types);
+TYPED_TEST_SUITE(Transpose, test_types);
+
+// Tests for map axes over ND views
 template <typename LayoutType>
 void test_map_axes1d() {
   const int len = 30;
@@ -23,14 +43,6 @@ void test_map_axes1d() {
   EXPECT_TRUE( map_axes == ref_map_axes );
   EXPECT_TRUE( map_inv_axis == ref_map_axis );
   EXPECT_TRUE( map_inv_axes == ref_map_axes );
-}
-
-TEST(MapAxes, 1DLeftView) {
-  test_map_axes1d<Kokkos::LayoutLeft>();
-}
-
-TEST(MapAxes, 1DRightView) {
-  test_map_axes1d<Kokkos::LayoutRight>();
 }
 
 template <typename LayoutType>
@@ -113,14 +125,6 @@ void test_map_axes2d() {
   EXPECT_TRUE( map_inv_axes_minus1_0 == ref_map_inv_axes_minus1_0 );
   EXPECT_TRUE( map_inv_axes_0_1 == ref_map_inv_axes_0_1 );
   EXPECT_TRUE( map_inv_axes_1_0 == ref_map_inv_axes_1_0 );
-}
-
-TEST(MapAxes, 2DLeftView) {
-  test_map_axes2d<Kokkos::LayoutLeft>();
-}
-
-TEST(MapAxes, 2DRightView) {
-  test_map_axes2d<Kokkos::LayoutRight>();
 }
 
 template <typename LayoutType>
@@ -266,14 +270,28 @@ void test_map_axes3d() {
   EXPECT_TRUE( map_inv_axes_2_1_0 == ref_map_inv_axes_2_1_0 );
 }
 
-TEST(MapAxes, 3DLeftView) {
-  test_map_axes3d<Kokkos::LayoutLeft>();
+// Tests for 1D View
+TYPED_TEST(MapAxes, 1DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_map_axes1d<layout_type>();
 }
 
-TEST(MapAxes, 3DRightView) {
-  test_map_axes3d<Kokkos::LayoutRight>();
+// Tests for 2D View
+TYPED_TEST(MapAxes, 2DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_map_axes2d<layout_type>();
 }
 
+// Tests for 3D View
+TYPED_TEST(MapAxes, 3DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_map_axes3d<layout_type>();
+}
+
+// Tests for transpose
 template <typename LayoutType>
 void test_transpose_1d() {
   // When transpose is not necessary, we should not call transpose method
@@ -294,6 +312,13 @@ void test_transpose_1d() {
   );
 }
 
+TYPED_TEST(Transpose, 1DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_transpose_1d<layout_type>();
+}
+
+/*
 TEST(Transpose, 1DLeftView) {
   test_transpose_1d<Kokkos::LayoutLeft>();
 }
@@ -301,6 +326,7 @@ TEST(Transpose, 1DLeftView) {
 TEST(Transpose, 1DRightView) {
   test_transpose_1d<Kokkos::LayoutRight>();
 }
+*/
 
 TEST(Transpose, 2DLeftView) {
   const int n0 = 3, n1 = 5;
