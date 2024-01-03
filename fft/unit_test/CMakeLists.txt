@@ -2,6 +2,7 @@ add_executable(unit-tests-kokkos-fft-core
     Test_Main.cpp
     Test_Plans.cpp
     Test_Transform.cpp
+    Test_Helpers.cpp 
 )
 
 target_compile_features(unit-tests-kokkos-fft-core PUBLIC cxx_std_17)
