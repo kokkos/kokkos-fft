@@ -53,7 +53,23 @@ namespace Impl {
     auto [coef, to_normalize] = _coefficients(inout, direction, normalization, fft_size);
     if(to_normalize) _normalize(exec_space, inout, coef);
   }
+
+  auto swap_direction(Normalization normalization) {
+    Normalization new_direction = Normalization::FORWARD;
+    switch (normalization) {
+      case Normalization::FORWARD:
+        new_direction = Normalization::BACKWARD;
+        break;
+      case Normalization::BACKWARD:
+        new_direction = Normalization::FORWARD;
+        break;
+      case Normalization::ORTHO:
+        new_direction = Normalization::ORTHO;
+        break;
+    };
+    return new_direction;
+  }
 } // namespace Impl
-}; // namespace KokkosFFT
+} // namespace KokkosFFT
 
 #endif
