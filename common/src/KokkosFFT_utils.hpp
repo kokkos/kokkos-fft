@@ -28,6 +28,16 @@ namespace Impl {
   template <typename T>
   struct is_complex<Kokkos::complex<T>> : std::true_type {};
 
+  template <typename ExecutionSpace, typename ViewType,
+            std::enable_if_t<ViewType::rank()==1, std::nullptr_t> = nullptr>
+  struct complex_view_type {
+    using value_type = typename ViewType::non_const_value_type;
+    using float_type = KokkosFFT::Impl::real_type_t<value_type>;
+    using complex_type = Kokkos::complex<float_type>;
+    using array_layout_type = typename ViewType::array_layout;
+    using type = Kokkos::View<complex_type*, array_layout_type, ExecutionSpace>;
+  };
+
   template <typename ViewType>
   auto convert_negative_axis(const ViewType& view, int _axis=-1) {
     static_assert(Kokkos::is_view<ViewType>::value,
@@ -36,6 +46,27 @@ namespace Impl {
     assert( abs(_axis) < rank ); // axis should be in [-(rank-1), rank-1]
     int axis = _axis < 0 ? rank + _axis : _axis;
     return axis;
+  }
+
+  template <typename ViewType>
+  auto convert_negative_shift(const ViewType& view, int _shift, int _axis) {
+    static_assert(Kokkos::is_view<ViewType>::value,
+                  "KokkosFFT::convert_negative_shift: ViewType is not a Kokkos::View.");
+    int axis = convert_negative_axis(view, _axis);
+    int extent = view.extent(axis);
+    int shift0 = 0, shift1 = 0, shift2 = extent/2;
+
+    if(_shift < 0) {
+      shift0 = -_shift + extent%2; // add 1 for odd case
+      shift1 = -_shift;
+      shift2 = 0;
+    } else if(_shift>0){
+      shift0 = _shift;
+      shift1 = _shift + extent%2; // add 1 for odd case
+      shift2 = 0;
+    }
+
+    return std::tuple<int, int, int>({shift0, shift1, shift2});
   }
 
   template <typename T>
@@ -57,6 +88,17 @@ namespace Impl {
   bool has_duplicate_values(const std::vector<T>& values) {
     std::set<T> set_values(values.begin(), values.end());
     return set_values.size() < values.size();
+  }
+
+  template <typename IntType,
+            std::size_t DIM=1,
+            std::enable_if_t<std::is_integral_v<IntType>, std::nullptr_t> = nullptr>
+  bool is_out_of_range_value_included(const std::array<IntType, DIM>& values, IntType max) {
+    bool is_included = false;
+    for(auto value: values) {
+      is_included = value >= max;
+    }
+    return is_included;
   }
 
   template <std::size_t DIM=1>
@@ -91,7 +133,56 @@ namespace Impl {
                    [=](const T sequence) -> T {return start + sequence;});
     return sequence;
   }
+
+  template <typename ElementType>
+  inline std::vector<ElementType> arange(const ElementType start,
+                                         const ElementType stop,
+                                         const ElementType step=1
+                                        ) {
+    const size_t length = ceil((stop - start) / step);
+    std::vector<ElementType> result;
+    ElementType delta = (stop - start) / length;
+
+    // thrust::sequence
+    for(auto i=0; i<length; i++) {
+      ElementType value = start + delta*i;
+      result.push_back(value);
+    }
+    return result;
+  }
+
+  template <typename ExecutionSpace, typename InViewType, typename OutViewType>
+  void conjugate(const ExecutionSpace& exec_space, const InViewType& in, OutViewType& out) {
+    using in_value_type = typename InViewType::non_const_value_type;
+    using out_value_type = typename OutViewType::non_const_value_type;
+
+    static_assert(KokkosFFT::Impl::is_complex<out_value_type>::value,
+                  "KokkosFFT::Impl::conjugate: OutViewType must be complex");
+    std::size_t size = in.size();
+
+    // [TO DO] is there a way to get device mirror?
+    if constexpr(InViewType::rank() == 1) {
+      out = OutViewType("out", in.extent(0));
+    } else if constexpr(InViewType::rank() == 2) {
+      out = OutViewType("out", in.extent(0), in.extent(1));
+    } else if constexpr(InViewType::rank() == 3) {
+      out = OutViewType("out", in.extent(0), in.extent(1), in.extent(2));
+    } else if constexpr(InViewType::rank() == 4) {
+      out = OutViewType("out", in.extent(0), in.extent(1), in.extent(2), in.extent(3));
+    }
+
+    auto* in_data = in.data();
+    auto* out_data = out.data();
+
+    Kokkos::parallel_for(
+      Kokkos::RangePolicy<ExecutionSpace, Kokkos::IndexType<std::size_t>>(exec_space, 0, size),
+      KOKKOS_LAMBDA(const int& i) {
+        out_value_type tmp = in_data[i];
+        out_data[i] = Kokkos::conj(in_data[i]);
+      }
+    );
+  }
 } // namespace Impl
-}; // namespace KokkosFFT
+} // namespace KokkosFFT
 
 #endif

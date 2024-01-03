@@ -34,6 +34,10 @@ namespace KokkosFFT {
   template <std::size_t DIM>
   using axis_type = std::array<int, DIM>;
 
+  // Define type to specify new shape
+  template <std::size_t DIM>
+  using shape_type = std::array<std::size_t, DIM>;
+
   enum class Normalization {
     FORWARD,
     BACKWARD,
