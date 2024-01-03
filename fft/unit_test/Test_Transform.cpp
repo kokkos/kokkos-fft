@@ -204,6 +204,115 @@ void test_fft1_1difft_1dview() {
 }
 
 template <typename T, typename LayoutType>
+void test_fft1_1dhfft_1dview() {
+  const int len_herm = 16, len = len_herm * 2 - 2;
+  using RealView1DType    = Kokkos::View<T*, LayoutType, execution_space>;
+  using ComplexView1DType = Kokkos::View<Kokkos::complex<T>*, LayoutType, execution_space>;
+
+  ComplexView1DType x_herm("x_herm", len_herm), x_herm_ref("x_herm_ref", len_herm);
+  ComplexView1DType x("x", len), ref("ref", len);
+  RealView1DType out("out", len);
+  RealView1DType out_b("out_b", len), out_o("out_o", len), out_f("out_f", len);
+
+  const Kokkos::complex<T> I(1.0, 1.0);
+  Kokkos::Random_XorShift64_Pool<> random_pool(12345);
+  Kokkos::fill_random(x_herm, random_pool, I);
+
+  auto h_x      = Kokkos::create_mirror_view(x);
+  auto h_x_herm = Kokkos::create_mirror_view(x_herm);
+  Kokkos::deep_copy(h_x_herm, x_herm);
+
+  auto last = h_x_herm.extent(0) - 1;
+  h_x_herm(0)    = h_x_herm(0).real();
+  h_x_herm(last) = h_x_herm(last).real();
+
+  for(int i=0; i<len_herm; i++) {
+    h_x(i) = h_x_herm(i);
+  }
+
+  // h_x_herm(last-1), h_x_herm(last-2), ..., h_x_herm(1)
+  for(int i=last-1; i>0; i--) {
+    h_x(len-i) = Kokkos::conj(h_x_herm(i));
+  }
+
+  Kokkos::deep_copy(x_herm, h_x_herm);
+  Kokkos::deep_copy(x_herm_ref, h_x_herm);
+  Kokkos::deep_copy(x, h_x);
+
+  Kokkos::fence();
+
+  KokkosFFT::fft(execution_space(), x, ref);
+
+  Kokkos::deep_copy(x_herm, x_herm_ref);
+  KokkosFFT::hfft(execution_space(), x_herm, out); // default: KokkosFFT::Normalization::BACKWARD
+
+  Kokkos::deep_copy(x_herm, x_herm_ref);
+  KokkosFFT::hfft(execution_space(), x_herm, out_b, KokkosFFT::Normalization::BACKWARD);
+
+  Kokkos::deep_copy(x_herm, x_herm_ref);
+  KokkosFFT::hfft(execution_space(), x_herm, out_o, KokkosFFT::Normalization::ORTHO);
+
+  Kokkos::deep_copy(x_herm, x_herm_ref);
+  KokkosFFT::hfft(execution_space(), x_herm, out_f, KokkosFFT::Normalization::FORWARD);
+
+  multiply(out_o, sqrt(static_cast<T>(len)));
+  multiply(out_f, static_cast<T>(len));
+
+  EXPECT_TRUE( allclose(out,   ref, 1.e-5, 1.e-6) );
+  EXPECT_TRUE( allclose(out_b, out, 1.e-5, 1.e-6) );
+  EXPECT_TRUE( allclose(out_o, out, 1.e-5, 1.e-6) );
+  EXPECT_TRUE( allclose(out_f, out, 1.e-5, 1.e-6) );
+}
+
+template <typename T, typename LayoutType>
+void test_fft1_1dihfft_1dview() {
+  const int len_herm = 16, len = len_herm * 2 - 2;
+  using RealView1DType    = Kokkos::View<T*, LayoutType, execution_space>;
+  using ComplexView1DType = Kokkos::View<Kokkos::complex<T>*, LayoutType, execution_space>;
+
+  ComplexView1DType x_herm("x_herm", len_herm), x_herm_ref("x_herm_ref", len_herm);
+  RealView1DType out1("out1", len);
+  RealView1DType out1_b("out1_b", len), out1_o("out1_o", len), out1_f("out1_f", len);
+  ComplexView1DType out2("out2", len_herm), out2_b("out2_b", len_herm), out2_o("out2_o", len_herm), out2_f("out2_f", len_herm);
+
+  const Kokkos::complex<T> I(1.0, 1.0);
+  Kokkos::Random_XorShift64_Pool<> random_pool(12345);
+  Kokkos::fill_random(x_herm, random_pool, I);
+
+  auto h_x_herm = Kokkos::create_mirror_view(x_herm);
+  Kokkos::deep_copy(h_x_herm, x_herm);
+
+  auto last = h_x_herm.extent(0) - 1;
+  h_x_herm(0)    = h_x_herm(0).real();
+  h_x_herm(last) = h_x_herm(last).real();
+
+  Kokkos::deep_copy(x_herm, h_x_herm);
+  Kokkos::deep_copy(x_herm_ref, h_x_herm);
+  Kokkos::fence();
+
+  Kokkos::deep_copy(x_herm, x_herm_ref);
+  KokkosFFT::hfft(execution_space(), x_herm, out1); // default: KokkosFFT::Normalization::BACKWARD
+  KokkosFFT::ihfft(execution_space(), out1, out2); // default: KokkosFFT::Normalization::BACKWARD
+
+  Kokkos::deep_copy(x_herm, x_herm_ref);
+  KokkosFFT::hfft(execution_space(), x_herm, out1_b, KokkosFFT::Normalization::BACKWARD);
+  KokkosFFT::ihfft(execution_space(), out1_b, out2_b, KokkosFFT::Normalization::BACKWARD);
+
+  Kokkos::deep_copy(x_herm, x_herm_ref);
+  KokkosFFT::hfft(execution_space(), x_herm, out1_o, KokkosFFT::Normalization::ORTHO);
+  KokkosFFT::ihfft(execution_space(), out1_o, out2_o, KokkosFFT::Normalization::ORTHO);
+
+  Kokkos::deep_copy(x_herm, x_herm_ref);
+  KokkosFFT::hfft(execution_space(), x_herm, out1_f, KokkosFFT::Normalization::FORWARD);
+  KokkosFFT::ihfft(execution_space(), out1_f, out2_f, KokkosFFT::Normalization::FORWARD);
+
+  EXPECT_TRUE( allclose(out2,   x_herm_ref, 1.e-5, 1.e-6) );
+  EXPECT_TRUE( allclose(out2_b, x_herm_ref, 1.e-5, 1.e-6) );
+  EXPECT_TRUE( allclose(out2_o, x_herm_ref, 1.e-5, 1.e-6) );
+  EXPECT_TRUE( allclose(out2_f, x_herm_ref, 1.e-5, 1.e-6) );
+}
+
+template <typename T, typename LayoutType>
 void test_fft1_1dfft_2dview(T atol=1.e-12) {
   const int n0 = 10, n1 = 12;
   using RealView2DType    = Kokkos::View<T**, LayoutType, execution_space>;
@@ -399,6 +508,22 @@ TYPED_TEST(FFT1D, IFFT_1DView) {
   using layout_type = typename TestFixture::layout_type;
 
   test_fft1_1difft_1dview<float_type, layout_type>();
+}
+
+// hfft on 1D Views
+TYPED_TEST(FFT1D, HFFT_1DView) {
+  using float_type = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  test_fft1_1dhfft_1dview<float_type, layout_type>();
+}
+
+// ihfft on 1D Views
+TYPED_TEST(FFT1D, IHFFT_1DView) {
+  using float_type = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  test_fft1_1dihfft_1dview<float_type, layout_type>();
 }
 
 // batced fft1 on 2D Views
@@ -1076,7 +1201,7 @@ TYPED_TEST(FFTND, 3DFFT_3DView) {
   using layout_type = typename TestFixture::layout_type;
 
   float_type atol = std::is_same_v<float_type, float> ? 5.0e-5 : 1.0e-6;
-  test_fftn_3dfft_3dview<float_type, layout_type>();
+  test_fftn_3dfft_3dview<float_type, layout_type>(atol);
 }
 
 // ifftn on 2D Views

@@ -4,6 +4,7 @@ add_executable(unit-tests-kokkos-fft-common
     Test_Normalization.cpp
     Test_Transpose.cpp
     Test_Layouts.cpp
+    Test_Padding.cpp
 )
 
 target_compile_features(unit-tests-kokkos-fft-common PUBLIC cxx_std_17)
