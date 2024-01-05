@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      backends: OPENMP CUDA
+      backends: OPENMP CUDA CUDA_HOST_DEVICE
       CUDA_ARCHITECTURES: AMPERE80
       CMAKE_CXX_COMPILER: /work/tpls/kokkos/bin/nvcc_wrapper
       container: nvidia_env
@@ -54,6 +54,15 @@ jobs:
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_CXX_COMPILER=${{env.CMAKE_CXX_COMPILER}} \
             -DCMAKE_CXX_STANDARD=17 -DKokkos_ENABLE_CUDA=ON -DKokkos_ARCH_${{env.CUDA_ARCHITECTURES}}=ON -DBUILD_TESTING=ON
 
+    - name: Configure CMake for CUDA backend with HOST and DEVICE option
+      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+      run: |
+          docker run -v ${{github.workspace}}:/work ${{ env.container }} cmake -B build_CUDA_HOST_DEVICE \
+            -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_CXX_COMPILER=${{env.CMAKE_CXX_COMPILER}} \
+            -DCMAKE_CXX_STANDARD=17 -DKokkos_ENABLE_CUDA=ON -DKokkos_ARCH_${{env.CUDA_ARCHITECTURES}}=ON -DBUILD_TESTING=ON \
+            -DKokkosFFT_ENABLE_HOST_AND_DEVICE=ON
+
     - name: Build
       # Build your program with the given configuration
       run: |
@@ -73,7 +82,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      backend: HIP
+      backends: HIP HIP_HOST_DEVICE
       architecture: VEGA90A
       CMAKE_CXX_COMPILER: hipcc
       container: amd_env
@@ -98,11 +107,22 @@ jobs:
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
       run: |
-        docker run -v ${{github.workspace}}:/work ${{ env.container }} cmake -B build_${{env.backend}} \
+        docker run -v ${{github.workspace}}:/work ${{ env.container }} cmake -B build_HIP \
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_CXX_COMPILER=${{env.CMAKE_CXX_COMPILER}} \
             -DCMAKE_CXX_STANDARD=17 -DKokkos_ENABLE_HIP=ON -DKokkos_ARCH_${{env.architecture}}=ON -DBUILD_TESTING=ON
+
+    - name: Configure CMake for HIP backend with HOST and DEVICE option
+      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+      run: |
+        docker run -v ${{github.workspace}}:/work ${{ env.container }} cmake -B build_HIP_HOST_DEVICE \
+            -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_CXX_COMPILER=${{env.CMAKE_CXX_COMPILER}} \
+            -DCMAKE_CXX_STANDARD=17 -DKokkos_ENABLE_HIP=ON -DKokkos_ARCH_${{env.architecture}}=ON -DBUILD_TESTING=ON \
+            -DKokkosFFT_ENABLE_HOST_AND_DEVICE=ON
 
     - name: Build
       # Build your program with the given configuration
       run: |
-        docker run -v ${{github.workspace}}:/work ${{ env.container }} cmake --build build_${{env.backend}} --config ${{env.BUILD_TYPE}} -j 2
+        for backend in ${{ env.backends }}; do
+          docker run -v ${{github.workspace}}:/work ${{ env.container }} cmake --build build_${backend} --config ${{env.BUILD_TYPE}} -j 2
+        done
