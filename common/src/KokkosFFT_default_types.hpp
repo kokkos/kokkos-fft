@@ -22,13 +22,6 @@
 
 #include "KokkosFFT_utils.hpp"
 
-// Check the size of complex type
-static_assert(sizeof(KokkosFFT::Impl::FFTDataType::complex64) == sizeof(Kokkos::complex<float>));
-static_assert(alignof(KokkosFFT::Impl::FFTDataType::complex64) <= alignof(Kokkos::complex<float>));
-
-static_assert(sizeof(KokkosFFT::Impl::FFTDataType::complex128) == sizeof(Kokkos::complex<double>));
-static_assert(alignof(KokkosFFT::Impl::FFTDataType::complex128) <= alignof(Kokkos::complex<double>));
-
 namespace KokkosFFT {
   // Define type to specify transform axis
   template <std::size_t DIM>
@@ -48,14 +41,14 @@ namespace KokkosFFT {
 namespace KokkosFFT {
 namespace Impl {
   // Define fft data types
-  template <typename T>
+  template <typename ExecutionSpace, typename T>
   struct fft_data_type {
-    using type = std::conditional_t<std::is_same_v<T, float>, KokkosFFT::Impl::FFTDataType::float32, KokkosFFT::Impl::FFTDataType::float64>;
+    using type = std::conditional_t<std::is_same_v<T, float>, typename KokkosFFT::Impl::FFTDataType<ExecutionSpace>::float32, typename KokkosFFT::Impl::FFTDataType<ExecutionSpace>::float64>;
   };
 
-  template <typename T>
-  struct fft_data_type<Kokkos::complex<T>> {
-    using type = std::conditional_t<std::is_same_v<T, float>, KokkosFFT::Impl::FFTDataType::complex64, KokkosFFT::Impl::FFTDataType::complex128>;
+  template <typename ExecutionSpace, typename T>
+  struct fft_data_type<ExecutionSpace, Kokkos::complex<T>> {
+    using type = std::conditional_t<std::is_same_v<T, float>, typename KokkosFFT::Impl::FFTDataType<ExecutionSpace>::complex64, typename KokkosFFT::Impl::FFTDataType<ExecutionSpace>::complex128>;
   };
 } // namespace Impl
 } // namespace KokkosFFT

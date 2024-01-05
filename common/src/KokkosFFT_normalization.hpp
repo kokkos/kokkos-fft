@@ -19,21 +19,21 @@ namespace Impl {
   }
 
   template <typename ViewType>
-  auto _coefficients(const ViewType& inout, FFTDirectionType direction, Normalization normalization, std::size_t fft_size) {
+  auto _coefficients(const ViewType& inout, Direction direction, Normalization normalization, std::size_t fft_size) {
     using value_type = KokkosFFT::Impl::real_type_t<typename ViewType::non_const_value_type>;
     value_type coef = 1;
     bool to_normalize = false;
 
     switch (normalization) {
     case Normalization::FORWARD:
-      if(direction == KOKKOS_FFT_FORWARD) {
+      if(direction == Direction::Forward) {
         coef = static_cast<value_type>(1) / static_cast<value_type>(fft_size);
         to_normalize = true;
       }
 
       break;
     case Normalization::BACKWARD:
-      if(direction == KOKKOS_FFT_BACKWARD) {
+      if(direction == Direction::Backward) {
         coef = static_cast<value_type>(1) / static_cast<value_type>(fft_size);
         to_normalize = true;
       }
@@ -49,7 +49,7 @@ namespace Impl {
   }
 
   template <typename ExecutionSpace, typename ViewType>
-  void normalize(const ExecutionSpace& exec_space, ViewType& inout, FFTDirectionType direction, Normalization normalization, std::size_t fft_size) {
+  void normalize(const ExecutionSpace& exec_space, ViewType& inout, Direction direction, Normalization normalization, std::size_t fft_size) {
     auto [coef, to_normalize] = _coefficients(inout, direction, normalization, fft_size);
     if(to_normalize) _normalize(exec_space, inout, coef);
   }
