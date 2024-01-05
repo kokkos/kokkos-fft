@@ -12,9 +12,15 @@
 #if defined(KOKKOS_ENABLE_CUDA)
   using default_device = Kokkos::Cuda;
   #include "KokkosFFT_Cuda_transform.hpp"
+  #ifdef ENABLE_HOST_AND_DEVICE
+    #include "KokkosFFT_OpenMP_transform.hpp"
+  #endif
 #elif defined(KOKKOS_ENABLE_HIP)
   using default_device = Kokkos::HIP;
   #include "KokkosFFT_HIP_transform.hpp"
+  #ifdef ENABLE_HOST_AND_DEVICE
+    #include "KokkosFFT_OpenMP_transform.hpp"
+  #endif
 #elif defined(KOKKOS_ENABLE_OPENMP)
   using default_device = Kokkos::OpenMP;
   #include "KokkosFFT_OpenMP_transform.hpp"
@@ -39,11 +45,12 @@ namespace Impl {
     using in_value_type = typename InViewType::non_const_value_type;
     using out_value_type = typename OutViewType::non_const_value_type;
 
-    auto* idata = reinterpret_cast<typename KokkosFFT::Impl::fft_data_type<in_value_type>::type*>(in.data());
-    auto* odata = reinterpret_cast<typename KokkosFFT::Impl::fft_data_type<out_value_type>::type*>(out.data());
+    auto* idata = reinterpret_cast<typename KokkosFFT::Impl::fft_data_type<ExecutionSpace, in_value_type>::type*>(in.data());
+    auto* odata = reinterpret_cast<typename KokkosFFT::Impl::fft_data_type<ExecutionSpace, out_value_type>::type*>(out.data());
 
-    KokkosFFT::Impl::_exec(plan.plan(), idata, odata, KOKKOS_FFT_FORWARD);
-    KokkosFFT::Impl::normalize(exec_space, out, KOKKOS_FFT_FORWARD, norm, plan.fft_size());
+    auto forward = direction_type<ExecutionSpace>(KokkosFFT::Impl::Direction::Forward);
+    KokkosFFT::Impl::_exec(plan.plan(), idata, odata, forward);
+    KokkosFFT::Impl::normalize(exec_space, out, KokkosFFT::Impl::Direction::Forward, norm, plan.fft_size());
   }
 
   template <typename ExecutionSpace, typename PlanType, typename InViewType, typename OutViewType>
@@ -56,11 +63,12 @@ namespace Impl {
     using in_value_type = typename InViewType::non_const_value_type;
     using out_value_type = typename OutViewType::non_const_value_type;
 
-    auto* idata = reinterpret_cast<typename KokkosFFT::Impl::fft_data_type<in_value_type>::type*>(in.data());
-    auto* odata = reinterpret_cast<typename KokkosFFT::Impl::fft_data_type<out_value_type>::type*>(out.data());
+    auto* idata = reinterpret_cast<typename KokkosFFT::Impl::fft_data_type<ExecutionSpace, in_value_type>::type*>(in.data());
+    auto* odata = reinterpret_cast<typename KokkosFFT::Impl::fft_data_type<ExecutionSpace, out_value_type>::type*>(out.data());
 
-    KokkosFFT::Impl::_exec(plan.plan(), idata, odata, KOKKOS_FFT_BACKWARD);
-    KokkosFFT::Impl::normalize(exec_space, out, KOKKOS_FFT_BACKWARD, norm, plan.fft_size());
+    auto backward = direction_type<ExecutionSpace>(KokkosFFT::Impl::Direction::Backward);
+    KokkosFFT::Impl::_exec(plan.plan(), idata, odata, backward);
+    KokkosFFT::Impl::normalize(exec_space, out, KokkosFFT::Impl::Direction::Backward, norm, plan.fft_size());
   }
 } // namespace Impl
 } // namespace KokkosFFT
@@ -102,7 +110,7 @@ namespace KokkosFFT {
       _in = in;
     }
 
-    KokkosFFT::Impl::Plan plan(exec_space, _in, out, KOKKOS_FFT_FORWARD, axis);
+    KokkosFFT::Impl::Plan plan(exec_space, _in, out, KokkosFFT::Impl::Direction::Forward, axis);
     if(plan.is_transpose_needed()) {
       InViewType in_T;
       OutViewType out_T;
@@ -146,7 +154,7 @@ namespace KokkosFFT {
       _in = in;
     }
 
-    KokkosFFT::Impl::Plan plan(exec_space, _in, out, KOKKOS_FFT_BACKWARD, axis);
+    KokkosFFT::Impl::Plan plan(exec_space, _in, out, KokkosFFT::Impl::Direction::Backward, axis);
     if(plan.is_transpose_needed()) {
       InViewType in_T;
       OutViewType out_T;
@@ -291,7 +299,7 @@ namespace KokkosFFT {
       _in = in;
     }
 
-    KokkosFFT::Impl::Plan plan(exec_space, _in, out, KOKKOS_FFT_FORWARD, axes);
+    KokkosFFT::Impl::Plan plan(exec_space, _in, out, KokkosFFT::Impl::Direction::Forward, axes);
     if(plan.is_transpose_needed()) {
       InViewType in_T;
       OutViewType out_T;
@@ -332,7 +340,7 @@ namespace KokkosFFT {
       _in = in;
     }
 
-    KokkosFFT::Impl::Plan plan(exec_space, _in, out, KOKKOS_FFT_BACKWARD, axes);
+    KokkosFFT::Impl::Plan plan(exec_space, _in, out, KokkosFFT::Impl::Direction::Backward, axes);
     if(plan.is_transpose_needed()) {
       InViewType in_T;
       OutViewType out_T;
@@ -431,7 +439,7 @@ namespace KokkosFFT {
       _in = in;
     }
 
-    KokkosFFT::Impl::Plan plan(exec_space, _in, out, KOKKOS_FFT_FORWARD, axes);
+    KokkosFFT::Impl::Plan plan(exec_space, _in, out, KokkosFFT::Impl::Direction::Forward, axes);
     if(plan.is_transpose_needed()) {
       InViewType in_T;
       OutViewType out_T;
@@ -472,7 +480,7 @@ namespace KokkosFFT {
       _in = in;
     }
 
-    KokkosFFT::Impl::Plan plan(exec_space, _in, out, KOKKOS_FFT_FORWARD, axes);
+    KokkosFFT::Impl::Plan plan(exec_space, _in, out, KokkosFFT::Impl::Direction::Forward, axes);
     if(plan.is_transpose_needed()) {
       InViewType in_T;
       OutViewType out_T;
@@ -517,7 +525,7 @@ namespace KokkosFFT {
       _in = in;
     }
 
-    KokkosFFT::Impl::Plan plan(exec_space, _in, out, KOKKOS_FFT_BACKWARD, axes);
+    KokkosFFT::Impl::Plan plan(exec_space, _in, out, KokkosFFT::Impl::Direction::Backward, axes);
     if(plan.is_transpose_needed()) {
       InViewType in_T;
       OutViewType out_T;
@@ -558,7 +566,7 @@ namespace KokkosFFT {
       _in = in;
     }
 
-    KokkosFFT::Impl::Plan plan(exec_space, _in, out, KOKKOS_FFT_BACKWARD, axes);
+    KokkosFFT::Impl::Plan plan(exec_space, _in, out, KokkosFFT::Impl::Direction::Backward, axes);
     if(plan.is_transpose_needed()) {
       InViewType in_T;
       OutViewType out_T;

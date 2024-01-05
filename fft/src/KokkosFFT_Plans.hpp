@@ -9,9 +9,15 @@
 #if defined(KOKKOS_ENABLE_CUDA)
   using default_device = Kokkos::Cuda;
   #include "KokkosFFT_Cuda_plans.hpp"
+  #ifdef ENABLE_HOST_AND_DEVICE
+    #include "KokkosFFT_OpenMP_plans.hpp"
+  #endif
 #elif defined(KOKKOS_ENABLE_HIP)
   using default_device = Kokkos::HIP;
   #include "KokkosFFT_HIP_plans.hpp"
+  #ifdef ENABLE_HOST_AND_DEVICE
+    #include "KokkosFFT_OpenMP_plans.hpp"
+  #endif
 #elif defined(KOKKOS_ENABLE_OPENMP)
   using default_device = Kokkos::OpenMP;
   #include "KokkosFFT_OpenMP_plans.hpp"
@@ -30,7 +36,7 @@ namespace Impl {
     using in_value_type = typename InViewType::non_const_value_type;
     using out_value_type = typename OutViewType::non_const_value_type;
     using float_type = KokkosFFT::Impl::real_type_t<in_value_type>;
-    using fft_plan_type = typename KokkosFFT::Impl::FFTPlanType< float_type >::type;
+    using fft_plan_type = typename KokkosFFT::Impl::FFTPlanType<ExecutionSpace, float_type>::type;
     using fft_size_type = std::size_t;
     using map_type = axis_type<InViewType::rank()>;
     using nonConstInViewType = std::remove_cv_t<InViewType>;
@@ -46,7 +52,7 @@ namespace Impl {
     nonConstOutViewType m_out_T;
 
   public:
-    explicit Plan(const ExecutionSpace& exec_space, InViewType& in, OutViewType& out, KokkosFFT::Impl::FFTDirectionType direction, int axis) : m_fft_size(1), m_is_transpose_needed(false) {
+    explicit Plan(const ExecutionSpace& exec_space, InViewType& in, OutViewType& out, KokkosFFT::Impl::Direction direction, int axis) : m_fft_size(1), m_is_transpose_needed(false) {
       static_assert(Kokkos::is_view<InViewType>::value,
                     "KokkosFFT::Plan: InViewType is not a Kokkos::View.");
       static_assert(Kokkos::is_view<OutViewType>::value,
@@ -57,7 +63,7 @@ namespace Impl {
       m_fft_size = KokkosFFT::Impl::_create(exec_space, m_plan, in, out, direction, axis_type<1>{axis});
     }
 
-    explicit Plan(const ExecutionSpace& exec_space, InViewType& in, OutViewType& out, KokkosFFT::Impl::FFTDirectionType direction, axis_type<DIM> axes) : m_fft_size(1), m_is_transpose_needed(false) {
+    explicit Plan(const ExecutionSpace& exec_space, InViewType& in, OutViewType& out, KokkosFFT::Impl::Direction direction, axis_type<DIM> axes) : m_fft_size(1), m_is_transpose_needed(false) {
       static_assert(Kokkos::is_view<InViewType>::value,
                     "KokkosFFT::Plan: InViewType is not a Kokkos::View.");
       static_assert(Kokkos::is_view<OutViewType>::value,
@@ -69,7 +75,7 @@ namespace Impl {
     }
 
     ~Plan() {
-      _destroy<float_type>(m_plan);
+      _destroy<ExecutionSpace, float_type>(m_plan);
     }
 
     fft_plan_type plan() const { return m_plan; }
@@ -81,6 +87,6 @@ namespace Impl {
     nonConstOutViewType& out_T() { return m_out_T; }
   };
 } // namespace Impl
-}; // namespace KokkosFFT
+} // namespace KokkosFFT
 
 #endif
