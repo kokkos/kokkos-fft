@@ -6,6 +6,7 @@ list(INSERT CMAKE_MODULE_PATH 0 "${CMAKE_SOURCE_DIR}/cmake")
 
 # Options
 option(BUILD_EXAMPLES "Build kokkos-fft examples" ON)
+option(KokkosFFT_ENABLE_HOST_AND_DEVICE "Enable fft on both host and device" OFF)
 
 find_package(Kokkos CONFIG)
 if(NOT kokkos_FOUND)

@@ -70,7 +70,7 @@ template <typename T, typename LayoutType>
 void test_rfft_freq(T atol=1.0e-12) {
   constexpr std::size_t n_odd = 9, n_even = 10;
   using RealView1DType = Kokkos::View<T*, LayoutType, execution_space>;
-  RealView1DType x_odd_ref("x_odd_ref", n_odd/2), x_even_ref("x_even_ref", n_even/2);
+  RealView1DType x_odd_ref("x_odd_ref", n_odd/2+1), x_even_ref("x_even_ref", n_even/2+1);
 
   auto h_x_odd_ref  = Kokkos::create_mirror_view(x_odd_ref);
   auto h_x_even_ref = Kokkos::create_mirror_view(x_even_ref);
