@@ -165,10 +165,10 @@ namespace KokkosFFT {
     static_assert(std::is_floating_point<RealType>::value,
                   "KokkosFFT::fftfreq: d must be real");
     using ViewType = Kokkos::View<RealType*, ExecutionSpace>;
-    ViewType freq("freq", n);
 
     RealType val = 1.0 / ( static_cast<RealType>(n) * d );
     int N = n/2 + 1;
+    ViewType freq("freq", N);
 
     auto h_freq = Kokkos::create_mirror_view(freq);
     auto p = KokkosFFT::Impl::arange(0, N);
