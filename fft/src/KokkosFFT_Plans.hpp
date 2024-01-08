@@ -33,6 +33,7 @@ namespace KokkosFFT {
 namespace Impl {
   template <typename ExecutionSpace, typename InViewType, typename OutViewType, std::size_t DIM = 1>
   class Plan {
+    using execSpace = ExecutionSpace;
     using in_value_type = typename InViewType::non_const_value_type;
     using out_value_type = typename OutViewType::non_const_value_type;
     using float_type = KokkosFFT::Impl::real_type_t<in_value_type>;
@@ -46,24 +47,27 @@ namespace Impl {
     fft_size_type m_fft_size;
     map_type m_map, m_map_inv;
     bool m_is_transpose_needed;
+    axis_type<DIM> m_axes;
+    KokkosFFT::Impl::Direction m_direction;
 
     // Only used when transpose needed
     nonConstInViewType m_in_T;
     nonConstOutViewType m_out_T;
 
   public:
-    explicit Plan(const ExecutionSpace& exec_space, InViewType& in, OutViewType& out, KokkosFFT::Impl::Direction direction, int axis) : m_fft_size(1), m_is_transpose_needed(false) {
+    explicit Plan(const ExecutionSpace& exec_space, InViewType& in, OutViewType& out, KokkosFFT::Impl::Direction direction, int axis) : m_fft_size(1), m_is_transpose_needed(false), m_direction(direction) {
       static_assert(Kokkos::is_view<InViewType>::value,
                     "KokkosFFT::Plan: InViewType is not a Kokkos::View.");
       static_assert(Kokkos::is_view<OutViewType>::value,
                     "KokkosFFT::Plan: OutViewType is not a Kokkos::View.");
 
+      m_axes = {axis};
       std::tie(m_map, m_map_inv) = KokkosFFT::Impl::get_map_axes(in, axis);
       m_is_transpose_needed = KokkosFFT::Impl::is_transpose_needed(m_map);
-      m_fft_size = KokkosFFT::Impl::_create(exec_space, m_plan, in, out, direction, axis_type<1>{axis});
+      m_fft_size = KokkosFFT::Impl::_create(exec_space, m_plan, in, out, direction, m_axes);
     }
 
-    explicit Plan(const ExecutionSpace& exec_space, InViewType& in, OutViewType& out, KokkosFFT::Impl::Direction direction, axis_type<DIM> axes) : m_fft_size(1), m_is_transpose_needed(false) {
+    explicit Plan(const ExecutionSpace& exec_space, InViewType& in, OutViewType& out, KokkosFFT::Impl::Direction direction, axis_type<DIM> axes) : m_fft_size(1), m_is_transpose_needed(false), m_direction(direction), m_axes(axes) {
       static_assert(Kokkos::is_view<InViewType>::value,
                     "KokkosFFT::Plan: InViewType is not a Kokkos::View.");
       static_assert(Kokkos::is_view<OutViewType>::value,
@@ -76,6 +80,29 @@ namespace Impl {
 
     ~Plan() {
       _destroy<ExecutionSpace, float_type>(m_plan);
+    }
+
+    template <typename ExecutionSpace2, typename InViewType2, typename OutViewType2>
+    void good(KokkosFFT::Impl::Direction direction, axis_type<DIM> axes) const {
+      static_assert(std::is_same_v<ExecutionSpace2, execSpace>,
+                    "KokkosFFT::Plan: is_good: Execution spaces for plan and execution are inconsistent.");
+
+      using nonConstInViewType2 = std::remove_cv_t<InViewType2>;
+      using nonConstOutViewType2 = std::remove_cv_t<OutViewType2>;
+      static_assert(std::is_same_v<nonConstInViewType2, nonConstInViewType>,
+                    "KokkosFFT::Plan: is_good: InViewType for plan and execution are inconsistent.");
+      static_assert(std::is_same_v<nonConstOutViewType2, nonConstOutViewType>,
+                    "KokkosFFT::Plan: is_good: OutViewType for plan and execution are inconsistent.");
+
+      if(direction != m_direction) {
+        throw std::runtime_error("KokkosFFT::Impl::Plan::good: direction for plan and execution are inconsistent.");
+      }
+
+      if(axes != m_axes) {
+        throw std::runtime_error("KokkosFFT::Impl::Plan::good: axes for plan and execution are inconsistent.");
+      }
+
+      // [TO DO] Check view extents
     }
 
     fft_plan_type plan() const { return m_plan; }
