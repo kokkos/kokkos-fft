@@ -17,12 +17,12 @@
 #include <gtest/gtest.h>
 
 namespace testing::internal {
-// accessing gtest internals is not very clean, but gtest provides no public access...
+// accessing gtest internals is not very clean, but gtest provides no public
+// access...
 extern bool g_help_flag;
-} // namespace testing::internal
+}  // namespace testing::internal
 
 int main(int argc, char* argv[]) {
-
   ::testing::InitGoogleTest(&argc, argv);
   int result = 0;
   if (::testing::GTEST_FLAG(list_tests) || ::testing::internal::g_help_flag) {
