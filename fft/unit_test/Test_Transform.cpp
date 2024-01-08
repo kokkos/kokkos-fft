@@ -115,40 +115,78 @@ TYPED_TEST_SUITE(FFTND, test_types);
 // Tests for 1D FFT
 template <typename T, typename LayoutType>
 void test_fft1_identity(T atol = 1.0e-12) {
-  const int maxlen     = 30;
+  const int maxlen     = 32;
   using RealView1DType = Kokkos::View<T*, LayoutType, execution_space>;
   using ComplexView1DType =
       Kokkos::View<Kokkos::complex<T>*, LayoutType, execution_space>;
 
-  ComplexView1DType a("a", maxlen), _a("_a", maxlen), a_ref("a_ref", maxlen);
-  ComplexView1DType out("out", maxlen), outr("outr", maxlen / 2 + 1);
-  RealView1DType ar("ar", maxlen), _ar("_ar", maxlen), ar_ref("ar_ref", maxlen);
+  for (int i = 1; i < maxlen; i++) {
+    ComplexView1DType a("a", i), _a("_a", i), a_ref("a_ref", i);
+    ComplexView1DType out("out", i), outr("outr", i / 2 + 1);
+    RealView1DType ar("ar", i), _ar("_ar", i), ar_ref("ar_ref", i);
 
-  const Kokkos::complex<T> I(1.0, 1.0);
-  Kokkos::Random_XorShift64_Pool<> random_pool(/*seed=*/12345);
-  Kokkos::fill_random(a, random_pool, I);
-  Kokkos::fill_random(ar, random_pool, 1.0);
-  Kokkos::deep_copy(a_ref, a);
-  Kokkos::deep_copy(ar_ref, ar);
+    const Kokkos::complex<T> I(1.0, 1.0);
+    Kokkos::Random_XorShift64_Pool<> random_pool(/*seed=*/12345);
+    Kokkos::fill_random(a, random_pool, I);
+    Kokkos::fill_random(ar, random_pool, 1.0);
+    Kokkos::deep_copy(a_ref, a);
+    Kokkos::deep_copy(ar_ref, ar);
 
-  Kokkos::fence();
+    Kokkos::fence();
 
-  KokkosFFT::fft(execution_space(), a, out);
-  KokkosFFT::ifft(execution_space(), out, _a);
+    KokkosFFT::fft(execution_space(), a, out);
+    KokkosFFT::ifft(execution_space(), out, _a);
 
-  KokkosFFT::rfft(execution_space(), ar, outr);
-  KokkosFFT::irfft(execution_space(), outr, _ar);
+    KokkosFFT::rfft(execution_space(), ar, outr);
+    KokkosFFT::irfft(execution_space(), outr, _ar);
 
-  EXPECT_TRUE(allclose(_a, a_ref, 1.e-5, atol));
-  EXPECT_TRUE(allclose(_ar, ar_ref, 1.e-5, atol));
+    EXPECT_TRUE(allclose(_a, a_ref, 1.e-5, atol));
+    EXPECT_TRUE(allclose(_ar, ar_ref, 1.e-5, atol));
+  }
 }
 
 template <typename T, typename LayoutType>
 void test_fft1_identity_reuse_plan(T atol = 1.0e-12) {
-  const int maxlen     = 30;
+  const int maxlen     = 32;
   using RealView1DType = Kokkos::View<T*, LayoutType, execution_space>;
   using ComplexView1DType =
       Kokkos::View<Kokkos::complex<T>*, LayoutType, execution_space>;
+
+  for (int i = 1; i < maxlen; i++) {
+    ComplexView1DType a("a", i), _a("_a", i), a_ref("a_ref", i);
+    ComplexView1DType out("out", i), outr("outr", i / 2 + 1);
+    RealView1DType ar("ar", i), _ar("_ar", i), ar_ref("ar_ref", i);
+
+    const Kokkos::complex<T> I(1.0, 1.0);
+    Kokkos::Random_XorShift64_Pool<> random_pool(/*seed=*/12345);
+    Kokkos::fill_random(a, random_pool, I);
+    Kokkos::fill_random(ar, random_pool, 1.0);
+    Kokkos::deep_copy(a_ref, a);
+    Kokkos::deep_copy(ar_ref, ar);
+
+    Kokkos::fence();
+
+    int axis = -1;
+    KokkosFFT::Impl::Plan fft_plan(execution_space(), a, out,
+                                   KokkosFFT::Impl::Direction::Forward, axis);
+    KokkosFFT::fft(execution_space(), a, out, fft_plan);
+
+    KokkosFFT::Impl::Plan ifft_plan(execution_space(), out, _a,
+                                    KokkosFFT::Impl::Direction::Backward, axis);
+    KokkosFFT::ifft(execution_space(), out, _a, ifft_plan);
+
+    KokkosFFT::Impl::Plan rfft_plan(execution_space(), ar, outr,
+                                    KokkosFFT::Impl::Direction::Forward, axis);
+    KokkosFFT::rfft(execution_space(), ar, outr, rfft_plan);
+
+    KokkosFFT::Impl::Plan irfft_plan(execution_space(), outr, _ar,
+                                     KokkosFFT::Impl::Direction::Backward,
+                                     axis);
+    KokkosFFT::irfft(execution_space(), outr, _ar, irfft_plan);
+
+    EXPECT_TRUE(allclose(_a, a_ref, 1.e-5, atol));
+    EXPECT_TRUE(allclose(_ar, ar_ref, 1.e-5, atol));
+  }
 
   ComplexView1DType a("a", maxlen), _a("_a", maxlen), a_ref("a_ref", maxlen);
   ComplexView1DType out("out", maxlen), outr("outr", maxlen / 2 + 1);
@@ -163,25 +201,19 @@ void test_fft1_identity_reuse_plan(T atol = 1.0e-12) {
 
   Kokkos::fence();
 
+  // Create correct plans
   int axis = -1;
   KokkosFFT::Impl::Plan fft_plan(execution_space(), a, out,
                                  KokkosFFT::Impl::Direction::Forward, axis);
-  KokkosFFT::fft(execution_space(), a, out, fft_plan);
 
   KokkosFFT::Impl::Plan ifft_plan(execution_space(), out, _a,
                                   KokkosFFT::Impl::Direction::Backward, axis);
-  KokkosFFT::ifft(execution_space(), out, _a, ifft_plan);
 
   KokkosFFT::Impl::Plan rfft_plan(execution_space(), ar, outr,
                                   KokkosFFT::Impl::Direction::Forward, axis);
-  KokkosFFT::rfft(execution_space(), ar, outr, rfft_plan);
 
   KokkosFFT::Impl::Plan irfft_plan(execution_space(), outr, _ar,
                                    KokkosFFT::Impl::Direction::Backward, axis);
-  KokkosFFT::irfft(execution_space(), outr, _ar, irfft_plan);
-
-  EXPECT_TRUE(allclose(_a, a_ref, 1.e-5, atol));
-  EXPECT_TRUE(allclose(_ar, ar_ref, 1.e-5, atol));
 
   // Check if errors are correctly raised aginst wrong axis
   int wrong_axis = 0;
