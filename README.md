@@ -1,5 +1,7 @@
 # kokkos-fft
 
+[![CI](https://github.com/CExA-project/kokkos-fft/actions/workflows/cmake.yml/badge.svg)](https://github.com/CExA-project/kokkos-fft/actions)
+
 UNOFFICIAL FFT interfaces for Kokkos C++ Performance Portability Programming EcoSystem
 
 KokkosFFT implements local interfaces Kokkos and de facto standard FFT libraries, including fftw, cufft and hipfft. 
@@ -28,7 +30,7 @@ Kokkos::Random_XorShift64_Pool<> random_pool(12345);
 Kokkos::fill_random(x, random_pool, 1);
 Kokkos::fence();
 
-KokkosFFT::rfft(x, x_hat);
+KokkosFFT::rfft(execution_space(), x, x_hat);
 ```
 
 Depending on the View dimension, it automatically uses the batched plans as follows
@@ -55,7 +57,7 @@ Kokkos::fill_random(x, random_pool, 1);
 Kokkos::fence();
 
 int axis = -1;
-KokkosFFT::rfft(x, x_hat, KokkosFFT::FFT_Normalization::BACKWARD, axis); // FFT along -1 axis and batched along 0th axis
+KokkosFFT::rfft(execution_space(), x, x_hat, KokkosFFT::FFT_Normalization::BACKWARD, axis); // FFT along -1 axis and batched along 0th axis
 ```
 
 ## Building KokkosFFT
