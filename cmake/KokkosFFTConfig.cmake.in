@@ -1,0 +1,8 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+find_dependency(Kokkos)
+
+include(${CMAKE_CURRENT_LIST_DIR}/KokkosFFT-targets.cmake)
+
+check_required_components(KokkosFFT)
