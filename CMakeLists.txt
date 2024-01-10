@@ -7,12 +7,13 @@ list(INSERT CMAKE_MODULE_PATH 0 "${CMAKE_SOURCE_DIR}/cmake")
 # Options
 option(BUILD_EXAMPLES "Build kokkos-fft examples" ON)
 option(KokkosFFT_ENABLE_HOST_AND_DEVICE "Enable fft on both host and device" OFF)
-option(KokkosFFT_ENABLE_INSTALL_TEST "Enable install test" ON)
+option(KokkosFFT_INTERNAL_Kokkos  "Build internal Kokkos instead of relying on external one" OFF)
 
-find_package(Kokkos CONFIG)
-if(NOT Kokkos_FOUND)
+if (NOT KokkosFFT_INTERNAL_Kokkos)
+    find_package(Kokkos REQUIRED)
+else ()
     add_subdirectory(tpls/kokkos)
-endif()
+endif ()
 
 # Googletest
 include(CTest)
@@ -35,6 +36,8 @@ if(BUILD_EXAMPLES)
 endif()
 
 # Installation
+include(CMakePackageConfigHelpers)
+
 install(
     TARGETS common fft
     EXPORT KokkosFFT-targets
@@ -42,25 +45,33 @@ install(
 
 install(
     EXPORT KokkosFFT-targets
+    NAMESPACE KokkosFFT::
     DESTINATION ${INSTALL_INCLUDEDIR}
 )
 
 install(
-    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/common/
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/common/src/ ${CMAKE_CURRENT_SOURCE_DIR}/fft/src/
     DESTINATION ${INSTALL_INCLUDEDIR}
 )
 
 install(
-    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/fft/
+    FILES ${CMAKE_SOURCE_DIR}/cmake/FindFFTW.cmake
     DESTINATION ${INSTALL_INCLUDEDIR}
 )
 
 configure_package_config_file(cmake/KokkosFFTConfig.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/KokkosFFTConfig.cmake
-    INSTALL_DESTINATION ${INSTALL_INCLUDEDIR}
+    INSTALL_DESTINATION ${INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+)
+
+write_basic_package_version_file(
+    ${CMAKE_CURRENT_BINARY_DIR}/KokkosFFTConfigVersion.cmake
+    VERSION 0.0.0
+    COMPATIBILITY SameMajorVersion
 )
 
 install(
     FILES ${CMAKE_CURRENT_BINARY_DIR}/KokkosFFTConfig.cmake
-    DESTINATION ${INSTALL_INCLUDEDIR}
+          ${CMAKE_CURRENT_BINARY_DIR}/KokkosFFTConfigVersion.cmake
+    DESTINATION ${INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )
