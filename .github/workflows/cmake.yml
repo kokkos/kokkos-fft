@@ -54,7 +54,7 @@ jobs:
       run: |
           docker run -v ${{github.workspace}}:/work ${{ env.container }} cmake -B build_OPENMP \
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_CXX_COMPILER=g++ \
-            -DCMAKE_CXX_STANDARD=17 -DKokkos_ENABLE_OPENMP=ON -DBUILD_TESTING=ON -KokkosFFT_INTERNAL_Kokkos=ON
+            -DCMAKE_CXX_STANDARD=17 -DKokkos_ENABLE_OPENMP=ON -DBUILD_TESTING=ON -DKokkosFFT_INTERNAL_Kokkos=ON
 
     - name: Configure CMake for CUDA backend
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
@@ -62,7 +62,7 @@ jobs:
       run: |
           docker run -v ${{github.workspace}}:/work ${{ env.container }} cmake -B build_CUDA \
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_CXX_COMPILER=${{env.CMAKE_CXX_COMPILER}} \
-            -DCMAKE_CXX_STANDARD=17 -DKokkos_ENABLE_CUDA=ON -DKokkos_ARCH_${{env.CUDA_ARCHITECTURES}}=ON -DBUILD_TESTING=ON -KokkosFFT_INTERNAL_Kokkos=ON
+            -DCMAKE_CXX_STANDARD=17 -DKokkos_ENABLE_CUDA=ON -DKokkos_ARCH_${{env.CUDA_ARCHITECTURES}}=ON -DBUILD_TESTING=ON -DKokkosFFT_INTERNAL_Kokkos=ON
 
     - name: Configure CMake for CUDA backend with HOST and DEVICE option
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
@@ -71,7 +71,7 @@ jobs:
           docker run -v ${{github.workspace}}:/work ${{ env.container }} cmake -B build_CUDA_HOST_DEVICE \
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_CXX_COMPILER=${{env.CMAKE_CXX_COMPILER}} \
             -DCMAKE_CXX_STANDARD=17 -DKokkos_ENABLE_CUDA=ON -DKokkos_ARCH_${{env.CUDA_ARCHITECTURES}}=ON -DBUILD_TESTING=ON \
-            -DKokkosFFT_ENABLE_HOST_AND_DEVICE=ON -KokkosFFT_INTERNAL_Kokkos=ON
+            -DKokkosFFT_ENABLE_HOST_AND_DEVICE=ON -DKokkosFFT_INTERNAL_Kokkos=ON
 
     - name: Build
       # Build your program with the given configuration
@@ -123,7 +123,7 @@ jobs:
       run: |
         docker run -v ${{github.workspace}}:/work ${{ env.container }} cmake -B build_${{matrix.backend.name}} \
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_CXX_COMPILER=${{env.CMAKE_CXX_COMPILER}} \
-            -DCMAKE_CXX_STANDARD=17 -DKokkos_ENABLE_HIP=ON -KokkosFFT_INTERNAL_Kokkos=ON -DKokkos_ARCH_${{env.architecture}}=ON -DBUILD_TESTING=ON ${{matrix.backend.option}}
+            -DCMAKE_CXX_STANDARD=17 -DKokkos_ENABLE_HIP=ON -DKokkosFFT_INTERNAL_Kokkos=ON -DKokkos_ARCH_${{env.architecture}}=ON -DBUILD_TESTING=ON ${{matrix.backend.option}}
 
     - name: Build
       # Build your program with the given configuration
