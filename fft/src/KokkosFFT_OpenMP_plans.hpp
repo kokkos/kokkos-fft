@@ -28,7 +28,7 @@ template <typename ExecutionSpace, typename PlanType, typename InViewType,
           std::enable_if_t<
               std::is_same_v<ExecutionSpace, Kokkos::DefaultHostExecutionSpace>,
               std::nullptr_t> = nullptr>
-auto _create(const ExecutionSpace& exec_space, PlanType& plan,
+auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
              const InViewType& in, const OutViewType& out,
              [[maybe_unused]] Direction direction) {
   static_assert(Kokkos::is_view<InViewType>::value,
@@ -63,28 +63,29 @@ auto _create(const ExecutionSpace& exec_space, PlanType& plan,
   int istride = 1, ostride = 1;
   auto sign = KokkosFFT::Impl::direction_type<ExecutionSpace>(direction);
 
+  plan = std::make_unique<PlanType>();
   if constexpr (type == KokkosFFT::Impl::FFTWTransformType::R2C) {
-    plan = fftwf_plan_many_dft_r2c(
+    *plan = fftwf_plan_many_dft_r2c(
         rank, fft_extents.data(), howmany, idata, in_extents.data(), istride,
         idist, odata, out_extents.data(), ostride, odist, FFTW_ESTIMATE);
   } else if constexpr (type == KokkosFFT::Impl::FFTWTransformType::D2Z) {
-    plan = fftw_plan_many_dft_r2c(
+    *plan = fftw_plan_many_dft_r2c(
         rank, fft_extents.data(), howmany, idata, in_extents.data(), istride,
         idist, odata, out_extents.data(), ostride, odist, FFTW_ESTIMATE);
   } else if constexpr (type == KokkosFFT::Impl::FFTWTransformType::C2R) {
-    plan = fftwf_plan_many_dft_c2r(
+    *plan = fftwf_plan_many_dft_c2r(
         rank, fft_extents.data(), howmany, idata, in_extents.data(), istride,
         idist, odata, out_extents.data(), ostride, odist, FFTW_ESTIMATE);
   } else if constexpr (type == KokkosFFT::Impl::FFTWTransformType::Z2D) {
-    plan = fftw_plan_many_dft_c2r(
+    *plan = fftw_plan_many_dft_c2r(
         rank, fft_extents.data(), howmany, idata, in_extents.data(), istride,
         idist, odata, out_extents.data(), ostride, odist, FFTW_ESTIMATE);
   } else if constexpr (type == KokkosFFT::Impl::FFTWTransformType::C2C) {
-    plan = fftwf_plan_many_dft(
+    *plan = fftwf_plan_many_dft(
         rank, fft_extents.data(), howmany, idata, in_extents.data(), istride,
         idist, odata, out_extents.data(), ostride, odist, sign, FFTW_ESTIMATE);
   } else if constexpr (type == KokkosFFT::Impl::FFTWTransformType::Z2Z) {
-    plan = fftw_plan_many_dft(
+    *plan = fftw_plan_many_dft(
         rank, fft_extents.data(), howmany, idata, in_extents.data(), istride,
         idist, odata, out_extents.data(), ostride, odist, sign, FFTW_ESTIMATE);
   }
@@ -98,7 +99,7 @@ template <typename ExecutionSpace, typename PlanType, typename InViewType,
           std::enable_if_t<
               std::is_same_v<ExecutionSpace, Kokkos::DefaultHostExecutionSpace>,
               std::nullptr_t> = nullptr>
-auto _create(const ExecutionSpace& exec_space, PlanType& plan,
+auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
              const InViewType& in, const OutViewType& out,
              [[maybe_unused]] Direction direction, axis_type<fft_rank> axes) {
   static_assert(Kokkos::is_view<InViewType>::value,
@@ -137,28 +138,29 @@ auto _create(const ExecutionSpace& exec_space, PlanType& plan,
   int istride = 1, ostride = 1;
   auto sign = KokkosFFT::Impl::direction_type<ExecutionSpace>(direction);
 
+  plan = std::make_unique<PlanType>();
   if constexpr (type == KokkosFFT::Impl::FFTWTransformType::R2C) {
-    plan = fftwf_plan_many_dft_r2c(
+    *plan = fftwf_plan_many_dft_r2c(
         rank, fft_extents.data(), howmany, idata, in_extents.data(), istride,
         idist, odata, out_extents.data(), ostride, odist, FFTW_ESTIMATE);
   } else if constexpr (type == KokkosFFT::Impl::FFTWTransformType::D2Z) {
-    plan = fftw_plan_many_dft_r2c(
+    *plan = fftw_plan_many_dft_r2c(
         rank, fft_extents.data(), howmany, idata, in_extents.data(), istride,
         idist, odata, out_extents.data(), ostride, odist, FFTW_ESTIMATE);
   } else if constexpr (type == KokkosFFT::Impl::FFTWTransformType::C2R) {
-    plan = fftwf_plan_many_dft_c2r(
+    *plan = fftwf_plan_many_dft_c2r(
         rank, fft_extents.data(), howmany, idata, in_extents.data(), istride,
         idist, odata, out_extents.data(), ostride, odist, FFTW_ESTIMATE);
   } else if constexpr (type == KokkosFFT::Impl::FFTWTransformType::Z2D) {
-    plan = fftw_plan_many_dft_c2r(
+    *plan = fftw_plan_many_dft_c2r(
         rank, fft_extents.data(), howmany, idata, in_extents.data(), istride,
         idist, odata, out_extents.data(), ostride, odist, FFTW_ESTIMATE);
   } else if constexpr (type == KokkosFFT::Impl::FFTWTransformType::C2C) {
-    plan = fftwf_plan_many_dft(
+    *plan = fftwf_plan_many_dft(
         rank, fft_extents.data(), howmany, idata, in_extents.data(), istride,
         idist, odata, out_extents.data(), ostride, odist, sign, FFTW_ESTIMATE);
   } else if constexpr (type == KokkosFFT::Impl::FFTWTransformType::Z2Z) {
-    plan = fftw_plan_many_dft(
+    *plan = fftw_plan_many_dft(
         rank, fft_extents.data(), howmany, idata, in_extents.data(), istride,
         idist, odata, out_extents.data(), ostride, odist, sign, FFTW_ESTIMATE);
   }
@@ -166,16 +168,15 @@ auto _create(const ExecutionSpace& exec_space, PlanType& plan,
   return fft_size;
 }
 
-template <typename ExecutionSpace, typename T,
+template <typename ExecutionSpace, typename PlanType,
           std::enable_if_t<
               std::is_same_v<ExecutionSpace, Kokkos::DefaultHostExecutionSpace>,
               std::nullptr_t> = nullptr>
-void _destroy(
-    typename KokkosFFT::Impl::FFTPlanType<ExecutionSpace, T>::type& plan) {
-  if constexpr (std::is_same_v<T, float>) {
-    fftwf_destroy_plan(plan);
+void _destroy(std::unique_ptr<PlanType>& plan) {
+  if constexpr (std::is_same_v<PlanType, fftwf_plan>) {
+    fftwf_destroy_plan(*plan);
   } else {
-    fftw_destroy_plan(plan);
+    fftw_destroy_plan(*plan);
   }
 }
 }  // namespace Impl

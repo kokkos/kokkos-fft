@@ -28,11 +28,11 @@ struct FFTDataType {
   using complex128 = fftw_complex;
 };
 
-template <typename ExecutionSpace, typename T>
+template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTPlanType {
-  using type =
-      std::conditional_t<std::is_same_v<KokkosFFT::Impl::real_type_t<T>, float>,
-                         fftwf_plan, fftw_plan>;
+  using type = std::conditional_t<
+      std::is_same_v<KokkosFFT::Impl::real_type_t<T1>, float>, fftwf_plan,
+      fftw_plan>;
 };
 
 template <typename ExecutionSpace>
