@@ -21,6 +21,11 @@ using default_device = Kokkos::HIP;
 #ifdef ENABLE_HOST_AND_DEVICE
 #include "KokkosFFT_OpenMP_transform.hpp"
 #endif
+#elif defined(KOKKOS_ENABLE_SYCL)
+#include "KokkosFFT_SYCL_transform.hpp"
+#ifdef ENABLE_HOST_AND_DEVICE
+#include "KokkosFFT_OpenMP_transform.hpp"
+#endif
 #elif defined(KOKKOS_ENABLE_OPENMP)
 using default_device = Kokkos::OpenMP;
 #include "KokkosFFT_OpenMP_transform.hpp"
@@ -55,6 +60,7 @@ void _fft(const ExecutionSpace& exec_space, PlanType& plan,
 
   auto forward =
       direction_type<ExecutionSpace>(KokkosFFT::Impl::Direction::Forward);
+
   KokkosFFT::Impl::_exec(plan.plan(), idata, odata, forward);
   KokkosFFT::Impl::normalize(exec_space, out,
                              KokkosFFT::Impl::Direction::Forward, norm,
@@ -81,6 +87,7 @@ void _ifft(const ExecutionSpace& exec_space, PlanType& plan,
 
   auto backward =
       direction_type<ExecutionSpace>(KokkosFFT::Impl::Direction::Backward);
+
   KokkosFFT::Impl::_exec(plan.plan(), idata, odata, backward);
   KokkosFFT::Impl::normalize(exec_space, out,
                              KokkosFFT::Impl::Direction::Backward, norm,

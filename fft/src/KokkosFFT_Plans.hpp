@@ -18,6 +18,11 @@ using default_device = Kokkos::HIP;
 #ifdef ENABLE_HOST_AND_DEVICE
 #include "KokkosFFT_OpenMP_plans.hpp"
 #endif
+#elif defined(KOKKOS_ENABLE_SYCL)
+#include "KokkosFFT_SYCL_plans.hpp"
+#ifdef ENABLE_HOST_AND_DEVICE
+#include "KokkosFFT_OpenMP_plans.hpp"
+#endif
 #elif defined(KOKKOS_ENABLE_OPENMP)
 using default_device = Kokkos::OpenMP;
 #include "KokkosFFT_OpenMP_plans.hpp"
@@ -39,13 +44,14 @@ class Plan {
   using out_value_type = typename OutViewType::non_const_value_type;
   using float_type     = KokkosFFT::Impl::real_type_t<in_value_type>;
   using fft_plan_type =
-      typename KokkosFFT::Impl::FFTPlanType<ExecutionSpace, float_type>::type;
+      typename KokkosFFT::Impl::FFTPlanType<ExecutionSpace, in_value_type,
+                                            out_value_type>::type;
   using fft_size_type       = std::size_t;
   using map_type            = axis_type<InViewType::rank()>;
   using nonConstInViewType  = std::remove_cv_t<InViewType>;
   using nonConstOutViewType = std::remove_cv_t<OutViewType>;
 
-  fft_plan_type m_plan;
+  std::unique_ptr<fft_plan_type> m_plan;
   fft_size_type m_fft_size;
   map_type m_map, m_map_inv;
   bool m_is_transpose_needed;
@@ -91,7 +97,7 @@ class Plan {
         KokkosFFT::Impl::_create(exec_space, m_plan, in, out, direction, axes);
   }
 
-  ~Plan() { _destroy<ExecutionSpace, float_type>(m_plan); }
+  ~Plan() { _destroy<ExecutionSpace, fft_plan_type>(m_plan); }
 
   template <typename ExecutionSpace2, typename InViewType2,
             typename OutViewType2>
@@ -124,7 +130,7 @@ class Plan {
     // [TO DO] Check view extents
   }
 
-  fft_plan_type plan() const { return m_plan; }
+  fft_plan_type& plan() const { return *m_plan; }
   fft_size_type fft_size() const { return m_fft_size; }
   bool is_transpose_needed() const { return m_is_transpose_needed; }
   map_type map() const { return m_map; }
