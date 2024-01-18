@@ -50,13 +50,16 @@ RUN wget https://cloud.cees.ornl.gov/download/oneapi-for-nvidia-gpus-2023.0.0-li
     ./oneapi-for-nvidia-gpus-2023.0.0-linux.sh -y && \
     rm oneapi-for-nvidia-gpus-2023.0.0-linux.sh
 
-RUN wget https://registrationcenter-download.intel.com/akdlm/irc_nas/19133/l_oneDPL_p_2022.0.0.25335.sh &&\
-    chmod +x ./l_oneDPL_p_2022.0.0.25335.sh && \
-    ./l_oneDPL_p_2022.0.0.25335.sh -a -s --eula accept && \
-    rm l_oneDPL_p_2022.0.0.25335.sh
+RUN wget https://registrationcenter-download.intel.com/akdlm/IRC_NAS/163da6e4-56eb-4948-aba3-debcec61c064/l_BaseKit_p_2024.0.1.46.sh &&\
+    chmod +x ./l_BaseKit_p_2024.0.1.46.sh && \
+    ./l_BaseKit_p_2024.0.1.46.sh -a -s --eula accept && \
+    rm l_BaseKit_p_2024.0.1.46.sh
 
 WORKDIR /work
 ENV FFTWDIR "/usr"
 RUN . /opt/intel/oneapi/setvars.sh --include-intel-llvm
-ENV PATH=${CMAKE_DIR}/bin:/opt/intel/oneapi/compiler/latest/linux/bin:$PATH
+ENV PATH=${CMAKE_DIR}/bin:/opt/intel/oneapi/compiler/latest/bin:$PATH
+ENV CMAKE_PREFIX_PATH "$CMAKE_PREFIX_PATH;/opt/intel/oneapi/dpl/latest/lib/cmake/oneDPL/;/opt/intel/oneapi/mkl/latest/lib/cmake/mkl/"
+ENV oneDPL_DIR=/opt/intel/oneapi/dpl/latest/lib/cmake/oneDPL
+ENV MKL_DIR=/opt/intel/oneapi/mkl/latest/lib/cmake/mkl
 CMD ["bash"]
