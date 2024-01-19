@@ -4,7 +4,7 @@ args=$#
 ROOT_DIR=$1
 WK_DIR=$(pwd)
 TARGET=$2
-KOKKOS_TARGET="CUDA"
+KOKKOS_TARGET=${TARGET}
 
 # Install Kokkos
 export KOKKOS_INSTALL_PREFIX=${ROOT_DIR}/usr/local/kokkos_${KOKKOS_TARGET}
