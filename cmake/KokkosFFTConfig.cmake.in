@@ -2,10 +2,10 @@
 
 # Set and Check must go first else macro might be redefined by find_dependency ...
 set_and_check(KokkosFFT_TARGET_FILE
-"${PACKAGE_PREFIX_DIR}/include/KokkosFFT-targets.cmake")
+"${PACKAGE_PREFIX_DIR}/@LIBDIR@/@KokkosFFT_EXPORT_TARGET@.cmake")
 
 include(CMakeFindDependencyMacro)
-list(INSERT CMAKE_MODULE_PATH 0 "${PACKAGE_PREFIX_DIR}/include")
+list(INSERT CMAKE_MODULE_PATH 0 "${PACKAGE_PREFIX_DIR}/@LIBDIR@")
 find_dependency(Kokkos)
 
 if(@Kokkos_ENABLE_CUDA@)
