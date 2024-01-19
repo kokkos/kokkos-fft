@@ -80,14 +80,22 @@ jobs:
           docker run -v ${{github.workspace}}:/work ${{ env.container }} cmake --build build_${backend} --config ${{env.BUILD_TYPE}} -j 2
         done
 
-    - name: Test on CPUs
+    - name: Test for OpenMP backend
       # Execute tests defined by the CMake configuration. Testing on CPUs only
       run: |
         docker run -v ${{github.workspace}}:/work ${{ env.container }} ctest --output-on-failure --test-dir build_OPENMP -C ${{env.BUILD_TYPE}}
 
-    - name: Install test on CPUs
+    - name: Install test for OpenMP backend
       run: |
         docker run -v ${{github.workspace}}:/work ${{ env.container }} ./install_test/bin/install_cpu.sh /tmp
+
+    - name: Install test for CUDA backend
+      run: |
+        for backend in ${{ env.backends }}; do
+          if [ ${backend} != "OPENMP" ]; then
+            docker run -v ${{github.workspace}}:/work ${{ env.container }} ./install_test/bin/install_cuda.sh /tmp ${backend}
+          fi
+        done
 
   build_amd:
     # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
@@ -133,3 +141,7 @@ jobs:
       # Build your program with the given configuration
       run: |
         docker run -v ${{github.workspace}}:/work ${{ env.container }} cmake --build build_${{matrix.backend.name}} --config ${{env.BUILD_TYPE}} -j 2
+
+    - name: Install test for HIP backend
+      run: |
+        docker run -v ${{github.workspace}}:/work ${{ env.container }} ./install_test/bin/install_hip.sh /tmp ${{matrix.backend.name}}
