@@ -4,6 +4,8 @@ project(install-test LANGUAGES CXX)
 find_package(Kokkos CONFIG REQUIRED)
 find_package(KokkosFFT CONFIG REQUIRED)
 
+message("KokkosFFT_TARGET_FILE: ${KokkosFFT_TARGET_FILE}")
+
 add_executable(install-test main.cpp)
 target_compile_features(install-test PUBLIC cxx_std_17)
 target_link_libraries(install-test PUBLIC Kokkos::kokkos KokkosFFT::fft)

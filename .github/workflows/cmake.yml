@@ -84,6 +84,10 @@ jobs:
       # Execute tests defined by the CMake configuration. Testing on CPUs only
       run: |
         docker run -v ${{github.workspace}}:/work ${{ env.container }} ctest --output-on-failure --test-dir build_OPENMP -C ${{env.BUILD_TYPE}}
+        
+    - name: Install test on CPUs
+        run: |
+          docker run -v ${{github.workspace}}:/work ${{ env.container }} ./install_test/bin/install_cpu.sh /tmp
 
   build_amd:
     # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
