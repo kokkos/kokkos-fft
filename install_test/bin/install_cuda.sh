@@ -16,7 +16,7 @@ export KokkosFFT_DIR=${KOKKOSFFT_INSTALL_PREFIX}/lib/cmake/kokkos-fft
 export KOKKOSFFT_BUILD_DIR=build_KokkosFFT_${TARGET}
 
 export EXAMPLE_BUILD_DIR=build_example_${TARGET}
-export CXX_COMPILER=${WK_DIR}/${KOKKOS_BUILD_DIR}/kokkos/bin/nvcc_wrapper
+export NVCC_WRAPPER=${WK_DIR}/${KOKKOS_BUILD_DIR}/kokkos/bin/nvcc_wrapper
 
 # Install Kokkos if not exist
 if [ ! -d ${Kokkos_DIR} ]; then
@@ -41,7 +41,7 @@ if [ $TARGET == "CUDA" ]; then
             -DCMAKE_CXX_STANDARD=17 -DKokkos_ENABLE_CUDA=ON -DKokkos_ARCH_AMPERE80=ON \
             -DCMAKE_INSTALL_PREFIX=${KOKKOSFFT_INSTALL_PREFIX} ..
 else
-    cmake -DCMAKE_CXX_COMPILER=kokkos/bin/nvcc_wrapper \
+    cmake -DCMAKE_CXX_COMPILER=${CXX_COMPILER} \
           -DCMAKE_CXX_STANDARD=17 -DKokkos_ENABLE_CUDA=ON -DKokkos_ARCH_AMPERE80=ON \
           -DCMAKE_INSTALL_PREFIX=${KOKKOSFFT_INSTALL_PREFIX} -DKokkosFFT_ENABLE_HOST_AND_DEVICE=ON ..
 fi
