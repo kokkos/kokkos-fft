@@ -16,7 +16,7 @@ export KokkosFFT_DIR=${KOKKOSFFT_INSTALL_PREFIX}/lib/cmake/kokkos-fft
 export KOKKOSFFT_BUILD_DIR=build_KokkosFFT_${TARGET}
 
 export EXAMPLE_BUILD_DIR=build_example_${TARGET}
-export NVCC_WRAPPER=${WK_DIR}/${KOKKOS_BUILD_DIR}/kokkos/bin/nvcc_wrapper
+export CXX_COMPILER=${WK_DIR}/${KOKKOS_BUILD_DIR}/kokkos/bin/nvcc_wrapper
 
 # Install Kokkos if not exist
 if [ ! -d ${Kokkos_DIR} ]; then
