@@ -156,24 +156,18 @@ inline std::vector<ElementType> arange(const ElementType start,
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
 void conjugate(const ExecutionSpace& exec_space, const InViewType& in,
                OutViewType& out) {
+  static_assert(Kokkos::is_view<InViewType>::value,
+                "KokkosFFT::Impl::conjugate: InViewType is not a Kokkos::View.");
+  static_assert(Kokkos::is_view<OutViewType>::value,
+                "KokkosFFT::Impl::conjugate: OutViewType is not a Kokkos::View.");
+
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
 
   static_assert(KokkosFFT::Impl::is_complex<out_value_type>::value,
                 "KokkosFFT::Impl::conjugate: OutViewType must be complex");
   std::size_t size = in.size();
-
-  // [TO DO] is there a way to get device mirror?
-  if constexpr (InViewType::rank() == 1) {
-    out = OutViewType("out", in.extent(0));
-  } else if constexpr (InViewType::rank() == 2) {
-    out = OutViewType("out", in.extent(0), in.extent(1));
-  } else if constexpr (InViewType::rank() == 3) {
-    out = OutViewType("out", in.extent(0), in.extent(1), in.extent(2));
-  } else if constexpr (InViewType::rank() == 4) {
-    out = OutViewType("out", in.extent(0), in.extent(1), in.extent(2),
-                      in.extent(3));
-  }
+  out = OutViewType("out", in.layout());
 
   auto* in_data  = in.data();
   auto* out_data = out.data();
