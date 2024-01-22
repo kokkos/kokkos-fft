@@ -44,6 +44,7 @@ class Plan {
   using map_type            = axis_type<InViewType::rank()>;
   using nonConstInViewType  = std::remove_cv_t<InViewType>;
   using nonConstOutViewType = std::remove_cv_t<OutViewType>;
+  using extents_type = shape_type<InViewType::rank()>;
 
   fft_plan_type m_plan;
   fft_size_type m_fft_size;
@@ -51,6 +52,9 @@ class Plan {
   bool m_is_transpose_needed;
   axis_type<DIM> m_axes;
   KokkosFFT::Impl::Direction m_direction;
+
+  // Keep extents
+  extents_type m_in_extents, m_out_extents;
 
   // Only used when transpose needed
   nonConstInViewType m_in_T;
@@ -67,6 +71,8 @@ class Plan {
                   "KokkosFFT::Plan: OutViewType is not a Kokkos::View.");
 
     m_axes                     = {axis};
+    m_in_extents               = KokkosFFT::Impl::extract_extents(in);
+    m_out_extents              = KokkosFFT::Impl::extract_extents(out);
     std::tie(m_map, m_map_inv) = KokkosFFT::Impl::get_map_axes(in, axis);
     m_is_transpose_needed      = KokkosFFT::Impl::is_transpose_needed(m_map);
     m_fft_size = KokkosFFT::Impl::_create(exec_space, m_plan, in, out,
@@ -85,6 +91,8 @@ class Plan {
     static_assert(Kokkos::is_view<OutViewType>::value,
                   "KokkosFFT::Plan: OutViewType is not a Kokkos::View.");
 
+    m_in_extents               = KokkosFFT::Impl::extract_extents(in);
+    m_out_extents              = KokkosFFT::Impl::extract_extents(out);
     std::tie(m_map, m_map_inv) = KokkosFFT::Impl::get_map_axes(in, axes);
     m_is_transpose_needed      = KokkosFFT::Impl::is_transpose_needed(m_map);
     m_fft_size =
@@ -95,18 +103,18 @@ class Plan {
 
   template <typename ExecutionSpace2, typename InViewType2,
             typename OutViewType2>
-  void good(KokkosFFT::Impl::Direction direction, axis_type<DIM> axes) const {
+  void good(const InViewType2& in, const OutViewType2& out, KokkosFFT::Impl::Direction direction, axis_type<DIM> axes) const {
     static_assert(std::is_same_v<ExecutionSpace2, execSpace>,
-                  "KokkosFFT::Plan: is_good: Execution spaces for plan and "
+                  "KokkosFFT::Impl::Plan::good: Execution spaces for plan and "
                   "execution are inconsistent.");
 
     using nonConstInViewType2  = std::remove_cv_t<InViewType2>;
     using nonConstOutViewType2 = std::remove_cv_t<OutViewType2>;
     static_assert(std::is_same_v<nonConstInViewType2, nonConstInViewType>,
-                  "KokkosFFT::Plan: is_good: InViewType for plan and execution "
+                  "KokkosFFT::Impl::Plan::good: InViewType for plan and execution "
                   "are inconsistent.");
     static_assert(std::is_same_v<nonConstOutViewType2, nonConstOutViewType>,
-                  "KokkosFFT::Plan: is_good: OutViewType for plan and "
+                  "KokkosFFT::Impl::Plan::good: OutViewType for plan and "
                   "execution are inconsistent.");
 
     if (direction != m_direction) {
@@ -121,7 +129,19 @@ class Plan {
           "inconsistent.");
     }
 
-    // [TO DO] Check view extents
+    auto in_extents  = KokkosFFT::Impl::extract_extents(in);
+    auto out_extents = KokkosFFT::Impl::extract_extents(out);
+    if (in_extents != m_in_extents) {
+      throw std::runtime_error(
+          "KokkosFFT::Impl::Plan::good: extents of input View for plan and execution are "
+          "inconsistent.");
+    }
+
+    if (out_extents != m_out_extents) {
+      throw std::runtime_error(
+          "KokkosFFT::Impl::Plan::good: extents of output View for plan and execution are "
+          "inconsistent.");
+    }
   }
 
   fft_plan_type plan() const { return m_plan; }

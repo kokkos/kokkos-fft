@@ -186,6 +186,19 @@ void conjugate(const ExecutionSpace& exec_space, const InViewType& in,
         out_data[i]        = Kokkos::conj(in_data[i]);
       });
 }
+
+template <typename ViewType>
+auto extract_extents(const ViewType& view) {
+  static_assert(Kokkos::is_view<ViewType>::value,
+                "KokkosFFT::Impl::extract_extents: ViewType is not a Kokkos::View.");
+  constexpr std::size_t rank = ViewType::rank();
+  std::array<std::size_t, rank> extents;
+  for(std::size_t i=0; i<rank; i++) {
+    extents.at(i) = view.extent(i);
+  }
+  return extents;
+}
+
 }  // namespace Impl
 }  // namespace KokkosFFT
 

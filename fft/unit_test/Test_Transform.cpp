@@ -264,6 +264,56 @@ void test_fft1_identity_reuse_plan(T atol = 1.0e-12) {
   EXPECT_THROW(KokkosFFT::irfft(execution_space(), outr, _ar, wrong_irfft_plan,
                                 KokkosFFT::Normalization::BACKWARD, axis),
                std::runtime_error);
+
+  // Check if errors are correctly raised aginst wrong extents
+  const int maxlen_wrong = 32 * 2;
+  ComplexView1DType a_wrong("a", maxlen_wrong), _a_wrong("_a", maxlen_wrong);
+  ComplexView1DType out_wrong("out", maxlen_wrong), outr_wrong("outr", maxlen_wrong / 2 + 1);
+  RealView1DType ar_wrong("ar", maxlen_wrong), _ar_wrong("_ar", maxlen_wrong);
+
+  // fft
+  // With incorrect input shape
+  EXPECT_THROW(KokkosFFT::fft(execution_space(), a_wrong, out, fft_plan,
+                              KokkosFFT::Normalization::BACKWARD, axis),
+                              std::runtime_error);
+
+  // With incorrect output shape
+  EXPECT_THROW(KokkosFFT::fft(execution_space(), a, out_wrong, fft_plan,
+                              KokkosFFT::Normalization::BACKWARD, axis),
+                              std::runtime_error);
+
+  // ifft
+  // With incorrect input shape
+  EXPECT_THROW(KokkosFFT::ifft(execution_space(), out_wrong, _a, ifft_plan,
+                               KokkosFFT::Normalization::BACKWARD, axis),
+                               std::runtime_error);
+
+  // With incorrect output shape
+  EXPECT_THROW(KokkosFFT::ifft(execution_space(), out, _a_wrong, ifft_plan,
+                               KokkosFFT::Normalization::BACKWARD, axis),
+                               std::runtime_error);
+
+  // rfft
+  // With incorrect input shape
+  EXPECT_THROW(KokkosFFT::rfft(execution_space(), ar_wrong, outr, rfft_plan,
+                               KokkosFFT::Normalization::BACKWARD, axis),
+                               std::runtime_error);
+
+  // With incorrect output shape
+  EXPECT_THROW(KokkosFFT::rfft(execution_space(), ar, out_wrong, rfft_plan,
+                               KokkosFFT::Normalization::BACKWARD, axis),
+                               std::runtime_error);
+
+  // irfft
+  // With incorrect input shape
+  EXPECT_THROW(KokkosFFT::irfft(execution_space(), outr_wrong, _ar, irfft_plan,
+                                KokkosFFT::Normalization::BACKWARD, axis),
+                                std::runtime_error);
+
+  // With incorrect output shape
+  EXPECT_THROW(KokkosFFT::irfft(execution_space(), outr, _ar_wrong, irfft_plan,
+                                KokkosFFT::Normalization::BACKWARD, axis),
+                                std::runtime_error);
 }
 
 template <typename T, typename LayoutType>
