@@ -64,6 +64,9 @@ KokkosFFT::rfft(execution_space(), x, x_hat, KokkosFFT::FFT_Normalization::BACKW
 
 In this example, the 1D batched ```rfft``` over 2D View along ```axis -1``` is executed. Some basic examples are found in [examples](https://github.com/CExA-project/kokkos-fft/tree/main/examples).
 
+## Disclaimer
+KokkosFFT is under development and subject to change without warning. The authors do not guarantee that this code runs correctly in all the environments.
+
 ## Using KokkosFFT
 For the moment, there are two ways to use KokkosFFT: including as a subdirectory in CMake project or installing as a library. First of all, you need to clone this repo.
 ```bash
