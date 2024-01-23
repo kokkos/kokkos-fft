@@ -123,7 +123,8 @@ jobs:
             cmake --build build -j 2
 
       - name: Save image
-        run: docker commit nvidia_base ghcr.io/cexa-project/kokkos-fft/kokkos_fft_${{ matrix.backend.name }}
+        run: docker commit ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }} ghcr.io/cexa-project/kokkos-fft/kokkos_fft_${{ matrix.backend.name }}
+        if: ${{ matrix.target.name }} == "native"
 
       - name: Install
         run: |
@@ -132,3 +133,4 @@ jobs:
 
       - name: Push image
         run: docker push ghcr.io/cexa-project/kokkos-fft/kokkos_fft_${{ matrix.backend.name }}
+        if: ${{ matrix.target.name }} == "native"
