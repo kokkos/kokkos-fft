@@ -128,7 +128,3 @@ jobs:
 
       - name: Push image
         run: docker push ghcr.io/cexa-project/kokkos-fft/kokkos_fft_${{ matrix.backend.name }}
-
-    - name: Install test for HIP backend
-      run: |
-        docker run -v ${{github.workspace}}:/work ${{ env.container }} ./install_test/bin/install_hip.sh /tmp ${{matrix.target.name}}
