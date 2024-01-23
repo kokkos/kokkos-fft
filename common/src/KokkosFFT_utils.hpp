@@ -32,12 +32,16 @@ template <typename ViewType, typename Enable = void>
 struct is_layout_left_or_right : std::false_type {};
 
 template <typename ViewType>
-struct is_layout_left_or_right<ViewType,
-std::enable_if_t<std::is_same_v<typename ViewType::array_layout, Kokkos::LayoutLeft> ||
-                 std::is_same_v<typename ViewType::array_layout, Kokkos::LayoutRight> > > : std::true_type {};
+struct is_layout_left_or_right<
+    ViewType,
+    std::enable_if_t<
+        std::is_same_v<typename ViewType::array_layout, Kokkos::LayoutLeft> ||
+        std::is_same_v<typename ViewType::array_layout, Kokkos::LayoutRight>>>
+    : std::true_type {};
 
 template <typename ViewType>
-inline constexpr bool is_layout_left_or_right_v = is_layout_left_or_right<ViewType>::value;
+inline constexpr bool is_layout_left_or_right_v =
+    is_layout_left_or_right<ViewType>::value;
 
 template <typename ExecutionSpace, typename ViewType,
           std::enable_if_t<ViewType::rank() == 1, std::nullptr_t> = nullptr>
@@ -51,9 +55,8 @@ struct complex_view_type {
 
 template <typename ViewType>
 auto convert_negative_axis(const ViewType& view, int _axis = -1) {
-  static_assert(
-      Kokkos::is_view<ViewType>::value,
-      "convert_negative_axis: ViewType is not a Kokkos::View.");
+  static_assert(Kokkos::is_view<ViewType>::value,
+                "convert_negative_axis: ViewType is not a Kokkos::View.");
   int rank = static_cast<int>(ViewType::rank());
   assert(abs(_axis) < rank);  // axis should be in [-(rank-1), rank-1]
   int axis = _axis < 0 ? rank + _axis : _axis;
@@ -62,9 +65,8 @@ auto convert_negative_axis(const ViewType& view, int _axis = -1) {
 
 template <typename ViewType>
 auto convert_negative_shift(const ViewType& view, int _shift, int _axis) {
-  static_assert(
-      Kokkos::is_view<ViewType>::value,
-      "convert_negative_shift: ViewType is not a Kokkos::View.");
+  static_assert(Kokkos::is_view<ViewType>::value,
+                "convert_negative_shift: ViewType is not a Kokkos::View.");
   int axis   = convert_negative_axis(view, _axis);
   int extent = view.extent(axis);
   int shift0 = 0, shift1 = 0, shift2 = extent / 2;
@@ -178,7 +180,7 @@ void conjugate(const ExecutionSpace& exec_space, const InViewType& in,
   static_assert(KokkosFFT::Impl::is_complex<out_value_type>::value,
                 "conjugate: OutViewType must be complex");
   std::size_t size = in.size();
-  out = OutViewType("out", in.layout());
+  out              = OutViewType("out", in.layout());
 
   auto* in_data  = in.data();
   auto* out_data = out.data();
@@ -198,7 +200,7 @@ auto extract_extents(const ViewType& view) {
                 "extract_extents: ViewType is not a Kokkos::View.");
   constexpr std::size_t rank = ViewType::rank();
   std::array<std::size_t, rank> extents;
-  for(std::size_t i=0; i<rank; i++) {
+  for (std::size_t i = 0; i < rank; i++) {
     extents.at(i) = view.extent(i);
   }
   return extents;

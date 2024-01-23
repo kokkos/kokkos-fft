@@ -37,8 +37,7 @@ auto _get_shift(const ViewType& inout, axis_type<DIM> _axes,
 template <typename ExecutionSpace, typename ViewType>
 void _roll(const ExecutionSpace& exec_space, ViewType& inout,
            axis_type<1> shift, axis_type<1> axes) {
-  static_assert(ViewType::rank() == 1,
-                "_roll: Rank of View must be 1.");
+  static_assert(ViewType::rank() == 1, "_roll: Rank of View must be 1.");
   std::size_t n0 = inout.extent(0);
 
   ViewType tmp("tmp", n0);
@@ -68,8 +67,7 @@ template <typename ExecutionSpace, typename ViewType, std::size_t DIM1 = 1>
 void _roll(const ExecutionSpace& exec_space, ViewType& inout,
            axis_type<2> shift, axis_type<DIM1> axes) {
   constexpr std::size_t DIM0 = 2;
-  static_assert(ViewType::rank() == DIM0,
-                "_roll: Rank of View must be 2.");
+  static_assert(ViewType::rank() == DIM0, "_roll: Rank of View must be 2.");
   int n0 = inout.extent(0), n1 = inout.extent(1);
 
   ViewType tmp("tmp", n0, n1);
@@ -131,8 +129,9 @@ void _fftshift(const ExecutionSpace& exec_space, ViewType& inout,
                axis_type<DIM> axes) {
   static_assert(Kokkos::is_view<ViewType>::value,
                 "_fftshift: ViewType is not a Kokkos::View.");
-  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<ViewType>,
-                "_fftshift: ViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(
+      KokkosFFT::Impl::is_layout_left_or_right_v<ViewType>,
+      "_fftshift: ViewType must be either LayoutLeft or LayoutRight.");
   static_assert(
       Kokkos::SpaceAccessibility<ExecutionSpace,
                                  typename ViewType::memory_space>::accessible,
@@ -150,8 +149,9 @@ void _ifftshift(const ExecutionSpace& exec_space, ViewType& inout,
                 axis_type<DIM> axes) {
   static_assert(Kokkos::is_view<ViewType>::value,
                 "_ifftshift: ViewType is not a Kokkos::View.");
-  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<ViewType>,
-                "_ifftshift: ViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(
+      KokkosFFT::Impl::is_layout_left_or_right_v<ViewType>,
+      "_ifftshift: ViewType must be either LayoutLeft or LayoutRight.");
   static_assert(
       Kokkos::SpaceAccessibility<ExecutionSpace,
                                  typename ViewType::memory_space>::accessible,

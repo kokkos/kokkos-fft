@@ -52,7 +52,8 @@ void _fft(const ExecutionSpace& exec_space, PlanType& plan,
   static_assert(InViewType::rank() == OutViewType::rank(),
                 "_fft: InViewType and OutViewType must have "
                 "the same rank.");
-  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+  static_assert(std::is_same_v<typename InViewType::array_layout,
+                               typename OutViewType::array_layout>,
                 "_fft: InViewType and OutViewType must have "
                 "the same Layout.");
 
@@ -61,8 +62,8 @@ void _fft(const ExecutionSpace& exec_space, PlanType& plan,
                                  typename InViewType::memory_space>::accessible,
       "_fft: execution_space cannot access data in InViewType");
   static_assert(
-      Kokkos::SpaceAccessibility<ExecutionSpace,
-                                 typename OutViewType::memory_space>::accessible,
+      Kokkos::SpaceAccessibility<
+          ExecutionSpace, typename OutViewType::memory_space>::accessible,
       "_fft: execution_space cannot access data in OutViewType");
 
   using in_value_type  = typename InViewType::non_const_value_type;
@@ -98,7 +99,8 @@ void _ifft(const ExecutionSpace& exec_space, PlanType& plan,
   static_assert(InViewType::rank() == OutViewType::rank(),
                 "_ifft: InViewType and OutViewType must have "
                 "the same rank.");
-  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+  static_assert(std::is_same_v<typename InViewType::array_layout,
+                               typename OutViewType::array_layout>,
                 "_ifft: InViewType and OutViewType must have "
                 "the same Layout.");
 
@@ -107,8 +109,8 @@ void _ifft(const ExecutionSpace& exec_space, PlanType& plan,
                                  typename InViewType::memory_space>::accessible,
       "_ifft: execution_space cannot access data in InViewType");
   static_assert(
-      Kokkos::SpaceAccessibility<ExecutionSpace,
-                                 typename OutViewType::memory_space>::accessible,
+      Kokkos::SpaceAccessibility<
+          ExecutionSpace, typename OutViewType::memory_space>::accessible,
       "_ifft: execution_space cannot access data in OutViewType");
 
   using in_value_type  = typename InViewType::non_const_value_type;
@@ -147,7 +149,8 @@ void fft(const ExecutionSpace& exec_space, const InViewType& in,
   static_assert(InViewType::rank() == OutViewType::rank(),
                 "fft: InViewType and OutViewType must have "
                 "the same rank.");
-  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+  static_assert(std::is_same_v<typename InViewType::array_layout,
+                               typename OutViewType::array_layout>,
                 "fft: InViewType and OutViewType must have "
                 "the same Layout.");
 
@@ -209,7 +212,8 @@ void fft(const ExecutionSpace& exec_space, const InViewType& in,
   static_assert(InViewType::rank() == OutViewType::rank(),
                 "fft: InViewType and OutViewType must have "
                 "the same rank.");
-  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+  static_assert(std::is_same_v<typename InViewType::array_layout,
+                               typename OutViewType::array_layout>,
                 "fft: InViewType and OutViewType must have "
                 "the same Layout.");
 
@@ -271,7 +275,8 @@ void ifft(const ExecutionSpace& exec_space, const InViewType& in,
   static_assert(InViewType::rank() == OutViewType::rank(),
                 "ifft: InViewType and OutViewType must have "
                 "the same rank.");
-  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+  static_assert(std::is_same_v<typename InViewType::array_layout,
+                               typename OutViewType::array_layout>,
                 "ifft: InViewType and OutViewType must have "
                 "the same Layout.");
 
@@ -335,7 +340,8 @@ void ifft(const ExecutionSpace& exec_space, const InViewType& in,
   static_assert(InViewType::rank() == OutViewType::rank(),
                 "ifft: InViewType and OutViewType must have "
                 "the same rank.");
-  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+  static_assert(std::is_same_v<typename InViewType::array_layout,
+                               typename OutViewType::array_layout>,
                 "ifft: InViewType and OutViewType must have "
                 "the same Layout.");
 
@@ -399,7 +405,8 @@ void rfft(const ExecutionSpace& exec_space, const InViewType& in,
   static_assert(InViewType::rank() == OutViewType::rank(),
                 "rfft: InViewType and OutViewType must have "
                 "the same rank.");
-  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+  static_assert(std::is_same_v<typename InViewType::array_layout,
+                               typename OutViewType::array_layout>,
                 "rfft: InViewType and OutViewType must have "
                 "the same Layout.");
 
@@ -440,7 +447,8 @@ void rfft(const ExecutionSpace& exec_space, const InViewType& in,
   static_assert(InViewType::rank() == OutViewType::rank(),
                 "rfft: InViewType and OutViewType must have "
                 "the same rank.");
-  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+  static_assert(std::is_same_v<typename InViewType::array_layout,
+                               typename OutViewType::array_layout>,
                 "rfft: InViewType and OutViewType must have "
                 "the same Layout.");
 
@@ -480,7 +488,8 @@ void irfft(const ExecutionSpace& exec_space, const InViewType& in,
   static_assert(InViewType::rank() == OutViewType::rank(),
                 "irfft: InViewType and OutViewType must have "
                 "the same rank.");
-  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+  static_assert(std::is_same_v<typename InViewType::array_layout,
+                               typename OutViewType::array_layout>,
                 "irfft: InViewType and OutViewType must have "
                 "the same Layout.");
 
@@ -521,7 +530,8 @@ void irfft(const ExecutionSpace& exec_space, const InViewType& in,
   static_assert(InViewType::rank() == OutViewType::rank(),
                 "irfft: InViewType and OutViewType must have "
                 "the same rank.");
-  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+  static_assert(std::is_same_v<typename InViewType::array_layout,
+                               typename OutViewType::array_layout>,
                 "irfft: InViewType and OutViewType must have "
                 "the same Layout.");
 
@@ -565,7 +575,8 @@ void hfft(const ExecutionSpace& exec_space, const InViewType& in,
   static_assert(InViewType::rank() == OutViewType::rank(),
                 "hfft: InViewType and OutViewType must have "
                 "the same rank.");
-  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+  static_assert(std::is_same_v<typename InViewType::array_layout,
+                               typename OutViewType::array_layout>,
                 "hfft: InViewType and OutViewType must have "
                 "the same Layout.");
 
@@ -613,7 +624,8 @@ void hfft(const ExecutionSpace& exec_space, const InViewType& in,
   static_assert(InViewType::rank() == OutViewType::rank(),
                 "hfft: InViewType and OutViewType must have "
                 "the same rank.");
-  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+  static_assert(std::is_same_v<typename InViewType::array_layout,
+                               typename OutViewType::array_layout>,
                 "hfft: InViewType and OutViewType must have "
                 "the same Layout.");
 
@@ -660,7 +672,8 @@ void ihfft(const ExecutionSpace& exec_space, const InViewType& in,
   static_assert(InViewType::rank() == OutViewType::rank(),
                 "ihfft: InViewType and OutViewType must have "
                 "the same rank.");
-  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+  static_assert(std::is_same_v<typename InViewType::array_layout,
+                               typename OutViewType::array_layout>,
                 "ihfft: InViewType and OutViewType must have "
                 "the same Layout.");
 
@@ -704,7 +717,8 @@ void ihfft(const ExecutionSpace& exec_space, const InViewType& in,
   static_assert(InViewType::rank() == OutViewType::rank(),
                 "ihfft: InViewType and OutViewType must have "
                 "the same rank.");
-  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+  static_assert(std::is_same_v<typename InViewType::array_layout,
+                               typename OutViewType::array_layout>,
                 "ihfft: InViewType and OutViewType must have "
                 "the same Layout.");
 
@@ -749,7 +763,8 @@ void fft2(const ExecutionSpace& exec_space, const InViewType& in,
   static_assert(InViewType::rank() == OutViewType::rank(),
                 "fft2: InViewType and OutViewType must have "
                 "the same rank.");
-  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+  static_assert(std::is_same_v<typename InViewType::array_layout,
+                               typename OutViewType::array_layout>,
                 "fft2: InViewType and OutViewType must have "
                 "the same Layout.");
 
@@ -809,7 +824,8 @@ void fft2(const ExecutionSpace& exec_space, const InViewType& in,
   static_assert(InViewType::rank() == OutViewType::rank(),
                 "fft2: InViewType and OutViewType must have "
                 "the same rank.");
-  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+  static_assert(std::is_same_v<typename InViewType::array_layout,
+                               typename OutViewType::array_layout>,
                 "fft2: InViewType and OutViewType must have "
                 "the same Layout.");
 
@@ -870,7 +886,8 @@ void ifft2(const ExecutionSpace& exec_space, const InViewType& in,
   static_assert(InViewType::rank() == OutViewType::rank(),
                 "ifft2: InViewType and OutViewType must have "
                 "the same rank.");
-  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+  static_assert(std::is_same_v<typename InViewType::array_layout,
+                               typename OutViewType::array_layout>,
                 "ifft2: InViewType and OutViewType must have "
                 "the same Layout.");
 
@@ -930,7 +947,8 @@ void ifft2(const ExecutionSpace& exec_space, const InViewType& in,
   static_assert(InViewType::rank() == OutViewType::rank(),
                 "ifft2: InViewType and OutViewType must have "
                 "the same rank.");
-  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+  static_assert(std::is_same_v<typename InViewType::array_layout,
+                               typename OutViewType::array_layout>,
                 "ifft2: InViewType and OutViewType must have "
                 "the same Layout.");
 
@@ -991,7 +1009,8 @@ void rfft2(const ExecutionSpace& exec_space, const InViewType& in,
   static_assert(InViewType::rank() == OutViewType::rank(),
                 "rfft2: InViewType and OutViewType must have "
                 "the same rank.");
-  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+  static_assert(std::is_same_v<typename InViewType::array_layout,
+                               typename OutViewType::array_layout>,
                 "rfft2: InViewType and OutViewType must have "
                 "the same Layout.");
 
@@ -1032,7 +1051,8 @@ void rfft2(const ExecutionSpace& exec_space, const InViewType& in,
   static_assert(InViewType::rank() == OutViewType::rank(),
                 "rfft2: InViewType and OutViewType must have "
                 "the same rank.");
-  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+  static_assert(std::is_same_v<typename InViewType::array_layout,
+                               typename OutViewType::array_layout>,
                 "rfft2: InViewType and OutViewType must have "
                 "the same Layout.");
 
@@ -1068,12 +1088,14 @@ void irfft2(const ExecutionSpace& exec_space, const InViewType& in,
                 "irfft2: OutViewType is not a Kokkos::View.");
   static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<InViewType>,
                 "irfft2: InViewType must be either LayoutLeft or LayoutRight.");
-  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
-                "irfft2: OutViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(
+      KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
+      "irfft2: OutViewType must be either LayoutLeft or LayoutRight.");
   static_assert(InViewType::rank() == OutViewType::rank(),
                 "irfft2: InViewType and OutViewType must have "
                 "the same rank.");
-  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+  static_assert(std::is_same_v<typename InViewType::array_layout,
+                               typename OutViewType::array_layout>,
                 "irfft2: InViewType and OutViewType must have "
                 "the same Layout.");
 
@@ -1117,12 +1139,14 @@ void irfft2(const ExecutionSpace& exec_space, const InViewType& in,
                 "irfft2: OutViewType is not a Kokkos::View.");
   static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<InViewType>,
                 "irfft2: InViewType must be either LayoutLeft or LayoutRight.");
-  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
-                "irfft2: OutViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(
+      KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
+      "irfft2: OutViewType must be either LayoutLeft or LayoutRight.");
   static_assert(InViewType::rank() == OutViewType::rank(),
                 "irfft2: InViewType and OutViewType must have "
                 "the same rank.");
-  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+  static_assert(std::is_same_v<typename InViewType::array_layout,
+                               typename OutViewType::array_layout>,
                 "irfft2: InViewType and OutViewType must have "
                 "the same Layout.");
 
@@ -1172,7 +1196,8 @@ void fftn(const ExecutionSpace& exec_space, const InViewType& in,
   static_assert(InViewType::rank() == OutViewType::rank(),
                 "fftn: InViewType and OutViewType must have "
                 "the same rank.");
-  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+  static_assert(std::is_same_v<typename InViewType::array_layout,
+                               typename OutViewType::array_layout>,
                 "fftn: InViewType and OutViewType must have "
                 "the same Layout.");
 
@@ -1237,7 +1262,8 @@ void fftn(const ExecutionSpace& exec_space, const InViewType& in,
   static_assert(InViewType::rank() == OutViewType::rank(),
                 "fftn: InViewType and OutViewType must have "
                 "the same rank.");
-  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+  static_assert(std::is_same_v<typename InViewType::array_layout,
+                               typename OutViewType::array_layout>,
                 "fftn: InViewType and OutViewType must have "
                 "the same Layout.");
 
@@ -1297,7 +1323,8 @@ void fftn(const ExecutionSpace& exec_space, const InViewType& in,
   static_assert(InViewType::rank() == OutViewType::rank(),
                 "fftn: InViewType and OutViewType must have "
                 "the same rank.");
-  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+  static_assert(std::is_same_v<typename InViewType::array_layout,
+                               typename OutViewType::array_layout>,
                 "fftn: InViewType and OutViewType must have "
                 "the same Layout.");
 
@@ -1358,7 +1385,8 @@ void ifftn(const ExecutionSpace& exec_space, const InViewType& in,
   static_assert(InViewType::rank() == OutViewType::rank(),
                 "ifftn: InViewType and OutViewType must have "
                 "the same rank.");
-  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+  static_assert(std::is_same_v<typename InViewType::array_layout,
+                               typename OutViewType::array_layout>,
                 "ifftn: InViewType and OutViewType must have "
                 "the same Layout.");
 
@@ -1423,7 +1451,8 @@ void ifftn(const ExecutionSpace& exec_space, const InViewType& in,
   static_assert(InViewType::rank() == OutViewType::rank(),
                 "ifftn: InViewType and OutViewType must have "
                 "the same rank.");
-  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+  static_assert(std::is_same_v<typename InViewType::array_layout,
+                               typename OutViewType::array_layout>,
                 "ifftn: InViewType and OutViewType must have "
                 "the same Layout.");
 
@@ -1483,7 +1512,8 @@ void ifftn(const ExecutionSpace& exec_space, const InViewType& in,
   static_assert(InViewType::rank() == OutViewType::rank(),
                 "ifftn: InViewType and OutViewType must have "
                 "the same rank.");
-  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+  static_assert(std::is_same_v<typename InViewType::array_layout,
+                               typename OutViewType::array_layout>,
                 "ifftn: InViewType and OutViewType must have "
                 "the same Layout.");
 
@@ -1544,7 +1574,8 @@ void rfftn(const ExecutionSpace& exec_space, const InViewType& in,
   static_assert(InViewType::rank() == OutViewType::rank(),
                 "rfftn: InViewType and OutViewType must have "
                 "the same rank.");
-  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+  static_assert(std::is_same_v<typename InViewType::array_layout,
+                               typename OutViewType::array_layout>,
                 "rfftn: InViewType and OutViewType must have "
                 "the same Layout.");
 
@@ -1585,7 +1616,8 @@ void rfftn(const ExecutionSpace& exec_space, const InViewType& in,
   static_assert(InViewType::rank() == OutViewType::rank(),
                 "rfftn: InViewType and OutViewType must have "
                 "the same rank.");
-  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+  static_assert(std::is_same_v<typename InViewType::array_layout,
+                               typename OutViewType::array_layout>,
                 "rfftn: InViewType and OutViewType must have "
                 "the same Layout.");
 
@@ -1626,7 +1658,8 @@ void rfftn(const ExecutionSpace& exec_space, const InViewType& in,
   static_assert(InViewType::rank() == OutViewType::rank(),
                 "rfftn: InViewType and OutViewType must have "
                 "the same rank.");
-  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+  static_assert(std::is_same_v<typename InViewType::array_layout,
+                               typename OutViewType::array_layout>,
                 "rfftn: InViewType and OutViewType must have "
                 "the same Layout.");
 
@@ -1662,12 +1695,14 @@ void irfftn(const ExecutionSpace& exec_space, const InViewType& in,
                 "irfftn: OutViewType is not a Kokkos::View.");
   static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<InViewType>,
                 "irfftn: InViewType must be either LayoutLeft or LayoutRight.");
-  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
-                "irfftn: OutViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(
+      KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
+      "irfftn: OutViewType must be either LayoutLeft or LayoutRight.");
   static_assert(InViewType::rank() == OutViewType::rank(),
                 "irfftn: InViewType and OutViewType must have "
                 "the same rank.");
-  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+  static_assert(std::is_same_v<typename InViewType::array_layout,
+                               typename OutViewType::array_layout>,
                 "irfftn: InViewType and OutViewType must have "
                 "the same Layout.");
 
@@ -1711,12 +1746,14 @@ void irfftn(const ExecutionSpace& exec_space, const InViewType& in,
                 "irfftn: OutViewType is not a Kokkos::View.");
   static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<InViewType>,
                 "irfftn: InViewType must be either LayoutLeft or LayoutRight.");
-  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
-                "irfftn: OutViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(
+      KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
+      "irfftn: OutViewType must be either LayoutLeft or LayoutRight.");
   static_assert(InViewType::rank() == OutViewType::rank(),
                 "irfftn: InViewType and OutViewType must have "
                 "the same rank.");
-  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+  static_assert(std::is_same_v<typename InViewType::array_layout,
+                               typename OutViewType::array_layout>,
                 "irfftn: InViewType and OutViewType must have "
                 "the same Layout.");
 
@@ -1760,12 +1797,14 @@ void irfftn(const ExecutionSpace& exec_space, const InViewType& in,
                 "irfftn: OutViewType is not a Kokkos::View.");
   static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<InViewType>,
                 "irfftn: InViewType must be either LayoutLeft or LayoutRight.");
-  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
-                "irfftn: OutViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(
+      KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
+      "irfftn: OutViewType must be either LayoutLeft or LayoutRight.");
   static_assert(InViewType::rank() == OutViewType::rank(),
                 "irfftn: InViewType and OutViewType must have "
                 "the same rank.");
-  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+  static_assert(std::is_same_v<typename InViewType::array_layout,
+                               typename OutViewType::array_layout>,
                 "irfftn: InViewType and OutViewType must have "
                 "the same Layout.");
 
