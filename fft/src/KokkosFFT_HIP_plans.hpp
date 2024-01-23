@@ -27,6 +27,9 @@ auto _create(const ExecutionSpace& exec_space, PlanType& plan,
   if (hipfft_rt != HIPFFT_SUCCESS)
     throw std::runtime_error("hipfftCreate failed");
 
+  hipStream_t stream = exec_space.hip_stream();
+  hipfftSetStream(plan, stream);
+
   const int batch = 1;
   const int axis  = 0;
 
@@ -64,6 +67,9 @@ auto _create(const ExecutionSpace& exec_space, PlanType& plan,
   if (hipfft_rt != HIPFFT_SUCCESS)
     throw std::runtime_error("hipfftCreate failed");
 
+  hipStream_t stream = exec_space.hip_stream();
+  hipfftSetStream(plan, stream);
+
   const int axis = 0;
   auto type = KokkosFFT::Impl::transform_type<ExecutionSpace, in_value_type,
                                               out_value_type>::type();
@@ -98,6 +104,9 @@ auto _create(const ExecutionSpace& exec_space, PlanType& plan,
   hipfftResult hipfft_rt = hipfftCreate(&plan);
   if (hipfft_rt != HIPFFT_SUCCESS)
     throw std::runtime_error("hipfftCreate failed");
+
+  hipStream_t stream = exec_space.hip_stream();
+  hipfftSetStream(plan, stream);
 
   const int batch = 1;
   const int axis  = 0;
@@ -137,6 +146,9 @@ auto _create(const ExecutionSpace& exec_space, PlanType& plan,
   hipfftResult hipfft_rt = hipfftCreate(&plan);
   if (hipfft_rt != HIPFFT_SUCCESS)
     throw std::runtime_error("hipfftCreate failed");
+
+  hipStream_t stream = exec_space.hip_stream();
+  hipfftSetStream(plan, stream);
 
   const int rank  = InViewType::rank();
   const int batch = 1;
@@ -198,6 +210,9 @@ auto _create(const ExecutionSpace& exec_space, PlanType& plan,
   hipfftResult hipfft_rt = hipfftCreate(&plan);
   if (hipfft_rt != HIPFFT_SUCCESS)
     throw std::runtime_error("hipfftCreate failed");
+
+  hipStream_t stream = exec_space.hip_stream();
+  hipfftSetStream(plan, stream);
 
   hipfft_rt = hipfftPlanMany(&plan, rank, fft_extents.data(), in_extents.data(),
                              istride, idist, out_extents.data(), ostride, odist,
