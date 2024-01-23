@@ -264,7 +264,7 @@ TEST(ExtractExtents, 1Dto8D) {
   using View7Dtype = Kokkos::View<double*******, execution_space>;
   using View8Dtype = Kokkos::View<double********, execution_space>;
 
-  std::size_t n1 = 1, n2 = 1, n3 = 2, n4 = 3, n5= 5, n6 = 8, n7 = 13, n8 = 21;
+  std::size_t n1 = 1, n2 = 1, n3 = 2, n4 = 3, n5 = 5, n6 = 8, n7 = 13, n8 = 21;
 
   std::array<std::size_t, 1> ref_extents1D = {n1};
   std::array<std::size_t, 2> ref_extents2D = {n1, n2};
@@ -284,12 +284,12 @@ TEST(ExtractExtents, 1Dto8D) {
   View7Dtype view7D("view7D", n1, n2, n3, n4, n5, n6, n7);
   View8Dtype view8D("view8D", n1, n2, n3, n4, n5, n6, n7, n8);
 
-  EXPECT_EQ( KokkosFFT::Impl::extract_extents(view1D), ref_extents1D );
-  EXPECT_EQ( KokkosFFT::Impl::extract_extents(view2D), ref_extents2D );
-  EXPECT_EQ( KokkosFFT::Impl::extract_extents(view3D), ref_extents3D );
-  EXPECT_EQ( KokkosFFT::Impl::extract_extents(view4D), ref_extents4D );
-  EXPECT_EQ( KokkosFFT::Impl::extract_extents(view5D), ref_extents5D );
-  EXPECT_EQ( KokkosFFT::Impl::extract_extents(view6D), ref_extents6D );
-  EXPECT_EQ( KokkosFFT::Impl::extract_extents(view7D), ref_extents7D );
-  EXPECT_EQ( KokkosFFT::Impl::extract_extents(view8D), ref_extents8D );
+  EXPECT_EQ(KokkosFFT::Impl::extract_extents(view1D), ref_extents1D);
+  EXPECT_EQ(KokkosFFT::Impl::extract_extents(view2D), ref_extents2D);
+  EXPECT_EQ(KokkosFFT::Impl::extract_extents(view3D), ref_extents3D);
+  EXPECT_EQ(KokkosFFT::Impl::extract_extents(view4D), ref_extents4D);
+  EXPECT_EQ(KokkosFFT::Impl::extract_extents(view5D), ref_extents5D);
+  EXPECT_EQ(KokkosFFT::Impl::extract_extents(view6D), ref_extents6D);
+  EXPECT_EQ(KokkosFFT::Impl::extract_extents(view7D), ref_extents7D);
+  EXPECT_EQ(KokkosFFT::Impl::extract_extents(view8D), ref_extents8D);
 }
