@@ -69,11 +69,11 @@ jobs:
       matrix:
         backend:
           # - name: openmp
-          #   cmake_flags: -DKokkos_ENABLE_OPENMP
+          #   cmake_flags: -DKokkos_ENABLE_OPENMP=ON
           - name: cuda
-            cmake_flags: -DKokkos_ENABLE_CUDA -DKokkos_ARCH_AMPERE80
+            cmake_flags: -DKokkos_ENABLE_CUDA=ON -DKokkos_ARCH_AMPERE80=ON
           # - name: hip
-          #   cmake_flags: -DKokkos_ENABLE_HIP -DKokkos_ARCH_VEGA90A
+          #   cmake_flags: -DKokkos_ENABLE_HIP=ON -DKokkos_ARCH_VEGA90A=ON
         target:
           - name: native
             cmake_flags: ""
