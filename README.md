@@ -6,8 +6,8 @@ UNOFFICIAL FFT interfaces for Kokkos C++ Performance Portability Programming Eco
 
 KokkosFFT implements local interfaces Kokkos and de facto standard FFT libraries, including fftw, cufft and hipfft. 
 "Local" means not using MPI, or running within a
-single MPI process without knowing about MPI. We are inclined to implement the numpy FFT interfaces based on Kokkos.
-Here is the example for 1D case in python and KokkosFFT.
+single MPI process without knowing about MPI. We are inclined to implement the [numpy.fft](https://numpy.org/doc/stable/reference/routines.fft.html) interfaces based on [Kokkos](https://github.com/kokkos/kokkos). 
+A key concept is that "As easy as numpy, as fast as vendor libraries". Accordingly, our APIs follow the APIs by [numpy.fft](https://numpy.org/doc/stable/reference/routines.fft.html) with minor differences. If something is wrong with runtime values, it will raise runtime errors. Here is the example for 1D real to complex transform with ```rfft``` in python and KokkosFFT.
 ```python3
 import numpy as np
 x = np.random.rand(4)
@@ -32,6 +32,8 @@ Kokkos::fence();
 
 KokkosFFT::rfft(execution_space(), x, x_hat);
 ```
+
+There are two major differences: ```execution_space``` argument and updating output as argument not returned. As imagined, KokkosFFT only accepts [Kokkos Views](https://kokkos.org/kokkos-core-wiki/API/core/View.html) as input data. The accessibilities of Views from ```execution_space``` is statically checked (compilation errors if not accessible). 
 
 Depending on the View dimension, it automatically uses the batched plans as follows
 ```python3
@@ -60,7 +62,92 @@ int axis = -1;
 KokkosFFT::rfft(execution_space(), x, x_hat, KokkosFFT::FFT_Normalization::BACKWARD, axis); // FFT along -1 axis and batched along 0th axis
 ```
 
-## Building KokkosFFT
+In this example, the 1D batched ```rfft``` over 2D View along ```axis -1``` is executed. Some basic examples are found in [examples](https://github.com/CExA-project/kokkos-fft/tree/main/examples).
+
+## Using KokkosFFT
+For the moment, there are two ways to use KokkosFFT: including as a subdirectory in CMake project or installing as a library. First of all, you need to clone this repo.
+```bash
+git clone --recursive https://github.com/CExA-project/kokkos-fft.git
+```
 
 ### CMake
-Up to now, we just rely on the CMake options for Kokkos.
+Since KokkosFFT is a header-only library, it is enough to simply add as a subdirectory. It is assumed that kokkos and kokkosFFT are placed under ```<project_directory>/tpls```.
+Here is an example to use KokkosFFT in the following CMake project. 
+```
+---/
+ |
+ └──<project_directory>/
+    |--tpls
+    |    |--kokkos/
+    |    └──kokkosFFT/
+    |--CMakeLists.txt
+    └──hello.cpp
+```
+
+The ```CMakeLists.txt``` would be 
+```CMake
+cmake_minimum_required(VERSION 3.23)
+project(kokkos-fft LANGUAGES CXX)
+
+add_subdirectory(tpls/kokkos)
+add_subdirectory(tpls/kokkos-fft)
+
+add_executable(hello-kokkos-fft hello.cpp)
+target_link_libraries(hello-kokkos-fft PUBLIC Kokkos::kokkos KokkosFFT::fft)
+```
+
+For the compilation, we basically rely on the CMake options for Kokkos. For example, the configure options for A100 GPU is as follows.
+```
+cmake -DBUILD_TESTING=ON \
+      -DCMAKE_CXX_COMPILER=<project_directory>/tpls/kokkos/bin/nvcc_wrapper \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DKokkos_ENABLE_CUDA=ON \
+      -DKokkos_ENABLE_CUDA_CONSTEXPR=ON \
+      -DKokkos_ARCH_AMPERE80=ON \
+      -DKokkos_ENABLE_CUDA_LAMBDA=On ..
+```
+This way, all the functionalities are executed on A100 GPUs.
+
+### Install as a library
+Is is assumed that the Kokkos is installed under ```<lib_dir>/kokkos``` targeting Skylake with OpenMP backend. ```Kokkos_dir``` also needs to be set appropriately. Here is a recipe to install KokkosFFT under ```<lib_dir>/kokkosFFT```.
+
+```bash
+export KOKKOSFFT_INSTALL_PREFIX=<lib_dir>/kokkosFFT
+export KokkosFFT_DIR=<lib_dir>/kokkosFFT/lib64/cmake/kokkos-fft
+
+mkdir build_KokkosFFT && cd build_KokkosFFT
+cmake -DBUILD_TESTING=OFF -DCMAKE_CXX_COMPILER=icpx -DKokkos_ENABLE_OPENMP=ON -DCMAKE_INSTALL_PREFIX=${KOKKOSFFT_INSTALL_PREFIX} ..
+cmake --build . -j 8
+cmake --install .
+```
+
+Here is an example to use KokkosFFT in the following CMake project. 
+```
+---/
+ |
+ └──<project_directory>/
+    |--CMakeLists.txt
+    └──hello.cpp
+```
+
+The ```CMakeLists.txt``` would be 
+```CMake
+cmake_minimum_required(VERSION 3.23)
+project(kokkos-fft LANGUAGES CXX)
+
+find_package(Kokkos CONFIG REQUIRED)
+find_package(KokkosFFT CONFIG REQUIRED)
+
+add_executable(hello-kokkos-fft hello.cpp)
+target_link_libraries(hello-kokkos-fft PUBLIC Kokkos::kokkos KokkosFFT::fft)
+```
+
+The code can be built as
+```bash
+export KOKKOSFFT_INSTALL_PREFIX=<lib_dir>/kokkosFFT
+export KokkosFFT_DIR=<lib_dir>/kokkosFFT/lib64/cmake/kokkos-fft
+
+mkdir build && cd build
+cmake -DCMAKE_CXX_COMPILER=icpx -DCMAKE_BUILD_TYPE=Release -DKokkos_ENABLE_OPENMP=ON -DKokkos_ARCH_SKX=ON ..
+cmake --build . -j 8
+```
