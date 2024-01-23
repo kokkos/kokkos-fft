@@ -108,7 +108,7 @@ jobs:
 
       - name: Configure
         run: |
-          docker run -v ${{github.workspace}}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend }} \
+          docker run -v ${{github.workspace}}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }} \
             cmake -B build \
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
             -DCMAKE_CXX_STANDARD=17 \
@@ -119,7 +119,7 @@ jobs:
 
       - name: Build
         run: |
-            docker run -v ${{github.workspace}}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend }} \
+            docker run -v ${{github.workspace}}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }} \
             cmake --build build -j 2
 
       - name: Save image
@@ -127,7 +127,7 @@ jobs:
 
       - name: Install
         run: |
-          docker run -v ${{github.workspace}}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend }} \
+          docker run -v ${{github.workspace}}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }} \
             ./install_test/bin/install_${{ matrix.backend.name }}.sh /tmp ${{ matrix.backend.name }}
 
       - name: Push image
