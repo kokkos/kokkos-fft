@@ -26,6 +26,9 @@ auto _create(const ExecutionSpace& exec_space, PlanType& plan,
   cufftResult cufft_rt = cufftCreate(&plan);
   if (cufft_rt != CUFFT_SUCCESS) throw std::runtime_error("cufftCreate failed");
 
+  cudaStream_t stream = exec_space.cuda_stream();
+  cufftSetStream(plan, stream);
+
   const int batch = 1;
   const int axis  = 0;
 
@@ -61,6 +64,9 @@ auto _create(const ExecutionSpace& exec_space, PlanType& plan,
   cufftResult cufft_rt = cufftCreate(&plan);
   if (cufft_rt != CUFFT_SUCCESS) throw std::runtime_error("cufftCreate failed");
 
+  cudaStream_t stream = exec_space.cuda_stream();
+  cufftSetStream(plan, stream);
+
   const int axis = 0;
   auto type = KokkosFFT::Impl::transform_type<ExecutionSpace, in_value_type,
                                               out_value_type>::type();
@@ -93,6 +99,9 @@ auto _create(const ExecutionSpace& exec_space, PlanType& plan,
 
   cufftResult cufft_rt = cufftCreate(&plan);
   if (cufft_rt != CUFFT_SUCCESS) throw std::runtime_error("cufftCreate failed");
+
+  cudaStream_t stream = exec_space.cuda_stream();
+  cufftSetStream(plan, stream);
 
   const int axis = 0;
 
@@ -129,6 +138,9 @@ auto _create(const ExecutionSpace& exec_space, PlanType& plan,
 
   cufftResult cufft_rt = cufftCreate(&plan);
   if (cufft_rt != CUFFT_SUCCESS) throw std::runtime_error("cufftCreate failed");
+
+  cudaStream_t stream = exec_space.cuda_stream();
+  cufftSetStream(plan, stream);
 
   const int rank  = InViewType::rank();
   const int batch = 1;
@@ -187,6 +199,9 @@ auto _create(const ExecutionSpace& exec_space, PlanType& plan,
 
   cufftResult cufft_rt = cufftCreate(&plan);
   if (cufft_rt != CUFFT_SUCCESS) throw std::runtime_error("cufftCreate failed");
+
+  cudaStream_t stream = exec_space.cuda_stream();
+  cufftSetStream(plan, stream);
 
   cufft_rt =
       cufftPlanMany(&plan, rank, fft_extents.data(), in_extents.data(), istride,

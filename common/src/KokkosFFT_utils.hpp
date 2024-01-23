@@ -28,6 +28,21 @@ struct is_complex : std::false_type {};
 template <typename T>
 struct is_complex<Kokkos::complex<T>> : std::true_type {};
 
+template <typename ViewType, typename Enable = void>
+struct is_layout_left_or_right : std::false_type {};
+
+template <typename ViewType>
+struct is_layout_left_or_right<
+    ViewType,
+    std::enable_if_t<
+        std::is_same_v<typename ViewType::array_layout, Kokkos::LayoutLeft> ||
+        std::is_same_v<typename ViewType::array_layout, Kokkos::LayoutRight>>>
+    : std::true_type {};
+
+template <typename ViewType>
+inline constexpr bool is_layout_left_or_right_v =
+    is_layout_left_or_right<ViewType>::value;
+
 template <typename ExecutionSpace, typename ViewType,
           std::enable_if_t<ViewType::rank() == 1, std::nullptr_t> = nullptr>
 struct complex_view_type {
@@ -40,9 +55,8 @@ struct complex_view_type {
 
 template <typename ViewType>
 auto convert_negative_axis(const ViewType& view, int _axis = -1) {
-  static_assert(
-      Kokkos::is_view<ViewType>::value,
-      "KokkosFFT::convert_negative_axis: ViewType is not a Kokkos::View.");
+  static_assert(Kokkos::is_view<ViewType>::value,
+                "convert_negative_axis: ViewType is not a Kokkos::View.");
   int rank = static_cast<int>(ViewType::rank());
   assert(abs(_axis) < rank);  // axis should be in [-(rank-1), rank-1]
   int axis = _axis < 0 ? rank + _axis : _axis;
@@ -51,9 +65,8 @@ auto convert_negative_axis(const ViewType& view, int _axis = -1) {
 
 template <typename ViewType>
 auto convert_negative_shift(const ViewType& view, int _shift, int _axis) {
-  static_assert(
-      Kokkos::is_view<ViewType>::value,
-      "KokkosFFT::convert_negative_shift: ViewType is not a Kokkos::View.");
+  static_assert(Kokkos::is_view<ViewType>::value,
+                "convert_negative_shift: ViewType is not a Kokkos::View.");
   int axis   = convert_negative_axis(view, _axis);
   int extent = view.extent(axis);
   int shift0 = 0, shift1 = 0, shift2 = extent / 2;
@@ -156,24 +169,18 @@ inline std::vector<ElementType> arange(const ElementType start,
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
 void conjugate(const ExecutionSpace& exec_space, const InViewType& in,
                OutViewType& out) {
+  static_assert(Kokkos::is_view<InViewType>::value,
+                "conjugate: InViewType is not a Kokkos::View.");
+  static_assert(Kokkos::is_view<OutViewType>::value,
+                "conjugate: OutViewType is not a Kokkos::View.");
+
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
 
   static_assert(KokkosFFT::Impl::is_complex<out_value_type>::value,
-                "KokkosFFT::Impl::conjugate: OutViewType must be complex");
+                "conjugate: OutViewType must be complex");
   std::size_t size = in.size();
-
-  // [TO DO] is there a way to get device mirror?
-  if constexpr (InViewType::rank() == 1) {
-    out = OutViewType("out", in.extent(0));
-  } else if constexpr (InViewType::rank() == 2) {
-    out = OutViewType("out", in.extent(0), in.extent(1));
-  } else if constexpr (InViewType::rank() == 3) {
-    out = OutViewType("out", in.extent(0), in.extent(1), in.extent(2));
-  } else if constexpr (InViewType::rank() == 4) {
-    out = OutViewType("out", in.extent(0), in.extent(1), in.extent(2),
-                      in.extent(3));
-  }
+  out              = OutViewType("out", in.layout());
 
   auto* in_data  = in.data();
   auto* out_data = out.data();
@@ -186,6 +193,19 @@ void conjugate(const ExecutionSpace& exec_space, const InViewType& in,
         out_data[i]        = Kokkos::conj(in_data[i]);
       });
 }
+
+template <typename ViewType>
+auto extract_extents(const ViewType& view) {
+  static_assert(Kokkos::is_view<ViewType>::value,
+                "extract_extents: ViewType is not a Kokkos::View.");
+  constexpr std::size_t rank = ViewType::rank();
+  std::array<std::size_t, rank> extents;
+  for (std::size_t i = 0; i < rank; i++) {
+    extents.at(i) = view.extent(i);
+  }
+  return extents;
+}
+
 }  // namespace Impl
 }  // namespace KokkosFFT
 
