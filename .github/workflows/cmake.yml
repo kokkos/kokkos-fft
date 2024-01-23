@@ -45,11 +45,12 @@ jobs:
 
       - name: Build image
         # TODO improve with caching https://docs.docker.com/engine/reference/commandline/image_build/#cache-from
-        run: docker build \
-          -t ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend }} \
-          --cache-from ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend }} \
-          --build-arg BUIDKIT_INLINE_CACHE=1 \
-          docker/${{ matrix.backend }}
+        run: |
+          docker build \
+            -t ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend }} \
+            --cache-from ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend }} \
+            --build-arg BUIDKIT_INLINE_CACHE=1 \
+            docker/${{ matrix.backend }}
 
       - name: Login in GitHub Containers Repository
         run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
@@ -57,7 +58,7 @@ jobs:
       - name: Push image
         run: docker push ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend }}
 
-  build_kokkos_fft:
+  build:
     runs-on: ubuntu-latest
 
     strategy:
@@ -103,14 +104,14 @@ jobs:
 
       - name: Configure
         run: |
-            docker run -v ${{github.workspace}}:/work base_${{ matrix.backend.name }} \
-              cmake -B build \
-              -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
-              -DCMAKE_CXX_STANDARD=17 \
-              -DBUILD_TESTING=ON \
-              -DKokkosFFT_INTERNAL_Kokkos=ON \
-              ${{ matrix.backend.cmake_flags }} \
-              ${{ matrix.target.cmake_flags }} \
+          docker run -v ${{github.workspace}}:/work base_${{ matrix.backend.name }} \
+            cmake -B build \
+            -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+            -DCMAKE_CXX_STANDARD=17 \
+            -DBUILD_TESTING=ON \
+            -DKokkosFFT_INTERNAL_Kokkos=ON \
+            ${{ matrix.backend.cmake_flags }} \
+            ${{ matrix.target.cmake_flags }} \
 
       - name: Build
         run: |
@@ -121,7 +122,8 @@ jobs:
         run: docker commit nvidia_base ghcr.io/cexa-project/kokkos-fft/kokkos_fft_${{ matrix.backend.name }}
 
       - name: Install
-        run: docker run -v ${{github.workspace}}:/work base_${{ matrix.backend.name }} \
+        run: |
+          docker run -v ${{github.workspace}}:/work base_${{ matrix.backend.name }} \
             ./install_test/bin/install_${{ matrix.backend.name }}.sh /tmp ${{ matrix.backend.name }}
 
       - name: Push image
