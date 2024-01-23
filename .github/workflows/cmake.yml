@@ -57,7 +57,7 @@ jobs:
       - name: Push image
         run: docker push ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend }}
 
-  build:
+  build_kokkos_fft:
     runs-on: ubuntu-latest
 
     strategy:
