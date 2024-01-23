@@ -36,7 +36,7 @@ fi
 # Install KokkosFFT
 cd ${WK_DIR}
 mkdir ${KOKKOSFFT_BUILD_DIR} && cd ${KOKKOSFFT_BUILD_DIR}
-if [ $TARGET == "CUDA" ]; then
+if [ $TARGET == "native" ]; then
     cmake -DCMAKE_CXX_COMPILER=${CXX_COMPILER} \
             -DCMAKE_CXX_STANDARD=17 -DKokkos_ENABLE_CUDA=ON -DKokkos_ARCH_AMPERE80=ON \
             -DCMAKE_INSTALL_PREFIX=${KOKKOSFFT_INSTALL_PREFIX} ..

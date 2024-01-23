@@ -1,0 +1,46 @@
+name: Build base images
+
+on:
+  workflow_call:
+  # push:
+  #   branches:
+  #     - main
+  # pull_request:
+  #   branches:
+  #     - main
+  # schedule:
+  #    # TODO enable scheduler
+  #   cron: "0 1 2,16 * *" # every 2nd and 16th of the month at 1am UTC
+
+jobs:
+  build_base:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        backend:
+          # - openmp
+          - cuda
+          # - hip
+
+    steps:
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@v1.2.0
+        with:
+          tool-cache: true
+          large-packages: false
+
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # TODO check if current build has a different Dockerfile
+
+      - name: Build image
+        # TODO improve with caching https://docs.docker.com/engine/reference/commandline/image_build/#cache-from
+        run: docker build -t base_${{ matrix.backend }} docker/${{ matrix.backend }}
+
+      - name: Login in GitHub Containers Repository
+        run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Push image
+        run: docker push ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend }}

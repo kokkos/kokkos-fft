@@ -35,7 +35,7 @@ fi
 # Install KokkosFFT
 cd ${WK_DIR}
 mkdir ${KOKKOSFFT_BUILD_DIR} && cd ${KOKKOSFFT_BUILD_DIR}
-if [ $TARGET == "HIP" ]; then
+if [ $TARGET == "native" ]; then
     cmake -DCMAKE_CXX_COMPILER=hipcc \
           -DCMAKE_CXX_STANDARD=17 -DKokkos_ENABLE_HIP=ON -DKokkos_ARCH_VEGA90A=ON \
           -DCMAKE_INSTALL_PREFIX=${KOKKOSFFT_INSTALL_PREFIX} ..
