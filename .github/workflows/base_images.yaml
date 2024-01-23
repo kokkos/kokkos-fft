@@ -37,7 +37,11 @@ jobs:
 
       - name: Build image
         # TODO improve with caching https://docs.docker.com/engine/reference/commandline/image_build/#cache-from
-        run: docker build -t base_${{ matrix.backend }} docker/${{ matrix.backend }}
+        run: docker build \
+          -t ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend }} \
+          --cache-from ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend }} \
+          --build-arg BUIDKIT_INLINE_CACHE=1 \
+          docker/${{ matrix.backend }}
 
       - name: Login in GitHub Containers Repository
         run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
