@@ -66,9 +66,29 @@ class Plan {
                 int axis)
       : m_fft_size(1), m_is_transpose_needed(false), m_direction(direction) {
     static_assert(Kokkos::is_view<InViewType>::value,
-                  "KokkosFFT::Plan: InViewType is not a Kokkos::View.");
+                  "Plan::Plan: InViewType is not a Kokkos::View.");
     static_assert(Kokkos::is_view<OutViewType>::value,
-                  "KokkosFFT::Plan: OutViewType is not a Kokkos::View.");
+                  "Plan::Plan: OutViewType is not a Kokkos::View.");
+    static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<InViewType>,
+                "Plan::Plan: InViewType must be either LayoutLeft or LayoutRight.");
+    static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
+                "Plan::Plan: OutViewType must be either LayoutLeft or LayoutRight.");
+
+    static_assert(InViewType::rank() == OutViewType::rank(),
+                "Plan::Plan: InViewType and OutViewType must have "
+                "the same rank.");
+    static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+                "Plan::Plan: InViewType and OutViewType must have "
+                "the same Layout.");
+
+    static_assert(
+      Kokkos::SpaceAccessibility<ExecutionSpace,
+                                 typename InViewType::memory_space>::accessible,
+      "Plan::Plan: execution_space cannot access data in InViewType");
+    static_assert(
+      Kokkos::SpaceAccessibility<ExecutionSpace,
+                                 typename OutViewType::memory_space>::accessible,
+      "Plan::Plan: execution_space cannot access data in OutViewType");
 
     m_axes                     = {axis};
     m_in_extents               = KokkosFFT::Impl::extract_extents(in);
@@ -87,9 +107,30 @@ class Plan {
         m_direction(direction),
         m_axes(axes) {
     static_assert(Kokkos::is_view<InViewType>::value,
-                  "KokkosFFT::Plan: InViewType is not a Kokkos::View.");
+                  "Plan::Plan: InViewType is not a Kokkos::View.");
     static_assert(Kokkos::is_view<OutViewType>::value,
-                  "KokkosFFT::Plan: OutViewType is not a Kokkos::View.");
+                  "Plan::Plan: OutViewType is not a Kokkos::View.");
+    static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<InViewType>,
+                "Plan::Plan: InViewType must be either LayoutLeft or LayoutRight.");
+    static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
+                "Plan::Plan: OutViewType must be either LayoutLeft or LayoutRight.");
+
+    static_assert(InViewType::rank() == OutViewType::rank(),
+                "Plan::Plan: InViewType and OutViewType must have "
+                "the same rank.");
+
+    static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+                "Plan::Plan: InViewType and OutViewType must have "
+                "the same Layout.");
+
+    static_assert(
+      Kokkos::SpaceAccessibility<ExecutionSpace,
+                                 typename InViewType::memory_space>::accessible,
+      "Plan::Plan: execution_space cannot access data in InViewType");
+    static_assert(
+      Kokkos::SpaceAccessibility<ExecutionSpace,
+                                 typename OutViewType::memory_space>::accessible,
+      "Plan::Plan: execution_space cannot access data in OutViewType");
 
     m_in_extents               = KokkosFFT::Impl::extract_extents(in);
     m_out_extents              = KokkosFFT::Impl::extract_extents(out);
@@ -105,42 +146,50 @@ class Plan {
             typename OutViewType2>
   void good(const InViewType2& in, const OutViewType2& out, KokkosFFT::Impl::Direction direction, axis_type<DIM> axes) const {
     static_assert(std::is_same_v<ExecutionSpace2, execSpace>,
-                  "KokkosFFT::Impl::Plan::good: Execution spaces for plan and "
-                  "execution are inconsistent.");
+                  "Plan::good: Execution spaces for plan and "
+                  "execution are not identical.");
+    static_assert(
+      Kokkos::SpaceAccessibility<ExecutionSpace2,
+                                 typename InViewType2::memory_space>::accessible,
+      "Plan::good: execution_space cannot access data in InViewType");
+    static_assert(
+      Kokkos::SpaceAccessibility<ExecutionSpace2,
+                                 typename OutViewType2::memory_space>::accessible,
+      "Plan::good: execution_space cannot access data in OutViewType");
 
     using nonConstInViewType2  = std::remove_cv_t<InViewType2>;
     using nonConstOutViewType2 = std::remove_cv_t<OutViewType2>;
     static_assert(std::is_same_v<nonConstInViewType2, nonConstInViewType>,
-                  "KokkosFFT::Impl::Plan::good: InViewType for plan and execution "
-                  "are inconsistent.");
+                  "Plan::good: InViewType for plan and execution "
+                  "are not identical.");
     static_assert(std::is_same_v<nonConstOutViewType2, nonConstOutViewType>,
-                  "KokkosFFT::Impl::Plan::good: OutViewType for plan and "
-                  "execution are inconsistent.");
+                  "Plan::good: OutViewType for plan and "
+                  "execution are not identical.");
 
     if (direction != m_direction) {
       throw std::runtime_error(
-          "KokkosFFT::Impl::Plan::good: direction for plan and execution are "
-          "inconsistent.");
+          "Plan::good: directions for plan and execution are "
+          "not identical.");
     }
 
     if (axes != m_axes) {
       throw std::runtime_error(
-          "KokkosFFT::Impl::Plan::good: axes for plan and execution are "
-          "inconsistent.");
+          "Plan::good: axes for plan and execution are "
+          "not identical.");
     }
 
     auto in_extents  = KokkosFFT::Impl::extract_extents(in);
     auto out_extents = KokkosFFT::Impl::extract_extents(out);
     if (in_extents != m_in_extents) {
       throw std::runtime_error(
-          "KokkosFFT::Impl::Plan::good: extents of input View for plan and execution are "
-          "inconsistent.");
+          "Plan::good: extents of input View for plan and execution are "
+          "not identical.");
     }
 
     if (out_extents != m_out_extents) {
       throw std::runtime_error(
-          "KokkosFFT::Impl::Plan::good: extents of output View for plan and execution are "
-          "inconsistent.");
+          "Plan::good: extents of output View for plan and execution are "
+          "not identical.");
     }
   }
 

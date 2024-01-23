@@ -41,9 +41,29 @@ void _fft(const ExecutionSpace& exec_space, PlanType& plan,
           const InViewType& in, OutViewType& out,
           KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD) {
   static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::_fft: InViewType is not a Kokkos::View.");
+                "_fft: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
-                "KokkosFFT::_fft: OutViewType is not a Kokkos::View.");
+                "_fft: OutViewType is not a Kokkos::View.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<InViewType>,
+                "_fft: InViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
+                "_fft: OutViewType must be either LayoutLeft or LayoutRight.");
+
+  static_assert(InViewType::rank() == OutViewType::rank(),
+                "_fft: InViewType and OutViewType must have "
+                "the same rank.");
+  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+                "_fft: InViewType and OutViewType must have "
+                "the same Layout.");
+
+  static_assert(
+      Kokkos::SpaceAccessibility<ExecutionSpace,
+                                 typename InViewType::memory_space>::accessible,
+      "_fft: execution_space cannot access data in InViewType");
+  static_assert(
+      Kokkos::SpaceAccessibility<ExecutionSpace,
+                                 typename OutViewType::memory_space>::accessible,
+      "_fft: execution_space cannot access data in OutViewType");
 
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
@@ -67,9 +87,29 @@ void _ifft(const ExecutionSpace& exec_space, PlanType& plan,
            const InViewType& in, OutViewType& out,
            KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD) {
   static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::_ifft: InViewType is not a Kokkos::View.");
+                "_ifft: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
-                "KokkosFFT::_ifft: OutViewType is not a Kokkos::View.");
+                "_ifft: OutViewType is not a Kokkos::View.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<InViewType>,
+                "_ifft: InViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
+                "_ifft: OutViewType must be either LayoutLeft or LayoutRight.");
+
+  static_assert(InViewType::rank() == OutViewType::rank(),
+                "_ifft: InViewType and OutViewType must have "
+                "the same rank.");
+  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+                "_ifft: InViewType and OutViewType must have "
+                "the same Layout.");
+
+  static_assert(
+      Kokkos::SpaceAccessibility<ExecutionSpace,
+                                 typename InViewType::memory_space>::accessible,
+      "_ifft: execution_space cannot access data in InViewType");
+  static_assert(
+      Kokkos::SpaceAccessibility<ExecutionSpace,
+                                 typename OutViewType::memory_space>::accessible,
+      "_ifft: execution_space cannot access data in OutViewType");
 
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
@@ -97,19 +137,28 @@ void fft(const ExecutionSpace& exec_space, const InViewType& in,
          KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
          int axis = -1, std::optional<std::size_t> n = std::nullopt) {
   static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::fft: InViewType is not a Kokkos::View.");
+                "fft: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
-                "KokkosFFT::fft: OutViewType is not a Kokkos::View.");
+                "fft: OutViewType is not a Kokkos::View.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<InViewType>,
+                "fft: InViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
+                "fft: OutViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(InViewType::rank() == OutViewType::rank(),
+                "fft: InViewType and OutViewType must have "
+                "the same rank.");
+  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+                "fft: InViewType and OutViewType must have "
+                "the same Layout.");
 
   static_assert(
       Kokkos::SpaceAccessibility<ExecutionSpace,
                                  typename InViewType::memory_space>::accessible,
-      "KokkosFFT::fft: execution_space cannot access data in InViewType");
-
+      "fft: execution_space cannot access data in InViewType");
   static_assert(
       Kokkos::SpaceAccessibility<
           ExecutionSpace, typename OutViewType::memory_space>::accessible,
-      "KokkosFFT::fft: execution_space cannot access data in OutViewType");
+      "fft: execution_space cannot access data in OutViewType");
 
   InViewType _in;
   if (n) {
@@ -150,19 +199,28 @@ void fft(const ExecutionSpace& exec_space, const InViewType& in,
          KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
          int axis = -1, std::optional<std::size_t> n = std::nullopt) {
   static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::fft: InViewType is not a Kokkos::View.");
+                "fft: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
-                "KokkosFFT::fft: OutViewType is not a Kokkos::View.");
+                "fft: OutViewType is not a Kokkos::View.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<InViewType>,
+                "fft: InViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
+                "fft: OutViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(InViewType::rank() == OutViewType::rank(),
+                "fft: InViewType and OutViewType must have "
+                "the same rank.");
+  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+                "fft: InViewType and OutViewType must have "
+                "the same Layout.");
 
   static_assert(
       Kokkos::SpaceAccessibility<ExecutionSpace,
                                  typename InViewType::memory_space>::accessible,
-      "KokkosFFT::fft: execution_space cannot access data in InViewType");
-
+      "fft: execution_space cannot access data in InViewType");
   static_assert(
       Kokkos::SpaceAccessibility<
           ExecutionSpace, typename OutViewType::memory_space>::accessible,
-      "KokkosFFT::fft: execution_space cannot access data in OutViewType");
+      "fft: execution_space cannot access data in OutViewType");
 
   InViewType _in;
   if (n) {
@@ -203,9 +261,28 @@ void ifft(const ExecutionSpace& exec_space, const InViewType& in,
           KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
           int axis = -1, std::optional<std::size_t> n = std::nullopt) {
   static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::ifft: InViewType is not a Kokkos::View.");
+                "ifft: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
-                "KokkosFFT::ifft: OutViewType is not a Kokkos::View.");
+                "ifft: OutViewType is not a Kokkos::View.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<InViewType>,
+                "ifft: InViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
+                "ifft: OutViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(InViewType::rank() == OutViewType::rank(),
+                "ifft: InViewType and OutViewType must have "
+                "the same rank.");
+  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+                "ifft: InViewType and OutViewType must have "
+                "the same Layout.");
+
+  static_assert(
+      Kokkos::SpaceAccessibility<ExecutionSpace,
+                                 typename InViewType::memory_space>::accessible,
+      "ifft: execution_space cannot access data in InViewType");
+  static_assert(
+      Kokkos::SpaceAccessibility<
+          ExecutionSpace, typename OutViewType::memory_space>::accessible,
+      "ifft: execution_space cannot access data in OutViewType");
 
   InViewType _in;
   // [TO DO] Modify crop_or_pad to perform the following lines
@@ -248,9 +325,28 @@ void ifft(const ExecutionSpace& exec_space, const InViewType& in,
           KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
           int axis = -1, std::optional<std::size_t> n = std::nullopt) {
   static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::ifft: InViewType is not a Kokkos::View.");
+                "ifft: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
-                "KokkosFFT::ifft: OutViewType is not a Kokkos::View.");
+                "ifft: OutViewType is not a Kokkos::View.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<InViewType>,
+                "ifft: InViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
+                "ifft: OutViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(InViewType::rank() == OutViewType::rank(),
+                "ifft: InViewType and OutViewType must have "
+                "the same rank.");
+  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+                "ifft: InViewType and OutViewType must have "
+                "the same Layout.");
+
+  static_assert(
+      Kokkos::SpaceAccessibility<ExecutionSpace,
+                                 typename InViewType::memory_space>::accessible,
+      "ifft: execution_space cannot access data in InViewType");
+  static_assert(
+      Kokkos::SpaceAccessibility<
+          ExecutionSpace, typename OutViewType::memory_space>::accessible,
+      "ifft: execution_space cannot access data in OutViewType");
 
   InViewType _in;
   // [TO DO] Modify crop_or_pad to perform the following lines
@@ -293,17 +389,36 @@ void rfft(const ExecutionSpace& exec_space, const InViewType& in,
           KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
           int axis = -1, std::optional<std::size_t> n = std::nullopt) {
   static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::rfft: InViewType is not a Kokkos::View.");
+                "rfft: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
-                "KokkosFFT::rfft: OutViewType is not a Kokkos::View.");
+                "rfft: OutViewType is not a Kokkos::View.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<InViewType>,
+                "rfft: InViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
+                "rfft: OutViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(InViewType::rank() == OutViewType::rank(),
+                "rfft: InViewType and OutViewType must have "
+                "the same rank.");
+  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+                "rfft: InViewType and OutViewType must have "
+                "the same Layout.");
+
+  static_assert(
+      Kokkos::SpaceAccessibility<ExecutionSpace,
+                                 typename InViewType::memory_space>::accessible,
+      "rfft: execution_space cannot access data in InViewType");
+  static_assert(
+      Kokkos::SpaceAccessibility<
+          ExecutionSpace, typename OutViewType::memory_space>::accessible,
+      "rfft: execution_space cannot access data in OutViewType");
 
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
 
   static_assert(std::is_floating_point<in_value_type>::value,
-                "KokkosFFT::rfft: InViewType must be real");
+                "rfft: InViewType must be real");
   static_assert(KokkosFFT::Impl::is_complex<out_value_type>::value,
-                "KokkosFFT::rfft: OutViewType must be complex");
+                "rfft: OutViewType must be complex");
 
   fft(exec_space, in, out, norm, axis, n);
 }
@@ -315,17 +430,36 @@ void rfft(const ExecutionSpace& exec_space, const InViewType& in,
           KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
           int axis = -1, std::optional<std::size_t> n = std::nullopt) {
   static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::rfft: InViewType is not a Kokkos::View.");
+                "rfft: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
-                "KokkosFFT::rfft: OutViewType is not a Kokkos::View.");
+                "rfft: OutViewType is not a Kokkos::View.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<InViewType>,
+                "rfft: InViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
+                "rfft: OutViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(InViewType::rank() == OutViewType::rank(),
+                "rfft: InViewType and OutViewType must have "
+                "the same rank.");
+  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+                "rfft: InViewType and OutViewType must have "
+                "the same Layout.");
+
+  static_assert(
+      Kokkos::SpaceAccessibility<ExecutionSpace,
+                                 typename InViewType::memory_space>::accessible,
+      "rfft: execution_space cannot access data in InViewType");
+  static_assert(
+      Kokkos::SpaceAccessibility<
+          ExecutionSpace, typename OutViewType::memory_space>::accessible,
+      "rfft: execution_space cannot access data in OutViewType");
 
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
 
   static_assert(std::is_floating_point<in_value_type>::value,
-                "KokkosFFT::rfft: InViewType must be real");
+                "rfft: InViewType must be real");
   static_assert(KokkosFFT::Impl::is_complex<out_value_type>::value,
-                "KokkosFFT::rfft: OutViewType must be complex");
+                "rfft: OutViewType must be complex");
 
   fft(exec_space, in, out, plan, norm, axis, n);
 }
@@ -336,17 +470,36 @@ void irfft(const ExecutionSpace& exec_space, const InViewType& in,
            KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
            int axis = -1, std::optional<std::size_t> n = std::nullopt) {
   static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::irfft: InViewType is not a Kokkos::View.");
+                "irfft: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
-                "KokkosFFT::irfft: OutViewType is not a Kokkos::View.");
+                "irfft: OutViewType is not a Kokkos::View.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<InViewType>,
+                "irfft: InViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
+                "rifft: OutViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(InViewType::rank() == OutViewType::rank(),
+                "irfft: InViewType and OutViewType must have "
+                "the same rank.");
+  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+                "irfft: InViewType and OutViewType must have "
+                "the same Layout.");
+
+  static_assert(
+      Kokkos::SpaceAccessibility<ExecutionSpace,
+                                 typename InViewType::memory_space>::accessible,
+      "irfft: execution_space cannot access data in InViewType");
+  static_assert(
+      Kokkos::SpaceAccessibility<
+          ExecutionSpace, typename OutViewType::memory_space>::accessible,
+      "irfft: execution_space cannot access data in OutViewType");
 
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
 
   static_assert(KokkosFFT::Impl::is_complex<in_value_type>::value,
-                "KokkosFFT::irfft: InViewType must be complex");
+                "irfft: InViewType must be complex");
   static_assert(std::is_floating_point<out_value_type>::value,
-                "KokkosFFT::irfft: OutViewType must be real");
+                "irfft: OutViewType must be real");
   if (n) {
     std::size_t _n = n.value() / 2 + 1;
     ifft(exec_space, in, out, norm, axis, _n);
@@ -362,17 +515,32 @@ void irfft(const ExecutionSpace& exec_space, const InViewType& in,
            KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
            int axis = -1, std::optional<std::size_t> n = std::nullopt) {
   static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::irfft: InViewType is not a Kokkos::View.");
+                "irfft: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
-                "KokkosFFT::irfft: OutViewType is not a Kokkos::View.");
+                "irfft: OutViewType is not a Kokkos::View.");
+  static_assert(InViewType::rank() == OutViewType::rank(),
+                "irfft: InViewType and OutViewType must have "
+                "the same rank.");
+  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+                "irfft: InViewType and OutViewType must have "
+                "the same Layout.");
+
+  static_assert(
+      Kokkos::SpaceAccessibility<ExecutionSpace,
+                                 typename InViewType::memory_space>::accessible,
+      "irfft: execution_space cannot access data in InViewType");
+  static_assert(
+      Kokkos::SpaceAccessibility<
+          ExecutionSpace, typename OutViewType::memory_space>::accessible,
+      "irfft: execution_space cannot access data in OutViewType");
 
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
 
   static_assert(KokkosFFT::Impl::is_complex<in_value_type>::value,
-                "KokkosFFT::irfft: InViewType must be complex");
+                "irfft: InViewType must be complex");
   static_assert(std::is_floating_point<out_value_type>::value,
-                "KokkosFFT::irfft: OutViewType must be real");
+                "irfft: OutViewType must be real");
   if (n) {
     std::size_t _n = n.value() / 2 + 1;
     ifft(exec_space, in, out, plan, norm, axis, _n);
@@ -387,9 +555,28 @@ void hfft(const ExecutionSpace& exec_space, const InViewType& in,
           KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
           int axis = -1, std::optional<std::size_t> n = std::nullopt) {
   static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::hfft: InViewType is not a Kokkos::View.");
+                "hfft: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
-                "KokkosFFT::hfft: OutViewType is not a Kokkos::View.");
+                "hfft: OutViewType is not a Kokkos::View.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<InViewType>,
+                "hfft: InViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
+                "hfft: OutViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(InViewType::rank() == OutViewType::rank(),
+                "hfft: InViewType and OutViewType must have "
+                "the same rank.");
+  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+                "hfft: InViewType and OutViewType must have "
+                "the same Layout.");
+
+  static_assert(
+      Kokkos::SpaceAccessibility<ExecutionSpace,
+                                 typename InViewType::memory_space>::accessible,
+      "hfft: execution_space cannot access data in InViewType");
+  static_assert(
+      Kokkos::SpaceAccessibility<
+          ExecutionSpace, typename OutViewType::memory_space>::accessible,
+      "hfft: execution_space cannot access data in OutViewType");
 
   // [TO DO]
   // allow real type as input, need to obtain complex view type from in view
@@ -397,9 +584,9 @@ void hfft(const ExecutionSpace& exec_space, const InViewType& in,
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
   static_assert(KokkosFFT::Impl::is_complex<in_value_type>::value,
-                "KokkosFFT::hfft: InViewType must be complex");
+                "hfft: InViewType must be complex");
   static_assert(std::is_floating_point<out_value_type>::value,
-                "KokkosFFT::hfft: OutViewType must be real");
+                "hfft: OutViewType must be real");
   auto new_norm = KokkosFFT::Impl::swap_direction(norm);
   // using ComplexViewType = typename
   // KokkosFFT::Impl::complex_view_type<ExecutionSpace, InViewType>::type;
@@ -416,9 +603,28 @@ void hfft(const ExecutionSpace& exec_space, const InViewType& in,
           KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
           int axis = -1, std::optional<std::size_t> n = std::nullopt) {
   static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::hfft: InViewType is not a Kokkos::View.");
+                "hfft: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
-                "KokkosFFT::hfft: OutViewType is not a Kokkos::View.");
+                "hfft: OutViewType is not a Kokkos::View.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<InViewType>,
+                "hfft: InViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
+                "hfft: OutViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(InViewType::rank() == OutViewType::rank(),
+                "hfft: InViewType and OutViewType must have "
+                "the same rank.");
+  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+                "hfft: InViewType and OutViewType must have "
+                "the same Layout.");
+
+  static_assert(
+      Kokkos::SpaceAccessibility<ExecutionSpace,
+                                 typename InViewType::memory_space>::accessible,
+      "hfft: execution_space cannot access data in InViewType");
+  static_assert(
+      Kokkos::SpaceAccessibility<
+          ExecutionSpace, typename OutViewType::memory_space>::accessible,
+      "hfft: execution_space cannot access data in OutViewType");
 
   // [TO DO]
   // allow real type as input, need to obtain complex view type from in view
@@ -426,9 +632,9 @@ void hfft(const ExecutionSpace& exec_space, const InViewType& in,
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
   static_assert(KokkosFFT::Impl::is_complex<in_value_type>::value,
-                "KokkosFFT::hfft: InViewType must be complex");
+                "hfft: InViewType must be complex");
   static_assert(std::is_floating_point<out_value_type>::value,
-                "KokkosFFT::hfft: OutViewType must be real");
+                "hfft: OutViewType must be real");
   auto new_norm = KokkosFFT::Impl::swap_direction(norm);
   // using ComplexViewType = typename
   // KokkosFFT::Impl::complex_view_type<ExecutionSpace, InViewType>::type;
@@ -444,16 +650,35 @@ void ihfft(const ExecutionSpace& exec_space, const InViewType& in,
            KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
            int axis = -1, std::optional<std::size_t> n = std::nullopt) {
   static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::ihfft: InViewType is not a Kokkos::View.");
+                "ihfft: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
-                "KokkosFFT::ihfft: OutViewType is not a Kokkos::View.");
+                "ihfft: OutViewType is not a Kokkos::View.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<InViewType>,
+                "ihfft: InViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
+                "ihfft: OutViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(InViewType::rank() == OutViewType::rank(),
+                "ihfft: InViewType and OutViewType must have "
+                "the same rank.");
+  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+                "ihfft: InViewType and OutViewType must have "
+                "the same Layout.");
+
+  static_assert(
+      Kokkos::SpaceAccessibility<ExecutionSpace,
+                                 typename InViewType::memory_space>::accessible,
+      "ihfft: execution_space cannot access data in InViewType");
+  static_assert(
+      Kokkos::SpaceAccessibility<
+          ExecutionSpace, typename OutViewType::memory_space>::accessible,
+      "ihfft: execution_space cannot access data in OutViewType");
 
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
   static_assert(std::is_floating_point<in_value_type>::value,
-                "KokkosFFT::rfft: InViewType must be real");
+                "ihfft: InViewType must be real");
   static_assert(KokkosFFT::Impl::is_complex<out_value_type>::value,
-                "KokkosFFT::ihfft: OutViewType must be complex");
+                "ihfft: OutViewType must be complex");
 
   auto new_norm = KokkosFFT::Impl::swap_direction(norm);
   OutViewType out_conj;
@@ -469,16 +694,35 @@ void ihfft(const ExecutionSpace& exec_space, const InViewType& in,
            KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
            int axis = -1, std::optional<std::size_t> n = std::nullopt) {
   static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::ihfft: InViewType is not a Kokkos::View.");
+                "ihfft: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
-                "KokkosFFT::ihfft: OutViewType is not a Kokkos::View.");
+                "ihfft: OutViewType is not a Kokkos::View.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<InViewType>,
+                "ihfft: InViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
+                "ihfft: OutViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(InViewType::rank() == OutViewType::rank(),
+                "ihfft: InViewType and OutViewType must have "
+                "the same rank.");
+  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+                "ihfft: InViewType and OutViewType must have "
+                "the same Layout.");
+
+  static_assert(
+      Kokkos::SpaceAccessibility<ExecutionSpace,
+                                 typename InViewType::memory_space>::accessible,
+      "ihfft: execution_space cannot access data in InViewType");
+  static_assert(
+      Kokkos::SpaceAccessibility<
+          ExecutionSpace, typename OutViewType::memory_space>::accessible,
+      "ihfft: execution_space cannot access data in OutViewType");
 
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
   static_assert(std::is_floating_point<in_value_type>::value,
-                "KokkosFFT::rfft: InViewType must be real");
+                "ihfft: InViewType must be real");
   static_assert(KokkosFFT::Impl::is_complex<out_value_type>::value,
-                "KokkosFFT::ihfft: OutViewType must be complex");
+                "ihfft: OutViewType must be complex");
 
   auto new_norm = KokkosFFT::Impl::swap_direction(norm);
   OutViewType out_conj;
@@ -487,6 +731,7 @@ void ihfft(const ExecutionSpace& exec_space, const InViewType& in,
   out = out_conj;
 }
 
+// 2D FFT
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           std::size_t DIM = 1>
 void fft2(const ExecutionSpace& exec_space, const InViewType& in,
@@ -494,9 +739,28 @@ void fft2(const ExecutionSpace& exec_space, const InViewType& in,
           KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
           axis_type<2> axes = {-2, -1}, shape_type<DIM> s = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::fft2: InViewType is not a Kokkos::View.");
+                "fft2: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
-                "KokkosFFT::fft2: OutViewType is not a Kokkos::View.");
+                "fft2: OutViewType is not a Kokkos::View.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<InViewType>,
+                "fft2: InViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
+                "fft2: OutViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(InViewType::rank() == OutViewType::rank(),
+                "fft2: InViewType and OutViewType must have "
+                "the same rank.");
+  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+                "fft2: InViewType and OutViewType must have "
+                "the same Layout.");
+
+  static_assert(
+      Kokkos::SpaceAccessibility<ExecutionSpace,
+                                 typename InViewType::memory_space>::accessible,
+      "fft2: execution_space cannot access data in InViewType");
+  static_assert(
+      Kokkos::SpaceAccessibility<
+          ExecutionSpace, typename OutViewType::memory_space>::accessible,
+      "fft2: execution_space cannot access data in OutViewType");
 
   InViewType _in;
   shape_type<DIM> zeros = {0};  // default shape means no crop or pad
@@ -528,7 +792,6 @@ void fft2(const ExecutionSpace& exec_space, const InViewType& in,
   }
 }
 
-// 2D FFT
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           typename PlanType, std::size_t DIM = 1>
 void fft2(const ExecutionSpace& exec_space, const InViewType& in,
@@ -536,9 +799,28 @@ void fft2(const ExecutionSpace& exec_space, const InViewType& in,
           KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
           axis_type<2> axes = {-2, -1}, shape_type<DIM> s = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::fft2: InViewType is not a Kokkos::View.");
+                "fft2: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
-                "KokkosFFT::fft2: OutViewType is not a Kokkos::View.");
+                "fft2: OutViewType is not a Kokkos::View.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<InViewType>,
+                "fft2: InViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
+                "fft2: OutViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(InViewType::rank() == OutViewType::rank(),
+                "fft2: InViewType and OutViewType must have "
+                "the same rank.");
+  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+                "fft2: InViewType and OutViewType must have "
+                "the same Layout.");
+
+  static_assert(
+      Kokkos::SpaceAccessibility<ExecutionSpace,
+                                 typename InViewType::memory_space>::accessible,
+      "fft2: execution_space cannot access data in InViewType");
+  static_assert(
+      Kokkos::SpaceAccessibility<
+          ExecutionSpace, typename OutViewType::memory_space>::accessible,
+      "fft2: execution_space cannot access data in OutViewType");
 
   InViewType _in;
   shape_type<DIM> zeros = {0};  // default shape means no crop or pad
@@ -578,9 +860,28 @@ void ifft2(const ExecutionSpace& exec_space, const InViewType& in,
            KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
            axis_type<2> axes = {-2, -1}, shape_type<DIM> s = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::ifft2: InViewType is not a Kokkos::View.");
+                "ifft2: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
-                "KokkosFFT::ifft2: OutViewType is not a Kokkos::View.");
+                "ifft2: OutViewType is not a Kokkos::View.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<InViewType>,
+                "ifft2: InViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
+                "ifft2: OutViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(InViewType::rank() == OutViewType::rank(),
+                "ifft2: InViewType and OutViewType must have "
+                "the same rank.");
+  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+                "ifft2: InViewType and OutViewType must have "
+                "the same Layout.");
+
+  static_assert(
+      Kokkos::SpaceAccessibility<ExecutionSpace,
+                                 typename InViewType::memory_space>::accessible,
+      "ifft2: execution_space cannot access data in InViewType");
+  static_assert(
+      Kokkos::SpaceAccessibility<
+          ExecutionSpace, typename OutViewType::memory_space>::accessible,
+      "ifft2: execution_space cannot access data in OutViewType");
 
   InViewType _in;
   shape_type<DIM> zeros = {0};  // default shape means no crop or pad
@@ -619,9 +920,28 @@ void ifft2(const ExecutionSpace& exec_space, const InViewType& in,
            KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
            axis_type<2> axes = {-2, -1}, shape_type<DIM> s = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::ifft2: InViewType is not a Kokkos::View.");
+                "ifft2: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
-                "KokkosFFT::ifft2: OutViewType is not a Kokkos::View.");
+                "ifft2: OutViewType is not a Kokkos::View.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<InViewType>,
+                "ifft2: InViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
+                "ifft2: OutViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(InViewType::rank() == OutViewType::rank(),
+                "ifft2: InViewType and OutViewType must have "
+                "the same rank.");
+  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+                "ifft2: InViewType and OutViewType must have "
+                "the same Layout.");
+
+  static_assert(
+      Kokkos::SpaceAccessibility<ExecutionSpace,
+                                 typename InViewType::memory_space>::accessible,
+      "ifft2: execution_space cannot access data in InViewType");
+  static_assert(
+      Kokkos::SpaceAccessibility<
+          ExecutionSpace, typename OutViewType::memory_space>::accessible,
+      "ifft2: execution_space cannot access data in OutViewType");
 
   InViewType _in;
   shape_type<DIM> zeros = {0};  // default shape means no crop or pad
@@ -661,17 +981,36 @@ void rfft2(const ExecutionSpace& exec_space, const InViewType& in,
            KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
            axis_type<2> axes = {-2, -1}, shape_type<DIM> s = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::rfft2: InViewType is not a Kokkos::View.");
+                "rfft2: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
-                "KokkosFFT::rfft2: OutViewType is not a Kokkos::View.");
+                "rfft2: OutViewType is not a Kokkos::View.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<InViewType>,
+                "rfft2: InViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
+                "rfft2: OutViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(InViewType::rank() == OutViewType::rank(),
+                "rfft2: InViewType and OutViewType must have "
+                "the same rank.");
+  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+                "rfft2: InViewType and OutViewType must have "
+                "the same Layout.");
+
+  static_assert(
+      Kokkos::SpaceAccessibility<ExecutionSpace,
+                                 typename InViewType::memory_space>::accessible,
+      "rfft2: execution_space cannot access data in InViewType");
+  static_assert(
+      Kokkos::SpaceAccessibility<
+          ExecutionSpace, typename OutViewType::memory_space>::accessible,
+      "rfft2: execution_space cannot access data in OutViewType");
 
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
 
   static_assert(std::is_floating_point<in_value_type>::value,
-                "KokkosFFT::rfft2: InViewType must be real");
+                "rfft2: InViewType must be real");
   static_assert(KokkosFFT::Impl::is_complex<out_value_type>::value,
-                "KokkosFFT::rfft2: OutViewType must be complex");
+                "rfft2: OutViewType must be complex");
 
   fft2(exec_space, in, out, norm, axes, s);
 }
@@ -683,17 +1022,36 @@ void rfft2(const ExecutionSpace& exec_space, const InViewType& in,
            KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
            axis_type<2> axes = {-2, -1}, shape_type<DIM> s = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::rfft2: InViewType is not a Kokkos::View.");
+                "rfft2: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
-                "KokkosFFT::rfft2: OutViewType is not a Kokkos::View.");
+                "rfft2: OutViewType is not a Kokkos::View.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<InViewType>,
+                "rfft2: InViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
+                "rfft2: OutViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(InViewType::rank() == OutViewType::rank(),
+                "rfft2: InViewType and OutViewType must have "
+                "the same rank.");
+  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+                "rfft2: InViewType and OutViewType must have "
+                "the same Layout.");
+
+  static_assert(
+      Kokkos::SpaceAccessibility<ExecutionSpace,
+                                 typename InViewType::memory_space>::accessible,
+      "rfft2: execution_space cannot access data in InViewType");
+  static_assert(
+      Kokkos::SpaceAccessibility<
+          ExecutionSpace, typename OutViewType::memory_space>::accessible,
+      "rfft2: execution_space cannot access data in OutViewType");
 
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
 
   static_assert(std::is_floating_point<in_value_type>::value,
-                "KokkosFFT::rfft2: InViewType must be real");
+                "rfft2: InViewType must be real");
   static_assert(KokkosFFT::Impl::is_complex<out_value_type>::value,
-                "KokkosFFT::rfft2: OutViewType must be complex");
+                "rfft2: OutViewType must be complex");
 
   fft2(exec_space, in, out, plan, norm, axes, s);
 }
@@ -705,17 +1063,36 @@ void irfft2(const ExecutionSpace& exec_space, const InViewType& in,
             KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
             axis_type<2> axes = {-2, -1}, shape_type<DIM> s = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::irfft2: InViewType is not a Kokkos::View.");
+                "irfft2: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
-                "KokkosFFT::irfft2: OutViewType is not a Kokkos::View.");
+                "irfft2: OutViewType is not a Kokkos::View.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<InViewType>,
+                "irfft2: InViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
+                "irfft2: OutViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(InViewType::rank() == OutViewType::rank(),
+                "irfft2: InViewType and OutViewType must have "
+                "the same rank.");
+  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+                "irfft2: InViewType and OutViewType must have "
+                "the same Layout.");
+
+  static_assert(
+      Kokkos::SpaceAccessibility<ExecutionSpace,
+                                 typename InViewType::memory_space>::accessible,
+      "irfft2: execution_space cannot access data in InViewType");
+  static_assert(
+      Kokkos::SpaceAccessibility<
+          ExecutionSpace, typename OutViewType::memory_space>::accessible,
+      "irfft2: execution_space cannot access data in OutViewType");
 
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
 
   static_assert(KokkosFFT::Impl::is_complex<in_value_type>::value,
-                "KokkosFFT::irfft2: InViewType must be complex");
+                "irfft2: InViewType must be complex");
   static_assert(std::is_floating_point<out_value_type>::value,
-                "KokkosFFT::irfft2: OutViewType must be real");
+                "irfft2: OutViewType must be real");
 
   shape_type<DIM> zeros = {0};  // default shape means no crop or pad
   shape_type<DIM> _s    = {0};
@@ -735,17 +1112,36 @@ void irfft2(const ExecutionSpace& exec_space, const InViewType& in,
             KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
             axis_type<2> axes = {-2, -1}, shape_type<DIM> s = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::irfft2: InViewType is not a Kokkos::View.");
+                "irfft2: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
-                "KokkosFFT::irfft2: OutViewType is not a Kokkos::View.");
+                "irfft2: OutViewType is not a Kokkos::View.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<InViewType>,
+                "irfft2: InViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
+                "irfft2: OutViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(InViewType::rank() == OutViewType::rank(),
+                "irfft2: InViewType and OutViewType must have "
+                "the same rank.");
+  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+                "irfft2: InViewType and OutViewType must have "
+                "the same Layout.");
+
+  static_assert(
+      Kokkos::SpaceAccessibility<ExecutionSpace,
+                                 typename InViewType::memory_space>::accessible,
+      "irfft2: execution_space cannot access data in InViewType");
+  static_assert(
+      Kokkos::SpaceAccessibility<
+          ExecutionSpace, typename OutViewType::memory_space>::accessible,
+      "irfft2: execution_space cannot access data in OutViewType");
 
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
 
   static_assert(KokkosFFT::Impl::is_complex<in_value_type>::value,
-                "KokkosFFT::irfft2: InViewType must be complex");
+                "irfft2: InViewType must be complex");
   static_assert(std::is_floating_point<out_value_type>::value,
-                "KokkosFFT::irfft2: OutViewType must be real");
+                "irfft2: OutViewType must be real");
 
   shape_type<DIM> zeros = {0};  // default shape means no crop or pad
   shape_type<DIM> _s    = {0};
@@ -766,9 +1162,28 @@ void fftn(const ExecutionSpace& exec_space, const InViewType& in,
           KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
           shape_type<DIM> s             = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::fftn: InViewType is not a Kokkos::View.");
+                "fftn: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
-                "KokkosFFT::fftn: OutViewType is not a Kokkos::View.");
+                "fftn: OutViewType is not a Kokkos::View.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<InViewType>,
+                "fftn: InViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
+                "fftn: OutViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(InViewType::rank() == OutViewType::rank(),
+                "fftn: InViewType and OutViewType must have "
+                "the same rank.");
+  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+                "fftn: InViewType and OutViewType must have "
+                "the same Layout.");
+
+  static_assert(
+      Kokkos::SpaceAccessibility<ExecutionSpace,
+                                 typename InViewType::memory_space>::accessible,
+      "fftn: execution_space cannot access data in InViewType");
+  static_assert(
+      Kokkos::SpaceAccessibility<
+          ExecutionSpace, typename OutViewType::memory_space>::accessible,
+      "fftn: execution_space cannot access data in OutViewType");
 
   // Create a default sequence of axes {-rank, -(rank-1), ..., -1}
   constexpr std::size_t rank = InViewType::rank();
@@ -812,9 +1227,28 @@ void fftn(const ExecutionSpace& exec_space, const InViewType& in,
           KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
           shape_type<DIM2> s            = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::fftn: InViewType is not a Kokkos::View.");
+                "fftn: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
-                "KokkosFFT::fftn: OutViewType is not a Kokkos::View.");
+                "fftn: OutViewType is not a Kokkos::View.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<InViewType>,
+                "fftn: InViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
+                "fftn: OutViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(InViewType::rank() == OutViewType::rank(),
+                "fftn: InViewType and OutViewType must have "
+                "the same rank.");
+  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+                "fftn: InViewType and OutViewType must have "
+                "the same Layout.");
+
+  static_assert(
+      Kokkos::SpaceAccessibility<ExecutionSpace,
+                                 typename InViewType::memory_space>::accessible,
+      "fftn: execution_space cannot access data in InViewType");
+  static_assert(
+      Kokkos::SpaceAccessibility<
+          ExecutionSpace, typename OutViewType::memory_space>::accessible,
+      "fftn: execution_space cannot access data in OutViewType");
 
   InViewType _in;
   shape_type<DIM2> zeros = {0};  // default shape means no crop or pad
@@ -853,9 +1287,28 @@ void fftn(const ExecutionSpace& exec_space, const InViewType& in,
           KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
           shape_type<DIM2> s            = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::fftn: InViewType is not a Kokkos::View.");
+                "fftn: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
-                "KokkosFFT::fftn: OutViewType is not a Kokkos::View.");
+                "fftn: OutViewType is not a Kokkos::View.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<InViewType>,
+                "fftn: InViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
+                "fftn: OutViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(InViewType::rank() == OutViewType::rank(),
+                "fftn: InViewType and OutViewType must have "
+                "the same rank.");
+  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+                "fftn: InViewType and OutViewType must have "
+                "the same Layout.");
+
+  static_assert(
+      Kokkos::SpaceAccessibility<ExecutionSpace,
+                                 typename InViewType::memory_space>::accessible,
+      "fftn: execution_space cannot access data in InViewType");
+  static_assert(
+      Kokkos::SpaceAccessibility<
+          ExecutionSpace, typename OutViewType::memory_space>::accessible,
+      "fftn: execution_space cannot access data in OutViewType");
 
   InViewType _in;
   shape_type<DIM2> zeros = {0};  // default shape means no crop or pad
@@ -895,9 +1348,28 @@ void ifftn(const ExecutionSpace& exec_space, const InViewType& in,
            KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
            shape_type<DIM> s             = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::ifftn: InViewType is not a Kokkos::View.");
+                "ifftn: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
-                "KokkosFFT::ifftn: OutViewType is not a Kokkos::View.");
+                "ifftn: OutViewType is not a Kokkos::View.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<InViewType>,
+                "ifftn: InViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
+                "ifftn: OutViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(InViewType::rank() == OutViewType::rank(),
+                "ifftn: InViewType and OutViewType must have "
+                "the same rank.");
+  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+                "ifftn: InViewType and OutViewType must have "
+                "the same Layout.");
+
+  static_assert(
+      Kokkos::SpaceAccessibility<ExecutionSpace,
+                                 typename InViewType::memory_space>::accessible,
+      "ifftn: execution_space cannot access data in InViewType");
+  static_assert(
+      Kokkos::SpaceAccessibility<
+          ExecutionSpace, typename OutViewType::memory_space>::accessible,
+      "ifftn: execution_space cannot access data in OutViewType");
 
   // Create a default sequence of axes {-rank, -(rank-1), ..., -1}
   constexpr std::size_t rank = InViewType::rank();
@@ -941,9 +1413,28 @@ void ifftn(const ExecutionSpace& exec_space, const InViewType& in,
            KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
            shape_type<DIM2> s            = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::ifftn: InViewType is not a Kokkos::View.");
+                "ifftn: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
-                "KokkosFFT::ifftn: OutViewType is not a Kokkos::View.");
+                "ifftn: OutViewType is not a Kokkos::View.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<InViewType>,
+                "ifftn: InViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
+                "ifftn: OutViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(InViewType::rank() == OutViewType::rank(),
+                "ifftn: InViewType and OutViewType must have "
+                "the same rank.");
+  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+                "ifftn: InViewType and OutViewType must have "
+                "the same Layout.");
+
+  static_assert(
+      Kokkos::SpaceAccessibility<ExecutionSpace,
+                                 typename InViewType::memory_space>::accessible,
+      "ifftn: execution_space cannot access data in InViewType");
+  static_assert(
+      Kokkos::SpaceAccessibility<
+          ExecutionSpace, typename OutViewType::memory_space>::accessible,
+      "ifftn: execution_space cannot access data in OutViewType");
 
   InViewType _in;
   shape_type<DIM2> zeros = {0};  // default shape means no crop or pad
@@ -982,9 +1473,28 @@ void ifftn(const ExecutionSpace& exec_space, const InViewType& in,
            KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
            shape_type<DIM2> s            = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::ifftn: InViewType is not a Kokkos::View.");
+                "ifftn: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
-                "KokkosFFT::ifftn: OutViewType is not a Kokkos::View.");
+                "ifftn: OutViewType is not a Kokkos::View.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<InViewType>,
+                "ifftn: InViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
+                "ifftn: OutViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(InViewType::rank() == OutViewType::rank(),
+                "ifftn: InViewType and OutViewType must have "
+                "the same rank.");
+  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+                "ifftn: InViewType and OutViewType must have "
+                "the same Layout.");
+
+  static_assert(
+      Kokkos::SpaceAccessibility<ExecutionSpace,
+                                 typename InViewType::memory_space>::accessible,
+      "ifftn: execution_space cannot access data in InViewType");
+  static_assert(
+      Kokkos::SpaceAccessibility<
+          ExecutionSpace, typename OutViewType::memory_space>::accessible,
+      "ifftn: execution_space cannot access data in OutViewType");
 
   InViewType _in;
   shape_type<DIM2> zeros = {0};  // default shape means no crop or pad
@@ -1024,17 +1534,36 @@ void rfftn(const ExecutionSpace& exec_space, const InViewType& in,
            KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
            shape_type<DIM> s             = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::rfftn: InViewType is not a Kokkos::View.");
+                "rfftn: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
-                "KokkosFFT::rfftn: OutViewType is not a Kokkos::View.");
+                "rfftn: OutViewType is not a Kokkos::View.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<InViewType>,
+                "rfftn: InViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
+                "rfftn: OutViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(InViewType::rank() == OutViewType::rank(),
+                "rfftn: InViewType and OutViewType must have "
+                "the same rank.");
+  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+                "rfftn: InViewType and OutViewType must have "
+                "the same Layout.");
+
+  static_assert(
+      Kokkos::SpaceAccessibility<ExecutionSpace,
+                                 typename InViewType::memory_space>::accessible,
+      "rfftn: execution_space cannot access data in InViewType");
+  static_assert(
+      Kokkos::SpaceAccessibility<
+          ExecutionSpace, typename OutViewType::memory_space>::accessible,
+      "rfftn: execution_space cannot access data in OutViewType");
 
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
 
   static_assert(std::is_floating_point<in_value_type>::value,
-                "KokkosFFT::rfftn: InViewType must be real");
+                "rfftn: InViewType must be real");
   static_assert(KokkosFFT::Impl::is_complex<out_value_type>::value,
-                "KokkosFFT::rfftn: OutViewType must be complex");
+                "rfftn: OutViewType must be complex");
 
   fftn(exec_space, in, out, norm, s);
 }
@@ -1046,17 +1575,36 @@ void rfftn(const ExecutionSpace& exec_space, const InViewType& in,
            KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
            shape_type<DIM2> s            = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::rfftn: InViewType is not a Kokkos::View.");
+                "rfftn: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
-                "KokkosFFT::rfftn: OutViewType is not a Kokkos::View.");
+                "rfftn: OutViewType is not a Kokkos::View.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<InViewType>,
+                "rfftn: InViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
+                "rfftn: OutViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(InViewType::rank() == OutViewType::rank(),
+                "rfftn: InViewType and OutViewType must have "
+                "the same rank.");
+  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+                "rfftn: InViewType and OutViewType must have "
+                "the same Layout.");
+
+  static_assert(
+      Kokkos::SpaceAccessibility<ExecutionSpace,
+                                 typename InViewType::memory_space>::accessible,
+      "rfftn: execution_space cannot access data in InViewType");
+  static_assert(
+      Kokkos::SpaceAccessibility<
+          ExecutionSpace, typename OutViewType::memory_space>::accessible,
+      "rfftn: execution_space cannot access data in OutViewType");
 
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
 
   static_assert(std::is_floating_point<in_value_type>::value,
-                "KokkosFFT::rfftn: InViewType must be real");
+                "rfftn: InViewType must be real");
   static_assert(KokkosFFT::Impl::is_complex<out_value_type>::value,
-                "KokkosFFT::rfftn: OutViewType must be complex");
+                "rfftn: OutViewType must be complex");
 
   fftn(exec_space, in, out, plan, axes, norm, s);
 }
@@ -1068,17 +1616,36 @@ void rfftn(const ExecutionSpace& exec_space, const InViewType& in,
            KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
            shape_type<DIM2> s            = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::rfftn: InViewType is not a Kokkos::View.");
+                "rfftn: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
-                "KokkosFFT::rfftn: OutViewType is not a Kokkos::View.");
+                "rfftn: OutViewType is not a Kokkos::View.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<InViewType>,
+                "rfftn: InViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
+                "rfftn: OutViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(InViewType::rank() == OutViewType::rank(),
+                "rfftn: InViewType and OutViewType must have "
+                "the same rank.");
+  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+                "rfftn: InViewType and OutViewType must have "
+                "the same Layout.");
+
+  static_assert(
+      Kokkos::SpaceAccessibility<ExecutionSpace,
+                                 typename InViewType::memory_space>::accessible,
+      "rfftn: execution_space cannot access data in InViewType");
+  static_assert(
+      Kokkos::SpaceAccessibility<
+          ExecutionSpace, typename OutViewType::memory_space>::accessible,
+      "rfftn: execution_space cannot access data in OutViewType");
 
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
 
   static_assert(std::is_floating_point<in_value_type>::value,
-                "KokkosFFT::rfftn: InViewType must be real");
+                "rfftn: InViewType must be real");
   static_assert(KokkosFFT::Impl::is_complex<out_value_type>::value,
-                "KokkosFFT::rfftn: OutViewType must be complex");
+                "rfftn: OutViewType must be complex");
 
   fftn(exec_space, in, out, axes, norm, s);
 }
@@ -1090,17 +1657,36 @@ void irfftn(const ExecutionSpace& exec_space, const InViewType& in,
             KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
             shape_type<DIM> s             = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::irfftn: InViewType is not a Kokkos::View.");
+                "irfftn: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
-                "KokkosFFT::irfftn: OutViewType is not a Kokkos::View.");
+                "irfftn: OutViewType is not a Kokkos::View.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<InViewType>,
+                "irfftn: InViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
+                "irfftn: OutViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(InViewType::rank() == OutViewType::rank(),
+                "irfftn: InViewType and OutViewType must have "
+                "the same rank.");
+  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+                "irfftn: InViewType and OutViewType must have "
+                "the same Layout.");
+
+  static_assert(
+      Kokkos::SpaceAccessibility<ExecutionSpace,
+                                 typename InViewType::memory_space>::accessible,
+      "irfftn: execution_space cannot access data in InViewType");
+  static_assert(
+      Kokkos::SpaceAccessibility<
+          ExecutionSpace, typename OutViewType::memory_space>::accessible,
+      "irfftn: execution_space cannot access data in OutViewType");
 
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
 
   static_assert(KokkosFFT::Impl::is_complex<in_value_type>::value,
-                "KokkosFFT::irfftn: InViewType must be complex");
+                "irfftn: InViewType must be complex");
   static_assert(std::is_floating_point<out_value_type>::value,
-                "KokkosFFT::irfftn: OutViewType must be real");
+                "irfftn: OutViewType must be real");
 
   shape_type<DIM> zeros = {0};  // default shape means no crop or pad
   shape_type<DIM> _s    = {0};
@@ -1120,17 +1706,36 @@ void irfftn(const ExecutionSpace& exec_space, const InViewType& in,
             KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
             shape_type<DIM2> s            = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::irfftn: InViewType is not a Kokkos::View.");
+                "irfftn: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
-                "KokkosFFT::irfftn: OutViewType is not a Kokkos::View.");
+                "irfftn: OutViewType is not a Kokkos::View.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<InViewType>,
+                "irfftn: InViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
+                "irfftn: OutViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(InViewType::rank() == OutViewType::rank(),
+                "irfftn: InViewType and OutViewType must have "
+                "the same rank.");
+  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+                "irfftn: InViewType and OutViewType must have "
+                "the same Layout.");
+
+  static_assert(
+      Kokkos::SpaceAccessibility<ExecutionSpace,
+                                 typename InViewType::memory_space>::accessible,
+      "irfftn: execution_space cannot access data in InViewType");
+  static_assert(
+      Kokkos::SpaceAccessibility<
+          ExecutionSpace, typename OutViewType::memory_space>::accessible,
+      "irfftn: execution_space cannot access data in OutViewType");
 
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
 
   static_assert(KokkosFFT::Impl::is_complex<in_value_type>::value,
-                "KokkosFFT::irfftn: InViewType must be complex");
+                "irfftn: InViewType must be complex");
   static_assert(std::is_floating_point<out_value_type>::value,
-                "KokkosFFT::irfftn: OutViewType must be real");
+                "irfftn: OutViewType must be real");
 
   shape_type<DIM2> zeros = {0};  // default shape means no crop or pad
   shape_type<DIM2> _s    = {0};
@@ -1150,17 +1755,36 @@ void irfftn(const ExecutionSpace& exec_space, const InViewType& in,
             KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
             shape_type<DIM2> s            = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::irfftn: InViewType is not a Kokkos::View.");
+                "irfftn: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
-                "KokkosFFT::irfftn: OutViewType is not a Kokkos::View.");
+                "irfftn: OutViewType is not a Kokkos::View.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<InViewType>,
+                "irfftn: InViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
+                "irfftn: OutViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(InViewType::rank() == OutViewType::rank(),
+                "irfftn: InViewType and OutViewType must have "
+                "the same rank.");
+  static_assert(std::is_same_v<typename InViewType::array_layout, typename OutViewType::array_layout>,
+                "irfftn: InViewType and OutViewType must have "
+                "the same Layout.");
+
+  static_assert(
+      Kokkos::SpaceAccessibility<ExecutionSpace,
+                                 typename InViewType::memory_space>::accessible,
+      "ifftn: execution_space cannot access data in InViewType");
+  static_assert(
+      Kokkos::SpaceAccessibility<
+          ExecutionSpace, typename OutViewType::memory_space>::accessible,
+      "ifftn: execution_space cannot access data in OutViewType");
 
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
 
   static_assert(KokkosFFT::Impl::is_complex<in_value_type>::value,
-                "KokkosFFT::irfftn: InViewType must be complex");
+                "irfftn: InViewType must be complex");
   static_assert(std::is_floating_point<out_value_type>::value,
-                "KokkosFFT::irfftn: OutViewType must be real");
+                "irfftn: OutViewType must be real");
 
   shape_type<DIM2> zeros = {0};  // default shape means no crop or pad
   shape_type<DIM2> _s    = {0};
@@ -1172,6 +1796,6 @@ void irfftn(const ExecutionSpace& exec_space, const InViewType& in,
 
   ifftn(exec_space, in, out, plan, axes, norm, _s);
 }
-};  // namespace KokkosFFT
+}  // namespace KokkosFFT
 
 #endif

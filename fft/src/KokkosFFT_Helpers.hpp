@@ -11,7 +11,7 @@ template <typename ViewType, std::size_t DIM = 1>
 auto _get_shift(const ViewType& inout, axis_type<DIM> _axes,
                 int direction = 1) {
   static_assert(DIM > 0,
-                "KokkosFFT::Impl::_get_shift: Rank of shift axes must be "
+                "_get_shift: Rank of shift axes must be "
                 "larger than or equal to 1.");
 
   // Convert the input axes to be in the range of [0, rank-1]
@@ -38,7 +38,7 @@ template <typename ExecutionSpace, typename ViewType>
 void _roll(const ExecutionSpace& exec_space, ViewType& inout,
            axis_type<1> shift, axis_type<1> axes) {
   static_assert(ViewType::rank() == 1,
-                "KokkosFFT::Impl::_roll: Rank of View must be 1.");
+                "_roll: Rank of View must be 1.");
   std::size_t n0 = inout.extent(0);
 
   ViewType tmp("tmp", n0);
@@ -69,7 +69,7 @@ void _roll(const ExecutionSpace& exec_space, ViewType& inout,
            axis_type<2> shift, axis_type<DIM1> axes) {
   constexpr std::size_t DIM0 = 2;
   static_assert(ViewType::rank() == DIM0,
-                "KokkosFFT::Impl::_roll: Rank of View must be 2.");
+                "_roll: Rank of View must be 2.");
   int n0 = inout.extent(0), n1 = inout.extent(1);
 
   ViewType tmp("tmp", n0, n1);
@@ -129,8 +129,17 @@ void _roll(const ExecutionSpace& exec_space, ViewType& inout,
 template <typename ExecutionSpace, typename ViewType, std::size_t DIM = 1>
 void _fftshift(const ExecutionSpace& exec_space, ViewType& inout,
                axis_type<DIM> axes) {
+  static_assert(Kokkos::is_view<ViewType>::value,
+                "_fftshift: ViewType is not a Kokkos::View.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<ViewType>,
+                "_fftshift: ViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(
+      Kokkos::SpaceAccessibility<ExecutionSpace,
+                                 typename ViewType::memory_space>::accessible,
+      "_fftshift: execution_space cannot access data in ViewType");
+
   static_assert(ViewType::rank() >= DIM,
-                "KokkosFFT::Impl::_fftshift: Rank of View must be larger thane "
+                "_fftshift: Rank of View must be larger thane "
                 "or equal to the Rank of shift axes.");
   auto shift = _get_shift(inout, axes);
   _roll(exec_space, inout, shift, axes);
@@ -139,8 +148,17 @@ void _fftshift(const ExecutionSpace& exec_space, ViewType& inout,
 template <typename ExecutionSpace, typename ViewType, std::size_t DIM = 1>
 void _ifftshift(const ExecutionSpace& exec_space, ViewType& inout,
                 axis_type<DIM> axes) {
+  static_assert(Kokkos::is_view<ViewType>::value,
+                "_ifftshift: ViewType is not a Kokkos::View.");
+  static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<ViewType>,
+                "_ifftshift: ViewType must be either LayoutLeft or LayoutRight.");
+  static_assert(
+      Kokkos::SpaceAccessibility<ExecutionSpace,
+                                 typename ViewType::memory_space>::accessible,
+      "_ifftshift: execution_space cannot access data in ViewType");
+
   static_assert(ViewType::rank() >= DIM,
-                "KokkosFFT::Impl::_ifftshift: Rank of View must be larger "
+                "_ifftshift: Rank of View must be larger "
                 "thane or equal to the Rank of shift axes.");
   auto shift = _get_shift(inout, axes, -1);
   _roll(exec_space, inout, shift, axes);
@@ -153,7 +171,7 @@ template <typename ExecutionSpace, typename RealType>
 auto fftfreq(const ExecutionSpace& exec_space, const std::size_t n,
              const RealType d = 1.0) {
   static_assert(std::is_floating_point<RealType>::value,
-                "KokkosFFT::fftfreq: d must be real");
+                "fftfreq: d must be float or double");
   using ViewType = Kokkos::View<RealType*, ExecutionSpace>;
   ViewType freq("freq", n);
 
@@ -181,7 +199,7 @@ template <typename ExecutionSpace, typename RealType>
 auto rfftfreq(const ExecutionSpace& exec_space, const std::size_t n,
               const RealType d = 1.0) {
   static_assert(std::is_floating_point<RealType>::value,
-                "KokkosFFT::fftfreq: d must be real");
+                "fftfreq: d must be float or double");
   using ViewType = Kokkos::View<RealType*, ExecutionSpace>;
 
   RealType val = 1.0 / (static_cast<RealType>(n) * d);
