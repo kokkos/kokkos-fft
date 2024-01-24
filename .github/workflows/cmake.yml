@@ -46,6 +46,9 @@ jobs:
 
       # TODO check if current build has a different Dockerfile
 
+      - name: Login in GitHub Containers Repository
+        run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
       - name: Build image
         run: |
           docker build \
@@ -54,9 +57,6 @@ jobs:
             --build-arg BUIDKIT_INLINE_CACHE=1 \
             --progress=plain \
             docker/base/${{ matrix.backend }}
-
-      - name: Login in GitHub Containers Repository
-        run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Push image
         run: docker push ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend }}
@@ -99,6 +99,9 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Login in GitHub Containers Repository
+        run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
       - name: Pull image
         run: docker pull ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}
 
@@ -106,16 +109,17 @@ jobs:
         run: |
           docker run -v ${{github.workspace}}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }} \
             cmake -B build \
+            -DCMAKE_INSTALL_PREFIX=/work/install \
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
             -DCMAKE_CXX_STANDARD=17 \
             -DBUILD_TESTING=ON \
             -DKokkosFFT_INTERNAL_Kokkos=ON \
             ${{ matrix.backend.cmake_flags }} \
-            ${{ matrix.target.cmake_flags }} \
+            ${{ matrix.target.cmake_flags }}
 
       - name: Build
         run: |
-            docker run -v ${{github.workspace}}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }} \
+          docker run -v ${{github.workspace}}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }} \
             cmake --build build -j 2
 
       - name: Build image
@@ -129,14 +133,25 @@ jobs:
             .
         if: ${{ matrix.target.name }} == "native"
 
-      - name: Install
-        run: |
-          docker run -v ${{github.workspace}}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }} \
-            ./install_test/bin/install_${{ matrix.backend.name }}.sh /tmp ${{ matrix.backend.name }}
-
-      - name: Login in GitHub Containers Repository
-        run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-
       - name: Push image
         run: docker push ghcr.io/cexa-project/kokkos-fft/tests_${{ matrix.backend.name }}
         if: ${{ matrix.target.name }} == "native"
+
+      - name: Install
+        run: |
+          docker run -v ${{github.workspace}}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }} \
+            cmake --install build
+
+      - name: Configure test code
+        run: |
+          docker run -v ${{github.workspace}}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }} \
+            cmake -B /tmp/test \
+            -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+            -DCMAKE_CXX_STANDARD=17 \
+            -DKokkosFFT_INTERNAL_Kokkos=ON \
+            ${{ matrix.backend.cmake_flags }} \
+            ${{ matrix.target.cmake_flags }}
+
+      - name: Build test code
+          docker run -v ${{github.workspace}}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }} \
+            cmake --build /tmp/test -j 2
