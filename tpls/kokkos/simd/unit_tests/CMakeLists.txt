@@ -1,7 +1,0 @@
-KOKKOS_INCLUDE_DIRECTORIES(${KOKKOS_SOURCE_DIR}/simd/unit_tests/include)
-
-KOKKOS_ADD_EXECUTABLE_AND_TEST(
-  UnitTest_SIMD
-  SOURCES
-  UnitTestMain.cpp
-  TestSIMD.cpp)
