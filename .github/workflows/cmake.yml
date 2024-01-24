@@ -62,9 +62,11 @@ jobs:
         run: docker push ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend }}
 
       - name: Get Singularity
-        uses: eWaterCycle/setup-singularity@v7
-        with:
-          singularity-version: 3.6.4
+        env:
+          SINGULARITY_VERSION: 3.11.2
+        run: |
+          wget https://github.com/sylabs/singularity/releases/download/v${{ env.SINGULARITY_VERSION }}/singularity-ce_${{ env.SINGULARITY_VERSION }}-jammy_amd64.deb
+          apt-get install singularity-ce_${{ env.SINGULARITY_VERSION }}-jammy_amd64.deb
 
       - name: Convert image to singularity
         run: singularity build base_${{ matrix.backend.name }}.sif docker://ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}
