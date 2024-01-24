@@ -61,6 +61,18 @@ jobs:
       - name: Push image
         run: docker push ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend }}
 
+      - name: Get Singularity
+        uses: eWaterCycle/setup-singularity@v7
+
+      - name: Convert image to singularity
+        run: singularity build base_${{ matrix.backend.name }}.sif docker://ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}
+
+      - name: Login in GitHub Containers Repository with singularity
+        run: echo ${{ secrets.GITHUB_TOKEN }} | singularity remote login -u ${{ github.actor }} --password-stdin oras://ghcr.io
+
+      - name: Push image to singularity
+        run: singularity push base_${{ matrix.backend.name }}.sif oras://ghcr.io/cexa-project/kokkos-fft
+
   build:
     runs-on: ubuntu-latest
 
@@ -122,20 +134,11 @@ jobs:
           docker run -v ${{github.workspace}}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }} \
             cmake --build build -j 2
 
-      - name: Build image
-        run: |
-          docker build \
-            -t ghcr.io/cexa-project/kokkos-fft/tests_${{ matrix.backend.name }} \
-            --cache-from ghcr.io/cexa-project/kokkos-fft/tests_${{ matrix.backend.name }} \
-            --build-arg BUIDKIT_INLINE_CACHE=1 \
-            --progress=plain \
-            -f docker/tests/${{ matrix.backend.name }}/Dockerfile \
-            .
-        if: ${{ matrix.target.name }} == "native"
-
-      - name: Push image
-        run: docker push ghcr.io/cexa-project/kokkos-fft/tests_${{ matrix.backend.name }}
-        if: ${{ matrix.target.name }} == "native"
+      - name: Save artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tests_${{ matrix.backend.name }}
+          path: build
 
       - name: Install
         run: |
