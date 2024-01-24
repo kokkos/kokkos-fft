@@ -58,7 +58,7 @@ auto convert_negative_axis(const ViewType& view, int _axis = -1) {
   static_assert(Kokkos::is_view<ViewType>::value,
                 "convert_negative_axis: ViewType is not a Kokkos::View.");
   int rank = static_cast<int>(ViewType::rank());
-  assert(abs(_axis) < rank);  // axis should be in [-(rank-1), rank-1]
+  assert(_axis >= -rank && _axis < rank);  // axis should be in [-rank, rank-1]
   int axis = _axis < 0 ? rank + _axis : _axis;
   return axis;
 }
@@ -105,10 +105,9 @@ bool has_duplicate_values(const std::vector<T>& values) {
   return set_values.size() < values.size();
 }
 
-template <
-    typename IntType, std::size_t DIM = 1,
-    std::enable_if_t<std::is_integral_v<IntType>, std::nullptr_t> = nullptr>
-bool is_out_of_range_value_included(const std::array<IntType, DIM>& values,
+template <typename IntType, std::enable_if_t<std::is_integral_v<IntType>,
+                                             std::nullptr_t> = nullptr>
+bool is_out_of_range_value_included(const std::vector<IntType>& values,
                                     IntType max) {
   bool is_included = false;
   for (auto value : values) {
