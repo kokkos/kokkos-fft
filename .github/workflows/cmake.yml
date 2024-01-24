@@ -46,10 +46,20 @@ jobs:
 
       # TODO check if current build has a different Dockerfile
 
-      - name: Login in GitHub Containers Repository
+      - name: Get Singularity
+        env:
+          SINGULARITY_VERSION: 3.11.2
+        run: |
+          wget https://github.com/sylabs/singularity/releases/download/v${{ env.SINGULARITY_VERSION }}/singularity-ce_${{ env.SINGULARITY_VERSION }}-jammy_amd64.deb
+          apt-get install ./singularity-ce_${{ env.SINGULARITY_VERSION }}-jammy_amd64.deb
+
+      - name: Login in GitHub Containers Repository with Docker
         run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-      - name: Build image
+      - name: Login in GitHub Containers Repository with Singularity
+        run: echo ${{ secrets.GITHUB_TOKEN }} | singularity remote login -u ${{ github.actor }} --password-stdin oras://ghcr.io
+
+      - name: Build Docker image
         run: |
           docker build \
             -t ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend }} \
@@ -58,23 +68,13 @@ jobs:
             --progress=plain \
             docker/base/${{ matrix.backend }}
 
-      - name: Push image
+      - name: Push Docker image
         run: docker push ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend }}
 
-      - name: Get Singularity
-        env:
-          SINGULARITY_VERSION: 3.11.2
-        run: |
-          wget https://github.com/sylabs/singularity/releases/download/v${{ env.SINGULARITY_VERSION }}/singularity-ce_${{ env.SINGULARITY_VERSION }}-jammy_amd64.deb
-          apt-get ./install singularity-ce_${{ env.SINGULARITY_VERSION }}-jammy_amd64.deb
-
-      - name: Convert image to singularity
+      - name: Convert Docker image to Singularity
         run: singularity build base_${{ matrix.backend.name }}.sif docker://ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}
 
-      - name: Login in GitHub Containers Repository with singularity
-        run: echo ${{ secrets.GITHUB_TOKEN }} | singularity remote login -u ${{ github.actor }} --password-stdin oras://ghcr.io
-
-      - name: Push image to singularity
+      - name: Push Singularity image
         run: singularity push base_${{ matrix.backend.name }}.sif oras://ghcr.io/cexa-project/kokkos-fft
 
   build:
