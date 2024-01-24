@@ -63,6 +63,8 @@ jobs:
 
       - name: Get Singularity
         uses: eWaterCycle/setup-singularity@v7
+        with:
+              singularity-version: 3.8.3
 
       - name: Convert image to singularity
         run: singularity build base_${{ matrix.backend.name }}.sif docker://ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}
