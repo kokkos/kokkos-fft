@@ -153,5 +153,6 @@ jobs:
             ${{ matrix.target.cmake_flags }}
 
       - name: Build test code
+        run: |
           docker run -v ${{github.workspace}}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }} \
             cmake --build /tmp/test -j 2
