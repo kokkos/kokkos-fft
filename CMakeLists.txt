@@ -11,7 +11,7 @@ option(KokkosFFT_INTERNAL_Kokkos "Build internal Kokkos instead of relying on ex
 
 if (NOT KokkosFFT_INTERNAL_Kokkos)
     # First check, Kokkos is added as subdirectory or not
-    if (KOKKOS_PATH STREQUAL "")
+    if ("${KOKKOS_PATH}" STREQUAL "")
         find_package(Kokkos REQUIRED)
     else()
         message(STATUS "Using Kokkos at ${KOKKOS_PATH}")
