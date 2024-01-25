@@ -24,8 +24,29 @@ jobs:
         extensions: 'hpp,cpp'
         clangFormatVersion: 12
 
+  check_build_base_needed:
+    runs-on: ubuntu-latest
+
+    outputs:
+      changed_docker_files: steps.changed_docker_files.outputs.any_changed == 'true'
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Get changed Docker files
+        id: changed_docker_files
+        uses: tj-actions/changed-files@v42
+        with:
+          files: docker/base/**/Dockerfile
+
   build_base:
     runs-on: ubuntu-latest
+
+    needs: check_build_base_needed
+
+    if: needs.check_build_base_needed.outputs.changed_docker_files == 'true'
 
     strategy:
       matrix:
@@ -80,6 +101,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    needs: build_base
+
+    # run this job even if build_base did not run
+    if: always()
+
     strategy:
       matrix:
         backend:
@@ -99,9 +125,6 @@ jobs:
               name: openmp
             target:
               name: host_device
-
-    needs:
-      - build_base
 
     steps:
       - name: Free Disk Space (Ubuntu)
@@ -172,8 +195,10 @@ jobs:
       - self-hosted
       # - cuda
 
-    needs:
-      - build
+    needs: build
+
+    # run this job even if build_base did not run
+    if: always() && needs.build.result == 'success'
 
     env:
       SINGULARITY_VERSION: 3.8.3/gcc-11.2.0
