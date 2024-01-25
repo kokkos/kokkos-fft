@@ -123,7 +123,7 @@ jobs:
 
       - name: Configure
         run: |
-          docker run -v ${{github.workspace}}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }} \
+          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }} \
             cmake -B build \
             -DCMAKE_INSTALL_PREFIX=/work/install \
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
@@ -135,35 +135,64 @@ jobs:
 
       - name: Build
         run: |
-          docker run -v ${{github.workspace}}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }} \
+          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }} \
             cmake --build build -j 2
 
       - name: Prepare artifacts
         # this is mandatory to preserve execution rights
         run: tar -cvf tests_${{ matrix.backend.name }}.tar build/
+        if: ${{ matrix.target.name }} == "native"
 
       - name: Save artifacts
         uses: actions/upload-artifact@v4
         with:
           name: tests_${{ matrix.backend.name }}
           path: tests_${{ matrix.backend.name }}.tar
+        if: ${{ matrix.target.name }} == "native"
 
       - name: Install
         run: |
-          docker run -v ${{github.workspace}}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }} \
+          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }} \
             cmake --install build
 
-      - name: Configure test code
+      - name: Configure, build and install Kokkos
         run: |
-          docker run -v ${{github.workspace}}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }} \
-            cmake -B /tmp/test \
+          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }} \
+            cmake -B build_kokkos \
+            -DCMAKE_INSTALL_PREFIX=/work/local \
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
             -DCMAKE_CXX_STANDARD=17 \
-            -DKokkosFFT_INTERNAL_Kokkos=ON \
             ${{ matrix.backend.cmake_flags }} \
-            ${{ matrix.target.cmake_flags }}
+            ${{ matrix.target.cmake_flags }} \
+            tpls/kokkos
+          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }} \
+            cmake --build build_kokkos -j 8
+          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }} \
+            cmake --install build_kokkos
 
-      - name: Build test code
+      - name: Configure, build and install Kokkos FFT
         run: |
-          docker run -v ${{github.workspace}}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }} \
-            cmake --build /tmp/test -j 2
+          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }} -e LD_LIBRARY_PATH=/work/local/lib \
+            cmake -B build_kokkos_fft \
+            -DCMAKE_INSTALL_PREFIX=/work/local \
+            -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+            -DCMAKE_CXX_STANDARD=17 \
+            ${{ matrix.backend.cmake_flags }} \
+            ${{ matrix.target.cmake_flags }} \
+            .
+          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }} -e LD_LIBRARY_PATH=/work/local/lib \
+            cmake --build build_kokkos_fft -j 8
+          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }} -e LD_LIBRARY_PATH=/work/local/lib \
+            cmake --install build_kokkos_fft
+
+      - name: Configure and build test code
+        run: |
+          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }} -e LD_LIBRARY_PATH=/work/local/lib \
+            cmake -B build_test \
+            -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+            -DCMAKE_CXX_STANDARD=17 \
+            ${{ matrix.backend.cmake_flags }} \
+            ${{ matrix.target.cmake_flags }} \
+            install_test/src
+          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }} -e LD_LIBRARY_PATH=/work/local/lib \
+            cmake --build build_test -j 8
