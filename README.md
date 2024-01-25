@@ -81,7 +81,7 @@ Here is an example to use KokkosFFT in the following CMake project.
  └──<project_directory>/
     |--tpls
     |    |--kokkos/
-    |    └──kokkosFFT/
+    |    └──kokkos-fft/
     |--CMakeLists.txt
     └──hello.cpp
 ```
