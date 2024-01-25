@@ -136,7 +136,7 @@ jobs:
       - name: Build
         run: |
           docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }} \
-            cmake --build build -j 2
+            cmake --build build -j $(( $(nproc) * 2 + 1 ))
 
       - name: Prepare artifacts
         # this is mandatory to preserve execution rights
@@ -164,7 +164,7 @@ jobs:
             -DCMAKE_PREFIX_PATH=/work/install \
             install_test/src
           docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }} \
-            cmake --build build_test -j 8
+            cmake --build build_test -j $(( $(nproc) * 2 + 1 ))
 
   test-cuda:
     # run CUDA tests on Ruche supercomputer
