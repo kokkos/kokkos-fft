@@ -4,10 +4,10 @@
 
 UNOFFICIAL FFT interfaces for Kokkos C++ Performance Portability Programming EcoSystem
 
-KokkosFFT implements local interfaces Kokkos and de facto standard FFT libraries, including fftw, cufft and hipfft. 
+KokkosFFT implements local interfaces Kokkos and de facto standard FFT libraries, including [fftw](http://www.fftw.org), [cufft](https://developer.nvidia.com/cufft) and [hipfft](https://github.com/ROCm/hipFFT). 
 "Local" means not using MPI, or running within a
-single MPI process without knowing about MPI. We are inclined to implement the [numpy.fft](https://numpy.org/doc/stable/reference/routines.fft.html) interfaces based on [Kokkos](https://github.com/kokkos/kokkos). 
-A key concept is that "As easy as numpy, as fast as vendor libraries". Accordingly, our APIs follow the APIs by [numpy.fft](https://numpy.org/doc/stable/reference/routines.fft.html) with minor differences. If something is wrong with runtime values, it will raise runtime errors. Here is the example for 1D real to complex transform with ```rfft``` in python and KokkosFFT.
+single MPI process without knowing about MPI. We are inclined to implement the [numpy.fft](https://numpy.org/doc/stable/reference/routines.fft.html)-like interfaces adapted for [Kokkos](https://github.com/kokkos/kokkos). 
+A key concept is that "As easy as numpy, as fast as vendor libraries". Accordingly, our API follows the API by [numpy.fft](https://numpy.org/doc/stable/reference/routines.fft.html) with minor differences. If something is wrong with runtime values (say ```View``` extents), it will raise runtime errors (C++ exceptions or assertions). Here is the example for 1D real to complex transform with ```rfft``` in python and KokkosFFT.
 ```python3
 import numpy as np
 x = np.random.rand(4)
@@ -33,7 +33,7 @@ Kokkos::fence();
 KokkosFFT::rfft(execution_space(), x, x_hat);
 ```
 
-There are two major differences: ```execution_space``` argument and updating output as argument not returned. As imagined, KokkosFFT only accepts [Kokkos Views](https://kokkos.org/kokkos-core-wiki/API/core/View.html) as input data. The accessibilities of Views from ```execution_space``` is statically checked (compilation errors if not accessible). 
+There are two major differences: [```execution_space```](https://kokkos.org/kokkos-core-wiki/API/core/execution_spaces.html) argument and output value (```x_hat```) is an argument of API (not returned from API). As imagined, KokkosFFT only accepts [Kokkos Views](https://kokkos.org/kokkos-core-wiki/API/core/View.html) as input data. The accessibilities of Views from ```execution_space``` is statically checked (compilation errors if not accessible). 
 
 Depending on the View dimension, it automatically uses the batched plans as follows
 ```python3
@@ -112,14 +112,14 @@ cmake -DBUILD_TESTING=ON \
 This way, all the functionalities are executed on A100 GPUs.
 
 ### Install as a library
-Is is assumed that the Kokkos is installed under ```<lib_dir>/kokkos``` targeting Skylake with OpenMP backend. ```Kokkos_dir``` also needs to be set appropriately. Here is a recipe to install KokkosFFT under ```<lib_dir>/kokkosFFT```.
+Is is assumed that the Kokkos is installed under ```<lib_dir>/kokkos``` targeting Icelake with OpenMP backend. ```Kokkos_dir``` also needs to be set appropriately. Here is a recipe to install KokkosFFT under ```<lib_dir>/kokkosFFT```.
 
 ```bash
 export KOKKOSFFT_INSTALL_PREFIX=<lib_dir>/kokkosFFT
 export KokkosFFT_DIR=<lib_dir>/kokkosFFT/lib64/cmake/kokkos-fft
 
 mkdir build_KokkosFFT && cd build_KokkosFFT
-cmake -DBUILD_TESTING=OFF -DCMAKE_CXX_COMPILER=icpx -DKokkos_ENABLE_OPENMP=ON -DCMAKE_INSTALL_PREFIX=${KOKKOSFFT_INSTALL_PREFIX} ..
+cmake -DBUILD_TESTING=OFF -DCMAKE_CXX_COMPILER=icpx -DKokkos_ENABLE_OPENMP=ON -DKokkos_ARCH_SKX=ON -DCMAKE_INSTALL_PREFIX=${KOKKOSFFT_INSTALL_PREFIX} ..
 cmake --build . -j 8
 cmake --install .
 ```
@@ -154,3 +154,7 @@ mkdir build && cd build
 cmake -DCMAKE_CXX_COMPILER=icpx -DCMAKE_BUILD_TYPE=Release -DKokkos_ENABLE_OPENMP=ON -DKokkos_ARCH_SKX=ON ..
 cmake --build . -j 8
 ```
+
+## LICENCE
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)  
+KokkosFFT is licensed under the MIT License.
