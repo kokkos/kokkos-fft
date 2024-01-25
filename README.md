@@ -119,7 +119,11 @@ export KOKKOSFFT_INSTALL_PREFIX=<lib_dir>/kokkosFFT
 export KokkosFFT_DIR=<lib_dir>/kokkosFFT/lib64/cmake/kokkos-fft
 
 mkdir build_KokkosFFT && cd build_KokkosFFT
-cmake -DBUILD_TESTING=OFF -DCMAKE_CXX_COMPILER=icpx -DKokkos_ENABLE_OPENMP=ON -DKokkos_ARCH_SKX=ON -DCMAKE_INSTALL_PREFIX=${KOKKOSFFT_INSTALL_PREFIX} ..
+cmake -DBUILD_TESTING=OFF \
+      -DCMAKE_CXX_COMPILER=icpx \
+      -DKokkos_ENABLE_OPENMP=ON \
+      -DKokkos_ARCH_SKX=ON \
+      -DCMAKE_INSTALL_PREFIX=${KOKKOSFFT_INSTALL_PREFIX} ..
 cmake --build . -j 8
 cmake --install .
 ```
@@ -151,7 +155,9 @@ export KOKKOSFFT_INSTALL_PREFIX=<lib_dir>/kokkosFFT
 export KokkosFFT_DIR=<lib_dir>/kokkosFFT/lib64/cmake/kokkos-fft
 
 mkdir build && cd build
-cmake -DCMAKE_CXX_COMPILER=icpx -DCMAKE_BUILD_TYPE=Release -DKokkos_ENABLE_OPENMP=ON -DKokkos_ARCH_SKX=ON ..
+cmake -DCMAKE_CXX_COMPILER=icpx \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DKokkos_ENABLE_OPENMP=ON -DKokkos_ARCH_SKX=ON ..
 cmake --build . -j 8
 ```
 
