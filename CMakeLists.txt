@@ -11,10 +11,8 @@ option(KokkosFFT_INTERNAL_Kokkos "Build internal Kokkos instead of relying on ex
 
 if (NOT KokkosFFT_INTERNAL_Kokkos)
     # First check, Kokkos is added as subdirectory or not
-    if ("${KOKKOS_PATH}" STREQUAL "")
+    if(NOT TARGET Kokkos::kokkos)
         find_package(Kokkos REQUIRED)
-    else()
-        message(STATUS "Using Kokkos at ${KOKKOS_PATH}")
     endif()
 else ()
     add_subdirectory(tpls/kokkos)
