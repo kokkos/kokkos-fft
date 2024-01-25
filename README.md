@@ -157,7 +157,8 @@ export KokkosFFT_DIR=<lib_dir>/kokkosFFT/lib64/cmake/kokkos-fft
 mkdir build && cd build
 cmake -DCMAKE_CXX_COMPILER=icpx \
       -DCMAKE_BUILD_TYPE=Release \
-      -DKokkos_ENABLE_OPENMP=ON -DKokkos_ARCH_SKX=ON ..
+      -DKokkos_ENABLE_OPENMP=ON \
+      -DKokkos_ARCH_SKX=ON ..
 cmake --build . -j 8
 ```
 
