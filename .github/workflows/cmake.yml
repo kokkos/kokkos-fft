@@ -42,7 +42,7 @@ jobs:
           files: docker/**/Dockerfile
 
       - name: List changed Dockerfiles
-        if: steps.changed_docker_files.outputs.any_changed == 'true'
+        if: ${{ steps.changed_docker_files.outputs.any_changed == 'true' }}
         env:
           ALL_CHANGED_FILES: ${{ steps.changed_docker_files.outputs.all_changed_files }}
         run: |
@@ -55,7 +55,7 @@ jobs:
 
     needs: check_build_base_needed
 
-    if: needs.check_build_base_needed.outputs.changed_docker_files == 'true'
+    if: ${{ needs.check_build_base_needed.outputs.changed_docker_files == 'true' }}
 
     strategy:
       matrix:
@@ -111,7 +111,7 @@ jobs:
     needs: build_base
 
     # run this job even if build_base did not run
-    if: always()
+    if: ${{ always() && (needs.build_base.result != 'success' || needs.build_base.result == 'skipped') }}
 
     strategy:
       matrix:
@@ -140,11 +140,12 @@ jobs:
               name: host_device
 
     steps:
-      # - name: Free Disk Space (Ubuntu)
-      #   uses: jlumbroso/free-disk-space@v1.2.0
-      #   with:
-      #     tool-cache: true
-      #     large-packages: false
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@v1.2.0
+        with:
+          tool-cache: true
+          large-packages: false
+        if: ${{ matrix.backend.name == 'cuda' }}
 
       - name: Checkout built branch
         uses: actions/checkout@v4
@@ -179,14 +180,14 @@ jobs:
       - name: Prepare artifacts
         # this is mandatory to preserve execution rights
         run: tar -cvf tests_${{ matrix.backend.name }}.tar build/
-        if: matrix.target.name == 'native'
+        if: ${{ matrix.target.name == 'native' }}
 
       - name: Save artifacts
         uses: actions/upload-artifact@v3
         with:
           name: tests_${{ matrix.backend.name }}
           path: tests_${{ matrix.backend.name }}.tar
-        if: matrix.target.name == 'native'
+        if: ${{ matrix.target.name == 'native' }}
 
       - name: Install
         run: |
@@ -215,7 +216,7 @@ jobs:
     needs: build
 
     # run this job even if build_base did not run
-    if: always() && needs.build.result == 'success'
+    if: ${{ always() && needs.build.result == 'success' }}
 
     steps:
       - name: Get artifacts
