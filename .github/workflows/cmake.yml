@@ -221,5 +221,5 @@ jobs:
         run: |
           srun --nodes=1 --time=01:00:00 -p gpua100 --gres=gpu:1 bash -c " \
             module load singularity/${{ env.SINGULARITY_VERSION }}; \
-            singularity run --nv --bind $PWD:/work/build -W /work/build base_cuda.sif ctest \
+            singularity run --nv --bind $PWD:/work/build -W /work/build base_cuda.sif_latest.sif ctest \
             "
