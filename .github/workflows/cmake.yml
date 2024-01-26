@@ -92,7 +92,7 @@ jobs:
           docker build \
             -t ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend }} \
             --cache-from ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend }} \
-            --build-arg BUIDKIT_INLINE_CACHE=1 \
+            --build-arg BUILDKIT_INLINE_CACHE=1 \
             --progress=plain \
             docker/${{ matrix.backend }}
 
