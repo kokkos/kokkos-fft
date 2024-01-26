@@ -193,7 +193,7 @@ jobs:
     # run CUDA tests on Ruche supercomputer
     runs-on:
       - self-hosted
-      # - cuda
+      - cuda
 
     needs: build
 
