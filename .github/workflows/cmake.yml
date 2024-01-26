@@ -35,11 +35,20 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Get changed Docker files
+      - name: Get changed Dockerfiles
         id: changed_docker_files
         uses: tj-actions/changed-files@v42
         with:
           files: docker/**/Dockerfile
+
+      - name: List changed Dockerfiles
+        if: steps.changed_docker_files.outputs.any_changed == 'true'
+        env:
+          ALL_CHANGED_FILES: ${{ steps.changed_docker_files.outputs.all_changed_files }}
+        run: |
+          for file in "$ALL_CHANGED_FILES"; do
+            echo "$file was changed"
+          done
 
   build_base:
     runs-on: ubuntu-latest
