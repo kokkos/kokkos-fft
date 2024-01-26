@@ -16,7 +16,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: DoozyX/clang-format-lint-action@v0.13
       with:
         source: 'common/ fft/ examples/'
@@ -63,7 +63,7 @@ jobs:
           large-packages: false
 
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # TODO check if current build has a different Dockerfile
 
@@ -134,7 +134,7 @@ jobs:
           large-packages: false
 
       - name: Checkout built branch
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: recursive
 
