@@ -223,3 +223,7 @@ jobs:
             module load singularity/${{ env.SINGULARITY_VERSION }}; \
             singularity run --nv --bind $PWD:/work/build -W /work/build base_cuda.sif_latest.sif ctest \
             "
+
+      - name: Cleanup
+        uses: colpal/actions-clean@v1
+          if: always()
