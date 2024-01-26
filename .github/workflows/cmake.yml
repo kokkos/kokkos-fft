@@ -53,7 +53,7 @@ jobs:
         backend:
           # - openmp
           - cuda
-          # - hip
+          - hip
 
     steps:
       - name: Free Disk Space (Ubuntu)
@@ -111,8 +111,8 @@ jobs:
           #   cmake_flags: -DKokkos_ENABLE_OPENMP=ON
           - name: cuda
             cmake_flags: -DKokkos_ENABLE_CUDA=ON -DKokkos_ARCH_AMPERE80=ON -DKokkos_ENABLE_CUDA_CONSTEXPR=ON
-          # - name: hip
-          #   cmake_flags: -DKokkos_ENABLE_HIP=ON -DKokkos_ARCH_VEGA90A=ON
+          - name: hip
+            cmake_flags: -DKokkos_ENABLE_HIP=ON -DKokkos_ARCH_VEGA90A=ON
         target:
           - name: native
             cmake_flags: ""

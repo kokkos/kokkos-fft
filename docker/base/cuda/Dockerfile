@@ -15,6 +15,8 @@ RUN apt-get update && apt-get install -y \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+ENV FFTWDIR "/usr"
+
 RUN KEYDUMP_URL=https://cloud.cees.ornl.gov/download && \
     KEYDUMP_FILE=keydump && \
     wget --quiet ${KEYDUMP_URL}/${KEYDUMP_FILE} && \
@@ -39,5 +41,4 @@ RUN CMAKE_URL=https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSIO
 ENV PATH=${CMAKE_DIR}/bin:$PATH
 
 WORKDIR /work
-ENV FFTWDIR "/usr"
 CMD ["bash"]
