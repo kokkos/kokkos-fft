@@ -210,7 +210,7 @@ jobs:
           name: tests_cuda
 
       - name: Deploy artifacts
-        run: tar -xvf base_cuda.tar
+        run: tar -xvf tests_cuda.tar
 
       - name: Pull Singularity image
         run: |
