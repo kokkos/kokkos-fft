@@ -85,7 +85,7 @@ jobs:
             --cache-from ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend }} \
             --build-arg BUIDKIT_INLINE_CACHE=1 \
             --progress=plain \
-            docker/base/${{ matrix.backend }}
+            docker/${{ matrix.backend }}
 
       - name: Push Docker image
         run: docker push ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend }}
