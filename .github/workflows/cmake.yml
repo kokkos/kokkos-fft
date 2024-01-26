@@ -215,7 +215,7 @@ jobs:
       - name: Pull Singularity image
         run: |
           module load singularity/${{ env.SINGULARITY_VERSION }}
-          singularity pull oras://ghcr.io/cexa-project/kokkos-fft/base_cuda.sif
+          singularity pull oras://ghcr.io/cexa-project/kokkos-fft/base_cuda.sif:latest
 
       - name: Run test within Slurm job
         run: |
