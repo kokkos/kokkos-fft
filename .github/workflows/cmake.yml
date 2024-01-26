@@ -65,11 +65,11 @@ jobs:
           - hip
 
     steps:
-      # - name: Free Disk Space (Ubuntu)
-      #   uses: jlumbroso/free-disk-space@v1.2.0
-      #   with:
-      #     tool-cache: true
-      #     large-packages: false
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@v1.2.0
+        with:
+          tool-cache: true
+          large-packages: false
 
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -145,7 +145,6 @@ jobs:
         with:
           tool-cache: true
           large-packages: false
-        if: ${{ matrix.backend.name == 'cuda' }}
 
       - name: Checkout built branch
         uses: actions/checkout@v4
