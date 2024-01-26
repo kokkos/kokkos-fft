@@ -39,7 +39,7 @@ jobs:
         id: changed_docker_files
         uses: tj-actions/changed-files@v42
         with:
-          files: docker/base/**/Dockerfile
+          files: docker/**/Dockerfile
 
   build_base:
     runs-on: ubuntu-latest
