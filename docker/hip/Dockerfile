@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y \
         ccache \
         file \
         hipfft \
+        rocfft \
         libfftw3-dev \
         $ADDITIONAL_PACKAGES \
         && \
