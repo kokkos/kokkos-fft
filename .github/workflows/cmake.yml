@@ -200,9 +200,6 @@ jobs:
     # run this job even if build_base did not run
     if: always() && needs.build.result == 'success'
 
-    env:
-      SINGULARITY_VERSION: 3.8.3/gcc-11.2.0
-
     steps:
       - name: Get artifacts
         uses: actions/download-artifact@v3
@@ -213,17 +210,7 @@ jobs:
         run: tar -xvf tests_cuda.tar
 
       - name: Pull Singularity image
-        run: |
-          module load singularity/${{ env.SINGULARITY_VERSION }}
-          singularity pull oras://ghcr.io/cexa-project/kokkos-fft/base_cuda.sif:latest
+        run: singularity pull oras://ghcr.io/cexa-project/kokkos-fft/base_cuda.sif:latest
 
       - name: Run test within Slurm job
-        run: |
-          srun --nodes=1 --time=01:00:00 -p gpua100 --gres=gpu:1 bash -c " \
-            module load singularity/${{ env.SINGULARITY_VERSION }}; \
-            singularity run --nv --bind $PWD:/work/build -W /work/build base_cuda.sif_latest.sif ctest \
-            "
-
-      - name: Cleanup
-        uses: colpal/actions-clean@v1
-        if: always()
+        run: srun --nodes=1 --time=01:00:00 -p gpua100 --gres=gpu:1 singularity run --nv --bind $PWD:/work/build -W /work/build base_cuda.sif_latest.sif ctest
