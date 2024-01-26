@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      changed_docker_files: steps.changed_docker_files.outputs.any_changed == 'true'
+      changed_docker_files: ${{ steps.changed_docker_files.outputs.any_changed == 'true' }}
 
     steps:
       - uses: actions/checkout@v4
