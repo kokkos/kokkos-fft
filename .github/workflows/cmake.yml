@@ -111,7 +111,7 @@ jobs:
     needs: build_base
 
     # run this job even if build_base did not run
-    if: ${{ always() && (needs.build_base.result != 'success' || needs.build_base.result == 'skipped') }}
+    if: ${{ always() && (needs.build_base.result == 'success' || needs.build_base.result == 'skipped') }}
 
     strategy:
       matrix:
