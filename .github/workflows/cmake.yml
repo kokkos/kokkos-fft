@@ -117,10 +117,16 @@ jobs:
       matrix:
         backend:
           # - name: openmp
+          #  c_compiler: gcc
+          #  cxx_compiler: g++
           #   cmake_flags: -DKokkos_ENABLE_OPENMP=ON
           - name: cuda
+            c_compiler: gcc
+            cxx_compiler: g++
             cmake_flags: -DKokkos_ENABLE_CUDA=ON -DKokkos_ARCH_AMPERE80=ON -DKokkos_ENABLE_CUDA_CONSTEXPR=ON
           - name: hip
+            c_compiler: hipcc
+            cxx_compiler: hipcc
             cmake_flags: -DKokkos_ENABLE_HIP=ON -DKokkos_ARCH_VEGA90A=ON
         target:
           - name: native
@@ -156,7 +162,9 @@ jobs:
           docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }} \
             cmake -B build \
             -DCMAKE_INSTALL_PREFIX=/work/install \
-            -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+            -DCMAKE_C_COMPILER=${{ matrix.backend.c_compiler }} \
+            -DCMAKE_CXX_COMPILER=${{ matrix.backend.cxx_compiler }} \
             -DCMAKE_CXX_STANDARD=17 \
             -DBUILD_TESTING=ON \
             -DKokkosFFT_INTERNAL_Kokkos=ON \
@@ -190,6 +198,8 @@ jobs:
           docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }} \
             cmake -B build_test \
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
+            -DCMAKE_C_COMPILER=${{ matrix.backend.c_compiler }} \
+            -DCMAKE_CXX_COMPILER=${{ matrix.backend.cxx_compiler }} \
             -DCMAKE_CXX_STANDARD=17 \
             -DCMAKE_PREFIX_PATH=/work/install \
             install_test/src
