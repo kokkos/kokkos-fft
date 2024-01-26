@@ -213,4 +213,4 @@ jobs:
         run: singularity pull oras://ghcr.io/cexa-project/kokkos-fft/base_cuda.sif:latest
 
       - name: Run test within Slurm job
-        run: srun --nodes=1 --time=01:00:00 -p gpua100 --gres=gpu:1 singularity run --nv --bind $PWD:/work/build -W /work/build base_cuda.sif_latest.sif ctest
+        run: srun --nodes=1 --time=01:00:00 -p gpua100 --gres=gpu:1 singularity run --nv --bind $PWD/build:/work/build -H /work/build base_cuda.sif_latest.sif ctest
