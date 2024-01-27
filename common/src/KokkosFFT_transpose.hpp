@@ -165,23 +165,25 @@ void _transpose(const ExecutionSpace& exec_space, InViewType& in,
     auto [_n0, _n1, _n2] = out_extents;
     out                  = OutViewType("out", _n0, _n1, _n2);
   }
+
+  Kokkos::Array<int, 3> map = {_map[0], _map[1], _map[2]};
   Kokkos::parallel_for(
       range, KOKKOS_LAMBDA(int i0, int i1, int i2) {
         int _i0 = i0, _i1 = i1, _i2 = i2;
-        if (_map[0] == 0 && _map[1] == 2 && _map[2] == 1) {
+        if (map[0] == 0 && map[1] == 2 && map[2] == 1) {
           _i1 = i2;
           _i2 = i1;
-        } else if (_map[0] == 1 && _map[1] == 0 && _map[2] == 2) {
+        } else if (map[0] == 1 && map[1] == 0 && map[2] == 2) {
           _i0 = i1;
           _i1 = i0;
-        } else if (_map[0] == 1 && _map[1] == 2 && _map[2] == 0) {
+        } else if (map[0] == 1 && map[1] == 2 && map[2] == 0) {
           _i0 = i1;
           _i1 = i2;
           _i2 = i0;
-        } else if (_map[0] == 2 && _map[1] == 1 && _map[2] == 0) {
+        } else if (map[0] == 2 && map[1] == 1 && map[2] == 0) {
           _i0 = i2;
           _i2 = i0;
-        } else if (_map[0] == 2 && _map[1] == 0 && _map[2] == 1) {
+        } else if (map[0] == 2 && map[1] == 0 && map[2] == 1) {
           _i0 = i2;
           _i1 = i0;
           _i2 = i1;

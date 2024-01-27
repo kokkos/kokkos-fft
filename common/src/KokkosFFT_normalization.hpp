@@ -24,8 +24,8 @@ auto _coefficients(const ViewType& inout, Direction direction,
                    Normalization normalization, std::size_t fft_size) {
   using value_type =
       KokkosFFT::Impl::real_type_t<typename ViewType::non_const_value_type>;
-  value_type coef   = 1;
-  bool to_normalize = false;
+  value_type coef                    = 1;
+  [[maybe_unused]] bool to_normalize = false;
 
   switch (normalization) {
     case Normalization::FORWARD:
