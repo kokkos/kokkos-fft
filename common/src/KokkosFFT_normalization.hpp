@@ -25,7 +25,7 @@ auto _coefficients(const ViewType& inout, Direction direction,
   using value_type =
       KokkosFFT::Impl::real_type_t<typename ViewType::non_const_value_type>;
   value_type coef   = 1;
-  bool to_normalize = false;
+  [[maybe_unused]] bool to_normalize = false;
 
   switch (normalization) {
     case Normalization::FORWARD:

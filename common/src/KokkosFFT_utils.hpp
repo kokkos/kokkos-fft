@@ -69,7 +69,7 @@ auto convert_negative_shift(const ViewType& view, int _shift, int _axis) {
                 "convert_negative_shift: ViewType is not a Kokkos::View.");
   int axis   = convert_negative_axis(view, _axis);
   int extent = view.extent(axis);
-  int shift0 = 0, shift1 = 0, shift2 = extent / 2;
+  [[maybe_unused]] int shift0 = 0, shift1 = 0, shift2 = extent / 2;
 
   if (_shift < 0) {
     shift0 = -_shift + extent % 2;  // add 1 for odd case

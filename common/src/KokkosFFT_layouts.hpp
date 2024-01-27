@@ -24,7 +24,7 @@ auto get_extents(InViewType& in, OutViewType& out, axis_type<DIM> _axes) {
   auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(in, _axes);
 
   constexpr std::size_t rank = InViewType::rank;
-  int inner_most_axis =
+  [[maybe_unused]] int inner_most_axis =
       std::is_same_v<array_layout_type, typename Kokkos::LayoutLeft> ? 0
                                                                      : rank - 1;
 
@@ -95,7 +95,7 @@ auto get_extents_batched(InViewType& in, OutViewType& out,
                 "or equal to 1.");
 
   constexpr std::size_t rank = InViewType::rank;
-  int inner_most_axis =
+  [[maybe_unused]] int inner_most_axis =
       std::is_same_v<array_layout_type, typename Kokkos::LayoutLeft>
           ? 0
           : (rank - 1);
@@ -155,7 +155,7 @@ auto get_extents_batched(InViewType& in, OutViewType& out,
                                        1, std::multiplies<>());
   int fft_size = std::accumulate(fft_extents.begin(), fft_extents.end(), 1,
                                  std::multiplies<>());
-  int howmany  = total_fft_size / fft_size;
+  [[maybe_unused]] int howmany  = total_fft_size / fft_size;
 
   return std::tuple<std::vector<int>, std::vector<int>, std::vector<int>, int>(
       {in_extents, out_extents, fft_extents, howmany});
