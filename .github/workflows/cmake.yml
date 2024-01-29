@@ -145,3 +145,61 @@ jobs:
     - name: Install test for HIP backend
       run: |
         docker run -v ${{github.workspace}}:/work ${{ env.container }} ./install_test/bin/install_hip.sh /tmp ${{matrix.backend.name}}
+
+  build_intel:
+    # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
+    # You can convert this to a matrix build if you need cross-platform coverage.
+    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+    runs-on: ubuntu-latest
+
+    env:
+      #architecture: INTEL_PVC
+      architecture: AMPERE80
+      #CMAKE_CXX_COMPILER: icpx
+      CMAKE_CXX_COMPILER: /opt/intel/oneapi/compiler/latest/bin/compiler/clang++
+      container: intel_env
+
+    strategy:
+      matrix:
+        backend: [ {name: INTEL, option: ""}, {name: INTEL_HOST_DEVICE, option: "-DKokkosFFT_ENABLE_HOST_AND_DEVICE=ON"} ]
+
+    steps:
+    - name: Free Disk Space (Ubuntu)
+      uses: jlumbroso/free-disk-space@v1.2.0
+      with: { tool-cache: true, large-packages: false }
+
+    - name: Checkout built branch
+      uses: actions/checkout@v3
+      with:
+        submodules: recursive
+
+    - name: Update submodules
+      run: git submodule update --remote --recursive
+
+    - name: Build docker
+      run: docker build -t ${{ env.container }} docker/intel
+
+    - name: Configure CMake for SYCL backend
+      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+      run: |
+        docker run -v ${{github.workspace}}:/work ${{ env.container }} /bin/bash -c \
+            ". /opt/intel/oneapi/setvars.sh --include-intel-llvm && cmake -B build_${{matrix.backend.name}} \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_CXX_COMPILER=${{env.CMAKE_CXX_COMPILER}} \
+            -DCMAKE_CXX_STANDARD=17 \
+            -DKOKKOS_IMPL_SYCL_DEVICE_GLOBAL_SUPPORTED=0 \
+            -DKokkos_ARCH_NATIVE=ON \
+            -DCMAKE_CXX_FLAGS="-fsycl-device-code-split=per_kernel -Wno-deprecated-declarations -Werror -Wno-gnu-zero-variadic-macro-arguments -Wno-unknown-cuda-version -Wno-sycl-target" \
+            -DKokkos_ENABLE_SYCL=ON \
+            -DKokkos_ENABLE_COMPILER_WARNINGS=ON \
+            -DKokkos_ENABLE_DEPRECATED_CODE_4=OFF \
+            -DKokkos_ENABLE_DEPRECATION_WARNINGS=OFF \
+            -DKokkos_ENABLE_UNSUPPORTED_ARCHS=ON \
+            -DKokkos_ARCH_${{env.architecture}}=ON \
+            -DBUILD_TESTING=ON ${{matrix.backend.option}}"
+
+    - name: Build
+      # Build your program with the given configuration
+      run: |
+        docker run -v ${{github.workspace}}:/work ${{ env.container }} /bin/bash -c ". /opt/intel/oneapi/setvars.sh --include-intel-llvm && cmake --build build_${{matrix.backend.name}} --config ${{env.BUILD_TYPE}} -j 2"
