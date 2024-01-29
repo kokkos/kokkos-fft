@@ -197,6 +197,7 @@ jobs:
             -DKokkos_ENABLE_DEPRECATION_WARNINGS=OFF \
             -DKokkos_ENABLE_UNSUPPORTED_ARCHS=ON \
             -DKokkos_ARCH_${{env.architecture}}=ON \
+            -DKokkosFFT_INTERNAL_Kokkos=ON \
             -DBUILD_TESTING=ON ${{matrix.backend.option}}"
 
     - name: Build
