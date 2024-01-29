@@ -160,8 +160,8 @@ auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
   int fft_size = std::accumulate(fft_extents.begin(), fft_extents.end(), 1,
                                  std::multiplies<>());
 
-  cufft_rt = cufftPlanMany(&(*plan), rank, fft_extents.data(), nullptr, 1, idist,
-                           nullptr, 1, odist, type, batch);
+  cufft_rt = cufftPlanMany(&(*plan), rank, fft_extents.data(), nullptr, 1,
+                           idist, nullptr, 1, odist, type, batch);
   if (cufft_rt != CUFFT_SUCCESS)
     throw std::runtime_error("cufftPlanMany failed");
   return fft_size;
@@ -208,9 +208,9 @@ auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
   cudaStream_t stream = exec_space.cuda_stream();
   cufftSetStream((*plan), stream);
 
-  cufft_rt =
-      cufftPlanMany(&(*plan), rank, fft_extents.data(), in_extents.data(), istride,
-                    idist, out_extents.data(), ostride, odist, type, howmany);
+  cufft_rt = cufftPlanMany(&(*plan), rank, fft_extents.data(),
+                           in_extents.data(), istride, idist,
+                           out_extents.data(), ostride, odist, type, howmany);
   if (cufft_rt != CUFFT_SUCCESS)
     throw std::runtime_error("cufftPlanMany failed");
 

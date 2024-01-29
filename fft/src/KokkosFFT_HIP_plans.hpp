@@ -168,8 +168,8 @@ auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
   int fft_size = std::accumulate(fft_extents.begin(), fft_extents.end(), 1,
                                  std::multiplies<>());
 
-  hipfft_rt = hipfftPlanMany(&(*plan), rank, fft_extents.data(), nullptr, 1, idist,
-                             nullptr, 1, odist, type, batch);
+  hipfft_rt = hipfftPlanMany(&(*plan), rank, fft_extents.data(), nullptr, 1,
+                             idist, nullptr, 1, odist, type, batch);
   if (hipfft_rt != HIPFFT_SUCCESS)
     throw std::runtime_error("hipfftPlanMany failed");
   return fft_size;
@@ -219,9 +219,9 @@ auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
   hipStream_t stream = exec_space.hip_stream();
   hipfftSetStream((*plan), stream);
 
-  hipfft_rt = hipfftPlanMany(&(*plan), rank, fft_extents.data(), in_extents.data(),
-                             istride, idist, out_extents.data(), ostride, odist,
-                             type, howmany);
+  hipfft_rt = hipfftPlanMany(&(*plan), rank, fft_extents.data(),
+                             in_extents.data(), istride, idist,
+                             out_extents.data(), ostride, odist, type, howmany);
 
   if (hipfft_rt != HIPFFT_SUCCESS)
     throw std::runtime_error("hipfftPlan failed");
