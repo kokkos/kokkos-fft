@@ -9,6 +9,8 @@ using default_device = Kokkos::Cuda;
 #elif defined(KOKKOS_ENABLE_HIP)
 using default_device = Kokkos::HIP;
 #include "KokkosFFT_HIP_types.hpp"
+#elif defined(KOKKOS_ENABLE_SYCL)
+#include "KokkosFFT_SYCL_types.hpp"
 #elif defined(KOKKOS_ENABLE_OPENMP)
 using default_device = Kokkos::OpenMP;
 #include "KokkosFFT_OpenMP_types.hpp"
