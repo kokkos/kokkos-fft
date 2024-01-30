@@ -21,6 +21,11 @@ using default_device = Kokkos::HIP;
 #ifdef ENABLE_HOST_AND_DEVICE
 #include "KokkosFFT_OpenMP_transform.hpp"
 #endif
+#elif defined(KOKKOS_ENABLE_SYCL)
+#include "KokkosFFT_SYCL_transform.hpp"
+#ifdef ENABLE_HOST_AND_DEVICE
+#include "KokkosFFT_OpenMP_transform.hpp"
+#endif
 #elif defined(KOKKOS_ENABLE_OPENMP)
 using default_device = Kokkos::OpenMP;
 #include "KokkosFFT_OpenMP_transform.hpp"

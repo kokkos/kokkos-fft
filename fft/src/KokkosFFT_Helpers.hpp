@@ -71,8 +71,8 @@ void _roll(const ExecutionSpace& exec_space, ViewType& inout,
   int n0 = inout.extent(0), n1 = inout.extent(1);
 
   ViewType tmp("tmp", n0, n1);
-  int len0 = (n0 - 1) / 2 + 1;
-  int len1 = (n1 - 1) / 2 + 1;
+  [[maybe_unused]] int len0 = (n0 - 1) / 2 + 1;
+  [[maybe_unused]] int len1 = (n1 - 1) / 2 + 1;
 
   using range_type = Kokkos::MDRangePolicy<
       ExecutionSpace,

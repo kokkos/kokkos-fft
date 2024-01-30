@@ -246,7 +246,7 @@ TEST(GetIndex, Vectors) {
 }
 
 TEST(IsOutOfRangeValueIncluded, Array) {
-  std::array<int, 4> v = {0, 1, 2, 3};
+  std::vector<int> v = {0, 1, 2, 3};
 
   EXPECT_TRUE(KokkosFFT::Impl::is_out_of_range_value_included(v, 2));
   EXPECT_TRUE(KokkosFFT::Impl::is_out_of_range_value_included(v, 3));

@@ -13,7 +13,7 @@ template <typename ExecutionSpace, typename PlanType, typename InViewType,
           std::enable_if_t<InViewType::rank() == 1 &&
                                std::is_same_v<ExecutionSpace, Kokkos::HIP>,
                            std::nullptr_t> = nullptr>
-auto _create(const ExecutionSpace& exec_space, PlanType& plan,
+auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
              const InViewType& in, const OutViewType& out,
              [[maybe_unused]] FFTDirectionType direction) {
   static_assert(Kokkos::is_view<InViewType>::value,
@@ -23,12 +23,13 @@ auto _create(const ExecutionSpace& exec_space, PlanType& plan,
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
 
-  hipfftResult hipfft_rt = hipfftCreate(&plan);
+  plan                   = std::make_unique<PlanType>();
+  hipfftResult hipfft_rt = hipfftCreate(&(*plan));
   if (hipfft_rt != HIPFFT_SUCCESS)
     throw std::runtime_error("hipfftCreate failed");
 
   hipStream_t stream = exec_space.hip_stream();
-  hipfftSetStream(plan, stream);
+  hipfftSetStream((*plan), stream);
 
   const int batch = 1;
   const int axis  = 0;
@@ -41,7 +42,7 @@ auto _create(const ExecutionSpace& exec_space, PlanType& plan,
   int fft_size = std::accumulate(fft_extents.begin(), fft_extents.end(), 1,
                                  std::multiplies<>());
 
-  hipfft_rt = hipfftPlan1d(&plan, nx, type, batch);
+  hipfft_rt = hipfftPlan1d(&(*plan), nx, type, batch);
   if (hipfft_rt != HIPFFT_SUCCESS)
     throw std::runtime_error("hipfftPlan1d failed");
   return fft_size;
@@ -53,7 +54,7 @@ template <typename ExecutionSpace, typename PlanType, typename InViewType,
           std::enable_if_t<InViewType::rank() == 2 &&
                                std::is_same_v<ExecutionSpace, Kokkos::HIP>,
                            std::nullptr_t> = nullptr>
-auto _create(const ExecutionSpace& exec_space, PlanType& plan,
+auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
              const InViewType& in, const OutViewType& out,
              [[maybe_unused]] FFTDirectionType direction) {
   static_assert(Kokkos::is_view<InViewType>::value,
@@ -63,12 +64,13 @@ auto _create(const ExecutionSpace& exec_space, PlanType& plan,
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
 
-  hipfftResult hipfft_rt = hipfftCreate(&plan);
+  plan                   = std::make_unique<PlanType>();
+  hipfftResult hipfft_rt = hipfftCreate(&(*plan));
   if (hipfft_rt != HIPFFT_SUCCESS)
     throw std::runtime_error("hipfftCreate failed");
 
   hipStream_t stream = exec_space.hip_stream();
-  hipfftSetStream(plan, stream);
+  hipfftSetStream((*plan), stream);
 
   const int axis = 0;
   auto type = KokkosFFT::Impl::transform_type<ExecutionSpace, in_value_type,
@@ -79,7 +81,7 @@ auto _create(const ExecutionSpace& exec_space, PlanType& plan,
   int fft_size = std::accumulate(fft_extents.begin(), fft_extents.end(), 1,
                                  std::multiplies<>());
 
-  hipfft_rt = hipfftPlan2d(&plan, nx, ny, type);
+  hipfft_rt = hipfftPlan2d(&(*plan), nx, ny, type);
   if (hipfft_rt != HIPFFT_SUCCESS)
     throw std::runtime_error("hipfftPlan2d failed");
   return fft_size;
@@ -91,7 +93,7 @@ template <typename ExecutionSpace, typename PlanType, typename InViewType,
           std::enable_if_t<InViewType::rank() == 3 &&
                                std::is_same_v<ExecutionSpace, Kokkos::HIP>,
                            std::nullptr_t> = nullptr>
-auto _create(const ExecutionSpace& exec_space, PlanType& plan,
+auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
              const InViewType& in, const OutViewType& out,
              [[maybe_unused]] FFTDirectionType direction) {
   static_assert(Kokkos::is_view<InViewType>::value,
@@ -101,12 +103,13 @@ auto _create(const ExecutionSpace& exec_space, PlanType& plan,
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
 
-  hipfftResult hipfft_rt = hipfftCreate(&plan);
+  plan                   = std::make_unique<PlanType>();
+  hipfftResult hipfft_rt = hipfftCreate(&(*plan));
   if (hipfft_rt != HIPFFT_SUCCESS)
     throw std::runtime_error("hipfftCreate failed");
 
   hipStream_t stream = exec_space.hip_stream();
-  hipfftSetStream(plan, stream);
+  hipfftSetStream((*plan), stream);
 
   const int batch = 1;
   const int axis  = 0;
@@ -121,7 +124,7 @@ auto _create(const ExecutionSpace& exec_space, PlanType& plan,
   int fft_size = std::accumulate(fft_extents.begin(), fft_extents.end(), 1,
                                  std::multiplies<>());
 
-  hipfft_rt = hipfftPlan3d(&plan, nx, ny, nz, type);
+  hipfft_rt = hipfftPlan3d(&(*plan), nx, ny, nz, type);
   if (hipfft_rt != HIPFFT_SUCCESS)
     throw std::runtime_error("hipfftPlan3d failed");
   return fft_size;
@@ -133,7 +136,7 @@ template <typename ExecutionSpace, typename PlanType, typename InViewType,
           std::enable_if_t<std::isgreater(InViewType::rank(), 3) &&
                                std::is_same_v<ExecutionSpace, Kokkos::HIP>,
                            std::nullptr_t> = nullptr>
-auto _create(const ExecutionSpace& exec_space, PlanType& plan,
+auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
              const InViewType& in, const OutViewType& out,
              [[maybe_unused]] FFTDirectionType direction) {
   static_assert(Kokkos::is_view<InViewType>::value,
@@ -143,12 +146,13 @@ auto _create(const ExecutionSpace& exec_space, PlanType& plan,
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
 
-  hipfftResult hipfft_rt = hipfftCreate(&plan);
+  plan                   = std::make_unique<PlanType>();
+  hipfftResult hipfft_rt = hipfftCreate(&(*plan));
   if (hipfft_rt != HIPFFT_SUCCESS)
     throw std::runtime_error("hipfftCreate failed");
 
   hipStream_t stream = exec_space.hip_stream();
-  hipfftSetStream(plan, stream);
+  hipfftSetStream((*plan), stream);
 
   const int rank  = InViewType::rank();
   const int batch = 1;
@@ -164,8 +168,8 @@ auto _create(const ExecutionSpace& exec_space, PlanType& plan,
   int fft_size = std::accumulate(fft_extents.begin(), fft_extents.end(), 1,
                                  std::multiplies<>());
 
-  hipfft_rt = hipfftPlanMany(&plan, rank, fft_extents.data(), nullptr, 1, idist,
-                             nullptr, 1, odist, type, batch);
+  hipfft_rt = hipfftPlanMany(&(*plan), rank, fft_extents.data(), nullptr, 1,
+                             idist, nullptr, 1, odist, type, batch);
   if (hipfft_rt != HIPFFT_SUCCESS)
     throw std::runtime_error("hipfftPlanMany failed");
   return fft_size;
@@ -177,7 +181,7 @@ template <typename ExecutionSpace, typename PlanType, typename InViewType,
           std::size_t fft_rank             = 1,
           std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
                            std::nullptr_t> = nullptr>
-auto _create(const ExecutionSpace& exec_space, PlanType& plan,
+auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
              const InViewType& in, const OutViewType& out,
              [[maybe_unused]] FFTDirectionType direction,
              axis_type<fft_rank> axes) {
@@ -207,28 +211,28 @@ auto _create(const ExecutionSpace& exec_space, PlanType& plan,
   // For the moment, considering the contiguous layout only
   int istride = 1, ostride = 1;
 
-  hipfftResult hipfft_rt = hipfftCreate(&plan);
+  plan                   = std::make_unique<PlanType>();
+  hipfftResult hipfft_rt = hipfftCreate(&(*plan));
   if (hipfft_rt != HIPFFT_SUCCESS)
     throw std::runtime_error("hipfftCreate failed");
 
   hipStream_t stream = exec_space.hip_stream();
-  hipfftSetStream(plan, stream);
+  hipfftSetStream((*plan), stream);
 
-  hipfft_rt = hipfftPlanMany(&plan, rank, fft_extents.data(), in_extents.data(),
-                             istride, idist, out_extents.data(), ostride, odist,
-                             type, howmany);
+  hipfft_rt = hipfftPlanMany(&(*plan), rank, fft_extents.data(),
+                             in_extents.data(), istride, idist,
+                             out_extents.data(), ostride, odist, type, howmany);
 
   if (hipfft_rt != HIPFFT_SUCCESS)
     throw std::runtime_error("hipfftPlan failed");
   return fft_size;
 }
 
-template <typename ExecutionSpace, typename T,
+template <typename ExecutionSpace, typename PlanType,
           std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
                            std::nullptr_t> = nullptr>
-void _destroy(
-    typename KokkosFFT::Impl::FFTPlanType<ExecutionSpace, T>::type& plan) {
-  hipfftDestroy(plan);
+void _destroy(std::unique_ptr<PlanType>& plan) {
+  hipfftDestroy(*plan);
 }
 }  // namespace Impl
 }  // namespace KokkosFFT
