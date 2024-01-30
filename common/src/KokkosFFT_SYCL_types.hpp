@@ -100,19 +100,6 @@ struct FFTDataType {
       std::complex<double>, fftw_complex>;
 };
 
-template <typename ExecutionSpace, typename T>
-struct FFTPlanType {
-  using fftwHandle =
-      std::conditional_t<std::is_same_v<KokkosFFT::Impl::real_type_t<T>, float>,
-                         fftwf_plan, fftw_plan>;
-  using precision =
-      std::conditional_t<std::is_same_v<KokkosFFT::Impl::real_type_t<T>, float>,
-                         oneapi::mkl::dft::precision::SINGLE,
-                         oneapi::mkl::dft::precision::DOUBLE>;
-  using type = std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::Cuda>,
-                                  cufftHandle, fftwHandle>;
-};
-
 template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTPlanType {
   static_assert(std::is_same_v<T1, T2>,
