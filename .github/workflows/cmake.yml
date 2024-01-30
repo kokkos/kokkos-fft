@@ -63,6 +63,7 @@ jobs:
           # - openmp
           - cuda
           - hip
+          - sycl
 
     steps:
       - name: Free Disk Space (Ubuntu)
@@ -101,9 +102,11 @@ jobs:
 
       - name: Convert Docker image to Singularity
         run: singularity build base_${{ matrix.backend }}.sif docker://ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend }}
+        if: ${{ matrix.backend.name == "cuda" }}
 
       - name: Push Singularity image
         run: singularity push base_${{ matrix.backend }}.sif oras://ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend }}_singularity
+        if: ${{ matrix.backend.name == "cuda" }}
 
   build:
     runs-on: ubuntu-latest
@@ -128,6 +131,10 @@ jobs:
             c_compiler: hipcc
             cxx_compiler: hipcc
             cmake_flags: -DKokkos_ENABLE_HIP=ON -DKokkos_ARCH_VEGA90A=ON
+          - name: sycl
+            c_compiler: icx
+            cxx_compiler: icpx
+            cmake_flags: -DKokkos_ENABLE_SYCL=ON -DKokkos_ARCH_INTEL_GEN=ON
         target:
           - name: native
             cmake_flags: ""
