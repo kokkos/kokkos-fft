@@ -130,7 +130,7 @@ jobs:
           - name: cuda
             c_compiler: gcc
             cxx_compiler: g++
-            cmake_flags: -DKokkos_ENABLE_CUDA=ON -DKokkos_ARCH_AMPERE80=ON -DKokkos_ENABLE_CUDA_CONSTEXPR=ON
+            cmake_flags: -DKokkos_ENABLE_CUDA=ON -DKokkos_ARCH_AMPERE80=ON
           - name: hip
             c_compiler: hipcc
             cxx_compiler: hipcc
