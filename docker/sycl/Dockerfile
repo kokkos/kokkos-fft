@@ -15,6 +15,8 @@ RUN apt-get update && apt-get install -y \
 
 ENV FFTWDIR "/usr"
 
+RUN git config --global --add safe.directory '/work'
+
 RUN KEYDUMP_URL=https://cloud.cees.ornl.gov/download && \
     KEYDUMP_FILE=keydump && \
     wget --quiet ${KEYDUMP_URL}/${KEYDUMP_FILE} && \
