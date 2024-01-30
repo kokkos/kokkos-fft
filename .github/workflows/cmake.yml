@@ -60,10 +60,14 @@ jobs:
     strategy:
       matrix:
         backend:
-          # - openmp
-          - cuda
-          - hip
-          - sycl
+          # - name: openmp
+          #   use_singularity: false
+          - name: cuda
+            use_singularity: true
+          - name: hip
+            use_singularity: false
+          - name: sycl
+            use_singularity: false
 
     steps:
       - name: Free Disk Space (Ubuntu)
@@ -91,22 +95,22 @@ jobs:
       - name: Build Docker image
         run: |
           docker build \
-            -t ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend }} \
-            --cache-from ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend }} \
+            -t ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }} \
+            --cache-from ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }} \
             --build-arg BUILDKIT_INLINE_CACHE=1 \
             --progress=plain \
-            docker/${{ matrix.backend }}
+            docker/${{ matrix.backend.name }}
 
       - name: Push Docker image
-        run: docker push ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend }}
+        run: docker push ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}
 
       - name: Convert Docker image to Singularity
-        run: singularity build base_${{ matrix.backend }}.sif docker://ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend }}
-        if: ${{ matrix.backend.name == 'cuda' }}
+        run: singularity build base_${{ matrix.backend.name }}.sif docker://ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}
+        if: ${{ matrix.backend.use_singularity }}
 
       - name: Push Singularity image
-        run: singularity push base_${{ matrix.backend }}.sif oras://ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend }}_singularity
-        if: ${{ matrix.backend.name == 'cuda' }}
+        run: singularity push base_${{ matrix.backend.name }}.sif oras://ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}_singularity
+        if: ${{ matrix.backend.use_singularity }}
 
   build:
     runs-on: ubuntu-latest
