@@ -102,11 +102,11 @@ jobs:
 
       - name: Convert Docker image to Singularity
         run: singularity build base_${{ matrix.backend }}.sif docker://ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend }}
-        if: ${{ matrix.backend.name == "cuda" }}
+        if: ${{ matrix.backend.name == 'cuda' }}
 
       - name: Push Singularity image
         run: singularity push base_${{ matrix.backend }}.sif oras://ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend }}_singularity
-        if: ${{ matrix.backend.name == "cuda" }}
+        if: ${{ matrix.backend.name == 'cuda' }}
 
   build:
     runs-on: ubuntu-latest
