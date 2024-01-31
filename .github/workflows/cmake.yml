@@ -190,6 +190,7 @@ jobs:
         if: ${{ matrix.target.name == 'native' }}
 
       - name: Save artifacts
+        # use v3 as more recent versions cannot run on Ruche
         uses: actions/upload-artifact@v3
         with:
           name: tests_${{ matrix.backend.name }}
@@ -234,22 +235,23 @@ jobs:
 
     steps:
       - name: Get artifacts
+        # use v3 as more recent versions cannot run on Ruche
         uses: actions/download-artifact@v3
         with:
-          name: tests_cuda
+          name: tests_${{ matrix.backend.name }}
 
       - name: Deploy artifacts
-        run: tar -xvf tests_cuda.tar
+        run: tar -xvf tests_${{ matrix.backend.name }}.tar
 
       - name: Run CUDA tests within Slurm job and Singularity image
         run: |
           srun --nodes=1 --time=01:00:00 -p gpua100 --gres=gpu:1 \
-          singularity run --nv --bind $PWD/build:/work/build -H /work/build oras://ghcr.io/cexa-project/kokkos-fft/base_cuda_singularity:latest \
+          singularity run --nv --bind $PWD/build:/work/build -H /work/build oras://ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}_singularity:latest \
           ctest
         if: ${{ matrix.backend.name == 'cuda' }}
 
       - name: Run OpenMP tests within Docker image
         run: |
-          docker run -v $PWD/build:/work/build ghcr.io/cexa-project/kokkos-fft/base_cuda_openmp \
+          docker run -v $PWD/build:/work/build ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }} \
           ctest
         if: ${{ matrix.backend.name == 'openmp' }}
