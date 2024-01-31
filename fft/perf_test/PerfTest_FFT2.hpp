@@ -7,7 +7,7 @@
 #include "Benchmark_Context.hpp"
 
 using execution_space = Kokkos::DefaultExecutionSpace;
-using axis_type = KokkosFFT::axis_type<2>;
+using axis_type       = KokkosFFT::axis_type<2>;
 
 namespace KokkosFFTBenchmark {
 
