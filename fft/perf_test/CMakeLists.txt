@@ -63,6 +63,7 @@ endfunction()
 set(
 	BENCHMARK_SOURCES
 	PerfTest_FFT1.cpp
+    PerfTest_FFT2.cpp
 )
 
 KOKKOSFFT_ADD_BENCHMARK(
