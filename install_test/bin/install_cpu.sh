@@ -11,7 +11,7 @@ export Kokkos_DIR=${KOKKOS_INSTALL_PREFIX}/lib/cmake/Kokkos
 export KOKKOS_BUILD_DIR=build_Kokkos_${TARGET}
 
 export KOKKOSFFT_INSTALL_PREFIX=${ROOT_DIR}/usr/local/kokkosFFT_${TARGET}
-export KokkosFFT_DIR=${KOKKOSFFT_INSTALL_PREFIX}/lib/cmake/kokkos-fft
+export KokkosFFT_DIR=${KOKKOSFFT_INSTALL_PREFIX}/lib/cmake/KokkosFFT
 export KOKKOSFFT_BUILD_DIR=build_KokkosFFT_${TARGET}
 
 export EXAMPLE_BUILD_DIR=build_example_${TARGET}
