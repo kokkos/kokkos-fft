@@ -120,4 +120,4 @@ BENCHMARK(IRFFT_1DView<double, Kokkos::LayoutRight>)
     ->UseManualTime()
     ->Unit(benchmark::kMicrosecond);
 
-} // namespace KokkosFFTBenchmark
+}  // namespace KokkosFFTBenchmark

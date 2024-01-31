@@ -36,5 +36,5 @@ inline std::string cufft_version_string() {
 }
 #endif
 
-} // namespace KokkosFFT
+}  // namespace KokkosFFT
 #endif

@@ -80,7 +80,7 @@ static void RFFT_1DView(benchmark::State& state) {
 
   const int n = state.range(0);
   RealView1DType x("x", n);
-  ComplexView1DType x_hat("x_hat", n/2+1);
+  ComplexView1DType x_hat("x_hat", n / 2 + 1);
 
   rfft(x, x_hat, state);
 }
@@ -92,12 +92,12 @@ static void IRFFT_1DView(benchmark::State& state) {
       Kokkos::View<Kokkos::complex<T>*, LayoutType, execution_space>;
 
   const int n = state.range(0);
-  ComplexView1DType x("x", n/2+1);
+  ComplexView1DType x("x", n / 2 + 1);
   RealView1DType x_hat("x_hat", n);
 
   irfft(x, x_hat, state);
 }
 
-} // namespace KokkosFFTBenchmark
+}  // namespace KokkosFFTBenchmark
 
 #endif

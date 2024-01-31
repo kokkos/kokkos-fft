@@ -61,17 +61,14 @@ inline void print_enabled_tpls(std::ostream& os) {
 #endif
 }
 
-
 inline void print_version(std::ostream& os) {
-
   // KOKKOSFFT_VERSION is used because MAJOR, MINOR and PATCH macros
   // are not available in FFT
   os << "  "
      << "KokkosFFT Version: " << KOKKOSFFT_VERSION_MAJOR << "."
-     << KOKKOSFFT_VERSION_MINOR << "." << KOKKOSFFT_VERSION_PATCH
-     << '\n';
+     << KOKKOSFFT_VERSION_MINOR << "." << KOKKOSFFT_VERSION_PATCH << '\n';
 }
-} // namespace Impl
+}  // namespace Impl
 
 inline void print_configuration(std::ostream& os) {
   Impl::print_version(os);
@@ -80,6 +77,6 @@ inline void print_configuration(std::ostream& os) {
   Impl::print_enabled_tpls(os);
 }
 
-} // namespace KokkosFFT
+}  // namespace KokkosFFT
 
 #endif
