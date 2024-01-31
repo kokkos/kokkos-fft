@@ -60,8 +60,8 @@ jobs:
     strategy:
       matrix:
         backend:
-          # - name: openmp
-          #   use_singularity: false
+          - name: openmp
+            use_singularity: false
           - name: cuda
             use_singularity: true
           - name: hip
@@ -123,10 +123,10 @@ jobs:
     strategy:
       matrix:
         backend:
-          # - name: openmp
-          #  c_compiler: gcc
-          #  cxx_compiler: g++
-          #   cmake_flags: -DKokkos_ENABLE_OPENMP=ON
+          - name: openmp
+            c_compiler: gcc
+            cxx_compiler: g++
+            cmake_flags: -DKokkos_ENABLE_OPENMP=ON
           - name: cuda
             c_compiler: gcc
             cxx_compiler: g++
