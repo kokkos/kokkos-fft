@@ -8,6 +8,7 @@ RUN apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/
 RUN apt-get update && apt-get install -y \
         bc \
         wget \
+        git \
         ccache \
         libfftw3-dev \
         $ADDITIONAL_PACKAGES \

@@ -6,6 +6,7 @@ ARG ADDITIONAL_PACKAGES
 RUN apt-get update && apt-get install -y \
         bc \
         wget \
+        git \
         ccache \
         libfftw3-dev \
         $ADDITIONAL_PACKAGES \
