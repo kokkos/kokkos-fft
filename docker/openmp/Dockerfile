@@ -15,6 +15,8 @@ RUN apt-get update && apt-get install -y \
 
 ENV FFTWDIR "/usr"
 
+run git config --global --add safe.directory "*"
+
 ARG GCC_VERSION=8
 RUN echo "deb http://dk.archive.ubuntu.com/ubuntu/ xenial main" >> /etc/apt/sources.list && \
     echo "deb http://dk.archive.ubuntu.com/ubuntu/ xenial universe" >> /etc/apt/sources.list && \

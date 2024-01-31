@@ -16,9 +16,13 @@ RUN apt-get update && apt-get install -y \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
+ENV FFTWDIR "/usr"
+
 ENV PATH=/opt/rocm/bin:$PATH
 ENV LD_LIBRARY_PATH /opt/rocm/hipfft/lib:$LD_LIBRARY_PATH
 ENV CMAKE_PREFIX_PATH /opt/rocm/hip/:/opt/rocm/:$CMAKE_PREFIX_PATH
+
+run git config --global --add safe.directory "*"
 
 RUN KEYDUMP_URL=https://cloud.cees.ornl.gov/download && \
     KEYDUMP_FILE=keydump && \

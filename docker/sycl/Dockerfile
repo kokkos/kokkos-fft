@@ -15,8 +15,7 @@ RUN apt-get update && apt-get install -y \
 
 ENV FFTWDIR "/usr"
 
-RUN git config --global --add safe.directory '/work' && \
-    git config --global --add safe.directory '/work/tpls/kokkos'
+run git config --global --add safe.directory "*"
 
 RUN KEYDUMP_URL=https://cloud.cees.ornl.gov/download && \
     KEYDUMP_FILE=keydump && \
