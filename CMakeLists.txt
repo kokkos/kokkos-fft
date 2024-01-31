@@ -1,12 +1,12 @@
-cmake_minimum_required(VERSION 3.23)
-project(kokkos-fft LANGUAGES CXX)
+cmake_minimum_required(VERSION 3.22)
+project(KokkosFFT LANGUAGES CXX)
 
 # Add cmake helpers for FFTW
 list(INSERT CMAKE_MODULE_PATH 0 "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # Options
-option(BUILD_EXAMPLES "Build kokkos-fft examples" ON)
-option(KokkosFFT_ENABLE_HOST_AND_DEVICE "Enable fft on both host and device" OFF)
+option(BUILD_EXAMPLES "Build KokkosFFT examples" ON)
+option(KokkosFFT_ENABLE_HOST_AND_DEVICE "Enable FFT on both host and device" OFF)
 option(KokkosFFT_INTERNAL_Kokkos "Build internal Kokkos instead of relying on external one" OFF)
 option(KokkosFFT_ENABLE_BENCHMARK "Build benchmarks for KokkosFFT" OFF)
 
@@ -72,7 +72,7 @@ include(GNUInstallDirs)
 set(LIBDIR ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
 set(INSTALL_INCLUDEDIR ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_INCLUDEDIR})
 set(INSTALL_LIBDIR ${CMAKE_INSTALL_PREFIX}/${LIBDIR})
-set(KokkosFFT_EXPORT_TARGET "KokkosFFT-Targets")
+set(KokkosFFT_EXPORT_TARGET "${PROJECT_NAME}-Targets")
 
 add_subdirectory(common)
 add_subdirectory(fft)
