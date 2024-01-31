@@ -7,6 +7,7 @@ RUN apt-get update && apt-get install -y \
         kmod \
         wget \
         ccache \
+        git \
         file \
         hipfft \
         rocfft \
