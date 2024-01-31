@@ -214,16 +214,23 @@ jobs:
           docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }} \
             cmake --build build_test -j $(( $(nproc) * 2 + 1 ))
 
-  test_cuda:
-    # run CUDA tests on Ruche supercomputer
-    runs-on:
-      - self-hosted
-      - cuda
+  test:
+    runs-on: ${{ matrix.backend.runner }}
 
     needs: build
 
     # run this job even if build_base did not run
     if: ${{ always() && needs.build.result == 'success' }}
+
+    strategy:
+      matrix:
+        backend:
+          # run CUDA tests on Ruche supercomputer
+          - name: cuda
+            runner: [self-hosted, cuda]
+          # run OpenMP tests on Azure server
+          - name: openmp
+            runner: ubuntu-latest
 
     steps:
       - name: Get artifacts
@@ -234,8 +241,15 @@ jobs:
       - name: Deploy artifacts
         run: tar -xvf tests_cuda.tar
 
-      - name: Pull Singularity image
-        run: singularity pull oras://ghcr.io/cexa-project/kokkos-fft/base_cuda_singularity:latest
+      - name: Run CUDA tests within Slurm job and Singularity image
+        run: |
+          srun --nodes=1 --time=01:00:00 -p gpua100 --gres=gpu:1 \
+          singularity run --nv --bind $PWD/build:/work/build -H /work/build oras://ghcr.io/cexa-project/kokkos-fft/base_cuda_singularity:latest \
+          ctest
+        if: ${{ matrix.backend.name == 'cuda' }}
 
-      - name: Run test within Slurm job
-        run: srun --nodes=1 --time=01:00:00 -p gpua100 --gres=gpu:1 singularity run --nv --bind $PWD/build:/work/build -H /work/build base_cuda_singularity_latest.sif ctest
+      - name: Run OpenMP tests within Docker image
+        run: |
+          docker run -v $PWD/build:/work/build ghcr.io/cexa-project/kokkos-fft/base_cuda_openmp \
+          ctest
+        if: ${{ matrix.backend.name == 'openmp' }}
