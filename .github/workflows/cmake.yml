@@ -213,7 +213,7 @@ jobs:
             -DCMAKE_CXX_COMPILER=${{ matrix.backend.cxx_compiler }} \
             -DCMAKE_CXX_STANDARD=17 \
             -DCMAKE_PREFIX_PATH=/work/install \
-            install_test/src
+            install_test
           docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}_${{ needs.check_docker_files.outputs.image_name_suffix }} \
             cmake --build build_test -j $(( $(nproc) * 2 + 1 ))
 
