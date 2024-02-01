@@ -31,7 +31,7 @@ jobs:
       # true if any Docker file was modified in the PR (PR mode) or since last pushed commit (push mode)
       docker_files_have_changed: ${{ steps.get_changed_docker_files.outputs.any_changed == 'true' }}
       # use "_pr" as image name suffix if on PR mode and if any Docker file was modified
-      image_name_suffix: ${{ steps.get_changed_docker_files.outputs.any_changed == 'true' && github.event_name == 'pull_request' && '_pr' || '' }}
+      image_name_suffix: ${{ steps.get_changed_docker_files.outputs.any_changed == 'true' && github.event_name == 'pull_request' && 'pr' || 'main' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -98,21 +98,21 @@ jobs:
       - name: Build Docker image
         run: |
           docker build \
-            -t ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}${{ needs.check_docker_files.outputs.image_name_suffix }} \
-            --cache-from ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }} \
+            -t ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}_${{ needs.check_docker_files.outputs.image_name_suffix }} \
+            --cache-from ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}_main \
             --build-arg BUILDKIT_INLINE_CACHE=1 \
             --progress=plain \
             docker/${{ matrix.backend.name }}
 
       - name: Push Docker image
-        run: docker push ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}${{ needs.check_docker_files.outputs.image_name_suffix }}
+        run: docker push ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}_${{ needs.check_docker_files.outputs.image_name_suffix }}
 
       - name: Convert Docker image to Singularity
-        run: singularity build base.sif docker://ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}${{ needs.check_docker_files.outputs.image_name_suffix }}
+        run: singularity build base.sif docker://ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}_${{ needs.check_docker_files.outputs.image_name_suffix }}
         if: ${{ matrix.backend.use_singularity }}
 
       - name: Push Singularity image
-        run: singularity push base.sif oras://ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}_singularity${{ needs.check_docker_files.outputs.image_name_suffix }}
+        run: singularity push base.sif oras://ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}_singularity_${{ needs.check_docker_files.outputs.image_name_suffix }}
         if: ${{ matrix.backend.use_singularity }}
 
   build:
@@ -169,7 +169,7 @@ jobs:
 
       - name: Configure
         run: |
-          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}${{ needs.check_docker_files.outputs.image_name_suffix }} \
+          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}_${{ needs.check_docker_files.outputs.image_name_suffix }} \
             cmake -B build \
             -DCMAKE_INSTALL_PREFIX=/work/install \
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
@@ -183,7 +183,7 @@ jobs:
 
       - name: Build
         run: |
-          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}${{ needs.check_docker_files.outputs.image_name_suffix }} \
+          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}_${{ needs.check_docker_files.outputs.image_name_suffix }} \
             cmake --build build -j $(( $(nproc) * 2 + 1 ))
 
       - name: Prepare artifacts
@@ -201,12 +201,12 @@ jobs:
 
       - name: Install
         run: |
-          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}${{ needs.check_docker_files.outputs.image_name_suffix }} \
+          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}_${{ needs.check_docker_files.outputs.image_name_suffix }} \
             cmake --install build
 
       - name: Configure and build test code
         run: |
-          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}${{ needs.check_docker_files.outputs.image_name_suffix }} \
+          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}_${{ needs.check_docker_files.outputs.image_name_suffix }} \
             cmake -B build_test \
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
             -DCMAKE_C_COMPILER=${{ matrix.backend.c_compiler }} \
@@ -214,7 +214,7 @@ jobs:
             -DCMAKE_CXX_STANDARD=17 \
             -DCMAKE_PREFIX_PATH=/work/install \
             install_test/src
-          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}${{ needs.check_docker_files.outputs.image_name_suffix }} \
+          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}_${{ needs.check_docker_files.outputs.image_name_suffix }} \
             cmake --build build_test -j $(( $(nproc) * 2 + 1 ))
 
   test:
@@ -250,12 +250,12 @@ jobs:
       - name: Run CUDA tests within Slurm job and Singularity image
         run: |
           srun --nodes=1 --time=01:00:00 -p gpua100 --gres=gpu:1 \
-          singularity run --nv --bind $PWD/build:/work/build -H /work/build oras://ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}_singularity${{ needs.check_docker_files.outputs.image_name_suffix }}:latest \
+          singularity run --nv --bind $PWD/build:/work/build -H /work/build oras://ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}_singularity_${{ needs.check_docker_files.outputs.image_name_suffix }}:latest \
           ctest
         if: ${{ matrix.backend.name == 'cuda' }}
 
       - name: Run OpenMP tests within Docker image
         run: |
-          docker run -v $PWD/build:/work/build -w /work/build ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}${{ needs.check_docker_files.outputs.image_name_suffix }} \
+          docker run -v $PWD/build:/work/build -w /work/build ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}_${{ needs.check_docker_files.outputs.image_name_suffix }} \
           ctest
         if: ${{ matrix.backend.name == 'openmp' }}
