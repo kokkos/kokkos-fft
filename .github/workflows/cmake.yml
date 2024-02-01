@@ -108,11 +108,11 @@ jobs:
         run: docker push ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}${{ needs.check_docker_files.outputs.image_name_suffix }}
 
       - name: Convert Docker image to Singularity
-        run: singularity build base_${{ matrix.backend.name }}.sif docker://ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}${{ needs.check_docker_files.outputs.image_name_suffix }}
+        run: singularity build base.sif docker://ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}${{ needs.check_docker_files.outputs.image_name_suffix }}
         if: ${{ matrix.backend.use_singularity }}
 
       - name: Push Singularity image
-        run: singularity push base_${{ matrix.backend.name }}.sif oras://ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}_singularity${{ needs.check_docker_files.outputs.image_name_suffix }}
+        run: singularity push base.sif oras://ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}_singularity${{ needs.check_docker_files.outputs.image_name_suffix }}
         if: ${{ matrix.backend.use_singularity }}
 
   build:
