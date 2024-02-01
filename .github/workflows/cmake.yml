@@ -123,7 +123,7 @@ jobs:
       - build_base
 
     # run this job even if build_base did not run
-    if: ${{ always() && (needs.build_base.result == 'success' || needs.build_base.result == 'skipped') }}
+    if: ${{ ! cancelled() && (needs.build_base.result == 'success' || needs.build_base.result == 'skipped') }}
 
     strategy:
       matrix:
@@ -225,7 +225,7 @@ jobs:
       - build
 
     # run this job even if build_base did not run
-    if: ${{ always() && needs.build.result == 'success' }}
+    if: ${{ ! cancelled() && needs.build.result == 'success' }}
 
     strategy:
       matrix:
