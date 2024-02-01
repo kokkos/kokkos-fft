@@ -119,7 +119,7 @@ jobs:
     runs-on: ubuntu-latest
 
     needs:
-      - needs.check_docker_files
+      - check_docker_files
       - build_base
 
     # run this job even if build_base did not run
