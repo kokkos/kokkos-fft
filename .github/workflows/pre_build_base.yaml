@@ -1,0 +1,9 @@
+name: Pre-build base images
+
+on:
+  schedule:
+    cron: "0 1 2,16 * *" # every 2nd and 16th of the month at 1am UTC
+
+jobs:
+  build_base:
+    uses: ./.github/workflows/__build_base.yaml
