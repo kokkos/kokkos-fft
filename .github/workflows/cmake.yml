@@ -30,7 +30,8 @@ jobs:
     outputs:
       # true if any Docker file was modified in the PR (PR mode) or since last pushed commit (push mode)
       docker_files_have_changed: ${{ steps.get_changed_docker_files.outputs.any_changed == 'true' }}
-      # use "_pr" as image name suffix if on PR mode and if any Docker file was modified
+      # use "pr" as image name suffix if on PR mode and if any Docker file was modified, otherwise use "main"
+      # this is intended to avoid a PR test to alter Docker images for other PRs or for the main branch
       image_name_suffix: ${{ steps.get_changed_docker_files.outputs.any_changed == 'true' && github.event_name == 'pull_request' && 'pr' || 'main' }}
 
     steps:
