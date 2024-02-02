@@ -1,0 +1,73 @@
+name: Build base images
+
+on:
+  workflow_call:
+    inputs:
+      # suffix of the Docker and Singularity images
+      image_name_suffix:
+        required: false
+        default: main
+        type: string
+
+env:
+  # Force the use of BuildKit for Docker
+  DOCKER_BUILDKIT: 1
+
+jobs:
+  build_base:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        backend:
+          - name: openmp
+            use_singularity: false
+          - name: cuda
+            use_singularity: true
+          - name: hip
+            use_singularity: false
+          - name: sycl
+            use_singularity: false
+
+    steps:
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@v1.2.0
+        with:
+          tool-cache: true
+          large-packages: false
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get Singularity
+        env:
+          SINGULARITY_VERSION: 3.11.2
+        run: |
+          wget https://github.com/sylabs/singularity/releases/download/v${{ env.SINGULARITY_VERSION }}/singularity-ce_${{ env.SINGULARITY_VERSION }}-jammy_amd64.deb
+          sudo apt-get install ./singularity-ce_${{ env.SINGULARITY_VERSION }}-jammy_amd64.deb
+
+      - name: Login in GitHub Containers Repository with Docker
+        run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Login in GitHub Containers Repository with Singularity
+        run: echo ${{ secrets.GITHUB_TOKEN }} | singularity remote login -u ${{ github.actor }} --password-stdin oras://ghcr.io
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            -t ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}_${{ inputs.image_name_suffix }} \
+            --cache-from ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}_main \
+            --build-arg BUILDKIT_INLINE_CACHE=1 \
+            --progress=plain \
+            docker/${{ matrix.backend.name }}
+
+      - name: Push Docker image
+        run: docker push ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}_${{ inputs.image_name_suffix }}
+
+      - name: Convert Docker image to Singularity
+        run: singularity build base.sif docker://ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}_${{ inputs.image_name_suffix }}
+        if: ${{ matrix.backend.use_singularity }}
+
+      - name: Push Singularity image
+        run: singularity push base.sif oras://ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}_singularity_${{ inputs.image_name_suffix }}
+        if: ${{ matrix.backend.use_singularity }}
