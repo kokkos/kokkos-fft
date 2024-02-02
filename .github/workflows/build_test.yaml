@@ -196,16 +196,14 @@ jobs:
       - name: Deploy artifacts
         run: tar -xvf tests_${{ matrix.backend.name }}.tar
 
-      - name: Pull Singularity image
-        # pulling the image in advance seems necessary as sometimes invoking `singularity run` on the image URL fails because it cannot find ghcr.io
-        run: singularity pull oras://ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}_singularity_${{ needs.check_docker_files.outputs.image_name_suffix }}:latest
-        if: ${{ matrix.backend.name == 'cuda' }}
-
       - name: Run CUDA tests within Slurm job and Singularity image
         run: |
+          # pulling the image in advance seems necessary as sometimes invoking `singularity run` on the image URL fails because it cannot find ghcr.io
+          singularity pull oras://ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}_singularity_${{ needs.check_docker_files.outputs.image_name_suffix }}:latest
+          # actual test on a GPU node
           srun --nodes=1 --time=01:00:00 -p gpua100 --gres=gpu:1 \
-          singularity run --nv --bind $PWD/build:/work/build -H /work/build base_${{ matrix.backend.name }}_singularity_${{ needs.check_docker_files.outputs.image_name_suffix }}_latest.sif \
-          ctest
+            singularity run --nv --bind $PWD/build:/work/build -H /work/build base_${{ matrix.backend.name }}_singularity_${{ needs.check_docker_files.outputs.image_name_suffix }}_latest.sif \
+            ctest
         if: ${{ matrix.backend.name == 'cuda' }}
 
       - name: Run OpenMP tests within Docker image
