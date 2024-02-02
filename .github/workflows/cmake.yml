@@ -138,7 +138,7 @@ jobs:
         docker run -v ${{github.workspace}}:/work ${{ env.container }} cmake -B build_${{matrix.backend.name}} \
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_CXX_COMPILER=${{env.CMAKE_CXX_COMPILER}} \
             -DCMAKE_CXX_STANDARD=17 -DKokkos_ENABLE_HIP=ON -DKokkosFFT_INTERNAL_Kokkos=ON -DKokkos_ARCH_${{env.architecture}}=ON -DBUILD_TESTING=ON \
-            -DKokkosFFT_ENABLE_BENCHMARK=ON ${{matrix.backend.option}}
+            -DKokkosFFT_ENABLE_BENCHMARK=ON -DCMAKE_CXX_FLAGS="-pthread" ${{matrix.backend.option}}
 
     - name: Build
       # Build your program with the given configuration
