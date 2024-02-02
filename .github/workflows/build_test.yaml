@@ -92,6 +92,8 @@ jobs:
           - name: sycl
             c_compiler: icx
             cxx_compiler: icpx
+            # building for Intel PVC was unsuccessful without the proper device
+            # for now on, we simply use Intel GPU generic code
             cmake_flags: -DKokkos_ENABLE_SYCL=ON -DKokkos_ARCH_INTEL_GEN=ON
         target:
           - name: native
