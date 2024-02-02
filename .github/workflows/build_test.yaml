@@ -156,6 +156,7 @@ jobs:
             cmake --install build
 
       - name: Configure and build test code
+        # Use the built and installed Kokkos FFT library to build a test code
         run: |
           docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}_${{ needs.check_docker_files.outputs.image_name_suffix }} \
             cmake -B build_test \
