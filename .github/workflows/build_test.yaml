@@ -61,8 +61,8 @@ jobs:
 
     uses: ./.github/workflows/__build_base.yaml
 
-    with:
-      image_name_suffix: ${{ needs.check_docker_files.outputs.image_name_suffix }}
+    # with:
+    #   image_name_suffix: ${{ needs.check_docker_files.outputs.image_name_suffix }}
 
   build:
     runs-on: ubuntu-latest
