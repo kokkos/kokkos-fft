@@ -1,5 +1,3 @@
-#include <benchmark/benchmark.h>
-#include "Benchmark_Context.hpp"
 #include "PerfTest_FFT1.hpp"
 
 namespace KokkosFFTBenchmark {
