@@ -1,0 +1,4 @@
+
+fftfreq
+-------
+.. doxygenfunction:: KokkosFFT::fftfreq

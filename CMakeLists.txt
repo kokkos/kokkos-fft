@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.22)
+cmake_minimum_required(VERSION 3.21)
 project(KokkosFFT LANGUAGES CXX)
 
 # Add cmake helpers for FFTW
@@ -6,8 +6,9 @@ list(INSERT CMAKE_MODULE_PATH 0 "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # Options
 option(BUILD_EXAMPLES "Build KokkosFFT examples" ON)
-option(KokkosFFT_ENABLE_HOST_AND_DEVICE "Enable FFT on both host and device")
-option(KokkosFFT_INTERNAL_Kokkos "Build internal Kokkos instead of relying on external one")
+option(KokkosFFT_ENABLE_HOST_AND_DEVICE "Enable FFT on both host and device" OFF)
+option(KokkosFFT_INTERNAL_Kokkos "Build internal Kokkos instead of relying on external one" OFF)
+option(KokkosFFT_ENABLE_DOCS "Build KokkosFFT documentaion/website" OFF)
 
 if (NOT KokkosFFT_INTERNAL_Kokkos)
     # First check, Kokkos is added as subdirectory or not
@@ -25,6 +26,13 @@ if(BUILD_TESTING)
     if(NOT GTest_FOUND)
         add_subdirectory(tpls/googletest)
     endif()
+endif()
+
+# Build documentation with Doxygen and Sphinx
+if(KokkosFFT_ENABLE_DOCS)
+    find_package(Doxygen REQUIRED)
+    find_package(Sphinx REQUIRED)
+    add_subdirectory(docs)
 endif()
 
 # Set directories used for install
