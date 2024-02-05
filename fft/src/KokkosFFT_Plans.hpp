@@ -1,3 +1,9 @@
+/// \file KokkosFFT_Plans.hpp
+/// \brief Wrapping fft plans of different fft libraries
+///
+/// This file provides KokkosFFT::Impl::Plan.
+/// This implements a local (no MPI) interface for fft plans
+
 #ifndef KOKKOSFFT_PLANS_HPP
 #define KOKKOSFFT_PLANS_HPP
 
@@ -39,34 +45,72 @@ namespace Impl {
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           std::size_t DIM = 1>
 class Plan {
+  //! The type of Kokkos execution pace
   using execSpace      = ExecutionSpace;
+
+  //! The value type of input view
   using in_value_type  = typename InViewType::non_const_value_type;
+
+  //! The value type of output view
   using out_value_type = typename OutViewType::non_const_value_type;
+
+  //! The real value type of input/output views
   using float_type     = KokkosFFT::Impl::real_type_t<in_value_type>;
+
+  //! The type of fft plan
   using fft_plan_type =
       typename KokkosFFT::Impl::FFTPlanType<ExecutionSpace, in_value_type,
                                             out_value_type>::type;
+
+  //! The type of fft size                          
   using fft_size_type       = std::size_t;
+
+  //! The type of map for transpose
   using map_type            = axis_type<InViewType::rank()>;
+
+  //! The non-const View type of input view
   using nonConstInViewType  = std::remove_cv_t<InViewType>;
+
+  //! The non-const View type of output view
   using nonConstOutViewType = std::remove_cv_t<OutViewType>;
+
+  //! The type of extents of input/output views
   using extents_type        = shape_type<InViewType::rank()>;
 
+  //! Dynamically allocatable fft plan.
   std::unique_ptr<fft_plan_type> m_plan;
+
+  //! fft size
   fft_size_type m_fft_size;
+
+  //! maps for forward and backward transpose
   map_type m_map, m_map_inv;
+
+  //! whether transpose is needed or not
   bool m_is_transpose_needed;
+
+  //! axes for fft
   axis_type<DIM> m_axes;
+
+  //! directions of fft
   KokkosFFT::Impl::Direction m_direction;
 
-  // Keep extents
+  //! extents of input/output views
   extents_type m_in_extents, m_out_extents;
 
-  // Only used when transpose needed
+  //! Internal buffers used for transpose
   nonConstInViewType m_in_T;
   nonConstOutViewType m_out_T;
 
  public:
+  /// \brief Constructor
+  ///
+  /// \param exec_space [in] Kokkos execution device
+  /// \param in [in] Input data
+  /// \param out [in] Ouput data
+  /// \param direction [in] Direction of FFT (forward/backward)
+  /// \param axis [in] Axis over which FFT is performed
+  //
   explicit Plan(const ExecutionSpace& exec_space, InViewType& in,
                 OutViewType& out, KokkosFFT::Impl::Direction direction,
                 int axis)
@@ -108,6 +152,14 @@ class Plan {
                                           direction, m_axes);
   }
 
+  /// \brief Constructor for multidimensional FFT
+  ///
+  /// \param exec_space [in] Kokkos execution device
+  /// \param in [in] Input data
+  /// \param out [in] Ouput data
+  /// \param direction [in] Direction of FFT (forward/backward)
+  /// \param axes [in] Axes over which FFT is performed
+  //
   explicit Plan(const ExecutionSpace& exec_space, InViewType& in,
                 OutViewType& out, KokkosFFT::Impl::Direction direction,
                 axis_type<DIM> axes)
@@ -154,6 +206,14 @@ class Plan {
 
   ~Plan() { _destroy<ExecutionSpace, fft_plan_type>(m_plan); }
 
+  /// \brief Sanity check of the plan used to call FFT interface with 
+  ///        pre-defined FFT plan. This raises an error if there is an incosistency
+  ///        between FFT function and plan
+  ///
+  /// \param in [in] Input data
+  /// \param out [in] Ouput data
+  /// \param direction [in] Direction of FFT (forward/backward)
+  /// \param axes [in] Axes over which FFT is performed
   template <typename ExecutionSpace2, typename InViewType2,
             typename OutViewType2>
   void good(const InViewType2& in, const OutViewType2& out,
@@ -206,7 +266,10 @@ class Plan {
     }
   }
 
+  /// \brief Return the FFT plan
   fft_plan_type& plan() const { return *m_plan; }
+
+  /// \brief Return the FFT size
   fft_size_type fft_size() const { return m_fft_size; }
   bool is_transpose_needed() const { return m_is_transpose_needed; }
   map_type map() const { return m_map; }
