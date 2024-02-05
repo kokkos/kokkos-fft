@@ -46,36 +46,36 @@ template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           std::size_t DIM = 1>
 class Plan {
   //! The type of Kokkos execution pace
-  using execSpace      = ExecutionSpace;
+  using execSpace = ExecutionSpace;
 
   //! The value type of input view
-  using in_value_type  = typename InViewType::non_const_value_type;
+  using in_value_type = typename InViewType::non_const_value_type;
 
   //! The value type of output view
   using out_value_type = typename OutViewType::non_const_value_type;
 
   //! The real value type of input/output views
-  using float_type     = KokkosFFT::Impl::real_type_t<in_value_type>;
+  using float_type = KokkosFFT::Impl::real_type_t<in_value_type>;
 
   //! The type of fft plan
   using fft_plan_type =
       typename KokkosFFT::Impl::FFTPlanType<ExecutionSpace, in_value_type,
                                             out_value_type>::type;
 
-  //! The type of fft size                          
-  using fft_size_type       = std::size_t;
+  //! The type of fft size
+  using fft_size_type = std::size_t;
 
   //! The type of map for transpose
-  using map_type            = axis_type<InViewType::rank()>;
+  using map_type = axis_type<InViewType::rank()>;
 
   //! The non-const View type of input view
-  using nonConstInViewType  = std::remove_cv_t<InViewType>;
+  using nonConstInViewType = std::remove_cv_t<InViewType>;
 
   //! The non-const View type of output view
   using nonConstOutViewType = std::remove_cv_t<OutViewType>;
 
   //! The type of extents of input/output views
-  using extents_type        = shape_type<InViewType::rank()>;
+  using extents_type = shape_type<InViewType::rank()>;
 
   //! Dynamically allocatable fft plan.
   std::unique_ptr<fft_plan_type> m_plan;
@@ -206,9 +206,9 @@ class Plan {
 
   ~Plan() { _destroy<ExecutionSpace, fft_plan_type>(m_plan); }
 
-  /// \brief Sanity check of the plan used to call FFT interface with 
-  ///        pre-defined FFT plan. This raises an error if there is an incosistency
-  ///        between FFT function and plan
+  /// \brief Sanity check of the plan used to call FFT interface with
+  ///        pre-defined FFT plan. This raises an error if there is an
+  ///        incosistency between FFT function and plan
   ///
   /// \param in [in] Input data
   /// \param out [in] Ouput data
