@@ -2,7 +2,7 @@
 # images are pulled from Github registry; they are updated only if the current
 # PR or commit modified the Docker files.
 
-name: Build and test
+name: CI
 
 on:
   pull_request:
