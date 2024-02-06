@@ -1,3 +1,5 @@
+# Clean old Docker and Singularity images that are too old periodically.
+
 name: Cleanup base images
 
 on:

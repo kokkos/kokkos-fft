@@ -1,3 +1,9 @@
+# Generate base images for each backend. Images are stored on Github registry
+# as Docker format inconditionnaly and as Singularity format only if requested.
+# Docker images are used for building Kokkos FFT, while Singularity images are
+# used for test execution on the righteous hardware. This workflow can only be
+# invoked through another workflows.
+
 name: Build base images
 
 on:

@@ -1,3 +1,7 @@
+# Build and test Kokkos FFT using Docker and Singularity images. Pre-generated
+# images are pulled from Github registry; they are updated only if the current
+# PR or commit modified the Docker files.
+
 name: Build and test
 
 on:
