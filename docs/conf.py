@@ -49,6 +49,7 @@ if read_the_docs_build:
     cmake_commands = 'cmake -DBUILD_TESTING=OFF \
                             -DCMAKE_BUILD_TYPE=RelWithDebInfo \
                             -DKokkos_ENABLE_OPENMP=ON \
+                            -DBUILD_EXAMPLES=OFF \
                             -DKokkosFFT_INTERNAL_Kokkos=ON \
                             -DKokkosFFT_ENABLE_DOCS=ON ..'
     build = 'cmake --build . -j 2'
