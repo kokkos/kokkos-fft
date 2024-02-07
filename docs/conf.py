@@ -42,7 +42,7 @@ if read_the_docs_build:
     print(cwd)
 
     # Update submodule
-    update_submodule = ['git', 'submodule', 'update', '--remote', '--recursive']
+    update_submodule = ['git', 'submodule', 'update', '--init', '--recursive']
     subprocess.call(update_submodule, shell=True)
 
     # Build Docs with CMake 
