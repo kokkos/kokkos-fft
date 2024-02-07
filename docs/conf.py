@@ -48,7 +48,7 @@ if read_the_docs_build:
                             -DKokkosFFT_ENABLE_DOCS=ON ..'
     build = 'cmake --build . -j 2'
                             
-    subprocess.call(f'mkdir build; cd build; {cmake_commands}; {build}', shell=True)
+    subprocess.call(f'cd ../; mkdir build; cd build; {cmake_commands}; {build}', shell=True)
     #input_dir = cwd + '/..'
     #output_dir = cwd +'/doxygen/'
     #doxyfile_in = cwd + '/Doxyfile.in'
