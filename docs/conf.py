@@ -40,7 +40,12 @@ breathe_projects = {}
 if read_the_docs_build:
     cwd = os.getcwd()
     print(cwd)
-    
+
+    # Update submodule
+    update_submodule = ['git', 'submodule', 'update', '--remote', '--recursive']
+    subprocess.call(update_submodule, shell=True)
+
+    # Build Docs with CMake 
     cmake_commands = 'cmake -DBUILD_TESTING=OFF \
                             -DCMAKE_BUILD_TYPE=RelWithDebInfo \
                             -DKokkos_ENABLE_OPENMP=ON \
