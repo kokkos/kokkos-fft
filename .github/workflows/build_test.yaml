@@ -82,18 +82,22 @@ jobs:
       matrix:
         backend:
           - name: openmp
+            image: gcc
             c_compiler: gcc
             cxx_compiler: g++
             cmake_flags: -DKokkos_ENABLE_OPENMP=ON
           - name: cuda
+            image: nvcc
             c_compiler: gcc
             cxx_compiler: g++
             cmake_flags: -DKokkos_ENABLE_CUDA=ON -DKokkos_ARCH_AMPERE80=ON
           - name: hip
+            image: rocm
             c_compiler: hipcc
             cxx_compiler: hipcc
             cmake_flags: -DKokkos_ENABLE_HIP=ON -DKokkos_ARCH_VEGA90A=ON
           - name: sycl
+            image: intel
             c_compiler: icx
             cxx_compiler: icpx
             # building for Intel PVC was unsuccessful without the proper device
@@ -124,7 +128,7 @@ jobs:
 
       - name: Configure
         run: |
-          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}_${{ needs.check_docker_files.outputs.image_name_suffix }} \
+          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_name_suffix }} \
             cmake -B build \
             -DCMAKE_INSTALL_PREFIX=/work/install \
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
@@ -139,12 +143,12 @@ jobs:
 
       - name: Build
         run: |
-          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}_${{ needs.check_docker_files.outputs.image_name_suffix }} \
+          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_name_suffix }} \
             cmake --build build -j $(( $(nproc) * 2 + 1 ))
 
       - name: Prepare artifacts
         # this is mandatory to preserve execution rights
-        run: tar -cvf tests_${{ matrix.backend.name }}.tar build/
+        run: tar -cvf tests_${{ matrix.backend.image }}.tar build/
         if: ${{ matrix.target.name == 'native' }}
 
       - name: Save artifacts
@@ -157,13 +161,13 @@ jobs:
 
       - name: Install
         run: |
-          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}_${{ needs.check_docker_files.outputs.image_name_suffix }} \
+          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_name_suffix }} \
             cmake --install build
 
       - name: Configure and build test code
         # Use the built and installed Kokkos FFT library to build a test code
         run: |
-          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}_${{ needs.check_docker_files.outputs.image_name_suffix }} \
+          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.mage }}_${{ needs.check_docker_files.outputs.image_name_suffix }} \
             cmake -B build_test \
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
             -DCMAKE_C_COMPILER=${{ matrix.backend.c_compiler }} \
@@ -171,7 +175,7 @@ jobs:
             -DCMAKE_CXX_STANDARD=17 \
             -DCMAKE_PREFIX_PATH=/work/install \
             install_test
-          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}_${{ needs.check_docker_files.outputs.image_name_suffix }} \
+          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_name_suffix }} \
             cmake --build build_test -j $(( $(nproc) * 2 + 1 ))
 
   test:
@@ -189,9 +193,11 @@ jobs:
         backend:
           # run CUDA tests on Ruche supercomputer
           - name: cuda
+            image: nvcc
             runner: [self-hosted, cuda]
           # run OpenMP tests on Azure server
           - name: openmp
+            image: gcc
             runner: ubuntu-latest
 
     steps:
@@ -206,18 +212,18 @@ jobs:
 
       - name: Pull Singularity image
         # pulling the image in advance seems necessary as sometimes invoking `singularity run` on the image URL fails because it cannot find ghcr.io
-        run: singularity pull oras://ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}_singularity_${{ needs.check_docker_files.outputs.image_name_suffix }}:latest
+        run: singularity pull oras://ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.image }}_singularity_${{ needs.check_docker_files.outputs.image_name_suffix }}:latest
         if: ${{ matrix.backend.name == 'cuda' }}
 
       - name: Run CUDA tests within Slurm job and Singularity image
         run: |
           srun --nodes=1 --time=01:00:00 -p gpua100 --gres=gpu:1 \
-          singularity run --nv --bind $PWD/build:/work/build -H /work/build base_${{ matrix.backend.name }}_singularity_${{ needs.check_docker_files.outputs.image_name_suffix }}_latest.sif \
+          singularity run --nv --bind $PWD/build:/work/build -H /work/build base_${{ matrix.backend.image }}_singularity_${{ needs.check_docker_files.outputs.image_name_suffix }}_latest.sif \
           ctest
         if: ${{ matrix.backend.name == 'cuda' }}
 
       - name: Run OpenMP tests within Docker image
         run: |
-          docker run -v $PWD/build:/work/build -w /work/build ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}_${{ needs.check_docker_files.outputs.image_name_suffix }} \
+          docker run -v $PWD/build:/work/build -w /work/build ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_name_suffix }} \
           ctest
         if: ${{ matrix.backend.name == 'openmp' }}
