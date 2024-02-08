@@ -15,15 +15,15 @@
 # sys.path.insert(0, os.path.abspath('.'))
 import subprocess, os
 
-def configureDoxyfile(input_dir, output_dir):
+def configureDoxyfile(input_dir, output_dir, doxyfile_in, doxyfile_out):
 
-	with open('Doxyfile.in', 'r') as file :
+	with open(doxyfile_in, 'r') as file :
 		filedata = file.read()
 
 	filedata = filedata.replace('@CMAKE_SOURCE_DIR@', input_dir)
 	filedata = filedata.replace('@DOXYGEN_OUTPUT_DIR@', output_dir)
 	
-	with open('Doxyfile', 'w') as file:
+	with open(doxyfile_out, 'w') as file:
 		file.write(filedata)
 
 # -- Project information -----------------------------------------------------
