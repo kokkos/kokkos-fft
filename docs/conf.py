@@ -15,12 +15,13 @@
 # sys.path.insert(0, os.path.abspath('.'))
 import subprocess, os
 
-def configureDoxyfile(input_dir, output_dir, doxyfile_in, doxyfile_out):
+def configureDoxyfile(src_dir, input_dir, output_dir, doxyfile_in, doxyfile_out):
 
 	with open(doxyfile_in, 'r') as file :
 		filedata = file.read()
 
-	filedata = filedata.replace('@CMAKE_SOURCE_DIR@', input_dir)
+	filedata = filedata.replace('@CMAKE_SOURCE_DIR@', src_dir)
+	filedata = filedata.replace('@DOXYGEN_INPUT_DIR@', input_dir)
 	filedata = filedata.replace('@DOXYGEN_OUTPUT_DIR@', output_dir)
 	
 	with open(doxyfile_out, 'w') as file:
@@ -29,7 +30,7 @@ def configureDoxyfile(input_dir, output_dir, doxyfile_in, doxyfile_out):
 # -- Project information -----------------------------------------------------
 
 project = 'KokkosFFT'
-copyright = '2024, Yuuichi Asahi'
+copyright = '2023, Yuuichi Asahi'
 author = 'Yuuichi Asahi'
 
 # Check if we're running on Read the Docs' servers
@@ -55,11 +56,12 @@ if read_the_docs_build:
     ###build = 'cmake --build . -j 2'
     ###                        
     ###subprocess.call(f'cd ../; mkdir build; cd build; {cmake_commands}; {build}', shell=True)
-    input_dir = cwd + '/..'
+    src_dir = cwd + '/..'
+    input_dir = cwd + '/../fft/src/'
     output_dir = cwd +'/doxygen/'
     doxyfile_in = cwd + '/Doxyfile.in'
     doxyfile_out = cwd + '/Doxyfile'
-    configureDoxyfile(input_dir, output_dir, doxyfile_in, doxyfile_out)
+    configureDoxyfile(src_dir, input_dir, output_dir, doxyfile_in, doxyfile_out)
     subprocess.call('pwd; ls -lat; doxygen Doxyfile; ls -lat doxygen/xml', shell=True)
     breathe_projects[project] = output_dir + '/xml'
 
