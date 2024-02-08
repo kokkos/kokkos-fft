@@ -46,22 +46,22 @@ if read_the_docs_build:
     #subprocess.call(update_submodule, shell=True)
 
     # Build Docs with CMake 
-    cmake_commands = 'cmake -DBUILD_TESTING=OFF \
-                            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-                            -DKokkos_ENABLE_OPENMP=ON \
-                            -DBUILD_EXAMPLES=OFF \
-                            -DKokkosFFT_INTERNAL_Kokkos=ON \
-                            -DKokkosFFT_ENABLE_DOCS=ON ..'
-    build = 'cmake --build . -j 2'
-                            
-    subprocess.call(f'cd ../; mkdir build; cd build; {cmake_commands}; {build}', shell=True)
-    #input_dir = cwd + '/..'
-    #output_dir = cwd +'/doxygen/'
-    #doxyfile_in = cwd + '/Doxyfile.in'
-    #doxyfile_out = cwd + '/Doxyfile'
-    #configureDoxyfile(input_dir, output_dir, doxyfile_in, doxyfile_out)
-    #subprocess.call('pwd; ls -lat; doxygen Doxyfile; ls -lat doxygen/xml', shell=True)
-    #breathe_projects[project] = output_dir + '/xml'
+    ###cmake_commands = 'cmake -DBUILD_TESTING=OFF \
+    ###                        -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+    ###                        -DKokkos_ENABLE_OPENMP=ON \
+    ###                        -DBUILD_EXAMPLES=OFF \
+    ###                        -DKokkosFFT_INTERNAL_Kokkos=ON \
+    ###                        -DKokkosFFT_ENABLE_DOCS=ON ..'
+    ###build = 'cmake --build . -j 2'
+    ###                        
+    ###subprocess.call(f'cd ../; mkdir build; cd build; {cmake_commands}; {build}', shell=True)
+    input_dir = cwd + '/..'
+    output_dir = cwd +'/doxygen/'
+    doxyfile_in = cwd + '/Doxyfile.in'
+    doxyfile_out = cwd + '/Doxyfile'
+    configureDoxyfile(input_dir, output_dir, doxyfile_in, doxyfile_out)
+    subprocess.call('pwd; ls -lat; doxygen Doxyfile; ls -lat doxygen/xml', shell=True)
+    breathe_projects[project] = output_dir + '/xml'
 
 # -- General configuration ---------------------------------------------------
 
