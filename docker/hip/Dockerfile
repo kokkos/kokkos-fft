@@ -1,4 +1,4 @@
-ARG BASE=rocm/dev-ubuntu-20.04:5.2
+ARG BASE=rocm/dev-ubuntu-20.04:5.4
 FROM $BASE
 
 ARG ADDITIONAL_PACKAGES
