@@ -10,12 +10,12 @@ on:
   workflow_call:
     inputs:
       image_suffix:
-        description: Suffix of the Docker and Singularity images
+        description: "Suffix of the Docker and Singularity images"
         required: false
         default: main
         type: string
       image_tag:
-        description: Tag of the Docker and Singularity images
+        description: "Tag of the Docker and Singularity images"
         required: false
         default: latest
         type: string
