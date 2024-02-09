@@ -14,13 +14,13 @@ on:
     outputs:
       docker_files_have_changed:
         description: "True if any Docker file was modified"
-        value: ${{ jobs.check_docker_files.output.docker_files_have_changed }}
+        value: ${{ jobs.check_docker_files.outputs.docker_files_have_changed }}
       image_suffix:
         description: "Suffix of the images"
-        value: ${{ jobs.check_docker_files.output.image_suffix }}
+        value: ${{ jobs.check_docker_files.outputs.image_suffix }}
       image_tag:
         description: "Tag of the images"
-        value: ${{ jobs.check_docker_files.output.image_tag }}
+        value: ${{ jobs.check_docker_files.outputs.image_tag }}
 
 jobs:
   check_docker_files:
