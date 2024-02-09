@@ -148,7 +148,7 @@ jobs:
 
       - name: Prepare artifacts
         # this is mandatory to preserve execution rights
-        run: tar -cvf tests_${{ matrix.backend.image }}.tar build/
+        run: tar -cvf tests_${{ matrix.backend.name }}.tar build/
         if: ${{ matrix.target.name == 'native' }}
 
       - name: Save artifacts
