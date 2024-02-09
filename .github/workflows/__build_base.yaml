@@ -9,10 +9,15 @@ name: Build base images
 on:
   workflow_call:
     inputs:
-      # suffix of the Docker and Singularity images
-      image_name_suffix:
+      image_suffix:
+        description: Suffix of the Docker and Singularity images
         required: false
         default: main
+        type: string
+      image_tag:
+        description: Tag of the Docker and Singularity images
+        required: false
+        default: latest
         type: string
 
 env:
@@ -61,19 +66,19 @@ jobs:
       - name: Build Docker image
         run: |
           docker build \
-            -t ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.image.name }}_${{ inputs.image_name_suffix }} \
-            --cache-from ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.image.name }}_main \
+            -t ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.image.name }}_${{ inputs.image_suffix }}:${{ inputs.image_tag }} \
+            --cache-from ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.image.name }}_main:latest \
             --build-arg BUILDKIT_INLINE_CACHE=1 \
             --progress=plain \
             docker/${{ matrix.image.name }}
 
       - name: Push Docker image
-        run: docker push ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.image.name }}_${{ inputs.image_name_suffix }}
+        run: docker push ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.image.name }}_${{ inputs.image_suffix }}:${{ inputs.image_tag }}
 
       - name: Convert Docker image to Singularity
-        run: singularity build base.sif docker://ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.image.name }}_${{ inputs.image_name_suffix }}
+        run: singularity build base.sif docker://ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.image.name }}_${{ inputs.image_suffix }}:${{ inputs.image_tag }}
         if: ${{ matrix.image.use_singularity }}
 
       - name: Push Singularity image
-        run: singularity push base.sif oras://ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.image.name }}_singularity_${{ inputs.image_name_suffix }}
+        run: singularity push base.sif oras://ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.image.name }}_singularity_${{ inputs.image_suffix }}:${{ inputs.image_tag }}
         if: ${{ matrix.image.use_singularity }}
