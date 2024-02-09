@@ -16,13 +16,13 @@ jobs:
         with:
           type: container
           names: |
-            base_cuda_main
-            base_cuda_pr
-            base_cuda_singularity_main
-            base_cuda_singularity_pr
-            base_hip_main
-            base_hip_pr
-            base_openmp_main
-            base_openmp_pr
-            base_sycl_main
-            base_sycl_pr
+            base_nvcc_main
+            base_nvcc_pr
+            base_nvcc_singularity_main
+            base_nvcc_singularity_pr
+            base_rocm_main
+            base_rocm_pr
+            base_gcc_main
+            base_gcc_pr
+            base_intel_main
+            base_intel_pr
