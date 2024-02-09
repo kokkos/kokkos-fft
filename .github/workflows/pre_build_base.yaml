@@ -1,13 +1,16 @@
-# Recreate the base images inconditionnaly on a regural basis. This is to
-# ensure that anybody using the Docker files for local development does not
-# encounter weird bugs unnoticed by the CI, because the images would be too
-# old.
+# Recreate the base images inconditionnaly on a regural basis and on push on
+# the main branch. This is to ensure that anybody using the Docker files for
+# local development does not encounter weird bugs unnoticed by the CI, because
+# the images would be too old.
 
 name: Pre-build base images
 
 on:
   schedule:
     - cron: "0 1 2,16 * *" # every 2nd and 16th of the month at 1am UTC
+  push:
+    branches:
+      - main
 
 jobs:
   build_base:
