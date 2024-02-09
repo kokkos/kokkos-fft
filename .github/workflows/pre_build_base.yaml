@@ -1,7 +1,7 @@
-# Recreate the base images inconditionnaly on a regural basis and on push on
-# the main branch. This is to ensure that anybody using the Docker files for
-# local development does not encounter weird bugs unnoticed by the CI, because
-# the images would be too old.
+# Recreate the base images inconditionnaly on periodically or manually and on
+# push on the main branch. This is to ensure that anybody using the Docker
+# files for local development does not encounter weird bugs unnoticed by the
+# CI, because the images would be too old.
 
 name: Pre-build base images
 
@@ -11,6 +11,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   check_docker_files:
@@ -22,7 +23,7 @@ jobs:
   build_base:
     needs: check_docker_files
 
-    # run inconditionnaly on schedule mode or if Docker files changed on other modes
-    if: ${{ github.event_name == 'schedule' || needs.check_docker_files.outputs.docker_files_have_changed == 'true' }}
+    # run inconditionnaly on schedule or manual mode or if Docker files changed on other modes
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || needs.check_docker_files.outputs.docker_files_have_changed == 'true' }}
 
     uses: ./.github/workflows/__build_base.yaml
