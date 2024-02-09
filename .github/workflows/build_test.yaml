@@ -39,7 +39,7 @@ jobs:
       image_suffix: ${{ steps.get_changed_docker_files.outputs.any_changed == 'true' && github.event_name == 'pull_request' && 'pr' || 'main' }}
       # use "<hash>" as image name tag if on PR mode and if any Docker file was modified, otherwise use "latest";
       # this is intended to distinguish PR images from each other
-      image_tag: ${{ steps.get_changed_docker_files.outputs.any_changed == 'true' && github.event_name == 'pull_request' && env.GITHUB_SHA || 'latest' }}
+      image_tag: ${{ steps.get_changed_docker_files.outputs.any_changed == 'true' && github.event_name == 'pull_request' && github.sha || 'latest' }}
 
     steps:
       - uses: actions/checkout@v4
