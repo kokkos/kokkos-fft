@@ -1,18 +1,23 @@
-# Generate base images for each backend. Images are stored on Github registry
-# as Docker format inconditionnaly and as Singularity format only if requested.
-# Docker images are used for building Kokkos FFT, while Singularity images are
-# used for test execution on the righteous hardware. This workflow can only be
-# invoked through another workflows.
+# Generate base images for each compiler environment. Images are stored on
+# Github registry as Docker format inconditionnaly and as Singularity format
+# only if requested.  Docker images are used for building Kokkos FFT, while
+# Singularity images are used for test execution on the righteous hardware.
+# This workflow can only be invoked through another workflows.
 
 name: Build base images
 
 on:
   workflow_call:
     inputs:
-      # suffix of the Docker and Singularity images
-      image_name_suffix:
+      image_suffix:
+        description: "Suffix of the Docker and Singularity images"
         required: false
         default: main
+        type: string
+      image_tag:
+        description: "Tag of the Docker and Singularity images"
+        required: false
+        default: latest
         type: string
 
 env:
@@ -25,14 +30,14 @@ jobs:
 
     strategy:
       matrix:
-        backend:
-          - name: openmp
+        image:
+          - name: gcc
             use_singularity: false
-          - name: cuda
+          - name: nvcc
             use_singularity: true
-          - name: hip
+          - name: rocm
             use_singularity: false
-          - name: sycl
+          - name: intel
             use_singularity: false
 
     steps:
@@ -61,19 +66,19 @@ jobs:
       - name: Build Docker image
         run: |
           docker build \
-            -t ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}_${{ inputs.image_name_suffix }} \
-            --cache-from ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}_main \
+            -t ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.image.name }}_${{ inputs.image_suffix }}:${{ inputs.image_tag }} \
+            --cache-from ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.image.name }}_main:latest \
             --build-arg BUILDKIT_INLINE_CACHE=1 \
             --progress=plain \
-            docker/${{ matrix.backend.name }}
+            docker/${{ matrix.image.name }}
 
       - name: Push Docker image
-        run: docker push ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}_${{ inputs.image_name_suffix }}
+        run: docker push ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.image.name }}_${{ inputs.image_suffix }}:${{ inputs.image_tag }}
 
       - name: Convert Docker image to Singularity
-        run: singularity build base.sif docker://ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}_${{ inputs.image_name_suffix }}
-        if: ${{ matrix.backend.use_singularity }}
+        run: singularity build base.sif docker://ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.image.name }}_${{ inputs.image_suffix }}:${{ inputs.image_tag }}
+        if: ${{ matrix.image.use_singularity }}
 
       - name: Push Singularity image
-        run: singularity push base.sif oras://ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.name }}_singularity_${{ inputs.image_name_suffix }}
-        if: ${{ matrix.backend.use_singularity }}
+        run: singularity push base.sif oras://ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.image.name }}_singularity_${{ inputs.image_suffix }}:${{ inputs.image_tag }}
+        if: ${{ matrix.image.use_singularity }}
