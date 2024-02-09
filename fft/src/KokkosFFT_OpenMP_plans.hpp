@@ -9,7 +9,7 @@ namespace KokkosFFT {
 namespace Impl {
 template <typename ExecutionSpace, typename T>
 void _init_threads(const ExecutionSpace& exec_space) {
-#if defined(KOKKOS_ENABLE_OPENMP)
+#if defined(KOKKOS_ENABLE_OPENMP) || defined(KOKKOS_ENABLE_THREADS)
   int nthreads = exec_space.concurrency();
 
   if constexpr (std::is_same_v<T, float>) {
