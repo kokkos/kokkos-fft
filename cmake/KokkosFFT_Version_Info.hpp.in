@@ -28,7 +28,6 @@ constexpr std::string_view GIT_CLEAN_STATUS = "@GIT_CLEAN_STATUS@";
 constexpr std::string_view GIT_COMMIT_DESCRIPTION =
     R"message(@GIT_COMMIT_DESCRIPTION@)message";
 constexpr std::string_view GIT_COMMIT_DATE   = "@GIT_COMMIT_DATE@";
-constexpr std::string_view BENCHMARK_VERSION = "@BENCHMARK_VERSION@";
 
 }  // namespace Impl
 }  // namespace KokkosFFT

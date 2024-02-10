@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.22)
 project(KokkosFFT LANGUAGES CXX)
 
+# 
+set(KOKKOSFFT_TOP_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+
 # Add cmake helpers for FFTW
 list(INSERT CMAKE_MODULE_PATH 0 "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
@@ -44,6 +47,7 @@ endif()
 if(KokkosFFT_ENABLE_BENCHMARK)
     option(BENCHMARK_ENABLE_TESTING "Enable testing of the benchmark library." OFF)
     add_subdirectory(tpls/benchmark)
+    include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/KokkosFFT_Git_Hash.cmake)
 
     # [TO DO] Fix this, it detects benchmark not a googlebench
     #find_package(benchmark QUIET)

@@ -63,10 +63,6 @@ inline void add_version_info() {
     benchmark::AddCustomContext("GIT_COMMIT_DATE",
                                 std::string(GIT_COMMIT_DATE));
   }
-  if (!BENCHMARK_VERSION.empty()) {
-    benchmark::AddCustomContext("GOOGLE_BENCHMARK_VERSION",
-                                std::string(BENCHMARK_VERSION));
-  }
 }
 
 inline void add_env_info() {

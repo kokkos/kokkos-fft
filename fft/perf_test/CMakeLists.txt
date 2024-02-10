@@ -1,5 +1,7 @@
 set(BENCHMARK_NAME PerformanceTest_Benchmark)
 
+check_git_version()
+
 add_executable(
     ${BENCHMARK_NAME} 
     BenchmarkMain.cpp 
