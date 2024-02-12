@@ -8,7 +8,7 @@ FFT Plan
 .. toctree::
    :maxdepth: 1
 
-   api/plan.rst
+   plan <api/plan>
 
 Standard FFTs
 -------------

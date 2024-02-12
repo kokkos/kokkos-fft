@@ -1,6 +1,6 @@
 
-Plan (Wrapping a FFT plan of backend FFT library)
--------------------------------------------------
+KokkosFFT::Impl::Plan
+---------------------
 
 .. doxygenclass:: KokkosFFT::Impl::Plan
    :members:
