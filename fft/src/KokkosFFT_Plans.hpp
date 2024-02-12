@@ -95,12 +95,16 @@ class Plan {
   //! directions of fft
   KokkosFFT::Impl::Direction m_direction;
 
+  ///@{
   //! extents of input/output views
   extents_type m_in_extents, m_out_extents;
+  ///@}
 
+  //! @{
   //! Internal buffers used for transpose
   nonConstInViewType m_in_T;
   nonConstOutViewType m_out_T;
+  //! @}
 
  public:
   /// \brief Constructor
