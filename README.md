@@ -1,6 +1,7 @@
 # kokkos-fft
 
 [![CI](https://github.com/CExA-project/kokkos-fft/actions/workflows/build_test.yaml/badge.svg)](https://github.com/CExA-project/kokkos-fft/actions)
+[![docs](https://readthedocs.org/projects/kokkosfft/badge/?version=latest)](https://kokkosfft.readthedocs.io/en/latest/?badge=latest)
 
 UNOFFICIAL FFT interfaces for Kokkos C++ Performance Portability Programming EcoSystem
 
