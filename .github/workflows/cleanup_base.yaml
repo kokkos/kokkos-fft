@@ -1,10 +1,12 @@
-# Clean old Docker and Singularity images that are too old periodically.
+# Clean old Docker and Singularity images that are too old periodically or
+# manually.
 
 name: Cleanup base images
 
 on:
   schedule:
     - cron: "0 3 2,16 * *" # every 2nd and 16th of the month at 3am UTC
+  workflow_dispatch:
 
 jobs:
   cleanup:
@@ -16,13 +18,13 @@ jobs:
         with:
           type: container
           names: |
-            base_cuda_main
-            base_cuda_pr
-            base_cuda_singularity_main
-            base_cuda_singularity_pr
-            base_hip_main
-            base_hip_pr
-            base_openmp_main
-            base_openmp_pr
-            base_sycl_main
-            base_sycl_pr
+            base_nvcc_main
+            base_nvcc_pr
+            base_nvcc_singularity_main
+            base_nvcc_singularity_pr
+            base_rocm_main
+            base_rocm_pr
+            base_gcc_main
+            base_gcc_pr
+            base_intel_main
+            base_intel_pr

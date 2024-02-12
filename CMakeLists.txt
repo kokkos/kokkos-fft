@@ -9,6 +9,19 @@ option(BUILD_EXAMPLES "Build KokkosFFT examples" ON)
 option(KokkosFFT_ENABLE_HOST_AND_DEVICE "Enable FFT on both host and device" OFF)
 option(KokkosFFT_INTERNAL_Kokkos "Build internal Kokkos instead of relying on external one" OFF)
 option(KokkosFFT_ENABLE_DOCS "Build KokkosFFT documentaion/website" OFF)
+option(KokkosFFT_ENABLE_BENCHMARK "Build benchmarks for KokkosFFT" OFF)
+
+# Version information
+set(KokkosFFT_VERSION_MAJOR 0)
+set(KokkosFFT_VERSION_MINOR 0)
+set(KokkosFFT_VERSION_PATCH 00)
+set(KokkosFFT_VERSION "${KokkosFFT_VERSION_MAJOR}.${KokkosFFT_VERSION_MINOR}.${KokkosFFT_VERSION_PATCH}")
+
+#Set variables for config file
+math(EXPR KOKKOSFFT_VERSION "${KokkosFFT_VERSION_MAJOR} * 10000 + ${KokkosFFT_VERSION_MINOR} * 100 + ${KokkosFFT_VERSION_PATCH}")
+math(EXPR KOKKOSFFT_VERSION_MAJOR "${KOKKOSFFT_VERSION} / 10000")
+math(EXPR KOKKOSFFT_VERSION_MINOR "${KOKKOSFFT_VERSION} / 100 % 100")
+math(EXPR KOKKOSFFT_VERSION_PATCH "${KOKKOSFFT_VERSION} % 100")
 
 if (NOT KokkosFFT_INTERNAL_Kokkos)
     # First check, Kokkos is added as subdirectory or not
@@ -34,6 +47,33 @@ if(KokkosFFT_ENABLE_DOCS)
     find_package(Sphinx REQUIRED)
     add_subdirectory(docs)
 endif()
+
+# Benchmark
+if(KokkosFFT_ENABLE_BENCHMARK)
+    option(BENCHMARK_ENABLE_TESTING "Enable testing of the benchmark library." OFF)
+    add_subdirectory(tpls/benchmark)
+
+    # [TO DO] Fix this, it detects benchmark not a googlebench
+    #find_package(benchmark QUIET)
+    #if(NOT benchmark_FOUND)
+    #    add_subdirectory(tpls/benchmark)
+    #endif()
+endif()
+
+# Configure files to display configuration
+# Configure the library
+set(
+    PACKAGE_NAME_CONFIG_FILES
+    KokkosFFT_config.h
+    KokkosFFT_Version_Info.hpp
+)
+
+foreach(CONFIG_FILE ${PACKAGE_NAME_CONFIG_FILES})
+    configure_file(
+        cmake/${CONFIG_FILE}.in
+        ${CMAKE_BINARY_DIR}/${CONFIG_FILE}
+    )
+endforeach()
 
 # Set directories used for install
 include(GNUInstallDirs)
@@ -79,7 +119,7 @@ configure_package_config_file(cmake/KokkosFFTConfig.cmake.in
 
 write_basic_package_version_file(
     ${CMAKE_CURRENT_BINARY_DIR}/KokkosFFTConfigVersion.cmake
-    VERSION 0.0.0
+    VERSION ${KokkosFFT_VERSION}
     COMPATIBILITY SameMajorVersion
 )
 
