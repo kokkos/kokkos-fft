@@ -8,7 +8,7 @@ FFT Plan
 .. toctree::
    :maxdepth: 1
 
-   plan <api/plan>
+   Plan (Wrapping a FFT plan of backend FFT library) <api/plan>
 
 Standard FFTs
 -------------
@@ -16,7 +16,7 @@ Standard FFTs
 .. toctree::
    :maxdepth: 1
 
-   api/standard/fft.rst
+   fft (One dimensional FFT in forward direction) <api/standard/fft.rst>
    api/standard/ifft.rst
    api/standard/fft2.rst
    api/standard/ifft2.rst

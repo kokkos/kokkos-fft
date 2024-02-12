@@ -14,9 +14,6 @@ python:
    install:
    - requirements: docs/requirements.txt
 
-submodules:
-   include: all
-
 build:
   os: ubuntu-22.04
   tools:
@@ -24,5 +21,4 @@ build:
   apt_packages:
     - git
     - g++
-    - libfftw3-dev
     - make
