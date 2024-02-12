@@ -1,8 +1,13 @@
 cmake_minimum_required(VERSION 3.22)
-project(KokkosFFT LANGUAGES CXX)
 
-# 
 set(KOKKOSFFT_TOP_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+
+# Set project
+project(
+    KokkosFFT
+    VERSION 0.0.0.0
+    LANGUAGES CXX
+)
 
 # Add cmake helpers for FFTW
 list(INSERT CMAKE_MODULE_PATH 0 "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
@@ -14,21 +19,20 @@ option(KokkosFFT_INTERNAL_Kokkos "Build internal Kokkos instead of relying on ex
 option(KokkosFFT_ENABLE_BENCHMARK "Build benchmarks for KokkosFFT" OFF)
 
 # Version information
-set(KokkosFFT_VERSION_MAJOR 0)
-set(KokkosFFT_VERSION_MINOR 0)
-set(KokkosFFT_VERSION_PATCH 00)
-set(KokkosFFT_VERSION "${KokkosFFT_VERSION_MAJOR}.${KokkosFFT_VERSION_MINOR}.${KokkosFFT_VERSION_PATCH}")
-
-#Set variables for config file
-math(EXPR KOKKOSFFT_VERSION "${KokkosFFT_VERSION_MAJOR} * 10000 + ${KokkosFFT_VERSION_MINOR} * 100 + ${KokkosFFT_VERSION_PATCH}")
+math(EXPR KOKKOSFFT_VERSION "${PROJECT_VERSION_MAJOR} * 10000 + ${PROJECT_VERSION_MINOR} * 100 + ${PROJECT_VERSION_PATCH} * 10 + ${PROJECT_VERSION_TWEAK}")
 math(EXPR KOKKOSFFT_VERSION_MAJOR "${KOKKOSFFT_VERSION} / 10000")
 math(EXPR KOKKOSFFT_VERSION_MINOR "${KOKKOSFFT_VERSION} / 100 % 100")
 math(EXPR KOKKOSFFT_VERSION_PATCH "${KOKKOSFFT_VERSION} % 100")
+
+set(KOKKOS_REQUIRED_VERSION "4.2.00")
 
 if (NOT KokkosFFT_INTERNAL_Kokkos)
     # First check, Kokkos is added as subdirectory or not
     if(NOT TARGET Kokkos::kokkos)
         find_package(Kokkos REQUIRED)
+        # Kokkos version check
+        include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Kokkos_Version_Check.cmake)
+        check_minimum_required_kokkos(${KOKKOS_REQUIRED_VERSION})
     endif()
 else ()
     add_subdirectory(tpls/kokkos)
@@ -64,6 +68,11 @@ set(
     KokkosFFT_Version_Info.hpp
 )
 
+# Set tpls
+set(KOKKOSFFT_TPL_LIST)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/KokkosFFT_tpls.cmake)
+get_tpls_list(KOKKOSFFT_TPL_LIST)
+
 foreach(CONFIG_FILE ${PACKAGE_NAME_CONFIG_FILES})
     configure_file(
         cmake/${CONFIG_FILE}.in
@@ -83,6 +92,23 @@ add_subdirectory(fft)
 if(BUILD_EXAMPLES)
     add_subdirectory(examples)
 endif()
+
+# ==================================================================
+# CMake Summary
+# ==================================================================
+
+message("")
+message("-- KokkosFFT version: ${KOKKOSFFT_VERSION_MAJOR}.${KOKKOSFFT_VERSION_MINOR}.${KOKKOSFFT_VERSION_PATCH}")
+message("-- KokkosFFT TPLs")
+if(KOKKOSFFT_TPL_LIST)
+    foreach(TPL ${KOKKOSFFT_TPL_LIST})
+        # [TO DO] show more information about the library (like location)
+        message("   ${TPL}")
+    endforeach()
+else()
+    message("   (None)")
+endif()
+message("")
 
 # Installation
 include(CMakePackageConfigHelpers)
