@@ -1,6 +1,6 @@
 
-ifftn (N-dimensional FFT in backward direction)
------------------------------------------------
+KokkosFFT::ifftn
+----------------
 
 .. doxygenfunction:: KokkosFFT::ifftn(const ExecutionSpace& exec_space, const InViewType& in, OutViewType& out, KokkosFFT::Normalization, shape_type<DIM> s)
 .. doxygenfunction:: KokkosFFT::ifftn(const ExecutionSpace& exec_space, const InViewType& in, OutViewType& out, axis_type<DIM1> axes, KokkosFFT::Normalization, shape_type<DIM2> s)

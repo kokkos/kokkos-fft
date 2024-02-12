@@ -17,11 +17,11 @@ Standard FFTs
    :maxdepth: 1
 
    fft (One dimensional FFT in forward direction) <api/standard/fft.rst>
-   api/standard/ifft.rst
-   api/standard/fft2.rst
-   api/standard/ifft2.rst
-   api/standard/fftn.rst
-   api/standard/ifftn.rst
+   ifft (One dimensional FFT in backward direction) <api/standard/ifft.rst>
+   fft2 (Two dimensional FFT in forward direction) <api/standard/fft2.rst>
+   ifft2 (Two dimensional FFT in backward direction) <api/standard/ifft2.rst>
+   fftn (N-dimensional FFT in forward direction) <api/standard/fftn.rst>
+   ifftn (N-dimensional FFT in backward direction) <api/standard/ifftn.rst>
 
 Real FFTs
 ---------
@@ -29,12 +29,12 @@ Real FFTs
 .. toctree::
    :maxdepth: 1
 
-   api/real/rfft.rst
-   api/real/irfft.rst
-   api/real/rfft2.rst
-   api/real/irfft2.rst
-   api/real/rfftn.rst
-   api/real/irfftn.rst
+   rfft (One dimensional FFT for real input) <api/real/rfft.rst>
+   irfft (Inverse of rfft) <api/real/irfft.rst>
+   rfft2 (Two dimensional FFT for real input) <api/real/rfft2.rst>
+   irfft2 (Inverse of rfft2) <api/real/irfft2.rst>
+   rfftn (N-dimensional FFT for real input) <api/real/rfftn.rst>
+   irfftn (N-dimensional FFT for real input) <api/real/irfftn.rst>
 
 Hermitian FFTs
 --------------
@@ -42,8 +42,8 @@ Hermitian FFTs
 .. toctree::
    :maxdepth: 1
 
-   api/hermitian/hfft.rst
-   api/hermitian/ihfft.rst
+   hfft (One dimensional FFT of a signal that has Hermitian symmetry) <api/hermitian/hfft.rst>
+   ihfft (Inverse of hfft) <api/hermitian/ihfft.rst>
 
 Helper routines
 ---------------
@@ -51,7 +51,7 @@ Helper routines
 .. toctree::
    :maxdepth: 1
 
-   api/helper/fftfreq.rst
-   api/helper/rfftfreq.rst
-   api/helper/fftshift.rst
-   api/helper/ifftshift.rst
+   fftfreq (Return the DFT sample frequencies) <api/helper/fftfreq.rst>
+   rfftfreq (Return the DFT sample frequencies for Real FFTs) <api/helper/rfftfreq.rst>
+   fftshift (Shift the zero-frequency component to the center of the spectrum) <api/helper/fftshift.rst>
+   ifftshift (Inverse of fftshift) <api/helper/ifftshift.rst>

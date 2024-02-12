@@ -1,6 +1,6 @@
 
-ifft (One dimensional FFT in backward direction)
-------------------------------------------------
+KokkosFFT::ifft
+---------------
 
 .. doxygenfunction:: KokkosFFT::ifft(const ExecutionSpace& exec_space, const InViewType& in, OutViewType& out, KokkosFFT::Normalization, int axis, std::optional<std::size_t> n)
 .. doxygenfunction:: KokkosFFT::ifft(const ExecutionSpace& exec_space, const InViewType& in, OutViewType& out, const PlanType& plan, KokkosFFT::Normalization, int axis, std::optional<std::size_t> n)

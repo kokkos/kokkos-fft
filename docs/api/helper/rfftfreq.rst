@@ -1,4 +1,5 @@
 
-rfftfreq
---------
+KokkosFFT::rfftfreq
+-------------------
+
 .. doxygenfunction:: KokkosFFT::rfftfreq
