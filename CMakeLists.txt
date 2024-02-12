@@ -1,8 +1,16 @@
 cmake_minimum_required(VERSION 3.22)
-project(KokkosFFT LANGUAGES CXX)
 
-# Add cmake helpers for FFTW
-list(INSERT CMAKE_MODULE_PATH 0 "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+set(KOKKOSFFT_TOP_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+
+# Set project
+project(
+    KokkosFFT
+    VERSION 0.0.0
+    LANGUAGES CXX
+)
+
+# Add cmake helpers
+list(PREPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # Options
 option(BUILD_EXAMPLES "Build KokkosFFT examples" ON)
@@ -11,25 +19,46 @@ option(KokkosFFT_INTERNAL_Kokkos "Build internal Kokkos instead of relying on ex
 option(KokkosFFT_ENABLE_BENCHMARK "Build benchmarks for KokkosFFT" OFF)
 
 # Version information
-set(KokkosFFT_VERSION_MAJOR 0)
-set(KokkosFFT_VERSION_MINOR 0)
-set(KokkosFFT_VERSION_PATCH 00)
-set(KokkosFFT_VERSION "${KokkosFFT_VERSION_MAJOR}.${KokkosFFT_VERSION_MINOR}.${KokkosFFT_VERSION_PATCH}")
+set(KOKKOSFFT_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
+set(KOKKOSFFT_VERSION_MINOR ${PROJECT_VERSION_MINOR})
+set(KOKKOSFFT_VERSION_PATCH ${PROJECT_VERSION_PATCH})
 
-#Set variables for config file
-math(EXPR KOKKOSFFT_VERSION "${KokkosFFT_VERSION_MAJOR} * 10000 + ${KokkosFFT_VERSION_MINOR} * 100 + ${KokkosFFT_VERSION_PATCH}")
-math(EXPR KOKKOSFFT_VERSION_MAJOR "${KOKKOSFFT_VERSION} / 10000")
-math(EXPR KOKKOSFFT_VERSION_MINOR "${KOKKOSFFT_VERSION} / 100 % 100")
-math(EXPR KOKKOSFFT_VERSION_PATCH "${KOKKOSFFT_VERSION} % 100")
+set(KOKKOS_REQUIRED_VERSION "4.2.00")
 
 if (NOT KokkosFFT_INTERNAL_Kokkos)
     # First check, Kokkos is added as subdirectory or not
     if(NOT TARGET Kokkos::kokkos)
         find_package(Kokkos REQUIRED)
     endif()
+
+    # Kokkos version check
+    include(Kokkos_Version_Check)
+    check_minimum_required_kokkos(${KOKKOS_REQUIRED_VERSION})
 else ()
     add_subdirectory(tpls/kokkos)
 endif ()
+
+# Set tpls
+set(KOKKOSFFT_TPL_LIST)
+include(KokkosFFT_tpls)
+get_tpls_list(KOKKOSFFT_TPL_LIST)
+
+# ==================================================================
+# CMake Summary
+# ==================================================================
+
+message("")
+message(STATUS "KokkosFFT version: ${KOKKOSFFT_VERSION_MAJOR}.${KOKKOSFFT_VERSION_MINOR}.${KOKKOSFFT_VERSION_PATCH}")
+message(STATUS "KokkosFFT TPLs:")
+if(KOKKOSFFT_TPL_LIST)
+    foreach(TPL ${KOKKOSFFT_TPL_LIST})
+        # [TO DO] show more information about the library (like location)
+        message(STATUS " ${TPL}")
+    endforeach()
+else()
+    message(STATUS " (None)")
+endif()
+message("")
 
 # Googletest
 include(CTest)
@@ -44,6 +73,7 @@ endif()
 if(KokkosFFT_ENABLE_BENCHMARK)
     option(BENCHMARK_ENABLE_TESTING "Enable testing of the benchmark library." OFF)
     add_subdirectory(tpls/benchmark)
+    include(KokkosFFT_Git_Hash)
 
     # [TO DO] Fix this, it detects benchmark not a googlebench
     #find_package(benchmark QUIET)
