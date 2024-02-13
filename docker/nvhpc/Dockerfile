@@ -1,4 +1,4 @@
-ARG BASE=nvcr.io/nvidia/nvhpc:23.11-devel-cuda_multi-ubuntu22.04
+ARG BASE=nvcr.io/nvidia/nvhpc:24.1-devel-cuda12.3-ubuntu22.04
 FROM $BASE
 
 ARG ADDITIONAL_PACKAGES
