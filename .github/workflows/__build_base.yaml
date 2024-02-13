@@ -36,7 +36,7 @@ jobs:
           - name: nvcc
             use_singularity: true
           - name: nvhpc
-            use_singularity: true
+            use_singularity: false
           - name: rocm
             use_singularity: false
           - name: intel
@@ -47,6 +47,7 @@ jobs:
         uses: jlumbroso/free-disk-space@v1.2.0
         with:
           tool-cache: true
+          large-packages: false
 
       - name: Checkout repository
         uses: actions/checkout@v4
