@@ -17,6 +17,7 @@ RUN apt-get update && apt-get install -y \
     rm -rf /var/lib/apt/lists/*
 
 ENV FFTWDIR "/usr"
+ENV NVHPC_CUDA_HOME '/opt/nvidia/hpc_sdk/Linux_x86_64/24.1/cuda/12.3'
 
 RUN git config --global --add safe.directory "*"
 
