@@ -22,6 +22,10 @@ jobs:
             base_nvcc_pr
             base_nvcc_singularity_main
             base_nvcc_singularity_pr
+            base_nvhpc_main
+            base_nvhpc_pr
+            base_nvhpc_singularity_main
+            base_nvhpc_singularity_pr
             base_rocm_main
             base_rocm_pr
             base_gcc_main

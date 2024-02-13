@@ -35,6 +35,8 @@ jobs:
             use_singularity: false
           - name: nvcc
             use_singularity: true
+          - name: nvhpc
+            use_singularity: true
           - name: rocm
             use_singularity: false
           - name: intel

@@ -78,6 +78,11 @@ jobs:
             c_compiler: gcc
             cxx_compiler: g++
             cmake_flags: -DKokkos_ENABLE_CUDA=ON -DKokkos_ARCH_AMPERE80=ON
+          - name: nvhpc
+            image: nvhpc
+            c_compiler: nvc
+            cxx_compiler: nvc++
+            cmake_flags: -DKokkos_ENABLE_CUDA=ON -DKokkos_ARCH_AMPERE80=ON
           - name: hip
             image: rocm
             c_compiler: hipcc
@@ -190,6 +195,10 @@ jobs:
           - name: cuda
             image: nvcc
             runner: [self-hosted, cuda]
+          # run CUDA tests on Ruche supercomputer
+          - name: nvhpc
+            image: nvhpc
+            runner: [self-hosted, cuda]
           # run OpenMP tests on Azure server
           - name: openmp
             image: gcc
@@ -223,7 +232,7 @@ jobs:
           srun --nodes=1 --time=01:00:00 -p gpua100 --gres=gpu:1 \
           singularity run --nv --bind $PWD/build:/work/build -H /work/build base_${{ matrix.backend.image }}_singularity_${{ needs.check_docker_files.outputs.image_suffix }}_${{ needs.check_docker_files.outputs.image_tag }}.sif \
           ctest --output-on-failure
-        if: ${{ matrix.backend.name == 'cuda' }}
+        if: ${{ matrix.backend.name == 'cuda' || matrix.backend.name == 'nvhpc' }}
 
       - name: Run OpenMP/Threads/Serial tests within Docker image
         run: |
