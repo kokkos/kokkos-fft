@@ -374,8 +374,8 @@ void test_transpose_3d() {
   using RealView3Dtype = Kokkos::View<double***, LayoutType, execution_space>;
   const int n0 = 3, n1 = 5, n2 = 8;
   RealView3Dtype x("x", n0, n1, n2);
-  RealView3Dtype xt_axis012, xt_axis021, xt_axis102, xt_axis120,
-      xt_axis201, xt_axis210;  // views are allocated internally
+  RealView3Dtype xt_axis012, xt_axis021, xt_axis102, xt_axis120, xt_axis201,
+      xt_axis210;  // views are allocated internally
   RealView3Dtype ref_axis021("ref_axis021", n0, n2, n1),
       ref_axis102("ref_axis102", n1, n0, n2);
   RealView3Dtype ref_axis120("ref_axis120", n1, n2, n0),
@@ -462,44 +462,31 @@ void test_transpose_4d() {
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2, 3});
 
-  std::vector< axes_type<DIM> > list_of_tested_axes = {
-    axes_type<DIM>({0, 1, 2, 3}),
-    axes_type<DIM>({0, 1, 3, 2}),
-    axes_type<DIM>({0, 2, 1, 3}),
-    axes_type<DIM>({0, 2, 3, 1}),
-    axes_type<DIM>({0, 3, 1, 2}),
-    axes_type<DIM>({0, 3, 2, 1}),
-    axes_type<DIM>({1, 0, 2, 3}),
-    axes_type<DIM>({1, 0, 3, 2}),
-    axes_type<DIM>({1, 2, 0, 3}),
-    axes_type<DIM>({1, 2, 3, 0}),
-    axes_type<DIM>({1, 3, 0, 2}),
-    axes_type<DIM>({1, 3, 2, 0}),
-    axes_type<DIM>({2, 0, 1, 3}),
-    axes_type<DIM>({2, 0, 3, 1}),
-    axes_type<DIM>({2, 1, 0, 3}),
-    axes_type<DIM>({2, 1, 3, 0}),
-    axes_type<DIM>({2, 3, 0, 1}),
-    axes_type<DIM>({2, 3, 1, 0}),
-    axes_type<DIM>({3, 0, 1, 2}),
-    axes_type<DIM>({3, 0, 2, 1}),
-    axes_type<DIM>({3, 1, 0, 2}),
-    axes_type<DIM>({3, 1, 2, 0}),
-    axes_type<DIM>({3, 2, 0, 1}),
-    axes_type<DIM>({3, 2, 1, 0})
-  };
+  std::vector<axes_type<DIM> > list_of_tested_axes = {
+      axes_type<DIM>({0, 1, 2, 3}), axes_type<DIM>({0, 1, 3, 2}),
+      axes_type<DIM>({0, 2, 1, 3}), axes_type<DIM>({0, 2, 3, 1}),
+      axes_type<DIM>({0, 3, 1, 2}), axes_type<DIM>({0, 3, 2, 1}),
+      axes_type<DIM>({1, 0, 2, 3}), axes_type<DIM>({1, 0, 3, 2}),
+      axes_type<DIM>({1, 2, 0, 3}), axes_type<DIM>({1, 2, 3, 0}),
+      axes_type<DIM>({1, 3, 0, 2}), axes_type<DIM>({1, 3, 2, 0}),
+      axes_type<DIM>({2, 0, 1, 3}), axes_type<DIM>({2, 0, 3, 1}),
+      axes_type<DIM>({2, 1, 0, 3}), axes_type<DIM>({2, 1, 3, 0}),
+      axes_type<DIM>({2, 3, 0, 1}), axes_type<DIM>({2, 3, 1, 0}),
+      axes_type<DIM>({3, 0, 1, 2}), axes_type<DIM>({3, 0, 2, 1}),
+      axes_type<DIM>({3, 1, 0, 2}), axes_type<DIM>({3, 1, 2, 0}),
+      axes_type<DIM>({3, 2, 0, 1}), axes_type<DIM>({3, 2, 1, 0})};
 
-  for(auto& tested_axes: list_of_tested_axes) {
+  for (auto& tested_axes : list_of_tested_axes) {
     axes_type<DIM> out_extents;
     auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, tested_axes);
 
     // Convert to vector, need to reverse the order for LayoutLeft
     std::vector<int> _map(map.begin(), map.end());
-    if(std::is_same<LayoutType, Kokkos::LayoutLeft>::value) {
+    if (std::is_same<LayoutType, Kokkos::LayoutLeft>::value) {
       std::reverse(_map.begin(), _map.end());
     }
 
-    for(int i=0; i<DIM; i++) {
+    for (int i = 0; i < DIM; i++) {
       out_extents.at(i) = x.extent(_map.at(i));
     }
 
@@ -557,15 +544,14 @@ void test_transpose_4d() {
     Kokkos::deep_copy(ref, h_ref);
     Kokkos::fence();
 
-    if(tested_axes == default_axes) {
-      EXPECT_THROW(KokkosFFT::Impl::transpose(
-                       execution_space(), x, xt,
-                       tested_axes),  // xt is identical to x
-                   std::runtime_error);
+    if (tested_axes == default_axes) {
+      EXPECT_THROW(
+          KokkosFFT::Impl::transpose(execution_space(), x, xt,
+                                     tested_axes),  // xt is identical to x
+          std::runtime_error);
     } else {
-      KokkosFFT::Impl::transpose(
-          execution_space(), x, xt,
-          tested_axes);  // xt is the transpose of x
+      KokkosFFT::Impl::transpose(execution_space(), x, xt,
+                                 tested_axes);  // xt is the transpose of x
       EXPECT_TRUE(allclose(xt, ref, 1.e-5, 1.e-12));
     }
   }
@@ -588,60 +574,39 @@ void test_transpose_5d() {
   axes_type<DIM> default_axes({0, 1, 2, 3, 4});
 
   // Randomly choosen axes
-  std::vector< axes_type<DIM> > list_of_tested_axes = {
-    axes_type<DIM>({0, 1, 2, 3, 4}),
-    axes_type<DIM>({0, 1, 3, 2, 4}),
-    axes_type<DIM>({0, 2, 1, 3, 4}),
-    axes_type<DIM>({0, 2, 3, 4, 1}),
-    axes_type<DIM>({0, 3, 4, 1, 2}),
-    axes_type<DIM>({0, 3, 2, 1, 4}),
-    axes_type<DIM>({0, 4, 3, 1, 2}),
-    axes_type<DIM>({0, 4, 2, 1, 3}),
-    axes_type<DIM>({1, 0, 2, 3, 4}),
-    axes_type<DIM>({1, 0, 4, 3, 2}),
-    axes_type<DIM>({1, 2, 0, 3, 4}),
-    axes_type<DIM>({1, 2, 3, 4, 0}),
-    axes_type<DIM>({1, 3, 0, 4, 2}),
-    axes_type<DIM>({1, 3, 4, 2, 0}),
-    axes_type<DIM>({1, 4, 0, 2, 3}),
-    axes_type<DIM>({1, 4, 3, 2, 0}),
-    axes_type<DIM>({2, 0, 1, 3, 4}),
-    axes_type<DIM>({2, 0, 4, 3, 1}),
-    axes_type<DIM>({2, 1, 0, 3, 4}),
-    axes_type<DIM>({2, 1, 3, 4, 0}),
-    axes_type<DIM>({2, 3, 4, 0, 1}),
-    axes_type<DIM>({2, 3, 4, 1, 0}),
-    axes_type<DIM>({2, 4, 3, 0, 1}),
-    axes_type<DIM>({2, 4, 1, 0, 3}),
-    axes_type<DIM>({3, 0, 1, 2, 4}),
-    axes_type<DIM>({3, 0, 2, 4, 1}),
-    axes_type<DIM>({3, 1, 0, 2, 4}),
-    axes_type<DIM>({3, 1, 4, 2, 0}),
-    axes_type<DIM>({3, 2, 0, 1, 4}),
-    axes_type<DIM>({3, 2, 1, 4, 0}),
-    axes_type<DIM>({3, 4, 0, 1, 2}),
-    axes_type<DIM>({3, 4, 1, 2, 0}),
-    axes_type<DIM>({4, 0, 1, 2, 3}),
-    axes_type<DIM>({4, 0, 1, 3, 2}),
-    axes_type<DIM>({4, 1, 2, 0, 3}),
-    axes_type<DIM>({4, 1, 2, 3, 0}),
-    axes_type<DIM>({4, 2, 3, 1, 0}),
-    axes_type<DIM>({4, 2, 3, 0, 1}),
-    axes_type<DIM>({4, 3, 1, 0, 2}),
-    axes_type<DIM>({4, 3, 2, 0, 1})
-  };
+  std::vector<axes_type<DIM> > list_of_tested_axes = {
+      axes_type<DIM>({0, 1, 2, 3, 4}), axes_type<DIM>({0, 1, 3, 2, 4}),
+      axes_type<DIM>({0, 2, 1, 3, 4}), axes_type<DIM>({0, 2, 3, 4, 1}),
+      axes_type<DIM>({0, 3, 4, 1, 2}), axes_type<DIM>({0, 3, 2, 1, 4}),
+      axes_type<DIM>({0, 4, 3, 1, 2}), axes_type<DIM>({0, 4, 2, 1, 3}),
+      axes_type<DIM>({1, 0, 2, 3, 4}), axes_type<DIM>({1, 0, 4, 3, 2}),
+      axes_type<DIM>({1, 2, 0, 3, 4}), axes_type<DIM>({1, 2, 3, 4, 0}),
+      axes_type<DIM>({1, 3, 0, 4, 2}), axes_type<DIM>({1, 3, 4, 2, 0}),
+      axes_type<DIM>({1, 4, 0, 2, 3}), axes_type<DIM>({1, 4, 3, 2, 0}),
+      axes_type<DIM>({2, 0, 1, 3, 4}), axes_type<DIM>({2, 0, 4, 3, 1}),
+      axes_type<DIM>({2, 1, 0, 3, 4}), axes_type<DIM>({2, 1, 3, 4, 0}),
+      axes_type<DIM>({2, 3, 4, 0, 1}), axes_type<DIM>({2, 3, 4, 1, 0}),
+      axes_type<DIM>({2, 4, 3, 0, 1}), axes_type<DIM>({2, 4, 1, 0, 3}),
+      axes_type<DIM>({3, 0, 1, 2, 4}), axes_type<DIM>({3, 0, 2, 4, 1}),
+      axes_type<DIM>({3, 1, 0, 2, 4}), axes_type<DIM>({3, 1, 4, 2, 0}),
+      axes_type<DIM>({3, 2, 0, 1, 4}), axes_type<DIM>({3, 2, 1, 4, 0}),
+      axes_type<DIM>({3, 4, 0, 1, 2}), axes_type<DIM>({3, 4, 1, 2, 0}),
+      axes_type<DIM>({4, 0, 1, 2, 3}), axes_type<DIM>({4, 0, 1, 3, 2}),
+      axes_type<DIM>({4, 1, 2, 0, 3}), axes_type<DIM>({4, 1, 2, 3, 0}),
+      axes_type<DIM>({4, 2, 3, 1, 0}), axes_type<DIM>({4, 2, 3, 0, 1}),
+      axes_type<DIM>({4, 3, 1, 0, 2}), axes_type<DIM>({4, 3, 2, 0, 1})};
 
-  for(auto& tested_axes: list_of_tested_axes) {
+  for (auto& tested_axes : list_of_tested_axes) {
     axes_type<DIM> out_extents;
     auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, tested_axes);
 
     // Convert to vector, need to reverse the order for LayoutLeft
     std::vector<int> _map(map.begin(), map.end());
-    if(std::is_same<LayoutType, Kokkos::LayoutLeft>::value) {
+    if (std::is_same<LayoutType, Kokkos::LayoutLeft>::value) {
       std::reverse(_map.begin(), _map.end());
     }
 
-    for(int i=0; i<DIM; i++) {
+    for (int i = 0; i < DIM; i++) {
       out_extents.at(i) = x.extent(_map.at(i));
     }
 
@@ -668,7 +633,7 @@ void test_transpose_5d() {
               } else if (_map[0] == 4) {
                 _i0 = i4;
               }
- 
+
               if (_map[1] == 0) {
                 _i1 = i0;
               } else if (_map[1] == 2) {
@@ -719,15 +684,14 @@ void test_transpose_5d() {
     Kokkos::deep_copy(ref, h_ref);
     Kokkos::fence();
 
-    if(tested_axes == default_axes) {
-      EXPECT_THROW(KokkosFFT::Impl::transpose(
-                       execution_space(), x, xt,
-                       tested_axes),  // xt is identical to x
-                   std::runtime_error);
+    if (tested_axes == default_axes) {
+      EXPECT_THROW(
+          KokkosFFT::Impl::transpose(execution_space(), x, xt,
+                                     tested_axes),  // xt is identical to x
+          std::runtime_error);
     } else {
-      KokkosFFT::Impl::transpose(
-          execution_space(), x, xt,
-          tested_axes);  // xt is the transpose of x
+      KokkosFFT::Impl::transpose(execution_space(), x, xt,
+                                 tested_axes);  // xt is the transpose of x
       EXPECT_TRUE(allclose(xt, ref, 1.e-5, 1.e-12));
     }
   }
@@ -735,7 +699,8 @@ void test_transpose_5d() {
 
 template <typename LayoutType>
 void test_transpose_6d() {
-  using RealView6DType = Kokkos::View<double******, LayoutType, execution_space>;
+  using RealView6DType =
+      Kokkos::View<double******, LayoutType, execution_space>;
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6, n5 = 7;
   constexpr std::size_t DIM = 6;
   RealView6DType x("x", n0, n1, n2, n3, n4, n5);
@@ -750,28 +715,28 @@ void test_transpose_6d() {
   axes_type<DIM> default_axes({0, 1, 2, 3, 4, 5});
 
   // Too much combinations, choose axes randomly
-  std::vector< axes_type<DIM> > list_of_tested_axes;
+  std::vector<axes_type<DIM> > list_of_tested_axes;
 
   constexpr int nb_trials = 100;
-  auto rng = std::default_random_engine {};
+  auto rng                = std::default_random_engine{};
 
-  for(int i=0; i<nb_trials; i++) {
+  for (int i = 0; i < nb_trials; i++) {
     axes_type<DIM> tmp_axes = default_axes;
     std::shuffle(std::begin(tmp_axes), std::end(tmp_axes), rng);
     list_of_tested_axes.push_back(tmp_axes);
   }
-  
-  for(auto& tested_axes: list_of_tested_axes) {
+
+  for (auto& tested_axes : list_of_tested_axes) {
     axes_type<DIM> out_extents;
     auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, tested_axes);
 
     // Convert to vector, need to reverse the order for LayoutLeft
     std::vector<int> _map(map.begin(), map.end());
-    if(std::is_same<LayoutType, Kokkos::LayoutLeft>::value) {
+    if (std::is_same<LayoutType, Kokkos::LayoutLeft>::value) {
       std::reverse(_map.begin(), _map.end());
     }
 
-    for(int i=0; i<DIM; i++) {
+    for (int i = 0; i < DIM; i++) {
       out_extents.at(i) = x.extent(_map.at(i));
     }
 
@@ -801,7 +766,7 @@ void test_transpose_6d() {
                 } else if (_map[0] == 5) {
                   _i0 = i5;
                 }
-  
+
                 if (_map[1] == 0) {
                   _i1 = i0;
                 } else if (_map[1] == 2) {
@@ -862,7 +827,8 @@ void test_transpose_6d() {
                   _i5 = i4;
                 }
 
-                h_ref(_i0, _i1, _i2, _i3, _i4, _i5) = h_x(i0, i1, i2, i3, i4, i5);
+                h_ref(_i0, _i1, _i2, _i3, _i4, _i5) =
+                    h_x(i0, i1, i2, i3, i4, i5);
               }
             }
           }
@@ -873,15 +839,14 @@ void test_transpose_6d() {
     Kokkos::deep_copy(ref, h_ref);
     Kokkos::fence();
 
-    if(tested_axes == default_axes) {
-      EXPECT_THROW(KokkosFFT::Impl::transpose(
-                       execution_space(), x, xt,
-                       tested_axes),  // xt is identical to x
-                   std::runtime_error);
+    if (tested_axes == default_axes) {
+      EXPECT_THROW(
+          KokkosFFT::Impl::transpose(execution_space(), x, xt,
+                                     tested_axes),  // xt is identical to x
+          std::runtime_error);
     } else {
-      KokkosFFT::Impl::transpose(
-          execution_space(), x, xt,
-          tested_axes);  // xt is the transpose of x
+      KokkosFFT::Impl::transpose(execution_space(), x, xt,
+                                 tested_axes);  // xt is the transpose of x
       EXPECT_TRUE(allclose(xt, ref, 1.e-5, 1.e-12));
     }
   }
@@ -889,7 +854,8 @@ void test_transpose_6d() {
 
 template <typename LayoutType>
 void test_transpose_7d() {
-  using RealView7DType = Kokkos::View<double*******, LayoutType, execution_space>;
+  using RealView7DType =
+      Kokkos::View<double*******, LayoutType, execution_space>;
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6, n5 = 7, n6 = 8;
   constexpr std::size_t DIM = 7;
   RealView7DType x("x", n0, n1, n2, n3, n4, n5, n6);
@@ -904,28 +870,28 @@ void test_transpose_7d() {
   axes_type<DIM> default_axes({0, 1, 2, 3, 4, 5, 6});
 
   // Too much combinations, choose axes randomly
-  std::vector< axes_type<DIM> > list_of_tested_axes;
+  std::vector<axes_type<DIM> > list_of_tested_axes;
 
   constexpr int nb_trials = 100;
-  auto rng = std::default_random_engine {};
+  auto rng                = std::default_random_engine{};
 
-  for(int i=0; i<nb_trials; i++) {
+  for (int i = 0; i < nb_trials; i++) {
     axes_type<DIM> tmp_axes = default_axes;
     std::shuffle(std::begin(tmp_axes), std::end(tmp_axes), rng);
     list_of_tested_axes.push_back(tmp_axes);
   }
-  
-  for(auto& tested_axes: list_of_tested_axes) {
+
+  for (auto& tested_axes : list_of_tested_axes) {
     axes_type<DIM> out_extents;
     auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, tested_axes);
 
     // Convert to vector, need to reverse the order for LayoutLeft
     std::vector<int> _map(map.begin(), map.end());
-    if(std::is_same<LayoutType, Kokkos::LayoutLeft>::value) {
+    if (std::is_same<LayoutType, Kokkos::LayoutLeft>::value) {
       std::reverse(_map.begin(), _map.end());
     }
 
-    for(int i=0; i<DIM; i++) {
+    for (int i = 0; i < DIM; i++) {
       out_extents.at(i) = x.extent(_map.at(i));
     }
 
@@ -944,7 +910,8 @@ void test_transpose_7d() {
             for (int i4 = 0; i4 < h_x.extent(4); i4++) {
               for (int i5 = 0; i5 < h_x.extent(5); i5++) {
                 for (int i6 = 0; i6 < h_x.extent(6); i6++) {
-                  int _i0 = i0, _i1 = i1, _i2 = i2, _i3 = i3, _i4 = i4, _i5 = i5, _i6 = i6;
+                  int _i0 = i0, _i1 = i1, _i2 = i2, _i3 = i3, _i4 = i4,
+                      _i5 = i5, _i6 = i6;
                   if (_map[0] == 1) {
                     _i0 = i1;
                   } else if (_map[0] == 2) {
@@ -958,7 +925,7 @@ void test_transpose_7d() {
                   } else if (_map[0] == 6) {
                     _i0 = i6;
                   }
-    
+
                   if (_map[1] == 0) {
                     _i1 = i0;
                   } else if (_map[1] == 2) {
@@ -1043,7 +1010,8 @@ void test_transpose_7d() {
                     _i6 = i5;
                   }
 
-                  h_ref(_i0, _i1, _i2, _i3, _i4, _i5, _i6) = h_x(i0, i1, i2, i3, i4, i5, i6);
+                  h_ref(_i0, _i1, _i2, _i3, _i4, _i5, _i6) =
+                      h_x(i0, i1, i2, i3, i4, i5, i6);
                 }
               }
             }
@@ -1055,15 +1023,14 @@ void test_transpose_7d() {
     Kokkos::deep_copy(ref, h_ref);
     Kokkos::fence();
 
-    if(tested_axes == default_axes) {
-      EXPECT_THROW(KokkosFFT::Impl::transpose(
-                       execution_space(), x, xt,
-                       tested_axes),  // xt is identical to x
-                   std::runtime_error);
+    if (tested_axes == default_axes) {
+      EXPECT_THROW(
+          KokkosFFT::Impl::transpose(execution_space(), x, xt,
+                                     tested_axes),  // xt is identical to x
+          std::runtime_error);
     } else {
-      KokkosFFT::Impl::transpose(
-          execution_space(), x, xt,
-          tested_axes);  // xt is the transpose of x
+      KokkosFFT::Impl::transpose(execution_space(), x, xt,
+                                 tested_axes);  // xt is the transpose of x
       EXPECT_TRUE(allclose(xt, ref, 1.e-5, 1.e-12));
     }
   }
@@ -1071,7 +1038,8 @@ void test_transpose_7d() {
 
 template <typename LayoutType>
 void test_transpose_8d() {
-  using RealView8DType = Kokkos::View<double********, LayoutType, execution_space>;
+  using RealView8DType =
+      Kokkos::View<double********, LayoutType, execution_space>;
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6, n5 = 7, n6 = 8, n7 = 9;
   constexpr std::size_t DIM = 8;
   RealView8DType x("x", n0, n1, n2, n3, n4, n5, n6, n7);
@@ -1086,28 +1054,28 @@ void test_transpose_8d() {
   axes_type<DIM> default_axes({0, 1, 2, 3, 4, 5, 6, 7});
 
   // Too much combinations, choose axes randomly
-  std::vector< axes_type<DIM> > list_of_tested_axes;
+  std::vector<axes_type<DIM> > list_of_tested_axes;
 
   constexpr int nb_trials = 100;
-  auto rng = std::default_random_engine {};
+  auto rng                = std::default_random_engine{};
 
-  for(int i=0; i<nb_trials; i++) {
+  for (int i = 0; i < nb_trials; i++) {
     axes_type<DIM> tmp_axes = default_axes;
     std::shuffle(std::begin(tmp_axes), std::end(tmp_axes), rng);
     list_of_tested_axes.push_back(tmp_axes);
   }
-  
-  for(auto& tested_axes: list_of_tested_axes) {
+
+  for (auto& tested_axes : list_of_tested_axes) {
     axes_type<DIM> out_extents;
     auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, tested_axes);
 
     // Convert to vector, need to reverse the order for LayoutLeft
     std::vector<int> _map(map.begin(), map.end());
-    if(std::is_same<LayoutType, Kokkos::LayoutLeft>::value) {
+    if (std::is_same<LayoutType, Kokkos::LayoutLeft>::value) {
       std::reverse(_map.begin(), _map.end());
     }
 
-    for(int i=0; i<DIM; i++) {
+    for (int i = 0; i < DIM; i++) {
       out_extents.at(i) = x.extent(_map.at(i));
     }
 
@@ -1127,7 +1095,8 @@ void test_transpose_8d() {
               for (int i5 = 0; i5 < h_x.extent(5); i5++) {
                 for (int i6 = 0; i6 < h_x.extent(6); i6++) {
                   for (int i7 = 0; i7 < h_x.extent(7); i7++) {
-                    int _i0 = i0, _i1 = i1, _i2 = i2, _i3 = i3, _i4 = i4, _i5 = i5, _i6 = i6, _i7 = i7;
+                    int _i0 = i0, _i1 = i1, _i2 = i2, _i3 = i3, _i4 = i4,
+                        _i5 = i5, _i6 = i6, _i7 = i7;
                     if (_map[0] == 1) {
                       _i0 = i1;
                     } else if (_map[0] == 2) {
@@ -1143,7 +1112,7 @@ void test_transpose_8d() {
                     } else if (_map[0] == 7) {
                       _i0 = i7;
                     }
-      
+
                     if (_map[1] == 0) {
                       _i1 = i0;
                     } else if (_map[1] == 2) {
@@ -1256,7 +1225,8 @@ void test_transpose_8d() {
                       _i7 = i6;
                     }
 
-                    h_ref(_i0, _i1, _i2, _i3, _i4, _i5, _i6, _i7) = h_x(i0, i1, i2, i3, i4, i5, i6, i7);
+                    h_ref(_i0, _i1, _i2, _i3, _i4, _i5, _i6, _i7) =
+                        h_x(i0, i1, i2, i3, i4, i5, i6, i7);
                   }
                 }
               }
@@ -1269,15 +1239,14 @@ void test_transpose_8d() {
     Kokkos::deep_copy(ref, h_ref);
     Kokkos::fence();
 
-    if(tested_axes == default_axes) {
-      EXPECT_THROW(KokkosFFT::Impl::transpose(
-                       execution_space(), x, xt,
-                       tested_axes),  // xt is identical to x
-                   std::runtime_error);
+    if (tested_axes == default_axes) {
+      EXPECT_THROW(
+          KokkosFFT::Impl::transpose(execution_space(), x, xt,
+                                     tested_axes),  // xt is identical to x
+          std::runtime_error);
     } else {
-      KokkosFFT::Impl::transpose(
-          execution_space(), x, xt,
-          tested_axes);  // xt is the transpose of x
+      KokkosFFT::Impl::transpose(execution_space(), x, xt,
+                                 tested_axes);  // xt is the transpose of x
       EXPECT_TRUE(allclose(xt, ref, 1.e-5, 1.e-12));
     }
   }

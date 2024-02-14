@@ -730,14 +730,14 @@ TEST(CropOrPad4D, View4D) {
   Kokkos::fill_random(x, random_pool, 1.0);
 
   auto rand_engine = std::mt19937(0);
-  auto rand_dist = std::uniform_int_distribution<int>(-1, 1);
+  auto rand_dist   = std::uniform_int_distribution<int>(-1, 1);
 
   auto h_x = Kokkos::create_mirror_view(x);
   Kokkos::deep_copy(h_x, x);
   for (int d0 = -1; d0 <= 1; d0++) {
     for (int d1 = -1; d1 <= 1; d1++) {
       for (int d2 = -1; d2 <= 1; d2++) {
-        int d3 = rand_dist(rand_engine);
+        int d3                  = rand_dist(rand_engine);
         std::size_t n0_new      = static_cast<std::size_t>(n0 + d0);
         std::size_t n1_new      = static_cast<std::size_t>(n1 + d1);
         std::size_t n2_new      = static_cast<std::size_t>(n2 + d2);
@@ -754,7 +754,7 @@ TEST(CropOrPad4D, View4D) {
               for (int i0 = 0; i0 < n0; i0++) {
                 if (i0 >= h_ref_x.extent(0) || i1 >= h_ref_x.extent(1) ||
                     i2 >= h_ref_x.extent(2) || i3 >= h_ref_x.extent(3))
-                continue;
+                  continue;
                 h_ref_x(i0, i1, i2, i3) = h_x(i0, i1, i2, i3);
               }
             }
@@ -777,15 +777,15 @@ TEST(CropOrPad5D, View5D) {
   Kokkos::fill_random(x, random_pool, 1.0);
 
   auto rand_engine = std::mt19937(0);
-  auto rand_dist = std::uniform_int_distribution<int>(-1, 1);
-  
+  auto rand_dist   = std::uniform_int_distribution<int>(-1, 1);
+
   auto h_x = Kokkos::create_mirror_view(x);
   Kokkos::deep_copy(h_x, x);
   for (int d0 = -1; d0 <= 1; d0++) {
     for (int d1 = -1; d1 <= 1; d1++) {
       for (int d2 = -1; d2 <= 1; d2++) {
-        int d3 = rand_dist(rand_engine);
-        int d4 = rand_dist(rand_engine);
+        int d3                  = rand_dist(rand_engine);
+        int d4                  = rand_dist(rand_engine);
         std::size_t n0_new      = static_cast<std::size_t>(n0 + d0);
         std::size_t n1_new      = static_cast<std::size_t>(n1 + d1);
         std::size_t n2_new      = static_cast<std::size_t>(n2 + d2);
@@ -805,7 +805,7 @@ TEST(CropOrPad5D, View5D) {
                   if (i0 >= h_ref_x.extent(0) || i1 >= h_ref_x.extent(1) ||
                       i2 >= h_ref_x.extent(2) || i3 >= h_ref_x.extent(3) ||
                       i4 >= h_ref_x.extent(4))
-                  continue;
+                    continue;
                   h_ref_x(i0, i1, i2, i3, i4) = h_x(i0, i1, i2, i3, i4);
                 }
               }
@@ -829,26 +829,28 @@ TEST(CropOrPad6D, View6D) {
   Kokkos::fill_random(x, random_pool, 1.0);
 
   auto rand_engine = std::mt19937(0);
-  auto rand_dist = std::uniform_int_distribution<int>(-1, 1);
-  
+  auto rand_dist   = std::uniform_int_distribution<int>(-1, 1);
+
   auto h_x = Kokkos::create_mirror_view(x);
   Kokkos::deep_copy(h_x, x);
   for (int d0 = -1; d0 <= 1; d0++) {
     for (int d1 = -1; d1 <= 1; d1++) {
       for (int d2 = -1; d2 <= 1; d2++) {
-        int d3 = rand_dist(rand_engine);
-        int d4 = rand_dist(rand_engine);
-        int d5 = rand_dist(rand_engine);
+        int d3                  = rand_dist(rand_engine);
+        int d4                  = rand_dist(rand_engine);
+        int d5                  = rand_dist(rand_engine);
         std::size_t n0_new      = static_cast<std::size_t>(n0 + d0);
         std::size_t n1_new      = static_cast<std::size_t>(n1 + d1);
         std::size_t n2_new      = static_cast<std::size_t>(n2 + d2);
         std::size_t n3_new      = static_cast<std::size_t>(n3 + d3);
         std::size_t n4_new      = static_cast<std::size_t>(n4 + d4);
         std::size_t n5_new      = static_cast<std::size_t>(n5 + d5);
-        shape_type<6> shape_new = {n0_new, n1_new, n2_new, n3_new, n4_new, n5_new};
+        shape_type<6> shape_new = {n0_new, n1_new, n2_new,
+                                   n3_new, n4_new, n5_new};
 
         View6D<double> _x;
-        View6D<double> ref_x("ref_x", n0_new, n1_new, n2_new, n3_new, n4_new, n5_new);
+        View6D<double> ref_x("ref_x", n0_new, n1_new, n2_new, n3_new, n4_new,
+                             n5_new);
 
         auto h_ref_x = Kokkos::create_mirror_view(ref_x);
         for (int i5 = 0; i5 < n5; i5++) {
@@ -860,8 +862,9 @@ TEST(CropOrPad6D, View6D) {
                     if (i0 >= h_ref_x.extent(0) || i1 >= h_ref_x.extent(1) ||
                         i2 >= h_ref_x.extent(2) || i3 >= h_ref_x.extent(3) ||
                         i4 >= h_ref_x.extent(4) || i5 >= h_ref_x.extent(5))
-                    continue;
-                    h_ref_x(i0, i1, i2, i3, i4, i5) = h_x(i0, i1, i2, i3, i4, i5);
+                      continue;
+                    h_ref_x(i0, i1, i2, i3, i4, i5) =
+                        h_x(i0, i1, i2, i3, i4, i5);
                   }
                 }
               }
@@ -885,17 +888,17 @@ TEST(CropOrPad7D, View7D) {
   Kokkos::fill_random(x, random_pool, 1.0);
 
   auto rand_engine = std::mt19937(0);
-  auto rand_dist = std::uniform_int_distribution<int>(-1, 1);
-  
+  auto rand_dist   = std::uniform_int_distribution<int>(-1, 1);
+
   auto h_x = Kokkos::create_mirror_view(x);
   Kokkos::deep_copy(h_x, x);
   for (int d0 = -1; d0 <= 1; d0++) {
     for (int d1 = -1; d1 <= 1; d1++) {
       for (int d2 = -1; d2 <= 1; d2++) {
-        int d3 = rand_dist(rand_engine);
-        int d4 = rand_dist(rand_engine);
-        int d5 = rand_dist(rand_engine);
-        int d6 = rand_dist(rand_engine);
+        int d3                  = rand_dist(rand_engine);
+        int d4                  = rand_dist(rand_engine);
+        int d5                  = rand_dist(rand_engine);
+        int d6                  = rand_dist(rand_engine);
         std::size_t n0_new      = static_cast<std::size_t>(n0 + d0);
         std::size_t n1_new      = static_cast<std::size_t>(n1 + d1);
         std::size_t n2_new      = static_cast<std::size_t>(n2 + d2);
@@ -903,10 +906,12 @@ TEST(CropOrPad7D, View7D) {
         std::size_t n4_new      = static_cast<std::size_t>(n4 + d4);
         std::size_t n5_new      = static_cast<std::size_t>(n5 + d5);
         std::size_t n6_new      = static_cast<std::size_t>(n6 + d6);
-        shape_type<7> shape_new = {n0_new, n1_new, n2_new, n3_new, n4_new, n5_new, n6_new};
+        shape_type<7> shape_new = {n0_new, n1_new, n2_new, n3_new,
+                                   n4_new, n5_new, n6_new};
 
         View7D<double> _x;
-        View7D<double> ref_x("ref_x", n0_new, n1_new, n2_new, n3_new, n4_new, n5_new, n6_new);
+        View7D<double> ref_x("ref_x", n0_new, n1_new, n2_new, n3_new, n4_new,
+                             n5_new, n6_new);
 
         auto h_ref_x = Kokkos::create_mirror_view(ref_x);
         for (int i6 = 0; i6 < n6; i6++) {
@@ -920,8 +925,9 @@ TEST(CropOrPad7D, View7D) {
                           i2 >= h_ref_x.extent(2) || i3 >= h_ref_x.extent(3) ||
                           i4 >= h_ref_x.extent(4) || i5 >= h_ref_x.extent(5) ||
                           i6 >= h_ref_x.extent(6))
-                      continue;
-                      h_ref_x(i0, i1, i2, i3, i4, i5, i6) = h_x(i0, i1, i2, i3, i4, i5, i6);
+                        continue;
+                      h_ref_x(i0, i1, i2, i3, i4, i5, i6) =
+                          h_x(i0, i1, i2, i3, i4, i5, i6);
                     }
                   }
                 }
@@ -946,18 +952,18 @@ TEST(CropOrPad8D, View8D) {
   Kokkos::fill_random(x, random_pool, 1.0);
 
   auto rand_engine = std::mt19937(0);
-  auto rand_dist = std::uniform_int_distribution<int>(-1, 1);
-  
+  auto rand_dist   = std::uniform_int_distribution<int>(-1, 1);
+
   auto h_x = Kokkos::create_mirror_view(x);
   Kokkos::deep_copy(h_x, x);
   for (int d0 = -1; d0 <= 1; d0++) {
     for (int d1 = -1; d1 <= 1; d1++) {
       for (int d2 = -1; d2 <= 1; d2++) {
-        int d3 = rand_dist(rand_engine);
-        int d4 = rand_dist(rand_engine);
-        int d5 = rand_dist(rand_engine);
-        int d6 = rand_dist(rand_engine);
-        int d7 = rand_dist(rand_engine);
+        int d3                  = rand_dist(rand_engine);
+        int d4                  = rand_dist(rand_engine);
+        int d5                  = rand_dist(rand_engine);
+        int d6                  = rand_dist(rand_engine);
+        int d7                  = rand_dist(rand_engine);
         std::size_t n0_new      = static_cast<std::size_t>(n0 + d0);
         std::size_t n1_new      = static_cast<std::size_t>(n1 + d1);
         std::size_t n2_new      = static_cast<std::size_t>(n2 + d2);
@@ -966,10 +972,12 @@ TEST(CropOrPad8D, View8D) {
         std::size_t n5_new      = static_cast<std::size_t>(n5 + d5);
         std::size_t n6_new      = static_cast<std::size_t>(n6 + d6);
         std::size_t n7_new      = static_cast<std::size_t>(n7 + d7);
-        shape_type<8> shape_new = {n0_new, n1_new, n2_new, n3_new, n4_new, n5_new, n6_new, n7_new};
+        shape_type<8> shape_new = {n0_new, n1_new, n2_new, n3_new,
+                                   n4_new, n5_new, n6_new, n7_new};
 
         View8D<double> _x;
-        View8D<double> ref_x("ref_x", n0_new, n1_new, n2_new, n3_new, n4_new, n5_new, n6_new, n7_new);
+        View8D<double> ref_x("ref_x", n0_new, n1_new, n2_new, n3_new, n4_new,
+                             n5_new, n6_new, n7_new);
 
         auto h_ref_x = Kokkos::create_mirror_view(ref_x);
         for (int i7 = 0; i7 < n7; i7++) {
@@ -980,12 +988,16 @@ TEST(CropOrPad8D, View8D) {
                   for (int i2 = 0; i2 < n2; i2++) {
                     for (int i1 = 0; i1 < n1; i1++) {
                       for (int i0 = 0; i0 < n0; i0++) {
-                        if (i0 >= h_ref_x.extent(0) || i1 >= h_ref_x.extent(1) ||
-                            i2 >= h_ref_x.extent(2) || i3 >= h_ref_x.extent(3) ||
-                            i4 >= h_ref_x.extent(4) || i5 >= h_ref_x.extent(5) ||
+                        if (i0 >= h_ref_x.extent(0) ||
+                            i1 >= h_ref_x.extent(1) ||
+                            i2 >= h_ref_x.extent(2) ||
+                            i3 >= h_ref_x.extent(3) ||
+                            i4 >= h_ref_x.extent(4) ||
+                            i5 >= h_ref_x.extent(5) ||
                             i6 >= h_ref_x.extent(6) || i7 >= h_ref_x.extent(7))
-                        continue;
-                        h_ref_x(i0, i1, i2, i3, i4, i5, i6, i7) = h_x(i0, i1, i2, i3, i4, i5, i6, i7);
+                          continue;
+                        h_ref_x(i0, i1, i2, i3, i4, i5, i6, i7) =
+                            h_x(i0, i1, i2, i3, i4, i5, i6, i7);
                       }
                     }
                   }
