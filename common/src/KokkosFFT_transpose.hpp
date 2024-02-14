@@ -11,10 +11,10 @@ namespace Impl {
 template <typename ViewType, std::size_t DIM>
 auto get_map_axes(const ViewType& view, axis_type<DIM> _axes) {
   static_assert(ViewType::rank() >= DIM,
-                "KokkosFFT::get_map_axes: Rank of View must be larger thane or "
+                "get_map_axes: Rank of View must be larger thane or "
                 "equal to the Rank of FFT axes.");
   static_assert(DIM > 0,
-                "KokkosFFT::get_map_axes: Rank of FFT axes must be larger than "
+                "get_map_axes: Rank of FFT axes must be larger than "
                 "or equal to 1.");
 
   constexpr int rank      = static_cast<int>(ViewType::rank());
@@ -91,10 +91,6 @@ template <typename ExecutionSpace, typename InViewType, typename OutViewType>
 void _transpose(const ExecutionSpace& exec_space, InViewType& in,
                 OutViewType& out, axis_type<2> _map) {
   constexpr std::size_t DIM = 2;
-  static_assert(InViewType::rank() == DIM,
-                "KokkosFFT::_transpose: Rank of View must be equal to Rank of "
-                "transpose axes.");
-
   constexpr std::size_t rank = InViewType::rank();
   using array_layout_type    = typename InViewType::array_layout;
 
@@ -132,9 +128,6 @@ template <typename ExecutionSpace, typename InViewType, typename OutViewType>
 void _transpose(const ExecutionSpace& exec_space, InViewType& in,
                 OutViewType& out, axis_type<3> _map) {
   constexpr std::size_t DIM = 3;
-  static_assert(InViewType::rank() == DIM,
-                "KokkosFFT::_transpose: Rank of View must be equal to Rank of "
-                "transpose axes.");
   constexpr std::size_t rank = InViewType::rank();
   using array_layout_type    = typename InViewType::array_layout;
 
@@ -192,6 +185,459 @@ void _transpose(const ExecutionSpace& exec_space, InViewType& in,
       });
 }
 
+template <typename ExecutionSpace, typename InViewType, typename OutViewType>
+void _transpose(const ExecutionSpace& exec_space, InViewType& in,
+                OutViewType& out, axis_type<4> _map) {
+  constexpr std::size_t DIM = 4;
+  constexpr std::size_t rank = InViewType::rank();
+  using array_layout_type    = typename InViewType::array_layout;
+
+  using range_type = Kokkos::MDRangePolicy<
+      ExecutionSpace,
+      Kokkos::Rank<DIM, Kokkos::Iterate::Default, Kokkos::Iterate::Default> >;
+  using tile_type  = typename range_type::tile_type;
+  using point_type = typename range_type::point_type;
+
+  int n0 = in.extent(0), n1 = in.extent(1), n2 = in.extent(2), n3 = in.extent(3);
+
+  range_type range(
+      point_type{{0, 0, 0, 0}}, point_type{{n0, n1, n2, n3}}, tile_type{{4, 4, 4, 4}}
+      // [TO DO] Choose optimal tile sizes for each device
+  );
+
+  // Assign a View if not a shallow copy
+  bool is_out_view_ready = true;
+  std::array<int, rank> out_extents;
+  for (int i = 0; i < rank; i++) {
+    out_extents.at(i) = in.extent(_map.at(i));
+    if (out_extents.at(i) != out.extent(i)) {
+      is_out_view_ready = false;
+    }
+  }
+
+  if (!is_out_view_ready) {
+    auto [_n0, _n1, _n2, _n3] = out_extents;
+    out                       = OutViewType("out", _n0, _n1, _n2, _n3);
+  }
+
+  Kokkos::Array<int, rank> map = {_map[0], _map[1], _map[2], _map[3]};
+  Kokkos::parallel_for(
+      range, KOKKOS_LAMBDA(int i0, int i1, int i2, int i3) {
+        int _i0 = (map[0] == 1) ? i1 :
+                  (map[0] == 2) ? i2 :
+                  (map[0] == 3) ? i3 :
+                                  i0 ;
+
+        int _i1 = (map[1] == 0) ? i0 :
+                  (map[1] == 2) ? i2 :
+                  (map[1] == 3) ? i3 :
+                                  i1 ;
+
+        int _i2 = (map[2] == 0) ? i0 :
+                  (map[2] == 1) ? i1 :
+                  (map[2] == 3) ? i3 :
+                                  i2 ;
+
+        int _i3 = (map[3] == 0) ? i0 :
+                  (map[3] == 1) ? i1 :
+                  (map[3] == 2) ? i2 :
+                                  i3 ;
+
+        out(_i0, _i1, _i2, _i3) = in(i0, i1, i2, i3);
+      });
+}
+
+template <typename ExecutionSpace, typename InViewType, typename OutViewType>
+void _transpose(const ExecutionSpace& exec_space, InViewType& in,
+                OutViewType& out, axis_type<5> _map) {
+  constexpr std::size_t DIM = 5;
+  constexpr std::size_t rank = InViewType::rank();
+  using array_layout_type    = typename InViewType::array_layout;
+
+  using range_type = Kokkos::MDRangePolicy<
+      ExecutionSpace,
+      Kokkos::Rank<DIM, Kokkos::Iterate::Default, Kokkos::Iterate::Default> >;
+  using tile_type  = typename range_type::tile_type;
+  using point_type = typename range_type::point_type;
+
+  int n0 = in.extent(0), n1 = in.extent(1), n2 = in.extent(2), n3 = in.extent(3);
+  int n4 = in.extent(4);
+
+  range_type range(
+      point_type{{0, 0, 0, 0, 0}}, point_type{{n0, n1, n2, n3, n4}}, tile_type{{4, 4, 4, 4, 1}}
+      // [TO DO] Choose optimal tile sizes for each device
+  );
+
+  // Assign a View if not a shallow copy
+  bool is_out_view_ready = true;
+  std::array<int, rank> out_extents;
+  for (int i = 0; i < rank; i++) {
+    out_extents.at(i) = in.extent(_map.at(i));
+    if (out_extents.at(i) != out.extent(i)) {
+      is_out_view_ready = false;
+    }
+  }
+
+  if (!is_out_view_ready) {
+    auto [_n0, _n1, _n2, _n3, _n4] = out_extents;
+    out                            = OutViewType("out", _n0, _n1, _n2, _n3, _n4);
+  }
+
+  Kokkos::Array<int, rank> map = {_map[0], _map[1], _map[2], _map[3], _map[4]};
+  Kokkos::parallel_for(
+      range, KOKKOS_LAMBDA(int i0, int i1, int i2, int i3, int i4) {
+        int _i0 = (map[0] == 1) ? i1 :
+                  (map[0] == 2) ? i2 :
+                  (map[0] == 3) ? i3 :
+                  (map[0] == 4) ? i4 :
+                                  i0 ;
+
+        int _i1 = (map[1] == 0) ? i0 :
+                  (map[1] == 2) ? i2 :
+                  (map[1] == 3) ? i3 :
+                  (map[1] == 4) ? i4 :
+                                  i1 ;
+
+        int _i2 = (map[2] == 0) ? i0 :
+                  (map[2] == 1) ? i1 :
+                  (map[2] == 3) ? i3 :
+                  (map[2] == 4) ? i4 :
+                                  i2 ;
+
+        int _i3 = (map[3] == 0) ? i0 :
+                  (map[3] == 1) ? i1 :
+                  (map[3] == 2) ? i2 :
+                  (map[3] == 4) ? i4 :
+                                  i3 ;
+
+        int _i4 = (map[4] == 0) ? i0 :
+                  (map[4] == 1) ? i1 :
+                  (map[4] == 2) ? i2 :
+                  (map[4] == 3) ? i3 :
+                                  i4 ;
+
+        out(_i0, _i1, _i2, _i3, _i4) = in(i0, i1, i2, i3, i4);
+      });
+}
+
+template <typename ExecutionSpace, typename InViewType, typename OutViewType>
+void _transpose(const ExecutionSpace& exec_space, InViewType& in,
+                OutViewType& out, axis_type<6> _map) {
+  constexpr std::size_t DIM = 6;
+  constexpr std::size_t rank = InViewType::rank();
+  using array_layout_type    = typename InViewType::array_layout;
+
+  using range_type = Kokkos::MDRangePolicy<
+      ExecutionSpace,
+      Kokkos::Rank<DIM, Kokkos::Iterate::Default, Kokkos::Iterate::Default> >;
+  using tile_type  = typename range_type::tile_type;
+  using point_type = typename range_type::point_type;
+
+  int n0 = in.extent(0), n1 = in.extent(1), n2 = in.extent(2), n3 = in.extent(3);
+  int n4 = in.extent(4), n5 = in.extent(5);
+
+  range_type range(
+      point_type{{0, 0, 0, 0, 0, 0}}, point_type{{n0, n1, n2, n3, n4, n5}}, tile_type{{4, 4, 4, 4, 1, 1}}
+      // [TO DO] Choose optimal tile sizes for each device
+  );
+
+  // Assign a View if not a shallow copy
+  bool is_out_view_ready = true;
+  std::array<int, rank> out_extents;
+  for (int i = 0; i < rank; i++) {
+    out_extents.at(i) = in.extent(_map.at(i));
+    if (out_extents.at(i) != out.extent(i)) {
+      is_out_view_ready = false;
+    }
+  }
+
+  if (!is_out_view_ready) {
+    auto [_n0, _n1, _n2, _n3, _n4, _n5] = out_extents;
+    out                                 = OutViewType("out", _n0, _n1, _n2, _n3, _n4, _n5);
+  }
+
+  Kokkos::Array<int, rank> map = {_map[0], _map[1], _map[2], _map[3], _map[4], _map[5]};
+  Kokkos::parallel_for(
+      range, KOKKOS_LAMBDA(int i0, int i1, int i2, int i3, int i4, int i5) {
+        int _i0 = (map[0] == 1) ? i1 :
+                  (map[0] == 2) ? i2 :
+                  (map[0] == 3) ? i3 :
+                  (map[0] == 4) ? i4 :
+                  (map[0] == 5) ? i5 :
+                                  i0 ;
+
+        int _i1 = (map[1] == 0) ? i0 :
+                  (map[1] == 2) ? i2 :
+                  (map[1] == 3) ? i3 :
+                  (map[1] == 4) ? i4 :
+                  (map[1] == 5) ? i5 :
+                                  i1 ;
+
+        int _i2 = (map[2] == 0) ? i0 :
+                  (map[2] == 1) ? i1 :
+                  (map[2] == 3) ? i3 :
+                  (map[2] == 4) ? i4 :
+                  (map[2] == 5) ? i5 :
+                                  i2 ;
+
+        int _i3 = (map[3] == 0) ? i0 :
+                  (map[3] == 1) ? i1 :
+                  (map[3] == 2) ? i2 :
+                  (map[3] == 4) ? i4 :
+                  (map[3] == 5) ? i5 :
+                                  i3 ;
+
+        int _i4 = (map[4] == 0) ? i0 :
+                  (map[4] == 1) ? i1 :
+                  (map[4] == 2) ? i2 :
+                  (map[4] == 3) ? i3 :
+                  (map[4] == 5) ? i5 :
+                                  i4 ;
+
+        int _i5 = (map[5] == 0) ? i0 :
+                  (map[5] == 1) ? i1 :
+                  (map[5] == 2) ? i2 :
+                  (map[5] == 3) ? i3 :
+                  (map[5] == 4) ? i4 :
+                                  i5 ;
+
+        out(_i0, _i1, _i2, _i3, _i4, _i5) = in(i0, i1, i2, i3, i4, i5);
+      });
+}
+
+template <typename ExecutionSpace, typename InViewType, typename OutViewType>
+void _transpose(const ExecutionSpace& exec_space, InViewType& in,
+                OutViewType& out, axis_type<7> _map) {
+  constexpr std::size_t DIM = 6;
+  constexpr std::size_t rank = InViewType::rank();
+  using array_layout_type    = typename InViewType::array_layout;
+
+  using range_type = Kokkos::MDRangePolicy<
+      ExecutionSpace,
+      Kokkos::Rank<DIM, Kokkos::Iterate::Default, Kokkos::Iterate::Default> >;
+  using tile_type  = typename range_type::tile_type;
+  using point_type = typename range_type::point_type;
+
+  int n0 = in.extent(0), n1 = in.extent(1), n2 = in.extent(2), n3 = in.extent(3);
+  int n4 = in.extent(4), n5 = in.extent(5), n6 = in.extent(6);
+
+  range_type range(
+      point_type{{0, 0, 0, 0, 0, 0}}, point_type{{n0, n1, n2, n3, n4, n5}}, tile_type{{4, 4, 4, 4, 1, 1}}
+      // [TO DO] Choose optimal tile sizes for each device
+  );
+
+  // Assign a View if not a shallow copy
+  bool is_out_view_ready = true;
+  std::array<int, rank> out_extents;
+  for (int i = 0; i < rank; i++) {
+    out_extents.at(i) = in.extent(_map.at(i));
+    if (out_extents.at(i) != out.extent(i)) {
+      is_out_view_ready = false;
+    }
+  }
+
+  if (!is_out_view_ready) {
+    auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6] = out_extents;
+    out                                      = OutViewType("out", _n0, _n1, _n2, _n3, _n4, _n5, _n6);
+  }
+
+  Kokkos::Array<int, rank> map = {_map[0], _map[1], _map[2], _map[3], _map[4], _map[5], _map[6]};
+  Kokkos::parallel_for(
+      range, KOKKOS_LAMBDA(int i0, int i1, int i2, int i3, int i4, int i5) {
+        for(int i6=0; i6<n6; i6++) {
+          int _i0 = (map[0] == 1) ? i1 :
+                    (map[0] == 2) ? i2 :
+                    (map[0] == 3) ? i3 :
+                    (map[0] == 4) ? i4 :
+                    (map[0] == 5) ? i5 :
+                    (map[0] == 6) ? i6 :
+                                    i0 ;
+
+          int _i1 = (map[1] == 0) ? i0 :
+                    (map[1] == 2) ? i2 :
+                    (map[1] == 3) ? i3 :
+                    (map[1] == 4) ? i4 :
+                    (map[1] == 5) ? i5 :
+                    (map[1] == 6) ? i6 :
+                                    i1 ;
+
+          int _i2 = (map[2] == 0) ? i0 :
+                    (map[2] == 1) ? i1 :
+                    (map[2] == 3) ? i3 :
+                    (map[2] == 4) ? i4 :
+                    (map[2] == 5) ? i5 :
+                    (map[2] == 6) ? i6 :
+                                    i2 ;
+
+          int _i3 = (map[3] == 0) ? i0 :
+                    (map[3] == 1) ? i1 :
+                    (map[3] == 2) ? i2 :
+                    (map[3] == 4) ? i4 :
+                    (map[3] == 5) ? i5 :
+                    (map[3] == 6) ? i6 :
+                                    i3 ;
+
+          int _i4 = (map[4] == 0) ? i0 :
+                    (map[4] == 1) ? i1 :
+                    (map[4] == 2) ? i2 :
+                    (map[4] == 3) ? i3 :
+                    (map[4] == 5) ? i5 :
+                    (map[4] == 6) ? i6 :
+                                    i4 ;
+
+          int _i5 = (map[5] == 0) ? i0 :
+                    (map[5] == 1) ? i1 :
+                    (map[5] == 2) ? i2 :
+                    (map[5] == 3) ? i3 :
+                    (map[5] == 4) ? i4 :
+                    (map[5] == 6) ? i6 :
+                                    i5 ;
+
+          int _i6 = (map[6] == 0) ? i0 :
+                    (map[6] == 1) ? i1 :
+                    (map[6] == 2) ? i2 :
+                    (map[6] == 3) ? i3 :
+                    (map[6] == 4) ? i4 :
+                    (map[6] == 5) ? i5 :
+                                    i6 ;
+
+          out(_i0, _i1, _i2, _i3, _i4, _i5, _i6) = in(i0, i1, i2, i3, i4, i5, i6);
+        }
+      });
+}
+
+template <typename ExecutionSpace, typename InViewType, typename OutViewType>
+void _transpose(const ExecutionSpace& exec_space, InViewType& in,
+                OutViewType& out, axis_type<8> _map) {
+  constexpr std::size_t DIM = 6;
+
+  constexpr std::size_t rank = InViewType::rank();
+  using array_layout_type    = typename InViewType::array_layout;
+
+  using range_type = Kokkos::MDRangePolicy<
+      ExecutionSpace,
+      Kokkos::Rank<DIM, Kokkos::Iterate::Default, Kokkos::Iterate::Default> >;
+  using tile_type  = typename range_type::tile_type;
+  using point_type = typename range_type::point_type;
+
+  int n0 = in.extent(0), n1 = in.extent(1), n2 = in.extent(2), n3 = in.extent(3);
+  int n4 = in.extent(4), n5 = in.extent(5), n6 = in.extent(6), n7 = in.extent(7);
+
+  range_type range(
+      point_type{{0, 0, 0, 0, 0, 0}}, point_type{{n0, n1, n2, n3, n4, n5}}, tile_type{{4, 4, 4, 4, 1, 1}}
+      // [TO DO] Choose optimal tile sizes for each device
+  );
+
+  // Assign a View if not a shallow copy
+  bool is_out_view_ready = true;
+  std::array<int, rank> out_extents;
+  for (int i = 0; i < rank; i++) {
+    out_extents.at(i) = in.extent(_map.at(i));
+    if (out_extents.at(i) != out.extent(i)) {
+      is_out_view_ready = false;
+    }
+  }
+
+  if (!is_out_view_ready) {
+    auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7] = out_extents;
+    out                                           = OutViewType("out", _n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7);
+  }
+
+  Kokkos::Array<int, rank> map = {_map[0], _map[1], _map[2], _map[3], _map[4], _map[5], _map[6], _map[7]};
+  Kokkos::parallel_for(
+      range, KOKKOS_LAMBDA(int i0, int i1, int i2, int i3, int i4, int i5) {
+        for(int i6=0; i6<n6; i6++) {
+          for(int i7=0; i7<n7; i7++) {
+            int _indices[rank] = {i0, i1, i2, i3, i4, i5, i6, i7};
+            int _i0 = _indices[map[0]];
+            int _i1 = _indices[map[1]];
+            int _i2 = _indices[map[2]];
+            int _i3 = _indices[map[3]];
+            int _i4 = _indices[map[4]];
+            int _i5 = _indices[map[5]];
+            int _i6 = _indices[map[6]];
+            int _i7 = _indices[map[7]];
+
+            /*
+            int _i0 = (map[0] == 1) ? i1 :
+                      (map[0] == 2) ? i2 :
+                      (map[0] == 3) ? i3 :
+                      (map[0] == 4) ? i4 :
+                      (map[0] == 5) ? i5 :
+                      (map[0] == 6) ? i6 :
+                      (map[0] == 7) ? i7 :
+                                      i0 ;
+
+            int _i1 = (map[1] == 0) ? i0 :
+                      (map[1] == 2) ? i2 :
+                      (map[1] == 3) ? i3 :
+                      (map[1] == 4) ? i4 :
+                      (map[1] == 5) ? i5 :
+                      (map[1] == 6) ? i6 :
+                      (map[1] == 7) ? i7 :
+                                      i1 ;
+
+            int _i2 = (map[2] == 0) ? i0 :
+                      (map[2] == 1) ? i1 :
+                      (map[2] == 3) ? i3 :
+                      (map[2] == 4) ? i4 :
+                      (map[2] == 5) ? i5 :
+                      (map[2] == 6) ? i6 :
+                      (map[2] == 7) ? i7 :
+                                      i2 ;
+
+            int _i3 = (map[3] == 0) ? i0 :
+                      (map[3] == 1) ? i1 :
+                      (map[3] == 2) ? i2 :
+                      (map[3] == 4) ? i4 :
+                      (map[3] == 5) ? i5 :
+                      (map[3] == 6) ? i6 :
+                      (map[3] == 7) ? i7 :
+                                      i3 ;
+
+            int _i4 = (map[4] == 0) ? i0 :
+                      (map[4] == 1) ? i1 :
+                      (map[4] == 2) ? i2 :
+                      (map[4] == 3) ? i3 :
+                      (map[4] == 5) ? i5 :
+                      (map[4] == 6) ? i6 :
+                      (map[4] == 7) ? i7 :
+                                      i4 ;
+
+            int _i5 = (map[5] == 0) ? i0 :
+                      (map[5] == 1) ? i1 :
+                      (map[5] == 2) ? i2 :
+                      (map[5] == 3) ? i3 :
+                      (map[5] == 4) ? i4 :
+                      (map[5] == 6) ? i6 :
+                      (map[5] == 7) ? i7 :
+                                      i5 ;
+
+            int _i6 = (map[6] == 0) ? i0 :
+                      (map[6] == 1) ? i1 :
+                      (map[6] == 2) ? i2 :
+                      (map[6] == 3) ? i3 :
+                      (map[6] == 4) ? i4 :
+                      (map[6] == 5) ? i5 :
+                      (map[6] == 7) ? i7 :
+                                      i6 ;
+
+            int _i7 = (map[7] == 0) ? i0 :
+                      (map[7] == 1) ? i1 :
+                      (map[7] == 2) ? i2 :
+                      (map[7] == 3) ? i3 :
+                      (map[7] == 4) ? i4 :
+                      (map[7] == 5) ? i5 :
+                      (map[7] == 6) ? i6 :
+                                      i7 ;
+            */
+
+            out(_i0, _i1, _i2, _i3, _i4, _i5, _i6, _i7) = in(i0, i1, i2, i3, i4, i5, i6, i7);
+          }
+        }
+      });
+}
+
 /* Make the axis direction to the inner most direction
    axis should be the range in [-(rank-1), rank-1], where
    negative number is interpreted as rank + axis.
@@ -220,16 +666,20 @@ void transpose(const ExecutionSpace& exec_space, InViewType& in,
   using array_layout_type = typename InViewType::array_layout;
 
   static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::transpose: InViewType is not a Kokkos::View.");
+                "transpose: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::transpose: OutViewType is not a Kokkos::View.");
+                "transpose: OutViewType is not a Kokkos::View.");
 
   static_assert(InViewType::rank() == OutViewType::rank(),
-                "KokkosFFT::transpose: InViewType and OutViewType must have "
+                "transpose: InViewType and OutViewType must have "
                 "the same rank.");
 
+  static_assert(InViewType::rank() == DIM,
+                "transpose: Rank of View must be equal to Rank of "
+                "transpose axes.");
+
   if (!KokkosFFT::Impl::is_transpose_needed(_map)) {
-    throw std::runtime_error("KokkosFFT::transpose: transpose not necessary");
+    throw std::runtime_error("transpose: transpose not necessary");
   }
 
   _transpose(exec_space, in, out, _map);

@@ -730,7 +730,7 @@ TEST(CropOrPad4D, View4D) {
   Kokkos::fill_random(x, random_pool, 1.0);
 
   auto rand_engine = std::mt19937(0);
-  auto rand_dist = std::uniform_int_distribution<std::mt19937::result_type>(-1, 1);
+  auto rand_dist = std::uniform_int_distribution<int>(-1, 1);
 
   auto h_x = Kokkos::create_mirror_view(x);
   Kokkos::deep_copy(h_x, x);
@@ -777,7 +777,7 @@ TEST(CropOrPad5D, View5D) {
   Kokkos::fill_random(x, random_pool, 1.0);
 
   auto rand_engine = std::mt19937(0);
-  auto rand_dist = std::uniform_int_distribution<std::mt19937::result_type>(-1, 1);
+  auto rand_dist = std::uniform_int_distribution<int>(-1, 1);
   
   auto h_x = Kokkos::create_mirror_view(x);
   Kokkos::deep_copy(h_x, x);
@@ -829,7 +829,7 @@ TEST(CropOrPad6D, View6D) {
   Kokkos::fill_random(x, random_pool, 1.0);
 
   auto rand_engine = std::mt19937(0);
-  auto rand_dist = std::uniform_int_distribution<std::mt19937::result_type>(-1, 1);
+  auto rand_dist = std::uniform_int_distribution<int>(-1, 1);
   
   auto h_x = Kokkos::create_mirror_view(x);
   Kokkos::deep_copy(h_x, x);
@@ -885,7 +885,7 @@ TEST(CropOrPad7D, View7D) {
   Kokkos::fill_random(x, random_pool, 1.0);
 
   auto rand_engine = std::mt19937(0);
-  auto rand_dist = std::uniform_int_distribution<std::mt19937::result_type>(-1, 1);
+  auto rand_dist = std::uniform_int_distribution<int>(-1, 1);
   
   auto h_x = Kokkos::create_mirror_view(x);
   Kokkos::deep_copy(h_x, x);
@@ -946,7 +946,7 @@ TEST(CropOrPad8D, View8D) {
   Kokkos::fill_random(x, random_pool, 1.0);
 
   auto rand_engine = std::mt19937(0);
-  auto rand_dist = std::uniform_int_distribution<std::mt19937::result_type>(-1, 1);
+  auto rand_dist = std::uniform_int_distribution<int>(-1, 1);
   
   auto h_x = Kokkos::create_mirror_view(x);
   Kokkos::deep_copy(h_x, x);
