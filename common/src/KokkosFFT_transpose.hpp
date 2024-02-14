@@ -162,25 +162,11 @@ void _transpose(const ExecutionSpace& exec_space, InViewType& in,
   Kokkos::Array<int, 3> map = {_map[0], _map[1], _map[2]};
   Kokkos::parallel_for(
       range, KOKKOS_LAMBDA(int i0, int i1, int i2) {
-        int _i0 = i0, _i1 = i1, _i2 = i2;
-        if (map[0] == 0 && map[1] == 2 && map[2] == 1) {
-          _i1 = i2;
-          _i2 = i1;
-        } else if (map[0] == 1 && map[1] == 0 && map[2] == 2) {
-          _i0 = i1;
-          _i1 = i0;
-        } else if (map[0] == 1 && map[1] == 2 && map[2] == 0) {
-          _i0 = i1;
-          _i1 = i2;
-          _i2 = i0;
-        } else if (map[0] == 2 && map[1] == 1 && map[2] == 0) {
-          _i0 = i2;
-          _i2 = i0;
-        } else if (map[0] == 2 && map[1] == 0 && map[2] == 1) {
-          _i0 = i2;
-          _i1 = i0;
-          _i2 = i1;
-        }
+        int _indices[rank] = {i0, i1, i2};
+        int _i0 = _indices[map[0]];
+        int _i1 = _indices[map[1]];
+        int _i2 = _indices[map[2]];
+
         out(_i0, _i1, _i2) = in(i0, i1, i2);
       });
 }
@@ -223,25 +209,11 @@ void _transpose(const ExecutionSpace& exec_space, InViewType& in,
   Kokkos::Array<int, rank> map = {_map[0], _map[1], _map[2], _map[3]};
   Kokkos::parallel_for(
       range, KOKKOS_LAMBDA(int i0, int i1, int i2, int i3) {
-        int _i0 = (map[0] == 1) ? i1 :
-                  (map[0] == 2) ? i2 :
-                  (map[0] == 3) ? i3 :
-                                  i0 ;
-
-        int _i1 = (map[1] == 0) ? i0 :
-                  (map[1] == 2) ? i2 :
-                  (map[1] == 3) ? i3 :
-                                  i1 ;
-
-        int _i2 = (map[2] == 0) ? i0 :
-                  (map[2] == 1) ? i1 :
-                  (map[2] == 3) ? i3 :
-                                  i2 ;
-
-        int _i3 = (map[3] == 0) ? i0 :
-                  (map[3] == 1) ? i1 :
-                  (map[3] == 2) ? i2 :
-                                  i3 ;
+        int _indices[rank] = {i0, i1, i2, i3};
+        int _i0 = _indices[map[0]];
+        int _i1 = _indices[map[1]];
+        int _i2 = _indices[map[2]];
+        int _i3 = _indices[map[3]];
 
         out(_i0, _i1, _i2, _i3) = in(i0, i1, i2, i3);
       });
@@ -286,35 +258,12 @@ void _transpose(const ExecutionSpace& exec_space, InViewType& in,
   Kokkos::Array<int, rank> map = {_map[0], _map[1], _map[2], _map[3], _map[4]};
   Kokkos::parallel_for(
       range, KOKKOS_LAMBDA(int i0, int i1, int i2, int i3, int i4) {
-        int _i0 = (map[0] == 1) ? i1 :
-                  (map[0] == 2) ? i2 :
-                  (map[0] == 3) ? i3 :
-                  (map[0] == 4) ? i4 :
-                                  i0 ;
-
-        int _i1 = (map[1] == 0) ? i0 :
-                  (map[1] == 2) ? i2 :
-                  (map[1] == 3) ? i3 :
-                  (map[1] == 4) ? i4 :
-                                  i1 ;
-
-        int _i2 = (map[2] == 0) ? i0 :
-                  (map[2] == 1) ? i1 :
-                  (map[2] == 3) ? i3 :
-                  (map[2] == 4) ? i4 :
-                                  i2 ;
-
-        int _i3 = (map[3] == 0) ? i0 :
-                  (map[3] == 1) ? i1 :
-                  (map[3] == 2) ? i2 :
-                  (map[3] == 4) ? i4 :
-                                  i3 ;
-
-        int _i4 = (map[4] == 0) ? i0 :
-                  (map[4] == 1) ? i1 :
-                  (map[4] == 2) ? i2 :
-                  (map[4] == 3) ? i3 :
-                                  i4 ;
+        int _indices[rank] = {i0, i1, i2, i3, i4};
+        int _i0 = _indices[map[0]];
+        int _i1 = _indices[map[1]];
+        int _i2 = _indices[map[2]];
+        int _i3 = _indices[map[3]];
+        int _i4 = _indices[map[4]];
 
         out(_i0, _i1, _i2, _i3, _i4) = in(i0, i1, i2, i3, i4);
       });
@@ -359,47 +308,13 @@ void _transpose(const ExecutionSpace& exec_space, InViewType& in,
   Kokkos::Array<int, rank> map = {_map[0], _map[1], _map[2], _map[3], _map[4], _map[5]};
   Kokkos::parallel_for(
       range, KOKKOS_LAMBDA(int i0, int i1, int i2, int i3, int i4, int i5) {
-        int _i0 = (map[0] == 1) ? i1 :
-                  (map[0] == 2) ? i2 :
-                  (map[0] == 3) ? i3 :
-                  (map[0] == 4) ? i4 :
-                  (map[0] == 5) ? i5 :
-                                  i0 ;
-
-        int _i1 = (map[1] == 0) ? i0 :
-                  (map[1] == 2) ? i2 :
-                  (map[1] == 3) ? i3 :
-                  (map[1] == 4) ? i4 :
-                  (map[1] == 5) ? i5 :
-                                  i1 ;
-
-        int _i2 = (map[2] == 0) ? i0 :
-                  (map[2] == 1) ? i1 :
-                  (map[2] == 3) ? i3 :
-                  (map[2] == 4) ? i4 :
-                  (map[2] == 5) ? i5 :
-                                  i2 ;
-
-        int _i3 = (map[3] == 0) ? i0 :
-                  (map[3] == 1) ? i1 :
-                  (map[3] == 2) ? i2 :
-                  (map[3] == 4) ? i4 :
-                  (map[3] == 5) ? i5 :
-                                  i3 ;
-
-        int _i4 = (map[4] == 0) ? i0 :
-                  (map[4] == 1) ? i1 :
-                  (map[4] == 2) ? i2 :
-                  (map[4] == 3) ? i3 :
-                  (map[4] == 5) ? i5 :
-                                  i4 ;
-
-        int _i5 = (map[5] == 0) ? i0 :
-                  (map[5] == 1) ? i1 :
-                  (map[5] == 2) ? i2 :
-                  (map[5] == 3) ? i3 :
-                  (map[5] == 4) ? i4 :
-                                  i5 ;
+        int _indices[rank] = {i0, i1, i2, i3, i4, i5};
+        int _i0 = _indices[map[0]];
+        int _i1 = _indices[map[1]];
+        int _i2 = _indices[map[2]];
+        int _i3 = _indices[map[3]];
+        int _i4 = _indices[map[4]];
+        int _i5 = _indices[map[5]];
 
         out(_i0, _i1, _i2, _i3, _i4, _i5) = in(i0, i1, i2, i3, i4, i5);
       });
@@ -445,61 +360,14 @@ void _transpose(const ExecutionSpace& exec_space, InViewType& in,
   Kokkos::parallel_for(
       range, KOKKOS_LAMBDA(int i0, int i1, int i2, int i3, int i4, int i5) {
         for(int i6=0; i6<n6; i6++) {
-          int _i0 = (map[0] == 1) ? i1 :
-                    (map[0] == 2) ? i2 :
-                    (map[0] == 3) ? i3 :
-                    (map[0] == 4) ? i4 :
-                    (map[0] == 5) ? i5 :
-                    (map[0] == 6) ? i6 :
-                                    i0 ;
-
-          int _i1 = (map[1] == 0) ? i0 :
-                    (map[1] == 2) ? i2 :
-                    (map[1] == 3) ? i3 :
-                    (map[1] == 4) ? i4 :
-                    (map[1] == 5) ? i5 :
-                    (map[1] == 6) ? i6 :
-                                    i1 ;
-
-          int _i2 = (map[2] == 0) ? i0 :
-                    (map[2] == 1) ? i1 :
-                    (map[2] == 3) ? i3 :
-                    (map[2] == 4) ? i4 :
-                    (map[2] == 5) ? i5 :
-                    (map[2] == 6) ? i6 :
-                                    i2 ;
-
-          int _i3 = (map[3] == 0) ? i0 :
-                    (map[3] == 1) ? i1 :
-                    (map[3] == 2) ? i2 :
-                    (map[3] == 4) ? i4 :
-                    (map[3] == 5) ? i5 :
-                    (map[3] == 6) ? i6 :
-                                    i3 ;
-
-          int _i4 = (map[4] == 0) ? i0 :
-                    (map[4] == 1) ? i1 :
-                    (map[4] == 2) ? i2 :
-                    (map[4] == 3) ? i3 :
-                    (map[4] == 5) ? i5 :
-                    (map[4] == 6) ? i6 :
-                                    i4 ;
-
-          int _i5 = (map[5] == 0) ? i0 :
-                    (map[5] == 1) ? i1 :
-                    (map[5] == 2) ? i2 :
-                    (map[5] == 3) ? i3 :
-                    (map[5] == 4) ? i4 :
-                    (map[5] == 6) ? i6 :
-                                    i5 ;
-
-          int _i6 = (map[6] == 0) ? i0 :
-                    (map[6] == 1) ? i1 :
-                    (map[6] == 2) ? i2 :
-                    (map[6] == 3) ? i3 :
-                    (map[6] == 4) ? i4 :
-                    (map[6] == 5) ? i5 :
-                                    i6 ;
+          int _indices[rank] = {i0, i1, i2, i3, i4, i5, i6};
+          int _i0 = _indices[map[0]];
+          int _i1 = _indices[map[1]];
+          int _i2 = _indices[map[2]];
+          int _i3 = _indices[map[3]];
+          int _i4 = _indices[map[4]];
+          int _i5 = _indices[map[5]];
+          int _i6 = _indices[map[6]];
 
           out(_i0, _i1, _i2, _i3, _i4, _i5, _i6) = in(i0, i1, i2, i3, i4, i5, i6);
         }
@@ -557,80 +425,6 @@ void _transpose(const ExecutionSpace& exec_space, InViewType& in,
             int _i5 = _indices[map[5]];
             int _i6 = _indices[map[6]];
             int _i7 = _indices[map[7]];
-
-            /*
-            int _i0 = (map[0] == 1) ? i1 :
-                      (map[0] == 2) ? i2 :
-                      (map[0] == 3) ? i3 :
-                      (map[0] == 4) ? i4 :
-                      (map[0] == 5) ? i5 :
-                      (map[0] == 6) ? i6 :
-                      (map[0] == 7) ? i7 :
-                                      i0 ;
-
-            int _i1 = (map[1] == 0) ? i0 :
-                      (map[1] == 2) ? i2 :
-                      (map[1] == 3) ? i3 :
-                      (map[1] == 4) ? i4 :
-                      (map[1] == 5) ? i5 :
-                      (map[1] == 6) ? i6 :
-                      (map[1] == 7) ? i7 :
-                                      i1 ;
-
-            int _i2 = (map[2] == 0) ? i0 :
-                      (map[2] == 1) ? i1 :
-                      (map[2] == 3) ? i3 :
-                      (map[2] == 4) ? i4 :
-                      (map[2] == 5) ? i5 :
-                      (map[2] == 6) ? i6 :
-                      (map[2] == 7) ? i7 :
-                                      i2 ;
-
-            int _i3 = (map[3] == 0) ? i0 :
-                      (map[3] == 1) ? i1 :
-                      (map[3] == 2) ? i2 :
-                      (map[3] == 4) ? i4 :
-                      (map[3] == 5) ? i5 :
-                      (map[3] == 6) ? i6 :
-                      (map[3] == 7) ? i7 :
-                                      i3 ;
-
-            int _i4 = (map[4] == 0) ? i0 :
-                      (map[4] == 1) ? i1 :
-                      (map[4] == 2) ? i2 :
-                      (map[4] == 3) ? i3 :
-                      (map[4] == 5) ? i5 :
-                      (map[4] == 6) ? i6 :
-                      (map[4] == 7) ? i7 :
-                                      i4 ;
-
-            int _i5 = (map[5] == 0) ? i0 :
-                      (map[5] == 1) ? i1 :
-                      (map[5] == 2) ? i2 :
-                      (map[5] == 3) ? i3 :
-                      (map[5] == 4) ? i4 :
-                      (map[5] == 6) ? i6 :
-                      (map[5] == 7) ? i7 :
-                                      i5 ;
-
-            int _i6 = (map[6] == 0) ? i0 :
-                      (map[6] == 1) ? i1 :
-                      (map[6] == 2) ? i2 :
-                      (map[6] == 3) ? i3 :
-                      (map[6] == 4) ? i4 :
-                      (map[6] == 5) ? i5 :
-                      (map[6] == 7) ? i7 :
-                                      i6 ;
-
-            int _i7 = (map[7] == 0) ? i0 :
-                      (map[7] == 1) ? i1 :
-                      (map[7] == 2) ? i2 :
-                      (map[7] == 3) ? i3 :
-                      (map[7] == 4) ? i4 :
-                      (map[7] == 5) ? i5 :
-                      (map[7] == 6) ? i6 :
-                                      i7 ;
-            */
 
             out(_i0, _i1, _i2, _i3, _i4, _i5, _i6, _i7) = in(i0, i1, i2, i3, i4, i5, i6, i7);
           }
