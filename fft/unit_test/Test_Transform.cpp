@@ -784,6 +784,387 @@ void test_fft1_1dfft_3dview(T atol = 1.e-12) {
   EXPECT_TRUE(allclose(xr_axis2, ref_xr, 1.e-5, atol));
 }
 
+template <typename T, typename LayoutType>
+void test_fft1_1dfft_4dview(T atol = 1.e-12) {
+  const int n0 = 10, n1 = 12, n2 = 8, n3 = 5;
+  using RealView4DType = Kokkos::View<T****, LayoutType, execution_space>;
+  using ComplexView4DType =
+      Kokkos::View<Kokkos::complex<T>****, LayoutType, execution_space>;
+
+  ComplexView4DType x("x", n0, n1, n2, n3), ref_x("ref_x", n0, n1, n2, n3);
+  ComplexView4DType x_axis0("x_axis0", n0, n1, n2, n3),
+      x_axis1("x_axis1", n0, n1, n2, n3), x_axis2("x_axis2", n0, n1, n2, n3),
+      x_axis3("x_axis3", n0, n1, n2, n3);
+  ComplexView4DType out_axis0("out_axis0", n0, n1, n2, n3),
+      ref_out_axis0("ref_out_axis0", n0, n1, n2, n3);
+  ComplexView4DType out_axis1("out_axis1", n0, n1, n2, n3),
+      ref_out_axis1("ref_out_axis1", n0, n1, n2, n3);
+  ComplexView4DType out_axis2("out_axis2", n0, n1, n2, n3),
+      ref_out_axis2("ref_out_axis2", n0, n1, n2, n3);
+  ComplexView4DType out_axis3("out_axis3", n0, n1, n2, n3),
+      ref_out_axis3("ref_out_axis3", n0, n1, n2, n3);
+
+  RealView4DType xr("xr", n0, n1, n2, n3), ref_xr("ref_xr", n0, n1, n2, n3);
+  RealView4DType xr_axis0("xr_axis0", n0, n1, n2, n3),
+      xr_axis1("xr_axis1", n0, n1, n2, n3),
+      xr_axis2("xr_axis2", n0, n1, n2, n3),
+      xr_axis3("xr_axis3", n0, n1, n2, n3);
+  ComplexView4DType outr_axis0("outr_axis0", n0 / 2 + 1, n1, n2, n3),
+      outr_axis1("outr_axis1", n0, n1 / 2 + 1, n2, n3),
+      outr_axis2("outr_axis2", n0, n1, n2 / 2 + 1, n3),
+      outr_axis3("outr_axis3", n0, n1, n2, n3 / 2 + 1);
+
+  const Kokkos::complex<T> I(1.0, 1.0);
+  Kokkos::Random_XorShift64_Pool<> random_pool(12345);
+  Kokkos::fill_random(x, random_pool, I);
+  Kokkos::fill_random(xr, random_pool, 1);
+
+  // Since HIP FFT destructs the input data, we need to keep the input data in
+  // different place
+  Kokkos::deep_copy(ref_x, x);
+  Kokkos::deep_copy(ref_xr, xr);
+
+  Kokkos::fence();
+
+  // Along axis 0 (transpose neeed)
+  // Perform batched 1D (along 0th axis) FFT sequentially
+  for (int i3 = 0; i3 < n3; i3++) {
+    for (int i2 = 0; i2 < n2; i2++) {
+      for (int i1 = 0; i1 < n1; i1++) {
+        auto sub_x   = Kokkos::subview(x, Kokkos::ALL, i1, i2, i3);
+        auto sub_ref = Kokkos::subview(ref_out_axis0, Kokkos::ALL, i1, i2, i3);
+        fft1(sub_x, sub_ref);
+      }
+    }
+  }
+
+  KokkosFFT::fft(execution_space(), x, out_axis0,
+                 KokkosFFT::Normalization::BACKWARD, /*axis=*/0);
+  EXPECT_TRUE(allclose(out_axis0, ref_out_axis0, 1.e-5, atol));
+
+  KokkosFFT::ifft(execution_space(), out_axis0, x_axis0,
+                  KokkosFFT::Normalization::BACKWARD, /*axis=*/0);
+  EXPECT_TRUE(allclose(x_axis0, ref_x, 1.e-5, atol));
+
+  // Simple identity tests for r2c and c2r transforms
+  KokkosFFT::rfft(execution_space(), xr, outr_axis0,
+                  KokkosFFT::Normalization::BACKWARD, /*axis=*/0);
+  KokkosFFT::irfft(execution_space(), outr_axis0, xr_axis0,
+                   KokkosFFT::Normalization::BACKWARD, /*axis=*/0);
+
+  EXPECT_TRUE(allclose(xr_axis0, ref_xr, 1.e-5, atol));
+
+  // Recover input from reference
+  Kokkos::deep_copy(x, ref_x);
+  Kokkos::deep_copy(xr, ref_xr);
+
+  // Along axis 1 (transpose neeed)
+  // Perform batched 1D (along 1st axis) FFT sequentially
+  for (int i3 = 0; i3 < n3; i3++) {
+    for (int i2 = 0; i2 < n2; i2++) {
+      for (int i0 = 0; i0 < n0; i0++) {
+        auto sub_x   = Kokkos::subview(x, i0, Kokkos::ALL, i2, i3);
+        auto sub_ref = Kokkos::subview(ref_out_axis1, i0, Kokkos::ALL, i2, i3);
+        fft1(sub_x, sub_ref);
+      }
+    }
+  }
+
+  KokkosFFT::fft(execution_space(), x, out_axis1,
+                 KokkosFFT::Normalization::BACKWARD, /*axis=*/1);
+  EXPECT_TRUE(allclose(out_axis1, ref_out_axis1, 1.e-5, atol));
+
+  KokkosFFT::ifft(execution_space(), out_axis1, x_axis1,
+                  KokkosFFT::Normalization::BACKWARD, /*axis=*/1);
+  EXPECT_TRUE(allclose(x_axis1, ref_x, 1.e-5, atol));
+
+  // Simple identity tests for r2c and c2r transforms
+  KokkosFFT::rfft(execution_space(), xr, outr_axis1,
+                  KokkosFFT::Normalization::BACKWARD, /*axis=*/1);
+  KokkosFFT::irfft(execution_space(), outr_axis1, xr_axis1,
+                   KokkosFFT::Normalization::BACKWARD, /*axis=*/1);
+
+  EXPECT_TRUE(allclose(xr_axis1, ref_xr, 1.e-5, atol));
+
+  // Recover input from reference
+  Kokkos::deep_copy(x, ref_x);
+  Kokkos::deep_copy(xr, ref_xr);
+
+  // Along axis 2
+  // Perform batched 1D (along 2nd axis) FFT sequentially
+  for (int i3 = 0; i3 < n3; i3++) {
+    for (int i1 = 0; i1 < n1; i1++) {
+      for (int i0 = 0; i0 < n0; i0++) {
+        auto sub_x   = Kokkos::subview(x, i0, i1, Kokkos::ALL, i3);
+        auto sub_ref = Kokkos::subview(ref_out_axis2, i0, i1, Kokkos::ALL, i3);
+        fft1(sub_x, sub_ref);
+      }
+    }
+  }
+
+  KokkosFFT::fft(execution_space(), x, out_axis2,
+                 KokkosFFT::Normalization::BACKWARD, /*axis=*/2);
+  EXPECT_TRUE(allclose(out_axis2, ref_out_axis2, 1.e-5, atol));
+
+  KokkosFFT::ifft(execution_space(), out_axis2, x_axis2,
+                  KokkosFFT::Normalization::BACKWARD, /*axis=*/2);
+  EXPECT_TRUE(allclose(x_axis2, ref_x, 1.e-5, atol));
+
+  // Simple identity tests for r2c and c2r transforms
+  KokkosFFT::rfft(execution_space(), xr, outr_axis2,
+                  KokkosFFT::Normalization::BACKWARD, /*axis=*/2);
+  KokkosFFT::irfft(execution_space(), outr_axis2, xr_axis2,
+                   KokkosFFT::Normalization::BACKWARD, /*axis=*/2);
+
+  EXPECT_TRUE(allclose(xr_axis2, ref_xr, 1.e-5, atol));
+
+  // Recover input from reference
+  Kokkos::deep_copy(x, ref_x);
+  Kokkos::deep_copy(xr, ref_xr);
+
+  // Along axis 3
+  // Perform batched 1D (along 3rd axis) FFT sequentially
+  for (int i2 = 0; i2 < n2; i2++) {
+    for (int i1 = 0; i1 < n1; i1++) {
+      for (int i0 = 0; i0 < n0; i0++) {
+        auto sub_x   = Kokkos::subview(x, i0, i1, i2, Kokkos::ALL);
+        auto sub_ref = Kokkos::subview(ref_out_axis3, i0, i1, i2, Kokkos::ALL);
+        fft1(sub_x, sub_ref);
+      }
+    }
+  }
+
+  KokkosFFT::fft(execution_space(), x, out_axis3,
+                 KokkosFFT::Normalization::BACKWARD, /*axis=*/3);
+  EXPECT_TRUE(allclose(out_axis3, ref_out_axis3, 1.e-5, atol));
+
+  KokkosFFT::ifft(execution_space(), out_axis3, x_axis3,
+                  KokkosFFT::Normalization::BACKWARD, /*axis=*/3);
+  EXPECT_TRUE(allclose(x_axis3, ref_x, 1.e-5, atol));
+
+  // Simple identity tests for r2c and c2r transforms
+  KokkosFFT::rfft(execution_space(), xr, outr_axis3,
+                  KokkosFFT::Normalization::BACKWARD, /*axis=*/3);
+  KokkosFFT::irfft(execution_space(), outr_axis3, xr_axis3,
+                   KokkosFFT::Normalization::BACKWARD, /*axis=*/3);
+
+  EXPECT_TRUE(allclose(xr_axis3, ref_xr, 1.e-5, atol));
+}
+
+template <typename T, typename LayoutType>
+void test_fft1_1dfft_5dview(T atol = 1.e-12) {
+  const int n0 = 10, n1 = 6, n2 = 8, n3 = 5, n4 = 4;
+  using RealView5DType = Kokkos::View<T*****, LayoutType, execution_space>;
+  using ComplexView5DType =
+      Kokkos::View<Kokkos::complex<T>*****, LayoutType, execution_space>;
+
+  constexpr int DIM          = 5;
+  std::array<int, DIM> shape = {n0, n1, n2, n3, n4};
+  ComplexView5DType x("x", n0, n1, n2, n3, n4),
+      ref_x("ref_x", n0, n1, n2, n3, n4);
+
+  for (int axis = 0; axis < DIM; axis++) {
+    std::array<int, DIM> shape_c2r = shape;
+    shape_c2r.at(axis)             = shape_c2r.at(axis) / 2 + 1;
+    auto [_n0, _n1, _n2, _n3, _n4] = shape_c2r;
+    ComplexView5DType _x("_x", n0, n1, n2, n3, n4),
+        out("out", n0, n1, n2, n3, n4), ref_out("ref_out", n0, n1, n2, n3, n4);
+    RealView5DType xr("xr", n0, n1, n2, n3, n4),
+        ref_xr("ref_xr", n0, n1, n2, n3, n4), _xr("_xr", n0, n1, n2, n3, n4);
+    ComplexView5DType outr("outr", _n0, _n1, _n2, _n3, _n4);
+
+    const Kokkos::complex<T> I(1.0, 1.0);
+    Kokkos::Random_XorShift64_Pool<> random_pool(12345);
+    Kokkos::fill_random(x, random_pool, I);
+    Kokkos::fill_random(xr, random_pool, 1);
+
+    // Since HIP FFT destructs the input data, we need to keep the input data in
+    // different place
+    Kokkos::deep_copy(ref_x, x);
+    Kokkos::deep_copy(ref_xr, xr);
+
+    Kokkos::fence();
+
+    // Along one axis
+    // Simple identity tests
+    KokkosFFT::fft(execution_space(), x, out,
+                   KokkosFFT::Normalization::BACKWARD, axis);
+    KokkosFFT::ifft(execution_space(), out, _x,
+                    KokkosFFT::Normalization::BACKWARD, axis);
+    EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, atol));
+
+    // Simple identity tests for r2c and c2r transforms
+    KokkosFFT::rfft(execution_space(), xr, outr,
+                    KokkosFFT::Normalization::BACKWARD, axis);
+    KokkosFFT::irfft(execution_space(), outr, _xr,
+                     KokkosFFT::Normalization::BACKWARD, axis);
+
+    EXPECT_TRUE(allclose(_xr, ref_xr, 1.e-5, atol));
+  }
+}
+
+template <typename T, typename LayoutType>
+void test_fft1_1dfft_6dview(T atol = 1.e-12) {
+  const int n0 = 10, n1 = 6, n2 = 8, n3 = 5, n4 = 4, n5 = 3;
+  using RealView6DType = Kokkos::View<T******, LayoutType, execution_space>;
+  using ComplexView6DType =
+      Kokkos::View<Kokkos::complex<T>******, LayoutType, execution_space>;
+
+  constexpr int DIM          = 6;
+  std::array<int, DIM> shape = {n0, n1, n2, n3, n4, n5};
+  ComplexView6DType x("x", n0, n1, n2, n3, n4, n5),
+      ref_x("ref_x", n0, n1, n2, n3, n4, n5);
+
+  for (int axis = 0; axis < DIM; axis++) {
+    std::array<int, DIM> shape_c2r      = shape;
+    shape_c2r.at(axis)                  = shape_c2r.at(axis) / 2 + 1;
+    auto [_n0, _n1, _n2, _n3, _n4, _n5] = shape_c2r;
+    ComplexView6DType _x("_x", n0, n1, n2, n3, n4, n5),
+        out("out", n0, n1, n2, n3, n4, n5),
+        ref_out("ref_out", n0, n1, n2, n3, n4, n5);
+    RealView6DType xr("xr", n0, n1, n2, n3, n4, n5),
+        ref_xr("ref_xr", n0, n1, n2, n3, n4, n5),
+        _xr("_xr", n0, n1, n2, n3, n4, n5);
+    ComplexView6DType outr("outr", _n0, _n1, _n2, _n3, _n4, _n5);
+
+    const Kokkos::complex<T> I(1.0, 1.0);
+    Kokkos::Random_XorShift64_Pool<> random_pool(12345);
+    Kokkos::fill_random(x, random_pool, I);
+    Kokkos::fill_random(xr, random_pool, 1);
+
+    // Since HIP FFT destructs the input data, we need to keep the input data in
+    // different place
+    Kokkos::deep_copy(ref_x, x);
+    Kokkos::deep_copy(ref_xr, xr);
+
+    Kokkos::fence();
+
+    // Along one axis
+    // Simple identity tests
+    KokkosFFT::fft(execution_space(), x, out,
+                   KokkosFFT::Normalization::BACKWARD, axis);
+    KokkosFFT::ifft(execution_space(), out, _x,
+                    KokkosFFT::Normalization::BACKWARD, axis);
+    EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, atol));
+
+    // Simple identity tests for r2c and c2r transforms
+    KokkosFFT::rfft(execution_space(), xr, outr,
+                    KokkosFFT::Normalization::BACKWARD, axis);
+    KokkosFFT::irfft(execution_space(), outr, _xr,
+                     KokkosFFT::Normalization::BACKWARD, axis);
+
+    EXPECT_TRUE(allclose(_xr, ref_xr, 1.e-5, atol));
+  }
+}
+
+template <typename T, typename LayoutType>
+void test_fft1_1dfft_7dview(T atol = 1.e-12) {
+  const int n0 = 2, n1 = 6, n2 = 8, n3 = 5, n4 = 4, n5 = 3, n6 = 4;
+  using RealView7DType = Kokkos::View<T*******, LayoutType, execution_space>;
+  using ComplexView7DType =
+      Kokkos::View<Kokkos::complex<T>*******, LayoutType, execution_space>;
+
+  constexpr int DIM          = 7;
+  std::array<int, DIM> shape = {n0, n1, n2, n3, n4, n5, n6};
+  ComplexView7DType x("x", n0, n1, n2, n3, n4, n5, n6),
+      ref_x("ref_x", n0, n1, n2, n3, n4, n5, n6);
+
+  for (int axis = 0; axis < DIM; axis++) {
+    std::array<int, DIM> shape_c2r           = shape;
+    shape_c2r.at(axis)                       = shape_c2r.at(axis) / 2 + 1;
+    auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6] = shape_c2r;
+    ComplexView7DType _x("_x", n0, n1, n2, n3, n4, n5, n6),
+        out("out", n0, n1, n2, n3, n4, n5, n6),
+        ref_out("ref_out", n0, n1, n2, n3, n4, n5, n6);
+    RealView7DType xr("xr", n0, n1, n2, n3, n4, n5, n6),
+        ref_xr("ref_xr", n0, n1, n2, n3, n4, n5, n6),
+        _xr("_xr", n0, n1, n2, n3, n4, n5, n6);
+    ComplexView7DType outr("outr", _n0, _n1, _n2, _n3, _n4, _n5, _n6);
+
+    const Kokkos::complex<T> I(1.0, 1.0);
+    Kokkos::Random_XorShift64_Pool<> random_pool(12345);
+    Kokkos::fill_random(x, random_pool, I);
+    Kokkos::fill_random(xr, random_pool, 1);
+
+    // Since HIP FFT destructs the input data, we need to keep the input data in
+    // different place
+    Kokkos::deep_copy(ref_x, x);
+    Kokkos::deep_copy(ref_xr, xr);
+
+    Kokkos::fence();
+
+    // Along one axis
+    // Simple identity tests
+    KokkosFFT::fft(execution_space(), x, out,
+                   KokkosFFT::Normalization::BACKWARD, axis);
+    KokkosFFT::ifft(execution_space(), out, _x,
+                    KokkosFFT::Normalization::BACKWARD, axis);
+    EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, atol));
+
+    // Simple identity tests for r2c and c2r transforms
+    KokkosFFT::rfft(execution_space(), xr, outr,
+                    KokkosFFT::Normalization::BACKWARD, axis);
+    KokkosFFT::irfft(execution_space(), outr, _xr,
+                     KokkosFFT::Normalization::BACKWARD, axis);
+
+    EXPECT_TRUE(allclose(_xr, ref_xr, 1.e-5, atol));
+  }
+}
+
+template <typename T, typename LayoutType>
+void test_fft1_1dfft_8dview(T atol = 1.e-12) {
+  const int n0 = 2, n1 = 6, n2 = 8, n3 = 5, n4 = 4, n5 = 3, n6 = 4, n7 = 3;
+  using RealView8DType = Kokkos::View<T********, LayoutType, execution_space>;
+  using ComplexView8DType =
+      Kokkos::View<Kokkos::complex<T>********, LayoutType, execution_space>;
+
+  constexpr int DIM          = 8;
+  std::array<int, DIM> shape = {n0, n1, n2, n3, n4, n5, n6, n7};
+  ComplexView8DType x("x", n0, n1, n2, n3, n4, n5, n6, n7),
+      ref_x("ref_x", n0, n1, n2, n3, n4, n5, n6, n7);
+
+  for (int axis = 0; axis < DIM; axis++) {
+    std::array<int, DIM> shape_c2r                = shape;
+    shape_c2r.at(axis)                            = shape_c2r.at(axis) / 2 + 1;
+    auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7] = shape_c2r;
+    ComplexView8DType _x("_x", n0, n1, n2, n3, n4, n5, n6, n7),
+        out("out", n0, n1, n2, n3, n4, n5, n6, n7),
+        ref_out("ref_out", n0, n1, n2, n3, n4, n5, n6, n7);
+    RealView8DType xr("xr", n0, n1, n2, n3, n4, n5, n6, n7),
+        ref_xr("ref_xr", n0, n1, n2, n3, n4, n5, n6, n7),
+        _xr("_xr", n0, n1, n2, n3, n4, n5, n6, n7);
+    ComplexView8DType outr("outr", _n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7);
+
+    const Kokkos::complex<T> I(1.0, 1.0);
+    Kokkos::Random_XorShift64_Pool<> random_pool(12345);
+    Kokkos::fill_random(x, random_pool, I);
+    Kokkos::fill_random(xr, random_pool, 1);
+
+    // Since HIP FFT destructs the input data, we need to keep the input data in
+    // different place
+    Kokkos::deep_copy(ref_x, x);
+    Kokkos::deep_copy(ref_xr, xr);
+
+    Kokkos::fence();
+
+    // Along one axis
+    // Simple identity tests
+    KokkosFFT::fft(execution_space(), x, out,
+                   KokkosFFT::Normalization::BACKWARD, axis);
+    KokkosFFT::ifft(execution_space(), out, _x,
+                    KokkosFFT::Normalization::BACKWARD, axis);
+    EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, atol));
+
+    // Simple identity tests for r2c and c2r transforms
+    KokkosFFT::rfft(execution_space(), xr, outr,
+                    KokkosFFT::Normalization::BACKWARD, axis);
+    KokkosFFT::irfft(execution_space(), outr, _xr,
+                     KokkosFFT::Normalization::BACKWARD, axis);
+
+    EXPECT_TRUE(allclose(_xr, ref_xr, 1.e-5, atol));
+  }
+}
+
 // Identity tests on 1D Views
 TYPED_TEST(FFT1D, Identity_1DView) {
   using float_type  = typename TestFixture::float_type;
@@ -850,6 +1231,51 @@ TYPED_TEST(FFT1D, FFT_batched_3DView) {
 
   float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
   test_fft1_1dfft_3dview<float_type, layout_type>(atol);
+}
+
+// batced fft1 on 4D Views
+TYPED_TEST(FFT1D, FFT_batched_4DView) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
+  test_fft1_1dfft_4dview<float_type, layout_type>(atol);
+}
+
+// batced fft1 on 5D Views
+TYPED_TEST(FFT1D, FFT_batched_5DView) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
+  test_fft1_1dfft_5dview<float_type, layout_type>(atol);
+}
+
+// batced fft1 on 6D Views
+TYPED_TEST(FFT1D, FFT_batched_6DView) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
+  test_fft1_1dfft_6dview<float_type, layout_type>(atol);
+}
+
+// batced fft1 on 7D Views
+TYPED_TEST(FFT1D, FFT_batched_7DView) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
+  test_fft1_1dfft_7dview<float_type, layout_type>(atol);
+}
+
+// batced fft1 on 8D Views
+TYPED_TEST(FFT1D, FFT_batched_8DView) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
+  test_fft1_1dfft_8dview<float_type, layout_type>(atol);
 }
 
 // Tests for FFT2

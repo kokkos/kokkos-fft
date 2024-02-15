@@ -9,6 +9,16 @@ template <typename T>
 using View2D = Kokkos::View<T**, execution_space>;
 template <typename T>
 using View3D = Kokkos::View<T***, execution_space>;
+template <typename T>
+using View4D = Kokkos::View<T****, execution_space>;
+template <typename T>
+using View5D = Kokkos::View<T*****, execution_space>;
+template <typename T>
+using View6D = Kokkos::View<T******, execution_space>;
+template <typename T>
+using View7D = Kokkos::View<T*******, execution_space>;
+template <typename T>
+using View8D = Kokkos::View<T********, execution_space>;
 
 // Layout Left
 template <typename T>
