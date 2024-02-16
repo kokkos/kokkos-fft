@@ -23,10 +23,10 @@ Standard FFTs
 
    api/standard/fft
    api/standard/ifft
-   fft2 (Two dimensional FFT in forward direction) <api/standard/fft2.rst>
-   ifft2 (Two dimensional FFT in backward direction) <api/standard/ifft2.rst>
-   fftn (N-dimensional FFT in forward direction) <api/standard/fftn.rst>
-   ifftn (N-dimensional FFT in backward direction) <api/standard/ifftn.rst>
+   api/standard/fft2
+   api/standard/ifft2
+   api/standard/fftn.rst
+   api/standard/ifftn.rst
 
 Real FFTs
 ---------
@@ -36,11 +36,10 @@ Real FFTs
 
    api/real/rfft
    api/real/irfft
-   rfft2 (Two dimensional FFT for real input) <api/real/rfft2.rst>
-   irfft2 (Inverse of rfft2) <api/real/irfft2.rst>
-   rfftn (N-dimensional FFT for real input) <api/real/rfftn.rst>
-   irfftn (N-dimensional FFT for real input) <api/real/irfftn.rst>
-
+   api/real/rfft2.rst
+   api/real/irfft2.rst
+   api/real/rfftn.rst
+   api/real/irfftn.rst
 Hermitian FFTs
 --------------
 
@@ -56,7 +55,7 @@ Helper routines
 .. toctree::
    :maxdepth: 1
 
-   fftfreq (Return the DFT sample frequencies) <api/helper/fftfreq.rst>
-   rfftfreq (Return the DFT sample frequencies for Real FFTs) <api/helper/rfftfreq.rst>
-   fftshift (Shift the zero-frequency component to the center of the spectrum) <api/helper/fftshift.rst>
-   ifftshift (Inverse of fftshift) <api/helper/ifftshift.rst>
+   api/helper/fftfreq.rst
+   api/helper/rfftfreq.rst
+   api/helper/fftshift.rst
+   api/helper/ifftshift.rst

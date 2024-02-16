@@ -9,7 +9,7 @@ We also explain some tips to use it efficiently.
 Brief introduction
 ------------------
 
-Most of the numpy.fft APIs (`numpy.fft.<function_name>`) are available in KokkosFFT (`KokkosFFT::<function_name>`) on the Kokkos device.
+Most of the numpy.fft APIs (``numpy.fft.<function_name>``) are available in KokkosFFT (``KokkosFFT::<function_name>``) on the Kokkos device.
 In fact, these are the only APIs available in KokkosFFT (see :doc:`API reference<../api_reference>` for detail). KokkosFFT support 1D to 3D FFT over choosen axes. 
 Inside FFT APIs, we first create a FFT plan for backend FFT library based on the Views and choosen axes.
 Then, we execute the FFT using the created plan on the given Views. Finally, we destroy the plan.
@@ -18,16 +18,16 @@ In that case, we perform the transpose operations internally which impose overhe
 
 .. note::
 
-   `KokkosFFT::Impl` namespace is for implementation details and should not be accessed by users.
+   ``KokkosFFT::Impl`` namespace is for implementation details and should not be accessed by users.
 
 Basic Instruction
 -----------------
 
 We have Standard and Real FFTs as APIs. Standard FFTs can be used for complex to complex transform, whereas
-Real FFTs perform real to complex transform. As well as `numpy.fft`, numbers after `fft` represents the dimension of FFT.
-For example, `KokkosFFT::fft2` performs 2D (potentially batched) FFT in forward direction.
+Real FFTs perform real to complex transform. As well as ``numpy.fft``, numbers after ``fft`` represents the dimension of FFT.
+For example, ``KokkosFFT::fft2`` performs 2D (potentially batched) FFT in forward direction.
 If the rank of Views is higher than the dimension of FFT, a batched FFT plan is created.
-APIs start from `i` are for inverse transform.  
+APIs start from ``i`` are for inverse transform.  
 For Real FFTs, users have to pay attention to the input and output data types as well as their extents.
 Inconsistent data types are suppressed by compilation errors. If extents are inconsistent, 
 it will raise runtime errors (C++ exceptions or assertions).
@@ -57,7 +57,7 @@ The following listing shows good and bad examples of Real FFTs.
 
 .. note::
 
-   We have to use the same precision (either `float` or `double`) for input and ouptut Views.
+   We have to use the same precision (either ``float`` or ``double``) for input and ouptut Views.
 
 Supported Views
 ---------------
@@ -67,20 +67,20 @@ For the moment, we accept Kokkos Views with some restriction in data types and L
 Here are the list of available types for Views. We recommend to use dynamic allocation for Views,
 since we have not tested with static shaped Views. In addition, we have not tested with non-default `MemoryTraits`. 
 
-* DataType: float, double, Kokkos::complex<float>, Kokkos::complex<double>
-* LayoutType: `Kokkos::LayoutLeft`, `Kokkos::LayoutRight`
-* MemorySpace: `Kokkos::DefaultExecutionSpace::memory_space`, `Kokkos::DefaultHostExecutionSpace::memory_space` (available if targeting CPU or `KokkosFFT_ENABLE_HOST_AND_DEVICE` is enabled.)
+* DataType: ``float``, ``double``, ``Kokkos::complex<float>``, ``Kokkos::complex<double>``
+* LayoutType: ``Kokkos::LayoutLeft``, ``Kokkos::LayoutRight``
+* MemorySpace: ``Kokkos::DefaultExecutionSpace::memory_space``, ``Kokkos::DefaultHostExecutionSpace::memory_space`` (available if targeting CPU or ``KokkosFFT_ENABLE_HOST_AND_DEVICE`` is enabled.)
 
 .. note::
 
-   For the moment, `Kokkos::LayoutStride` is not allowed. This may be relaxed in the future.
+   For the moment, ``Kokkos::LayoutStride`` is not allowed. This may be relaxed in the future.
 
 Memory consmpution
 ------------------
 
 In order to support FFT over arbitral axes, 
 KokkosFFT performs transpose operations internally and apply FFT on contious data.
-For size n input, this requires internal buffers of size (2n)  in addition to the buffers used by FFT library. 
+For size ``n`` input, this requires internal buffers of size ``2n`` in addition to the buffers used by FFT library. 
 Performance overhead from transpose may be not critical but memory consumptions are problematic. 
 If memory consumption matters, it is recommended to make data contiguous so that transpose is not performed. 
 The following listing shows examples with and without transpose operation.

@@ -21,7 +21,7 @@ However, we have not tested all the listed compilers there and thus recommend th
 Install KokkosFFT as a library
 ------------------------------
 
-Is is assumed that the Kokkos is installed under `<install_dir>/kokkos` with OpenMP backend. Here is a recipe to install KokkosFFT under `<install_dir>/kokkos_fft`.
+Is is assumed that the Kokkos is installed under ``<install_dir>/kokkos`` with OpenMP backend. Here is a recipe to install KokkosFFT under ``<install_dir>/kokkos_fft``.
 
 .. code-block:: bash
 
@@ -69,11 +69,11 @@ The code can be built as
 CMake options
 -------------
 
-We rely on CMake to build KokkosFFT, more specifically CMake3.22+. Here are the lists of CMake option. 
+We rely on CMake to build KokkosFFT, more specifically ``CMake3.22+``. Here are the lists of CMake option. 
 For FFTs on Kokkos device only, we do not need to add extra compile options but for Kokkos ones.
-In order to use KokkosFFT from both host and device, we need to add `KokkosFFT_ENABLE_HOST_AND_DEVICE=ON`.
-This option may be useful in case FFT is used for initialization at host. 
-However, to enable this option, we need a pre-installed FFTW for FFT on host, so it is disabled in default.
+In order to use KokkosFFT from both host and device, we need to add ``KokkosFFT_ENABLE_HOST_AND_DEVICE=ON``.
+This option may be useful, for example FFT is used for initialization at host. 
+However, to enable this option, we need a pre-installed ``fftw`` for FFT on host, so it is disabled in default.
 
 .. list-table:: CMake options
    :widths: 25 25 50
@@ -101,10 +101,10 @@ However, to enable this option, we need a pre-installed FFTW for FFT on host, so
 Kokkos backends
 ---------------
 
-KokkosFFT requieres Kokkos 4.2+. For the moment, we support following backends for CPUs and GPUs. 
+KokkosFFT requieres ``Kokkos 4.2+``. For the moment, we support following backends for CPUs and GPUs. 
 A FFT library dedicated to Kokkos Device backend (e.g. cufft for CUDA backend) is automatically used. 
 If CMake fails to find a backend FFT library, see :doc:`How to find fft libraries?<../finding_libraries>`.
-We may support experimental backends like `OPENMPTARGET` in the future.
+We may support experimental backends like ``OPENMPTARGET`` in the future.
  
 .. list-table:: Host backend
    :widths: 25 25 25 25
@@ -114,15 +114,15 @@ We may support experimental backends like `OPENMPTARGET` in the future.
      - Description
      - Backend FFT library
      - Default
-   * - `Kokkos_ENABLE_SERIAL`
+   * - ``Kokkos_ENABLE_SERIAL``
      - Serial backend targeting CPUs 
      - FFTW (Serial)
      - OFF
-   * - `Kokkos_ENABLE_THREADS`
+   * - ``Kokkos_ENABLE_THREADS``
      - C++ threads backend targeting CPUs 
      - FFTW (Threads)
      - OFF
-   * - `Kokkos_ENABLE_OPENMP`
+   * - ``Kokkos_ENABLE_OPENMP``
      - OpenMP backend targeting CPUs 
      - FFTW (OpenMP)
      - OFF
@@ -135,15 +135,15 @@ We may support experimental backends like `OPENMPTARGET` in the future.
      - Description
      - Backend FFT library
      - Default
-   * - `Kokkos_ENABLE_CUDA`
+   * - ``Kokkos_ENABLE_CUDA``
      - CUDA backend targeting NVIDIA GPUs
      - cufft
      - OFF
-   * - `Kokkos_ENABLE_HIP`
+   * - ``Kokkos_ENABLE_HIP``
      - HIP backend targeting AMD GPUs
      - hipfft
      - OFF
-   * - `Kokkos_ENABLE_SYCL`
+   * - ``Kokkos_ENABLE_SYCL``
      - SYCL backend targeting Intel GPUs
      - onemkl
      - OFF

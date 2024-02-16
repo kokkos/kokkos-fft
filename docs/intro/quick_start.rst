@@ -46,7 +46,7 @@ Here is an example to use KokkosFFT in the following CMake project.
         |--CMakeLists.txt
         └──hello.cpp
 
-The `CMakeLists.txt` would be
+The ``CMakeLists.txt`` would be
 
 .. code-block:: CMake
 
@@ -104,9 +104,9 @@ you may use KokkosFFT quite easily. Here is an example for 1D real to complex tr
 
    KokkosFFT::rfft(execution_space(), x, x_hat);
 
-In most cases, a funciton `numpy.fft.<function_name>` is available by `KokkosFFT::<function_name>`.
-There are two major differences: `execution_space` argument and output value (`x_hat`) is an argument of API (not a returned value from API).
+In most cases, a funciton ``numpy.fft.<function_name>`` is available by ``KokkosFFT::<function_name>``.
+There are two major differences: ``execution_space`` argument and output value (``x_hat``) is an argument of API (not a returned value from API).
 Instead of numpy.array, we rely on `Kokkos Views <https://kokkos.org/kokkos-core-wiki/API/core/View.html>`_.
-The accessibilities of Views from `execution_space` are statically checked (compilation errors if not accessible). 
-It is easiest to rely only on the `Kokkos::DefaultExecutionSpace` for both View allocation and KokkosFFT APIs.
+The accessibilities of Views from ``execution_space`` are statically checked (compilation errors if not accessible). 
+It is easiest to rely only on the ``Kokkos::DefaultExecutionSpace`` for both View allocation and KokkosFFT APIs.
 See :ref:`Using KokkosFFT<using>` for detail.
