@@ -1134,7 +1134,7 @@ void ifft2(const ExecutionSpace& exec_space, const InViewType& in,
   }
 }
 
-/// \brief Two dimensional FFT for real input with a given plan
+/// \brief Two dimensional FFT for real input
 ///
 /// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (real)

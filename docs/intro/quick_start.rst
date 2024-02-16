@@ -73,7 +73,7 @@ For compilation, we basically rely on the CMake options for Kokkos. For example,
 
 This way, all the functionalities are executed on A100 GPUs.
 
-Using KokkosFFT
+Tring KokkosFFT
 ---------------
 
 For those who are familiar with `numpy.fft <https://numpy.org/doc/stable/reference/routines.fft.html>`_, 
