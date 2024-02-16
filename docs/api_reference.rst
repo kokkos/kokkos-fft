@@ -3,9 +3,9 @@
 API Reference
 =============
 
-This section documents the public user interface of `KokkosFFT`. 
-APIs are defined in `KokkosFFT` namespace and implementation details are defined in `KokkosFFT::Impl` namespace. 
-Thus, it is highly discouraged for users to access functions in `KokkosFFT::Impl` namespace except for `Plan`.
+This section documents the public user interface of ``KokkosFFT``. 
+APIs are defined in ``KokkosFFT`` namespace and implementation details are defined in ``KokkosFFT::Impl`` namespace. 
+Thus, it is highly discouraged for users to access functions in ``KokkosFFT::Impl`` namespace except for ``Plan``.
 
 FFT Plan
 --------
@@ -34,8 +34,8 @@ Real FFTs
 .. toctree::
    :maxdepth: 1
 
-   rfft (One dimensional FFT for real input) <api/real/rfft.rst>
-   irfft (Inverse of rfft) <api/real/irfft.rst>
+   api/real/rfft
+   api/real/irfft
    rfft2 (Two dimensional FFT for real input) <api/real/rfft2.rst>
    irfft2 (Inverse of rfft2) <api/real/irfft2.rst>
    rfftn (N-dimensional FFT for real input) <api/real/rfftn.rst>
@@ -47,8 +47,8 @@ Hermitian FFTs
 .. toctree::
    :maxdepth: 1
 
-   hfft (One dimensional FFT of a signal that has Hermitian symmetry) <api/hermitian/hfft.rst>
-   ihfft (Inverse of hfft) <api/hermitian/ihfft.rst>
+   api/hermitian/hfft
+   api/hermitian/ihfft
 
 Helper routines
 ---------------

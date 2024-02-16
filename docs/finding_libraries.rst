@@ -9,7 +9,7 @@ Some tips to find FFT libraries for each backend.
 -----------------------------
 
 If fftw is offered as a module, our cmake helper would likely find fftw.
-Assuming fftw is installed in `<fftw_install_dir>`, it is expected that `<fftw_install_dir>` would be found under `LIBRARY_PATH`, `LD_LIBRARY_PATH`, and `PATH`.
+Assuming fftw is installed in ``<fftw_install_dir>``, it is expected that ``<fftw_install_dir>`` would be found under ``LIBRARY_PATH``, ``LD_LIBRARY_PATH``, and ``PATH``.
 It would look like
 
 .. code-block:: bash
@@ -18,7 +18,7 @@ It would look like
     LD_LIBRARY_PATH=...:<fftw_install_dir>/lib
     PATH=...:<fftw_install_dir>/bin
 
-If CMake fails to find `fftw`, please try to set `FFTWDIR` in the following way. 
+If CMake fails to find ``fftw``, please try to set ``FFTWDIR`` in the following way. 
 
 .. code-block:: bash
 
