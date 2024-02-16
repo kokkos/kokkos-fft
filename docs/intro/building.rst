@@ -13,6 +13,7 @@ Compiler versions
 
 KokkosFFT relies on quite basic functionalieis of Kokkos, and thus it is supposed to work with compilers used for `Kokkos <https://kokkos.org/kokkos-core-wiki/requirements.html>`_. 
 However, we have not tested all the listed compilers there and thus recommend the following compilers which we use frequently for testing.
+
 * ``gcc 8.3.0+`` - CPUs
 * ``IntelLLVM 2023.0.0+`` - CPUs, Intel GPUs
 * ``nvcc 12.0.0+`` - NVIDIA GPUs
@@ -116,15 +117,15 @@ We may support experimental backends like ``OPENMPTARGET`` in the future.
      - Default
    * - ``Kokkos_ENABLE_SERIAL``
      - Serial backend targeting CPUs 
-     - FFTW (Serial)
+     - ``fftw (Serial)``
      - OFF
    * - ``Kokkos_ENABLE_THREADS``
      - C++ threads backend targeting CPUs 
-     - FFTW (Threads)
+     - ``fftw (Threads)``
      - OFF
    * - ``Kokkos_ENABLE_OPENMP``
      - OpenMP backend targeting CPUs 
-     - FFTW (OpenMP)
+     - ``fftw (OpenMP)``
      - OFF
 
 .. list-table:: Device backend
@@ -137,13 +138,13 @@ We may support experimental backends like ``OPENMPTARGET`` in the future.
      - Default
    * - ``Kokkos_ENABLE_CUDA``
      - CUDA backend targeting NVIDIA GPUs
-     - cufft
+     - ``cufft``
      - OFF
    * - ``Kokkos_ENABLE_HIP``
      - HIP backend targeting AMD GPUs
-     - hipfft
+     - ``hipfft``
      - OFF
    * - ``Kokkos_ENABLE_SYCL``
      - SYCL backend targeting Intel GPUs
-     - onemkl
+     - ``onemkl``
      - OFF

@@ -10,10 +10,16 @@ Thus, it is highly discouraged for users to access functions in ``KokkosFFT::Imp
 FFT Plan
 --------
 
-.. toctree::
-   :maxdepth: 1
+.. list-table::
+   :widths: 25 25 50
+   :header-rows: 1
 
-   api/plan
+   * - 
+     - ``KokkosFFT``
+     - ``numpy.fft``
+   * - 
+     - :doc:`KokkosFFT::Impl::Plan<api/plan>`
+     - 
 
 Standard FFTs
 -------------
