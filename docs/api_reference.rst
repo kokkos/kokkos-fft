@@ -3,6 +3,10 @@
 API Reference
 =============
 
+This section documents the public user interface of `KokkosFFT`. 
+APIs are defined in `KokkosFFT` namespace and implementation details are defined in `KokkosFFT::Impl` namespace. 
+Thus, it is highly discouraged for users to access functions in `KokkosFFT::Impl` namespace except for `Plan`.
+
 FFT Plan
 --------
 
