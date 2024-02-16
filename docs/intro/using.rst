@@ -51,7 +51,7 @@ The following listing shows good and bad examples of Real FFTs.
    //KokkosFFT::irfft2(execution_space(), x_hat_good, x);
 
    // [NG, Run time error] Inconsistent extetns
-   // Output: (n0, n1) -> (n0, n1/2+1)
+   // Output: (n0, n1) (NG) -> (n0, n1/2+1) (OK)
    KokkosFFT::rfft2(execution_space(), x, x_hat_bad);
 
 
