@@ -1,3 +1,4 @@
+.. _finding_libraries:
 
 Finding FFT libraries by CMake
 ==============================
