@@ -11,14 +11,14 @@ FFT Plan
 --------
 
 .. list-table::
-   :widths: 25 25 50
+   :widths: 50 25 25
    :header-rows: 1
 
-   * - 
+   * - Description
      - ``KokkosFFT``
      - ``numpy.fft``
-   * - 
-     - :doc:`KokkosFFT::Impl::Plan<api/plan>`
+   * - A class that manages a FFT plan of backend FFT library
+     - :doc:`api/plan`
      - 
 
 Standard FFTs
@@ -33,6 +33,32 @@ Standard FFTs
    api/standard/ifft2
    api/standard/fftn.rst
    api/standard/ifftn.rst
+
+.. list-table::
+   :widths: 50 25 25
+   :header-rows: 1
+
+   * - Description
+     - ``KokkosFFT``
+     - ``numpy.fft``
+   * - One dimensional FFT in forward direction
+     - :doc:`api/standard/fft`
+     - `numpy.fft.fft <https://numpy.org/doc/stable/reference/generated/numpy.fft.fft.html>`_
+   * - One dimensional FFT in backward direction
+     - :doc:`api/standard/ifft`
+     - `numpy.fft.ifft <https://numpy.org/doc/stable/reference/generated/numpy.fft.ifft.html>`_ 
+   * - Two dimensional FFT in forward direction
+     - :doc:`api/standard/fft2`
+     - `numpy.fft.fft2 <https://numpy.org/doc/stable/reference/generated/numpy.fft.fft2.html>`_ 
+   * - Two dimensional FFT in backward direction
+     - :doc:`api/standard/ifft2`
+     - `numpy.fft.ifft2 <https://numpy.org/doc/stable/reference/generated/numpy.fft.ifft2.html>`_ 
+   * - N-dimensional FFT in forward direction
+     - :doc:`api/standard/fftn`
+     - `numpy.fft.fftn <https://numpy.org/doc/stable/reference/generated/numpy.fft.fftn.html>`_ 
+   * - N-dimensional FFT in backward direction
+     - :doc:`api/standard/ifftn`
+     - `numpy.fft.ifftn <https://numpy.org/doc/stable/reference/generated/numpy.fft.ifftn.html>`_ 
 
 Real FFTs
 ---------

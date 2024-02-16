@@ -83,19 +83,19 @@ However, to enable this option, we need a pre-installed ``fftw`` for FFT on host
    * - 
      - Description
      - Default
-   * - KokkosFFT_ENABLE_HOST_AND_DEVICE
+   * - ``KokkosFFT_ENABLE_HOST_AND_DEVICE``
      - Enable FFT on both host and device.
      - OFF
-   * - KokkosFFT_INTERNAL_Kokkos
+   * - ``KokkosFFT_INTERNAL_Kokkos``
      - Build internal Kokkos instead of relying on external one.
      - OFF
-   * - KokkosFFT_ENABLE_EXAMPLES
+   * - ``KokkosFFT_ENABLE_EXAMPLES``
      - Build KokkosFFT examples
      - ON
-   * - KokkosFFT_ENABLE_TESTS
+   * - ``KokkosFFT_ENABLE_TESTS``
      - Build KokkosFFT tests
      - OFF
-   * - KokkosFFT_ENABLE_BENCHMARK
+   * - ``KokkosFFT_ENABLE_BENCHMARK``
      - Build benchmarks for KokkosFFT
      - OFF
 
@@ -107,7 +107,7 @@ A FFT library dedicated to Kokkos Device backend (e.g. cufft for CUDA backend) i
 If CMake fails to find a backend FFT library, see :doc:`How to find fft libraries?<../finding_libraries>`.
 We may support experimental backends like ``OPENMPTARGET`` in the future.
  
-.. list-table:: Host backend
+.. list-table:: ``Host backend``
    :widths: 25 25 25 25
    :header-rows: 1
 
@@ -128,7 +128,7 @@ We may support experimental backends like ``OPENMPTARGET`` in the future.
      - ``fftw (OpenMP)``
      - OFF
 
-.. list-table:: Device backend
+.. list-table:: ``Device backend``
    :widths: 25 25 25 25
    :header-rows: 1
 
