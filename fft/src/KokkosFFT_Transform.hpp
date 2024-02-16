@@ -1784,7 +1784,7 @@ void ifftn(const ExecutionSpace& exec_space, const InViewType& in,
 
 /// \brief N-dimensional FFT for real input with a given plan
 ///
-/// \param in [in] Kokkos execution space
+/// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (real)
 /// \param out [out] Ouput data (complex)
 /// \param norm [in] How the normalization is applied (optional)
