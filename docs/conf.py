@@ -27,7 +27,7 @@ def configureDoxyfile(src_dir, input_dir, output_dir, doxyfile_in, doxyfile_out)
     filedata = filedata.replace('@DOXYGEN_OUTPUT_DIR@', output_dir)
     
     with open(doxyfile_out, 'w') as file:
-          file.write(filedata)
+        file.write(filedata)
 		
 def get_version(src_dir):
     cmake_file = src_dir + 'CMakeLists.txt'
