@@ -18,24 +18,24 @@ import re
 from datetime import datetime
 
 def configureDoxyfile(src_dir, input_dir, output_dir, doxyfile_in, doxyfile_out):
-
-	with open(doxyfile_in, 'r') as file :
-		filedata = file.read()
-
-	filedata = filedata.replace('@CMAKE_SOURCE_DIR@', src_dir)
-	filedata = filedata.replace('@DOXYGEN_INPUT_DIR@', input_dir)
-	filedata = filedata.replace('@DOXYGEN_OUTPUT_DIR@', output_dir)
-	
-	with open(doxyfile_out, 'w') as file:
-		file.write(filedata)
+    
+    with open(doxyfile_in, 'r') as file :
+        filedata = file.read()
+        
+    filedata = filedata.replace('@CMAKE_SOURCE_DIR@', src_dir)
+    filedata = filedata.replace('@DOXYGEN_INPUT_DIR@', input_dir)
+    filedata = filedata.replace('@DOXYGEN_OUTPUT_DIR@', output_dir)
+    
+    with open(doxyfile_out, 'w') as file:
+          file.write(filedata)
 		
 def get_version(src_dir):
-	cmake_file = src_dir + 'CMakeLists.txt'
-
+    cmake_file = src_dir + 'CMakeLists.txt'
+    
     try:
         with open(cmake_file, 'r') as f:
             txt = f.read()
-
+            
         regex = 'project\((\n|.)*?\)'
         project_detail = re.search(regex, txt).group()
         version_detail = re.search('VERSION.*', project_detail).group()
