@@ -32,17 +32,16 @@ def configureDoxyfile(src_dir, input_dir, output_dir, doxyfile_in, doxyfile_out)
 def get_version(src_dir):
 	cmake_file = src_dir + 'CMakeLists.txt'
 
-	with open(cmake_file, 'r') as f:
-		txt = f.read()
-	
-    version = '0.0.0'
     try:
-		regex = 'project\((\n|.)*?\)'
-		project_detail = re.search(regex, txt).group()
-		version_detail = re.search('VERSION.*', project_detail).group()
-		version = re.split("\s", version_detail)[-1]
+        with open(cmake_file, 'r') as f:
+            txt = f.read()
+
+        regex = 'project\((\n|.)*?\)'
+        project_detail = re.search(regex, txt).group()
+        version_detail = re.search('VERSION.*', project_detail).group()
+        version = re.split("\s", version_detail)[-1]
     except:
-		print(f'version not found in {cmake_file}. Use {version} as default.')  
+        version = '0.0.0'
 
     return version
 
