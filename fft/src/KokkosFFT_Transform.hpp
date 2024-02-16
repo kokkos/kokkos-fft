@@ -216,20 +216,20 @@ void fft(const ExecutionSpace& exec_space, const InViewType& in,
 
 /// \brief One dimensional FFT in forward direction
 ///
-/// \param in [in] ExecutionSpace
+/// \param in [in] ExecutionSpace \n
 ///        Kokkos execution space for this plan
-/// \param in [in] Kokkos::View
+/// \param in [in] Kokkos::View \n
 ///        Input data
-/// \param out [out] Kokkos::View
+/// \param out [out] Kokkos::View \n
 ///        Ouput data
-/// \param in [in] PlanType
+/// \param in [in] PlanType \n
 ///        KokkosFFT Plan for forward fft
 /// \param norm [in] enum Normalization {backward, ortho, forward, none},
-/// optional
+/// optional \n
 ///        How the normalization is applied.
-/// \param axis [in] int, optional
+/// \param axis [in] int, optional \n
 ///        Axis over which FFT is performed
-/// \param n [in] size_t, optional
+/// \param n [in] size_t, optional \n
 ///        Length of the transformed axis of the output.
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           typename PlanType>
