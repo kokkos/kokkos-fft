@@ -165,7 +165,7 @@ class Plan {
 
   /// \brief Constructor for multidimensional FFT
   ///
-  /// \param exec_space [in] Kokkos execution device
+  /// \param exec_space [in] Kokkos execution space for this plan
   /// \param in [in] Input data
   /// \param out [in] Ouput data
   /// \param direction [in] Direction of FFT (forward/backward)
