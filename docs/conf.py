@@ -51,7 +51,6 @@ project = 'KokkosFFT'
 copyright = f"2023-{datetime.now().year}, {author}"
 
 version = get_version('../')
-
 release = 'release'
 
 # Check if we're running on Read the Docs' servers
@@ -63,20 +62,6 @@ if read_the_docs_build:
     cwd = os.getcwd()
     print(cwd)
 
-    # Update submodule
-    #update_submodule = ['git', 'submodule', 'update', '--init', '--recursive']
-    #subprocess.call(update_submodule, shell=True)
-
-    # Build Docs with CMake 
-    ###cmake_commands = 'cmake -DBUILD_TESTING=OFF \
-    ###                        -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-    ###                        -DKokkos_ENABLE_OPENMP=ON \
-    ###                        -DBUILD_EXAMPLES=OFF \
-    ###                        -DKokkosFFT_INTERNAL_Kokkos=ON \
-    ###                        -DKokkosFFT_ENABLE_DOCS=ON ..'
-    ###build = 'cmake --build . -j 2'
-    ###                        
-    ###subprocess.call(f'cd ../; mkdir build; cd build; {cmake_commands}; {build}', shell=True)
     src_dir = cwd + '/..'
     input_dir = cwd + '/../fft/src/'
     output_dir = cwd +'/doxygen/'

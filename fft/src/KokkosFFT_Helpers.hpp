@@ -247,7 +247,7 @@ void fftshift(const ExecutionSpace& exec_space, ViewType& inout) {
 ///
 /// \param exec_space [in] Kokkos execution space
 /// \param inout [in,out] Spectrum
-/// \param axis [in] Axis over which to shift
+/// \param axes [in] Axes over which to shift
 template <typename ExecutionSpace, typename ViewType>
 void fftshift(const ExecutionSpace& exec_space, ViewType& inout, int axes) {
   KokkosFFT::Impl::_fftshift(exec_space, inout, axis_type<1>{axes});
@@ -280,7 +280,7 @@ void ifftshift(const ExecutionSpace& exec_space, ViewType& inout) {
 ///
 /// \param exec_space [in] Kokkos execution space
 /// \param inout [in,out] Spectrum
-/// \param axis [in] Axis over which to shift
+/// \param axes [in] Axes over which to shift
 template <typename ExecutionSpace, typename ViewType>
 void ifftshift(const ExecutionSpace& exec_space, ViewType& inout, int axes) {
   KokkosFFT::Impl::_ifftshift(exec_space, inout, axis_type<1>{axes});

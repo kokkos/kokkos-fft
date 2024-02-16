@@ -212,7 +212,7 @@ void fft(const ExecutionSpace& exec_space, const InViewType& in,
 /// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (complex)
 /// \param out [out] Ouput data (complex)
-/// \param in [in] KokkosFFT Plan for forward fft
+/// \param plan [in] KokkosFFT Plan for forward fft
 /// \param norm [in] How the normalization is applied (optional)
 /// \param axis [in] Axis over which FFT is performed (optional)
 /// \param n [in] Length of the transformed axis of the output (optional)
@@ -357,7 +357,7 @@ void ifft(const ExecutionSpace& exec_space, const InViewType& in,
 /// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (complex)
 /// \param out [out] Ouput data (complex)
-/// \param in [in] KokkosFFT Plan for backward fft
+/// \param plan [in] KokkosFFT Plan for backward fft
 /// \param norm [in] How the normalization is applied (optional)
 /// \param axis [in] Axis over which FFT is performed (optional)
 /// \param n [in] Length of the transformed axis of the output (optional)
@@ -481,7 +481,7 @@ void rfft(const ExecutionSpace& exec_space, const InViewType& in,
 /// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (real)
 /// \param out [out] Ouput data (complex)
-/// \param in [in] KokkosFFT Plan for forward fft
+/// \param plan [in] KokkosFFT Plan for forward fft
 /// \param norm [in] How the normalization is applied (optional)
 /// \param axis [in] Axis over which FFT is performed (optional)
 /// \param n [in] Length of the transformed axis of the output (optional)
@@ -585,7 +585,7 @@ void irfft(const ExecutionSpace& exec_space, const InViewType& in,
 /// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (complex)
 /// \param out [out] Ouput data (real)
-/// \param in [in] KokkosFFT Plan for irfft
+/// \param plan [in] KokkosFFT Plan for irfft
 /// \param norm [in] How the normalization is applied (optional)
 /// \param axis [in] Axis over which FFT is performed (optional)
 /// \param n [in] Length of the transformed axis of the output (optional)
@@ -693,7 +693,7 @@ void hfft(const ExecutionSpace& exec_space, const InViewType& in,
 /// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (complex)
 /// \param out [out] Ouput data (real)
-/// \param in [in] KokkosFFT Plan for hfft
+/// \param plan [in] KokkosFFT Plan for hfft
 /// \param norm [in] How the normalization is applied (optional)
 /// \param axis [in] Axis over which FFT is performed (optional)
 /// \param n [in] Length of the transformed axis of the output (optional)
@@ -803,7 +803,7 @@ void ihfft(const ExecutionSpace& exec_space, const InViewType& in,
 /// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (real)
 /// \param out [out] Ouput data (complex)
-/// \param in [in] KokkosFFT Plan for ihfft
+/// \param plan [in] KokkosFFT Plan for ihfft
 /// \param norm [in] How the normalization is applied (optional)
 /// \param axis [in] Axis over which FFT is performed (optional)
 /// \param n [in] Length of the transformed axis of the output (optional)
@@ -928,7 +928,7 @@ void fft2(const ExecutionSpace& exec_space, const InViewType& in,
 /// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (complex)
 /// \param out [out] Ouput data (complex)
-/// \param in [in] KokkosFFT Plan for fft2
+/// \param plan [in] KokkosFFT Plan for fft2
 /// \param norm [in] How the normalization is applied (optional)
 /// \param axes [in] Axes over which FFT is performed (optional)
 /// \param s [in] Shape of the transformed axis of the output (optional)
@@ -1068,7 +1068,7 @@ void ifft2(const ExecutionSpace& exec_space, const InViewType& in,
 /// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (complex)
 /// \param out [out] Ouput data (complex)
-/// \param in [in] KokkosFFT Plan for ifft2
+/// \param plan [in] KokkosFFT Plan for ifft2
 /// \param norm [in] How the normalization is applied (optional)
 /// \param axes [in] Axes over which FFT is performed (optional)
 /// \param s [in] Shape of the transformed axis of the output (optional)
@@ -1189,7 +1189,7 @@ void rfft2(const ExecutionSpace& exec_space, const InViewType& in,
 /// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (real)
 /// \param out [out] Ouput data (complex)
-/// \param in [in] KokkosFFT Plan for ifft2
+/// \param plan [in] KokkosFFT Plan for ifft2
 /// \param norm [in] How the normalization is applied (optional)
 /// \param axes [in] Axes over which FFT is performed (optional)
 /// \param s [in] Shape of the transformed axis of the output (optional)
@@ -1299,7 +1299,7 @@ void irfft2(const ExecutionSpace& exec_space, const InViewType& in,
 /// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (complex)
 /// \param out [out] Ouput data (real)
-/// \param in [in] KokkosFFT Plan for irfft2
+/// \param plan [in] KokkosFFT Plan for irfft2
 /// \param norm [in] How the normalization is applied (optional)
 /// \param axes [in] Axes over which FFT is performed (optional)
 /// \param s [in] Shape of the transformed axis of the output (optional)
@@ -1503,7 +1503,7 @@ void fftn(const ExecutionSpace& exec_space, const InViewType& in,
 /// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (complex)
 /// \param out [out] Ouput data (complex)
-/// \param in [in] KokkosFFT Plan for fftn
+/// \param plan [in] KokkosFFT Plan for fftn
 /// \param axes [in] Axes over which FFT is performed
 /// \param norm [in] How the normalization is applied (optional)
 /// \param s [in] Shape of the transformed axis of the output (optional)
@@ -1716,7 +1716,7 @@ void ifftn(const ExecutionSpace& exec_space, const InViewType& in,
 /// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (complex)
 /// \param out [out] Ouput data (complex)
-/// \param in [in] KokkosFFT Plan for ifftn
+/// \param plan [in] KokkosFFT Plan for ifftn
 /// \param axes [in] Axes over which FFT is performed
 /// \param norm [in] How the normalization is applied (optional)
 /// \param s [in] Shape of the transformed axis of the output (optional)
@@ -1836,6 +1836,7 @@ void rfftn(const ExecutionSpace& exec_space, const InViewType& in,
 /// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (real)
 /// \param out [out] Ouput data (complex)
+/// \param plan [in] KokkosFFT Plan for rfftn
 /// \param axes [in] Axes over which FFT is performed
 /// \param norm [in] How the normalization is applied (optional)
 /// \param s [in] Shape of the transformed axis of the output (optional)
@@ -1881,12 +1882,11 @@ void rfftn(const ExecutionSpace& exec_space, const InViewType& in,
   fftn(exec_space, in, out, plan, axes, norm, s);
 }
 
-/// \brief N-dimensional FFT for real input with a given plan
+/// \brief N-dimensional FFT for real input
 ///
 /// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (real)
 /// \param out [out] Ouput data (complex)
-/// \param in [in] KokkosFFT Plan for rfftn
 /// \param axes [in] Axes over which FFT is performed
 /// \param norm [in] How the normalization is applied (optional)
 /// \param s [in] Shape of the transformed axis of the output (optional)
@@ -1990,7 +1990,7 @@ void irfftn(const ExecutionSpace& exec_space, const InViewType& in,
   ifftn(exec_space, in, out, norm, _s);
 }
 
-/// \brief Inverse of rfftn with a given plan
+/// \brief Inverse of rfftn
 ///
 /// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (complex)
@@ -2054,7 +2054,7 @@ void irfftn(const ExecutionSpace& exec_space, const InViewType& in,
 /// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (complex)
 /// \param out [out] Ouput data (real)
-/// \param in [in] KokkosFFT Plan for irfftn
+/// \param plan [in] KokkosFFT Plan for irfftn
 /// \param axes [in] Axes over which FFT is performed
 /// \param norm [in] How the normalization is applied (optional)
 /// \param s [in] Shape of the transformed axis of the output (optional)
