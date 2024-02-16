@@ -2,7 +2,7 @@
 KokkosFFT documentation
 =======================================
 
-KokkosFFT implements local interfaces between `Kokkos <https://github.com/CExA-project/kokkos-fft>`_ 
+KokkosFFT implements local interfaces between `Kokkos <https://kokkos.org>`_ 
 and de facto standard FFT libraries, 
 including `fftw <http://www.fftw.org>`_,
 `cufft <https://developer.nvidia.com/cufft>`_,
@@ -43,12 +43,11 @@ Here is an example for 1D real to complex transform with rfft in python and Kokk
 
 .. note::
 
-   We assume that the backend FFT libraries are appropriately installed by users.
+   We assume that the backend FFT libraries are appropriately installed on the system.
 
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents
 
    getting_started
    finding_libraries
