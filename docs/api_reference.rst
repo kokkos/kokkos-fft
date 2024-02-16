@@ -94,20 +94,12 @@ Hermitian FFTs
    * - One dimensional FFT of a signal that has Hermitian symmetry
      - :doc:`api/hermitian/hfft`
      - `numpy.fft.hfft <https://numpy.org/doc/stable/reference/generated/numpy.fft.hfft.html>`_
-   * - Inverse of :doc:`rfftn<api/hermitian/hfft>`
+   * - Inverse of :doc:`hfft<api/hermitian/hfft>`
      - :doc:`api/hermitian/ihfft`
      - `numpy.fft.ihfft <https://numpy.org/doc/stable/reference/generated/numpy.fft.ihfft.html>`_
 
 Helper routines
 ---------------
-
-.. toctree::
-   :maxdepth: 1
-
-   api/helper/fftfreq.rst
-   api/helper/rfftfreq.rst
-   api/helper/fftshift.rst
-   api/helper/ifftshift.rst
 
 .. list-table::
    :widths: 50 25 25
