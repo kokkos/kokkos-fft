@@ -207,7 +207,7 @@ void fft(const ExecutionSpace& exec_space, const InViewType& in,
   }
 }
 
-/// \brief One dimensional FFT in forward direction
+/// \brief One dimensional FFT in forward direction with a given plan
 ///
 /// \param in [in] Kokkos execution space
 /// \param in [in] Input data
@@ -280,6 +280,14 @@ void fft(const ExecutionSpace& exec_space, const InViewType& in,
   }
 }
 
+/// \brief One dimensional FFT in backward direction
+///
+/// \param in [in] Kokkos execution space
+/// \param in [in] Input data
+/// \param out [out] Ouput data
+/// \param norm [in] How the normalization is applied (optional)
+/// \param axis [in] Axis over which FFT is performed (optional)
+/// \param n [in] Length of the transformed axis of the output (optional)
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
 void ifft(const ExecutionSpace& exec_space, const InViewType& in,
           OutViewType& out,
@@ -344,6 +352,15 @@ void ifft(const ExecutionSpace& exec_space, const InViewType& in,
   }
 }
 
+/// \brief One dimensional FFT in backward direction with a given plan
+///
+/// \param in [in] Kokkos execution space
+/// \param in [in] Input data
+/// \param out [out] Ouput data
+/// \param in [in] KokkosFFT Plan for forward fft
+/// \param norm [in] How the normalization is applied (optional)
+/// \param axis [in] Axis over which FFT is performed (optional)
+/// \param n [in] Length of the transformed axis of the output (optional)
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           typename PlanType>
 void ifft(const ExecutionSpace& exec_space, const InViewType& in,

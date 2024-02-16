@@ -21,8 +21,8 @@ Standard FFTs
 .. toctree::
    :maxdepth: 1
 
-   fft (One dimensional FFT in forward direction) <api/standard/fft.rst>
-   ifft (One dimensional FFT in backward direction) <api/standard/ifft.rst>
+   api/standard/fft
+   api/standard/ifft
    fft2 (Two dimensional FFT in forward direction) <api/standard/fft2.rst>
    ifft2 (Two dimensional FFT in backward direction) <api/standard/ifft2.rst>
    fftn (N-dimensional FFT in forward direction) <api/standard/fftn.rst>
