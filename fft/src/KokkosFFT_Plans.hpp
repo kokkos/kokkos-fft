@@ -42,6 +42,13 @@ using default_device = Kokkos::Serial;
 
 namespace KokkosFFT {
 namespace Impl {
+/// \brief Plan
+///
+/// Plan is used to manage the FFT plan of backend FFT library.
+///
+/// Depending on the Input and Output Views and axes,
+/// appropriate FFT plans are created.
+///
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           std::size_t DIM = 1>
 class Plan {

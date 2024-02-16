@@ -9,7 +9,7 @@ FFT Plan
 .. toctree::
    :maxdepth: 1
 
-   Plan (Wrapping a FFT plan of backend FFT library) <api/plan>
+   api/plan
 
 Standard FFTs
 -------------

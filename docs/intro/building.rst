@@ -12,8 +12,7 @@ Compiler versions
 -----------------
 
 KokkosFFT relies on quite basic functionalieis of Kokkos, and thus it is supposed to work with compilers used for `Kokkos <https://kokkos.org/kokkos-core-wiki/requirements.html>`_. 
-However, we have not tested all the listed compilers there and recommend the following compilers for each device. 
-
+However, we have not tested all the listed compilers there and thus recommend the following compilers which we use frequently for testing.
 * ``gcc 8.3.0+`` - CPUs
 * ``IntelLLVM 2023.0.0+`` - CPUs, Intel GPUs
 * ``nvcc 12.0.0+`` - NVIDIA GPUs
