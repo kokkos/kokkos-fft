@@ -71,6 +71,17 @@ Standard FFTs
 Real FFTs
 ---------
 
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+
+   api/real/rfft
+   api/real/irfft
+   api/real/rfft2
+   api/real/irfft2
+   api/real/rfftn
+   api/real/irfftn
+
 .. list-table::
    :widths: 50 25 25
    :header-rows: 1
@@ -101,6 +112,13 @@ Real FFTs
 Hermitian FFTs
 --------------
 
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+
+   api/hermitian/hfft
+   api/hermitian/ihfft
+
 .. list-table::
    :widths: 50 25 25
    :header-rows: 1
@@ -117,6 +135,15 @@ Hermitian FFTs
 
 Helper routines
 ---------------
+
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+
+   api/helper/fftfreq
+   api/helper/rfftfreq
+   api/helper/fftshift
+   api/helper/ifftshift
 
 .. list-table::
    :widths: 50 25 25
