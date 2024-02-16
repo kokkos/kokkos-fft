@@ -10,7 +10,7 @@ Brief introduction
 ------------------
 
 Most of the numpy.fft APIs (`numpy.fft.<function_name>`) are available in KokkosFFT (`KokkosFFT::<function_name>`) on the Kokkos device.
-In fact, these are the only APIs available in KokkosFFT (see :ref:`API reference<api_reference_link>` for detail). KokkosFFT support 1D to 3D FFT over choosen axes. 
+In fact, these are the only APIs available in KokkosFFT (see :doc:`API reference<../api_reference>` for detail). KokkosFFT support 1D to 3D FFT over choosen axes. 
 Inside FFT APIs, we first create a FFT plan for backend FFT library based on the Views and choosen axes.
 Then, we execute the FFT using the created plan on the given Views. Finally, we destroy the plan.
 Depending on the View Layout and choosen axes, we may need transpose operations to make data contiguous.

@@ -104,7 +104,7 @@ Kokkos backends
 
 KokkosFFT requieres Kokkos 4.2+. For the moment, we support following backends for CPUs and GPUs. 
 A FFT library dedicated to Kokkos Device backend (e.g. cufft for CUDA backend) is automatically used. 
-If CMake fails to find a backend FFT library, see :ref:`How to find fft libraries?<finding_libraries_link>`.
+If CMake fails to find a backend FFT library, see :doc:`How to find fft libraries?<../finding_libraries>`.
 We may support experimental backends like `OPENMPTARGET` in the future.
  
 .. list-table:: Host backend
