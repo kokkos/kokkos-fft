@@ -62,22 +62,22 @@ Real FFTs
      - ``KokkosFFT``
      - ``numpy.fft``
    * - One dimensional FFT for real input
-     - :doc:`api/standard/rfft`
+     - :doc:`api/real/rfft`
      - `numpy.fft.rfft <https://numpy.org/doc/stable/reference/generated/numpy.fft.rfft.html>`_
-   * - Inverse of :doc:`rfft<api/standard/rfft>`
-     - :doc:`api/standard/irfft`
+   * - Inverse of :doc:`rfft<api/real/rfft>`
+     - :doc:`api/real/irfft`
      - `numpy.fft.irfft <https://numpy.org/doc/stable/reference/generated/numpy.fft.irfft.html>`_ 
    * - Two dimensional FFT for real input
-     - :doc:`api/standard/rfft2`
+     - :doc:`api/real/rfft2`
      - `numpy.fft.rfft2 <https://numpy.org/doc/stable/reference/generated/numpy.fft.fft2.html>`_ 
-   * - Inverse of :doc:`rfft2<api/standard/rfft2>`
-     - :doc:`api/standard/irfft2`
+   * - Inverse of :doc:`rfft2<api/real/rfft2>`
+     - :doc:`api/real/irfft2`
      - `numpy.fft.irfft2 <https://numpy.org/doc/stable/reference/generated/numpy.fft.irfft2.html>`_ 
    * - N-dimensional FFT for real input
-     - :doc:`api/standard/rfftn`
+     - :doc:`api/real/rfftn`
      - `numpy.fft.rfftn <https://numpy.org/doc/stable/reference/generated/numpy.fft.rfftn.html>`_ 
-   * - Inverse of :doc:`rfftn<api/standard/rfftn>`
-     - :doc:`api/standard/irfftn`
+   * - Inverse of :doc:`rfftn<api/real/rfftn>`
+     - :doc:`api/real/irfftn`
      - `numpy.fft.irfftn <https://numpy.org/doc/stable/reference/generated/numpy.fft.irfftn.html>`_
 
 
