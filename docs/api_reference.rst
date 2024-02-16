@@ -11,6 +11,12 @@ Except for ``KokkosFFT::Impl::Plan``, there are corresponding functions in ``num
 FFT Plan
 --------
 
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+
+   api/plan
+
 .. list-table::
    :widths: 50 25 25
    :header-rows: 1
@@ -24,6 +30,17 @@ FFT Plan
 
 Standard FFTs
 -------------
+
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+
+   api/standard/fft
+   api/standard/ifft
+   api/standard/fft2
+   api/standard/ifft2
+   api/standard/fftn
+   api/standard/ifftn
 
 .. list-table::
    :widths: 50 25 25
