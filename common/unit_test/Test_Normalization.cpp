@@ -21,13 +21,13 @@ TEST(Normalization, Forward) {
 
   // Backward FFT with forward Normalization -> Do nothing
   KokkosFFT::Impl::normalize(execution_space(), x,
-                             KokkosFFT::Direction::Backward,
+                             KokkosFFT::Direction::backward,
                              KokkosFFT::Normalization::forward, len);
   EXPECT_TRUE(allclose(x, ref_b, 1.e-5, 1.e-12));
 
   // Forward FFT with forward Normalization -> 1/N normalization
   KokkosFFT::Impl::normalize(execution_space(), x,
-                             KokkosFFT::Direction::Forward,
+                             KokkosFFT::Direction::forward,
                              KokkosFFT::Normalization::forward, len);
   EXPECT_TRUE(allclose(x, ref_f, 1.e-5, 1.e-12));
 }
@@ -49,13 +49,13 @@ TEST(Normalization, Backward) {
 
   // Forward FFT with backward Normalization -> Do nothing
   KokkosFFT::Impl::normalize(execution_space(), x,
-                             KokkosFFT::Direction::Forward,
+                             KokkosFFT::Direction::forward,
                              KokkosFFT::Normalization::backward, len);
   EXPECT_TRUE(allclose(x, ref_f, 1.e-5, 1.e-12));
 
   // Backward FFT with backward Normalization -> 1/N normalization
   KokkosFFT::Impl::normalize(execution_space(), x,
-                             KokkosFFT::Direction::Backward,
+                             KokkosFFT::Direction::backward,
                              KokkosFFT::Normalization::backward, len);
   EXPECT_TRUE(allclose(x, ref_b, 1.e-5, 1.e-12));
 }
@@ -80,13 +80,13 @@ TEST(Normalization, Ortho) {
 
   // Forward FFT with ortho Normalization -> 1 / sqrt(N) normalization
   KokkosFFT::Impl::normalize(execution_space(), x_f,
-                             KokkosFFT::Direction::Forward,
+                             KokkosFFT::Direction::forward,
                              KokkosFFT::Normalization::ortho, len);
   EXPECT_TRUE(allclose(x_f, ref_f, 1.e-5, 1.e-12));
 
   // Backward FFT with ortho Normalization -> 1 / sqrt(N) normalization
   KokkosFFT::Impl::normalize(execution_space(), x_b,
-                             KokkosFFT::Direction::Backward,
+                             KokkosFFT::Direction::backward,
                              KokkosFFT::Normalization::ortho, len);
   EXPECT_TRUE(allclose(x_b, ref_b, 1.e-5, 1.e-12));
 }
@@ -107,13 +107,13 @@ TEST(Normalization, None) {
 
   // Forward FFT with none Normalization -> Do nothing
   KokkosFFT::Impl::normalize(execution_space(), x_f,
-                             KokkosFFT::Direction::Forward,
+                             KokkosFFT::Direction::forward,
                              KokkosFFT::Normalization::none, len);
   EXPECT_TRUE(allclose(x_f, ref_f, 1.e-5, 1.e-12));
 
   // Backward FFT with none Normalization -> Do nothing
   KokkosFFT::Impl::normalize(execution_space(), x_b,
-                             KokkosFFT::Direction::Backward,
+                             KokkosFFT::Direction::backward,
                              KokkosFFT::Normalization::none, len);
   EXPECT_TRUE(allclose(x_b, ref_b, 1.e-5, 1.e-12));
 }

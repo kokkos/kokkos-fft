@@ -29,14 +29,14 @@ auto _coefficients(const ViewType& inout, Direction direction,
 
   switch (normalization) {
     case Normalization::forward:
-      if (direction == Direction::Forward) {
+      if (direction == Direction::forward) {
         coef = static_cast<value_type>(1) / static_cast<value_type>(fft_size);
         to_normalize = true;
       }
 
       break;
     case Normalization::backward:
-      if (direction == Direction::Backward) {
+      if (direction == Direction::backward) {
         coef = static_cast<value_type>(1) / static_cast<value_type>(fft_size);
         to_normalize = true;
       }

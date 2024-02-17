@@ -82,7 +82,7 @@ struct transform_type<ExecutionSpace, Kokkos::complex<T1>,
 
 template <typename ExecutionSpace>
 auto direction_type(Direction direction) {
-  return direction == Direction::Forward ? FFTW_FORWARD : FFTW_BACKWARD;
+  return direction == Direction::forward ? FFTW_FORWARD : FFTW_BACKWARD;
 }
 }  // namespace Impl
 }  // namespace KokkosFFT

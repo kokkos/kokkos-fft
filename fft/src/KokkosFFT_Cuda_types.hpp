@@ -136,7 +136,7 @@ auto direction_type(Direction direction) {
   static constexpr FFTDirectionType _BACKWARD =
       std::is_same_v<ExecutionSpace, Kokkos::Cuda> ? CUFFT_INVERSE
                                                    : FFTW_BACKWARD;
-  return direction == Direction::Forward ? _FORWARD : _BACKWARD;
+  return direction == Direction::forward ? _FORWARD : _BACKWARD;
 }
 #else
 template <typename ExecutionSpace>
@@ -194,7 +194,7 @@ struct transform_type<ExecutionSpace, Kokkos::complex<T1>,
 
 template <typename ExecutionSpace>
 auto direction_type(Direction direction) {
-  return direction == Direction::Forward ? CUFFT_FORWARD : CUFFT_INVERSE;
+  return direction == Direction::forward ? CUFFT_FORWARD : CUFFT_INVERSE;
 }
 #endif
 }  // namespace Impl

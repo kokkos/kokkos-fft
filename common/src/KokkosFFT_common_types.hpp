@@ -15,8 +15,8 @@ enum class Normalization { forward, backward, ortho, none };
 
 // Tag to specify FFT direction
 enum class Direction {
-  Forward,
-  Backward,
+  forward,
+  backward,
 };
 
 }  // namespace KokkosFFT
