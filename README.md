@@ -6,7 +6,9 @@
 UNOFFICIAL FFT interfaces for Kokkos C++ Performance Portability Programming EcoSystem
 
 KokkosFFT implements local interfaces Kokkos and de facto standard FFT libraries, including [fftw](http://www.fftw.org), [cufft](https://developer.nvidia.com/cufft), [hipfft](https://github.com/ROCm/hipFFT), and [oneMKL](https://spec.oneapi.io/versions/latest/elements/oneMKL/source/index.html). "Local" means not using MPI, or running within a single MPI process without knowing about MPI. We are inclined to implement the [numpy.fft](https://numpy.org/doc/stable/reference/routines.fft.html)-like interfaces adapted for [Kokkos](https://github.com/kokkos/kokkos).
-A key concept is that "As easy as numpy, as fast as vendor libraries". Accordingly, our API follows the API by [numpy.fft](https://numpy.org/doc/stable/reference/routines.fft.html) with minor differences. A fft library dedicated to Kokkos Device backend (e.g. [cufft](https://developer.nvidia.com/cufft) for CUDA backend) is automatically used. If something is wrong with runtime values (say `View` extents), it will raise runtime errors (C++ exceptions or assertions). Here is an example for 1D real to complex transform with `rfft` in python and KokkosFFT.
+A key concept is that "As easy as numpy, as fast as vendor libraries". Accordingly, our API follows the API by [numpy.fft](https://numpy.org/doc/stable/reference/routines.fft.html) with minor differences. A fft library dedicated to Kokkos Device backend (e.g. [cufft](https://developer.nvidia.com/cufft) for CUDA backend) is automatically used. If something is wrong with runtime values (say `View` extents), it will raise runtime errors (C++ exceptions or assertions). See [documentations](https://kokkosfft.readthedocs.io/) for more information. 
+
+Here is an example for 1D real to complex transform with `rfft` in python and KokkosFFT.
 ```python3
 import numpy as np
 x = np.random.rand(4)
