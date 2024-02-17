@@ -180,8 +180,7 @@ void test_fft1_identity_reuse_plan(T atol = 1.0e-12) {
     KokkosFFT::rfft(execution_space(), ar, outr, rfft_plan);
 
     KokkosFFT::Impl::Plan irfft_plan(execution_space(), outr, _ar,
-                                     KokkosFFT::Direction::backward,
-                                     axis);
+                                     KokkosFFT::Direction::backward, axis);
     KokkosFFT::irfft(execution_space(), outr, _ar, irfft_plan);
 
     EXPECT_TRUE(allclose(_a, a_ref, 1.e-5, atol));
@@ -234,13 +233,11 @@ void test_fft1_identity_reuse_plan(T atol = 1.0e-12) {
                std::runtime_error);
 
   // Check if errors are correctly raised aginst wrong dirction
-  KokkosFFT::Direction wrong_fft_direction =
-      KokkosFFT::Direction::backward;
+  KokkosFFT::Direction wrong_fft_direction = KokkosFFT::Direction::backward;
   KokkosFFT::Impl::Plan wrong_fft_plan(execution_space(), a, out,
                                        wrong_fft_direction, axis);
 
-  KokkosFFT::Direction wrong_ifft_direction =
-      KokkosFFT::Direction::forward;
+  KokkosFFT::Direction wrong_ifft_direction = KokkosFFT::Direction::forward;
   KokkosFFT::Impl::Plan wrong_ifft_plan(execution_space(), out, _a,
                                         wrong_ifft_direction, axis);
 

@@ -79,12 +79,10 @@ void _fft(const ExecutionSpace& exec_space, PlanType& plan,
   auto* odata = reinterpret_cast<typename KokkosFFT::Impl::fft_data_type<
       ExecutionSpace, out_value_type>::type*>(out.data());
 
-  auto forward =
-      direction_type<ExecutionSpace>(KokkosFFT::Direction::forward);
+  auto forward = direction_type<ExecutionSpace>(KokkosFFT::Direction::forward);
   KokkosFFT::Impl::_exec(plan.plan(), idata, odata, forward);
-  KokkosFFT::Impl::normalize(exec_space, out,
-                             KokkosFFT::Direction::forward, norm,
-                             plan.fft_size());
+  KokkosFFT::Impl::normalize(exec_space, out, KokkosFFT::Direction::forward,
+                             norm, plan.fft_size());
 }
 
 template <typename ExecutionSpace, typename PlanType, typename InViewType,
@@ -129,9 +127,8 @@ void _ifft(const ExecutionSpace& exec_space, PlanType& plan,
   auto backward =
       direction_type<ExecutionSpace>(KokkosFFT::Direction::backward);
   KokkosFFT::Impl::_exec(plan.plan(), idata, odata, backward);
-  KokkosFFT::Impl::normalize(exec_space, out,
-                             KokkosFFT::Direction::backward, norm,
-                             plan.fft_size());
+  KokkosFFT::Impl::normalize(exec_space, out, KokkosFFT::Direction::backward,
+                             norm, plan.fft_size());
 }
 }  // namespace Impl
 }  // namespace KokkosFFT

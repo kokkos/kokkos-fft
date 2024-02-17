@@ -45,8 +45,7 @@ int main(int argc, char* argv[]) {
     Kokkos::fill_random(xc2r, random_pool, I);
 
     KokkosFFT::Impl::Plan irfft_plan(execution_space(), xc2r, xc2r_hat,
-                                     KokkosFFT::Direction::backward,
-                                     axis);
+                                     KokkosFFT::Direction::backward, axis);
     KokkosFFT::irfft(execution_space(), xc2r, xc2r_hat, irfft_plan);
   }
   Kokkos::finalize();

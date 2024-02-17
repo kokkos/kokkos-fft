@@ -118,8 +118,7 @@ class Plan {
   /// \param axis [in] Axis over which FFT is performed
   //
   explicit Plan(const ExecutionSpace& exec_space, InViewType& in,
-                OutViewType& out, KokkosFFT::Direction direction,
-                int axis)
+                OutViewType& out, KokkosFFT::Direction direction, int axis)
       : m_fft_size(1), m_is_transpose_needed(false), m_direction(direction) {
     static_assert(Kokkos::is_view<InViewType>::value,
                   "Plan::Plan: InViewType is not a Kokkos::View.");

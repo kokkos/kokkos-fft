@@ -48,7 +48,7 @@ auto _coefficients(const ViewType& inout, Direction direction,
       to_normalize = true;
 
       break;
-    default: // No normalization
+    default:  // No normalization
       break;
   };
   return std::tuple<value_type, bool>({coef, to_normalize});
