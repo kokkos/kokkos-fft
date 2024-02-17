@@ -13,13 +13,11 @@
 #include "KokkosFFT_utils.hpp"
 
 #if defined(KOKKOS_ENABLE_CUDA)
-using default_device = Kokkos::Cuda;
 #include "KokkosFFT_Cuda_plans.hpp"
 #ifdef ENABLE_HOST_AND_DEVICE
 #include "KokkosFFT_OpenMP_plans.hpp"
 #endif
 #elif defined(KOKKOS_ENABLE_HIP)
-using default_device = Kokkos::HIP;
 #include "KokkosFFT_HIP_plans.hpp"
 #ifdef ENABLE_HOST_AND_DEVICE
 #include "KokkosFFT_OpenMP_plans.hpp"
@@ -30,13 +28,10 @@ using default_device = Kokkos::HIP;
 #include "KokkosFFT_OpenMP_plans.hpp"
 #endif
 #elif defined(KOKKOS_ENABLE_OPENMP)
-using default_device = Kokkos::OpenMP;
 #include "KokkosFFT_OpenMP_plans.hpp"
 #elif defined(KOKKOS_ENABLE_THREADS)
-using default_device = Kokkos::Threads;
 #include "KokkosFFT_OpenMP_plans.hpp"
 #else
-using default_device = Kokkos::Serial;
 #include "KokkosFFT_OpenMP_plans.hpp"
 #endif
 
