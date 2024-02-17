@@ -1,3 +1,4 @@
+.. _06_1DFFT_reuse_plans:
 
 Reuse fft plan
 --------------

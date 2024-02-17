@@ -59,8 +59,8 @@ The following listing shows good and bad examples of Real FFTs.
 
    We have to use the same precision (either ``float`` or ``double``) for input and ouptut Views.
 
-Supported Views
----------------
+Supported data types
+--------------------
 
 Firstly, the input and output Views must have the same LayoutType and rank.
 For the moment, we accept Kokkos Views with some restriction in data types and Layout.
@@ -106,6 +106,7 @@ Reuse FFT plan
 Apart from the basic APIs, KokkosFFT APIs include overloaded APIs which can take a FFT plan as an argument.
 Using these overloaded APIs, we can reuse the FFT plan created before. 
 In some backend, FFT plan creation leads to some overhead, wherein we need this functionality.
+(see :doc:`minimum working example<../samples/06_1DFFT_reuse_plans>`)
 
 .. note::
 

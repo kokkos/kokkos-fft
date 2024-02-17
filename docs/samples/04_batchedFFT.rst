@@ -1,3 +1,4 @@
+.. _04_batchedFFT:
 
 One-dimensional batched FFT
 ---------------------------
