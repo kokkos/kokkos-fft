@@ -11,7 +11,7 @@ template <std::size_t DIM>
 using shape_type = std::array<std::size_t, DIM>;
 
 // Tag to specify when and how to normalize
-enum class Normalization { FORWARD, BACKWARD, ORTHO };
+enum class Normalization { forward, backward, ortho, none };
 
 // Tag to specify FFT direction
 enum class Direction {

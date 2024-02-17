@@ -28,25 +28,27 @@ auto _coefficients(const ViewType& inout, Direction direction,
   [[maybe_unused]] bool to_normalize = false;
 
   switch (normalization) {
-    case Normalization::FORWARD:
+    case Normalization::forward:
       if (direction == Direction::Forward) {
         coef = static_cast<value_type>(1) / static_cast<value_type>(fft_size);
         to_normalize = true;
       }
 
       break;
-    case Normalization::BACKWARD:
+    case Normalization::backward:
       if (direction == Direction::Backward) {
         coef = static_cast<value_type>(1) / static_cast<value_type>(fft_size);
         to_normalize = true;
       }
 
       break;
-    case Normalization::ORTHO:
+    case Normalization::ortho:
       coef = static_cast<value_type>(1) /
              Kokkos::sqrt(static_cast<value_type>(fft_size));
       to_normalize = true;
 
+      break;
+    default: // No normalization
       break;
   };
   return std::tuple<value_type, bool>({coef, to_normalize});
@@ -62,11 +64,12 @@ void normalize(const ExecutionSpace& exec_space, ViewType& inout,
 }
 
 inline auto swap_direction(Normalization normalization) {
-  Normalization new_direction = Normalization::FORWARD;
+  Normalization new_direction = Normalization::none;
   switch (normalization) {
-    case Normalization::FORWARD: new_direction = Normalization::BACKWARD; break;
-    case Normalization::BACKWARD: new_direction = Normalization::FORWARD; break;
-    case Normalization::ORTHO: new_direction = Normalization::ORTHO; break;
+    case Normalization::forward: new_direction = Normalization::backward; break;
+    case Normalization::backward: new_direction = Normalization::forward; break;
+    case Normalization::ortho: new_direction = Normalization::ortho; break;
+    default: break;
   };
   return new_direction;
 }

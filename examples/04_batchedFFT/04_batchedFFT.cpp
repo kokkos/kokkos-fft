@@ -22,9 +22,9 @@ int main(int argc, char* argv[]) {
     Kokkos::fill_random(xc2c, random_pool, I);
 
     KokkosFFT::fft(execution_space(), xc2c, xc2c_hat,
-                   KokkosFFT::Normalization::BACKWARD, /*axis=*/-1);
+                   KokkosFFT::Normalization::backward, /*axis=*/-1);
     KokkosFFT::ifft(execution_space(), xc2c_hat, xc2c_inv,
-                    KokkosFFT::Normalization::BACKWARD, /*axis=*/-1);
+                    KokkosFFT::Normalization::backward, /*axis=*/-1);
 
     // 1D batched R2C FFT
     View3D<double> xr2c("xr2c", n0, n1, n2);
@@ -32,7 +32,7 @@ int main(int argc, char* argv[]) {
     Kokkos::fill_random(xr2c, random_pool, 1);
 
     KokkosFFT::rfft(execution_space(), xr2c, xr2c_hat,
-                    KokkosFFT::Normalization::BACKWARD, /*axis=*/-1);
+                    KokkosFFT::Normalization::backward, /*axis=*/-1);
 
     // 1D batched C2R FFT
     View3D<Kokkos::complex<double> > xc2r("xr2c_hat", n0, n1, n2 / 2 + 1);
@@ -40,7 +40,7 @@ int main(int argc, char* argv[]) {
     Kokkos::fill_random(xc2r, random_pool, I);
 
     KokkosFFT::irfft(execution_space(), xc2r, xc2r_hat,
-                     KokkosFFT::Normalization::BACKWARD, /*axis=*/-1);
+                     KokkosFFT::Normalization::backward, /*axis=*/-1);
   }
   Kokkos::finalize();
 
