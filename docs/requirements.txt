@@ -1,0 +1,3 @@
+breathe
+cmake>=3.22
+sphinx-rtd-theme
