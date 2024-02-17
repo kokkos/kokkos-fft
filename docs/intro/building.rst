@@ -146,5 +146,5 @@ We may support experimental backends like ``OPENMPTARGET`` in the future.
      - OFF
    * - ``Kokkos_ENABLE_SYCL``
      - SYCL backend targeting Intel GPUs
-     - ``onemkl``
+     - ``oneMKL``
      - OFF

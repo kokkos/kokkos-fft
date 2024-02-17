@@ -8,7 +8,7 @@ Some tips to find FFT libraries for each backend.
 `fftw <http://www.fftw.org>`_
 -----------------------------
 
-If fftw is offered as a module, our cmake helper would likely find fftw.
+If ``fftw`` is offered as a module, our cmake helper would likely find fftw.
 Assuming fftw is installed in ``<fftw_install_dir>``, it is expected that ``<fftw_install_dir>`` would be found under ``LIBRARY_PATH``, ``LD_LIBRARY_PATH``, and ``PATH``.
 It would look like
 
@@ -33,8 +33,8 @@ If CMake fails to find ``fftw``, please try to set ``FFTWDIR`` in the following 
 `oneMKL <https://spec.oneapi.io/versions/latest/elements/oneMKL/source/index.html>`_
 ------------------------------------------------------------------------------------
 
-The most likely scenario to miss oneMKL is that forgetting to inisitalize oneAPI. 
-Please make sure to initialize oneAPI as
+The most likely scenario to miss ``oneMKL`` is that forgetting to inisitalize ``oneAPI``. 
+Please make sure to initialize ``oneAPI`` as
 
 .. code-block:: bash
 

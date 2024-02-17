@@ -8,4 +8,4 @@ KokkosFFT::ifftshift
 
 .. note::
 
-   For the moment, this function works one or two dimensional Views.
+   For the moment, this function works on one or two dimensional Views.

@@ -173,7 +173,7 @@ namespace KokkosFFT {
 /// \param n [in] Window length
 /// \param d [in] Sample spacing
 ///
-/// \return freq Sampling frequency
+/// \return Sampling frequency
 template <typename ExecutionSpace, typename RealType>
 auto fftfreq(const ExecutionSpace& exec_space, const std::size_t n,
              const RealType d = 1.0) {
@@ -208,7 +208,7 @@ auto fftfreq(const ExecutionSpace& exec_space, const std::size_t n,
 /// \param n [in] Window length
 /// \param d [in] Sample spacing
 ///
-/// \return freq Sampling frequency starting from zero
+/// \return Sampling frequency starting from zero
 template <typename ExecutionSpace, typename RealType>
 auto rfftfreq(const ExecutionSpace& exec_space, const std::size_t n,
               const RealType d = 1.0) {
