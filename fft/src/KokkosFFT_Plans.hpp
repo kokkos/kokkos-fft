@@ -95,7 +95,7 @@ class Plan {
   axis_type<DIM> m_axes;
 
   //! directions of fft
-  KokkosFFT::Impl::Direction m_direction;
+  KokkosFFT::Direction m_direction;
 
   ///@{
   //! extents of input/output views
@@ -118,7 +118,7 @@ class Plan {
   /// \param axis [in] Axis over which FFT is performed
   //
   explicit Plan(const ExecutionSpace& exec_space, InViewType& in,
-                OutViewType& out, KokkosFFT::Impl::Direction direction,
+                OutViewType& out, KokkosFFT::Direction direction,
                 int axis)
       : m_fft_size(1), m_is_transpose_needed(false), m_direction(direction) {
     static_assert(Kokkos::is_view<InViewType>::value,
@@ -167,7 +167,7 @@ class Plan {
   /// \param axes [in] Axes over which FFT is performed
   //
   explicit Plan(const ExecutionSpace& exec_space, InViewType& in,
-                OutViewType& out, KokkosFFT::Impl::Direction direction,
+                OutViewType& out, KokkosFFT::Direction direction,
                 axis_type<DIM> axes)
       : m_fft_size(1),
         m_is_transpose_needed(false),
@@ -223,7 +223,7 @@ class Plan {
   template <typename ExecutionSpace2, typename InViewType2,
             typename OutViewType2>
   void good(const InViewType2& in, const OutViewType2& out,
-            KokkosFFT::Impl::Direction direction, axis_type<DIM> axes) const {
+            KokkosFFT::Direction direction, axis_type<DIM> axes) const {
     static_assert(std::is_same_v<ExecutionSpace2, execSpace>,
                   "Plan::good: Execution spaces for plan and "
                   "execution are not identical.");

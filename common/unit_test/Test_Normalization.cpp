@@ -21,13 +21,13 @@ TEST(Normalization, Forward) {
 
   // Backward FFT with Forward Normalization -> Do nothing
   KokkosFFT::Impl::normalize(execution_space(), x,
-                             KokkosFFT::Impl::Direction::Backward,
+                             KokkosFFT::Direction::Backward,
                              KokkosFFT::Normalization::FORWARD, len);
   EXPECT_TRUE(allclose(x, ref_b, 1.e-5, 1.e-12));
 
   // Forward FFT with Forward Normalization -> 1/N normalization
   KokkosFFT::Impl::normalize(execution_space(), x,
-                             KokkosFFT::Impl::Direction::Forward,
+                             KokkosFFT::Direction::Forward,
                              KokkosFFT::Normalization::FORWARD, len);
   EXPECT_TRUE(allclose(x, ref_f, 1.e-5, 1.e-12));
 }
@@ -49,13 +49,13 @@ TEST(Normalization, Backward) {
 
   // Forward FFT with Backward Normalization -> Do nothing
   KokkosFFT::Impl::normalize(execution_space(), x,
-                             KokkosFFT::Impl::Direction::Forward,
+                             KokkosFFT::Direction::Forward,
                              KokkosFFT::Normalization::BACKWARD, len);
   EXPECT_TRUE(allclose(x, ref_f, 1.e-5, 1.e-12));
 
   // Backward FFT with Backward Normalization -> 1/N normalization
   KokkosFFT::Impl::normalize(execution_space(), x,
-                             KokkosFFT::Impl::Direction::Backward,
+                             KokkosFFT::Direction::Backward,
                              KokkosFFT::Normalization::BACKWARD, len);
   EXPECT_TRUE(allclose(x, ref_b, 1.e-5, 1.e-12));
 }
@@ -80,13 +80,13 @@ TEST(Normalization, Ortho) {
 
   // Forward FFT with Ortho Normalization -> 1 / sqrt(N) normalization
   KokkosFFT::Impl::normalize(execution_space(), x_f,
-                             KokkosFFT::Impl::Direction::Forward,
+                             KokkosFFT::Direction::Forward,
                              KokkosFFT::Normalization::ORTHO, len);
   EXPECT_TRUE(allclose(x_f, ref_f, 1.e-5, 1.e-12));
 
   // Backward FFT with Ortho Normalization -> 1 / sqrt(N) normalization
   KokkosFFT::Impl::normalize(execution_space(), x_b,
-                             KokkosFFT::Impl::Direction::Backward,
+                             KokkosFFT::Direction::Backward,
                              KokkosFFT::Normalization::ORTHO, len);
   EXPECT_TRUE(allclose(x_b, ref_b, 1.e-5, 1.e-12));
 }

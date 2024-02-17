@@ -80,10 +80,10 @@ void _fft(const ExecutionSpace& exec_space, PlanType& plan,
       ExecutionSpace, out_value_type>::type*>(out.data());
 
   auto forward =
-      direction_type<ExecutionSpace>(KokkosFFT::Impl::Direction::Forward);
+      direction_type<ExecutionSpace>(KokkosFFT::Direction::Forward);
   KokkosFFT::Impl::_exec(plan.plan(), idata, odata, forward);
   KokkosFFT::Impl::normalize(exec_space, out,
-                             KokkosFFT::Impl::Direction::Forward, norm,
+                             KokkosFFT::Direction::Forward, norm,
                              plan.fft_size());
 }
 
@@ -127,10 +127,10 @@ void _ifft(const ExecutionSpace& exec_space, PlanType& plan,
       ExecutionSpace, out_value_type>::type*>(out.data());
 
   auto backward =
-      direction_type<ExecutionSpace>(KokkosFFT::Impl::Direction::Backward);
+      direction_type<ExecutionSpace>(KokkosFFT::Direction::Backward);
   KokkosFFT::Impl::_exec(plan.plan(), idata, odata, backward);
   KokkosFFT::Impl::normalize(exec_space, out,
-                             KokkosFFT::Impl::Direction::Backward, norm,
+                             KokkosFFT::Direction::Backward, norm,
                              plan.fft_size());
 }
 }  // namespace Impl
@@ -190,7 +190,7 @@ void fft(const ExecutionSpace& exec_space, const InViewType& in,
   }
 
   KokkosFFT::Impl::Plan plan(exec_space, _in, out,
-                             KokkosFFT::Impl::Direction::Forward, axis);
+                             KokkosFFT::Direction::Forward, axis);
   if (plan.is_transpose_needed()) {
     InViewType in_T;
     OutViewType out_T;
@@ -262,7 +262,7 @@ void fft(const ExecutionSpace& exec_space, const InViewType& in,
   }
 
   plan.template good<ExecutionSpace, InViewType, OutViewType>(
-      _in, out, KokkosFFT::Impl::Direction::Forward, axis_type<1>{axis});
+      _in, out, KokkosFFT::Direction::Forward, axis_type<1>{axis});
 
   if (plan.is_transpose_needed()) {
     InViewType in_T;
@@ -335,7 +335,7 @@ void ifft(const ExecutionSpace& exec_space, const InViewType& in,
   }
 
   KokkosFFT::Impl::Plan plan(exec_space, _in, out,
-                             KokkosFFT::Impl::Direction::Backward, axis);
+                             KokkosFFT::Direction::Backward, axis);
   if (plan.is_transpose_needed()) {
     InViewType in_T;
     OutViewType out_T;
@@ -409,7 +409,7 @@ void ifft(const ExecutionSpace& exec_space, const InViewType& in,
   }
 
   plan.template good<ExecutionSpace, InViewType, OutViewType>(
-      _in, out, KokkosFFT::Impl::Direction::Backward, axis_type<1>{axis});
+      _in, out, KokkosFFT::Direction::Backward, axis_type<1>{axis});
 
   if (plan.is_transpose_needed()) {
     InViewType in_T;
@@ -907,7 +907,7 @@ void fft2(const ExecutionSpace& exec_space, const InViewType& in,
   }
 
   KokkosFFT::Impl::Plan plan(exec_space, _in, out,
-                             KokkosFFT::Impl::Direction::Forward, axes);
+                             KokkosFFT::Direction::Forward, axes);
   if (plan.is_transpose_needed()) {
     InViewType in_T;
     OutViewType out_T;
@@ -977,7 +977,7 @@ void fft2(const ExecutionSpace& exec_space, const InViewType& in,
   }
 
   plan.template good<ExecutionSpace, InViewType, OutViewType>(
-      _in, out, KokkosFFT::Impl::Direction::Forward, axes);
+      _in, out, KokkosFFT::Direction::Forward, axes);
 
   if (plan.is_transpose_needed()) {
     InViewType in_T;
@@ -1047,7 +1047,7 @@ void ifft2(const ExecutionSpace& exec_space, const InViewType& in,
   }
 
   KokkosFFT::Impl::Plan plan(exec_space, _in, out,
-                             KokkosFFT::Impl::Direction::Backward, axes);
+                             KokkosFFT::Direction::Backward, axes);
   if (plan.is_transpose_needed()) {
     InViewType in_T;
     OutViewType out_T;
@@ -1117,7 +1117,7 @@ void ifft2(const ExecutionSpace& exec_space, const InViewType& in,
   }
 
   plan.template good<ExecutionSpace, InViewType, OutViewType>(
-      _in, out, KokkosFFT::Impl::Direction::Backward, axes);
+      _in, out, KokkosFFT::Direction::Backward, axes);
 
   if (plan.is_transpose_needed()) {
     InViewType in_T;
@@ -1413,7 +1413,7 @@ void fftn(const ExecutionSpace& exec_space, const InViewType& in,
   }
 
   KokkosFFT::Impl::Plan plan(exec_space, _in, out,
-                             KokkosFFT::Impl::Direction::Forward, axes);
+                             KokkosFFT::Direction::Forward, axes);
   if (plan.is_transpose_needed()) {
     InViewType in_T;
     OutViewType out_T;
@@ -1482,7 +1482,7 @@ void fftn(const ExecutionSpace& exec_space, const InViewType& in,
   }
 
   KokkosFFT::Impl::Plan plan(exec_space, _in, out,
-                             KokkosFFT::Impl::Direction::Forward, axes);
+                             KokkosFFT::Direction::Forward, axes);
   if (plan.is_transpose_needed()) {
     InViewType in_T;
     OutViewType out_T;
@@ -1552,7 +1552,7 @@ void fftn(const ExecutionSpace& exec_space, const InViewType& in,
   }
 
   plan.template good<ExecutionSpace, InViewType, OutViewType>(
-      _in, out, KokkosFFT::Impl::Direction::Forward, axes);
+      _in, out, KokkosFFT::Direction::Forward, axes);
 
   if (plan.is_transpose_needed()) {
     InViewType in_T;
@@ -1626,7 +1626,7 @@ void ifftn(const ExecutionSpace& exec_space, const InViewType& in,
   }
 
   KokkosFFT::Impl::Plan plan(exec_space, _in, out,
-                             KokkosFFT::Impl::Direction::Backward, axes);
+                             KokkosFFT::Direction::Backward, axes);
   if (plan.is_transpose_needed()) {
     InViewType in_T;
     OutViewType out_T;
@@ -1695,7 +1695,7 @@ void ifftn(const ExecutionSpace& exec_space, const InViewType& in,
   }
 
   KokkosFFT::Impl::Plan plan(exec_space, _in, out,
-                             KokkosFFT::Impl::Direction::Backward, axes);
+                             KokkosFFT::Direction::Backward, axes);
   if (plan.is_transpose_needed()) {
     InViewType in_T;
     OutViewType out_T;
@@ -1765,7 +1765,7 @@ void ifftn(const ExecutionSpace& exec_space, const InViewType& in,
   }
 
   plan.template good<ExecutionSpace, InViewType, OutViewType>(
-      _in, out, KokkosFFT::Impl::Direction::Backward, axes);
+      _in, out, KokkosFFT::Direction::Backward, axes);
 
   if (plan.is_transpose_needed()) {
     InViewType in_T;

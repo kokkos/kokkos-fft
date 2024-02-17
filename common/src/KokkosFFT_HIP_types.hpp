@@ -2,6 +2,7 @@
 #define KOKKOSFFT_HIP_TYPES_HPP
 
 #include <hipfft/hipfft.h>
+#include "KokkosFFT_common_types.hpp"
 
 // Check the size of complex type
 static_assert(sizeof(hipfftComplex) == sizeof(Kokkos::complex<float>));
@@ -22,11 +23,6 @@ static_assert(alignof(fftw_complex) <= alignof(Kokkos::complex<double>));
 
 namespace KokkosFFT {
 namespace Impl {
-enum class Direction {
-  Forward,
-  Backward,
-};
-
 using FFTDirectionType = int;
 
 #ifdef ENABLE_HOST_AND_DEVICE

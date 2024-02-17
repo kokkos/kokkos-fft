@@ -2,6 +2,7 @@
 #define KOKKOSFFT_OPENMP_TYPES_HPP
 
 #include <fftw3.h>
+#include "KokkosFFT_common_types.hpp"
 #include "KokkosFFT_utils.hpp"
 
 // Check the size of complex type
@@ -13,11 +14,6 @@ static_assert(alignof(fftw_complex) <= alignof(Kokkos::complex<double>));
 
 namespace KokkosFFT {
 namespace Impl {
-enum class Direction {
-  Forward,
-  Backward,
-};
-
 enum class FFTWTransformType { R2C, D2Z, C2R, Z2D, C2C, Z2Z };
 
 template <typename ExecutionSpace>

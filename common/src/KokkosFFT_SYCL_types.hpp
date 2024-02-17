@@ -5,6 +5,7 @@
 #include <sycl/sycl.hpp>
 #include <mkl.h>
 #include <oneapi/mkl/dfti.hpp>
+#include "KokkosFFT_common_types.hpp"
 #include "KokkosFFT_utils.hpp"
 
 // Check the size of complex type
@@ -27,11 +28,6 @@ static_assert(alignof(fftw_complex) <= alignof(Kokkos::complex<double>));
 
 namespace KokkosFFT {
 namespace Impl {
-enum class Direction {
-  Forward,
-  Backward,
-};
-
 using FFTDirectionType                      = int;
 constexpr FFTDirectionType MKL_FFT_FORWARD  = 1;
 constexpr FFTDirectionType MKL_FFT_BACKWARD = -1;

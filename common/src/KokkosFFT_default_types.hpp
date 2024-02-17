@@ -20,18 +20,6 @@
 #include "KokkosFFT_utils.hpp"
 
 namespace KokkosFFT {
-// Define type to specify transform axis
-template <std::size_t DIM>
-using axis_type = std::array<int, DIM>;
-
-// Define type to specify new shape
-template <std::size_t DIM>
-using shape_type = std::array<std::size_t, DIM>;
-
-enum class Normalization { FORWARD, BACKWARD, ORTHO };
-}  // namespace KokkosFFT
-
-namespace KokkosFFT {
 namespace Impl {
 // Define fft data types
 template <typename ExecutionSpace, typename T>

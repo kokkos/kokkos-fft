@@ -2,7 +2,7 @@
 #define KOKKOSFFT_NORMALIZATION_HPP
 
 #include <tuple>
-#include "KokkosFFT_default_types.hpp"
+#include "KokkosFFT_common_types.hpp"
 #include "KokkosFFT_utils.hpp"
 
 namespace KokkosFFT {
