@@ -2,6 +2,7 @@
 #define KOKKOSFFT_HIP_TYPES_HPP
 
 #include <hipfft/hipfft.h>
+#include "KokkosFFT_common_types.hpp"
 
 // Check the size of complex type
 static_assert(sizeof(hipfftComplex) == sizeof(Kokkos::complex<float>));
@@ -22,11 +23,6 @@ static_assert(alignof(fftw_complex) <= alignof(Kokkos::complex<double>));
 
 namespace KokkosFFT {
 namespace Impl {
-enum class Direction {
-  Forward,
-  Backward,
-};
-
 using FFTDirectionType = int;
 
 #ifdef ENABLE_HOST_AND_DEVICE
@@ -140,7 +136,7 @@ auto direction_type(Direction direction) {
   static constexpr FFTDirectionType _BACKWARD =
       std::is_same_v<ExecutionSpace, Kokkos::HIP> ? HIPFFT_BACKWARD
                                                   : FFTW_BACKWARD;
-  return direction == Direction::Forward ? _FORWARD : _BACKWARD;
+  return direction == Direction::forward ? _FORWARD : _BACKWARD;
 }
 #else
 template <typename ExecutionSpace>
@@ -198,7 +194,7 @@ struct transform_type<ExecutionSpace, Kokkos::complex<T1>,
 
 template <typename ExecutionSpace>
 auto direction_type(Direction direction) {
-  return direction == Direction::Forward ? HIPFFT_FORWARD : HIPFFT_BACKWARD;
+  return direction == Direction::forward ? HIPFFT_FORWARD : HIPFFT_BACKWARD;
 }
 #endif
 }  // namespace Impl

@@ -44,7 +44,7 @@ template <typename ExecutionSpace, typename PlanType, typename InViewType,
           typename OutViewType>
 void _fft(const ExecutionSpace& exec_space, PlanType& plan,
           const InViewType& in, OutViewType& out,
-          KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD) {
+          KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "_fft: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
@@ -79,19 +79,17 @@ void _fft(const ExecutionSpace& exec_space, PlanType& plan,
   auto* odata = reinterpret_cast<typename KokkosFFT::Impl::fft_data_type<
       ExecutionSpace, out_value_type>::type*>(out.data());
 
-  auto forward =
-      direction_type<ExecutionSpace>(KokkosFFT::Impl::Direction::Forward);
+  auto forward = direction_type<ExecutionSpace>(KokkosFFT::Direction::forward);
   KokkosFFT::Impl::_exec(plan.plan(), idata, odata, forward);
-  KokkosFFT::Impl::normalize(exec_space, out,
-                             KokkosFFT::Impl::Direction::Forward, norm,
-                             plan.fft_size());
+  KokkosFFT::Impl::normalize(exec_space, out, KokkosFFT::Direction::forward,
+                             norm, plan.fft_size());
 }
 
 template <typename ExecutionSpace, typename PlanType, typename InViewType,
           typename OutViewType>
 void _ifft(const ExecutionSpace& exec_space, PlanType& plan,
            const InViewType& in, OutViewType& out,
-           KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD) {
+           KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "_ifft: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
@@ -127,11 +125,10 @@ void _ifft(const ExecutionSpace& exec_space, PlanType& plan,
       ExecutionSpace, out_value_type>::type*>(out.data());
 
   auto backward =
-      direction_type<ExecutionSpace>(KokkosFFT::Impl::Direction::Backward);
+      direction_type<ExecutionSpace>(KokkosFFT::Direction::backward);
   KokkosFFT::Impl::_exec(plan.plan(), idata, odata, backward);
-  KokkosFFT::Impl::normalize(exec_space, out,
-                             KokkosFFT::Impl::Direction::Backward, norm,
-                             plan.fft_size());
+  KokkosFFT::Impl::normalize(exec_space, out, KokkosFFT::Direction::backward,
+                             norm, plan.fft_size());
 }
 }  // namespace Impl
 }  // namespace KokkosFFT
@@ -148,7 +145,7 @@ namespace KokkosFFT {
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
 void fft(const ExecutionSpace& exec_space, const InViewType& in,
          OutViewType& out,
-         KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
+         KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
          int axis = -1, std::optional<std::size_t> n = std::nullopt) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "fft: InViewType is not a Kokkos::View.");
@@ -190,7 +187,7 @@ void fft(const ExecutionSpace& exec_space, const InViewType& in,
   }
 
   KokkosFFT::Impl::Plan plan(exec_space, _in, out,
-                             KokkosFFT::Impl::Direction::Forward, axis);
+                             KokkosFFT::Direction::forward, axis);
   if (plan.is_transpose_needed()) {
     InViewType in_T;
     OutViewType out_T;
@@ -220,7 +217,7 @@ template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           typename PlanType>
 void fft(const ExecutionSpace& exec_space, const InViewType& in,
          OutViewType& out, const PlanType& plan,
-         KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
+         KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
          int axis = -1, std::optional<std::size_t> n = std::nullopt) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "fft: InViewType is not a Kokkos::View.");
@@ -262,7 +259,7 @@ void fft(const ExecutionSpace& exec_space, const InViewType& in,
   }
 
   plan.template good<ExecutionSpace, InViewType, OutViewType>(
-      _in, out, KokkosFFT::Impl::Direction::Forward, axis_type<1>{axis});
+      _in, out, KokkosFFT::Direction::forward, axis_type<1>{axis});
 
   if (plan.is_transpose_needed()) {
     InViewType in_T;
@@ -291,7 +288,7 @@ void fft(const ExecutionSpace& exec_space, const InViewType& in,
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
 void ifft(const ExecutionSpace& exec_space, const InViewType& in,
           OutViewType& out,
-          KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
+          KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
           int axis = -1, std::optional<std::size_t> n = std::nullopt) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "ifft: InViewType is not a Kokkos::View.");
@@ -335,7 +332,7 @@ void ifft(const ExecutionSpace& exec_space, const InViewType& in,
   }
 
   KokkosFFT::Impl::Plan plan(exec_space, _in, out,
-                             KokkosFFT::Impl::Direction::Backward, axis);
+                             KokkosFFT::Direction::backward, axis);
   if (plan.is_transpose_needed()) {
     InViewType in_T;
     OutViewType out_T;
@@ -365,7 +362,7 @@ template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           typename PlanType>
 void ifft(const ExecutionSpace& exec_space, const InViewType& in,
           OutViewType& out, const PlanType& plan,
-          KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
+          KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
           int axis = -1, std::optional<std::size_t> n = std::nullopt) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "ifft: InViewType is not a Kokkos::View.");
@@ -409,7 +406,7 @@ void ifft(const ExecutionSpace& exec_space, const InViewType& in,
   }
 
   plan.template good<ExecutionSpace, InViewType, OutViewType>(
-      _in, out, KokkosFFT::Impl::Direction::Backward, axis_type<1>{axis});
+      _in, out, KokkosFFT::Direction::backward, axis_type<1>{axis});
 
   if (plan.is_transpose_needed()) {
     InViewType in_T;
@@ -438,7 +435,7 @@ void ifft(const ExecutionSpace& exec_space, const InViewType& in,
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
 void rfft(const ExecutionSpace& exec_space, const InViewType& in,
           OutViewType& out,
-          KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
+          KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
           int axis = -1, std::optional<std::size_t> n = std::nullopt) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "rfft: InViewType is not a Kokkos::View.");
@@ -489,7 +486,7 @@ template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           typename PlanType>
 void rfft(const ExecutionSpace& exec_space, const InViewType& in,
           OutViewType& out, const PlanType& plan,
-          KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
+          KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
           int axis = -1, std::optional<std::size_t> n = std::nullopt) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "rfft: InViewType is not a Kokkos::View.");
@@ -538,7 +535,7 @@ void rfft(const ExecutionSpace& exec_space, const InViewType& in,
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
 void irfft(const ExecutionSpace& exec_space, const InViewType& in,
            OutViewType& out,
-           KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
+           KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
            int axis = -1, std::optional<std::size_t> n = std::nullopt) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "irfft: InViewType is not a Kokkos::View.");
@@ -593,7 +590,7 @@ template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           typename PlanType>
 void irfft(const ExecutionSpace& exec_space, const InViewType& in,
            OutViewType& out, const PlanType& plan,
-           KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
+           KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
            int axis = -1, std::optional<std::size_t> n = std::nullopt) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "irfft: InViewType is not a Kokkos::View.");
@@ -642,7 +639,7 @@ void irfft(const ExecutionSpace& exec_space, const InViewType& in,
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
 void hfft(const ExecutionSpace& exec_space, const InViewType& in,
           OutViewType& out,
-          KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
+          KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
           int axis = -1, std::optional<std::size_t> n = std::nullopt) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "hfft: InViewType is not a Kokkos::View.");
@@ -701,7 +698,7 @@ template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           typename PlanType>
 void hfft(const ExecutionSpace& exec_space, const InViewType& in,
           OutViewType& out, const PlanType& plan,
-          KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
+          KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
           int axis = -1, std::optional<std::size_t> n = std::nullopt) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "hfft: InViewType is not a Kokkos::View.");
@@ -757,7 +754,7 @@ void hfft(const ExecutionSpace& exec_space, const InViewType& in,
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
 void ihfft(const ExecutionSpace& exec_space, const InViewType& in,
            OutViewType& out,
-           KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
+           KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
            int axis = -1, std::optional<std::size_t> n = std::nullopt) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "ihfft: InViewType is not a Kokkos::View.");
@@ -811,7 +808,7 @@ template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           typename PlanType>
 void ihfft(const ExecutionSpace& exec_space, const InViewType& in,
            OutViewType& out, const PlanType& plan,
-           KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
+           KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
            int axis = -1, std::optional<std::size_t> n = std::nullopt) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "ihfft: InViewType is not a Kokkos::View.");
@@ -866,7 +863,7 @@ template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           std::size_t DIM = 1>
 void fft2(const ExecutionSpace& exec_space, const InViewType& in,
           OutViewType& out,
-          KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
+          KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
           axis_type<2> axes = {-2, -1}, shape_type<DIM> s = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "fft2: InViewType is not a Kokkos::View.");
@@ -907,7 +904,7 @@ void fft2(const ExecutionSpace& exec_space, const InViewType& in,
   }
 
   KokkosFFT::Impl::Plan plan(exec_space, _in, out,
-                             KokkosFFT::Impl::Direction::Forward, axes);
+                             KokkosFFT::Direction::forward, axes);
   if (plan.is_transpose_needed()) {
     InViewType in_T;
     OutViewType out_T;
@@ -936,7 +933,7 @@ template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           typename PlanType, std::size_t DIM = 1>
 void fft2(const ExecutionSpace& exec_space, const InViewType& in,
           OutViewType& out, const PlanType& plan,
-          KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
+          KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
           axis_type<2> axes = {-2, -1}, shape_type<DIM> s = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "fft2: InViewType is not a Kokkos::View.");
@@ -977,7 +974,7 @@ void fft2(const ExecutionSpace& exec_space, const InViewType& in,
   }
 
   plan.template good<ExecutionSpace, InViewType, OutViewType>(
-      _in, out, KokkosFFT::Impl::Direction::Forward, axes);
+      _in, out, KokkosFFT::Direction::forward, axes);
 
   if (plan.is_transpose_needed()) {
     InViewType in_T;
@@ -1006,7 +1003,7 @@ template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           std::size_t DIM = 1>
 void ifft2(const ExecutionSpace& exec_space, const InViewType& in,
            OutViewType& out,
-           KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
+           KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
            axis_type<2> axes = {-2, -1}, shape_type<DIM> s = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "ifft2: InViewType is not a Kokkos::View.");
@@ -1047,7 +1044,7 @@ void ifft2(const ExecutionSpace& exec_space, const InViewType& in,
   }
 
   KokkosFFT::Impl::Plan plan(exec_space, _in, out,
-                             KokkosFFT::Impl::Direction::Backward, axes);
+                             KokkosFFT::Direction::backward, axes);
   if (plan.is_transpose_needed()) {
     InViewType in_T;
     OutViewType out_T;
@@ -1076,7 +1073,7 @@ template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           typename PlanType, std::size_t DIM = 1>
 void ifft2(const ExecutionSpace& exec_space, const InViewType& in,
            OutViewType& out, const PlanType& plan,
-           KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
+           KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
            axis_type<2> axes = {-2, -1}, shape_type<DIM> s = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "ifft2: InViewType is not a Kokkos::View.");
@@ -1117,7 +1114,7 @@ void ifft2(const ExecutionSpace& exec_space, const InViewType& in,
   }
 
   plan.template good<ExecutionSpace, InViewType, OutViewType>(
-      _in, out, KokkosFFT::Impl::Direction::Backward, axes);
+      _in, out, KokkosFFT::Direction::backward, axes);
 
   if (plan.is_transpose_needed()) {
     InViewType in_T;
@@ -1146,7 +1143,7 @@ template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           std::size_t DIM = 1>
 void rfft2(const ExecutionSpace& exec_space, const InViewType& in,
            OutViewType& out,
-           KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
+           KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
            axis_type<2> axes = {-2, -1}, shape_type<DIM> s = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "rfft2: InViewType is not a Kokkos::View.");
@@ -1197,7 +1194,7 @@ template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           typename PlanType, std::size_t DIM = 1>
 void rfft2(const ExecutionSpace& exec_space, const InViewType& in,
            OutViewType& out, const PlanType& plan,
-           KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
+           KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
            axis_type<2> axes = {-2, -1}, shape_type<DIM> s = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "rfft2: InViewType is not a Kokkos::View.");
@@ -1247,7 +1244,7 @@ template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           std::size_t DIM = 1>
 void irfft2(const ExecutionSpace& exec_space, const InViewType& in,
             OutViewType& out,
-            KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
+            KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
             axis_type<2> axes = {-2, -1}, shape_type<DIM> s = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "irfft2: InViewType is not a Kokkos::View.");
@@ -1307,7 +1304,7 @@ template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           typename PlanType, std::size_t DIM = 1>
 void irfft2(const ExecutionSpace& exec_space, const InViewType& in,
             OutViewType& out, const PlanType& plan,
-            KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
+            KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
             axis_type<2> axes = {-2, -1}, shape_type<DIM> s = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "irfft2: InViewType is not a Kokkos::View.");
@@ -1367,7 +1364,7 @@ template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           std::size_t DIM = 1>
 void fftn(const ExecutionSpace& exec_space, const InViewType& in,
           OutViewType& out,
-          KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
+          KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
           shape_type<DIM> s             = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "fftn: InViewType is not a Kokkos::View.");
@@ -1413,7 +1410,7 @@ void fftn(const ExecutionSpace& exec_space, const InViewType& in,
   }
 
   KokkosFFT::Impl::Plan plan(exec_space, _in, out,
-                             KokkosFFT::Impl::Direction::Forward, axes);
+                             KokkosFFT::Direction::forward, axes);
   if (plan.is_transpose_needed()) {
     InViewType in_T;
     OutViewType out_T;
@@ -1441,7 +1438,7 @@ template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           std::size_t DIM1 = 1, std::size_t DIM2 = 1>
 void fftn(const ExecutionSpace& exec_space, const InViewType& in,
           OutViewType& out, axis_type<DIM1> axes,
-          KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
+          KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
           shape_type<DIM2> s            = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "fftn: InViewType is not a Kokkos::View.");
@@ -1482,7 +1479,7 @@ void fftn(const ExecutionSpace& exec_space, const InViewType& in,
   }
 
   KokkosFFT::Impl::Plan plan(exec_space, _in, out,
-                             KokkosFFT::Impl::Direction::Forward, axes);
+                             KokkosFFT::Direction::forward, axes);
   if (plan.is_transpose_needed()) {
     InViewType in_T;
     OutViewType out_T;
@@ -1511,7 +1508,7 @@ template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           typename PlanType, std::size_t DIM1 = 1, std::size_t DIM2 = 1>
 void fftn(const ExecutionSpace& exec_space, const InViewType& in,
           OutViewType& out, const PlanType& plan, axis_type<DIM1> axes,
-          KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
+          KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
           shape_type<DIM2> s            = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "fftn: InViewType is not a Kokkos::View.");
@@ -1552,7 +1549,7 @@ void fftn(const ExecutionSpace& exec_space, const InViewType& in,
   }
 
   plan.template good<ExecutionSpace, InViewType, OutViewType>(
-      _in, out, KokkosFFT::Impl::Direction::Forward, axes);
+      _in, out, KokkosFFT::Direction::forward, axes);
 
   if (plan.is_transpose_needed()) {
     InViewType in_T;
@@ -1580,7 +1577,7 @@ template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           std::size_t DIM = 1>
 void ifftn(const ExecutionSpace& exec_space, const InViewType& in,
            OutViewType& out,
-           KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
+           KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
            shape_type<DIM> s             = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "ifftn: InViewType is not a Kokkos::View.");
@@ -1626,7 +1623,7 @@ void ifftn(const ExecutionSpace& exec_space, const InViewType& in,
   }
 
   KokkosFFT::Impl::Plan plan(exec_space, _in, out,
-                             KokkosFFT::Impl::Direction::Backward, axes);
+                             KokkosFFT::Direction::backward, axes);
   if (plan.is_transpose_needed()) {
     InViewType in_T;
     OutViewType out_T;
@@ -1654,7 +1651,7 @@ template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           std::size_t DIM1 = 1, std::size_t DIM2 = 1>
 void ifftn(const ExecutionSpace& exec_space, const InViewType& in,
            OutViewType& out, axis_type<DIM1> axes,
-           KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
+           KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
            shape_type<DIM2> s            = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "ifftn: InViewType is not a Kokkos::View.");
@@ -1695,7 +1692,7 @@ void ifftn(const ExecutionSpace& exec_space, const InViewType& in,
   }
 
   KokkosFFT::Impl::Plan plan(exec_space, _in, out,
-                             KokkosFFT::Impl::Direction::Backward, axes);
+                             KokkosFFT::Direction::backward, axes);
   if (plan.is_transpose_needed()) {
     InViewType in_T;
     OutViewType out_T;
@@ -1724,7 +1721,7 @@ template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           typename PlanType, std::size_t DIM1 = 1, std::size_t DIM2 = 1>
 void ifftn(const ExecutionSpace& exec_space, const InViewType& in,
            OutViewType& out, const PlanType& plan, axis_type<DIM1> axes,
-           KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
+           KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
            shape_type<DIM2> s            = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "ifftn: InViewType is not a Kokkos::View.");
@@ -1765,7 +1762,7 @@ void ifftn(const ExecutionSpace& exec_space, const InViewType& in,
   }
 
   plan.template good<ExecutionSpace, InViewType, OutViewType>(
-      _in, out, KokkosFFT::Impl::Direction::Backward, axes);
+      _in, out, KokkosFFT::Direction::backward, axes);
 
   if (plan.is_transpose_needed()) {
     InViewType in_T;
@@ -1793,7 +1790,7 @@ template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           std::size_t DIM = 1>
 void rfftn(const ExecutionSpace& exec_space, const InViewType& in,
            OutViewType& out,
-           KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
+           KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
            shape_type<DIM> s             = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "rfftn: InViewType is not a Kokkos::View.");
@@ -1844,7 +1841,7 @@ template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           typename PlanType, std::size_t DIM1 = 1, std::size_t DIM2 = 1>
 void rfftn(const ExecutionSpace& exec_space, const InViewType& in,
            OutViewType& out, const PlanType& plan, axis_type<DIM1> axes,
-           KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
+           KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
            shape_type<DIM2> s            = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "rfftn: InViewType is not a Kokkos::View.");
@@ -1894,7 +1891,7 @@ template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           std::size_t DIM1 = 1, std::size_t DIM2 = 1>
 void rfftn(const ExecutionSpace& exec_space, const InViewType& in,
            OutViewType& out, axis_type<DIM1> axes,
-           KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
+           KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
            shape_type<DIM2> s            = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "rfftn: InViewType is not a Kokkos::View.");
@@ -1943,7 +1940,7 @@ template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           std::size_t DIM = 1>
 void irfftn(const ExecutionSpace& exec_space, const InViewType& in,
             OutViewType& out,
-            KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
+            KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
             shape_type<DIM> s             = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "irfftn: InViewType is not a Kokkos::View.");
@@ -2002,7 +1999,7 @@ template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           std::size_t DIM1 = 1, std::size_t DIM2 = 1>
 void irfftn(const ExecutionSpace& exec_space, const InViewType& in,
             OutViewType& out, axis_type<DIM1> axes,
-            KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
+            KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
             shape_type<DIM2> s            = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "irfftn: InViewType is not a Kokkos::View.");
@@ -2062,7 +2059,7 @@ template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           typename PlanType, std::size_t DIM1 = 1, std::size_t DIM2 = 1>
 void irfftn(const ExecutionSpace& exec_space, const InViewType& in,
             OutViewType& out, const PlanType& plan, axis_type<DIM1> axes,
-            KokkosFFT::Normalization norm = KokkosFFT::Normalization::BACKWARD,
+            KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
             shape_type<DIM2> s            = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "irfftn: InViewType is not a Kokkos::View.");

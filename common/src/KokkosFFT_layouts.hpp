@@ -5,7 +5,7 @@
 #include <tuple>
 #include <iostream>
 #include <numeric>
-#include "KokkosFFT_default_types.hpp"
+#include "KokkosFFT_common_types.hpp"
 #include "KokkosFFT_utils.hpp"
 #include "KokkosFFT_transpose.hpp"
 

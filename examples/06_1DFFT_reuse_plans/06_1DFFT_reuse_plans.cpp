@@ -23,11 +23,11 @@ int main(int argc, char* argv[]) {
 
     int axis = -1;
     KokkosFFT::Impl::Plan fft_plan(execution_space(), xc2c, xc2c_hat,
-                                   KokkosFFT::Impl::Direction::Forward, axis);
+                                   KokkosFFT::Direction::forward, axis);
     KokkosFFT::fft(execution_space(), xc2c, xc2c_hat, fft_plan);
 
     KokkosFFT::Impl::Plan ifft_plan(execution_space(), xc2c_hat, xc2c_inv,
-                                    KokkosFFT::Impl::Direction::Backward, axis);
+                                    KokkosFFT::Direction::backward, axis);
     KokkosFFT::ifft(execution_space(), xc2c_hat, xc2c_inv, ifft_plan);
 
     // 1D R2C FFT
@@ -36,7 +36,7 @@ int main(int argc, char* argv[]) {
     Kokkos::fill_random(xr2c, random_pool, 1);
 
     KokkosFFT::Impl::Plan rfft_plan(execution_space(), xr2c, xr2c_hat,
-                                    KokkosFFT::Impl::Direction::Forward, axis);
+                                    KokkosFFT::Direction::forward, axis);
     KokkosFFT::rfft(execution_space(), xr2c, xr2c_hat, rfft_plan);
 
     // 1D C2R FFT
@@ -45,8 +45,7 @@ int main(int argc, char* argv[]) {
     Kokkos::fill_random(xc2r, random_pool, I);
 
     KokkosFFT::Impl::Plan irfft_plan(execution_space(), xc2r, xc2r_hat,
-                                     KokkosFFT::Impl::Direction::Backward,
-                                     axis);
+                                     KokkosFFT::Direction::backward, axis);
     KokkosFFT::irfft(execution_space(), xc2r, xc2r_hat, irfft_plan);
   }
   Kokkos::finalize();
