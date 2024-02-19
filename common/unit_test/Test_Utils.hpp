@@ -1,5 +1,5 @@
-#ifndef __TEST_UTILS_HPP__
-#define __TEST_UTILS_HPP__
+#ifndef TEST_UTILS_HPP
+#define TEST_UTILS_HPP
 
 #include "Test_Types.hpp"
 

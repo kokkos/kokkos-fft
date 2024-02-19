@@ -29,8 +29,7 @@ Is is assumed that the Kokkos is installed under ``<install_dir>/kokkos`` with O
     export KOKKOSFFT_INSTALL_PREFIX=<install_dir>/kokkosFFT
 
     mkdir build_KokkosFFT && cd build_KokkosFFT
-    cmake -DBUILD_TESTING=OFF \
-          -DCMAKE_CXX_COMPILER=icpx \
+    cmake -DCMAKE_CXX_COMPILER=icpx \
           -DCMAKE_PREFIX_PATH=<install_dir>/kokkos \
           -DCMAKE_INSTALL_PREFIX=${KOKKOSFFT_INSTALL_PREFIX} ..
     cmake --build . -j 8
@@ -70,12 +69,12 @@ The code can be built as
 CMake options
 -------------
 
-We rely on CMake to build KokkosFFT, more specifically ``CMake3.22+``. Here are the lists of CMake option. 
+We rely on CMake to build KokkosFFT, more specifically ``CMake 3.22+``. Here are the lists of CMake option. 
 For FFTs on Kokkos device only, we do not need to add extra compile options but for Kokkos ones.
-In order to use KokkosFFT from both host and device, we need to add ``KokkosFFT_ENABLE_HOST_AND_DEVICE=ON``.
+In order to use KokkosFFT from both host and device, it is necessary to add ``KokkosFFT_ENABLE_HOST_AND_DEVICE=ON``.
 This option may be useful, for example FFT is used for initialization at host. 
-However, to enable this option, we need a pre-installed ``fftw`` for FFT on host, so it is disabled in default.
-(see :doc:`minimum working example<../samples/05_1DFFT_HOST_DEVICE>`)
+However, to enable this option, we need a pre-installed ``fftw`` for FFT on host, so it is disabled in default
+(see :doc:`minimum working example<../samples/05_1DFFT_HOST_DEVICE>`).
 
 .. list-table:: CMake options
    :widths: 25 25 50
