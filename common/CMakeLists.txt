@@ -1,4 +1,4 @@
 add_subdirectory(src)
-if(BUILD_TESTING)
+if(KokkosFFT_ENABLE_TESTS)
     add_subdirectory(unit_test)
 endif()
