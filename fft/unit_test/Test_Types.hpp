@@ -1,5 +1,5 @@
-#ifndef __TEST_TYPES_HPP__
-#define __TEST_TYPES_HPP__
+#ifndef TEST_TYPES_HPP
+#define TEST_TYPES_HPP
 
 #include <Kokkos_Complex.hpp>
 using execution_space = Kokkos::DefaultExecutionSpace;
