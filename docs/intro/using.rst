@@ -11,14 +11,14 @@ Brief introduction
 
 Most of the numpy.fft APIs (``numpy.fft.<function_name>``) are available in KokkosFFT (``KokkosFFT::<function_name>``) on the Kokkos device.
 In fact, these are the only APIs available in KokkosFFT (see :doc:`API reference<../api_reference>` for detail). KokkosFFT support 1D to 3D FFT over choosen axes. 
-Inside FFT APIs, we first create a FFT plan for backend FFT library based on the Views and choosen axes.
-Then, we execute the FFT using the created plan on the given Views. Finally, we destroy the plan.
-Depending on the View Layout and choosen axes, we may need transpose operations to make data contiguous.
+Inside FFT APIs, we first create a FFT plan for a backend FFT library based on the Views and choosen axes.
+Then, we execute the FFT using the created plan on the given Views. Then, we may perform normalization based on the users' choice. 
+Finally, we destroy the plan. Depending on the View Layout and choosen axes, we may need transpose operations to make data contiguous.
 In that case, we perform the transpose operations internally which impose overheads in both memory and computations.
 
 .. note::
 
-   ``KokkosFFT::Impl`` namespace is for implementation details and should not be accessed by users.
+   ``KokkosFFT::Impl`` namespace represents implementation details and should not be accessed by users.
 
 Basic Instruction
 -----------------
@@ -27,7 +27,7 @@ We have Standard and Real FFTs as APIs. Standard FFTs can be used for complex to
 Real FFTs perform real to complex transform. As well as ``numpy.fft``, numbers after ``fft`` represents the dimension of FFT.
 For example, ``KokkosFFT::fft2`` performs 2D (potentially batched) FFT in forward direction.
 If the rank of Views is higher than the dimension of FFT, a batched FFT plan is created.
-APIs start from ``i`` are for inverse transform.  
+APIs start from ``i`` represent inverse transforms.  
 For Real FFTs, users have to pay attention to the input and output data types as well as their extents.
 Inconsistent data types are suppressed by compilation errors. If extents are inconsistent, 
 it will raise runtime errors (C++ exceptions or assertions).
@@ -57,7 +57,7 @@ The following listing shows good and bad examples of Real FFTs.
 
 .. note::
 
-   We have to use the same precision (either ``float`` or ``double``) for input and ouptut Views.
+   Input and ouptut views must have the same precision (either ``float`` or ``double``).
 
 Supported data types
 --------------------
@@ -65,7 +65,7 @@ Supported data types
 Firstly, the input and output Views must have the same LayoutType and rank.
 For the moment, we accept Kokkos Views with some restriction in data types and Layout.
 Here are the list of available types for Views. We recommend to use dynamic allocation for Views,
-since we have not tested with static shaped Views. In addition, we have not tested with non-default `MemoryTraits`. 
+since we have not tested with static shaped Views. In addition, we have not tested with non-default `Memory Traits<https://kokkos.org/kokkos-core-wiki/ProgrammingGuide/ProgrammingModel.html#memory-traits>`_
 
 * DataType: ``float``, ``double``, ``Kokkos::complex<float>``, ``Kokkos::complex<double>``
 * LayoutType: ``Kokkos::LayoutLeft``, ``Kokkos::LayoutRight``
