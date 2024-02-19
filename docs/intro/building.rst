@@ -73,8 +73,8 @@ We rely on CMake to build KokkosFFT, more specifically ``CMake 3.22+``. Here are
 For FFTs on Kokkos device only, we do not need to add extra compile options but for Kokkos ones.
 In order to use KokkosFFT from both host and device, it is necessary to add ``KokkosFFT_ENABLE_HOST_AND_DEVICE=ON``.
 This option may be useful, for example FFT is used for initialization at host. 
-However, to enable this option, we need a pre-installed ``fftw`` for FFT on host, so it is disabled in default.
-(see :doc:`minimum working example<../samples/05_1DFFT_HOST_DEVICE>`)
+However, to enable this option, we need a pre-installed ``fftw`` for FFT on host, so it is disabled in default
+(see :doc:`minimum working example<../samples/05_1DFFT_HOST_DEVICE>`).
 
 .. list-table:: CMake options
    :widths: 25 25 50

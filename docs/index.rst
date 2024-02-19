@@ -9,12 +9,12 @@ including `fftw <http://www.fftw.org>`_,
 `hipfft <https://github.com/ROCm/hipFFT>`_, and `oneMKL <https://spec.oneapi.io/versions/latest/elements/oneMKL/source/index.html>`_. 
 "Local" means not using MPI, or running within a single MPI process without knowing about MPI.
 We are inclined to implement the `numpy.fft <https://numpy.org/doc/stable/reference/routines.fft.html>`_-like interfaces adapted for Kokkos.
-A key concept is that "As easy as numpy, as fast as vendor libraries". Accordingly, our API follows the API by numpy.fft with minor differences. 
-A fft library dedicated to Kokkos Device backend (e.g. cufft for CUDA backend) is automatically used. 
+A key concept is that *"As easy as numpy, as fast as vendor libraries"*. Accordingly, our API follows the API by ``numpy.fft`` with minor differences. 
+A FFT library dedicated to Kokkos Device backend (e.g. cufft for CUDA backend) is automatically used. 
 
 KokkosFFT is open source and available on `GitHub <https://github.com/CExA-project/kokkos-fft>`_.
 
-Here is an example for 1D real to complex transform with rfft in python and KokkosFFT.
+Here is an example for 1D real to complex transform with ``rfft`` in python and KokkosFFT.
 
 .. code-block:: python
 
@@ -43,7 +43,7 @@ Here is an example for 1D real to complex transform with rfft in python and Kokk
 
 .. note::
 
-   We assume that the backend FFT libraries are appropriately installed on the system.
+   It is assumed that backend FFT libraries are appropriately installed on the system.
 
 
 .. toctree::

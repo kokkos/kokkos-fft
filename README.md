@@ -5,8 +5,8 @@
 
 UNOFFICIAL FFT interfaces for Kokkos C++ Performance Portability Programming EcoSystem
 
-KokkosFFT implements local interfaces Kokkos and de facto standard FFT libraries, including [fftw](http://www.fftw.org), [cufft](https://developer.nvidia.com/cufft), [hipfft](https://github.com/ROCm/hipFFT), and [oneMKL](https://spec.oneapi.io/versions/latest/elements/oneMKL/source/index.html). "Local" means not using MPI, or running within a single MPI process without knowing about MPI. We are inclined to implement the [numpy.fft](https://numpy.org/doc/stable/reference/routines.fft.html)-like interfaces adapted for [Kokkos](https://github.com/kokkos/kokkos).
-A key concept is that "As easy as numpy, as fast as vendor libraries". Accordingly, our API follows the API by [numpy.fft](https://numpy.org/doc/stable/reference/routines.fft.html) with minor differences. A fft library dedicated to Kokkos Device backend (e.g. [cufft](https://developer.nvidia.com/cufft) for CUDA backend) is automatically used. If something is wrong with runtime values (say `View` extents), it will raise runtime errors (C++ exceptions or assertions). See [documentations](https://kokkosfft.readthedocs.io/) for more information. 
+KokkosFFT implements local interfaces between [Kokkos](https://github.com/kokkos/kokkos) and de facto standard FFT libraries, including [fftw](http://www.fftw.org), [cufft](https://developer.nvidia.com/cufft), [hipfft](https://github.com/ROCm/hipFFT), and [oneMKL](https://spec.oneapi.io/versions/latest/elements/oneMKL/source/index.html). "Local" means not using MPI, or running within a single MPI process without knowing about MPI. We are inclined to implement the [numpy.fft](https://numpy.org/doc/stable/reference/routines.fft.html)-like interfaces adapted for [Kokkos](https://github.com/kokkos/kokkos).
+A key concept is that **"As easy as numpy, as fast as vendor libraries"**. Accordingly, our API follows the API by [numpy.fft](https://numpy.org/doc/stable/reference/routines.fft.html) with minor differences. A fft library dedicated to Kokkos Device backend (e.g. [cufft](https://developer.nvidia.com/cufft) for CUDA backend) is automatically used. If something is wrong with runtime values (say `View` extents), it will raise runtime errors (C++ exceptions or assertions). See [documentations](https://kokkosfft.readthedocs.io/) for more information.
 
 Here is an example for 1D real to complex transform with `rfft` in python and KokkosFFT.
 ```python3
@@ -103,13 +103,10 @@ target_link_libraries(hello-kokkos-fft PUBLIC Kokkos::kokkos KokkosFFT::fft)
 
 For compilation, we basically rely on the CMake options for Kokkos. For example, the configure options for A100 GPU is as follows.
 ```
-cmake -DBUILD_TESTING=ON \
-      -DCMAKE_CXX_COMPILER=<project_directory>/tpls/kokkos/bin/nvcc_wrapper \
+cmake -DCMAKE_CXX_COMPILER=g++ \
       -DCMAKE_BUILD_TYPE=Release \
       -DKokkos_ENABLE_CUDA=ON \
-      -DKokkos_ENABLE_CUDA_CONSTEXPR=ON \
-      -DKokkos_ARCH_AMPERE80=ON \
-      -DKokkos_ENABLE_CUDA_LAMBDA=On ..
+      -DKokkos_ARCH_AMPERE80=ON ..
 ```
 This way, all the functionalities are executed on A100 GPUs.
 
@@ -121,8 +118,7 @@ export KOKKOSFFT_INSTALL_PREFIX=<lib_dir>/kokkosFFT
 export KokkosFFT_DIR=<lib_dir>/kokkosFFT/lib64/cmake/kokkos-fft
 
 mkdir build_KokkosFFT && cd build_KokkosFFT
-cmake -DBUILD_TESTING=OFF \
-      -DCMAKE_CXX_COMPILER=icpx \
+cmake -DCMAKE_CXX_COMPILER=icpx \
       -DCMAKE_INSTALL_PREFIX=${KOKKOSFFT_INSTALL_PREFIX} ..
 cmake --build . -j 8
 cmake --install .
