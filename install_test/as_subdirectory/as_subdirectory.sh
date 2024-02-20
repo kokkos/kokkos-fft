@@ -26,7 +26,9 @@ git clone https://github.com/kokkos/kokkos.git
 cp -r ${SRC_DIR} .
 
 # Try to build an example
-# Build KokkosFFT code using installed KokkosFFT
+# Build KokkosFFT code using Kokkos and KokkosFFT as submodules
+
+export EXAMPLE_BUILD_DIR=build_example
 cd ${WK_DIR}
 mkdir ${EXAMPLE_BUILD_DIR} && cd ${EXAMPLE_BUILD_DIR}
 cmake -DCMAKE_CXX_COMPILER=${CXX_COMPILER} \
