@@ -2,7 +2,7 @@
 
 args=$#
 WK_DIR=/tmp/kokkos_fft_as_subdirectory
-PWD=$(pwd)
+PWD=/work
 ROOT_DIR=$1
 BUILD_TYPE=$2
 C_COMPILER=$3
