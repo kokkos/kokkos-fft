@@ -173,6 +173,18 @@ jobs:
           docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
             cmake --build build_test -j $(( $(nproc) * 2 + 1 ))
 
+      - name: Use KokkosFFT as a subdirectory in a CMake project
+        run: |
+          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
+            ./install_test/as_subdirectory/as_subdirectory.sh /tmp ${{env.BUILD_TYPE}} ${{ matrix.backend.c_compiler }} ${{ matrix.backend.cxx_compiler }} \
+            ${{ matrix.backend.cmake_flags }} ${{ matrix.target.cmake_flags }}
+
+      - name: Use KokkosFFT as a library in a CMake project
+        run: |
+          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
+            ./install_test/as_library/as_library.sh /tmp ${{env.BUILD_TYPE}} ${{ matrix.backend.c_compiler }} ${{ matrix.backend.cxx_compiler }} \
+            ${{ matrix.backend.cmake_flags }} ${{ matrix.target.cmake_flags }}
+
   test:
     runs-on: ${{ matrix.backend.runner }}
 
