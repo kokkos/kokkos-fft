@@ -33,7 +33,7 @@ cmake -DCMAKE_CXX_COMPILER=${CXX_COMPILER} \
       -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
       -DKokkos_ENABLE_CUDA=ON \
       ${BACKEND_FLAG} \
-      ${TARGET_FLAG}
+      ${TARGET_FLAG} ..
 
 cmake --build . -j 8
 
