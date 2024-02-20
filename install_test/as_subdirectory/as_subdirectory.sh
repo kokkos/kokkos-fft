@@ -7,8 +7,40 @@ ROOT_DIR=$1
 BUILD_TYPE=$2
 C_COMPILER=$3
 CXX_COMPILER=$4
-BACKEND_FLAG=$5
-TARGET_FLAG=$6
+
+if [ $args -eq 5 ]; then
+    # CPU build
+    # e.g
+    # /tmp Release gcc g++ -DKokkos_ENABLE_THREADS=ON
+    # TARGET_FLAG is empty
+    BACKEND_FLAG=$5
+    TARGET_FLAG=$6
+elif [ $args -eq 6 ]; then
+    # GPU build without target flag
+    # e.g.
+    # /tmp Release gcc g++ \
+    # -DKokkos_ENABLE_CUDA=ON -DKokkos_ARCH_AMPERE80=ON 
+    # TARGET_FLAG is empty
+    BACKEND_FLAG0=$5
+    BACKEND_FLAG1=$6
+    BACKEND_FLAG="${BACKEND_FLAG0} ${BACKEND_FLAG1}"
+    TARGET_FLAG=$7
+elif [ $args -eq 7 ]; then
+    # GPU build with target flag
+    # e.g.
+    # /tmp Release gcc g++ \
+    # -DKokkos_ENABLE_CUDA=ON -DKokkos_ARCH_AMPERE80=ON -DKokkosFFT_ENABLE_HOST_AND_DEVICE=ON
+    BACKEND_FLAG0=$5
+    BACKEND_FLAG1=$6
+    BACKEND_FLAG="${BACKEND_FLAG0} ${BACKEND_FLAG1}"
+    TARGET_FLAG=$7
+else
+    echo "*** Error: Number of arguments must be 5, 6 or 7 ***"
+    exit 1;
+fi
+
+echo "BACKEND_FLAG: ${BACKEND_FLAG}"
+echo "TARGET_FLAG: ${TARGET_FLAG}"
 
 # Make work directory (Project directory)
 mkdir -p ${WK_DIR} && cd ${WK_DIR}
@@ -24,7 +56,6 @@ git clone https://github.com/kokkos/kokkos.git
 
 # Copy KokkosFFT under tpls/kokkos-fft
 cp -r ${SRC_DIR} kokkos-fft
-ls
 
 # Try to build an example
 # Build KokkosFFT code using Kokkos and KokkosFFT as submodules
