@@ -14,7 +14,7 @@ TARGET_FLAG=$6
 mkdir -p ${WK_DIR} && cd ${WK_DIR}
 
 # Copy CMakeLists.txt and hello.cpp
-cp ${PWD}/build_test/as_subdirectory/* .
+cp ${PWD}/install_test/as_subdirectory/* .
 
 # Prepare Kokkos and KokkosFFT under tpls
 mkdir tpls && cd tpls
