@@ -33,7 +33,6 @@ cd ${WK_DIR}
 mkdir ${EXAMPLE_BUILD_DIR} && cd ${EXAMPLE_BUILD_DIR}
 cmake -DCMAKE_CXX_COMPILER=${CXX_COMPILER} \
       -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
-      -DKokkos_ENABLE_CUDA=ON \
       ${BACKEND_FLAG} \
       ${TARGET_FLAG} ..
 
