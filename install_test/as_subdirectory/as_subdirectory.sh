@@ -2,7 +2,7 @@
 
 args=$#
 WK_DIR=/tmp/kokkos_fft_as_subdirectory
-PWD=/work
+SRC_DIR=/work
 ROOT_DIR=$1
 BUILD_TYPE=$2
 C_COMPILER=$3
@@ -14,7 +14,7 @@ TARGET_FLAG=$6
 mkdir -p ${WK_DIR} && cd ${WK_DIR}
 
 # Copy CMakeLists.txt and hello.cpp
-cp ${PWD}/install_test/as_subdirectory/* .
+cp ${SRC_DIR}/install_test/as_subdirectory/* .
 
 # Prepare Kokkos and KokkosFFT under tpls
 mkdir tpls && cd tpls
@@ -23,7 +23,7 @@ mkdir tpls && cd tpls
 git clone https://github.com/kokkos/kokkos.git
 
 # Copy KokkosFFT under tpls/kokkos-fft
-cp -r ${PWD} .
+cp -r ${SRC_DIR} .
 
 # Try to build an example
 # Build KokkosFFT code using installed KokkosFFT
