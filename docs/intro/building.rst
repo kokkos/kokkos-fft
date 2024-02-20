@@ -4,7 +4,7 @@ Building KokkosFFT
 ==================
 
 This section describes how to build KokkosFFT with some advanced options.
-In order to build KokkosFFT, we use CMake with following compilers. 
+In order to build KokkosFFT, we use ``CMake`` with following compilers. 
 Kokkos and backend FFT libraries are also necessary.
 Available CMake options for KokkosFFT are listed. 
 
