@@ -48,7 +48,9 @@ The following listing shows good and bad examples of Real FFTs.
    // [NG, Compile time error] Inconsistent types
    // Input: double (NG) -> complex<double> (OK)
    // Output: complex<double> (NG) -> double (OK)
-   //KokkosFFT::irfft2(execution_space(), x_hat_good, x);
+   //KokkosFFT::irfft2(execution_space(), x, x_hat_good);
+   // [OK] Correct types and extents
+   KokkosFFT::irfft2(execution_space(), x_hat_good, x);
 
    // [NG, Run time error] Inconsistent extetns
    // Output: (n0, n1) (NG) -> (n0, n1/2+1) (OK)
@@ -65,7 +67,8 @@ Supported data types
 Firstly, the input and output Views must have the same LayoutType and rank.
 For the moment, we accept Kokkos Views with some restriction in data types and Layout.
 Here are the list of available types for Views. We recommend to use dynamic allocation for Views,
-since we have not tested with static shaped Views. In addition, we have not tested with non-default `Memory Traits<https://kokkos.org/kokkos-core-wiki/ProgrammingGuide/ProgrammingModel.html#memory-traits>`_
+since we have not tested with static shaped Views. In addition, we have not tested with non-default 
+`Memory Traits <https://kokkos.org/kokkos-core-wiki/ProgrammingGuide/ProgrammingModel.html#memory-traits>`_.
 
 * DataType: ``float``, ``double``, ``Kokkos::complex<float>``, ``Kokkos::complex<double>``
 * LayoutType: ``Kokkos::LayoutLeft``, ``Kokkos::LayoutRight``

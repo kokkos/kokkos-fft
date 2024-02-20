@@ -26,8 +26,8 @@ Here are list of compilers we frequently use for testing.
 * ``nvcc 12.0.0+`` - NVIDIA GPUs
 * ``rocm 5.3.0+`` - AMD GPUs
 
-Building KokkosFFT
-------------------
+Building
+--------
 
 For the moment, there are two ways to use KokkosFFT: including as a subdirectory in CMake project or installing as a library.
 For simplicity, however, we demonstrate an example to use KokkosFFT as a subdirectory in a CMake project. For installation, see :ref:`Building KokkosFFT<building>` for detail.
@@ -72,8 +72,8 @@ For compilation, we basically rely on the CMake options for Kokkos. For example,
 
 This way, all the functionalities are executed on A100 GPUs.
 
-Trying KokkosFFT
-----------------
+Trying
+------
 
 For those who are familiar with `numpy.fft <https://numpy.org/doc/stable/reference/routines.fft.html>`_, 
 you may use KokkosFFT quite easily. Here is an example for 1D real to complex transform with rfft in python and KokkosFFT.

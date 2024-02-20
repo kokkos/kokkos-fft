@@ -235,22 +235,19 @@ auto rfftfreq(const ExecutionSpace& exec_space, const std::size_t n,
 ///
 /// \param exec_space [in] Kokkos execution space
 /// \param inout [in,out] Spectrum
+/// \param axes [in] Axes over which to shift, optional
 template <typename ExecutionSpace, typename ViewType>
-void fftshift(const ExecutionSpace& exec_space, ViewType& inout) {
-  constexpr std::size_t rank = ViewType::rank();
-  constexpr int start        = -static_cast<int>(rank);
-  axis_type<rank> axes       = KokkosFFT::Impl::index_sequence<rank>(start);
-  KokkosFFT::Impl::_fftshift(exec_space, inout, axes);
-}
-
-/// \brief Shift the zero-frequency component to the center of the spectrum
-///
-/// \param exec_space [in] Kokkos execution space
-/// \param inout [in,out] Spectrum
-/// \param axes [in] Axes over which to shift
-template <typename ExecutionSpace, typename ViewType>
-void fftshift(const ExecutionSpace& exec_space, ViewType& inout, int axes) {
-  KokkosFFT::Impl::_fftshift(exec_space, inout, axis_type<1>{axes});
+void fftshift(const ExecutionSpace& exec_space, ViewType& inout,
+              std::optional<int> axes = std::nullopt) {
+  if (axes) {
+    axis_type<1> _axes{axes.value()};
+    KokkosFFT::Impl::_fftshift(exec_space, inout, _axes);
+  } else {
+    constexpr std::size_t rank = ViewType::rank();
+    constexpr int start        = -static_cast<int>(rank);
+    axis_type<rank> _axes      = KokkosFFT::Impl::index_sequence<rank>(start);
+    KokkosFFT::Impl::_fftshift(exec_space, inout, _axes);
+  }
 }
 
 /// \brief Shift the zero-frequency component to the center of the spectrum
@@ -268,22 +265,19 @@ void fftshift(const ExecutionSpace& exec_space, ViewType& inout,
 ///
 /// \param exec_space [in] Kokkos execution space
 /// \param inout [in,out] Spectrum
+/// \param axes [in] Axes over which to shift, optional
 template <typename ExecutionSpace, typename ViewType>
-void ifftshift(const ExecutionSpace& exec_space, ViewType& inout) {
-  constexpr std::size_t rank = ViewType::rank();
-  constexpr int start        = -static_cast<int>(rank);
-  axis_type<rank> axes       = KokkosFFT::Impl::index_sequence<rank>(start);
-  KokkosFFT::Impl::_ifftshift(exec_space, inout, axes);
-}
-
-/// \brief The inverse of fftshift
-///
-/// \param exec_space [in] Kokkos execution space
-/// \param inout [in,out] Spectrum
-/// \param axes [in] Axes over which to shift
-template <typename ExecutionSpace, typename ViewType>
-void ifftshift(const ExecutionSpace& exec_space, ViewType& inout, int axes) {
-  KokkosFFT::Impl::_ifftshift(exec_space, inout, axis_type<1>{axes});
+void ifftshift(const ExecutionSpace& exec_space, ViewType& inout,
+               std::optional<int> axes = std::nullopt) {
+  if (axes) {
+    axis_type<1> _axes{axes.value()};
+    KokkosFFT::Impl::_ifftshift(exec_space, inout, _axes);
+  } else {
+    constexpr std::size_t rank = ViewType::rank();
+    constexpr int start        = -static_cast<int>(rank);
+    axis_type<rank> _axes      = KokkosFFT::Impl::index_sequence<rank>(start);
+    KokkosFFT::Impl::_ifftshift(exec_space, inout, _axes);
+  }
 }
 
 /// \brief The inverse of fftshift

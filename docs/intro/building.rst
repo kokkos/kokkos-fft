@@ -4,7 +4,7 @@ Building KokkosFFT
 ==================
 
 This section describes how to build KokkosFFT with some advanced options.
-In order to build KokkosFFT, we use CMake with following compilers. 
+In order to build KokkosFFT, we use ``CMake`` with following compilers. 
 Kokkos and backend FFT libraries are also necessary.
 Available CMake options for KokkosFFT are listed. 
 
@@ -108,43 +108,35 @@ If CMake fails to find a backend FFT library, see :doc:`How to find fft librarie
 We may support experimental backends like ``OPENMPTARGET`` in the future.
  
 .. list-table:: ``Host backend``
-   :widths: 25 25 25 25
+   :widths: 25 50 25
    :header-rows: 1
 
    * - CMake option
      - Description
      - Backend FFT library
-     - Default
    * - ``Kokkos_ENABLE_SERIAL``
      - Serial backend targeting CPUs 
      - ``fftw (Serial)``
-     - OFF
    * - ``Kokkos_ENABLE_THREADS``
      - C++ threads backend targeting CPUs 
      - ``fftw (Threads)``
-     - OFF
    * - ``Kokkos_ENABLE_OPENMP``
      - OpenMP backend targeting CPUs 
      - ``fftw (OpenMP)``
-     - OFF
 
 .. list-table:: ``Device backend``
-   :widths: 25 25 25 25
+   :widths: 25 50 25
    :header-rows: 1
 
    * - CMake option
      - Description
      - Backend FFT library
-     - Default
    * - ``Kokkos_ENABLE_CUDA``
      - CUDA backend targeting NVIDIA GPUs
      - ``cufft``
-     - OFF
    * - ``Kokkos_ENABLE_HIP``
      - HIP backend targeting AMD GPUs
      - ``hipfft``
-     - OFF
    * - ``Kokkos_ENABLE_SYCL``
      - SYCL backend targeting Intel GPUs
      - ``oneMKL``
-     - OFF
