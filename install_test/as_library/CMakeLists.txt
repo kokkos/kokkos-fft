@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.23)
 project(kokkos-fft-as-library LANGUAGES CXX)
 
-ind_package(Kokkos CONFIG REQUIRED)
+find_package(Kokkos CONFIG REQUIRED)
 find_package(KokkosFFT CONFIG REQUIRED)
 
 add_executable(hello-kokkos-fft hello.cpp)
