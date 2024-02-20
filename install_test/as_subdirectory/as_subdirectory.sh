@@ -23,7 +23,8 @@ mkdir tpls && cd tpls
 git clone https://github.com/kokkos/kokkos.git
 
 # Copy KokkosFFT under tpls/kokkos-fft
-cp -r ${SRC_DIR} .
+cp -r ${SRC_DIR} kokkos-fft
+ls
 
 # Try to build an example
 # Build KokkosFFT code using Kokkos and KokkosFFT as submodules
