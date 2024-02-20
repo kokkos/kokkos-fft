@@ -31,11 +31,10 @@ if (NOT KokkosFFT_ENABLE_INTERNAL_KOKKOS)
     # First check, Kokkos is added as subdirectory or not
     if(NOT TARGET Kokkos::kokkos)
         find_package(Kokkos REQUIRED)
+        # Kokkos version check
+        include(Kokkos_Version_Check)
+        check_minimum_required_kokkos(${KOKKOS_REQUIRED_VERSION})
     endif()
-
-    # Kokkos version check
-    include(Kokkos_Version_Check)
-    check_minimum_required_kokkos(${KOKKOS_REQUIRED_VERSION})
 else ()
     add_subdirectory(tpls/kokkos)
 endif ()
