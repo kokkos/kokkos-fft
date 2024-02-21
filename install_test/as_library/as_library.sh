@@ -70,6 +70,10 @@ cd ${WK_DIR}
 mkdir ${KOKKOSFFT_BUILD_DIR} && cd ${KOKKOSFFT_BUILD_DIR}
 cmake -DCMAKE_PREFIX_PATH=${KOKKOS_INSTALL_PREFIX} \
       -DCMAKE_INSTALL_PREFIX=${KOKKOSFFT_INSTALL_PREFIX} \
+      -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
+      -DCMAKE_C_COMPILER=${C_COMPILER} \
+      -DCMAKE_CXX_COMPILER=${CXX_COMPILER} \
+      -DCMAKE_CXX_STANDARD=17 \
       ${TARGET_FLAG} ..
 
 cmake --build . -j 8
@@ -79,7 +83,12 @@ cmake --install .
 # Build KokkosFFT code using installed KokkosFFT
 cd ${WK_DIR}
 mkdir ${EXAMPLE_BUILD_DIR} && cd ${EXAMPLE_BUILD_DIR}
-cmake -DCMAKE_PREFIX_PATH="${KOKKOS_INSTALL_PREFIX};${KOKKOSFFT_INSTALL_PREFIX}" ../install_test/as_library
+cmake -DCMAKE_PREFIX_PATH="${KOKKOS_INSTALL_PREFIX};${KOKKOSFFT_INSTALL_PREFIX}" \
+      -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
+      -DCMAKE_C_COMPILER=${C_COMPILER} \
+      -DCMAKE_CXX_COMPILER=${CXX_COMPILER} \
+      -DCMAKE_CXX_STANDARD=17 \
+      ../install_test/as_library
 cmake --build . -j 8
 
 if [ $? -eq 0 ]; then
