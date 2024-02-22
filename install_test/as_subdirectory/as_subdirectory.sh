@@ -39,9 +39,6 @@ else
     exit 1;
 fi
 
-echo "BACKEND_FLAG: ${BACKEND_FLAG}"
-echo "TARGET_FLAG: ${TARGET_FLAG}"
-
 # Make work directory (Project directory)
 mkdir -p ${WK_DIR} && cd ${WK_DIR}
 
@@ -52,7 +49,7 @@ cp ${SRC_DIR}/install_test/as_subdirectory/* .
 mkdir tpls && cd tpls
 
 # Prepare tpls/kokkos 
-git clone https://github.com/kokkos/kokkos.git
+cp -r ${SRC_DIR}/tpls/kokkos .
 
 # Copy KokkosFFT under tpls/kokkos-fft
 cp -r ${SRC_DIR} kokkos-fft

@@ -11,7 +11,6 @@ if [ $args -eq 5 ]; then
     # CPU build
     # e.g
     # /tmp Release gcc g++ -DKokkos_ENABLE_THREADS=ON
-    # TARGET_FLAG is empty
     BACKEND_FLAG=$5
     TARGET_FLAG=$6
 elif [ $args -eq 6 ]; then
@@ -19,7 +18,6 @@ elif [ $args -eq 6 ]; then
     # e.g.
     # /tmp Release gcc g++ \
     # -DKokkos_ENABLE_CUDA=ON -DKokkos_ARCH_AMPERE80=ON 
-    # TARGET_FLAG is empty
     BACKEND_FLAG0=$5
     BACKEND_FLAG1=$6
     BACKEND_FLAG="${BACKEND_FLAG0} ${BACKEND_FLAG1}"
@@ -38,9 +36,6 @@ else
     exit 1;
 fi
 
-echo "BACKEND_FLAG: ${BACKEND_FLAG}"
-echo "TARGET_FLAG: ${TARGET_FLAG}"
-
 # Install Kokkos
 export KOKKOS_INSTALL_PREFIX=${ROOT_DIR}/usr/local/kokkos
 export KOKKOS_BUILD_DIR=build_Kokkos
@@ -51,10 +46,10 @@ export KOKKOSFFT_BUILD_DIR=build_KokkosFFT
 export EXAMPLE_BUILD_DIR=build_example
 
 # Install Kokkos
-# Get Kokkos from github repo and build
+# Get Kokkos from tpls/kokkos and build
 cd ${WK_DIR}
 mkdir ${KOKKOS_BUILD_DIR} && cd ${KOKKOS_BUILD_DIR}
-git clone https://github.com/kokkos/kokkos.git
+cp -r ../tpls/kokkos .
 cmake -DCMAKE_INSTALL_PREFIX=${KOKKOS_INSTALL_PREFIX} \
       -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
       -DCMAKE_C_COMPILER=${C_COMPILER} \

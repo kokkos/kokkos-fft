@@ -4,5 +4,5 @@ project(kokkos-fft-as-subdirectory LANGUAGES CXX)
 add_subdirectory(tpls/kokkos)
 add_subdirectory(tpls/kokkos-fft)
 
-add_executable(hello-kokkos-fft hello.cpp)
+add_executable(hello-kokkos-fft hello_again.cpp)
 target_link_libraries(hello-kokkos-fft PUBLIC Kokkos::kokkos KokkosFFT::fft)
