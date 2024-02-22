@@ -154,36 +154,19 @@ jobs:
           path: tests_${{ matrix.backend.name }}.tar
         if: ${{ matrix.target.name == 'native' }}
 
-      - name: Install
-        run: |
-          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
-            cmake --install build
-
-      - name: Configure and build test code
-        # Use the built and installed Kokkos FFT library to build a test code
-        run: |
-          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
-            cmake -B build_test \
-            -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
-            -DCMAKE_C_COMPILER=${{ matrix.backend.c_compiler }} \
-            -DCMAKE_CXX_COMPILER=${{ matrix.backend.cxx_compiler }} \
-            -DCMAKE_CXX_STANDARD=17 \
-            -DCMAKE_PREFIX_PATH=/work/install \
-            install_test/as_library
-          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
-            cmake --build build_test -j $(( $(nproc) * 2 + 1 ))
-
       - name: Use KokkosFFT as a subdirectory in a CMake project
         run: |
           docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
             ./install_test/as_subdirectory/as_subdirectory.sh /tmp ${{env.BUILD_TYPE}} ${{ matrix.backend.c_compiler }} ${{ matrix.backend.cxx_compiler }} \
             ${{ matrix.backend.cmake_flags }} ${{ matrix.target.cmake_flags }}
+        if: ${{ matrix.target.name == 'native' }}
 
       - name: Use KokkosFFT as a library in a CMake project
         run: |
           docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
             ./install_test/as_library/as_library.sh /tmp ${{env.BUILD_TYPE}} ${{ matrix.backend.c_compiler }} ${{ matrix.backend.cxx_compiler }} \
             ${{ matrix.backend.cmake_flags }} ${{ matrix.target.cmake_flags }}
+        if: ${{ matrix.target.name == 'native' }}
 
   test:
     runs-on: ${{ matrix.backend.runner }}
