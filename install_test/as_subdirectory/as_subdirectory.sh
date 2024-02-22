@@ -49,12 +49,10 @@ cp ${SRC_DIR}/install_test/as_subdirectory/* .
 mkdir tpls && cd tpls
 
 # Prepare tpls/kokkos 
-cp -r ${SRC_DIR}/tpls/kokkos kokkos
+git clone https://github.com/kokkos/kokkos.git
 
 # Copy KokkosFFT under tpls/kokkos-fft
 cp -r ${SRC_DIR} kokkos-fft
-
-ls
 
 # Try to build an example
 # Build KokkosFFT code using Kokkos and KokkosFFT as submodules
