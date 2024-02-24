@@ -177,7 +177,7 @@ template <
 void _destroy_plan(std::unique_ptr<PlanType>& plan) {}
 
 template <typename ExecutionSpace, typename InfoType,
-          std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
+          std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::Experimental::SYCL>,
                            std::nullptr_t> = nullptr>
 void _destroy_info(InfoType& plan) {}
 }  // namespace Impl
