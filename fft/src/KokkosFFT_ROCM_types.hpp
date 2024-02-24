@@ -10,7 +10,8 @@ static_assert(sizeof(std::complex<float>) == sizeof(Kokkos::complex<float>));
 static_assert(alignof(std::complex<float>) <= alignof(Kokkos::complex<float>));
 
 static_assert(sizeof(std::complex<double>) == sizeof(Kokkos::complex<double>));
-static_assert(alignof(std::complex<double>) <= alignof(Kokkos::complex<double>));
+static_assert(alignof(std::complex<double>) <=
+              alignof(Kokkos::complex<double>));
 
 #ifdef ENABLE_HOST_AND_DEVICE
 #include <fftw3.h>
@@ -24,7 +25,7 @@ static_assert(alignof(fftw_complex) <= alignof(Kokkos::complex<double>));
 
 namespace KokkosFFT {
 namespace Impl {
-using FFTDirectionType = int;
+using FFTDirectionType                     = int;
 constexpr FFTDirectionType ROCFFT_FORWARD  = 1;
 constexpr FFTDirectionType ROCFFT_BACKWARD = -1;
 
@@ -101,8 +102,9 @@ struct FFTPlanType {
 };
 
 template <typename ExecutionSpace>
-using FFTInfoType = std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
-                                  rocfft_execution_info, int>;
+using FFTInfoType =
+    std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
+                       rocfft_execution_info, int>;
 
 template <typename ExecutionSpace>
 auto direction_type(Direction direction) {

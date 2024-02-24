@@ -63,8 +63,9 @@ inline std::string hipfft_version_string() {
   // Print version
   std::stringstream ss;
 
-  ss << hipfftVersionMajor << "." << hipfftVersionMinor << "." << hipfftVersionPatch;
- 
+  ss << hipfftVersionMajor << "." << hipfftVersionMinor << "."
+     << hipfftVersionPatch;
+
   return ss.str();
 }
 #endif

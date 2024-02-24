@@ -7,7 +7,8 @@ namespace KokkosFFT {
 namespace Impl {
 template <typename... Args>
 inline void _exec(cufftHandle& plan, cufftReal* idata, cufftComplex* odata,
-                  [[maybe_unused]] int direction, [[maybe_unused]] Args... args) {
+                  [[maybe_unused]] int direction,
+                  [[maybe_unused]] Args... args) {
   cufftResult cufft_rt = cufftExecR2C(plan, idata, odata);
   if (cufft_rt != CUFFT_SUCCESS)
     throw std::runtime_error("cufftExecR2C failed");
@@ -15,7 +16,8 @@ inline void _exec(cufftHandle& plan, cufftReal* idata, cufftComplex* odata,
 
 template <typename... Args>
 inline void _exec(cufftHandle& plan, cufftDoubleReal* idata,
-                  cufftDoubleComplex* odata, [[maybe_unused]] int direction, [[maybe_unused]] Args... args) {
+                  cufftDoubleComplex* odata, [[maybe_unused]] int direction,
+                  [[maybe_unused]] Args... args) {
   cufftResult cufft_rt = cufftExecD2Z(plan, idata, odata);
   if (cufft_rt != CUFFT_SUCCESS)
     throw std::runtime_error("cufftExecD2Z failed");
@@ -23,7 +25,8 @@ inline void _exec(cufftHandle& plan, cufftDoubleReal* idata,
 
 template <typename... Args>
 inline void _exec(cufftHandle& plan, cufftComplex* idata, cufftReal* odata,
-                  [[maybe_unused]] int direction, [[maybe_unused]] Args... args) {
+                  [[maybe_unused]] int direction,
+                  [[maybe_unused]] Args... args) {
   cufftResult cufft_rt = cufftExecC2R(plan, idata, odata);
   if (cufft_rt != CUFFT_SUCCESS)
     throw std::runtime_error("cufftExecC2R failed");
@@ -31,7 +34,8 @@ inline void _exec(cufftHandle& plan, cufftComplex* idata, cufftReal* odata,
 
 template <typename... Args>
 inline void _exec(cufftHandle& plan, cufftDoubleComplex* idata,
-                  cufftDoubleReal* odata, [[maybe_unused]] int direction, [[maybe_unused]] Args... args) {
+                  cufftDoubleReal* odata, [[maybe_unused]] int direction,
+                  [[maybe_unused]] Args... args) {
   cufftResult cufft_rt = cufftExecZ2D(plan, idata, odata);
   if (cufft_rt != CUFFT_SUCCESS)
     throw std::runtime_error("cufftExecZ2D failed");
@@ -47,7 +51,8 @@ inline void _exec(cufftHandle& plan, cufftComplex* idata, cufftComplex* odata,
 
 template <typename... Args>
 inline void _exec(cufftHandle& plan, cufftDoubleComplex* idata,
-                  cufftDoubleComplex* odata, int direction, [[maybe_unused]] Args... args) {
+                  cufftDoubleComplex* odata, int direction,
+                  [[maybe_unused]] Args... args) {
   cufftResult cufft_rt = cufftExecZ2Z(plan, idata, odata, direction);
   if (cufft_rt != CUFFT_SUCCESS)
     throw std::runtime_error("cufftExecZ2Z failed");

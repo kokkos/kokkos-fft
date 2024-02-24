@@ -72,8 +72,7 @@ class Plan {
                                             out_value_type>::type;
 
   //! The type of fft info (used for rocfft only)
-  using fft_info_type = 
-      typename KokkosFFT::Impl::FFTInfoType<ExecutionSpace>;
+  using fft_info_type = typename KokkosFFT::Impl::FFTInfoType<ExecutionSpace>;
 
   //! The type of fft size
   using fft_size_type = std::size_t;
@@ -88,7 +87,8 @@ class Plan {
   using nonConstOutViewType = std::remove_cv_t<OutViewType>;
 
   //! Naive 1D View for work buffer
-  using BufferViewType = Kokkos::View<Kokkos::complex<float_type>*, layout_type, execSpace>;
+  using BufferViewType =
+      Kokkos::View<Kokkos::complex<float_type>*, layout_type, execSpace>;
 
   //! The type of extents of input/output views
   using extents_type = shape_type<InViewType::rank()>;
@@ -225,9 +225,8 @@ class Plan {
     m_out_extents              = KokkosFFT::Impl::extract_extents(out);
     std::tie(m_map, m_map_inv) = KokkosFFT::Impl::get_map_axes(in, axes);
     m_is_transpose_needed      = KokkosFFT::Impl::is_transpose_needed(m_map);
-    m_fft_size =
-        KokkosFFT::Impl::_create(exec_space, m_plan, in, out, m_buffer,
-                                 m_info, direction, axes);
+    m_fft_size = KokkosFFT::Impl::_create(exec_space, m_plan, in, out, m_buffer,
+                                          m_info, direction, axes);
   }
 
   ~Plan() {

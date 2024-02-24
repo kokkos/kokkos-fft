@@ -40,7 +40,8 @@ void _exec(PlanType& plan, std::complex<double>* idata, double* odata,
 
 template <typename PlanType, typename... Args>
 void _exec(PlanType& plan, std::complex<float>* idata,
-           std::complex<float>* odata, [[maybe_unused]] int direction, [[maybe_unused]] Args... args) {
+           std::complex<float>* odata, [[maybe_unused]] int direction,
+           [[maybe_unused]] Args... args) {
   if (direction == 1) {
     auto c2c = oneapi::mkl::dft::compute_forward(plan, idata, odata);
     c2c.wait();
@@ -52,7 +53,8 @@ void _exec(PlanType& plan, std::complex<float>* idata,
 
 template <typename PlanType, typename... Args>
 void _exec(PlanType& plan, std::complex<double>* idata,
-           std::complex<double>* odata, [[maybe_unused]] int direction, [[maybe_unused]] Args... args) {
+           std::complex<double>* odata, [[maybe_unused]] int direction,
+           [[maybe_unused]] Args... args) {
   if (direction == 1) {
     auto z2z = oneapi::mkl::dft::compute_forward(plan, idata, odata);
     z2z.wait();
