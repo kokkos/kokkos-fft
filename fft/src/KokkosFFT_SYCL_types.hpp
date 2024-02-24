@@ -32,6 +32,10 @@ using FFTDirectionType                      = int;
 constexpr FFTDirectionType MKL_FFT_FORWARD  = 1;
 constexpr FFTDirectionType MKL_FFT_BACKWARD = -1;
 
+// Unused
+template <typename ExecutionSpace>
+using FFTInfoType = int;
+
 enum class FFTWTransformType { R2C, D2Z, C2R, Z2D, C2C, Z2Z };
 
 template <typename ExecutionSpace>
