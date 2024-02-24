@@ -33,6 +33,26 @@ inline void print_cufft_version_if_enabled(std::ostream& os) {
 #endif
 }
 
+inline void print_rocfft_version_if_enabled(std::ostream& os) {
+#if defined(KOKKOSFFT_ENABLE_TPL_ROCFFT)
+  os << "  "
+     << "KOKKOSFFT_ENABLE_TPL_ROCFFT: " << rocfft_version_string() << "\n";
+#else
+  os << "  "
+     << "KOKKOSFFT_ENABLE_TPL_ROCFFT: no\n";
+#endif
+}
+
+inline void print_hipfft_version_if_enabled(std::ostream& os) {
+#if defined(KOKKOSFFT_ENABLE_TPL_HIPFFT)
+  os << "  "
+     << "KOKKOSFFT_ENABLE_TPL_HIPFFT: " << hipfft_version_string() << "\n";
+#else
+  os << "  "
+     << "KOKKOSFFT_ENABLE_TPL_HIPFFT: no\n";
+#endif
+}
+
 inline void print_enabled_tpls(std::ostream& os) {
 #ifdef KOKKOSFFT_ENABLE_TPL_FFTW
   os << "  "
