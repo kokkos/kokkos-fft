@@ -15,7 +15,11 @@
 #include "KokkosFFT_OpenMP_transform.hpp"
 #endif
 #elif defined(KOKKOS_ENABLE_HIP)
+#if defined(KOKKOSFFT_ENABLE_TPL_ROCFFT)
+#include "KokkosFFT_ROCM_transform.hpp"
+#else
 #include "KokkosFFT_HIP_transform.hpp"
+#endif
 #ifdef ENABLE_HOST_AND_DEVICE
 #include "KokkosFFT_OpenMP_transform.hpp"
 #endif
@@ -75,7 +79,7 @@ void _fft(const ExecutionSpace& exec_space, PlanType& plan,
       ExecutionSpace, out_value_type>::type*>(out.data());
 
   auto forward = direction_type<ExecutionSpace>(KokkosFFT::Direction::forward);
-  KokkosFFT::Impl::_exec(plan.plan(), idata, odata, forward);
+  KokkosFFT::Impl::_exec(plan.plan(), idata, odata, forward, plan.info());
   KokkosFFT::Impl::normalize(exec_space, out, KokkosFFT::Direction::forward,
                              norm, plan.fft_size());
 }
@@ -121,7 +125,7 @@ void _ifft(const ExecutionSpace& exec_space, PlanType& plan,
 
   auto backward =
       direction_type<ExecutionSpace>(KokkosFFT::Direction::backward);
-  KokkosFFT::Impl::_exec(plan.plan(), idata, odata, backward);
+  KokkosFFT::Impl::_exec(plan.plan(), idata, odata, backward, plan.info());
   KokkosFFT::Impl::normalize(exec_space, out, KokkosFFT::Direction::backward,
                              norm, plan.fft_size());
 }

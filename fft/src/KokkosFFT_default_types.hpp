@@ -6,7 +6,11 @@
 #if defined(KOKKOS_ENABLE_CUDA)
 #include "KokkosFFT_Cuda_types.hpp"
 #elif defined(KOKKOS_ENABLE_HIP)
+#if defined(KOKKOSFFT_ENABLE_TPL_ROCFFT)
+#include "KokkosFFT_ROCM_types.hpp"
+#else
 #include "KokkosFFT_HIP_types.hpp"
+#endif
 #elif defined(KOKKOS_ENABLE_SYCL)
 #include "KokkosFFT_SYCL_types.hpp"
 #elif defined(KOKKOS_ENABLE_OPENMP)

@@ -9,12 +9,14 @@ namespace KokkosFFT {
 namespace Impl {
 // 1D transform
 template <typename ExecutionSpace, typename PlanType, typename InViewType,
-          typename OutViewType,
+          typename OutViewType, typename BufferViewType, typename InfoType,
           std::enable_if_t<InViewType::rank() == 1 &&
                                std::is_same_v<ExecutionSpace, Kokkos::Cuda>,
                            std::nullptr_t> = nullptr>
 auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
              const InViewType& in, const OutViewType& out,
+             [[maybe_unused]] BufferViewType& buffer,
+             [[maybe_unused]] InfoType& execution_info,
              [[maybe_unused]] Direction direction) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "KokkosFFT::_create: InViewType is not a Kokkos::View.");
@@ -48,12 +50,14 @@ auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
 
 // 2D transform
 template <typename ExecutionSpace, typename PlanType, typename InViewType,
-          typename OutViewType,
+          typename OutViewType, typename BufferViewType, typename InfoType,
           std::enable_if_t<InViewType::rank() == 2 &&
                                std::is_same_v<ExecutionSpace, Kokkos::Cuda>,
                            std::nullptr_t> = nullptr>
 auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
              const InViewType& in, const OutViewType& out,
+             [[maybe_unused]] BufferViewType& buffer,
+             [[maybe_unused]] InfoType& execution_info,
              [[maybe_unused]] Direction direction) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "KokkosFFT::_create: InViewType is not a Kokkos::View.");
@@ -85,12 +89,14 @@ auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
 
 // 3D transform
 template <typename ExecutionSpace, typename PlanType, typename InViewType,
-          typename OutViewType,
+          typename OutViewType, typename BufferViewType, typename InfoType,
           std::enable_if_t<InViewType::rank() == 3 &&
                                std::is_same_v<ExecutionSpace, Kokkos::Cuda>,
                            std::nullptr_t> = nullptr>
 auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
              const InViewType& in, const OutViewType& out,
+             [[maybe_unused]] BufferViewType& buffer,
+             [[maybe_unused]] InfoType& execution_info,
              [[maybe_unused]] Direction direction) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "KokkosFFT::_create: InViewType is not a Kokkos::View.");
@@ -125,12 +131,14 @@ auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
 
 // ND transform
 template <typename ExecutionSpace, typename PlanType, typename InViewType,
-          typename OutViewType,
+          typename OutViewType, typename BufferViewType, typename InfoType,
           std::enable_if_t<std::isgreater(InViewType::rank(), 3) &&
                                std::is_same_v<ExecutionSpace, Kokkos::Cuda>,
                            std::nullptr_t> = nullptr>
 auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
              const InViewType& in, const OutViewType& out,
+             [[maybe_unused]] BufferViewType& buffer,
+             [[maybe_unused]] InfoType& execution_info,
              [[maybe_unused]] Direction direction) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "KokkosFFT::_create: InViewType is not a Kokkos::View.");
@@ -169,11 +177,14 @@ auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
 
 // batched transform, over ND Views
 template <typename ExecutionSpace, typename PlanType, typename InViewType,
-          typename OutViewType, std::size_t fft_rank = 1,
+          typename OutViewType, typename BufferViewType, typename InfoType,
+          std::size_t fft_rank             = 1,
           std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::Cuda>,
                            std::nullptr_t> = nullptr>
 auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
              const InViewType& in, const OutViewType& out,
+             [[maybe_unused]] BufferViewType& buffer,
+             [[maybe_unused]] InfoType& execution_info,
              [[maybe_unused]] Direction direction, axis_type<fft_rank> axes) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "KokkosFFT::_create: InViewType is not a Kokkos::View.");
@@ -220,9 +231,14 @@ auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
 template <typename ExecutionSpace, typename PlanType,
           std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::Cuda>,
                            std::nullptr_t> = nullptr>
-void _destroy(std::unique_ptr<PlanType>& plan) {
+void _destroy_plan(std::unique_ptr<PlanType>& plan) {
   cufftDestroy(*plan);
 }
+
+template <typename ExecutionSpace, typename InfoType,
+          std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::Cuda>,
+                           std::nullptr_t> = nullptr>
+void _destroy_info(InfoType& plan) {}
 }  // namespace Impl
 }  // namespace KokkosFFT
 
