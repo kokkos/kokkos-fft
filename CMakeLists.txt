@@ -20,6 +20,9 @@ option(KokkosFFT_ENABLE_TESTS "Build KokkosFFT tests" OFF)
 option(KokkosFFT_ENABLE_BENCHMARK "Build benchmarks for KokkosFFT" OFF)
 option(KokkosFFT_ENABLE_DOCS "Build KokkosFFT documentaion/website" OFF)
 
+# Device specific options
+option(KokkosFFT_ENABLE_ROCFFT "Enable rocfft as a KokkosFFT backend on AMD GPUs" OFF)
+
 # Version information
 set(KOKKOSFFT_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
 set(KOKKOSFFT_VERSION_MINOR ${PROJECT_VERSION_MINOR})

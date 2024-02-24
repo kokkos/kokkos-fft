@@ -18,7 +18,11 @@
 #include "KokkosFFT_OpenMP_plans.hpp"
 #endif
 #elif defined(KOKKOS_ENABLE_HIP)
+#if defined(KOKKOSFFT_ENABLE_TPL_ROCFFT)
+#include "KokkosFFT_ROCM_plans.hpp"
+#else
 #include "KokkosFFT_HIP_plans.hpp"
+#endif
 #ifdef ENABLE_HOST_AND_DEVICE
 #include "KokkosFFT_OpenMP_plans.hpp"
 #endif
@@ -59,10 +63,17 @@ class Plan {
   //! The real value type of input/output views
   using float_type = KokkosFFT::Impl::real_type_t<in_value_type>;
 
+  //! The layout type of input/output views
+  using layout_type = typename InViewType::array_layout;
+
   //! The type of fft plan
   using fft_plan_type =
       typename KokkosFFT::Impl::FFTPlanType<ExecutionSpace, in_value_type,
                                             out_value_type>::type;
+
+  //! The type of fft info (used for rocfft only)
+  using fft_info_type = 
+      typename KokkosFFT::Impl::FFTInfoType<ExecutionSpace>;
 
   //! The type of fft size
   using fft_size_type = std::size_t;
@@ -76,11 +87,17 @@ class Plan {
   //! The non-const View type of output view
   using nonConstOutViewType = std::remove_cv_t<OutViewType>;
 
+  //! Naive 1D View for work buffer
+  using BufferViewType = Kokkos::View<Kokkos::complex<float_type>*, layout_type, execSpace>;
+
   //! The type of extents of input/output views
   using extents_type = shape_type<InViewType::rank()>;
 
   //! Dynamically allocatable fft plan.
   std::unique_ptr<fft_plan_type> m_plan;
+
+  //! fft info
+  fft_info_type m_info;
 
   //! fft size
   fft_size_type m_fft_size;
@@ -107,6 +124,9 @@ class Plan {
   nonConstInViewType m_in_T;
   nonConstOutViewType m_out_T;
   //! @}
+
+  //! Internal work buffer (for rocfft)
+  BufferViewType m_buffer;
 
  public:
   /// \brief Constructor
@@ -153,8 +173,8 @@ class Plan {
     m_out_extents              = KokkosFFT::Impl::extract_extents(out);
     std::tie(m_map, m_map_inv) = KokkosFFT::Impl::get_map_axes(in, axis);
     m_is_transpose_needed      = KokkosFFT::Impl::is_transpose_needed(m_map);
-    m_fft_size = KokkosFFT::Impl::_create(exec_space, m_plan, in, out,
-                                          direction, m_axes);
+    m_fft_size = KokkosFFT::Impl::_create(exec_space, m_plan, in, out, m_buffer,
+                                          m_info, direction, m_axes);
   }
 
   /// \brief Constructor for multidimensional FFT
@@ -206,10 +226,14 @@ class Plan {
     std::tie(m_map, m_map_inv) = KokkosFFT::Impl::get_map_axes(in, axes);
     m_is_transpose_needed      = KokkosFFT::Impl::is_transpose_needed(m_map);
     m_fft_size =
-        KokkosFFT::Impl::_create(exec_space, m_plan, in, out, direction, axes);
+        KokkosFFT::Impl::_create(exec_space, m_plan, in, out, m_buffer,
+                                 m_info, direction, axes);
   }
 
-  ~Plan() { _destroy<ExecutionSpace, fft_plan_type>(m_plan); }
+  ~Plan() {
+    _destroy_info<ExecutionSpace, fft_info_type>(m_info);
+    _destroy_plan<ExecutionSpace, fft_plan_type>(m_plan);
+  }
 
   /// \brief Sanity check of the plan used to call FFT interface with
   ///        pre-defined FFT plan. This raises an error if there is an
@@ -273,6 +297,9 @@ class Plan {
 
   /// \brief Return the FFT plan
   fft_plan_type& plan() const { return *m_plan; }
+
+  /// \brief Return the FFT info
+  const fft_info_type& info() const { return m_info; }
 
   /// \brief Return the FFT size
   fft_size_type fft_size() const { return m_fft_size; }
