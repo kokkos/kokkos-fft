@@ -86,10 +86,10 @@ struct FFTDataType {
   using float64 = double;
   using complex64 =
       std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
-                         rocfft_complex<float>, fftwf_complex>;
+                         std::complex<float>, fftwf_complex>;
   using complex128 =
       std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
-                         rocfft_complex<double>, fftw_complex>;
+                         std::complex<double>, fftw_complex>;
 };
 
 template <typename ExecutionSpace, typename T1, typename T2>
