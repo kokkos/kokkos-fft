@@ -14,6 +14,12 @@ static_assert(alignof(fftw_complex) <= alignof(Kokkos::complex<double>));
 
 namespace KokkosFFT {
 namespace Impl {
+using FFTDirectionType = int;
+
+// Unused
+template <typename ExecutionSpace>
+using FFTInfoType = int;
+
 enum class FFTWTransformType { R2C, D2Z, C2R, Z2D, C2C, Z2Z };
 
 template <typename ExecutionSpace>
@@ -33,8 +39,6 @@ struct FFTPlanType {
 
 template <typename ExecutionSpace>
 using TransformType = FFTWTransformType;
-
-using FFTDirectionType = int;
 
 // Define fft transform types
 template <typename ExecutionSpace, typename T1, typename T2>
