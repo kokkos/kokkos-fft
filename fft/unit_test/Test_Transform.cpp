@@ -1670,9 +1670,6 @@ void test_fft2_2dfft_3dview(T atol = 1.e-12) {
 
       auto [_n0, _n1, _n2] = shape_c2r;
 
-      std::cout << axis0 << ", " << axis1 << std::endl;
-      std::cout << "_n0, _n1, _n2: " << _n0 << ", " << _n1 << ", " << _n2
-                << std::endl;
       ComplexView3DType _x("_x", n0, n1, n2), out("out", n0, n1, n2),
           ref_out("ref_out", n0, n1, n2);
       RealView3DType xr("xr", n0, n1, n2), ref_xr("ref_xr", n0, n1, n2),
