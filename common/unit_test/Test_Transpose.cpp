@@ -352,7 +352,7 @@ void test_transpose_1d_1dview() {
 template <typename LayoutType>
 void test_transpose_1d_2dview() {
   using RealView2Dtype = Kokkos::View<double**, LayoutType, execution_space>;
-  constexpr int DIM = 2;
+  constexpr int DIM    = 2;
   const int n0 = 3, n1 = 5;
   RealView2Dtype x("x", n0, n1);
 
@@ -365,7 +365,7 @@ void test_transpose_1d_2dview() {
   // Transposed views
   axes_type<DIM> default_axes({0, 1});
 
-  for(int axis0=0; axis0<DIM; axis0++) {
+  for (int axis0 = 0; axis0 < DIM; axis0++) {
     auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, axis0);
     axes_type<DIM> out_extents;
     for (int i = 0; i < DIM; i++) {
@@ -374,11 +374,10 @@ void test_transpose_1d_2dview() {
     auto [_n0, _n1] = out_extents;
 
     RealView2Dtype xt;
-    if(map==default_axes) {
-      EXPECT_THROW(
-        KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                   map),  // xt is identical to x
-      std::runtime_error);
+    if (map == default_axes) {
+      EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
+                                              map),  // xt is identical to x
+                   std::runtime_error);
     } else {
       // Transposed Views
       RealView2Dtype ref("ref", _n0, _n1);
@@ -399,8 +398,7 @@ void test_transpose_1d_2dview() {
 
       // Inverse (transpose of transpose is identical to the original)
       RealView2Dtype _x;
-      KokkosFFT::Impl::transpose(execution_space(), xt, _x,
-                                 map_inv);
+      KokkosFFT::Impl::transpose(execution_space(), xt, _x, map_inv);
       EXPECT_TRUE(allclose(_x, x, 1.e-5, 1.e-12));
     }
   }
@@ -409,7 +407,7 @@ void test_transpose_1d_2dview() {
 template <typename LayoutType>
 void test_transpose_1d_3dview() {
   using RealView3Dtype = Kokkos::View<double***, LayoutType, execution_space>;
-  constexpr int DIM = 3;
+  constexpr int DIM    = 3;
   const int n0 = 3, n1 = 5, n2 = 8;
   RealView3Dtype x("x", n0, n1, n2);
 
@@ -422,7 +420,7 @@ void test_transpose_1d_3dview() {
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2});
 
-  for(int axis0=0; axis0<DIM; axis0++) {
+  for (int axis0 = 0; axis0 < DIM; axis0++) {
     auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, axis0);
     axes_type<DIM> out_extents;
     for (int i = 0; i < DIM; i++) {
@@ -431,11 +429,10 @@ void test_transpose_1d_3dview() {
     auto [_n0, _n1, _n2] = out_extents;
 
     RealView3Dtype xt;
-    if(map==default_axes) {
-      EXPECT_THROW(
-        KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                   map),  // xt is identical to x
-      std::runtime_error);
+    if (map == default_axes) {
+      EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
+                                              map),  // xt is identical to x
+                   std::runtime_error);
     } else {
       // Transposed Views
       RealView3Dtype ref("ref", _n0, _n1, _n2);
@@ -444,16 +441,10 @@ void test_transpose_1d_3dview() {
       for (int i0 = 0; i0 < h_x.extent(0); i0++) {
         for (int i1 = 0; i1 < h_x.extent(1); i1++) {
           for (int i2 = 0; i2 < h_x.extent(2); i2++) {
-            int _i0 = (map[0] == 1) ? i1 :
-                      (map[0] == 2) ? i2 :
-                      i0;
-            int _i1 = (map[1] == 0) ? i0 :
-                      (map[1] == 2) ? i2 :
-                      i1;
-            int _i2 = (map[2] == 0) ? i0 :
-                      (map[2] == 1) ? i1 :
-                      i2;
-            
+            int _i0 = (map[0] == 1) ? i1 : (map[0] == 2) ? i2 : i0;
+            int _i1 = (map[1] == 0) ? i0 : (map[1] == 2) ? i2 : i1;
+            int _i2 = (map[2] == 0) ? i0 : (map[2] == 1) ? i1 : i2;
+
             h_ref(_i0, _i1, _i2) = h_x(i0, i1, i2);
           }
         }
@@ -468,8 +459,7 @@ void test_transpose_1d_3dview() {
 
       // Inverse (transpose of transpose is identical to the original)
       RealView3Dtype _x;
-      KokkosFFT::Impl::transpose(execution_space(), xt, _x,
-                                 map_inv);
+      KokkosFFT::Impl::transpose(execution_space(), xt, _x, map_inv);
       EXPECT_TRUE(allclose(_x, x, 1.e-5, 1.e-12));
     }
   }
@@ -478,7 +468,7 @@ void test_transpose_1d_3dview() {
 template <typename LayoutType>
 void test_transpose_1d_4dview() {
   using RealView4Dtype = Kokkos::View<double****, LayoutType, execution_space>;
-  constexpr int DIM = 4;
+  constexpr int DIM    = 4;
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5;
   RealView4Dtype x("x", n0, n1, n2, n3);
 
@@ -491,7 +481,7 @@ void test_transpose_1d_4dview() {
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2, 3});
 
-  for(int axis0=0; axis0<DIM; axis0++) {
+  for (int axis0 = 0; axis0 < DIM; axis0++) {
     auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, axis0);
     axes_type<DIM> out_extents;
     for (int i = 0; i < DIM; i++) {
@@ -500,11 +490,10 @@ void test_transpose_1d_4dview() {
     auto [_n0, _n1, _n2, _n3] = out_extents;
 
     RealView4Dtype xt;
-    if(map==default_axes) {
-      EXPECT_THROW(
-        KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                   map),  // xt is identical to x
-      std::runtime_error);
+    if (map == default_axes) {
+      EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
+                                              map),  // xt is identical to x
+                   std::runtime_error);
     } else {
       // Transposed Views
       RealView4Dtype ref("ref", _n0, _n1, _n2, _n3);
@@ -514,23 +503,23 @@ void test_transpose_1d_4dview() {
         for (int i1 = 0; i1 < h_x.extent(1); i1++) {
           for (int i2 = 0; i2 < h_x.extent(2); i2++) {
             for (int i3 = 0; i3 < h_x.extent(3); i3++) {
-              int _i0 = (map[0] == 1) ? i1 :
-                        (map[0] == 2) ? i2 :
-                        (map[0] == 3) ? i3 :
-                        i0;
-              int _i1 = (map[1] == 0) ? i0 :
-                        (map[1] == 2) ? i2 :
-                        (map[1] == 3) ? i3 :
-                        i1;
-              int _i2 = (map[2] == 0) ? i0 :
-                        (map[2] == 1) ? i1 :
-                        (map[2] == 3) ? i3 :
-                        i2;
-              int _i3 = (map[3] == 0) ? i0 :
-                        (map[3] == 1) ? i1 :
-                        (map[3] == 2) ? i2 :
-                        i3;
-              
+              int _i0 = (map[0] == 1)   ? i1
+                        : (map[0] == 2) ? i2
+                        : (map[0] == 3) ? i3
+                                        : i0;
+              int _i1 = (map[1] == 0)   ? i0
+                        : (map[1] == 2) ? i2
+                        : (map[1] == 3) ? i3
+                                        : i1;
+              int _i2 = (map[2] == 0)   ? i0
+                        : (map[2] == 1) ? i1
+                        : (map[2] == 3) ? i3
+                                        : i2;
+              int _i3 = (map[3] == 0)   ? i0
+                        : (map[3] == 1) ? i1
+                        : (map[3] == 2) ? i2
+                                        : i3;
+
               h_ref(_i0, _i1, _i2, _i3) = h_x(i0, i1, i2, i3);
             }
           }
@@ -546,8 +535,7 @@ void test_transpose_1d_4dview() {
 
       // Inverse (transpose of transpose is identical to the original)
       RealView4Dtype _x;
-      KokkosFFT::Impl::transpose(execution_space(), xt, _x,
-                                 map_inv);
+      KokkosFFT::Impl::transpose(execution_space(), xt, _x, map_inv);
       EXPECT_TRUE(allclose(_x, x, 1.e-5, 1.e-12));
     }
   }
@@ -556,7 +544,7 @@ void test_transpose_1d_4dview() {
 template <typename LayoutType>
 void test_transpose_1d_5dview() {
   using RealView5Dtype = Kokkos::View<double*****, LayoutType, execution_space>;
-  constexpr int DIM = 5;
+  constexpr int DIM    = 5;
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6;
   RealView5Dtype x("x", n0, n1, n2, n3, n4);
 
@@ -569,7 +557,7 @@ void test_transpose_1d_5dview() {
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2, 3, 4});
 
-  for(int axis0=0; axis0<DIM; axis0++) {
+  for (int axis0 = 0; axis0 < DIM; axis0++) {
     auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, axis0);
     axes_type<DIM> out_extents;
     for (int i = 0; i < DIM; i++) {
@@ -578,11 +566,10 @@ void test_transpose_1d_5dview() {
     auto [_n0, _n1, _n2, _n3, _n4] = out_extents;
 
     RealView5Dtype xt;
-    if(map==default_axes) {
-      EXPECT_THROW(
-        KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                   map),  // xt is identical to x
-      std::runtime_error);
+    if (map == default_axes) {
+      EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
+                                              map),  // xt is identical to x
+                   std::runtime_error);
     } else {
       // Transposed Views
       RealView5Dtype ref("ref", _n0, _n1, _n2, _n3, _n4);
@@ -593,31 +580,31 @@ void test_transpose_1d_5dview() {
           for (int i2 = 0; i2 < h_x.extent(2); i2++) {
             for (int i3 = 0; i3 < h_x.extent(3); i3++) {
               for (int i4 = 0; i4 < h_x.extent(4); i4++) {
-                int _i0 = (map[0] == 1) ? i1 :
-                          (map[0] == 2) ? i2 :
-                          (map[0] == 3) ? i3 :
-                          (map[0] == 4) ? i4 :
-                          i0;
-                int _i1 = (map[1] == 0) ? i0 :
-                          (map[1] == 2) ? i2 :
-                          (map[1] == 3) ? i3 :
-                          (map[1] == 4) ? i4 :
-                          i1;
-                int _i2 = (map[2] == 0) ? i0 :
-                          (map[2] == 1) ? i1 :
-                          (map[2] == 3) ? i3 :
-                          (map[2] == 4) ? i4 :
-                          i2;
-                int _i3 = (map[3] == 0) ? i0 :
-                          (map[3] == 1) ? i1 :
-                          (map[3] == 2) ? i2 :
-                          (map[3] == 4) ? i4 :
-                          i3;
-                int _i4 = (map[4] == 0) ? i0 :
-                          (map[4] == 1) ? i1 :
-                          (map[4] == 2) ? i2 :
-                          (map[4] == 3) ? i3 :
-                          i4;
+                int _i0                        = (map[0] == 1)   ? i1
+                                                 : (map[0] == 2) ? i2
+                                                 : (map[0] == 3) ? i3
+                                                 : (map[0] == 4) ? i4
+                                                                 : i0;
+                int _i1                        = (map[1] == 0)   ? i0
+                                                 : (map[1] == 2) ? i2
+                                                 : (map[1] == 3) ? i3
+                                                 : (map[1] == 4) ? i4
+                                                                 : i1;
+                int _i2                        = (map[2] == 0)   ? i0
+                                                 : (map[2] == 1) ? i1
+                                                 : (map[2] == 3) ? i3
+                                                 : (map[2] == 4) ? i4
+                                                                 : i2;
+                int _i3                        = (map[3] == 0)   ? i0
+                                                 : (map[3] == 1) ? i1
+                                                 : (map[3] == 2) ? i2
+                                                 : (map[3] == 4) ? i4
+                                                                 : i3;
+                int _i4                        = (map[4] == 0)   ? i0
+                                                 : (map[4] == 1) ? i1
+                                                 : (map[4] == 2) ? i2
+                                                 : (map[4] == 3) ? i3
+                                                                 : i4;
                 h_ref(_i0, _i1, _i2, _i3, _i4) = h_x(i0, i1, i2, i3, i4);
               }
             }
@@ -634,8 +621,7 @@ void test_transpose_1d_5dview() {
 
       // Inverse (transpose of transpose is identical to the original)
       RealView5Dtype _x;
-      KokkosFFT::Impl::transpose(execution_space(), xt, _x,
-                                 map_inv);
+      KokkosFFT::Impl::transpose(execution_space(), xt, _x, map_inv);
       EXPECT_TRUE(allclose(_x, x, 1.e-5, 1.e-12));
     }
   }
@@ -643,7 +629,8 @@ void test_transpose_1d_5dview() {
 
 template <typename LayoutType>
 void test_transpose_1d_6dview() {
-  using RealView6Dtype = Kokkos::View<double******, LayoutType, execution_space>;
+  using RealView6Dtype =
+      Kokkos::View<double******, LayoutType, execution_space>;
   constexpr int DIM = 6;
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6, n5 = 7;
   RealView6Dtype x("x", n0, n1, n2, n3, n4, n5);
@@ -657,7 +644,7 @@ void test_transpose_1d_6dview() {
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2, 3, 4, 5});
 
-  for(int axis0=0; axis0<DIM; axis0++) {
+  for (int axis0 = 0; axis0 < DIM; axis0++) {
     auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, axis0);
     axes_type<DIM> out_extents;
     for (int i = 0; i < DIM; i++) {
@@ -666,11 +653,10 @@ void test_transpose_1d_6dview() {
     auto [_n0, _n1, _n2, _n3, _n4, _n5] = out_extents;
 
     RealView6Dtype xt;
-    if(map==default_axes) {
-      EXPECT_THROW(
-        KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                   map),  // xt is identical to x
-      std::runtime_error);
+    if (map == default_axes) {
+      EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
+                                              map),  // xt is identical to x
+                   std::runtime_error);
     } else {
       // Transposed Views
       RealView6Dtype ref("ref", _n0, _n1, _n2, _n3, _n4, _n5);
@@ -682,43 +668,44 @@ void test_transpose_1d_6dview() {
             for (int i3 = 0; i3 < h_x.extent(3); i3++) {
               for (int i4 = 0; i4 < h_x.extent(4); i4++) {
                 for (int i5 = 0; i5 < h_x.extent(5); i5++) {
-                  int _i0 = (map[0] == 1) ? i1 :
-                            (map[0] == 2) ? i2 :
-                            (map[0] == 3) ? i3 :
-                            (map[0] == 4) ? i4 :
-                            (map[0] == 5) ? i5 :
-                            i0;
-                  int _i1 = (map[1] == 0) ? i0 :
-                            (map[1] == 2) ? i2 :
-                            (map[1] == 3) ? i3 :
-                            (map[1] == 4) ? i4 :
-                            (map[1] == 5) ? i5 :
-                            i1;
-                  int _i2 = (map[2] == 0) ? i0 :
-                            (map[2] == 1) ? i1 :
-                            (map[2] == 3) ? i3 :
-                            (map[2] == 4) ? i4 :
-                            (map[2] == 5) ? i5 :
-                            i2;
-                  int _i3 = (map[3] == 0) ? i0 :
-                            (map[3] == 1) ? i1 :
-                            (map[3] == 2) ? i2 :
-                            (map[3] == 4) ? i4 :
-                            (map[3] == 5) ? i5 :
-                            i3;
-                  int _i4 = (map[4] == 0) ? i0 :
-                            (map[4] == 1) ? i1 :
-                            (map[4] == 2) ? i2 :
-                            (map[4] == 3) ? i3 :
-                            (map[4] == 5) ? i5 :
-                            i4;
-                  int _i5 = (map[5] == 0) ? i0 :
-                            (map[5] == 1) ? i1 :
-                            (map[5] == 2) ? i2 :
-                            (map[5] == 3) ? i3 :
-                            (map[5] == 4) ? i4 :
-                            i5;
-                  h_ref(_i0, _i1, _i2, _i3, _i4, _i5) = h_x(i0, i1, i2, i3, i4, i5);
+                  int _i0 = (map[0] == 1)   ? i1
+                            : (map[0] == 2) ? i2
+                            : (map[0] == 3) ? i3
+                            : (map[0] == 4) ? i4
+                            : (map[0] == 5) ? i5
+                                            : i0;
+                  int _i1 = (map[1] == 0)   ? i0
+                            : (map[1] == 2) ? i2
+                            : (map[1] == 3) ? i3
+                            : (map[1] == 4) ? i4
+                            : (map[1] == 5) ? i5
+                                            : i1;
+                  int _i2 = (map[2] == 0)   ? i0
+                            : (map[2] == 1) ? i1
+                            : (map[2] == 3) ? i3
+                            : (map[2] == 4) ? i4
+                            : (map[2] == 5) ? i5
+                                            : i2;
+                  int _i3 = (map[3] == 0)   ? i0
+                            : (map[3] == 1) ? i1
+                            : (map[3] == 2) ? i2
+                            : (map[3] == 4) ? i4
+                            : (map[3] == 5) ? i5
+                                            : i3;
+                  int _i4 = (map[4] == 0)   ? i0
+                            : (map[4] == 1) ? i1
+                            : (map[4] == 2) ? i2
+                            : (map[4] == 3) ? i3
+                            : (map[4] == 5) ? i5
+                                            : i4;
+                  int _i5 = (map[5] == 0)   ? i0
+                            : (map[5] == 1) ? i1
+                            : (map[5] == 2) ? i2
+                            : (map[5] == 3) ? i3
+                            : (map[5] == 4) ? i4
+                                            : i5;
+                  h_ref(_i0, _i1, _i2, _i3, _i4, _i5) =
+                      h_x(i0, i1, i2, i3, i4, i5);
                 }
               }
             }
@@ -735,8 +722,7 @@ void test_transpose_1d_6dview() {
 
       // Inverse (transpose of transpose is identical to the original)
       RealView6Dtype _x;
-      KokkosFFT::Impl::transpose(execution_space(), xt, _x,
-                                 map_inv);
+      KokkosFFT::Impl::transpose(execution_space(), xt, _x, map_inv);
       EXPECT_TRUE(allclose(_x, x, 1.e-5, 1.e-12));
     }
   }
@@ -744,7 +730,8 @@ void test_transpose_1d_6dview() {
 
 template <typename LayoutType>
 void test_transpose_1d_7dview() {
-  using RealView7Dtype = Kokkos::View<double*******, LayoutType, execution_space>;
+  using RealView7Dtype =
+      Kokkos::View<double*******, LayoutType, execution_space>;
   constexpr int DIM = 7;
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6, n5 = 7, n6 = 8;
   RealView7Dtype x("x", n0, n1, n2, n3, n4, n5, n6);
@@ -758,7 +745,7 @@ void test_transpose_1d_7dview() {
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2, 3, 4, 5, 6});
 
-  for(int axis0=0; axis0<DIM; axis0++) {
+  for (int axis0 = 0; axis0 < DIM; axis0++) {
     auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, axis0);
     axes_type<DIM> out_extents;
     for (int i = 0; i < DIM; i++) {
@@ -767,11 +754,10 @@ void test_transpose_1d_7dview() {
     auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6] = out_extents;
 
     RealView7Dtype xt;
-    if(map==default_axes) {
-      EXPECT_THROW(
-        KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                   map),  // xt is identical to x
-      std::runtime_error);
+    if (map == default_axes) {
+      EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
+                                              map),  // xt is identical to x
+                   std::runtime_error);
     } else {
       // Transposed Views
       RealView7Dtype ref("ref", _n0, _n1, _n2, _n3, _n4, _n5, _n6);
@@ -784,56 +770,57 @@ void test_transpose_1d_7dview() {
               for (int i4 = 0; i4 < h_x.extent(4); i4++) {
                 for (int i5 = 0; i5 < h_x.extent(5); i5++) {
                   for (int i6 = 0; i6 < h_x.extent(6); i6++) {
-                    int _i0 = (map[0] == 1) ? i1 :
-                              (map[0] == 2) ? i2 :
-                              (map[0] == 3) ? i3 :
-                              (map[0] == 4) ? i4 :
-                              (map[0] == 5) ? i5 :
-                              (map[0] == 6) ? i6 :
-                              i0;
-                    int _i1 = (map[1] == 0) ? i0 :
-                              (map[1] == 2) ? i2 :
-                              (map[1] == 3) ? i3 :
-                              (map[1] == 4) ? i4 :
-                              (map[1] == 5) ? i5 :
-                              (map[1] == 6) ? i6 :
-                              i1;
-                    int _i2 = (map[2] == 0) ? i0 :
-                              (map[2] == 1) ? i1 :
-                              (map[2] == 3) ? i3 :
-                              (map[2] == 4) ? i4 :
-                              (map[2] == 5) ? i5 :
-                              (map[2] == 6) ? i6 :
-                              i2;
-                    int _i3 = (map[3] == 0) ? i0 :
-                              (map[3] == 1) ? i1 :
-                              (map[3] == 2) ? i2 :
-                              (map[3] == 4) ? i4 :
-                              (map[3] == 5) ? i5 :
-                              (map[3] == 6) ? i6 :
-                              i3;
-                    int _i4 = (map[4] == 0) ? i0 :
-                              (map[4] == 1) ? i1 :
-                              (map[4] == 2) ? i2 :
-                              (map[4] == 3) ? i3 :
-                              (map[4] == 5) ? i5 :
-                              (map[4] == 6) ? i6 :
-                              i4;
-                    int _i5 = (map[5] == 0) ? i0 :
-                              (map[5] == 1) ? i1 :
-                              (map[5] == 2) ? i2 :
-                              (map[5] == 3) ? i3 :
-                              (map[5] == 4) ? i4 :
-                              (map[5] == 6) ? i6 :
-                              i5;
-                    int _i6 = (map[6] == 0) ? i0 :
-                              (map[6] == 1) ? i1 :
-                              (map[6] == 2) ? i2 :
-                              (map[6] == 3) ? i3 :
-                              (map[6] == 4) ? i4 :
-                              (map[6] == 5) ? i5 :
-                              i6;
-                    h_ref(_i0, _i1, _i2, _i3, _i4, _i5, _i6) = h_x(i0, i1, i2, i3, i4, i5, i6);
+                    int _i0 = (map[0] == 1)   ? i1
+                              : (map[0] == 2) ? i2
+                              : (map[0] == 3) ? i3
+                              : (map[0] == 4) ? i4
+                              : (map[0] == 5) ? i5
+                              : (map[0] == 6) ? i6
+                                              : i0;
+                    int _i1 = (map[1] == 0)   ? i0
+                              : (map[1] == 2) ? i2
+                              : (map[1] == 3) ? i3
+                              : (map[1] == 4) ? i4
+                              : (map[1] == 5) ? i5
+                              : (map[1] == 6) ? i6
+                                              : i1;
+                    int _i2 = (map[2] == 0)   ? i0
+                              : (map[2] == 1) ? i1
+                              : (map[2] == 3) ? i3
+                              : (map[2] == 4) ? i4
+                              : (map[2] == 5) ? i5
+                              : (map[2] == 6) ? i6
+                                              : i2;
+                    int _i3 = (map[3] == 0)   ? i0
+                              : (map[3] == 1) ? i1
+                              : (map[3] == 2) ? i2
+                              : (map[3] == 4) ? i4
+                              : (map[3] == 5) ? i5
+                              : (map[3] == 6) ? i6
+                                              : i3;
+                    int _i4 = (map[4] == 0)   ? i0
+                              : (map[4] == 1) ? i1
+                              : (map[4] == 2) ? i2
+                              : (map[4] == 3) ? i3
+                              : (map[4] == 5) ? i5
+                              : (map[4] == 6) ? i6
+                                              : i4;
+                    int _i5 = (map[5] == 0)   ? i0
+                              : (map[5] == 1) ? i1
+                              : (map[5] == 2) ? i2
+                              : (map[5] == 3) ? i3
+                              : (map[5] == 4) ? i4
+                              : (map[5] == 6) ? i6
+                                              : i5;
+                    int _i6 = (map[6] == 0)   ? i0
+                              : (map[6] == 1) ? i1
+                              : (map[6] == 2) ? i2
+                              : (map[6] == 3) ? i3
+                              : (map[6] == 4) ? i4
+                              : (map[6] == 5) ? i5
+                                              : i6;
+                    h_ref(_i0, _i1, _i2, _i3, _i4, _i5, _i6) =
+                        h_x(i0, i1, i2, i3, i4, i5, i6);
                   }
                 }
               }
@@ -851,8 +838,7 @@ void test_transpose_1d_7dview() {
 
       // Inverse (transpose of transpose is identical to the original)
       RealView7Dtype _x;
-      KokkosFFT::Impl::transpose(execution_space(), xt, _x,
-                                 map_inv);
+      KokkosFFT::Impl::transpose(execution_space(), xt, _x, map_inv);
       EXPECT_TRUE(allclose(_x, x, 1.e-5, 1.e-12));
     }
   }
@@ -860,7 +846,8 @@ void test_transpose_1d_7dview() {
 
 template <typename LayoutType>
 void test_transpose_1d_8dview() {
-  using RealView8Dtype = Kokkos::View<double********, LayoutType, execution_space>;
+  using RealView8Dtype =
+      Kokkos::View<double********, LayoutType, execution_space>;
   constexpr int DIM = 8;
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6, n5 = 7, n6 = 8, n7 = 9;
   RealView8Dtype x("x", n0, n1, n2, n3, n4, n5, n6, n7);
@@ -874,7 +861,7 @@ void test_transpose_1d_8dview() {
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2, 3, 4, 5, 6, 7});
 
-  for(int axis0=0; axis0<DIM; axis0++) {
+  for (int axis0 = 0; axis0 < DIM; axis0++) {
     auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, axis0);
     axes_type<DIM> out_extents;
     for (int i = 0; i < DIM; i++) {
@@ -883,11 +870,10 @@ void test_transpose_1d_8dview() {
     auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7] = out_extents;
 
     RealView8Dtype xt;
-    if(map==default_axes) {
-      EXPECT_THROW(
-        KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                   map),  // xt is identical to x
-      std::runtime_error);
+    if (map == default_axes) {
+      EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
+                                              map),  // xt is identical to x
+                   std::runtime_error);
     } else {
       // Transposed Views
       RealView8Dtype ref("ref", _n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7);
@@ -901,71 +887,72 @@ void test_transpose_1d_8dview() {
                 for (int i5 = 0; i5 < h_x.extent(5); i5++) {
                   for (int i6 = 0; i6 < h_x.extent(6); i6++) {
                     for (int i7 = 0; i7 < h_x.extent(7); i7++) {
-                      int _i0 = (map[0] == 1) ? i1 :
-                                (map[0] == 2) ? i2 :
-                                (map[0] == 3) ? i3 :
-                                (map[0] == 4) ? i4 :
-                                (map[0] == 5) ? i5 :
-                                (map[0] == 6) ? i6 :
-                                (map[0] == 7) ? i7 :
-                                i0;
-                      int _i1 = (map[1] == 0) ? i0 :
-                                (map[1] == 2) ? i2 :
-                                (map[1] == 3) ? i3 :
-                                (map[1] == 4) ? i4 :
-                                (map[1] == 5) ? i5 :
-                                (map[1] == 6) ? i6 :
-                                (map[1] == 7) ? i7 :
-                                i1;
-                      int _i2 = (map[2] == 0) ? i0 :
-                                (map[2] == 1) ? i1 :
-                                (map[2] == 3) ? i3 :
-                                (map[2] == 4) ? i4 :
-                                (map[2] == 5) ? i5 :
-                                (map[2] == 6) ? i6 :
-                                (map[2] == 7) ? i7 :
-                                i2;
-                      int _i3 = (map[3] == 0) ? i0 :
-                                (map[3] == 1) ? i1 :
-                                (map[3] == 2) ? i2 :
-                                (map[3] == 4) ? i4 :
-                                (map[3] == 5) ? i5 :
-                                (map[3] == 6) ? i6 :
-                                (map[3] == 7) ? i7 :
-                                i3;
-                      int _i4 = (map[4] == 0) ? i0 :
-                                (map[4] == 1) ? i1 :
-                                (map[4] == 2) ? i2 :
-                                (map[4] == 3) ? i3 :
-                                (map[4] == 5) ? i5 :
-                                (map[4] == 6) ? i6 :
-                                (map[4] == 7) ? i7 :
-                                i4;
-                      int _i5 = (map[5] == 0) ? i0 :
-                                (map[5] == 1) ? i1 :
-                                (map[5] == 2) ? i2 :
-                                (map[5] == 3) ? i3 :
-                                (map[5] == 4) ? i4 :
-                                (map[5] == 6) ? i6 :
-                                (map[5] == 7) ? i7 :
-                                i5;
-                      int _i6 = (map[6] == 0) ? i0 :
-                                (map[6] == 1) ? i1 :
-                                (map[6] == 2) ? i2 :
-                                (map[6] == 3) ? i3 :
-                                (map[6] == 4) ? i4 :
-                                (map[6] == 5) ? i5 :
-                                (map[6] == 7) ? i7 :
-                                i6;
-                      int _i7 = (map[7] == 0) ? i0 :
-                                (map[7] == 1) ? i1 :
-                                (map[7] == 2) ? i2 :
-                                (map[7] == 3) ? i3 :
-                                (map[7] == 4) ? i4 :
-                                (map[7] == 5) ? i5 :
-                                (map[7] == 6) ? i6 :
-                                i7;
-                      h_ref(_i0, _i1, _i2, _i3, _i4, _i5, _i6, _i7) = h_x(i0, i1, i2, i3, i4, i5, i6, i7);
+                      int _i0 = (map[0] == 1)   ? i1
+                                : (map[0] == 2) ? i2
+                                : (map[0] == 3) ? i3
+                                : (map[0] == 4) ? i4
+                                : (map[0] == 5) ? i5
+                                : (map[0] == 6) ? i6
+                                : (map[0] == 7) ? i7
+                                                : i0;
+                      int _i1 = (map[1] == 0)   ? i0
+                                : (map[1] == 2) ? i2
+                                : (map[1] == 3) ? i3
+                                : (map[1] == 4) ? i4
+                                : (map[1] == 5) ? i5
+                                : (map[1] == 6) ? i6
+                                : (map[1] == 7) ? i7
+                                                : i1;
+                      int _i2 = (map[2] == 0)   ? i0
+                                : (map[2] == 1) ? i1
+                                : (map[2] == 3) ? i3
+                                : (map[2] == 4) ? i4
+                                : (map[2] == 5) ? i5
+                                : (map[2] == 6) ? i6
+                                : (map[2] == 7) ? i7
+                                                : i2;
+                      int _i3 = (map[3] == 0)   ? i0
+                                : (map[3] == 1) ? i1
+                                : (map[3] == 2) ? i2
+                                : (map[3] == 4) ? i4
+                                : (map[3] == 5) ? i5
+                                : (map[3] == 6) ? i6
+                                : (map[3] == 7) ? i7
+                                                : i3;
+                      int _i4 = (map[4] == 0)   ? i0
+                                : (map[4] == 1) ? i1
+                                : (map[4] == 2) ? i2
+                                : (map[4] == 3) ? i3
+                                : (map[4] == 5) ? i5
+                                : (map[4] == 6) ? i6
+                                : (map[4] == 7) ? i7
+                                                : i4;
+                      int _i5 = (map[5] == 0)   ? i0
+                                : (map[5] == 1) ? i1
+                                : (map[5] == 2) ? i2
+                                : (map[5] == 3) ? i3
+                                : (map[5] == 4) ? i4
+                                : (map[5] == 6) ? i6
+                                : (map[5] == 7) ? i7
+                                                : i5;
+                      int _i6 = (map[6] == 0)   ? i0
+                                : (map[6] == 1) ? i1
+                                : (map[6] == 2) ? i2
+                                : (map[6] == 3) ? i3
+                                : (map[6] == 4) ? i4
+                                : (map[6] == 5) ? i5
+                                : (map[6] == 7) ? i7
+                                                : i6;
+                      int _i7 = (map[7] == 0)   ? i0
+                                : (map[7] == 1) ? i1
+                                : (map[7] == 2) ? i2
+                                : (map[7] == 3) ? i3
+                                : (map[7] == 4) ? i4
+                                : (map[7] == 5) ? i5
+                                : (map[7] == 6) ? i6
+                                                : i7;
+                      h_ref(_i0, _i1, _i2, _i3, _i4, _i5, _i6, _i7) =
+                          h_x(i0, i1, i2, i3, i4, i5, i6, i7);
                     }
                   }
                 }
@@ -984,8 +971,7 @@ void test_transpose_1d_8dview() {
 
       // Inverse (transpose of transpose is identical to the original)
       RealView8Dtype _x;
-      KokkosFFT::Impl::transpose(execution_space(), xt, _x,
-                                 map_inv);
+      KokkosFFT::Impl::transpose(execution_space(), xt, _x, map_inv);
       EXPECT_TRUE(allclose(_x, x, 1.e-5, 1.e-12));
     }
   }
@@ -1043,7 +1029,7 @@ template <typename LayoutType>
 void test_transpose_2d_2dview() {
   using RealView2Dtype = Kokkos::View<double**, LayoutType, execution_space>;
   const int n0 = 3, n1 = 5;
-  RealView2Dtype x("x", n0, n1),  _x("_x", n0, n1), ref("ref", n1, n0);
+  RealView2Dtype x("x", n0, n1), _x("_x", n0, n1), ref("ref", n1, n0);
   RealView2Dtype xt_axis01, xt_axis10;  // views are allocated internally
 
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
@@ -1080,7 +1066,7 @@ void test_transpose_2d_2dview() {
 template <typename LayoutType>
 void test_transpose_2d_3dview() {
   using RealView3Dtype = Kokkos::View<double***, LayoutType, execution_space>;
-  constexpr int DIM = 3;
+  constexpr int DIM    = 3;
   const int n0 = 3, n1 = 5, n2 = 8;
   RealView3Dtype x("x", n0, n1, n2);
 
@@ -1093,11 +1079,11 @@ void test_transpose_2d_3dview() {
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2});
 
-  for(int axis0=0; axis0<DIM; axis0++) {
-    for(int axis1=0; axis1<DIM; axis1++) {
-      if(axis0 == axis1) continue;
+  for (int axis0 = 0; axis0 < DIM; axis0++) {
+    for (int axis1 = 0; axis1 < DIM; axis1++) {
+      if (axis0 == axis1) continue;
       KokkosFFT::axis_type<2> axes = {axis0, axis1};
-      
+
       auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, axes);
       axes_type<DIM> out_extents;
       for (int i = 0; i < DIM; i++) {
@@ -1106,11 +1092,10 @@ void test_transpose_2d_3dview() {
       auto [_n0, _n1, _n2] = out_extents;
 
       RealView3Dtype xt;
-      if(map==default_axes) {
-        EXPECT_THROW(
-          KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                     map),  // xt is identical to x
-        std::runtime_error);
+      if (map == default_axes) {
+        EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
+                                                map),  // xt is identical to x
+                     std::runtime_error);
       } else {
         // Transposed Views
         RealView3Dtype ref("ref", _n0, _n1, _n2);
@@ -1119,16 +1104,10 @@ void test_transpose_2d_3dview() {
         for (int i0 = 0; i0 < h_x.extent(0); i0++) {
           for (int i1 = 0; i1 < h_x.extent(1); i1++) {
             for (int i2 = 0; i2 < h_x.extent(2); i2++) {
-              int _i0 = (map[0] == 1) ? i1 :
-                        (map[0] == 2) ? i2 :
-                        i0;
-              int _i1 = (map[1] == 0) ? i0 :
-                        (map[1] == 2) ? i2 :
-                        i1;
-              int _i2 = (map[2] == 0) ? i0 :
-                        (map[2] == 1) ? i1 :
-                        i2;
-              
+              int _i0 = (map[0] == 1) ? i1 : (map[0] == 2) ? i2 : i0;
+              int _i1 = (map[1] == 0) ? i0 : (map[1] == 2) ? i2 : i1;
+              int _i2 = (map[2] == 0) ? i0 : (map[2] == 1) ? i1 : i2;
+
               h_ref(_i0, _i1, _i2) = h_x(i0, i1, i2);
             }
           }
@@ -1143,8 +1122,7 @@ void test_transpose_2d_3dview() {
 
         // Inverse (transpose of transpose is identical to the original)
         RealView3Dtype _x;
-        KokkosFFT::Impl::transpose(execution_space(), xt, _x,
-                                  map_inv);
+        KokkosFFT::Impl::transpose(execution_space(), xt, _x, map_inv);
         EXPECT_TRUE(allclose(_x, x, 1.e-5, 1.e-12));
       }
     }
@@ -1154,7 +1132,7 @@ void test_transpose_2d_3dview() {
 template <typename LayoutType>
 void test_transpose_2d_4dview() {
   using RealView4Dtype = Kokkos::View<double****, LayoutType, execution_space>;
-  constexpr int DIM = 4;
+  constexpr int DIM    = 4;
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5;
   RealView4Dtype x("x", n0, n1, n2, n3);
 
@@ -1167,11 +1145,11 @@ void test_transpose_2d_4dview() {
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2, 3});
 
-  for(int axis0=0; axis0<DIM; axis0++) {
-    for(int axis1=0; axis1<DIM; axis1++) {
-      if(axis0 == axis1) continue;
+  for (int axis0 = 0; axis0 < DIM; axis0++) {
+    for (int axis1 = 0; axis1 < DIM; axis1++) {
+      if (axis0 == axis1) continue;
       KokkosFFT::axis_type<2> axes = {axis0, axis1};
-      
+
       auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, axes);
       axes_type<DIM> out_extents;
       for (int i = 0; i < DIM; i++) {
@@ -1180,11 +1158,10 @@ void test_transpose_2d_4dview() {
       auto [_n0, _n1, _n2, _n3] = out_extents;
 
       RealView4Dtype xt;
-      if(map==default_axes) {
-        EXPECT_THROW(
-          KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                    map),  // xt is identical to x
-        std::runtime_error);
+      if (map == default_axes) {
+        EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
+                                                map),  // xt is identical to x
+                     std::runtime_error);
       } else {
         // Transposed Views
         RealView4Dtype ref("ref", _n0, _n1, _n2, _n3);
@@ -1194,23 +1171,23 @@ void test_transpose_2d_4dview() {
           for (int i1 = 0; i1 < h_x.extent(1); i1++) {
             for (int i2 = 0; i2 < h_x.extent(2); i2++) {
               for (int i3 = 0; i3 < h_x.extent(3); i3++) {
-                int _i0 = (map[0] == 1) ? i1 :
-                          (map[0] == 2) ? i2 :
-                          (map[0] == 3) ? i3 :
-                          i0;
-                int _i1 = (map[1] == 0) ? i0 :
-                          (map[1] == 2) ? i2 :
-                          (map[1] == 3) ? i3 :
-                          i1;
-                int _i2 = (map[2] == 0) ? i0 :
-                          (map[2] == 1) ? i1 :
-                          (map[2] == 3) ? i3 :
-                          i2;
-                int _i3 = (map[3] == 0) ? i0 :
-                          (map[3] == 1) ? i1 :
-                          (map[3] == 2) ? i2 :
-                          i3;
-                
+                int _i0 = (map[0] == 1)   ? i1
+                          : (map[0] == 2) ? i2
+                          : (map[0] == 3) ? i3
+                                          : i0;
+                int _i1 = (map[1] == 0)   ? i0
+                          : (map[1] == 2) ? i2
+                          : (map[1] == 3) ? i3
+                                          : i1;
+                int _i2 = (map[2] == 0)   ? i0
+                          : (map[2] == 1) ? i1
+                          : (map[2] == 3) ? i3
+                                          : i2;
+                int _i3 = (map[3] == 0)   ? i0
+                          : (map[3] == 1) ? i1
+                          : (map[3] == 2) ? i2
+                                          : i3;
+
                 h_ref(_i0, _i1, _i2, _i3) = h_x(i0, i1, i2, i3);
               }
             }
@@ -1221,13 +1198,12 @@ void test_transpose_2d_4dview() {
         Kokkos::fence();
 
         KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                  map);  // xt is the transpose of x
+                                   map);  // xt is the transpose of x
         EXPECT_TRUE(allclose(xt, ref, 1.e-5, 1.e-12));
 
         // Inverse (transpose of transpose is identical to the original)
         RealView4Dtype _x;
-        KokkosFFT::Impl::transpose(execution_space(), xt, _x,
-                                  map_inv);
+        KokkosFFT::Impl::transpose(execution_space(), xt, _x, map_inv);
         EXPECT_TRUE(allclose(_x, x, 1.e-5, 1.e-12));
       }
     }
@@ -1237,7 +1213,7 @@ void test_transpose_2d_4dview() {
 template <typename LayoutType>
 void test_transpose_2d_5dview() {
   using RealView5Dtype = Kokkos::View<double*****, LayoutType, execution_space>;
-  constexpr int DIM = 5;
+  constexpr int DIM    = 5;
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6;
   RealView5Dtype x("x", n0, n1, n2, n3, n4);
 
@@ -1250,11 +1226,11 @@ void test_transpose_2d_5dview() {
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2, 3, 4});
 
-  for(int axis0=0; axis0<DIM; axis0++) {
-    for(int axis1=0; axis1<DIM; axis1++) {
-      if(axis0 == axis1) continue;
+  for (int axis0 = 0; axis0 < DIM; axis0++) {
+    for (int axis1 = 0; axis1 < DIM; axis1++) {
+      if (axis0 == axis1) continue;
       KokkosFFT::axis_type<2> axes = {axis0, axis1};
-      
+
       auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, axes);
       axes_type<DIM> out_extents;
       for (int i = 0; i < DIM; i++) {
@@ -1263,11 +1239,10 @@ void test_transpose_2d_5dview() {
       auto [_n0, _n1, _n2, _n3, _n4] = out_extents;
 
       RealView5Dtype xt;
-      if(map==default_axes) {
-        EXPECT_THROW(
-          KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                    map),  // xt is identical to x
-        std::runtime_error);
+      if (map == default_axes) {
+        EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
+                                                map),  // xt is identical to x
+                     std::runtime_error);
       } else {
         // Transposed Views
         RealView5Dtype ref("ref", _n0, _n1, _n2, _n3, _n4);
@@ -1278,31 +1253,31 @@ void test_transpose_2d_5dview() {
             for (int i2 = 0; i2 < h_x.extent(2); i2++) {
               for (int i3 = 0; i3 < h_x.extent(3); i3++) {
                 for (int i4 = 0; i4 < h_x.extent(4); i4++) {
-                  int _i0 = (map[0] == 1) ? i1 :
-                            (map[0] == 2) ? i2 :
-                            (map[0] == 3) ? i3 :
-                            (map[0] == 4) ? i4 :
-                            i0;
-                  int _i1 = (map[1] == 0) ? i0 :
-                            (map[1] == 2) ? i2 :
-                            (map[1] == 3) ? i3 :
-                            (map[1] == 4) ? i4 :
-                            i1;
-                  int _i2 = (map[2] == 0) ? i0 :
-                            (map[2] == 1) ? i1 :
-                            (map[2] == 3) ? i3 :
-                            (map[2] == 4) ? i4 :
-                            i2;
-                  int _i3 = (map[3] == 0) ? i0 :
-                            (map[3] == 1) ? i1 :
-                            (map[3] == 2) ? i2 :
-                            (map[3] == 4) ? i4 :
-                            i3;
-                  int _i4 = (map[4] == 0) ? i0 :
-                            (map[4] == 1) ? i1 :
-                            (map[4] == 2) ? i2 :
-                            (map[4] == 3) ? i3 :
-                            i4;
+                  int _i0                        = (map[0] == 1)   ? i1
+                                                   : (map[0] == 2) ? i2
+                                                   : (map[0] == 3) ? i3
+                                                   : (map[0] == 4) ? i4
+                                                                   : i0;
+                  int _i1                        = (map[1] == 0)   ? i0
+                                                   : (map[1] == 2) ? i2
+                                                   : (map[1] == 3) ? i3
+                                                   : (map[1] == 4) ? i4
+                                                                   : i1;
+                  int _i2                        = (map[2] == 0)   ? i0
+                                                   : (map[2] == 1) ? i1
+                                                   : (map[2] == 3) ? i3
+                                                   : (map[2] == 4) ? i4
+                                                                   : i2;
+                  int _i3                        = (map[3] == 0)   ? i0
+                                                   : (map[3] == 1) ? i1
+                                                   : (map[3] == 2) ? i2
+                                                   : (map[3] == 4) ? i4
+                                                                   : i3;
+                  int _i4                        = (map[4] == 0)   ? i0
+                                                   : (map[4] == 1) ? i1
+                                                   : (map[4] == 2) ? i2
+                                                   : (map[4] == 3) ? i3
+                                                                   : i4;
                   h_ref(_i0, _i1, _i2, _i3, _i4) = h_x(i0, i1, i2, i3, i4);
                 }
               }
@@ -1314,13 +1289,12 @@ void test_transpose_2d_5dview() {
         Kokkos::fence();
 
         KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                  map);  // xt is the transpose of x
+                                   map);  // xt is the transpose of x
         EXPECT_TRUE(allclose(xt, ref, 1.e-5, 1.e-12));
 
         // Inverse (transpose of transpose is identical to the original)
         RealView5Dtype _x;
-        KokkosFFT::Impl::transpose(execution_space(), xt, _x,
-                                  map_inv);
+        KokkosFFT::Impl::transpose(execution_space(), xt, _x, map_inv);
         EXPECT_TRUE(allclose(_x, x, 1.e-5, 1.e-12));
       }
     }
@@ -1329,7 +1303,8 @@ void test_transpose_2d_5dview() {
 
 template <typename LayoutType>
 void test_transpose_2d_6dview() {
-  using RealView6Dtype = Kokkos::View<double******, LayoutType, execution_space>;
+  using RealView6Dtype =
+      Kokkos::View<double******, LayoutType, execution_space>;
   constexpr int DIM = 6;
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6, n5 = 7;
   RealView6Dtype x("x", n0, n1, n2, n3, n4, n5);
@@ -1343,11 +1318,11 @@ void test_transpose_2d_6dview() {
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2, 3, 4, 5});
 
-  for(int axis0=0; axis0<DIM; axis0++) {
-    for(int axis1=0; axis1<DIM; axis1++) {
-      if(axis0 == axis1) continue;
+  for (int axis0 = 0; axis0 < DIM; axis0++) {
+    for (int axis1 = 0; axis1 < DIM; axis1++) {
+      if (axis0 == axis1) continue;
       KokkosFFT::axis_type<2> axes = {axis0, axis1};
-      
+
       auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, axes);
       axes_type<DIM> out_extents;
       for (int i = 0; i < DIM; i++) {
@@ -1356,11 +1331,10 @@ void test_transpose_2d_6dview() {
       auto [_n0, _n1, _n2, _n3, _n4, _n5] = out_extents;
 
       RealView6Dtype xt;
-      if(map==default_axes) {
-        EXPECT_THROW(
-          KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                    map),  // xt is identical to x
-        std::runtime_error);
+      if (map == default_axes) {
+        EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
+                                                map),  // xt is identical to x
+                     std::runtime_error);
       } else {
         // Transposed Views
         RealView6Dtype ref("ref", _n0, _n1, _n2, _n3, _n4, _n5);
@@ -1372,43 +1346,44 @@ void test_transpose_2d_6dview() {
               for (int i3 = 0; i3 < h_x.extent(3); i3++) {
                 for (int i4 = 0; i4 < h_x.extent(4); i4++) {
                   for (int i5 = 0; i5 < h_x.extent(5); i5++) {
-                    int _i0 = (map[0] == 1) ? i1 :
-                              (map[0] == 2) ? i2 :
-                              (map[0] == 3) ? i3 :
-                              (map[0] == 4) ? i4 :
-                              (map[0] == 5) ? i5 :
-                              i0;
-                    int _i1 = (map[1] == 0) ? i0 :
-                              (map[1] == 2) ? i2 :
-                              (map[1] == 3) ? i3 :
-                              (map[1] == 4) ? i4 :
-                              (map[1] == 5) ? i5 :
-                              i1;
-                    int _i2 = (map[2] == 0) ? i0 :
-                              (map[2] == 1) ? i1 :
-                              (map[2] == 3) ? i3 :
-                              (map[2] == 4) ? i4 :
-                              (map[2] == 5) ? i5 :
-                              i2;
-                    int _i3 = (map[3] == 0) ? i0 :
-                              (map[3] == 1) ? i1 :
-                              (map[3] == 2) ? i2 :
-                              (map[3] == 4) ? i4 :
-                              (map[3] == 5) ? i5 :
-                              i3;
-                    int _i4 = (map[4] == 0) ? i0 :
-                              (map[4] == 1) ? i1 :
-                              (map[4] == 2) ? i2 :
-                              (map[4] == 3) ? i3 :
-                              (map[4] == 5) ? i5 :
-                              i4;
-                    int _i5 = (map[5] == 0) ? i0 :
-                              (map[5] == 1) ? i1 :
-                              (map[5] == 2) ? i2 :
-                              (map[5] == 3) ? i3 :
-                              (map[5] == 4) ? i4 :
-                              i5;
-                    h_ref(_i0, _i1, _i2, _i3, _i4, _i5) = h_x(i0, i1, i2, i3, i4, i5);
+                    int _i0 = (map[0] == 1)   ? i1
+                              : (map[0] == 2) ? i2
+                              : (map[0] == 3) ? i3
+                              : (map[0] == 4) ? i4
+                              : (map[0] == 5) ? i5
+                                              : i0;
+                    int _i1 = (map[1] == 0)   ? i0
+                              : (map[1] == 2) ? i2
+                              : (map[1] == 3) ? i3
+                              : (map[1] == 4) ? i4
+                              : (map[1] == 5) ? i5
+                                              : i1;
+                    int _i2 = (map[2] == 0)   ? i0
+                              : (map[2] == 1) ? i1
+                              : (map[2] == 3) ? i3
+                              : (map[2] == 4) ? i4
+                              : (map[2] == 5) ? i5
+                                              : i2;
+                    int _i3 = (map[3] == 0)   ? i0
+                              : (map[3] == 1) ? i1
+                              : (map[3] == 2) ? i2
+                              : (map[3] == 4) ? i4
+                              : (map[3] == 5) ? i5
+                                              : i3;
+                    int _i4 = (map[4] == 0)   ? i0
+                              : (map[4] == 1) ? i1
+                              : (map[4] == 2) ? i2
+                              : (map[4] == 3) ? i3
+                              : (map[4] == 5) ? i5
+                                              : i4;
+                    int _i5 = (map[5] == 0)   ? i0
+                              : (map[5] == 1) ? i1
+                              : (map[5] == 2) ? i2
+                              : (map[5] == 3) ? i3
+                              : (map[5] == 4) ? i4
+                                              : i5;
+                    h_ref(_i0, _i1, _i2, _i3, _i4, _i5) =
+                        h_x(i0, i1, i2, i3, i4, i5);
                   }
                 }
               }
@@ -1420,13 +1395,12 @@ void test_transpose_2d_6dview() {
         Kokkos::fence();
 
         KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                  map);  // xt is the transpose of x
+                                   map);  // xt is the transpose of x
         EXPECT_TRUE(allclose(xt, ref, 1.e-5, 1.e-12));
 
         // Inverse (transpose of transpose is identical to the original)
         RealView6Dtype _x;
-        KokkosFFT::Impl::transpose(execution_space(), xt, _x,
-                                  map_inv);
+        KokkosFFT::Impl::transpose(execution_space(), xt, _x, map_inv);
         EXPECT_TRUE(allclose(_x, x, 1.e-5, 1.e-12));
       }
     }
@@ -1435,7 +1409,8 @@ void test_transpose_2d_6dview() {
 
 template <typename LayoutType>
 void test_transpose_2d_7dview() {
-  using RealView7Dtype = Kokkos::View<double*******, LayoutType, execution_space>;
+  using RealView7Dtype =
+      Kokkos::View<double*******, LayoutType, execution_space>;
   constexpr int DIM = 7;
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6, n5 = 7, n6 = 8;
   RealView7Dtype x("x", n0, n1, n2, n3, n4, n5, n6);
@@ -1449,11 +1424,11 @@ void test_transpose_2d_7dview() {
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2, 3, 4, 5, 6});
 
-  for(int axis0=0; axis0<DIM; axis0++) {
-    for(int axis1=0; axis1<DIM; axis1++) {
-      if(axis0 == axis1) continue;
+  for (int axis0 = 0; axis0 < DIM; axis0++) {
+    for (int axis1 = 0; axis1 < DIM; axis1++) {
+      if (axis0 == axis1) continue;
       KokkosFFT::axis_type<2> axes = {axis0, axis1};
-      
+
       auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, axes);
       axes_type<DIM> out_extents;
       for (int i = 0; i < DIM; i++) {
@@ -1462,11 +1437,10 @@ void test_transpose_2d_7dview() {
       auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6] = out_extents;
 
       RealView7Dtype xt;
-      if(map==default_axes) {
-        EXPECT_THROW(
-          KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                    map),  // xt is identical to x
-        std::runtime_error);
+      if (map == default_axes) {
+        EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
+                                                map),  // xt is identical to x
+                     std::runtime_error);
       } else {
         // Transposed Views
         RealView7Dtype ref("ref", _n0, _n1, _n2, _n3, _n4, _n5, _n6);
@@ -1479,56 +1453,57 @@ void test_transpose_2d_7dview() {
                 for (int i4 = 0; i4 < h_x.extent(4); i4++) {
                   for (int i5 = 0; i5 < h_x.extent(5); i5++) {
                     for (int i6 = 0; i6 < h_x.extent(6); i6++) {
-                      int _i0 = (map[0] == 1) ? i1 :
-                                (map[0] == 2) ? i2 :
-                                (map[0] == 3) ? i3 :
-                                (map[0] == 4) ? i4 :
-                                (map[0] == 5) ? i5 :
-                                (map[0] == 6) ? i6 :
-                                i0;
-                      int _i1 = (map[1] == 0) ? i0 :
-                                (map[1] == 2) ? i2 :
-                                (map[1] == 3) ? i3 :
-                                (map[1] == 4) ? i4 :
-                                (map[1] == 5) ? i5 :
-                                (map[1] == 6) ? i6 :
-                                i1;
-                      int _i2 = (map[2] == 0) ? i0 :
-                                (map[2] == 1) ? i1 :
-                                (map[2] == 3) ? i3 :
-                                (map[2] == 4) ? i4 :
-                                (map[2] == 5) ? i5 :
-                                (map[2] == 6) ? i6 :
-                                i2;
-                      int _i3 = (map[3] == 0) ? i0 :
-                                (map[3] == 1) ? i1 :
-                                (map[3] == 2) ? i2 :
-                                (map[3] == 4) ? i4 :
-                                (map[3] == 5) ? i5 :
-                                (map[3] == 6) ? i6 :
-                                i3;
-                      int _i4 = (map[4] == 0) ? i0 :
-                                (map[4] == 1) ? i1 :
-                                (map[4] == 2) ? i2 :
-                                (map[4] == 3) ? i3 :
-                                (map[4] == 5) ? i5 :
-                                (map[4] == 6) ? i6 :
-                                i4;
-                      int _i5 = (map[5] == 0) ? i0 :
-                                (map[5] == 1) ? i1 :
-                                (map[5] == 2) ? i2 :
-                                (map[5] == 3) ? i3 :
-                                (map[5] == 4) ? i4 :
-                                (map[5] == 6) ? i6 :
-                                i5;
-                      int _i6 = (map[6] == 0) ? i0 :
-                                (map[6] == 1) ? i1 :
-                                (map[6] == 2) ? i2 :
-                                (map[6] == 3) ? i3 :
-                                (map[6] == 4) ? i4 :
-                                (map[6] == 5) ? i5 :
-                                i6;
-                      h_ref(_i0, _i1, _i2, _i3, _i4, _i5, _i6) = h_x(i0, i1, i2, i3, i4, i5, i6);
+                      int _i0 = (map[0] == 1)   ? i1
+                                : (map[0] == 2) ? i2
+                                : (map[0] == 3) ? i3
+                                : (map[0] == 4) ? i4
+                                : (map[0] == 5) ? i5
+                                : (map[0] == 6) ? i6
+                                                : i0;
+                      int _i1 = (map[1] == 0)   ? i0
+                                : (map[1] == 2) ? i2
+                                : (map[1] == 3) ? i3
+                                : (map[1] == 4) ? i4
+                                : (map[1] == 5) ? i5
+                                : (map[1] == 6) ? i6
+                                                : i1;
+                      int _i2 = (map[2] == 0)   ? i0
+                                : (map[2] == 1) ? i1
+                                : (map[2] == 3) ? i3
+                                : (map[2] == 4) ? i4
+                                : (map[2] == 5) ? i5
+                                : (map[2] == 6) ? i6
+                                                : i2;
+                      int _i3 = (map[3] == 0)   ? i0
+                                : (map[3] == 1) ? i1
+                                : (map[3] == 2) ? i2
+                                : (map[3] == 4) ? i4
+                                : (map[3] == 5) ? i5
+                                : (map[3] == 6) ? i6
+                                                : i3;
+                      int _i4 = (map[4] == 0)   ? i0
+                                : (map[4] == 1) ? i1
+                                : (map[4] == 2) ? i2
+                                : (map[4] == 3) ? i3
+                                : (map[4] == 5) ? i5
+                                : (map[4] == 6) ? i6
+                                                : i4;
+                      int _i5 = (map[5] == 0)   ? i0
+                                : (map[5] == 1) ? i1
+                                : (map[5] == 2) ? i2
+                                : (map[5] == 3) ? i3
+                                : (map[5] == 4) ? i4
+                                : (map[5] == 6) ? i6
+                                                : i5;
+                      int _i6 = (map[6] == 0)   ? i0
+                                : (map[6] == 1) ? i1
+                                : (map[6] == 2) ? i2
+                                : (map[6] == 3) ? i3
+                                : (map[6] == 4) ? i4
+                                : (map[6] == 5) ? i5
+                                                : i6;
+                      h_ref(_i0, _i1, _i2, _i3, _i4, _i5, _i6) =
+                          h_x(i0, i1, i2, i3, i4, i5, i6);
                     }
                   }
                 }
@@ -1541,13 +1516,12 @@ void test_transpose_2d_7dview() {
         Kokkos::fence();
 
         KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                  map);  // xt is the transpose of x
+                                   map);  // xt is the transpose of x
         EXPECT_TRUE(allclose(xt, ref, 1.e-5, 1.e-12));
 
         // Inverse (transpose of transpose is identical to the original)
         RealView7Dtype _x;
-        KokkosFFT::Impl::transpose(execution_space(), xt, _x,
-                                  map_inv);
+        KokkosFFT::Impl::transpose(execution_space(), xt, _x, map_inv);
         EXPECT_TRUE(allclose(_x, x, 1.e-5, 1.e-12));
       }
     }
@@ -1556,7 +1530,8 @@ void test_transpose_2d_7dview() {
 
 template <typename LayoutType>
 void test_transpose_2d_8dview() {
-  using RealView8Dtype = Kokkos::View<double********, LayoutType, execution_space>;
+  using RealView8Dtype =
+      Kokkos::View<double********, LayoutType, execution_space>;
   constexpr int DIM = 8;
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6, n5 = 7, n6 = 8, n7 = 9;
   RealView8Dtype x("x", n0, n1, n2, n3, n4, n5, n6, n7);
@@ -1570,11 +1545,11 @@ void test_transpose_2d_8dview() {
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2, 3, 4, 5, 6, 7});
 
-  for(int axis0=0; axis0<DIM; axis0++) {
-    for(int axis1=0; axis1<DIM; axis1++) {
-      if(axis0 == axis1) continue;
+  for (int axis0 = 0; axis0 < DIM; axis0++) {
+    for (int axis1 = 0; axis1 < DIM; axis1++) {
+      if (axis0 == axis1) continue;
       KokkosFFT::axis_type<2> axes = {axis0, axis1};
-      
+
       auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, axes);
       axes_type<DIM> out_extents;
       for (int i = 0; i < DIM; i++) {
@@ -1583,11 +1558,10 @@ void test_transpose_2d_8dview() {
       auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7] = out_extents;
 
       RealView8Dtype xt;
-      if(map==default_axes) {
-        EXPECT_THROW(
-          KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                    map),  // xt is identical to x
-        std::runtime_error);
+      if (map == default_axes) {
+        EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
+                                                map),  // xt is identical to x
+                     std::runtime_error);
       } else {
         // Transposed Views
         RealView8Dtype ref("ref", _n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7);
@@ -1601,71 +1575,72 @@ void test_transpose_2d_8dview() {
                   for (int i5 = 0; i5 < h_x.extent(5); i5++) {
                     for (int i6 = 0; i6 < h_x.extent(6); i6++) {
                       for (int i7 = 0; i7 < h_x.extent(7); i7++) {
-                        int _i0 = (map[0] == 1) ? i1 :
-                                  (map[0] == 2) ? i2 :
-                                  (map[0] == 3) ? i3 :
-                                  (map[0] == 4) ? i4 :
-                                  (map[0] == 5) ? i5 :
-                                  (map[0] == 6) ? i6 :
-                                  (map[0] == 7) ? i7 :
-                                  i0;
-                        int _i1 = (map[1] == 0) ? i0 :
-                                  (map[1] == 2) ? i2 :
-                                  (map[1] == 3) ? i3 :
-                                  (map[1] == 4) ? i4 :
-                                  (map[1] == 5) ? i5 :
-                                  (map[1] == 6) ? i6 :
-                                  (map[1] == 7) ? i7 :
-                                  i1;
-                        int _i2 = (map[2] == 0) ? i0 :
-                                  (map[2] == 1) ? i1 :
-                                  (map[2] == 3) ? i3 :
-                                  (map[2] == 4) ? i4 :
-                                  (map[2] == 5) ? i5 :
-                                  (map[2] == 6) ? i6 :
-                                  (map[2] == 7) ? i7 :
-                                  i2;
-                        int _i3 = (map[3] == 0) ? i0 :
-                                  (map[3] == 1) ? i1 :
-                                  (map[3] == 2) ? i2 :
-                                  (map[3] == 4) ? i4 :
-                                  (map[3] == 5) ? i5 :
-                                  (map[3] == 6) ? i6 :
-                                  (map[3] == 7) ? i7 :
-                                  i3;
-                        int _i4 = (map[4] == 0) ? i0 :
-                                  (map[4] == 1) ? i1 :
-                                  (map[4] == 2) ? i2 :
-                                  (map[4] == 3) ? i3 :
-                                  (map[4] == 5) ? i5 :
-                                  (map[4] == 6) ? i6 :
-                                  (map[4] == 7) ? i7 :
-                                  i4;
-                        int _i5 = (map[5] == 0) ? i0 :
-                                  (map[5] == 1) ? i1 :
-                                  (map[5] == 2) ? i2 :
-                                  (map[5] == 3) ? i3 :
-                                  (map[5] == 4) ? i4 :
-                                  (map[5] == 6) ? i6 :
-                                  (map[5] == 7) ? i7 :
-                                  i5;
-                        int _i6 = (map[6] == 0) ? i0 :
-                                  (map[6] == 1) ? i1 :
-                                  (map[6] == 2) ? i2 :
-                                  (map[6] == 3) ? i3 :
-                                  (map[6] == 4) ? i4 :
-                                  (map[6] == 5) ? i5 :
-                                  (map[6] == 7) ? i7 :
-                                  i6;
-                        int _i7 = (map[7] == 0) ? i0 :
-                                  (map[7] == 1) ? i1 :
-                                  (map[7] == 2) ? i2 :
-                                  (map[7] == 3) ? i3 :
-                                  (map[7] == 4) ? i4 :
-                                  (map[7] == 5) ? i5 :
-                                  (map[7] == 6) ? i6 :
-                                  i7;
-                        h_ref(_i0, _i1, _i2, _i3, _i4, _i5, _i6, _i7) = h_x(i0, i1, i2, i3, i4, i5, i6, i7);
+                        int _i0 = (map[0] == 1)   ? i1
+                                  : (map[0] == 2) ? i2
+                                  : (map[0] == 3) ? i3
+                                  : (map[0] == 4) ? i4
+                                  : (map[0] == 5) ? i5
+                                  : (map[0] == 6) ? i6
+                                  : (map[0] == 7) ? i7
+                                                  : i0;
+                        int _i1 = (map[1] == 0)   ? i0
+                                  : (map[1] == 2) ? i2
+                                  : (map[1] == 3) ? i3
+                                  : (map[1] == 4) ? i4
+                                  : (map[1] == 5) ? i5
+                                  : (map[1] == 6) ? i6
+                                  : (map[1] == 7) ? i7
+                                                  : i1;
+                        int _i2 = (map[2] == 0)   ? i0
+                                  : (map[2] == 1) ? i1
+                                  : (map[2] == 3) ? i3
+                                  : (map[2] == 4) ? i4
+                                  : (map[2] == 5) ? i5
+                                  : (map[2] == 6) ? i6
+                                  : (map[2] == 7) ? i7
+                                                  : i2;
+                        int _i3 = (map[3] == 0)   ? i0
+                                  : (map[3] == 1) ? i1
+                                  : (map[3] == 2) ? i2
+                                  : (map[3] == 4) ? i4
+                                  : (map[3] == 5) ? i5
+                                  : (map[3] == 6) ? i6
+                                  : (map[3] == 7) ? i7
+                                                  : i3;
+                        int _i4 = (map[4] == 0)   ? i0
+                                  : (map[4] == 1) ? i1
+                                  : (map[4] == 2) ? i2
+                                  : (map[4] == 3) ? i3
+                                  : (map[4] == 5) ? i5
+                                  : (map[4] == 6) ? i6
+                                  : (map[4] == 7) ? i7
+                                                  : i4;
+                        int _i5 = (map[5] == 0)   ? i0
+                                  : (map[5] == 1) ? i1
+                                  : (map[5] == 2) ? i2
+                                  : (map[5] == 3) ? i3
+                                  : (map[5] == 4) ? i4
+                                  : (map[5] == 6) ? i6
+                                  : (map[5] == 7) ? i7
+                                                  : i5;
+                        int _i6 = (map[6] == 0)   ? i0
+                                  : (map[6] == 1) ? i1
+                                  : (map[6] == 2) ? i2
+                                  : (map[6] == 3) ? i3
+                                  : (map[6] == 4) ? i4
+                                  : (map[6] == 5) ? i5
+                                  : (map[6] == 7) ? i7
+                                                  : i6;
+                        int _i7 = (map[7] == 0)   ? i0
+                                  : (map[7] == 1) ? i1
+                                  : (map[7] == 2) ? i2
+                                  : (map[7] == 3) ? i3
+                                  : (map[7] == 4) ? i4
+                                  : (map[7] == 5) ? i5
+                                  : (map[7] == 6) ? i6
+                                                  : i7;
+                        h_ref(_i0, _i1, _i2, _i3, _i4, _i5, _i6, _i7) =
+                            h_x(i0, i1, i2, i3, i4, i5, i6, i7);
                       }
                     }
                   }
@@ -1679,13 +1654,12 @@ void test_transpose_2d_8dview() {
         Kokkos::fence();
 
         KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                  map);  // xt is the transpose of x
+                                   map);  // xt is the transpose of x
         EXPECT_TRUE(allclose(xt, ref, 1.e-5, 1.e-12));
 
         // Inverse (transpose of transpose is identical to the original)
         RealView8Dtype _x;
-        KokkosFFT::Impl::transpose(execution_space(), xt, _x,
-                                  map_inv);
+        KokkosFFT::Impl::transpose(execution_space(), xt, _x, map_inv);
         EXPECT_TRUE(allclose(_x, x, 1.e-5, 1.e-12));
       }
     }
@@ -1814,7 +1788,7 @@ void test_transpose_3d_3dview() {
 template <typename LayoutType>
 void test_transpose_3d_4dview() {
   using RealView4Dtype = Kokkos::View<double****, LayoutType, execution_space>;
-  constexpr int DIM = 4;
+  constexpr int DIM    = 4;
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5;
   RealView4Dtype x("x", n0, n1, n2, n3);
 
@@ -1827,12 +1801,12 @@ void test_transpose_3d_4dview() {
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2, 3});
 
-  for(int axis0=0; axis0<DIM; axis0++) {
-    for(int axis1=0; axis1<DIM; axis1++) {
-      for(int axis2=0; axis2<DIM; axis2++) {
-        if(axis0 == axis1 || axis0 == axis2 || axis1 == axis2) continue;
+  for (int axis0 = 0; axis0 < DIM; axis0++) {
+    for (int axis1 = 0; axis1 < DIM; axis1++) {
+      for (int axis2 = 0; axis2 < DIM; axis2++) {
+        if (axis0 == axis1 || axis0 == axis2 || axis1 == axis2) continue;
         KokkosFFT::axis_type<3> axes = {axis0, axis1, axis2};
-      
+
         auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, axes);
         axes_type<DIM> out_extents;
         for (int i = 0; i < DIM; i++) {
@@ -1841,11 +1815,10 @@ void test_transpose_3d_4dview() {
         auto [_n0, _n1, _n2, _n3] = out_extents;
 
         RealView4Dtype xt;
-        if(map==default_axes) {
-          EXPECT_THROW(
-            KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                      map),  // xt is identical to x
-          std::runtime_error);
+        if (map == default_axes) {
+          EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
+                                                  map),  // xt is identical to x
+                       std::runtime_error);
         } else {
           // Transposed Views
           RealView4Dtype ref("ref", _n0, _n1, _n2, _n3);
@@ -1855,23 +1828,23 @@ void test_transpose_3d_4dview() {
             for (int i1 = 0; i1 < h_x.extent(1); i1++) {
               for (int i2 = 0; i2 < h_x.extent(2); i2++) {
                 for (int i3 = 0; i3 < h_x.extent(3); i3++) {
-                  int _i0 = (map[0] == 1) ? i1 :
-                            (map[0] == 2) ? i2 :
-                            (map[0] == 3) ? i3 :
-                            i0;
-                  int _i1 = (map[1] == 0) ? i0 :
-                            (map[1] == 2) ? i2 :
-                            (map[1] == 3) ? i3 :
-                            i1;
-                  int _i2 = (map[2] == 0) ? i0 :
-                            (map[2] == 1) ? i1 :
-                            (map[2] == 3) ? i3 :
-                            i2;
-                  int _i3 = (map[3] == 0) ? i0 :
-                            (map[3] == 1) ? i1 :
-                            (map[3] == 2) ? i2 :
-                            i3;
-                  
+                  int _i0 = (map[0] == 1)   ? i1
+                            : (map[0] == 2) ? i2
+                            : (map[0] == 3) ? i3
+                                            : i0;
+                  int _i1 = (map[1] == 0)   ? i0
+                            : (map[1] == 2) ? i2
+                            : (map[1] == 3) ? i3
+                                            : i1;
+                  int _i2 = (map[2] == 0)   ? i0
+                            : (map[2] == 1) ? i1
+                            : (map[2] == 3) ? i3
+                                            : i2;
+                  int _i3 = (map[3] == 0)   ? i0
+                            : (map[3] == 1) ? i1
+                            : (map[3] == 2) ? i2
+                                            : i3;
+
                   h_ref(_i0, _i1, _i2, _i3) = h_x(i0, i1, i2, i3);
                 }
               }
@@ -1882,13 +1855,12 @@ void test_transpose_3d_4dview() {
           Kokkos::fence();
 
           KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                    map);  // xt is the transpose of x
+                                     map);  // xt is the transpose of x
           EXPECT_TRUE(allclose(xt, ref, 1.e-5, 1.e-12));
 
           // Inverse (transpose of transpose is identical to the original)
           RealView4Dtype _x;
-          KokkosFFT::Impl::transpose(execution_space(), xt, _x,
-                                    map_inv);
+          KokkosFFT::Impl::transpose(execution_space(), xt, _x, map_inv);
           EXPECT_TRUE(allclose(_x, x, 1.e-5, 1.e-12));
         }
       }
@@ -1899,7 +1871,7 @@ void test_transpose_3d_4dview() {
 template <typename LayoutType>
 void test_transpose_3d_5dview() {
   using RealView5Dtype = Kokkos::View<double*****, LayoutType, execution_space>;
-  constexpr int DIM = 5;
+  constexpr int DIM    = 5;
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6;
   RealView5Dtype x("x", n0, n1, n2, n3, n4);
 
@@ -1911,14 +1883,14 @@ void test_transpose_3d_5dview() {
 
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2, 3, 4});
-  
-  for(int axis0=0; axis0<DIM; axis0++) {
-    for(int axis1=0; axis1<DIM; axis1++) {
-      for(int axis2=0; axis2<DIM; axis2++) {
-        if(axis0 == axis1 || axis0 == axis2 || axis1 == axis2) continue;
-     
+
+  for (int axis0 = 0; axis0 < DIM; axis0++) {
+    for (int axis1 = 0; axis1 < DIM; axis1++) {
+      for (int axis2 = 0; axis2 < DIM; axis2++) {
+        if (axis0 == axis1 || axis0 == axis2 || axis1 == axis2) continue;
+
         KokkosFFT::axis_type<3> axes = {axis0, axis1, axis2};
-        
+
         auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, axes);
         axes_type<DIM> out_extents;
         for (int i = 0; i < DIM; i++) {
@@ -1927,11 +1899,10 @@ void test_transpose_3d_5dview() {
         auto [_n0, _n1, _n2, _n3, _n4] = out_extents;
 
         RealView5Dtype xt;
-        if(map==default_axes) {
-          EXPECT_THROW(
-            KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                      map),  // xt is identical to x
-          std::runtime_error);
+        if (map == default_axes) {
+          EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
+                                                  map),  // xt is identical to x
+                       std::runtime_error);
         } else {
           // Transposed Views
           RealView5Dtype ref("ref", _n0, _n1, _n2, _n3, _n4);
@@ -1942,31 +1913,31 @@ void test_transpose_3d_5dview() {
               for (int i2 = 0; i2 < h_x.extent(2); i2++) {
                 for (int i3 = 0; i3 < h_x.extent(3); i3++) {
                   for (int i4 = 0; i4 < h_x.extent(4); i4++) {
-                    int _i0 = (map[0] == 1) ? i1 :
-                              (map[0] == 2) ? i2 :
-                              (map[0] == 3) ? i3 :
-                              (map[0] == 4) ? i4 :
-                              i0;
-                    int _i1 = (map[1] == 0) ? i0 :
-                              (map[1] == 2) ? i2 :
-                              (map[1] == 3) ? i3 :
-                              (map[1] == 4) ? i4 :
-                              i1;
-                    int _i2 = (map[2] == 0) ? i0 :
-                              (map[2] == 1) ? i1 :
-                              (map[2] == 3) ? i3 :
-                              (map[2] == 4) ? i4 :
-                              i2;
-                    int _i3 = (map[3] == 0) ? i0 :
-                              (map[3] == 1) ? i1 :
-                              (map[3] == 2) ? i2 :
-                              (map[3] == 4) ? i4 :
-                              i3;
-                    int _i4 = (map[4] == 0) ? i0 :
-                              (map[4] == 1) ? i1 :
-                              (map[4] == 2) ? i2 :
-                              (map[4] == 3) ? i3 :
-                              i4;
+                    int _i0                        = (map[0] == 1)   ? i1
+                                                     : (map[0] == 2) ? i2
+                                                     : (map[0] == 3) ? i3
+                                                     : (map[0] == 4) ? i4
+                                                                     : i0;
+                    int _i1                        = (map[1] == 0)   ? i0
+                                                     : (map[1] == 2) ? i2
+                                                     : (map[1] == 3) ? i3
+                                                     : (map[1] == 4) ? i4
+                                                                     : i1;
+                    int _i2                        = (map[2] == 0)   ? i0
+                                                     : (map[2] == 1) ? i1
+                                                     : (map[2] == 3) ? i3
+                                                     : (map[2] == 4) ? i4
+                                                                     : i2;
+                    int _i3                        = (map[3] == 0)   ? i0
+                                                     : (map[3] == 1) ? i1
+                                                     : (map[3] == 2) ? i2
+                                                     : (map[3] == 4) ? i4
+                                                                     : i3;
+                    int _i4                        = (map[4] == 0)   ? i0
+                                                     : (map[4] == 1) ? i1
+                                                     : (map[4] == 2) ? i2
+                                                     : (map[4] == 3) ? i3
+                                                                     : i4;
                     h_ref(_i0, _i1, _i2, _i3, _i4) = h_x(i0, i1, i2, i3, i4);
                   }
                 }
@@ -1978,13 +1949,12 @@ void test_transpose_3d_5dview() {
           Kokkos::fence();
 
           KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                    map);  // xt is the transpose of x
+                                     map);  // xt is the transpose of x
           EXPECT_TRUE(allclose(xt, ref, 1.e-5, 1.e-12));
 
           // Inverse (transpose of transpose is identical to the original)
           RealView5Dtype _x;
-          KokkosFFT::Impl::transpose(execution_space(), xt, _x,
-                                    map_inv);
+          KokkosFFT::Impl::transpose(execution_space(), xt, _x, map_inv);
           EXPECT_TRUE(allclose(_x, x, 1.e-5, 1.e-12));
         }
       }
@@ -1994,7 +1964,8 @@ void test_transpose_3d_5dview() {
 
 template <typename LayoutType>
 void test_transpose_3d_6dview() {
-  using RealView6Dtype = Kokkos::View<double******, LayoutType, execution_space>;
+  using RealView6Dtype =
+      Kokkos::View<double******, LayoutType, execution_space>;
   constexpr int DIM = 6;
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6, n5 = 7;
   RealView6Dtype x("x", n0, n1, n2, n3, n4, n5);
@@ -2008,13 +1979,13 @@ void test_transpose_3d_6dview() {
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2, 3, 4, 5});
 
-  for(int axis0=0; axis0<DIM; axis0++) {
-    for(int axis1=0; axis1<DIM; axis1++) {
-      for(int axis2=0; axis2<DIM; axis2++) {
-        if(axis0 == axis1 || axis0 == axis2 || axis1 == axis2) continue;
-     
+  for (int axis0 = 0; axis0 < DIM; axis0++) {
+    for (int axis1 = 0; axis1 < DIM; axis1++) {
+      for (int axis2 = 0; axis2 < DIM; axis2++) {
+        if (axis0 == axis1 || axis0 == axis2 || axis1 == axis2) continue;
+
         KokkosFFT::axis_type<3> axes = {axis0, axis1, axis2};
-      
+
         auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, axes);
         axes_type<DIM> out_extents;
         for (int i = 0; i < DIM; i++) {
@@ -2023,11 +1994,10 @@ void test_transpose_3d_6dview() {
         auto [_n0, _n1, _n2, _n3, _n4, _n5] = out_extents;
 
         RealView6Dtype xt;
-        if(map==default_axes) {
-          EXPECT_THROW(
-            KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                      map),  // xt is identical to x
-          std::runtime_error);
+        if (map == default_axes) {
+          EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
+                                                  map),  // xt is identical to x
+                       std::runtime_error);
         } else {
           // Transposed Views
           RealView6Dtype ref("ref", _n0, _n1, _n2, _n3, _n4, _n5);
@@ -2039,43 +2009,44 @@ void test_transpose_3d_6dview() {
                 for (int i3 = 0; i3 < h_x.extent(3); i3++) {
                   for (int i4 = 0; i4 < h_x.extent(4); i4++) {
                     for (int i5 = 0; i5 < h_x.extent(5); i5++) {
-                      int _i0 = (map[0] == 1) ? i1 :
-                                (map[0] == 2) ? i2 :
-                                (map[0] == 3) ? i3 :
-                                (map[0] == 4) ? i4 :
-                                (map[0] == 5) ? i5 :
-                                i0;
-                      int _i1 = (map[1] == 0) ? i0 :
-                                (map[1] == 2) ? i2 :
-                                (map[1] == 3) ? i3 :
-                                (map[1] == 4) ? i4 :
-                                (map[1] == 5) ? i5 :
-                                i1;
-                      int _i2 = (map[2] == 0) ? i0 :
-                                (map[2] == 1) ? i1 :
-                                (map[2] == 3) ? i3 :
-                                (map[2] == 4) ? i4 :
-                                (map[2] == 5) ? i5 :
-                                i2;
-                      int _i3 = (map[3] == 0) ? i0 :
-                                (map[3] == 1) ? i1 :
-                                (map[3] == 2) ? i2 :
-                                (map[3] == 4) ? i4 :
-                                (map[3] == 5) ? i5 :
-                                i3;
-                      int _i4 = (map[4] == 0) ? i0 :
-                                (map[4] == 1) ? i1 :
-                                (map[4] == 2) ? i2 :
-                                (map[4] == 3) ? i3 :
-                                (map[4] == 5) ? i5 :
-                                i4;
-                      int _i5 = (map[5] == 0) ? i0 :
-                                (map[5] == 1) ? i1 :
-                                (map[5] == 2) ? i2 :
-                                (map[5] == 3) ? i3 :
-                                (map[5] == 4) ? i4 :
-                                i5;
-                      h_ref(_i0, _i1, _i2, _i3, _i4, _i5) = h_x(i0, i1, i2, i3, i4, i5);
+                      int _i0 = (map[0] == 1)   ? i1
+                                : (map[0] == 2) ? i2
+                                : (map[0] == 3) ? i3
+                                : (map[0] == 4) ? i4
+                                : (map[0] == 5) ? i5
+                                                : i0;
+                      int _i1 = (map[1] == 0)   ? i0
+                                : (map[1] == 2) ? i2
+                                : (map[1] == 3) ? i3
+                                : (map[1] == 4) ? i4
+                                : (map[1] == 5) ? i5
+                                                : i1;
+                      int _i2 = (map[2] == 0)   ? i0
+                                : (map[2] == 1) ? i1
+                                : (map[2] == 3) ? i3
+                                : (map[2] == 4) ? i4
+                                : (map[2] == 5) ? i5
+                                                : i2;
+                      int _i3 = (map[3] == 0)   ? i0
+                                : (map[3] == 1) ? i1
+                                : (map[3] == 2) ? i2
+                                : (map[3] == 4) ? i4
+                                : (map[3] == 5) ? i5
+                                                : i3;
+                      int _i4 = (map[4] == 0)   ? i0
+                                : (map[4] == 1) ? i1
+                                : (map[4] == 2) ? i2
+                                : (map[4] == 3) ? i3
+                                : (map[4] == 5) ? i5
+                                                : i4;
+                      int _i5 = (map[5] == 0)   ? i0
+                                : (map[5] == 1) ? i1
+                                : (map[5] == 2) ? i2
+                                : (map[5] == 3) ? i3
+                                : (map[5] == 4) ? i4
+                                                : i5;
+                      h_ref(_i0, _i1, _i2, _i3, _i4, _i5) =
+                          h_x(i0, i1, i2, i3, i4, i5);
                     }
                   }
                 }
@@ -2087,13 +2058,12 @@ void test_transpose_3d_6dview() {
           Kokkos::fence();
 
           KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                    map);  // xt is the transpose of x
+                                     map);  // xt is the transpose of x
           EXPECT_TRUE(allclose(xt, ref, 1.e-5, 1.e-12));
 
           // Inverse (transpose of transpose is identical to the original)
           RealView6Dtype _x;
-          KokkosFFT::Impl::transpose(execution_space(), xt, _x,
-                                    map_inv);
+          KokkosFFT::Impl::transpose(execution_space(), xt, _x, map_inv);
           EXPECT_TRUE(allclose(_x, x, 1.e-5, 1.e-12));
         }
       }
@@ -2103,7 +2073,8 @@ void test_transpose_3d_6dview() {
 
 template <typename LayoutType>
 void test_transpose_3d_7dview() {
-  using RealView7Dtype = Kokkos::View<double*******, LayoutType, execution_space>;
+  using RealView7Dtype =
+      Kokkos::View<double*******, LayoutType, execution_space>;
   constexpr int DIM = 7;
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6, n5 = 7, n6 = 8;
   RealView7Dtype x("x", n0, n1, n2, n3, n4, n5, n6);
@@ -2117,13 +2088,13 @@ void test_transpose_3d_7dview() {
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2, 3, 4, 5, 6});
 
-  for(int axis0=0; axis0<DIM; axis0++) {
-    for(int axis1=0; axis1<DIM; axis1++) {
-      for(int axis2=0; axis2<DIM; axis2++) {
-        if(axis0 == axis1 || axis0 == axis2 || axis1 == axis2) continue;
-     
+  for (int axis0 = 0; axis0 < DIM; axis0++) {
+    for (int axis1 = 0; axis1 < DIM; axis1++) {
+      for (int axis2 = 0; axis2 < DIM; axis2++) {
+        if (axis0 == axis1 || axis0 == axis2 || axis1 == axis2) continue;
+
         KokkosFFT::axis_type<3> axes = {axis0, axis1, axis2};
-      
+
         auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, axes);
         axes_type<DIM> out_extents;
         for (int i = 0; i < DIM; i++) {
@@ -2132,11 +2103,10 @@ void test_transpose_3d_7dview() {
         auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6] = out_extents;
 
         RealView7Dtype xt;
-        if(map==default_axes) {
-          EXPECT_THROW(
-            KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                      map),  // xt is identical to x
-          std::runtime_error);
+        if (map == default_axes) {
+          EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
+                                                  map),  // xt is identical to x
+                       std::runtime_error);
         } else {
           // Transposed Views
           RealView7Dtype ref("ref", _n0, _n1, _n2, _n3, _n4, _n5, _n6);
@@ -2149,56 +2119,57 @@ void test_transpose_3d_7dview() {
                   for (int i4 = 0; i4 < h_x.extent(4); i4++) {
                     for (int i5 = 0; i5 < h_x.extent(5); i5++) {
                       for (int i6 = 0; i6 < h_x.extent(6); i6++) {
-                        int _i0 = (map[0] == 1) ? i1 :
-                                  (map[0] == 2) ? i2 :
-                                  (map[0] == 3) ? i3 :
-                                  (map[0] == 4) ? i4 :
-                                  (map[0] == 5) ? i5 :
-                                  (map[0] == 6) ? i6 :
-                                  i0;
-                        int _i1 = (map[1] == 0) ? i0 :
-                                  (map[1] == 2) ? i2 :
-                                  (map[1] == 3) ? i3 :
-                                  (map[1] == 4) ? i4 :
-                                  (map[1] == 5) ? i5 :
-                                  (map[1] == 6) ? i6 :
-                                  i1;
-                        int _i2 = (map[2] == 0) ? i0 :
-                                  (map[2] == 1) ? i1 :
-                                  (map[2] == 3) ? i3 :
-                                  (map[2] == 4) ? i4 :
-                                  (map[2] == 5) ? i5 :
-                                  (map[2] == 6) ? i6 :
-                                  i2;
-                        int _i3 = (map[3] == 0) ? i0 :
-                                  (map[3] == 1) ? i1 :
-                                  (map[3] == 2) ? i2 :
-                                  (map[3] == 4) ? i4 :
-                                  (map[3] == 5) ? i5 :
-                                  (map[3] == 6) ? i6 :
-                                  i3;
-                        int _i4 = (map[4] == 0) ? i0 :
-                                  (map[4] == 1) ? i1 :
-                                  (map[4] == 2) ? i2 :
-                                  (map[4] == 3) ? i3 :
-                                  (map[4] == 5) ? i5 :
-                                  (map[4] == 6) ? i6 :
-                                  i4;
-                        int _i5 = (map[5] == 0) ? i0 :
-                                  (map[5] == 1) ? i1 :
-                                  (map[5] == 2) ? i2 :
-                                  (map[5] == 3) ? i3 :
-                                  (map[5] == 4) ? i4 :
-                                  (map[5] == 6) ? i6 :
-                                  i5;
-                        int _i6 = (map[6] == 0) ? i0 :
-                                  (map[6] == 1) ? i1 :
-                                  (map[6] == 2) ? i2 :
-                                  (map[6] == 3) ? i3 :
-                                  (map[6] == 4) ? i4 :
-                                  (map[6] == 5) ? i5 :
-                                  i6;
-                        h_ref(_i0, _i1, _i2, _i3, _i4, _i5, _i6) = h_x(i0, i1, i2, i3, i4, i5, i6);
+                        int _i0 = (map[0] == 1)   ? i1
+                                  : (map[0] == 2) ? i2
+                                  : (map[0] == 3) ? i3
+                                  : (map[0] == 4) ? i4
+                                  : (map[0] == 5) ? i5
+                                  : (map[0] == 6) ? i6
+                                                  : i0;
+                        int _i1 = (map[1] == 0)   ? i0
+                                  : (map[1] == 2) ? i2
+                                  : (map[1] == 3) ? i3
+                                  : (map[1] == 4) ? i4
+                                  : (map[1] == 5) ? i5
+                                  : (map[1] == 6) ? i6
+                                                  : i1;
+                        int _i2 = (map[2] == 0)   ? i0
+                                  : (map[2] == 1) ? i1
+                                  : (map[2] == 3) ? i3
+                                  : (map[2] == 4) ? i4
+                                  : (map[2] == 5) ? i5
+                                  : (map[2] == 6) ? i6
+                                                  : i2;
+                        int _i3 = (map[3] == 0)   ? i0
+                                  : (map[3] == 1) ? i1
+                                  : (map[3] == 2) ? i2
+                                  : (map[3] == 4) ? i4
+                                  : (map[3] == 5) ? i5
+                                  : (map[3] == 6) ? i6
+                                                  : i3;
+                        int _i4 = (map[4] == 0)   ? i0
+                                  : (map[4] == 1) ? i1
+                                  : (map[4] == 2) ? i2
+                                  : (map[4] == 3) ? i3
+                                  : (map[4] == 5) ? i5
+                                  : (map[4] == 6) ? i6
+                                                  : i4;
+                        int _i5 = (map[5] == 0)   ? i0
+                                  : (map[5] == 1) ? i1
+                                  : (map[5] == 2) ? i2
+                                  : (map[5] == 3) ? i3
+                                  : (map[5] == 4) ? i4
+                                  : (map[5] == 6) ? i6
+                                                  : i5;
+                        int _i6 = (map[6] == 0)   ? i0
+                                  : (map[6] == 1) ? i1
+                                  : (map[6] == 2) ? i2
+                                  : (map[6] == 3) ? i3
+                                  : (map[6] == 4) ? i4
+                                  : (map[6] == 5) ? i5
+                                                  : i6;
+                        h_ref(_i0, _i1, _i2, _i3, _i4, _i5, _i6) =
+                            h_x(i0, i1, i2, i3, i4, i5, i6);
                       }
                     }
                   }
@@ -2211,13 +2182,12 @@ void test_transpose_3d_7dview() {
           Kokkos::fence();
 
           KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                    map);  // xt is the transpose of x
+                                     map);  // xt is the transpose of x
           EXPECT_TRUE(allclose(xt, ref, 1.e-5, 1.e-12));
 
           // Inverse (transpose of transpose is identical to the original)
           RealView7Dtype _x;
-          KokkosFFT::Impl::transpose(execution_space(), xt, _x,
-                                    map_inv);
+          KokkosFFT::Impl::transpose(execution_space(), xt, _x, map_inv);
           EXPECT_TRUE(allclose(_x, x, 1.e-5, 1.e-12));
         }
       }
@@ -2227,7 +2197,8 @@ void test_transpose_3d_7dview() {
 
 template <typename LayoutType>
 void test_transpose_3d_8dview() {
-  using RealView8Dtype = Kokkos::View<double********, LayoutType, execution_space>;
+  using RealView8Dtype =
+      Kokkos::View<double********, LayoutType, execution_space>;
   constexpr int DIM = 8;
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6, n5 = 7, n6 = 8, n7 = 9;
   RealView8Dtype x("x", n0, n1, n2, n3, n4, n5, n6, n7);
@@ -2241,13 +2212,13 @@ void test_transpose_3d_8dview() {
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2, 3, 4, 5, 6, 7});
 
-  for(int axis0=0; axis0<DIM; axis0++) {
-    for(int axis1=0; axis1<DIM; axis1++) {
-      for(int axis2=0; axis2<DIM; axis2++) {
-        if(axis0 == axis1 || axis0 == axis2 || axis1 == axis2) continue;
-     
+  for (int axis0 = 0; axis0 < DIM; axis0++) {
+    for (int axis1 = 0; axis1 < DIM; axis1++) {
+      for (int axis2 = 0; axis2 < DIM; axis2++) {
+        if (axis0 == axis1 || axis0 == axis2 || axis1 == axis2) continue;
+
         KokkosFFT::axis_type<3> axes = {axis0, axis1, axis2};
-      
+
         auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, axes);
         axes_type<DIM> out_extents;
         for (int i = 0; i < DIM; i++) {
@@ -2256,11 +2227,10 @@ void test_transpose_3d_8dview() {
         auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7] = out_extents;
 
         RealView8Dtype xt;
-        if(map==default_axes) {
-          EXPECT_THROW(
-            KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                      map),  // xt is identical to x
-          std::runtime_error);
+        if (map == default_axes) {
+          EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
+                                                  map),  // xt is identical to x
+                       std::runtime_error);
         } else {
           // Transposed Views
           RealView8Dtype ref("ref", _n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7);
@@ -2274,71 +2244,72 @@ void test_transpose_3d_8dview() {
                     for (int i5 = 0; i5 < h_x.extent(5); i5++) {
                       for (int i6 = 0; i6 < h_x.extent(6); i6++) {
                         for (int i7 = 0; i7 < h_x.extent(7); i7++) {
-                          int _i0 = (map[0] == 1) ? i1 :
-                                    (map[0] == 2) ? i2 :
-                                    (map[0] == 3) ? i3 :
-                                    (map[0] == 4) ? i4 :
-                                    (map[0] == 5) ? i5 :
-                                    (map[0] == 6) ? i6 :
-                                    (map[0] == 7) ? i7 :
-                                    i0;
-                          int _i1 = (map[1] == 0) ? i0 :
-                                    (map[1] == 2) ? i2 :
-                                    (map[1] == 3) ? i3 :
-                                    (map[1] == 4) ? i4 :
-                                    (map[1] == 5) ? i5 :
-                                    (map[1] == 6) ? i6 :
-                                    (map[1] == 7) ? i7 :
-                                    i1;
-                          int _i2 = (map[2] == 0) ? i0 :
-                                    (map[2] == 1) ? i1 :
-                                    (map[2] == 3) ? i3 :
-                                    (map[2] == 4) ? i4 :
-                                    (map[2] == 5) ? i5 :
-                                    (map[2] == 6) ? i6 :
-                                    (map[2] == 7) ? i7 :
-                                    i2;
-                          int _i3 = (map[3] == 0) ? i0 :
-                                    (map[3] == 1) ? i1 :
-                                    (map[3] == 2) ? i2 :
-                                    (map[3] == 4) ? i4 :
-                                    (map[3] == 5) ? i5 :
-                                    (map[3] == 6) ? i6 :
-                                    (map[3] == 7) ? i7 :
-                                    i3;
-                          int _i4 = (map[4] == 0) ? i0 :
-                                    (map[4] == 1) ? i1 :
-                                    (map[4] == 2) ? i2 :
-                                    (map[4] == 3) ? i3 :
-                                    (map[4] == 5) ? i5 :
-                                    (map[4] == 6) ? i6 :
-                                    (map[4] == 7) ? i7 :
-                                    i4;
-                          int _i5 = (map[5] == 0) ? i0 :
-                                    (map[5] == 1) ? i1 :
-                                    (map[5] == 2) ? i2 :
-                                    (map[5] == 3) ? i3 :
-                                    (map[5] == 4) ? i4 :
-                                    (map[5] == 6) ? i6 :
-                                    (map[5] == 7) ? i7 :
-                                    i5;
-                          int _i6 = (map[6] == 0) ? i0 :
-                                    (map[6] == 1) ? i1 :
-                                    (map[6] == 2) ? i2 :
-                                    (map[6] == 3) ? i3 :
-                                    (map[6] == 4) ? i4 :
-                                    (map[6] == 5) ? i5 :
-                                    (map[6] == 7) ? i7 :
-                                    i6;
-                          int _i7 = (map[7] == 0) ? i0 :
-                                    (map[7] == 1) ? i1 :
-                                    (map[7] == 2) ? i2 :
-                                    (map[7] == 3) ? i3 :
-                                    (map[7] == 4) ? i4 :
-                                    (map[7] == 5) ? i5 :
-                                    (map[7] == 6) ? i6 :
-                                    i7;
-                          h_ref(_i0, _i1, _i2, _i3, _i4, _i5, _i6, _i7) = h_x(i0, i1, i2, i3, i4, i5, i6, i7);
+                          int _i0 = (map[0] == 1)   ? i1
+                                    : (map[0] == 2) ? i2
+                                    : (map[0] == 3) ? i3
+                                    : (map[0] == 4) ? i4
+                                    : (map[0] == 5) ? i5
+                                    : (map[0] == 6) ? i6
+                                    : (map[0] == 7) ? i7
+                                                    : i0;
+                          int _i1 = (map[1] == 0)   ? i0
+                                    : (map[1] == 2) ? i2
+                                    : (map[1] == 3) ? i3
+                                    : (map[1] == 4) ? i4
+                                    : (map[1] == 5) ? i5
+                                    : (map[1] == 6) ? i6
+                                    : (map[1] == 7) ? i7
+                                                    : i1;
+                          int _i2 = (map[2] == 0)   ? i0
+                                    : (map[2] == 1) ? i1
+                                    : (map[2] == 3) ? i3
+                                    : (map[2] == 4) ? i4
+                                    : (map[2] == 5) ? i5
+                                    : (map[2] == 6) ? i6
+                                    : (map[2] == 7) ? i7
+                                                    : i2;
+                          int _i3 = (map[3] == 0)   ? i0
+                                    : (map[3] == 1) ? i1
+                                    : (map[3] == 2) ? i2
+                                    : (map[3] == 4) ? i4
+                                    : (map[3] == 5) ? i5
+                                    : (map[3] == 6) ? i6
+                                    : (map[3] == 7) ? i7
+                                                    : i3;
+                          int _i4 = (map[4] == 0)   ? i0
+                                    : (map[4] == 1) ? i1
+                                    : (map[4] == 2) ? i2
+                                    : (map[4] == 3) ? i3
+                                    : (map[4] == 5) ? i5
+                                    : (map[4] == 6) ? i6
+                                    : (map[4] == 7) ? i7
+                                                    : i4;
+                          int _i5 = (map[5] == 0)   ? i0
+                                    : (map[5] == 1) ? i1
+                                    : (map[5] == 2) ? i2
+                                    : (map[5] == 3) ? i3
+                                    : (map[5] == 4) ? i4
+                                    : (map[5] == 6) ? i6
+                                    : (map[5] == 7) ? i7
+                                                    : i5;
+                          int _i6 = (map[6] == 0)   ? i0
+                                    : (map[6] == 1) ? i1
+                                    : (map[6] == 2) ? i2
+                                    : (map[6] == 3) ? i3
+                                    : (map[6] == 4) ? i4
+                                    : (map[6] == 5) ? i5
+                                    : (map[6] == 7) ? i7
+                                                    : i6;
+                          int _i7 = (map[7] == 0)   ? i0
+                                    : (map[7] == 1) ? i1
+                                    : (map[7] == 2) ? i2
+                                    : (map[7] == 3) ? i3
+                                    : (map[7] == 4) ? i4
+                                    : (map[7] == 5) ? i5
+                                    : (map[7] == 6) ? i6
+                                                    : i7;
+                          h_ref(_i0, _i1, _i2, _i3, _i4, _i5, _i6, _i7) =
+                              h_x(i0, i1, i2, i3, i4, i5, i6, i7);
                         }
                       }
                     }
@@ -2352,13 +2323,12 @@ void test_transpose_3d_8dview() {
           Kokkos::fence();
 
           KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                    map);  // xt is the transpose of x
+                                     map);  // xt is the transpose of x
           EXPECT_TRUE(allclose(xt, ref, 1.e-5, 1.e-12));
 
           // Inverse (transpose of transpose is identical to the original)
           RealView8Dtype _x;
-          KokkosFFT::Impl::transpose(execution_space(), xt, _x,
-                                    map_inv);
+          KokkosFFT::Impl::transpose(execution_space(), xt, _x, map_inv);
           EXPECT_TRUE(allclose(_x, x, 1.e-5, 1.e-12));
         }
       }
