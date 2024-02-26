@@ -1164,7 +1164,6 @@ void test_fft1_1dfft_8dview(T atol = 1.e-12) {
   }
 }
 
-/*
 // Identity tests on 1D Views
 TYPED_TEST(FFT1D, Identity_1DView) {
   using float_type  = typename TestFixture::float_type;
@@ -1277,7 +1276,6 @@ TYPED_TEST(FFT1D, FFT_batched_8DView) {
   float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
   test_fft1_1dfft_8dview<float_type, layout_type>(atol);
 }
-*/
 
 // Tests for FFT2
 template <typename T, typename LayoutType>
