@@ -11,7 +11,7 @@ Available CMake options for KokkosFFT are listed.
 Compiler versions
 -----------------
 
-KokkosFFT relies on quite basic functionalieis of Kokkos, and thus it is supposed to work with compilers used for `Kokkos <https://kokkos.org/kokkos-core-wiki/requirements.html>`_. 
+KokkosFFT relies on quite basic functionalities of Kokkos, and thus it is supposed to work with compilers used for `Kokkos <https://kokkos.org/kokkos-core-wiki/requirements.html>`_.
 However, we have not tested all the listed compilers there and thus recommend the following compilers which we use frequently for testing.
 
 * ``gcc 8.3.0+`` - CPUs
@@ -102,7 +102,7 @@ However, to enable this option, we need a pre-installed ``fftw`` for FFT on host
 Kokkos backends
 ---------------
 
-KokkosFFT requieres ``Kokkos 4.2+``. For the moment, we support following backends for CPUs and GPUs. 
+KokkosFFT requires ``Kokkos 4.2+``. For the moment, we support following backends for CPUs and GPUs.
 A FFT library dedicated to Kokkos Device backend (e.g. cufft for CUDA backend) is automatically used. 
 If CMake fails to find a backend FFT library, see :doc:`How to find fft libraries?<../finding_libraries>`.
 We may support experimental backends like ``OPENMPTARGET`` in the future.
