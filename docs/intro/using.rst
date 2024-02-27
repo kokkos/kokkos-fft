@@ -10,10 +10,10 @@ Brief introduction
 ------------------
 
 Most of the numpy.fft APIs (``numpy.fft.<function_name>``) are available in KokkosFFT (``KokkosFFT::<function_name>``) on the Kokkos device.
-In fact, these are the only APIs available in KokkosFFT (see :doc:`API reference<../api_reference>` for detail). KokkosFFT support 1D to 3D FFT over choosen axes. 
-Inside FFT APIs, we first create a FFT plan for a backend FFT library based on the Views and choosen axes.
+In fact, these are the only APIs available in KokkosFFT (see :doc:`API reference<../api_reference>` for detail). KokkosFFT support 1D to 3D FFT over chosen axes.
+Inside FFT APIs, we first create a FFT plan for a backend FFT library based on the Views and chosen axes.
 Then, we execute the FFT using the created plan on the given Views. Then, we may perform normalization based on the users' choice. 
-Finally, we destroy the plan. Depending on the View Layout and choosen axes, we may need transpose operations to make data contiguous.
+Finally, we destroy the plan. Depending on the View Layout and chosen axes, we may need transpose operations to make data contiguous.
 In that case, we perform the transpose operations internally which impose overheads in both memory and computations.
 
 .. note::
@@ -52,7 +52,7 @@ The following listing shows good and bad examples of Real FFTs.
    // [OK] Correct types and extents
    KokkosFFT::irfft2(execution_space(), x_hat_good, x);
 
-   // [NG, Run time error] Inconsistent extetns
+   // [NG, Run time error] Inconsistent extents
    // Output: (n0, n1) (NG) -> (n0, n1/2+1) (OK)
    KokkosFFT::rfft2(execution_space(), x, x_hat_bad);
 
@@ -82,7 +82,7 @@ Memory consmpution
 ------------------
 
 In order to support FFT over arbitral axes, 
-KokkosFFT performs transpose operations internally and apply FFT on contious data.
+KokkosFFT performs transpose operations internally and apply FFT on contiguous data.
 For size ``n`` input, this requires internal buffers of size ``2n`` in addition to the buffers used by FFT library. 
 Performance overhead from transpose may be not critical but memory consumptions are problematic. 
 If memory consumption matters, it is recommended to make data contiguous so that transpose is not performed. 
