@@ -30,7 +30,7 @@ Building
 --------
 
 For the moment, there are two ways to use KokkosFFT: including as a subdirectory in CMake project or installing as a library.
-For simplicity, however, we demonstrate an example to use KokkosFFT as a subdirectory in a CMake project. For installation, see :ref:`Building KokkosFFT<building>` for detail.
+For simplicity, however, we demonstrate an example to use KokkosFFT as a subdirectory in a CMake project. For installation, see :ref:`Building KokkosFFT<building>`.
 Since KokkosFFT is a header-only library, it is enough to simply add as a subdirectory. It is assumed that kokkos and kokkosFFT are placed under ``<project_directory>/tpls``.
 
 Here is an example to use KokkosFFT in the following CMake project.

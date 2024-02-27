@@ -3,10 +3,10 @@
 
 #include "Test_Types.hpp"
 
-template <typename ViewType>
-bool allclose(const ViewType& a, const ViewType& b, double rtol = 1.e-5,
+template <typename AViewType, typename BViewType>
+bool allclose(const AViewType& a, const BViewType& b, double rtol = 1.e-5,
               double atol = 1.e-8) {
-  constexpr std::size_t rank = ViewType::rank;
+  constexpr std::size_t rank = AViewType::rank;
   for (std::size_t i = 0; i < rank; i++) {
     assert(a.extent(i) == b.extent(i));
   }
