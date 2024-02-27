@@ -203,7 +203,7 @@ jobs:
             -DCMAKE_C_COMPILER=${{ matrix.backend.c_compiler }} \
             -DCMAKE_CXX_COMPILER=${{ matrix.backend.cxx_compiler }} \
             -DCMAKE_CXX_STANDARD=17 \
-            ${{ matrix.backend.cmake_flags }}
+            ${{ matrix.backend.cmake_flags }} tpls/kokkos
           docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
             cmake --build build_kokkos -j $(( $(nproc) * 2 + 1 ))
           docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
