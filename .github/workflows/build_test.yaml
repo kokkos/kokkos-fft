@@ -83,6 +83,11 @@ jobs:
             c_compiler: hipcc
             cxx_compiler: hipcc
             cmake_flags: -DKokkos_ENABLE_HIP=ON -DKokkos_ARCH_VEGA90A=ON
+          - name: rocm
+            image: rocm
+            c_compiler: hipcc
+            cxx_compiler: hipcc
+            cmake_flags: -DKokkos_ENABLE_HIP=ON -DKokkos_ARCH_VEGA90A=ON -DKokkosFFT_ENABLE_ROCFFT=ON
           - name: sycl
             image: intel
             c_compiler: icx
@@ -130,6 +135,7 @@ jobs:
             -DCMAKE_C_COMPILER=${{ matrix.backend.c_compiler }} \
             -DCMAKE_CXX_COMPILER=${{ matrix.backend.cxx_compiler }} \
             -DCMAKE_CXX_STANDARD=17 \
+            -DKokkosFFT_ENABLE_EXAMPLES=ON \
             -DKokkosFFT_ENABLE_TESTS=ON \
             -DKokkosFFT_ENABLE_BENCHMARK=ON \
             -DKokkosFFT_ENABLE_INTERNAL_KOKKOS=ON \

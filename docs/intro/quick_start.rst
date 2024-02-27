@@ -16,8 +16,8 @@ If CMake fails to find a backend FFT library, see :doc:`How to find fft librarie
 Requirements
 ------------
 
-KokkosFFT requieres ``Kokkos 4.2+`` and dedicated compilers for CPUs or GPUs.
-It employs ``CMake 3.22+`` for building. 
+KokkosFFT requires ``Kokkos 4.2+`` and dedicated compilers for CPUs or GPUs.
+It employs ``CMake 3.22+`` for building.
 
 Here are list of compilers we frequently use for testing. 
 
@@ -30,7 +30,7 @@ Building
 --------
 
 For the moment, there are two ways to use KokkosFFT: including as a subdirectory in CMake project or installing as a library.
-For simplicity, however, we demonstrate an example to use KokkosFFT as a subdirectory in a CMake project. For installation, see :ref:`Building KokkosFFT<building>` for detail.
+For simplicity, however, we demonstrate an example to use KokkosFFT as a subdirectory in a CMake project. For installation, see :ref:`Building KokkosFFT<building>`.
 Since KokkosFFT is a header-only library, it is enough to simply add as a subdirectory. It is assumed that kokkos and kokkosFFT are placed under ``<project_directory>/tpls``.
 
 Here is an example to use KokkosFFT in the following CMake project.
@@ -103,7 +103,7 @@ you may use KokkosFFT quite easily. Here is an example for 1D real to complex tr
 
    KokkosFFT::rfft(execution_space(), x, x_hat);
 
-In most cases, a funciton ``numpy.fft.<function_name>`` is available by ``KokkosFFT::<function_name>``.
+In most cases, a function ``numpy.fft.<function_name>`` is available by ``KokkosFFT::<function_name>``.
 There are two major differences: ``execution_space`` argument and output value (``x_hat``) is an argument of API (not a returned value from API).
 Instead of numpy.array, we rely on `Kokkos Views <https://kokkos.org/kokkos-core-wiki/API/core/View.html>`_.
 The accessibilities of Views from ``execution_space`` are statically checked (compilation errors if not accessible). 

@@ -25,6 +25,10 @@ namespace KokkosFFT {
 namespace Impl {
 using FFTDirectionType = int;
 
+// Unused
+template <typename ExecutionSpace>
+using FFTInfoType = int;
+
 #ifdef ENABLE_HOST_AND_DEVICE
 enum class FFTWTransformType { R2C, D2Z, C2R, Z2D, C2C, Z2Z };
 

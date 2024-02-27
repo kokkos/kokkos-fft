@@ -25,6 +25,10 @@ namespace KokkosFFT {
 namespace Impl {
 using FFTDirectionType = int;
 
+// Unused
+template <typename ExecutionSpace>
+using FFTInfoType = int;
+
 #ifdef ENABLE_HOST_AND_DEVICE
 enum class FFTWTransformType { R2C, D2Z, C2R, Z2D, C2C, Z2Z };
 
@@ -70,7 +74,7 @@ struct transform_type<ExecutionSpace, T1, Kokkos::complex<T2>> {
                 "T1 and T2 should have the same precision");
   using _TransformType = TransformType<ExecutionSpace>;
 
-  static constexpr _TransformType m_cuda_type =
+  static constexpr _TransformType m_hip_type =
       std::is_same_v<T1, float> ? HIPFFT_R2C : HIPFFT_D2Z;
   static constexpr _TransformType m_cpu_type = std::is_same_v<T1, float>
                                                    ? FFTWTransformType::R2C
@@ -78,7 +82,7 @@ struct transform_type<ExecutionSpace, T1, Kokkos::complex<T2>> {
 
   static constexpr _TransformType type() {
     if constexpr (std::is_same_v<ExecutionSpace, Kokkos::HIP>) {
-      return m_cuda_type;
+      return m_hip_type;
     } else {
       return m_cpu_type;
     }
@@ -91,7 +95,7 @@ struct transform_type<ExecutionSpace, Kokkos::complex<T1>, T2> {
                 "T1 and T2 should have the same precision");
   using _TransformType = TransformType<ExecutionSpace>;
 
-  static constexpr _TransformType m_cuda_type =
+  static constexpr _TransformType m_hip_type =
       std::is_same_v<T1, float> ? HIPFFT_C2R : HIPFFT_Z2D;
   static constexpr _TransformType m_cpu_type = std::is_same_v<T1, float>
                                                    ? FFTWTransformType::C2R
@@ -99,7 +103,7 @@ struct transform_type<ExecutionSpace, Kokkos::complex<T1>, T2> {
 
   static constexpr _TransformType type() {
     if constexpr (std::is_same_v<ExecutionSpace, Kokkos::HIP>) {
-      return m_cuda_type;
+      return m_hip_type;
     } else {
       return m_cpu_type;
     }
@@ -113,7 +117,7 @@ struct transform_type<ExecutionSpace, Kokkos::complex<T1>,
                 "T1 and T2 should have the same precision");
   using _TransformType = TransformType<ExecutionSpace>;
 
-  static constexpr _TransformType m_cuda_type =
+  static constexpr _TransformType m_hip_type =
       std::is_same_v<T1, float> ? HIPFFT_C2C : HIPFFT_Z2Z;
   static constexpr _TransformType m_cpu_type = std::is_same_v<T1, float>
                                                    ? FFTWTransformType::C2C
@@ -121,7 +125,7 @@ struct transform_type<ExecutionSpace, Kokkos::complex<T1>,
 
   static constexpr _TransformType type() {
     if constexpr (std::is_same_v<ExecutionSpace, Kokkos::HIP>) {
-      return m_cuda_type;
+      return m_hip_type;
     } else {
       return m_cpu_type;
     }

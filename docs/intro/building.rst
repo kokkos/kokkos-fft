@@ -11,7 +11,7 @@ Available CMake options for KokkosFFT are listed.
 Compiler versions
 -----------------
 
-KokkosFFT relies on quite basic functionalieis of Kokkos, and thus it is supposed to work with compilers used for `Kokkos <https://kokkos.org/kokkos-core-wiki/requirements.html>`_. 
+KokkosFFT relies on quite basic functionalities of Kokkos, and thus it is supposed to work with compilers used for `Kokkos <https://kokkos.org/kokkos-core-wiki/requirements.html>`_.
 However, we have not tested all the listed compilers there and thus recommend the following compilers which we use frequently for testing.
 
 * ``gcc 8.3.0+`` - CPUs
@@ -22,7 +22,7 @@ However, we have not tested all the listed compilers there and thus recommend th
 Install KokkosFFT as a library
 ------------------------------
 
-Is is assumed that the Kokkos is installed under ``<install_dir>/kokkos`` with OpenMP backend. Here is a recipe to install KokkosFFT under ``<install_dir>/kokkos_fft``.
+Is is assumed that Kokkos is installed under ``<install_dir>/kokkos`` with OpenMP backend. Here is a recipe to install KokkosFFT under ``<install_dir>/kokkos_fft``.
 
 .. code-block:: bash
 
@@ -69,7 +69,7 @@ The code can be built as
 CMake options
 -------------
 
-We rely on CMake to build KokkosFFT, more specifically ``CMake 3.22+``. Here are the lists of CMake option. 
+We rely on CMake to build KokkosFFT, more specifically ``CMake 3.22+``. Here is the list of CMake options. 
 For FFTs on Kokkos device only, we do not need to add extra compile options but for Kokkos ones.
 In order to use KokkosFFT from both host and device, it is necessary to add ``KokkosFFT_ENABLE_HOST_AND_DEVICE=ON``.
 This option may be useful, for example FFT is used for initialization at host. 
@@ -91,7 +91,7 @@ However, to enable this option, we need a pre-installed ``fftw`` for FFT on host
      - OFF
    * - ``KokkosFFT_ENABLE_EXAMPLES``
      - Build KokkosFFT examples
-     - ON
+     - OFF
    * - ``KokkosFFT_ENABLE_TESTS``
      - Build KokkosFFT tests
      - OFF
@@ -102,7 +102,7 @@ However, to enable this option, we need a pre-installed ``fftw`` for FFT on host
 Kokkos backends
 ---------------
 
-KokkosFFT requieres ``Kokkos 4.2+``. For the moment, we support following backends for CPUs and GPUs. 
+KokkosFFT requires ``Kokkos 4.2+``. For the moment, we support following backends for CPUs and GPUs.
 A FFT library dedicated to Kokkos Device backend (e.g. cufft for CUDA backend) is automatically used. 
 If CMake fails to find a backend FFT library, see :doc:`How to find fft libraries?<../finding_libraries>`.
 We may support experimental backends like ``OPENMPTARGET`` in the future.
