@@ -12,30 +12,36 @@ if [ $args -eq 5 ]; then
     # CPU build
     # e.g
     # /tmp Release gcc g++ -DKokkos_ENABLE_THREADS=ON
-    # TARGET_FLAG is empty
-    BACKEND_FLAG=$5
-    TARGET_FLAG=$6
+    CMAKE_OPTIONS=$5
 elif [ $args -eq 6 ]; then
     # GPU build without target flag
     # e.g.
     # /tmp Release gcc g++ \
     # -DKokkos_ENABLE_CUDA=ON -DKokkos_ARCH_AMPERE80=ON 
-    # TARGET_FLAG is empty
-    BACKEND_FLAG0=$5
-    BACKEND_FLAG1=$6
-    BACKEND_FLAG="${BACKEND_FLAG0} ${BACKEND_FLAG1}"
-    TARGET_FLAG=$7
+    FLAG0=$5
+    FLAG1=$6
+    CMAKE_OPTIONS="${FLAG0} ${FLAG1}"
 elif [ $args -eq 7 ]; then
     # GPU build with target flag
     # e.g.
     # /tmp Release gcc g++ \
     # -DKokkos_ENABLE_CUDA=ON -DKokkos_ARCH_AMPERE80=ON -DKokkosFFT_ENABLE_HOST_AND_DEVICE=ON
-    BACKEND_FLAG0=$5
-    BACKEND_FLAG1=$6
-    BACKEND_FLAG="${BACKEND_FLAG0} ${BACKEND_FLAG1}"
-    TARGET_FLAG=$7
+    FLAG0=$5
+    FLAG1=$6
+    FLAG2=$7
+    CMAKE_OPTIONS="${FLAG0} ${FLAG1} ${FLAG2}"
+elif [ $args -eq 8 ]; then
+    # GPU build with target flag
+    # e.g.
+    # /tmp Release gcc g++ \
+    # -DKokkosFFT_ENABLE_ROCFFT=ON -DKokkos_ENABLE_HIP=ON -DKokkos_ARCH_VEGA90A=ON -DKokkosFFT_ENABLE_HOST_AND_DEVICE=ON
+    FLAG0=$5
+    FLAG1=$6
+    FLAG2=$7
+    FLAG3=$8
+    CMAKE_OPTIONS="${FLAG0} ${FLAG1} ${FLAG2} ${FLAG3}"
 else
-    echo "*** Error: Number of arguments must be 5, 6 or 7 ***"
+    echo "*** Error: Number of arguments must be 5, 6, 7 or 8 ***"
     exit 1;
 fi
 
@@ -62,8 +68,7 @@ cd ${WK_DIR}
 mkdir ${EXAMPLE_BUILD_DIR} && cd ${EXAMPLE_BUILD_DIR}
 cmake -DCMAKE_CXX_COMPILER=${CXX_COMPILER} \
       -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
-      ${BACKEND_FLAG} \
-      ${TARGET_FLAG} ..
+      ${CMAKE_OPTIONS} ..
 
 cmake --build . -j 8
 
