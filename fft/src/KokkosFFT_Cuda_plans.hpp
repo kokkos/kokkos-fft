@@ -33,12 +33,10 @@ auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
   cufftSetStream((*plan), stream);
 
   const int batch = 1;
-  const int axis  = 0;
-
   auto type = KokkosFFT::Impl::transform_type<ExecutionSpace, in_value_type,
                                               out_value_type>::type();
   auto [in_extents, out_extents, fft_extents] =
-      KokkosFFT::Impl::get_extents(in, out, axis);
+      KokkosFFT::Impl::get_extents(in, out, axes);
   const int nx = fft_extents.at(0);
   int fft_size = std::accumulate(fft_extents.begin(), fft_extents.end(), 1,
                                  std::multiplies<>());
