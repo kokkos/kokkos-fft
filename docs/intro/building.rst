@@ -91,7 +91,7 @@ However, to enable this option, we need a pre-installed ``fftw`` for FFT on host
      - OFF
    * - ``KokkosFFT_ENABLE_EXAMPLES``
      - Build KokkosFFT examples
-     - ON
+     - OFF
    * - ``KokkosFFT_ENABLE_TESTS``
      - Build KokkosFFT tests
      - OFF
