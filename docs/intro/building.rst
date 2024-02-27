@@ -22,7 +22,7 @@ However, we have not tested all the listed compilers there and thus recommend th
 Install KokkosFFT as a library
 ------------------------------
 
-Is is assumed that the Kokkos is installed under ``<install_dir>/kokkos`` with OpenMP backend. Here is a recipe to install KokkosFFT under ``<install_dir>/kokkos_fft``.
+Is is assumed that Kokkos is installed under ``<install_dir>/kokkos`` with OpenMP backend. Here is a recipe to install KokkosFFT under ``<install_dir>/kokkos_fft``.
 
 .. code-block:: bash
 
@@ -69,7 +69,7 @@ The code can be built as
 CMake options
 -------------
 
-We rely on CMake to build KokkosFFT, more specifically ``CMake 3.22+``. Here are the lists of CMake option. 
+We rely on CMake to build KokkosFFT, more specifically ``CMake 3.22+``. Here is the list of CMake options. 
 For FFTs on Kokkos device only, we do not need to add extra compile options but for Kokkos ones.
 In order to use KokkosFFT from both host and device, it is necessary to add ``KokkosFFT_ENABLE_HOST_AND_DEVICE=ON``.
 This option may be useful, for example FFT is used for initialization at host. 
