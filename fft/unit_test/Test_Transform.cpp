@@ -2798,6 +2798,376 @@ void test_irfftn_3dfft_3dview() {
   EXPECT_TRUE(allclose(out_f, out3, 1.e-5, 1.e-6));
 }
 
+template <typename T, typename LayoutType>
+void test_fftn_3dfft_4dview(T atol = 1.e-12) {
+  const int n0 = 10, n1 = 6, n2 = 8, n3 = 5;
+  using RealView4DType = Kokkos::View<T****, LayoutType, execution_space>;
+  using ComplexView4DType =
+      Kokkos::View<Kokkos::complex<T>****, LayoutType, execution_space>;
+
+  constexpr int DIM          = 4;
+  std::array<int, DIM> shape = {n0, n1, n2, n3};
+  ComplexView4DType x("x", n0, n1, n2, n3), ref_x("ref_x", n0, n1, n2, n3);
+
+  using axes_type = KokkosFFT::axis_type<3>;
+
+  for (int axis0 = 0; axis0 < DIM; axis0++) {
+    for (int axis1 = 0; axis1 < DIM; axis1++) {
+      for (int axis2 = 0; axis2 < DIM; axis2++) {
+        if (axis0 == axis1 || axis0 == axis2 || axis1 == axis2) continue;
+
+        axes_type axes = {axis0, axis1, axis2};
+
+        std::array<int, DIM> shape_c2r = shape;
+        shape_c2r.at(axis2)            = shape_c2r.at(axis2) / 2 + 1;
+
+        auto [_n0, _n1, _n2, _n3] = shape_c2r;
+
+        ComplexView4DType _x("_x", n0, n1, n2, n3), out("out", n0, n1, n2, n3),
+            ref_out("ref_out", n0, n1, n2, n3);
+        RealView4DType xr("xr", n0, n1, n2, n3),
+            ref_xr("ref_xr", n0, n1, n2, n3), _xr("_xr", n0, n1, n2, n3);
+        ComplexView4DType outr("outr", _n0, _n1, _n2, _n3);
+
+        const Kokkos::complex<T> I(1.0, 1.0);
+        Kokkos::Random_XorShift64_Pool<> random_pool(12345);
+        Kokkos::fill_random(x, random_pool, I);
+        Kokkos::fill_random(xr, random_pool, 1);
+
+        Kokkos::deep_copy(ref_x, x);
+        Kokkos::deep_copy(ref_xr, xr);
+
+        Kokkos::fence();
+
+        // Along one axis
+        // Simple identity tests
+        KokkosFFT::fftn(execution_space(), x, out, axes,
+                        KokkosFFT::Normalization::backward);
+
+        KokkosFFT::ifftn(execution_space(), out, _x, axes,
+                         KokkosFFT::Normalization::backward);
+
+        EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, atol));
+
+        // Simple identity tests for r2c and c2r transforms
+        KokkosFFT::rfftn(execution_space(), xr, outr, axes,
+                         KokkosFFT::Normalization::backward);
+
+        KokkosFFT::irfftn(execution_space(), outr, _xr, axes,
+                          KokkosFFT::Normalization::backward);
+
+        EXPECT_TRUE(allclose(_xr, ref_xr, 1.e-5, atol));
+      }
+    }
+  }
+}
+
+template <typename T, typename LayoutType>
+void test_fftn_3dfft_5dview(T atol = 1.e-12) {
+  const int n0 = 10, n1 = 6, n2 = 8, n3 = 5, n4 = 4;
+  using RealView5DType = Kokkos::View<T*****, LayoutType, execution_space>;
+  using ComplexView5DType =
+      Kokkos::View<Kokkos::complex<T>*****, LayoutType, execution_space>;
+
+  constexpr int DIM          = 5;
+  std::array<int, DIM> shape = {n0, n1, n2, n3, n4};
+  ComplexView5DType x("x", n0, n1, n2, n3, n4),
+      ref_x("ref_x", n0, n1, n2, n3, n4);
+
+  using axes_type = KokkosFFT::axis_type<3>;
+  KokkosFFT::axis_type<DIM> default_axes({0, 1, 2, 3, 4});
+
+  // Too many combinations, choose axes randomly
+  std::vector<axes_type> list_of_tested_axes;
+
+  constexpr int nb_trials = 32;
+  auto rng                = std::default_random_engine{};
+
+  for (int i = 0; i < nb_trials; i++) {
+    auto tmp_axes = default_axes;
+    std::shuffle(std::begin(tmp_axes), std::end(tmp_axes), rng);
+
+    // pickup 3 elements only
+    axes_type trimed_axes;
+    std::copy(std::begin(tmp_axes) + DIM - 3, std::end(tmp_axes),
+              std::begin(trimed_axes));
+    list_of_tested_axes.push_back(trimed_axes);
+  }
+
+  for (auto& tested_axes : list_of_tested_axes) {
+    int last_axis                  = tested_axes.at(2);
+    std::array<int, DIM> shape_c2r = shape;
+    shape_c2r.at(last_axis)        = shape_c2r.at(last_axis) / 2 + 1;
+
+    auto [_n0, _n1, _n2, _n3, _n4] = shape_c2r;
+    ComplexView5DType _x("_x", n0, n1, n2, n3, n4),
+        out("out", n0, n1, n2, n3, n4), ref_out("ref_out", n0, n1, n2, n3, n4);
+    RealView5DType xr("xr", n0, n1, n2, n3, n4),
+        ref_xr("ref_xr", n0, n1, n2, n3, n4), _xr("_xr", n0, n1, n2, n3, n4);
+    ComplexView5DType outr("outr", _n0, _n1, _n2, _n3, _n4);
+
+    const Kokkos::complex<T> I(1.0, 1.0);
+    Kokkos::Random_XorShift64_Pool<> random_pool(12345);
+    Kokkos::fill_random(x, random_pool, I);
+    Kokkos::fill_random(xr, random_pool, 1);
+
+    Kokkos::deep_copy(ref_x, x);
+    Kokkos::deep_copy(ref_xr, xr);
+
+    Kokkos::fence();
+
+    // Along one axis
+    // Simple identity tests
+    KokkosFFT::fftn(execution_space(), x, out, tested_axes,
+                    KokkosFFT::Normalization::backward);
+
+    KokkosFFT::ifftn(execution_space(), out, _x, tested_axes,
+                     KokkosFFT::Normalization::backward);
+
+    EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, atol));
+
+    // Simple identity tests for r2c and c2r transforms
+    KokkosFFT::rfftn(execution_space(), xr, outr, tested_axes,
+                     KokkosFFT::Normalization::backward);
+
+    KokkosFFT::irfftn(execution_space(), outr, _xr, tested_axes,
+                      KokkosFFT::Normalization::backward);
+
+    EXPECT_TRUE(allclose(_xr, ref_xr, 1.e-5, atol));
+  }
+}
+
+template <typename T, typename LayoutType>
+void test_fftn_3dfft_6dview(T atol = 1.e-12) {
+  const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6, n5 = 7;
+  using RealView6DType = Kokkos::View<T******, LayoutType, execution_space>;
+  using ComplexView6DType =
+      Kokkos::View<Kokkos::complex<T>******, LayoutType, execution_space>;
+
+  constexpr int DIM          = 6;
+  std::array<int, DIM> shape = {n0, n1, n2, n3, n4, n5};
+  ComplexView6DType x("x", n0, n1, n2, n3, n4, n5),
+      ref_x("ref_x", n0, n1, n2, n3, n4, n5);
+
+  using axes_type = KokkosFFT::axis_type<3>;
+  KokkosFFT::axis_type<DIM> default_axes({0, 1, 2, 3, 4, 5});
+
+  // Too many combinations, choose axes randomly
+  std::vector<axes_type> list_of_tested_axes;
+
+  constexpr int nb_trials = 32;
+  auto rng                = std::default_random_engine{};
+
+  for (int i = 0; i < nb_trials; i++) {
+    auto tmp_axes = default_axes;
+    std::shuffle(std::begin(tmp_axes), std::end(tmp_axes), rng);
+
+    // pickup 3 elements only
+    axes_type trimed_axes;
+    std::copy(std::begin(tmp_axes) + DIM - 3, std::end(tmp_axes),
+              std::begin(trimed_axes));
+    list_of_tested_axes.push_back(trimed_axes);
+  }
+
+  for (auto& tested_axes : list_of_tested_axes) {
+    int last_axis                  = tested_axes.at(2);
+    std::array<int, DIM> shape_c2r = shape;
+    shape_c2r.at(last_axis)        = shape_c2r.at(last_axis) / 2 + 1;
+
+    auto [_n0, _n1, _n2, _n3, _n4, _n5] = shape_c2r;
+    ComplexView6DType _x("_x", n0, n1, n2, n3, n4, n5),
+        out("out", n0, n1, n2, n3, n4, n5),
+        ref_out("ref_out", n0, n1, n2, n3, n4, n5);
+    RealView6DType xr("xr", n0, n1, n2, n3, n4, n5),
+        ref_xr("ref_xr", n0, n1, n2, n3, n4, n5),
+        _xr("_xr", n0, n1, n2, n3, n4, n5);
+    ComplexView6DType outr("outr", _n0, _n1, _n2, _n3, _n4, _n5);
+
+    const Kokkos::complex<T> I(1.0, 1.0);
+    Kokkos::Random_XorShift64_Pool<> random_pool(12345);
+    Kokkos::fill_random(x, random_pool, I);
+    Kokkos::fill_random(xr, random_pool, 1);
+
+    Kokkos::deep_copy(ref_x, x);
+    Kokkos::deep_copy(ref_xr, xr);
+
+    Kokkos::fence();
+
+    // Along one axis
+    // Simple identity tests
+    KokkosFFT::fftn(execution_space(), x, out, tested_axes,
+                    KokkosFFT::Normalization::backward);
+
+    KokkosFFT::ifftn(execution_space(), out, _x, tested_axes,
+                     KokkosFFT::Normalization::backward);
+
+    EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, atol));
+
+    // Simple identity tests for r2c and c2r transforms
+    KokkosFFT::rfftn(execution_space(), xr, outr, tested_axes,
+                     KokkosFFT::Normalization::backward);
+
+    KokkosFFT::irfftn(execution_space(), outr, _xr, tested_axes,
+                      KokkosFFT::Normalization::backward);
+
+    EXPECT_TRUE(allclose(_xr, ref_xr, 1.e-5, atol));
+  }
+}
+
+template <typename T, typename LayoutType>
+void test_fftn_3dfft_7dview(T atol = 1.e-12) {
+  const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6, n5 = 7, n6 = 8;
+  using RealView7DType = Kokkos::View<T*******, LayoutType, execution_space>;
+  using ComplexView7DType =
+      Kokkos::View<Kokkos::complex<T>*******, LayoutType, execution_space>;
+
+  constexpr int DIM          = 7;
+  std::array<int, DIM> shape = {n0, n1, n2, n3, n4, n5, n6};
+  ComplexView7DType x("x", n0, n1, n2, n3, n4, n5, n6),
+      ref_x("ref_x", n0, n1, n2, n3, n4, n5, n6);
+
+  using axes_type = KokkosFFT::axis_type<3>;
+  KokkosFFT::axis_type<DIM> default_axes({0, 1, 2, 3, 4, 5, 6});
+
+  // Too many combinations, choose axes randomly
+  std::vector<axes_type> list_of_tested_axes;
+
+  constexpr int nb_trials = 32;
+  auto rng                = std::default_random_engine{};
+
+  for (int i = 0; i < nb_trials; i++) {
+    auto tmp_axes = default_axes;
+    std::shuffle(std::begin(tmp_axes), std::end(tmp_axes), rng);
+
+    // pickup 3 elements only
+    axes_type trimed_axes;
+    std::copy(std::begin(tmp_axes) + DIM - 3, std::end(tmp_axes),
+              std::begin(trimed_axes));
+    list_of_tested_axes.push_back(trimed_axes);
+  }
+
+  for (auto& tested_axes : list_of_tested_axes) {
+    int last_axis                  = tested_axes.at(2);
+    std::array<int, DIM> shape_c2r = shape;
+    shape_c2r.at(last_axis)        = shape_c2r.at(last_axis) / 2 + 1;
+
+    auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6] = shape_c2r;
+    ComplexView7DType _x("_x", n0, n1, n2, n3, n4, n5, n6),
+        out("out", n0, n1, n2, n3, n4, n5, n6),
+        ref_out("ref_out", n0, n1, n2, n3, n4, n5, n6);
+    RealView7DType xr("xr", n0, n1, n2, n3, n4, n5, n6),
+        ref_xr("ref_xr", n0, n1, n2, n3, n4, n5, n6),
+        _xr("_xr", n0, n1, n2, n3, n4, n5, n6);
+    ComplexView7DType outr("outr", _n0, _n1, _n2, _n3, _n4, _n5, _n6);
+
+    const Kokkos::complex<T> I(1.0, 1.0);
+    Kokkos::Random_XorShift64_Pool<> random_pool(12345);
+    Kokkos::fill_random(x, random_pool, I);
+    Kokkos::fill_random(xr, random_pool, 1);
+
+    Kokkos::deep_copy(ref_x, x);
+    Kokkos::deep_copy(ref_xr, xr);
+
+    Kokkos::fence();
+
+    // Along one axis
+    // Simple identity tests
+    KokkosFFT::fftn(execution_space(), x, out, tested_axes,
+                    KokkosFFT::Normalization::backward);
+
+    KokkosFFT::ifftn(execution_space(), out, _x, tested_axes,
+                     KokkosFFT::Normalization::backward);
+
+    EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, atol));
+
+    // Simple identity tests for r2c and c2r transforms
+    KokkosFFT::rfftn(execution_space(), xr, outr, tested_axes,
+                     KokkosFFT::Normalization::backward);
+
+    KokkosFFT::irfftn(execution_space(), outr, _xr, tested_axes,
+                      KokkosFFT::Normalization::backward);
+
+    EXPECT_TRUE(allclose(_xr, ref_xr, 1.e-5, atol));
+  }
+}
+
+template <typename T, typename LayoutType>
+void test_fftn_3dfft_8dview(T atol = 1.e-12) {
+  const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6, n5 = 7, n6 = 8, n7 = 9;
+  using RealView8DType = Kokkos::View<T********, LayoutType, execution_space>;
+  using ComplexView8DType =
+      Kokkos::View<Kokkos::complex<T>********, LayoutType, execution_space>;
+
+  constexpr int DIM          = 8;
+  std::array<int, DIM> shape = {n0, n1, n2, n3, n4, n5, n6, n7};
+  ComplexView8DType x("x", n0, n1, n2, n3, n4, n5, n6, n7),
+      ref_x("ref_x", n0, n1, n2, n3, n4, n5, n6, n7);
+
+  using axes_type = KokkosFFT::axis_type<3>;
+  KokkosFFT::axis_type<DIM> default_axes({0, 1, 2, 3, 4, 5, 6, 7});
+
+  // Too many combinations, choose axes randomly
+  std::vector<axes_type> list_of_tested_axes;
+
+  constexpr int nb_trials = 32;
+  auto rng                = std::default_random_engine{};
+
+  for (int i = 0; i < nb_trials; i++) {
+    auto tmp_axes = default_axes;
+    std::shuffle(std::begin(tmp_axes), std::end(tmp_axes), rng);
+
+    // pickup 3 elements only
+    axes_type trimed_axes;
+    std::copy(std::begin(tmp_axes) + DIM - 3, std::end(tmp_axes),
+              std::begin(trimed_axes));
+    list_of_tested_axes.push_back(trimed_axes);
+  }
+
+  for (auto& tested_axes : list_of_tested_axes) {
+    int last_axis                  = tested_axes.at(2);
+    std::array<int, DIM> shape_c2r = shape;
+    shape_c2r.at(last_axis)        = shape_c2r.at(last_axis) / 2 + 1;
+
+    auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7] = shape_c2r;
+    ComplexView8DType _x("_x", n0, n1, n2, n3, n4, n5, n6, n7),
+        out("out", n0, n1, n2, n3, n4, n5, n6, n7),
+        ref_out("ref_out", n0, n1, n2, n3, n4, n5, n6, n7);
+    RealView8DType xr("xr", n0, n1, n2, n3, n4, n5, n6, n7),
+        ref_xr("ref_xr", n0, n1, n2, n3, n4, n5, n6, n7),
+        _xr("_xr", n0, n1, n2, n3, n4, n5, n6, n7);
+    ComplexView8DType outr("outr", _n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7);
+
+    const Kokkos::complex<T> I(1.0, 1.0);
+    Kokkos::Random_XorShift64_Pool<> random_pool(12345);
+    Kokkos::fill_random(x, random_pool, I);
+    Kokkos::fill_random(xr, random_pool, 1);
+
+    Kokkos::deep_copy(ref_x, x);
+    Kokkos::deep_copy(ref_xr, xr);
+
+    Kokkos::fence();
+
+    // Along one axis
+    // Simple identity tests
+    KokkosFFT::fftn(execution_space(), x, out, tested_axes,
+                    KokkosFFT::Normalization::backward);
+
+    KokkosFFT::ifftn(execution_space(), out, _x, tested_axes,
+                     KokkosFFT::Normalization::backward);
+
+    EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, atol));
+
+    // Simple identity tests for r2c and c2r transforms
+    KokkosFFT::rfftn(execution_space(), xr, outr, tested_axes,
+                     KokkosFFT::Normalization::backward);
+
+    KokkosFFT::irfftn(execution_space(), outr, _xr, tested_axes,
+                      KokkosFFT::Normalization::backward);
+
+    EXPECT_TRUE(allclose(_xr, ref_xr, 1.e-5, atol));
+  }
+}
+
 // fftn on 2D Views
 TYPED_TEST(FFTND, 2DFFT_2DView) {
   using float_type  = typename TestFixture::float_type;
@@ -2861,4 +3231,48 @@ TYPED_TEST(FFTND, 3DIRFFT_3DView) {
   using layout_type = typename TestFixture::layout_type;
 
   test_irfftn_3dfft_3dview<float_type, layout_type>();
+}
+// batched fftn on 4D Views
+TYPED_TEST(FFTND, 3DFFT_batched_4DView) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  float_type atol = std::is_same_v<float_type, float> ? 1.0e-5 : 1.0e-10;
+  test_fftn_3dfft_4dview<float_type, layout_type>(atol);
+}
+
+// batched fftn on 5D Views
+TYPED_TEST(FFTND, 3DFFT_batched_5DView) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  float_type atol = std::is_same_v<float_type, float> ? 1.0e-5 : 1.0e-10;
+  test_fftn_3dfft_5dview<float_type, layout_type>(atol);
+}
+
+// batched fftn on 6D Views
+TYPED_TEST(FFTND, 3DFFT_batched_6DView) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  float_type atol = std::is_same_v<float_type, float> ? 1.0e-5 : 1.0e-10;
+  test_fftn_3dfft_6dview<float_type, layout_type>(atol);
+}
+
+// batched fftn on 7D Views
+TYPED_TEST(FFTND, 3DFFT_batched_7DView) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  float_type atol = std::is_same_v<float_type, float> ? 1.0e-5 : 1.0e-10;
+  test_fftn_3dfft_7dview<float_type, layout_type>(atol);
+}
+
+// batched fftn on 8D Views
+TYPED_TEST(FFTND, 3DFFT_batched_8DView) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  float_type atol = std::is_same_v<float_type, float> ? 1.0e-5 : 1.0e-10;
+  test_fftn_3dfft_8dview<float_type, layout_type>(atol);
 }
