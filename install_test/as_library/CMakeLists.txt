@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.23)
+cmake_minimum_required(VERSION 3.22)
 project(kokkos-fft-as-library LANGUAGES CXX)
 
 find_package(Kokkos CONFIG REQUIRED)
