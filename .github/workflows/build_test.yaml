@@ -61,7 +61,7 @@ jobs:
 
     strategy:
       matrix:
-        backend: &build_backends
+        backend:
           - name: openmp
             image: gcc
             compiler:
@@ -185,28 +185,14 @@ jobs:
           path: tests_${{ matrix.backend.name }}.tar
         if: ${{ matrix.target.name == 'native' }}
 
-  # consume the project in another project
-  install:
-    runs-on: ubuntu-latest
-
-    needs:
-      - check_docker_files
-      - build
-
-    # run this job even if build_base did not run
-    if: ${{ ! cancelled() && needs.build.result == 'success' }}
-
-    strategy:
-      matrix:
-        backend:
-          # use the same backends matrix as the `build` job
-          <<: *build_backends
-
-    steps:
-      - name: Checkout built branch
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
+      # consume the project in a dummy project
+      # ideally, this part should be executed in a different job using almost
+      # the same `matrix` (minus `target`) as the `build` job and having the
+      # same `needs` and `if` as the `test` job; this would however make a
+      # duplicated and error-prone `matrix`, and sharing a `matrix` between
+      # jobs is currently not possible with GitHub Actions (neither directly,
+      # nor using YAML anchors, other options were too cumbersome when writing
+      # this); consequently, this part is just here for now
 
       - name: Prepare as subdirectory
         run: |
@@ -225,6 +211,7 @@ jobs:
             -DCMAKE_CXX_STANDARD=17 \
             ${{ matrix.backend.cmake_flags.kokkos }} \
             ${{ matrix.backend.cmake_flags.kokkos_fft }} \
+            ${{ matrix.target.cmake_flags }} \
             install_test/as_subdirectory
           docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
           cmake --build install_test/as_subdirectory/build
@@ -255,7 +242,8 @@ jobs:
             -DCMAKE_C_COMPILER=${{ matrix.backend.compiler.c }} \
             -DCMAKE_CXX_COMPILER=${{ matrix.backend.compiler.cxx }} \
             -DCMAKE_CXX_STANDARD=17 \
-            ${{ matrix.backend.cmake_flags.kokkos_fft }}
+            ${{ matrix.backend.cmake_flags.kokkos_fft }} \
+            ${{ matrix.target.cmake_flags }}
           docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
             cmake --build build_kokkos_fft -j $(( $(nproc) * 2 + 1 ))
           docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
