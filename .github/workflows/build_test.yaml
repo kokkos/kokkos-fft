@@ -191,11 +191,10 @@ jobs:
 
     needs:
       - check_docker_files
-      - build_base
-      # - build # FIXME uncomment this before merging
+      - build
 
     # run this job even if build_base did not run
-    if: ${{ ! cancelled() && (needs.build_base.result == 'success' || needs.build_base.result == 'skipped') }}
+    if: ${{ ! cancelled() && needs.build.result == 'success' }}
 
     strategy:
       matrix:
@@ -204,7 +203,6 @@ jobs:
           <<: *build_backends
 
     steps:
-
       - name: Checkout built branch
         uses: actions/checkout@v4
         with:
