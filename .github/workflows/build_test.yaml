@@ -193,6 +193,7 @@ jobs:
     needs:
       - check_docker_files
       - build_base
+      - build
 
     # run this job even if build_base did not run
     if: ${{ ! cancelled() && (needs.build_base.result == 'success' || needs.build_base.result == 'skipped') }}
@@ -269,9 +270,9 @@ jobs:
       - name: Prepare as subdirectory
         run: |
           # prepare kokkos
-          rsync -a ./tpls/kokkos ./install_test/as_subdirectory/tpls/
+          git clone ./tpls/kokkos ./install_test/as_subdirectory/kokkos
           # prepare kokkos-fft
-          rsync --exclude install_test --exclude tpls --mkpath -a . ./install_test/as_subdirectory/tpls/kokkos-fft
+          git clone . ./install_test/as_subdirectory/kokkos-fft
 
       - name: Configure and build test project as subdirectory
         run: |
