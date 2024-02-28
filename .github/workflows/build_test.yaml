@@ -186,7 +186,7 @@ jobs:
           path: tests_${{ matrix.backend.name }}.tar
         if: ${{ matrix.target.name == 'native' }}
 
-  # use the project in another project
+  # consume the project in another project
   install:
     runs-on: ubuntu-latest
 
@@ -270,9 +270,9 @@ jobs:
       - name: Prepare as subdirectory
         run: |
           # prepare kokkos
-          git clone ./tpls/kokkos ./install_test/as_subdirectory/kokkos
+          git clone ./tpls/kokkos ./install_test/as_subdirectory/tpls/kokkos
           # prepare kokkos-fft
-          git clone . ./install_test/as_subdirectory/kokkos-fft
+          git clone . ./install_test/as_subdirectory/tpls/kokkos-fft
 
       - name: Configure and build test project as subdirectory
         run: |
