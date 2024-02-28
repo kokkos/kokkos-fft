@@ -60,48 +60,62 @@ jobs:
         backend:
           - name: openmp
             image: gcc
-            c_compiler: gcc
-            cxx_compiler: g++
-            kokkos_cmake_flags: -DKokkos_ENABLE_OPENMP=ON
-            kokkosfft_cmake_flags: ""
+            compiler:
+              c: gcc
+              cxx: g++
+            cmake_flags:
+              kokkos: -DKokkos_ENABLE_OPENMP=ON
+              kokkos_fft: ""
           - name: threads
             image: gcc
-            c_compiler: gcc
-            cxx_compiler: g++
-            kokkos_cmake_flags: -DKokkos_ENABLE_THREADS=ON
-            kokkosfft_cmake_flags: ""
+            compiler:
+              c: gcc
+              cxx: g++
+            cmake_flags:
+              kokkos: -DKokkos_ENABLE_THREADS=ON
+              kokkos_fft: ""
           - name: serial
             image: gcc
-            c_compiler: gcc
-            cxx_compiler: g++
-            kokkos_cmake_flags: -DKokkos_ENABLE_SERIAL=ON
-            kokkosfft_cmake_flags: ""
+            compiler:
+              c: gcc
+              cxx: g++
+            cmake_flags:
+              kokkos: -DKokkos_ENABLE_SERIAL=ON
+              kokkos_fft: ""
           - name: cuda
             image: nvcc
-            c_compiler: gcc
-            cxx_compiler: g++
-            kokkos_cmake_flags: -DKokkos_ENABLE_CUDA=ON -DKokkos_ARCH_AMPERE80=ON
-            kokkosfft_cmake_flags: ""
+            compiler:
+              c: gcc
+              cxx: g++
+            cmake_flags:
+              kokkos: -DKokkos_ENABLE_CUDA=ON -DKokkos_ARCH_AMPERE80=ON
+              kokkos_fft: ""
           - name: hip
             image: rocm
-            c_compiler: hipcc
-            cxx_compiler: hipcc
-            kokkos_cmake_flags: -DKokkos_ENABLE_HIP=ON -DKokkos_ARCH_VEGA90A=ON
-            kokkosfft_cmake_flags: -DKokkosFFT_ENABLE_ROCFFT=ON
+            compiler:
+              c: hipcc
+              cxx: hipcc
+            cmake_flags:
+              kokkos: -DKokkos_ENABLE_HIP=ON -DKokkos_ARCH_VEGA90A=ON
+              kokkos_fft: -DKokkosFFT_ENABLE_ROCFFT=ON
           - name: rocm
             image: rocm
-            c_compiler: hipcc
-            cxx_compiler: hipcc
-            kokkos_cmake_flags: -DKokkos_ENABLE_HIP=ON -DKokkos_ARCH_VEGA90A=ON
-            kokkosfft_cmake_flags: ""
+            compiler:
+              c: hipcc
+              cxx: hipcc
+            cmake_flags:
+              kokkos: -DKokkos_ENABLE_HIP=ON -DKokkos_ARCH_VEGA90A=ON
+              kokkos_fft: ""
           - name: sycl
             image: intel
-            c_compiler: icx
-            cxx_compiler: icpx
-            # building for Intel PVC was unsuccessful without the proper device
-            # for now on, we simply use Intel GPU generic code
-            kokkos_cmake_flags: -DKokkos_ENABLE_SYCL=ON -DKokkos_ARCH_INTEL_GEN=ON
-            kokkosfft_cmake_flags: ""
+            compiler:
+              c: icx
+              cxx: icpx
+            cmake_flags:
+              # building for Intel PVC was unsuccessful without the proper
+              # device, so for now, we simply generate generic Intel GPU code
+              kokkos: -DKokkos_ENABLE_SYCL=ON -DKokkos_ARCH_INTEL_GEN=ON
+              kokkos_fft: ""
         target:
           - name: native
             cmake_flags: ""
@@ -139,15 +153,15 @@ jobs:
             cmake -B build \
             -DCMAKE_INSTALL_PREFIX=/work/install \
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
-            -DCMAKE_C_COMPILER=${{ matrix.backend.c_compiler }} \
-            -DCMAKE_CXX_COMPILER=${{ matrix.backend.cxx_compiler }} \
+            -DCMAKE_C_COMPILER=${{ matrix.backend.compiler.c }} \
+            -DCMAKE_CXX_COMPILER=${{ matrix.backend.compiler.cxx }} \
             -DCMAKE_CXX_STANDARD=17 \
             -DKokkosFFT_ENABLE_EXAMPLES=ON \
             -DKokkosFFT_ENABLE_TESTS=ON \
             -DKokkosFFT_ENABLE_BENCHMARK=ON \
             -DKokkosFFT_ENABLE_INTERNAL_KOKKOS=ON \
-            ${{ matrix.backend.kokkos_cmake_flags }} \
-            ${{ matrix.backend.kokkosfft_cmake_flags }} \
+            ${{ matrix.backend.cmake_flags.kokkos }} \
+            ${{ matrix.backend.cmake_flags.kokkos_fft }} \
             ${{ matrix.target.cmake_flags }}
 
       - name: Build
@@ -171,8 +185,8 @@ jobs:
       - name: Use KokkosFFT as a subdirectory in a CMake project
         run: |
           docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
-            ./install_test/as_subdirectory/as_subdirectory.sh /tmp ${{env.BUILD_TYPE}} ${{ matrix.backend.c_compiler }} ${{ matrix.backend.cxx_compiler }} \
-            ${{ matrix.backend.kokkosfft_cmake_flags }} ${{ matrix.backend.kokkos_cmake_flags }} ${{ matrix.target.cmake_flags }}
+            ./install_test/as_subdirectory/as_subdirectory.sh /tmp ${{env.BUILD_TYPE}} ${{ matrix.backend.compiler.c }} ${{ matrix.backend.compiler.cxx }} \
+            ${{ matrix.backend.cmake_flags.kokkos_fft }} ${{ matrix.backend.cmake_flags.kokkos }} ${{ matrix.target.cmake_flags }}
         if: ${{ matrix.backend.name == 'rocm' }}
 
       # Install test using pre installed Kokkos
@@ -182,10 +196,10 @@ jobs:
             cmake -B build_kokkos \
             -DCMAKE_INSTALL_PREFIX=/work/lib/kokkos \
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
-            -DCMAKE_C_COMPILER=${{ matrix.backend.c_compiler }} \
-            -DCMAKE_CXX_COMPILER=${{ matrix.backend.cxx_compiler }} \
+            -DCMAKE_C_COMPILER=${{ matrix.backend.compiler.c }} \
+            -DCMAKE_CXX_COMPILER=${{ matrix.backend.compiler.cxx }} \
             -DCMAKE_CXX_STANDARD=17 \
-            ${{ matrix.backend.kokkos_cmake_flags }} tpls/kokkos
+            ${{ matrix.backend.cmake_flags.kokkos }} tpls/kokkos
           docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
             cmake --build build_kokkos -j $(( $(nproc) * 2 + 1 ))
           docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
@@ -198,10 +212,10 @@ jobs:
             -DCMAKE_INSTALL_PREFIX=/work/lib/kokkosFFT \
             -DCMAKE_PREFIX_PATH=/work/lib/kokkos \
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
-            -DCMAKE_C_COMPILER=${{ matrix.backend.c_compiler }} \
-            -DCMAKE_CXX_COMPILER=${{ matrix.backend.cxx_compiler }} \
+            -DCMAKE_C_COMPILER=${{ matrix.backend.compiler.c }} \
+            -DCMAKE_CXX_COMPILER=${{ matrix.backend.compiler.cxx }} \
             -DCMAKE_CXX_STANDARD=17 \
-            ${{ matrix.backend.kokkosfft_cmake_flags }} \
+            ${{ matrix.backend.cmake_flags.kokkos_fft }} \
             ${{ matrix.target.cmake_flags }}
           docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
             cmake --build build_kokkosFFT -j $(( $(nproc) * 2 + 1 ))
@@ -216,8 +230,8 @@ jobs:
             cmake -B build_test \
             -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \
             -DCMAKE_PREFIX_PATH="/work/lib/kokkos;/work/lib/kokkosFFT" \
-            -DCMAKE_C_COMPILER=${{ matrix.backend.c_compiler }} \
-            -DCMAKE_CXX_COMPILER=${{ matrix.backend.cxx_compiler }} \
+            -DCMAKE_C_COMPILER=${{ matrix.backend.compiler.c }} \
+            -DCMAKE_CXX_COMPILER=${{ matrix.backend.compiler.cxx }} \
             -DCMAKE_CXX_STANDARD=17 \
             install_test/as_library
           docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
