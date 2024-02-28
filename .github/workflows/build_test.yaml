@@ -61,7 +61,7 @@ jobs:
 
     strategy:
       matrix:
-        backend:
+        backend: &build_backends
           - name: openmp
             image: gcc
             compiler:
@@ -200,64 +200,8 @@ jobs:
     strategy:
       matrix:
         backend:
-          - name: openmp
-            image: gcc
-            compiler:
-              c: gcc
-              cxx: g++
-            cmake_flags:
-              kokkos: -DKokkos_ENABLE_OPENMP=ON
-              kokkos_fft: ""
-          - name: threads
-            image: gcc
-            compiler:
-              c: gcc
-              cxx: g++
-            cmake_flags:
-              kokkos: -DKokkos_ENABLE_THREADS=ON
-              kokkos_fft: ""
-          - name: serial
-            image: gcc
-            compiler:
-              c: gcc
-              cxx: g++
-            cmake_flags:
-              kokkos: -DKokkos_ENABLE_SERIAL=ON
-              kokkos_fft: ""
-          - name: cuda
-            image: nvcc
-            compiler:
-              c: gcc
-              cxx: g++
-            cmake_flags:
-              kokkos: -DKokkos_ENABLE_CUDA=ON -DKokkos_ARCH_AMPERE80=ON
-              kokkos_fft: ""
-          - name: hip
-            image: rocm
-            compiler:
-              c: hipcc
-              cxx: hipcc
-            cmake_flags:
-              kokkos: -DKokkos_ENABLE_HIP=ON -DKokkos_ARCH_VEGA90A=ON
-              kokkos_fft: -DKokkosFFT_ENABLE_ROCFFT=ON
-          - name: rocm
-            image: rocm
-            compiler:
-              c: hipcc
-              cxx: hipcc
-            cmake_flags:
-              kokkos: -DKokkos_ENABLE_HIP=ON -DKokkos_ARCH_VEGA90A=ON
-              kokkos_fft: ""
-          - name: sycl
-            image: intel
-            compiler:
-              c: icx
-              cxx: icpx
-            cmake_flags:
-              # building for Intel PVC was unsuccessful without the proper
-              # device, so for now, we simply generate generic Intel GPU code
-              kokkos: -DKokkos_ENABLE_SYCL=ON -DKokkos_ARCH_INTEL_GEN=ON
-              kokkos_fft: ""
+          # use the same backends matrix as the `build` job
+          <<: *build_backends
 
     steps:
 
