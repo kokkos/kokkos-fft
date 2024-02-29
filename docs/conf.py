@@ -62,11 +62,11 @@ if read_the_docs_build:
     cwd = os.getcwd()
     print(cwd)
 
-    src_dir = cwd + '/..'
-    input_dir = cwd + '/../fft/src/'
-    output_dir = cwd +'/doxygen/'
-    doxyfile_in = cwd + '/Doxyfile.in'
-    doxyfile_out = cwd + '/Doxyfile'
+    src_dir = f'{cwd}/..'
+    input_dir = f'{cwd}/../fft/src/ {cwd}/../common/src/'
+    output_dir = f'{cwd}/doxygen/'
+    doxyfile_in = f'{cwd}/Doxyfile.in'
+    doxyfile_out = f'{cwd}/Doxyfile'
     configureDoxyfile(src_dir, input_dir, output_dir, doxyfile_in, doxyfile_out)
     subprocess.call('pwd; ls -lat; doxygen Doxyfile; ls -lat doxygen/xml', shell=True)
     breathe_projects[project] = output_dir + '/xml'
