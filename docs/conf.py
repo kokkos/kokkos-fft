@@ -63,7 +63,7 @@ if read_the_docs_build:
     print(cwd)
 
     src_dir = f'{cwd}/..'
-    input_dir = f'{cwd}/../fft/src/ \\\n {cwd}/../common/src/'
+    input_dir = f'{cwd}/../fft/src/' + os.linesep + '{cwd}/../common/src/'
     output_dir = f'{cwd}/doxygen/'
     doxyfile_in = f'{cwd}/Doxyfile.in'
     doxyfile_out = f'{cwd}/Doxyfile'
