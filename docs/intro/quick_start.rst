@@ -76,7 +76,7 @@ Trying
 ------
 
 For those who are familiar with `numpy.fft <https://numpy.org/doc/stable/reference/routines.fft.html>`_, 
-you may use KokkosFFT quite easily. Here is an example for 1D real to complex transform with rfft in python and KokkosFFT.
+you may use KokkosFFT quite easily. Here is an example for 1D real to complex transform with ``rfft`` in python and KokkosFFT.
 
 .. code-block:: python
 

@@ -63,7 +63,8 @@ The code can be built as
 .. code-block:: bash
 
     mkdir build && cd build
-    cmake -DCMAKE_PREFIX_PATH="<install_dir>/kokkos;<install_dir>/kokkos_fft" ..
+    cmake -DCMAKE_CXX_COMPILER=icpx \
+          -DCMAKE_PREFIX_PATH="<install_dir>/kokkos;<install_dir>/kokkosFFT" ..
     cmake --build . -j 8
 
 CMake options
@@ -97,6 +98,9 @@ However, to enable this option, we need a pre-installed ``fftw`` for FFT on host
      - OFF
    * - ``KokkosFFT_ENABLE_BENCHMARK``
      - Build benchmarks for KokkosFFT
+     - OFF
+   * - ``KokkosFFT_ENABLE_ROCFFT``
+     - Use `rocfft <https://github.com/ROCm/rocFFT>`_ for HIP backend
      - OFF
 
 Kokkos backends
@@ -136,7 +140,7 @@ We may support experimental backends like ``OPENMPTARGET`` in the future.
      - ``cufft``
    * - ``Kokkos_ENABLE_HIP``
      - HIP backend targeting AMD GPUs
-     - ``hipfft``
+     - ``hipfft`` or ``rocfft``
    * - ``Kokkos_ENABLE_SYCL``
      - SYCL backend targeting Intel GPUs
      - ``oneMKL``
