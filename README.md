@@ -5,7 +5,7 @@
 
 UNOFFICIAL FFT interfaces for Kokkos C++ Performance Portability Programming EcoSystem
 
-KokkosFFT implements local interfaces between [Kokkos](https://github.com/kokkos/kokkos) and de facto standard FFT libraries, including [fftw](http://www.fftw.org), [cufft](https://developer.nvidia.com/cufft), [hipfft](https://github.com/ROCm/hipFFT), and [oneMKL](https://spec.oneapi.io/versions/latest/elements/oneMKL/source/index.html). "Local" means not using MPI, or running within a single MPI process without knowing about MPI. We are inclined to implement the [numpy.fft](https://numpy.org/doc/stable/reference/routines.fft.html)-like interfaces adapted for [Kokkos](https://github.com/kokkos/kokkos).
+KokkosFFT implements local interfaces between [Kokkos](https://github.com/kokkos/kokkos) and de facto standard FFT libraries, including [fftw](http://www.fftw.org), [cufft](https://developer.nvidia.com/cufft), [hipfft](https://github.com/ROCm/hipFFT) ([rocfft](https://github.com/ROCm/rocFFT)), and [oneMKL](https://spec.oneapi.io/versions/latest/elements/oneMKL/source/index.html). "Local" means not using MPI, or running within a single MPI process without knowing about MPI. We are inclined to implement the [numpy.fft](https://numpy.org/doc/stable/reference/routines.fft.html)-like interfaces adapted for [Kokkos](https://github.com/kokkos/kokkos).
 A key concept is that **"As easy as numpy, as fast as vendor libraries"**. Accordingly, our API follows the API by [numpy.fft](https://numpy.org/doc/stable/reference/routines.fft.html) with minor differences. A fft library dedicated to Kokkos Device backend (e.g. [cufft](https://developer.nvidia.com/cufft) for CUDA backend) is automatically used. If something is wrong with runtime values (say `View` extents), it will raise runtime errors (C++ exceptions or assertions). See [documentations](https://kokkosfft.readthedocs.io/) for more information.
 
 Here is an example for 1D real to complex transform with `rfft` in python and KokkosFFT.
@@ -60,7 +60,7 @@ Kokkos::fill_random(x, random_pool, 1);
 Kokkos::fence();
 
 int axis = -1;
-KokkosFFT::rfft(execution_space(), x, x_hat, KokkosFFT::FFT_Normalization::BACKWARD, axis); // FFT along -1 axis and batched along 0th axis
+KokkosFFT::rfft(execution_space(), x, x_hat, KokkosFFT::Normalization::backward, axis); // FFT along -1 axis and batched along 0th axis
 ```
 
 In this example, the 1D batched `rfft` over 2D View along `axis -1` is executed. Some basic examples are found in [examples](https://github.com/CExA-project/kokkos-fft/tree/main/examples).
@@ -111,11 +111,10 @@ cmake -DCMAKE_CXX_COMPILER=g++ \
 This way, all the functionalities are executed on A100 GPUs.
 
 ### Install as a library
-Is is assumed that the Kokkos is installed under `<install_dir>/kokkos` with OpenMP backend. Here is a recipe to install KokkosFFT under `<install_dir>/kokkos_fft`.
+Is is assumed that the Kokkos is installed under `<install_dir>/kokkos` with OpenMP backend. Here is a recipe to install KokkosFFT under `<install_dir>/kokkosFFT`.
 
 ```bash
 export KOKKOSFFT_INSTALL_PREFIX=<lib_dir>/kokkosFFT
-export KokkosFFT_DIR=<lib_dir>/kokkosFFT/lib64/cmake/kokkos-fft
 
 mkdir build_KokkosFFT && cd build_KokkosFFT
 cmake -DCMAKE_CXX_COMPILER=icpx \
@@ -148,7 +147,8 @@ target_link_libraries(hello-kokkos-fft PUBLIC Kokkos::kokkos KokkosFFT::fft)
 The code can be built as
 ```bash
 mkdir build && cd build
-cmake -DCMAKE_PREFIX_PATH="<install_dir>/kokkos;<install_dir>/kokkos_fft" ..
+cmake -DCMAKE_CXX_COMPILER=icpx \
+      -DCMAKE_PREFIX_PATH="<install_dir>/kokkos;<install_dir>/kokkosFFT" ..
 cmake --build . -j 8
 ```
 
