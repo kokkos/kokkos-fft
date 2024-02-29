@@ -83,10 +83,10 @@ Normalization
 
 After the transform, normalization can be applied by setting the ``norm`` argument. We have four options:
 
-* ``forward``: :math:`1/n` scaling for forward transform
-* ``backward``: :math:`1/n` scaling for backward transform (default)
-* ``ortho``: :math:`1/\sqrt{n}` scaling for both forward and backward transform
-* ``none``: No scaling
+* ``KokkosFFT::Normalization::forward``: :math:`1/n` scaling for forward transform
+* ``KokkosFFT::Normalization::backward``: :math:`1/n` scaling for backward transform (default)
+* ``KokkosFFT::Normalization::ortho``: :math:`1/\sqrt{n}` scaling for both forward and backward transform
+* ``KokkosFFT::Normalization::none``: No scaling
 
 For users who already have own normalization functions, please specify ``none`` option.
 
