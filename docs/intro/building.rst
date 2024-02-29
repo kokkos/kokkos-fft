@@ -22,7 +22,7 @@ However, we have not tested all the listed compilers there and thus recommend th
 Install KokkosFFT as a library
 ------------------------------
 
-Is is assumed that Kokkos is installed under ``<install_dir>/kokkos`` with OpenMP backend. Here is a recipe to install KokkosFFT under ``<install_dir>/kokkos_fft``.
+Is is assumed that Kokkos is installed under ``<install_dir>/kokkos`` with OpenMP backend. Here is a recipe to install KokkosFFT under ``<install_dir>/kokkosFFT``.
 
 .. code-block:: bash
 
