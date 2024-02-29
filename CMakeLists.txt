@@ -28,17 +28,13 @@ set(KOKKOSFFT_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
 set(KOKKOSFFT_VERSION_MINOR ${PROJECT_VERSION_MINOR})
 set(KOKKOSFFT_VERSION_PATCH ${PROJECT_VERSION_PATCH})
 
-set(KOKKOS_REQUIRED_VERSION "4.2.00")
+set(KOKKOS_REQUIRED_VERSION 4.2.0)
 
 if (NOT KokkosFFT_ENABLE_INTERNAL_KOKKOS)
     # First check, Kokkos is added as subdirectory or not
     if(NOT TARGET Kokkos::kokkos)
-        find_package(Kokkos REQUIRED)
+        find_package(Kokkos ${KOKKOS_REQUIRED_VERSION} REQUIRED)
     endif()
-
-    # Kokkos version check
-    include(Kokkos_Version_Check)
-    check_minimum_required_kokkos(${KOKKOS_REQUIRED_VERSION})
 else ()
     add_subdirectory(tpls/kokkos)
 endif ()
