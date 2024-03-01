@@ -3,18 +3,13 @@
 [![CI](https://github.com/CExA-project/kokkos-fft/actions/workflows/build_test.yaml/badge.svg)](https://github.com/CExA-project/kokkos-fft/actions)
 [![docs](https://readthedocs.org/projects/kokkosfft/badge/?version=latest)](https://kokkosfft.readthedocs.io/en/latest/?badge=latest)
 
-UNOFFICIAL FFT interfaces for Kokkos C++ Performance Portability Programming EcoSystem
+> [!WARNING]
+> UNOFFICIAL FFT interfaces for Kokkos C++ Performance Portability Programming EcoSystem
 
 KokkosFFT implements local interfaces between [Kokkos](https://github.com/kokkos/kokkos) and de facto standard FFT libraries, including [fftw](http://www.fftw.org), [cufft](https://developer.nvidia.com/cufft), [hipfft](https://github.com/ROCm/hipFFT) ([rocfft](https://github.com/ROCm/rocFFT)), and [oneMKL](https://spec.oneapi.io/versions/latest/elements/oneMKL/source/index.html). "Local" means not using MPI, or running within a single MPI process without knowing about MPI. We are inclined to implement the [numpy.fft](https://numpy.org/doc/stable/reference/routines.fft.html)-like interfaces adapted for [Kokkos](https://github.com/kokkos/kokkos).
 A key concept is that **"As easy as numpy, as fast as vendor libraries"**. Accordingly, our API follows the API by [numpy.fft](https://numpy.org/doc/stable/reference/routines.fft.html) with minor differences. A fft library dedicated to Kokkos Device backend (e.g. [cufft](https://developer.nvidia.com/cufft) for CUDA backend) is automatically used. If something is wrong with runtime values (say `View` extents), it will raise runtime errors (C++ exceptions or assertions). See [documentations](https://kokkosfft.readthedocs.io/) for more information.
 
-Here is an example for 1D real to complex transform with `rfft` in python and KokkosFFT.
-```python3
-import numpy as np
-x = np.random.rand(4)
-x_hat = np.fft.rfft(x)
-```
-
+Here is an example for 1D real to complex transform with `rfft` in KokkosFFT.
 ```C++
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Complex.hpp>
@@ -34,15 +29,17 @@ Kokkos::fence();
 KokkosFFT::rfft(execution_space(), x, x_hat);
 ```
 
+This is equivalent to the following python code.
+
+```python3
+import numpy as np
+x = np.random.rand(4)
+x_hat = np.fft.rfft(x)
+```
+
 There are two major differences: [`execution_space`](https://kokkos.org/kokkos-core-wiki/API/core/execution_spaces.html) argument and output value (`x_hat`) is an argument of API (not returned value from API). As imagined, KokkosFFT only accepts [Kokkos Views](https://kokkos.org/kokkos-core-wiki/API/core/View.html) as input data. The accessibilities of Views from `execution_space` are statically checked (compilation errors if not accessible).
 
 Depending on a View dimension, it automatically uses the batched plans as follows
-```python3
-import numpy as np
-x = np.random.rand(4, 8)
-x_hat = np.fft.rfft(x, axis=-1)
-```
-
 ```C++
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Complex.hpp>
@@ -61,6 +58,14 @@ Kokkos::fence();
 
 int axis = -1;
 KokkosFFT::rfft(execution_space(), x, x_hat, KokkosFFT::Normalization::backward, axis); // FFT along -1 axis and batched along 0th axis
+```
+
+This is equivalent to
+
+```python3
+import numpy as np
+x = np.random.rand(4, 8)
+x_hat = np.fft.rfft(x, axis=-1)
 ```
 
 In this example, the 1D batched `rfft` over 2D View along `axis -1` is executed. Some basic examples are found in [examples](https://github.com/CExA-project/kokkos-fft/tree/main/examples).
@@ -108,7 +113,7 @@ cmake -DCMAKE_CXX_COMPILER=g++ \
       -DKokkos_ENABLE_CUDA=ON \
       -DKokkos_ARCH_AMPERE80=ON ..
 ```
-This way, all the functionalities are executed on A100 GPUs. Further installation details are provided in the [documentation](./docs/intro/building.rst).
+This way, all the functionalities are executed on A100 GPUs. For installation, details are provided in the [documentation](https://kokkosfft.readthedocs.io/en/latest/intro/building.html#install-kokkosfft-as-a-library).
 
 ## LICENCE
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)  
