@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 #ifndef KOKKOSFFT_NORMALIZATION_HPP
 #define KOKKOSFFT_NORMALIZATION_HPP
 

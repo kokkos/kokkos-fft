@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 #include <gtest/gtest.h>
 #include <Kokkos_Random.hpp>
 #include <vector>

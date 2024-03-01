@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 #ifndef KOKKOSFFT_CUDA_TRANSFORM_HPP
 #define KOKKOSFFT_CUDA_TRANSFORM_HPP
 

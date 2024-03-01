@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 #ifndef KOKKOSFFT_PERFTEST_FFT1_HPP
 #define KOKKOSFFT_PERFTEST_FFT1_HPP
 

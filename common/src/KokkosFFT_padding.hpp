@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 #ifndef KOKKOSFFT_PADDING_HPP
 #define KOKKOSFFT_PADDING_HPP
 

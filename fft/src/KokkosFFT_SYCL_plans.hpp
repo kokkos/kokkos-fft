@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 #ifndef KOKKOSFFT_SYCL_PLANS_HPP
 #define KOKKOSFFT_SYCL_PLANS_HPP
 

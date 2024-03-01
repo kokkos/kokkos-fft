@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 #ifndef KOKKOSFFT_ROCM_PLANS_HPP
 #define KOKKOSFFT_ROCM_PLANS_HPP
 

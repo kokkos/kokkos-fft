@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 #ifndef KOKKOSFFT_TRANSPOSE_HPP
 #define KOKKOSFFT_TRANSPOSE_HPP
 
