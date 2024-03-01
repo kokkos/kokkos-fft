@@ -22,14 +22,14 @@ However, we have not tested all the listed compilers there and thus recommend th
 Install KokkosFFT as a library
 ------------------------------
 
-Let's assume Kokkos is installed under ``<path/to/kokkos>`` with OpenMP backend. We build and install KokkosFFT under ``<path/to/kokkos-fft>``.
+Let's assume Kokkos is installed under ``<path/to/kokkos>`` with ``OpenMP`` backend. We build and install KokkosFFT under ``<path/to/kokkos-fft>``.
 
 .. code-block:: bash
 
     export KOKKOSFFT_INSTALL_PREFIX=<path/to/kokkos-fft>
 
     mkdir build_KokkosFFT && cd build_KokkosFFT
-    cmake -DCMAKE_CXX_COMPILER=g++ \
+    cmake -DCMAKE_CXX_COMPILER=<your c++ compiler> \
           -DCMAKE_PREFIX_PATH=<path/to/kokkos> \
           -DCMAKE_INSTALL_PREFIX=${KOKKOSFFT_INSTALL_PREFIX} ..
     cmake --build . -j 8
@@ -52,7 +52,7 @@ The `CMakeLists.txt` would be
     cmake_minimum_required(VERSION 3.23)
     project(kokkos-fft-as-library LANGUAGES CXX)
 
-    ind_package(Kokkos CONFIG REQUIRED)
+    find_package(Kokkos CONFIG REQUIRED)
     find_package(KokkosFFT CONFIG REQUIRED)
 
     add_executable(hello-kokkos-fft hello.cpp)
@@ -63,7 +63,7 @@ The code can be built as
 .. code-block:: bash
 
     mkdir build && cd build
-    cmake -DCMAKE_CXX_COMPILER=g++ \
+    cmake -DCMAKE_CXX_COMPILER=<your c++ compiler> \
           -DCMAKE_PREFIX_PATH="<path/to/kokkos>;<path/to/kokkos-fft>" ..
     cmake --build . -j 8
 
