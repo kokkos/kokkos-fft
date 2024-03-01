@@ -30,6 +30,9 @@ If CMake fails to find ``fftw``, please try to set ``FFTWDIR`` in the following 
 `hipfft <https://github.com/ROCm/hipFFT>`_
 ------------------------------------------
 
+`rocfft <https://github.com/ROCm/rocFFT>`_
+------------------------------------------
+
 `oneMKL <https://spec.oneapi.io/versions/latest/elements/oneMKL/source/index.html>`_
 ------------------------------------------------------------------------------------
 

@@ -14,13 +14,7 @@ A FFT library dedicated to Kokkos Device backend (e.g. cufft for CUDA backend) i
 
 KokkosFFT is open source and available on `GitHub <https://github.com/CExA-project/kokkos-fft>`_.
 
-Here is an example for 1D real to complex transform with ``rfft`` in python and KokkosFFT.
-
-.. code-block:: python
-
-   import numpy as np
-   x = np.random.rand(4)
-   x_hat = np.fft.rfft(x)
+Here is an example for 1D real to complex transform with ``rfft`` in KokkosFFT.
 
 .. code-block:: C++
 
@@ -40,6 +34,14 @@ Here is an example for 1D real to complex transform with ``rfft`` in python and 
    Kokkos::fence();
 
    KokkosFFT::rfft(execution_space(), x, x_hat);
+
+   This is equivalent to the following python script.
+
+.. code-block:: python
+
+   import numpy as np
+   x = np.random.rand(4)
+   x_hat = np.fft.rfft(x)
 
 .. note::
 
