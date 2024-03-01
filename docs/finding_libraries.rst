@@ -9,25 +9,28 @@ Some tips to find FFT libraries for each backend.
 -----------------------------
 
 If ``fftw`` is offered as a module, our CMake helper would likely find ``fftw``.
-Assuming ``fftw`` is installed in ``<fftw_install_dir>``, it is expected that ``<fftw_install_dir>`` would be found under ``LIBRARY_PATH``, ``LD_LIBRARY_PATH``, and ``PATH``.
+Assuming ``fftw`` is installed in ``<path/to/fftw>``, it is expected that ``<path/to/fftw>`` would be found under ``LIBRARY_PATH``, ``LD_LIBRARY_PATH``, and ``PATH``.
 It would look like
 
 .. code-block:: bash
 
-    LIBRARY_PATH=...:<fftw_install_dir>/lib
-    LD_LIBRARY_PATH=...:<fftw_install_dir>/lib
-    PATH=...:<fftw_install_dir>/bin
+    LIBRARY_PATH=...:<path/to/fftw>/lib
+    LD_LIBRARY_PATH=...:<path/to/fftw>/lib
+    PATH=...:<path/to/fftw>/bin
 
 If CMake fails to find ``fftw``, please try to set ``FFTWDIR`` in the following way. 
 
 .. code-block:: bash
 
-    export FFTWDIR=<fftw_install_dir>
+    export FFTWDIR=<path/to/fftw>
 
 `cufft <https://developer.nvidia.com/cufft>`_
 ---------------------------------------------
 
 `hipfft <https://github.com/ROCm/hipFFT>`_
+------------------------------------------
+
+`rocfft <https://github.com/ROCm/rocFFT>`_
 ------------------------------------------
 
 `oneMKL <https://spec.oneapi.io/versions/latest/elements/oneMKL/source/index.html>`_

@@ -76,13 +76,7 @@ Trying
 ------
 
 For those who are familiar with `numpy.fft <https://numpy.org/doc/stable/reference/routines.fft.html>`_, 
-you may use KokkosFFT quite easily. Here is an example for 1D real to complex transform with rfft in python and KokkosFFT.
-
-.. code-block:: python
-
-   import numpy as np
-   x = np.random.rand(4)
-   x_hat = np.fft.rfft(x)
+you may use KokkosFFT quite easily. Here is an example for 1D real to complex transform with ``rfft`` in KokkosFFT and python.
 
 .. code-block:: C++
 
@@ -102,6 +96,12 @@ you may use KokkosFFT quite easily. Here is an example for 1D real to complex tr
    Kokkos::fence();
 
    KokkosFFT::rfft(execution_space(), x, x_hat);
+
+.. code-block:: python
+
+   import numpy as np
+   x = np.random.rand(4)
+   x_hat = np.fft.rfft(x)
 
 In most cases, a function ``numpy.fft.<function_name>`` is available by ``KokkosFFT::<function_name>``.
 There are two major differences: ``execution_space`` argument and output value (``x_hat``) is an argument of API (not a returned value from API).

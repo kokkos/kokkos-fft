@@ -22,15 +22,15 @@ However, we have not tested all the listed compilers there and thus recommend th
 Install KokkosFFT as a library
 ------------------------------
 
-Is is assumed that Kokkos is installed under ``<install_dir>/kokkos`` with OpenMP backend. Here is a recipe to install KokkosFFT under ``<install_dir>/kokkos_fft``.
+Let's assume Kokkos is installed under ``<path/to/kokkos>`` with ``OpenMP`` backend. We build and install KokkosFFT under ``<path/to/kokkos-fft>``.
 
 .. code-block:: bash
 
-    export KOKKOSFFT_INSTALL_PREFIX=<install_dir>/kokkosFFT
+    export KOKKOSFFT_INSTALL_PREFIX=<path/to/kokkos-fft>
 
     mkdir build_KokkosFFT && cd build_KokkosFFT
-    cmake -DCMAKE_CXX_COMPILER=icpx \
-          -DCMAKE_PREFIX_PATH=<install_dir>/kokkos \
+    cmake -DCMAKE_CXX_COMPILER=<your c++ compiler> \
+          -DCMAKE_PREFIX_PATH=<path/to/kokkos> \
           -DCMAKE_INSTALL_PREFIX=${KOKKOSFFT_INSTALL_PREFIX} ..
     cmake --build . -j 8
     cmake --install .
@@ -52,7 +52,7 @@ The `CMakeLists.txt` would be
     cmake_minimum_required(VERSION 3.23)
     project(kokkos-fft-as-library LANGUAGES CXX)
 
-    ind_package(Kokkos CONFIG REQUIRED)
+    find_package(Kokkos CONFIG REQUIRED)
     find_package(KokkosFFT CONFIG REQUIRED)
 
     add_executable(hello-kokkos-fft hello.cpp)
@@ -63,7 +63,8 @@ The code can be built as
 .. code-block:: bash
 
     mkdir build && cd build
-    cmake -DCMAKE_PREFIX_PATH="<install_dir>/kokkos;<install_dir>/kokkos_fft" ..
+    cmake -DCMAKE_CXX_COMPILER=<your c++ compiler> \
+          -DCMAKE_PREFIX_PATH="<path/to/kokkos>;<path/to/kokkos-fft>" ..
     cmake --build . -j 8
 
 CMake options
@@ -97,6 +98,9 @@ However, to enable this option, we need a pre-installed ``fftw`` for FFT on host
      - OFF
    * - ``KokkosFFT_ENABLE_BENCHMARK``
      - Build benchmarks for KokkosFFT
+     - OFF
+   * - ``KokkosFFT_ENABLE_ROCFFT``
+     - Use `rocfft <https://github.com/ROCm/rocFFT>`_ for HIP backend
      - OFF
 
 Kokkos backends
@@ -136,7 +140,7 @@ We may support experimental backends like ``OPENMPTARGET`` in the future.
      - ``cufft``
    * - ``Kokkos_ENABLE_HIP``
      - HIP backend targeting AMD GPUs
-     - ``hipfft``
+     - ``hipfft`` or ``rocfft``
    * - ``Kokkos_ENABLE_SYCL``
      - SYCL backend targeting Intel GPUs
      - ``oneMKL``

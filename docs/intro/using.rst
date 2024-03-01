@@ -78,6 +78,18 @@ since we have not tested with static shaped Views. In addition, we have not test
 
    For the moment, ``Kokkos::LayoutStride`` is not allowed. This may be relaxed in the future.
 
+Normalization
+-------------
+
+After the transform, normalization can be applied by setting the ``norm`` argument. We have four options:
+
+* ``KokkosFFT::Normalization::forward``: :math:`1/n` scaling for forward transform
+* ``KokkosFFT::Normalization::backward``: :math:`1/n` scaling for backward transform (default)
+* ``KokkosFFT::Normalization::ortho``: :math:`1/\sqrt{n}` scaling for both forward and backward transform
+* ``KokkosFFT::Normalization::none``: No scaling
+
+For users who already have own normalization functions, please specify ``none`` option.
+
 Memory consmpution
 ------------------
 
