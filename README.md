@@ -108,49 +108,7 @@ cmake -DCMAKE_CXX_COMPILER=g++ \
       -DKokkos_ENABLE_CUDA=ON \
       -DKokkos_ARCH_AMPERE80=ON ..
 ```
-This way, all the functionalities are executed on A100 GPUs.
-
-### Install as a library
-Is is assumed that the Kokkos is installed under `<install_dir>/kokkos` with OpenMP backend. Here is a recipe to install KokkosFFT under `<install_dir>/kokkosFFT`.
-
-```bash
-export KOKKOSFFT_INSTALL_PREFIX=<lib_dir>/kokkosFFT
-
-mkdir build_KokkosFFT && cd build_KokkosFFT
-cmake -DCMAKE_CXX_COMPILER=icpx \
-      -DCMAKE_INSTALL_PREFIX=${KOKKOSFFT_INSTALL_PREFIX} ..
-cmake --build . -j 8
-cmake --install .
-```
-
-Here is an example to use KokkosFFT in the following CMake project.
-```
----/
- |
- └──<project_directory>/
-    |--CMakeLists.txt
-    └──hello.cpp
-```
-
-The `CMakeLists.txt` would be
-```CMake
-cmake_minimum_required(VERSION 3.23)
-project(kokkos-fft-as-library LANGUAGES CXX)
-
-find_package(Kokkos CONFIG REQUIRED)
-find_package(KokkosFFT CONFIG REQUIRED)
-
-add_executable(hello-kokkos-fft hello.cpp)
-target_link_libraries(hello-kokkos-fft PUBLIC Kokkos::kokkos KokkosFFT::fft)
-```
-
-The code can be built as
-```bash
-mkdir build && cd build
-cmake -DCMAKE_CXX_COMPILER=icpx \
-      -DCMAKE_PREFIX_PATH="<install_dir>/kokkos;<install_dir>/kokkosFFT" ..
-cmake --build . -j 8
-```
+This way, all the functionalities are executed on A100 GPUs. Further installation details are provided in the [documentation](./docs/intro/building.rst).
 
 ## LICENCE
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)  
