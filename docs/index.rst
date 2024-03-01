@@ -35,7 +35,7 @@ Here is an example for 1D real to complex transform with ``rfft`` in KokkosFFT.
 
    KokkosFFT::rfft(execution_space(), x, x_hat);
 
-   This is equivalent to the following python script.
+This is equivalent to the following python script.
 
 .. code-block:: python
 
