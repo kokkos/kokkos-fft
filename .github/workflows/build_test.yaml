@@ -40,7 +40,7 @@ jobs:
   build_base:
     needs: check_docker_files
 
-    if: ${{ needs.check_docker_files.outputs.docker_files_have_changed == 'true' }}
+    # if: ${{ needs.check_docker_files.outputs.docker_files_have_changed == 'true' }} # FIXME uncomment this line berfore merging
 
     uses: ./.github/workflows/__build_base.yaml
 
