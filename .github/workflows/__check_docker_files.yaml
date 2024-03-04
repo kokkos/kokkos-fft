@@ -1,5 +1,5 @@
-# Check if Docker images have changed. In that case, proposes images suffix and
-# tag.
+# Check if Docker images have changed. In that case, propose images tag. This
+# workflow can only be invoked through another workflow, or manually.
 
 name: Check Docker files
 
@@ -15,9 +15,6 @@ on:
       docker_files_have_changed:
         description: "True if any Docker file was modified"
         value: ${{ jobs.check_docker_files.outputs.docker_files_have_changed }}
-      image_suffix:
-        description: "Suffix of the images"
-        value: ${{ jobs.check_docker_files.outputs.image_suffix }}
       image_tag:
         description: "Tag of the images"
         value: ${{ jobs.check_docker_files.outputs.image_tag }}
@@ -29,12 +26,9 @@ jobs:
     outputs:
       # true if any Docker file was modified in the PR (PR mode) or since last pushed commit (push mode)
       docker_files_have_changed: ${{ steps.get_changed_docker_files.outputs.any_changed == 'true' }}
-      # use "pr" as image name suffix if on PR mode and if any Docker file was modified, otherwise use "main";
-      # this is intended to avoid a PR to alter Docker images for other PRs or for the main branch
-      image_suffix: ${{ steps.get_changed_docker_files.outputs.any_changed == 'true' && inputs.event_name == 'pull_request' && 'pr' || 'main' }}
-      # use "<hash>" as image name tag if on PR mode and if any Docker file was modified, otherwise use "latest";
+      # use "<hash>" as image name tag if on PR mode and if any Docker file was modified, otherwise use "main";
       # this is intended to distinguish PR images from each other
-      image_tag: ${{ steps.get_changed_docker_files.outputs.any_changed == 'true' && inputs.event_name == 'pull_request' && github.sha || 'latest' }}
+      image_tag: ${{ steps.get_changed_docker_files.outputs.any_changed == 'true' && inputs.event_name == 'pull_request' && github.sha || 'main' }}
 
     steps:
       - uses: actions/checkout@v4
