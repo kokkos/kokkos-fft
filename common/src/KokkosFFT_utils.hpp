@@ -87,16 +87,6 @@ auto convert_negative_shift(const ViewType& view, int _shift, int _axis) {
 }
 
 template <typename T>
-void permute(std::vector<T>& values, const std::vector<std::size_t>& indices) {
-  std::vector<T> out;
-  out.reserve(indices.size());
-  for (auto index : indices) {
-    out.push_back(values.at(index));
-  }
-  values = std::move(out);
-}
-
-template <typename T>
 bool is_found(std::vector<T>& values, const T& key) {
   return std::find(values.begin(), values.end(), key) != values.end();
 }
