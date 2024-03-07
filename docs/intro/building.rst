@@ -28,12 +28,12 @@ Let's assume Kokkos is installed under ``<path/to/kokkos>`` with ``OpenMP`` back
 
     export KOKKOSFFT_INSTALL_PREFIX=<path/to/kokkos-fft>
 
-    mkdir build_KokkosFFT && cd build_KokkosFFT
-    cmake -DCMAKE_CXX_COMPILER=<your c++ compiler> \
+    cmake -B build_KokkosFFT \
+          -DCMAKE_CXX_COMPILER=<your c++ compiler> \
           -DCMAKE_PREFIX_PATH=<path/to/kokkos> \
-          -DCMAKE_INSTALL_PREFIX=${KOKKOSFFT_INSTALL_PREFIX} ..
-    cmake --build . -j 8
-    cmake --install .
+          -DCMAKE_INSTALL_PREFIX=${KOKKOSFFT_INSTALL_PREFIX}
+    cmake --build build_KokkosFFT -j 8
+    cmake --install build_KokkosFFT
 
 Here is an example to use KokkosFFT in the following CMake project.
 
@@ -62,10 +62,10 @@ The code can be built as
 
 .. code-block:: bash
 
-    mkdir build && cd build
-    cmake -DCMAKE_CXX_COMPILER=<your c++ compiler> \
-          -DCMAKE_PREFIX_PATH="<path/to/kokkos>;<path/to/kokkos-fft>" ..
-    cmake --build . -j 8
+    cmake -B build \
+          -DCMAKE_CXX_COMPILER=<your c++ compiler> \
+          -DCMAKE_PREFIX_PATH="<path/to/kokkos>;<path/to/kokkos-fft>"
+    cmake --build build -j 8
 
 CMake options
 -------------
