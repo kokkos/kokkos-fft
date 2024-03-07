@@ -106,12 +106,14 @@ add_executable(hello-kokkos-fft hello.cpp)
 target_link_libraries(hello-kokkos-fft PUBLIC Kokkos::kokkos KokkosFFT::fft)
 ```
 
-For compilation, we basically rely on the CMake options for Kokkos. For example, the configure options for A100 GPU is as follows.
+For compilation, we basically rely on the CMake options for Kokkos. For example, the compile options for A100 GPU is as follows.
 ```
-cmake -DCMAKE_CXX_COMPILER=g++ \
+cmake -B build
+      -DCMAKE_CXX_COMPILER=g++ \
       -DCMAKE_BUILD_TYPE=Release \
       -DKokkos_ENABLE_CUDA=ON \
-      -DKokkos_ARCH_AMPERE80=ON ..
+      -DKokkos_ARCH_AMPERE80=ON
+cmake --build build -j 8
 ```
 This way, all the functionalities are executed on A100 GPUs. For installation, details are provided in the [documentation](https://kokkosfft.readthedocs.io/en/latest/intro/building.html#install-kokkosfft-as-a-library).
 
