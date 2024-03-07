@@ -63,12 +63,12 @@ For compilation, we basically rely on the CMake options for Kokkos. For example,
 
 .. code-block:: bash
 
-    mkdir build && cd build
-    cmake -DCMAKE_CXX_COMPILER=g++ \
+    cmake -B build \
+          -DCMAKE_CXX_COMPILER=g++ \
           -DCMAKE_BUILD_TYPE=Release \
           -DKokkos_ENABLE_CUDA=ON \
-          -DKokkos_ARCH_AMPERE80=ON ..
-    cmake --build . -j 8
+          -DKokkos_ARCH_AMPERE80=ON
+    cmake --build build -j 8
 
 This way, all the functionalities are executed on A100 GPUs.
 
