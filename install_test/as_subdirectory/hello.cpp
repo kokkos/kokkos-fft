@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Complex.hpp>
 #include <Kokkos_Random.hpp>

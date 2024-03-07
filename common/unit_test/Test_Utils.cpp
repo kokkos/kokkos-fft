@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 #include <gtest/gtest.h>
 #include "KokkosFFT_utils.hpp"
 #include "Test_Types.hpp"

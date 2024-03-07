@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 #ifndef KOKKOSFFT_HELPERS_HPP
 #define KOKKOSFFT_HELPERS_HPP
 

@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 #ifndef KOKKOSFFT_HIP_TYPES_HPP
 #define KOKKOSFFT_HIP_TYPES_HPP
 

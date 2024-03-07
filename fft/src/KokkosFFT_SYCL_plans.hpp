@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 #ifndef KOKKOSFFT_SYCL_PLANS_HPP
 #define KOKKOSFFT_SYCL_PLANS_HPP
 
@@ -35,65 +37,6 @@ auto compute_strides(std::vector<InType>& extents) -> std::vector<OutType> {
   std::reverse(out.begin(), out.end());
 
   return out;
-}
-
-// ND transform
-template <
-    typename ExecutionSpace, typename PlanType, typename InViewType,
-    typename OutViewType, typename BufferViewType, typename InfoType,
-    std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::Experimental::SYCL>,
-                     std::nullptr_t> = nullptr>
-auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
-             const InViewType& in, const OutViewType& out,
-             [[maybe_unused]] BufferViewType& buffer,
-             [[maybe_unused]] InfoType& execution_info,
-             [[maybe_unused]] Direction direction) {
-  static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::_create: InViewType is not a Kokkos::View.");
-  static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::_create: OutViewType is not a Kokkos::View.");
-  using in_value_type  = typename InViewType::non_const_value_type;
-  using out_value_type = typename OutViewType::non_const_value_type;
-
-  const int rank    = InViewType::rank();
-  const int axis    = -1;
-  const int howmany = 1;
-  constexpr auto type =
-      KokkosFFT::Impl::transform_type<ExecutionSpace, in_value_type,
-                                      out_value_type>::type();
-  auto [in_extents, out_extents, fft_extents] =
-      KokkosFFT::Impl::get_extents(in, out, axis);
-  int idist    = std::accumulate(in_extents.begin(), in_extents.end(), 1,
-                              std::multiplies<>());
-  int odist    = std::accumulate(out_extents.begin(), out_extents.end(), 1,
-                              std::multiplies<>());
-  int fft_size = std::accumulate(fft_extents.begin(), fft_extents.end(), 1,
-                                 std::multiplies<>());
-
-  auto* idata = reinterpret_cast<typename KokkosFFT::Impl::fft_data_type<
-      ExecutionSpace, in_value_type>::type*>(in.data());
-  auto* odata = reinterpret_cast<typename KokkosFFT::Impl::fft_data_type<
-      ExecutionSpace, out_value_type>::type*>(out.data());
-  auto sign   = KokkosFFT::Impl::direction_type<ExecutionSpace>(direction);
-
-  // Create plan
-  auto in_strides   = compute_strides<int, std::int64_t>(in_extents);
-  auto out_strides  = compute_strides<int, std::int64_t>(out_extents);
-  auto _fft_extents = convert_int_type<int, std::int64_t>(fft_extents);
-
-  plan = std::make_unique<PlanType>(_fft_extents);
-  plan->set_value(oneapi::mkl::dft::config_param::INPUT_STRIDES,
-                  in_strides.data());
-  plan->set_value(oneapi::mkl::dft::config_param::OUTPUT_STRIDES,
-                  out_strides.data());
-  plan->set_value(oneapi::mkl::dft::config_param::PLACEMENT, DFTI_NOT_INPLACE);
-  plan->set_value(oneapi::mkl::dft::config_param::CONJUGATE_EVEN_STORAGE,
-                  DFTI_COMPLEX_COMPLEX);
-
-  sycl::queue q = exec_space.sycl_queue();
-  plan->commit(q);
-
-  return fft_size;
 }
 
 // batched transform, over ND Views

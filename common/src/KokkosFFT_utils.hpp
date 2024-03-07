@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 #ifndef KOKKOSFFT_UTILS_HPP
 #define KOKKOSFFT_UTILS_HPP
 
@@ -82,16 +84,6 @@ auto convert_negative_shift(const ViewType& view, int _shift, int _axis) {
   }
 
   return std::tuple<int, int, int>({shift0, shift1, shift2});
-}
-
-template <typename T>
-void permute(std::vector<T>& values, const std::vector<std::size_t>& indices) {
-  std::vector<T> out;
-  out.reserve(indices.size());
-  for (auto index : indices) {
-    out.push_back(values.at(index));
-  }
-  values = std::move(out);
 }
 
 template <typename T>

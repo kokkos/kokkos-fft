@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 #ifndef KOKKOSFFT_LAYOUTS_HPP
 #define KOKKOSFFT_LAYOUTS_HPP
 

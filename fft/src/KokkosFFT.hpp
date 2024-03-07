@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 #ifndef KOKKOS_FFT_HPP
 #define KOKKOS_FFT_HPP
 

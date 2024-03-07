@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 #include "PerfTest_FFT1.hpp"
 
 namespace KokkosFFTBenchmark {

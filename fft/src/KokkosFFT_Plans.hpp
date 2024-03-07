@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 /// \file KokkosFFT_Plans.hpp
 /// \brief Wrapping fft plans of different fft libraries
 ///
