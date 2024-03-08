@@ -1,0 +1,2 @@
+add_executable(06_1DFFT_reuse_plans 06_1DFFT_reuse_plans.cpp)
+target_link_libraries(06_1DFFT_reuse_plans PUBLIC KokkosFFT::fft)
