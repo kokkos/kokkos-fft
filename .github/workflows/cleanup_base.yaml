@@ -1,0 +1,31 @@
+# Clean old Docker and Singularity images that are too old periodically or
+# manually.
+
+name: Cleanup base images
+
+on:
+  schedule:
+    - cron: "0 3 2,16 * *" # every 2nd and 16th of the month at 3am UTC
+  workflow_dispatch:
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Cleanup old images
+        uses: SmartsquareGmbH/delete-old-packages@v0.7.0
+        with:
+          organization: cexa-project
+          type: container
+          names: |
+            kokkos-fft/base_nvcc_main
+            kokkos-fft/base_nvcc_pr
+            kokkos-fft/base_nvcc_singularity_main
+            kokkos-fft/base_nvcc_singularity_pr
+            kokkos-fft/base_rocm_main
+            kokkos-fft/base_rocm_pr
+            kokkos-fft/base_gcc_main
+            kokkos-fft/base_gcc_pr
+            kokkos-fft/base_intel_main
+            kokkos-fft/base_intel_pr

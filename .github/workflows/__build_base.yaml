@@ -1,0 +1,84 @@
+# Generate base images for each compiler environment. Images are stored on
+# Github registry as Docker format inconditionnaly and as Singularity format
+# only if requested.  Docker images are used for building Kokkos FFT, while
+# Singularity images are used for test execution on the righteous hardware.
+# This workflow can only be invoked through another workflows.
+
+name: Build base images
+
+on:
+  workflow_call:
+    inputs:
+      image_suffix:
+        description: "Suffix of the Docker and Singularity images"
+        required: false
+        default: main
+        type: string
+      image_tag:
+        description: "Tag of the Docker and Singularity images"
+        required: false
+        default: latest
+        type: string
+
+env:
+  # Force the use of BuildKit for Docker
+  DOCKER_BUILDKIT: 1
+
+jobs:
+  build_base:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        image:
+          - name: gcc
+            use_singularity: false
+          - name: nvcc
+            use_singularity: true
+          - name: rocm
+            use_singularity: false
+          - name: intel
+            use_singularity: false
+
+    steps:
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@v1.2.0
+        with:
+          tool-cache: true
+          large-packages: false
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get Singularity
+        env:
+          SINGULARITY_VERSION: 3.11.2
+        run: |
+          wget https://github.com/sylabs/singularity/releases/download/v${{ env.SINGULARITY_VERSION }}/singularity-ce_${{ env.SINGULARITY_VERSION }}-jammy_amd64.deb
+          sudo apt-get install ./singularity-ce_${{ env.SINGULARITY_VERSION }}-jammy_amd64.deb
+
+      - name: Login in GitHub Containers Repository with Docker
+        run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Login in GitHub Containers Repository with Singularity
+        run: echo ${{ secrets.GITHUB_TOKEN }} | singularity remote login -u ${{ github.actor }} --password-stdin oras://ghcr.io
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            -t ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.image.name }}_${{ inputs.image_suffix }}:${{ inputs.image_tag }} \
+            --cache-from ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.image.name }}_main:latest \
+            --build-arg BUILDKIT_INLINE_CACHE=1 \
+            --progress=plain \
+            docker/${{ matrix.image.name }}
+
+      - name: Push Docker image
+        run: docker push ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.image.name }}_${{ inputs.image_suffix }}:${{ inputs.image_tag }}
+
+      - name: Convert Docker image to Singularity
+        run: singularity build base.sif docker://ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.image.name }}_${{ inputs.image_suffix }}:${{ inputs.image_tag }}
+        if: ${{ matrix.image.use_singularity }}
+
+      - name: Push Singularity image
+        run: singularity push base.sif oras://ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.image.name }}_singularity_${{ inputs.image_suffix }}:${{ inputs.image_tag }}
+        if: ${{ matrix.image.use_singularity }}

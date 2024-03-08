@@ -1,0 +1,40 @@
+@PACKAGE_INIT@
+
+# Set and Check must go first else macro might be redefined by find_dependency ...
+set_and_check(KokkosFFT_TARGET_FILE
+"${PACKAGE_PREFIX_DIR}/@LIBDIR@/@KokkosFFT_EXPORT_TARGET@.cmake")
+
+include(CMakeFindDependencyMacro)
+list(INSERT CMAKE_MODULE_PATH 0 "${PACKAGE_PREFIX_DIR}/@LIBDIR@")
+find_dependency(Kokkos)
+
+if(@Kokkos_ENABLE_CUDA@)
+   find_dependency(CUDAToolkit COMPONENTS cufft)
+   if(@KokkosFFT_ENABLE_HOST_AND_DEVICE@)
+      find_dependency(FFTW MODULE)
+   endif()
+elseif(@Kokkos_ENABLE_HIP@)
+   if(@KokkosFFT_ENABLE_ROCFFT@)
+      find_dependency(rocfft)
+   else()
+      find_dependency(hipfft)
+   endif()
+   if(@KokkosFFT_ENABLE_HOST_AND_DEVICE@)
+      find_dependency(FFTW MODULE)
+   endif()
+elseif(@Kokkos_ENABLE_SYCL@)
+   find_dependency(MKL COMPONENTS SYCL)
+   if(@KokkosFFT_ENABLE_HOST_AND_DEVICE@)
+      find_dependency(FFTW MODULE)
+   endif()
+elseif(@Kokkos_ENABLE_OPENMP@)
+   find_dependency(FFTW MODULE)
+elseif(@Kokkos_ENABLE_THREADS@)
+   find_dependency(FFTW MODULE)
+elseif(@Kokkos_ENABLE_SERIAL@)
+   find_dependency(FFTW MODULE)
+endif()
+
+include(${KokkosFFT_TARGET_FILE})
+
+check_required_components(KokkosFFT)
