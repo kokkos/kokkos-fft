@@ -23,7 +23,7 @@ Here are list of compilers we frequently use for testing.
 
 * ``gcc 8.3.0+`` - CPUs
 * ``IntelLLVM 2023.0.0+`` - CPUs, Intel GPUs
-* ``nvcc 12.0.0+`` - NVIDIA GPUs
+* ``nvcc 11.0.0+`` - NVIDIA GPUs
 * ``rocm 5.3.0+`` - AMD GPUs
 
 Building
