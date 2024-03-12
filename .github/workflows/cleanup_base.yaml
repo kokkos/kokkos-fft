@@ -16,7 +16,7 @@ jobs:
       - name: Cleanup old images
         uses: SmartsquareGmbH/delete-old-packages@v0.7.0
         with:
-          organization: cexa-project
+          organization: kokkos
           type: container
           names: |
             kokkos-fft/base_nvcc_main
