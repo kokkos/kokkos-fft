@@ -127,5 +127,6 @@ cmake --build build -j 8
 This way, all the functionalities are executed on A100 GPUs. For installation, details are provided in the [documentation](https://kokkosfft.readthedocs.io/en/latest/intro/building.html#install-kokkosfft-as-a-library).
 
 ## LICENCE
-[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)  
-Kokkos-fft is under the Apache License v2.0 with LLVM Exceptions.
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)  
+Kokkos-fft is under the Apache License v2.0 with LLVM Exceptions or the MIT License.
