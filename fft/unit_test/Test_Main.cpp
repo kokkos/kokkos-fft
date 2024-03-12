@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception OR MIT
 
 //@HEADER
 // ************************************************************************
@@ -12,7 +12,7 @@
 //
 // Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
 // See https://kokkos.org/LICENSE for license information.
-// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception OR MIT
 //
 //@HEADER
 #include <Kokkos_Core.hpp>

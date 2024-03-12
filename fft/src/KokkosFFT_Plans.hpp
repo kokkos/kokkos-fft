@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception OR MIT
 
 /// \file KokkosFFT_Plans.hpp
 /// \brief Wrapping fft plans of different fft libraries
