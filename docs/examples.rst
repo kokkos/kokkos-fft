@@ -4,10 +4,10 @@ Examples
 ========
 
 There are some `examples
-<https://github.com/CExA-project/kokkos-fft/tree/main/examples>`_ in the
-KokkosFFT repository. Each example includes Kokkos and numpy implementations.
+<https://github.com/kokkos/kokkos-fft/tree/main/examples>`_ in the
+Kokkos-fft repository. Each example includes Kokkos and numpy implementations.
 For example, `01_1DFFT
-<https://github.com/CExA-project/kokkos-fft/tree/main/examples/01_1DFFT>`_ includes,
+<https://github.com/kokkos/kokkos-fft/tree/main/examples/01_1DFFT>`_ includes,
 
 .. code-block:: bash
 
@@ -15,7 +15,7 @@ For example, `01_1DFFT
      |
      └──01_1DFFT/
         |--CMakeLists.txt
-        |--01_1DFFT.cpp (KokkosFFT version)
+        |--01_1DFFT.cpp (Kokkos-fft version)
         └──numpy_1DFFT.py (numpy version)
 
 Please find the examples from following links.

@@ -1,8 +1,8 @@
 
-KokkosFFT documentation
+Kokkos-fft documentation
 =======================================
 
-KokkosFFT implements local interfaces between `Kokkos <https://kokkos.org>`_ 
+Kokkos-fft implements local interfaces between `Kokkos <https://kokkos.org>`_ 
 and de facto standard FFT libraries, 
 including `fftw <http://www.fftw.org>`_,
 `cufft <https://developer.nvidia.com/cufft>`_,
@@ -12,9 +12,9 @@ We are inclined to implement the `numpy.fft <https://numpy.org/doc/stable/refere
 A key concept is that *"As easy as numpy, as fast as vendor libraries"*. Accordingly, our API follows the API by ``numpy.fft`` with minor differences. 
 A FFT library dedicated to Kokkos Device backend (e.g. cufft for CUDA backend) is automatically used. 
 
-KokkosFFT is open source and available on `GitHub <https://github.com/CExA-project/kokkos-fft>`_.
+Kokkos-fft is open source and available on `GitHub <https://github.com/kokkos/kokkos-fft>`_.
 
-Here is an example for 1D real to complex transform with ``rfft`` in KokkosFFT.
+Here is an example for 1D real to complex transform with ``rfft`` in Kokkos-fft.
 
 .. code-block:: C++
 

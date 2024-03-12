@@ -41,4 +41,4 @@ Please make sure to initialize ``oneAPI`` as
 
 .. code-block:: bash
 
-    <oneapi_install_dir>/setvars.sh --include-intel-llvm
+    <path/to/oneapi>/setvars.sh --include-intel-llvm

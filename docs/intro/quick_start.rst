@@ -3,20 +3,20 @@
 Quickstart guide
 ================
 
-This section will quickly illustrate how to use KokkosFFT.
+This section will quickly illustrate how to use Kokkos-fft.
 First of all, you need to clone this repo. 
 
 .. code-block:: bash
 
-    git clone --recursive https://github.com/CExA-project/kokkos-fft.git
+    git clone --recursive https://github.com/kokkos/kokkos-fft.git
 
-To configure KokkosFFT, we can just use CMake options for Kokkos, which automatically enables the FFT interface on Kokkos device. 
+To configure Kokkos-fft, we can just use CMake options for Kokkos, which automatically enables the FFT interface on Kokkos device. 
 If CMake fails to find a backend FFT library, see :doc:`How to find fft libraries?<../finding_libraries>`.
 
 Requirements
 ------------
 
-KokkosFFT requires ``Kokkos 4.2+`` and dedicated compilers for CPUs or GPUs.
+Kokkos-fft requires ``Kokkos 4.2+`` and dedicated compilers for CPUs or GPUs.
 It employs ``CMake 3.22+`` for building.
 
 Here are list of compilers we frequently use for testing. 
@@ -29,11 +29,11 @@ Here are list of compilers we frequently use for testing.
 Building
 --------
 
-For the moment, there are two ways to use KokkosFFT: including as a subdirectory in CMake project or installing as a library.
-For simplicity, however, we demonstrate an example to use KokkosFFT as a subdirectory in a CMake project. For installation, see :ref:`Building KokkosFFT<building>`.
-Since KokkosFFT is a header-only library, it is enough to simply add as a subdirectory. It is assumed that kokkos and kokkosFFT are placed under ``<project_directory>/tpls``.
+For the moment, there are two ways to use Kokkos-fft: including as a subdirectory in CMake project or installing as a library.
+For simplicity, however, we demonstrate an example to use Kokkos-fft as a subdirectory in a CMake project. For installation, see :ref:`Building Kokkos-fft<building>`.
+Since Kokkos-fft is a header-only library, it is enough to simply add as a subdirectory. It is assumed that kokkos and Kokkos-fft are placed under ``<project_directory>/tpls``.
 
-Here is an example to use KokkosFFT in the following CMake project.
+Here is an example to use Kokkos-fft in the following CMake project.
 
 .. code-block:: bash
 
@@ -76,7 +76,7 @@ Trying
 ------
 
 For those who are familiar with `numpy.fft <https://numpy.org/doc/stable/reference/routines.fft.html>`_, 
-you may use KokkosFFT quite easily. Here is an example for 1D real to complex transform with ``rfft`` in KokkosFFT and python.
+you may use Kokkos-fft quite easily. Here is an example for 1D real to complex transform with ``rfft`` in Kokkos-fft and python.
 
 .. code-block:: C++
 
@@ -108,4 +108,4 @@ There are two major differences: ``execution_space`` argument and output value (
 Instead of numpy.array, we rely on `Kokkos Views <https://kokkos.org/kokkos-core-wiki/API/core/View.html>`_.
 The accessibilities of Views from ``execution_space`` are statically checked (compilation errors if not accessible). 
 It is easiest to rely only on the ``Kokkos::DefaultExecutionSpace`` for both View allocation and KokkosFFT APIs.
-See :ref:`Using KokkosFFT<using>` for detail.
+See :ref:`Using Kokkos-fft<using>` for detail.

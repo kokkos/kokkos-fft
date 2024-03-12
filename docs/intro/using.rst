@@ -1,16 +1,16 @@
 .. _using:
 
-Using KokkosFFT
-===============
+Using Kokkos-fft
+================
 
-This section describes how to use KokkosFFT in practice. 
+This section describes how to use Kokkos-fft in practice. 
 We also explain some tips to use it efficiently.
 
 Brief introduction
 ------------------
 
-Most of the numpy.fft APIs (``numpy.fft.<function_name>``) are available in KokkosFFT (``KokkosFFT::<function_name>``) on the Kokkos device.
-In fact, these are the only APIs available in KokkosFFT (see :doc:`API reference<../api_reference>` for detail). KokkosFFT support 1D to 3D FFT over chosen axes.
+Most of the numpy.fft APIs (``numpy.fft.<function_name>``) are available in Kokkos-fft (``KokkosFFT::<function_name>``) on the Kokkos device.
+In fact, these are the only APIs available in Kokkos-fft (see :doc:`API reference<../api_reference>` for detail). Kokkos-fft support 1D to 3D FFT over chosen axes.
 Inside FFT APIs, we first create a FFT plan for a backend FFT library based on the Views and chosen axes.
 Then, we execute the FFT using the created plan on the given Views. Then, we may perform normalization based on the users' choice. 
 Finally, we destroy the plan. Depending on the View Layout and chosen axes, we may need transpose operations to make data contiguous.
@@ -94,7 +94,7 @@ Memory consmpution
 ------------------
 
 In order to support FFT over arbitral axes, 
-KokkosFFT performs transpose operations internally and apply FFT on contiguous data.
+Kokkos-fft performs transpose operations internally and apply FFT on contiguous data.
 For size ``n`` input, this requires internal buffers of size ``2n`` in addition to the buffers used by FFT library. 
 Performance overhead from transpose may be not critical but memory consumptions are problematic. 
 If memory consumption matters, it is recommended to make data contiguous so that transpose is not performed. 
@@ -118,7 +118,7 @@ The following listing shows examples with and without transpose operation.
 Reuse FFT plan
 --------------
 
-Apart from the basic APIs, KokkosFFT APIs include overloaded APIs which can take a FFT plan as an argument.
+Apart from the basic APIs, Kokkos-fft APIs include overloaded APIs which can take a FFT plan as an argument.
 Using these overloaded APIs, we can reuse the FFT plan created before. 
 In some backend, FFT plan creation leads to some overhead, wherein we need this functionality.
 (see :doc:`minimum working example<../samples/06_1DFFT_reuse_plans>`)

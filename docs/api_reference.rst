@@ -3,7 +3,7 @@
 API Reference
 =============
 
-This section documents the public user interface of ``KokkosFFT``. 
+This section documents the public user interface of ``Kokkos-fft``. 
 APIs are defined in ``KokkosFFT`` namespace and implementation details are defined in ``KokkosFFT::Impl`` namespace. 
 Thus, it is highly discouraged for users to access functions in ``KokkosFFT::Impl`` namespace except for ``Plan``. 
 Except for ``KokkosFFT::Impl::Plan``, there are corresponding functions in ``numpy.fft`` as shown below.
