@@ -68,7 +68,7 @@ x = np.random.rand(4, 8)
 x_hat = np.fft.rfft(x, axis=-1)
 ```
 
-In this example, the 1D batched `rfft` over 2D View along `axis -1` is executed. Some basic examples are found in [examples](https://github.com/CExA-project/kokkos-fft/tree/main/examples).
+In this example, the 1D batched `rfft` over 2D View along `axis -1` is executed. Some basic examples are found in [examples](examples).
 
 ## Disclaimer
 **KokkosFFT is under development and subject to change without warning. The authors do not guarantee that this code runs correctly in all the environments.**
@@ -76,7 +76,7 @@ In this example, the 1D batched `rfft` over 2D View along `axis -1` is executed.
 ## Using KokkosFFT
 For the moment, there are two ways to use Kokkos-fft: including as a subdirectory in CMake project or installing as a library. First of all, you need to clone this repo.
 ```bash
-git clone --recursive https://github.com/CExA-project/kokkos-fft.git
+git clone --recursive https://github.com/kokkos/kokkos-fft.git
 ```
 
 ### Prerequisites
