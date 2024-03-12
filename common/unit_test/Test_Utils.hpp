@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 
 #ifndef TEST_UTILS_HPP
 #define TEST_UTILS_HPP

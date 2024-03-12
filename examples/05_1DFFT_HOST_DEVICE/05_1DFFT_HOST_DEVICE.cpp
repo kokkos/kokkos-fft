@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Complex.hpp>

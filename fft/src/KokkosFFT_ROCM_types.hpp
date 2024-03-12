@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 
 #ifndef KOKKOSFFT_ROCM_TYPES_HPP
 #define KOKKOSFFT_ROCM_TYPES_HPP

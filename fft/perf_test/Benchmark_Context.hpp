@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
 #ifndef KOKKOSFFT_BENCHMARK_CONTEXT_HPP
 #define KOKKOSFFT_BENCHMARK_CONTEXT_HPP
 
