@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: (C) The Kokkos-FFT development team, see COPYRIGHT.md file
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
+
 # Recreate the base images inconditionnaly on periodically or manually and on
 # push on the main branch. This is to ensure that anybody using the Docker
 # files for local development does not encounter weird bugs unnoticed by the

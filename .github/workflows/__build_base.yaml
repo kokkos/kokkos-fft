@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: (C) The Kokkos-FFT development team, see COPYRIGHT.md file
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
+
 # Generate base images for each compiler environment. Images are stored on
 # Github registry as Docker format inconditionnaly and as Singularity format
 # only if requested.  Docker images are used for building Kokkos FFT, while
@@ -66,19 +70,19 @@ jobs:
       - name: Build Docker image
         run: |
           docker build \
-            -t ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.image.name }}_${{ inputs.image_suffix }}:${{ inputs.image_tag }} \
-            --cache-from ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.image.name }}_main:latest \
+            -t ghcr.io/kokkos/kokkos-fft/base_${{ matrix.image.name }}_${{ inputs.image_suffix }}:${{ inputs.image_tag }} \
+            --cache-from ghcr.io/kokkos/kokkos-fft/base_${{ matrix.image.name }}_main:latest \
             --build-arg BUILDKIT_INLINE_CACHE=1 \
             --progress=plain \
             docker/${{ matrix.image.name }}
 
       - name: Push Docker image
-        run: docker push ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.image.name }}_${{ inputs.image_suffix }}:${{ inputs.image_tag }}
+        run: docker push ghcr.io/kokkos/kokkos-fft/base_${{ matrix.image.name }}_${{ inputs.image_suffix }}:${{ inputs.image_tag }}
 
       - name: Convert Docker image to Singularity
-        run: singularity build base.sif docker://ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.image.name }}_${{ inputs.image_suffix }}:${{ inputs.image_tag }}
+        run: singularity build base.sif docker://ghcr.io/kokkos/kokkos-fft/base_${{ matrix.image.name }}_${{ inputs.image_suffix }}:${{ inputs.image_tag }}
         if: ${{ matrix.image.use_singularity }}
 
       - name: Push Singularity image
-        run: singularity push base.sif oras://ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.image.name }}_singularity_${{ inputs.image_suffix }}:${{ inputs.image_tag }}
+        run: singularity push base.sif oras://ghcr.io/kokkos/kokkos-fft/base_${{ matrix.image.name }}_singularity_${{ inputs.image_suffix }}:${{ inputs.image_tag }}
         if: ${{ matrix.image.use_singularity }}

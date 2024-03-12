@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: (C) The Kokkos-FFT development team, see COPYRIGHT.md file
+
+SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
+-->
+
 # kokkos-fft
 
 [![CI](https://github.com/kokkos/kokkos-fft/actions/workflows/build_test.yaml/badge.svg)](https://github.com/kokkos/kokkos-fft/actions)
@@ -128,5 +134,5 @@ This way, all the functionalities are executed on A100 GPUs. For installation, d
 
 ## LICENCE
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)  
-Kokkos-fft is under the Apache License v2.0 with LLVM Exceptions or the MIT License.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+Kokkos-FFT is distributed under either the MIT license, or at your option, the Apache-2.0 licence with LLVM exception.

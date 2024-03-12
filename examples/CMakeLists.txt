@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: (C) The Kokkos-FFT development team, see COPYRIGHT.md file
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
+
 add_subdirectory(01_1DFFT)
 add_subdirectory(02_2DFFT)
 add_subdirectory(03_NDFFT)

@@ -1,3 +1,7 @@
+.. SPDX-FileCopyrightText: (C) The Kokkos-FFT development team, see COPYRIGHT.md file
+..
+.. SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
+
 .. _finding_libraries:
 
 Finding FFT libraries by CMake
