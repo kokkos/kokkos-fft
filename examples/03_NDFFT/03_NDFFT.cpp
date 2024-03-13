@@ -24,23 +24,29 @@ int main(int argc, char* argv[]) {
 
     Kokkos::Random_XorShift64_Pool<> random_pool(12345);
     Kokkos::fill_random(xc2c, random_pool, I);
+    Kokkos::fence();
 
     KokkosFFT::fftn(execution_space(), xc2c, xc2c_hat);
     KokkosFFT::ifftn(execution_space(), xc2c_hat, xc2c_inv);
+    Kokkos::fence();
 
     // 3D R2C FFT
     View3D<double> xr2c("xr2c", n0, n1, n2);
     View3D<Kokkos::complex<double> > xr2c_hat("xr2c_hat", n0, n1, n2 / 2 + 1);
     Kokkos::fill_random(xr2c, random_pool, 1);
+    Kokkos::fence();
 
     KokkosFFT::rfftn(execution_space(), xr2c, xr2c_hat);
+    Kokkos::fence();
 
     // 3D C2R FFT
     View3D<Kokkos::complex<double> > xc2r("xr2c_hat", n0, n1, n2 / 2 + 1);
     View3D<double> xc2r_hat("xc2r", n0, n1, n2);
     Kokkos::fill_random(xc2r, random_pool, I);
+    Kokkos::fence();
 
     KokkosFFT::irfftn(execution_space(), xc2r, xc2r_hat);
+    Kokkos::fence();
   }
   Kokkos::finalize();
 
