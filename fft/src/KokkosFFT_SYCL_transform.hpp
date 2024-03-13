@@ -12,55 +12,49 @@ namespace KokkosFFT {
 namespace Impl {
 template <typename PlanType, typename... Args>
 void _exec(PlanType& plan, float* idata, std::complex<float>* odata,
-           [[maybe_unused]] int direction, [[maybe_unused]] Args... args) {
-  [[maybe_unused]] auto r2c = oneapi::mkl::dft::compute_forward(
-      plan, idata, reinterpret_cast<float*>(odata));
+           int /*direction*/, Args...) {
+  oneapi::mkl::dft::compute_forward(plan, idata,
+                                    reinterpret_cast<float*>(odata));
 }
 
 template <typename PlanType, typename... Args>
 void _exec(PlanType& plan, double* idata, std::complex<double>* odata,
-           [[maybe_unused]] int direction, [[maybe_unused]] Args... args) {
-  [[maybe_unused]] auto d2z = oneapi::mkl::dft::compute_forward(
-      plan, idata, reinterpret_cast<double*>(odata));
+           int /*direction*/, Args...) {
+  oneapi::mkl::dft::compute_forward(plan, idata,
+                                    reinterpret_cast<double*>(odata));
 }
 
 template <typename PlanType, typename... Args>
 void _exec(PlanType& plan, std::complex<float>* idata, float* odata,
-           [[maybe_unused]] int direction, [[maybe_unused]] Args... args) {
-  [[maybe_unused]] auto c2r = oneapi::mkl::dft::compute_backward(
-      plan, reinterpret_cast<float*>(idata), odata);
+           int /*direction*/, Args...) {
+  oneapi::mkl::dft::compute_backward(plan, reinterpret_cast<float*>(idata),
+                                     odata);
 }
 
 template <typename PlanType, typename... Args>
 void _exec(PlanType& plan, std::complex<double>* idata, double* odata,
-           [[maybe_unused]] int direction, [[maybe_unused]] Args... args) {
-  [[maybe_unused]] auto z2d = oneapi::mkl::dft::compute_backward(
-      plan, reinterpret_cast<double*>(idata), odata);
+           int /*direction*/, Args...) {
+  oneapi::mkl::dft::compute_backward(plan, reinterpret_cast<double*>(idata),
+                                     odata);
 }
 
 template <typename PlanType, typename... Args>
 void _exec(PlanType& plan, std::complex<float>* idata,
-           std::complex<float>* odata, [[maybe_unused]] int direction,
-           [[maybe_unused]] Args... args) {
+           std::complex<float>* odata, int direction, Args...) {
   if (direction == 1) {
-    [[maybe_unused]] auto c2c =
-        oneapi::mkl::dft::compute_forward(plan, idata, odata);
+    oneapi::mkl::dft::compute_forward(plan, idata, odata);
   } else {
-    [[maybe_unused]] auto c2c =
-        oneapi::mkl::dft::compute_backward(plan, idata, odata);
+    oneapi::mkl::dft::compute_backward(plan, idata, odata);
   }
 }
 
 template <typename PlanType, typename... Args>
 void _exec(PlanType& plan, std::complex<double>* idata,
-           std::complex<double>* odata, [[maybe_unused]] int direction,
-           [[maybe_unused]] Args... args) {
+           std::complex<double>* odata, int direction, Args...) {
   if (direction == 1) {
-    [[maybe_unused]] auto z2z =
-        oneapi::mkl::dft::compute_forward(plan, idata, odata);
+    oneapi::mkl::dft::compute_forward(plan, idata, odata);
   } else {
-    [[maybe_unused]] auto z2z =
-        oneapi::mkl::dft::compute_backward(plan, idata, odata);
+    oneapi::mkl::dft::compute_backward(plan, idata, odata);
   }
 }
 }  // namespace Impl
