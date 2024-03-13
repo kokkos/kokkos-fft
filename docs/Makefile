@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: (C) The Kokkos-FFT development team, see COPYRIGHT.md file
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
+
 #Minimal makefile for Sphinx documentation
 
 # You can set these variables from the command line.

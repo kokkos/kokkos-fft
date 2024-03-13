@@ -1,3 +1,7 @@
+.. SPDX-FileCopyrightText: (C) The Kokkos-FFT development team, see COPYRIGHT.md file
+..
+.. SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
+
 .. _finding_libraries:
 
 Finding FFT libraries by CMake
@@ -41,4 +45,4 @@ Please make sure to initialize ``oneAPI`` as
 
 .. code-block:: bash
 
-    <oneapi_install_dir>/setvars.sh --include-intel-llvm
+    <path/to/oneapi>/setvars.sh --include-intel-llvm

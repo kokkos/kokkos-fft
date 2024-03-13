@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: (C) The Kokkos-FFT development team, see COPYRIGHT.md file
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
+
 ARG BASE=nvidia/cuda:12.3.1-devel-ubuntu20.04
 FROM $BASE
 

@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: (C) The Kokkos-FFT development team, see COPYRIGHT.md file
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
+
 # Build and test Kokkos FFT using Docker and Singularity images. Pre-generated
 # images are pulled from Github registry; they are updated only if the current
 # PR or commit modified the Docker files.
@@ -153,7 +157,7 @@ jobs:
 
       - name: Configure
         run: |
-          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
+          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
             cmake -B build \
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
             -DCMAKE_C_COMPILER=${{ matrix.backend.compiler.c }} \
@@ -169,7 +173,7 @@ jobs:
 
       - name: Build
         run: |
-          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
+          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
             cmake --build build -j $(( $(nproc) * 2 + 1 ))
 
       - name: Prepare artifacts
@@ -203,7 +207,7 @@ jobs:
 
       - name: Configure and build test project as subdirectory
         run: |
-          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
+          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
           cmake -B install_test/as_subdirectory/build \
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
             -DCMAKE_C_COMPILER=${{ matrix.backend.compiler.c }} \
@@ -213,12 +217,12 @@ jobs:
             ${{ matrix.backend.cmake_flags.kokkos_fft }} \
             ${{ matrix.target.cmake_flags }} \
             install_test/as_subdirectory
-          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
+          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
           cmake --build install_test/as_subdirectory/build
 
       - name: Configure, build and install Kokkos as library
         run: |
-          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
+          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
             cmake -B build_kokkos \
             -DCMAKE_INSTALL_PREFIX=/work/install \
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
@@ -227,14 +231,14 @@ jobs:
             -DCMAKE_CXX_STANDARD=17 \
             ${{ matrix.backend.cmake_flags.kokkos }} \
             tpls/kokkos
-          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
+          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
             cmake --build build_kokkos -j $(( $(nproc) * 2 + 1 ))
-          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
+          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
             cmake --install build_kokkos
 
       - name: Configure, build and install KokkosFFT as library
         run: |
-          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
+          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
             cmake -B build_kokkos_fft \
             -DCMAKE_INSTALL_PREFIX=/work/install\
             -DCMAKE_PREFIX_PATH=/work/install \
@@ -244,14 +248,14 @@ jobs:
             -DCMAKE_CXX_STANDARD=17 \
             ${{ matrix.backend.cmake_flags.kokkos_fft }} \
             ${{ matrix.target.cmake_flags }}
-          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
+          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
             cmake --build build_kokkos_fft -j $(( $(nproc) * 2 + 1 ))
-          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
+          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
             cmake --install build_kokkos_fft
 
       - name: Configure and build test project as library
         run: |
-          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
+          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
             cmake -B install_test/as_library/build \
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
             -DCMAKE_PREFIX_PATH=/work/install \
@@ -259,7 +263,7 @@ jobs:
             -DCMAKE_CXX_COMPILER=${{ matrix.backend.compiler.cxx }} \
             -DCMAKE_CXX_STANDARD=17 \
             install_test/as_library
-          docker run -v ${{ github.workspace }}:/work ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
+          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
             cmake --build install_test/as_library/build -j $(( $(nproc) * 2 + 1 ))
 
   # test the project
@@ -305,7 +309,7 @@ jobs:
 
       - name: Pull Singularity image
         # pulling the image in advance seems necessary as sometimes invoking `singularity run` on the image URL fails because it cannot find ghcr.io
-        run: singularity pull oras://ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.image }}_singularity_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }}
+        run: singularity pull oras://ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_singularity_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }}
         if: ${{ matrix.backend.name == 'cuda' }}
 
       - name: Run CUDA tests within Slurm job and Singularity image
@@ -317,6 +321,6 @@ jobs:
 
       - name: Run OpenMP/Threads/Serial tests within Docker image
         run: |
-          docker run -v $PWD/build:/work/build -w /work/build ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
+          docker run -v $PWD/build:/work/build -w /work/build ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
           ctest --output-on-failure
         if: ${{ matrix.backend.name == 'openmp' || matrix.backend.name == 'threads' || matrix.backend.name == 'serial' }}
