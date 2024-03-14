@@ -26,24 +26,31 @@ int main(int argc, char* argv[]) {
     View1D<Kokkos::complex<double> > xc2c_inv("xc2c_inv", n0);
 
     Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-    Kokkos::fill_random(xc2c, random_pool, I);
+    execution_space exec;
+    Kokkos::fill_random(exec, xc2c, random_pool, I);
+    exec.fence();
 
-    KokkosFFT::fft(execution_space(), xc2c, xc2c_hat);
-    KokkosFFT::ifft(execution_space(), xc2c_hat, xc2c_inv);
+    KokkosFFT::fft(exec, xc2c, xc2c_hat);
+    KokkosFFT::ifft(exec, xc2c_hat, xc2c_inv);
+    exec.fence();
 
     // 1D R2C FFT
     View1D<double> xr2c("xr2c", n0);
     View1D<Kokkos::complex<double> > xr2c_hat("xr2c_hat", n0 / 2 + 1);
-    Kokkos::fill_random(xr2c, random_pool, 1);
+    Kokkos::fill_random(exec, xr2c, random_pool, 1);
+    exec.fence();
 
-    KokkosFFT::rfft(execution_space(), xr2c, xr2c_hat);
+    KokkosFFT::rfft(exec, xr2c, xr2c_hat);
+    exec.fence();
 
     // 1D C2R FFT
     View1D<Kokkos::complex<double> > xc2r("xr2c_hat", n0 / 2 + 1);
     View1D<double> xc2r_hat("xc2r", n0);
-    Kokkos::fill_random(xc2r, random_pool, I);
+    Kokkos::fill_random(exec, xc2r, random_pool, I);
+    exec.fence();
 
-    KokkosFFT::irfft(execution_space(), xc2r, xc2r_hat);
+    KokkosFFT::irfft(exec, xc2r, xc2r_hat);
+    exec.fence();
 
 #ifdef ENABLE_HOST_AND_DEVICE
     // FFTs on Host
@@ -54,22 +61,27 @@ int main(int argc, char* argv[]) {
 
     Kokkos::deep_copy(h_xc2c, xc2c);
 
-    KokkosFFT::fft(host_execution_space(), h_xc2c, h_xc2c_hat);
-    KokkosFFT::ifft(host_execution_space(), h_xc2c_hat, h_xc2c_inv);
+    host_execution_space host_exec;
+
+    KokkosFFT::fft(host_exec, h_xc2c, h_xc2c_hat);
+    KokkosFFT::ifft(host_exec, h_xc2c_hat, h_xc2c_inv);
+    host_exec.fence();
 
     // 1D R2C FFT
     HostView1D<double> h_xr2c("h_xr2c", n0);
     HostView1D<Kokkos::complex<double> > h_xr2c_hat("h_xr2c_hat", n0 / 2 + 1);
 
     Kokkos::deep_copy(h_xr2c, xr2c);
-    KokkosFFT::rfft(host_execution_space(), h_xr2c, h_xr2c_hat);
+    KokkosFFT::rfft(host_exec, h_xr2c, h_xr2c_hat);
+    host_exec.fence();
 
     // 1D C2R FFT
     HostView1D<Kokkos::complex<double> > h_xc2r("h_xr2c_hat", n0 / 2 + 1);
     HostView1D<double> h_xc2r_hat("h_xc2r", n0);
 
     Kokkos::deep_copy(h_xc2r, xc2r);
-    KokkosFFT::irfft(host_execution_space(), h_xc2r, h_xc2r_hat);
+    KokkosFFT::irfft(host_exec, h_xc2r, h_xc2r_hat);
+    host_exec.fence();
 #endif
   }
   Kokkos::finalize();
