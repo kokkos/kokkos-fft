@@ -335,7 +335,6 @@ void ifft(const ExecutionSpace& exec_space, const InViewType& in,
   } else {
     _in = in;
   }
-  std::cout << "_in.extent(0): " << _in.extent(0) << std::endl;
 
   KokkosFFT::Impl::Plan plan(exec_space, _in, out,
                              KokkosFFT::Direction::backward, axis);

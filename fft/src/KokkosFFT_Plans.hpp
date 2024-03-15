@@ -97,9 +97,6 @@ class Plan {
   //! The type of extents of input/output views
   using extents_type = shape_type<InViewType::rank()>;
 
-  //! Execution space
-  execSpace m_exec_space;
-
   //! Dynamically allocatable fft plan.
   std::unique_ptr<fft_plan_type> m_plan;
 
@@ -151,8 +148,7 @@ class Plan {
   explicit Plan(const ExecutionSpace& exec_space, InViewType& in,
                 OutViewType& out, KokkosFFT::Direction direction, int axis,
                 std::optional<std::size_t> n = std::nullopt)
-      : m_exec_space(exec_space),
-        m_fft_size(1),
+      : m_fft_size(1),
         m_is_transpose_needed(false),
         m_direction(direction),
         m_axes({axis}) {
@@ -204,8 +200,7 @@ class Plan {
   explicit Plan(const ExecutionSpace& exec_space, InViewType& in,
                 OutViewType& out, KokkosFFT::Direction direction,
                 axis_type<DIM> axes, shape_type<DIM> s = {0})
-      : m_exec_space(exec_space),
-        m_fft_size(1),
+      : m_fft_size(1),
         m_is_transpose_needed(false),
         m_direction(direction),
         m_axes(axes) {
@@ -315,9 +310,6 @@ class Plan {
           "not identical.");
     }
   }
-
-  /// \brief Return the internal execution space
-  execSpace const& exec_space() const noexcept { return m_exec_space; }
 
   /// \brief Return the FFT plan
   fft_plan_type& plan() const { return *m_plan; }
