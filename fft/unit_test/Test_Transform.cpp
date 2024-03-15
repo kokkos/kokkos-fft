@@ -587,13 +587,18 @@ void test_fft1_shape(T atol = 1.0e-12) {
   using ComplexView1DType =
       Kokkos::View<Kokkos::complex<T>*, LayoutType, execution_space>;
 
-  RealView1DType xr("xr", n);
-  ComplexView1DType x("x", n / 2 + 1);
+  RealView1DType xr("xr", n), xr_ref("xr_ref", n);
+  ComplexView1DType x("x", n / 2 + 1), x_ref("x_ref", n / 2 + 1);
 
   const Kokkos::complex<T> I(1.0, 1.0);
   Kokkos::Random_XorShift64_Pool<> random_pool(/*seed=*/12345);
   Kokkos::fill_random(xr, random_pool, 1.0);
   Kokkos::fill_random(x, random_pool, I);
+
+  // Since HIP FFT destructs the input data, we need to keep the input data in
+  // different place
+  Kokkos::deep_copy(x_ref, x);
+  Kokkos::deep_copy(xr_ref, xr);
   Kokkos::fence();
 
   std::vector<int> shapes = {n / 2, n, n * 2};
@@ -602,12 +607,20 @@ void test_fft1_shape(T atol = 1.0e-12) {
     ComplexView1DType outr("outr", shape / 2 + 1),
         outr_b("outr_b", shape / 2 + 1), outr_o("outr_o", shape / 2 + 1),
         outr_f("outr_f", shape / 2 + 1);
+
+    Kokkos::deep_copy(xr, xr_ref);
     KokkosFFT::rfft(execution_space(), xr, outr, KokkosFFT::Normalization::none,
                     -1, shape);
+
+    Kokkos::deep_copy(xr, xr_ref);
     KokkosFFT::rfft(execution_space(), xr, outr_b,
                     KokkosFFT::Normalization::backward, -1, shape);
+
+    Kokkos::deep_copy(xr, xr_ref);
     KokkosFFT::rfft(execution_space(), xr, outr_o,
                     KokkosFFT::Normalization::ortho, -1, shape);
+
+    Kokkos::deep_copy(xr, xr_ref);
     KokkosFFT::rfft(execution_space(), xr, outr_f,
                     KokkosFFT::Normalization::forward, -1, shape);
 
@@ -621,12 +634,20 @@ void test_fft1_shape(T atol = 1.0e-12) {
     // Complex to real
     RealView1DType out("out", shape), out_b("out_b", shape),
         out_o("out_o", shape), out_f("out_f", shape);
+
+    Kokkos::deep_copy(x, x_ref);
     KokkosFFT::irfft(execution_space(), x, out, KokkosFFT::Normalization::none,
                      -1, shape);
+
+    Kokkos::deep_copy(x, x_ref);
     KokkosFFT::irfft(execution_space(), x, out_b,
                      KokkosFFT::Normalization::backward, -1, shape);
+
+    Kokkos::deep_copy(x, x_ref);
     KokkosFFT::irfft(execution_space(), x, out_o,
                      KokkosFFT::Normalization::ortho, -1, shape);
+
+    Kokkos::deep_copy(x, x_ref);
     KokkosFFT::irfft(execution_space(), x, out_f,
                      KokkosFFT::Normalization::forward, -1, shape);
 
