@@ -581,6 +581,65 @@ void test_fft1_1dihfft_1dview() {
 }
 
 template <typename T, typename LayoutType>
+void test_fft1_shape(T atol = 1.0e-12) {
+  const int n          = 32;
+  using RealView1DType = Kokkos::View<T*, LayoutType, execution_space>;
+  using ComplexView1DType =
+      Kokkos::View<Kokkos::complex<T>*, LayoutType, execution_space>;
+
+  RealView1DType xr("xr", n);
+  ComplexView1DType x("x", n / 2 + 1);
+
+  const Kokkos::complex<T> I(1.0, 1.0);
+  Kokkos::Random_XorShift64_Pool<> random_pool(/*seed=*/12345);
+  Kokkos::fill_random(xr, random_pool, 1.0);
+  Kokkos::fill_random(x, random_pool, I);
+  Kokkos::fence();
+
+  std::vector<int> shapes = {n / 2, n, n * 2};
+  for (auto&& shape : shapes) {
+    // Real to comple
+    ComplexView1DType outr("outr", shape / 2 + 1),
+        outr_b("outr_b", shape / 2 + 1), outr_o("outr_o", shape / 2 + 1),
+        outr_f("outr_f", shape / 2 + 1);
+    KokkosFFT::rfft(execution_space(), xr, outr, KokkosFFT::Normalization::none,
+                    -1, shape);
+    KokkosFFT::rfft(execution_space(), xr, outr_b,
+                    KokkosFFT::Normalization::backward, -1, shape);
+    KokkosFFT::rfft(execution_space(), xr, outr_o,
+                    KokkosFFT::Normalization::ortho, -1, shape);
+    KokkosFFT::rfft(execution_space(), xr, outr_f,
+                    KokkosFFT::Normalization::forward, -1, shape);
+
+    multiply(outr_o, sqrt(static_cast<T>(shape)));
+    multiply(outr_f, static_cast<T>(shape));
+
+    EXPECT_TRUE(allclose(outr_b, outr, 1.e-5, atol));
+    EXPECT_TRUE(allclose(outr_o, outr, 1.e-5, atol));
+    EXPECT_TRUE(allclose(outr_f, outr, 1.e-5, atol));
+
+    // Complex to real
+    RealView1DType out("out", shape), out_b("out_b", shape),
+        out_o("out_o", shape), out_f("out_f", shape);
+    KokkosFFT::irfft(execution_space(), x, out, KokkosFFT::Normalization::none,
+                     -1, shape);
+    KokkosFFT::irfft(execution_space(), x, out_b,
+                     KokkosFFT::Normalization::backward, -1, shape);
+    KokkosFFT::irfft(execution_space(), x, out_o,
+                     KokkosFFT::Normalization::ortho, -1, shape);
+    KokkosFFT::irfft(execution_space(), x, out_f,
+                     KokkosFFT::Normalization::forward, -1, shape);
+
+    multiply(out_o, sqrt(static_cast<T>(shape)));
+    multiply(out_b, static_cast<T>(shape));
+
+    EXPECT_TRUE(allclose(out_b, out, 1.e-5, atol));
+    EXPECT_TRUE(allclose(out_o, out, 1.e-5, atol));
+    EXPECT_TRUE(allclose(out_f, out, 1.e-5, atol));
+  }
+}
+
+template <typename T, typename LayoutType>
 void test_fft1_1dfft_2dview(T atol = 1.e-12) {
   const int n0 = 10, n1 = 12;
   using RealView2DType = Kokkos::View<T**, LayoutType, execution_space>;
@@ -1216,6 +1275,15 @@ TYPED_TEST(FFT1D, IHFFT_1DView) {
   using layout_type = typename TestFixture::layout_type;
 
   test_fft1_1dihfft_1dview<float_type, layout_type>();
+}
+
+// fft1 on 1D Views with shape argument
+TYPED_TEST(FFT1D, FFT_1DView_shape) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
+  test_fft1_shape<float_type, layout_type>(atol);
 }
 
 // batced fft1 on 2D Views
