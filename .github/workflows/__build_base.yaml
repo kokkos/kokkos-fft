@@ -38,7 +38,7 @@ jobs:
           - name: rocm
             use_singularity: false
           - name: intel
-            use_singularity: false
+            use_singularity: true
 
     steps:
       - name: Free Disk Space (Ubuntu)

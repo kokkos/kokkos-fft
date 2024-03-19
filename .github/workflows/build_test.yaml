@@ -280,6 +280,10 @@ jobs:
           - name: cuda
             image: nvcc
             runner: [self-hosted, cuda]
+          # run SYCL tests on PVC2 workstation
+          - name: sycl
+            image: intel
+            runner: [self-hosted, sycl]
           # run OpenMP tests on Azure server
           - name: openmp
             image: gcc
@@ -303,20 +307,32 @@ jobs:
       - name: Deploy artifacts
         run: tar -xvf tests_${{ matrix.backend.name }}.tar
 
-      - name: Pull Singularity image
-        # pulling the image in advance seems necessary as sometimes invoking `singularity run` on the image URL fails because it cannot find ghcr.io
-        run: singularity pull oras://ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.image }}_singularity_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }}
-        if: ${{ matrix.backend.name == 'cuda' }}
-
       - name: Run CUDA tests within Slurm job and Singularity image
         run: |
+          # pulling the image in advance seems necessary as sometimes invoking
+          # `singularity run` on the image URL fails because it cannot find
+          # ghcr.io
+          singularity pull oras://ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.image }}_singularity_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }}
+          # submit job
           srun --nodes=1 --time=01:00:00 -p gpua100 --gres=gpu:1 \
+          # run tests
           singularity run --nv --bind $PWD/build:/work/build -H /work/build base_${{ matrix.backend.image }}_singularity_${{ needs.check_docker_files.outputs.image_suffix }}_${{ needs.check_docker_files.outputs.image_tag }}.sif \
-          ctest --output-on-failure
+            ctest --output-on-failure
         if: ${{ matrix.backend.name == 'cuda' }}
+
+      - name: Run SYCL tests with artifacts only
+        run: |
+          # load OneAPI
+          source /opt/intel/oneapi/setvars.sh
+          # modify artifacts to be executed here
+          find . -type f -print|xargs file|grep ASCII|cut -d: -f1|xargs sed -i -e "s+/work+$(dirname $PWD)+"
+          # run tests
+          ctest --test-dir build --output-on-failure
+        if: ${{ matrix.backend.name == 'sycl' }}
 
       - name: Run OpenMP/Threads/Serial tests within Docker image
         run: |
+          # run tests
           docker run -v $PWD/build:/work/build -w /work/build ghcr.io/cexa-project/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
-          ctest --output-on-failure
+            ctest --output-on-failure
         if: ${{ matrix.backend.name == 'openmp' || matrix.backend.name == 'threads' || matrix.backend.name == 'serial' }}
