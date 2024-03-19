@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: (C) The Kokkos-FFT development team, see COPYRIGHT.md file
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
+
 # Clean old Docker and Singularity images that are too old periodically or
 # manually.
 
@@ -16,7 +20,7 @@ jobs:
       - name: Cleanup old images
         uses: SmartsquareGmbH/delete-old-packages@v0.7.0
         with:
-          organization: cexa-project
+          organization: kokkos
           type: container
           names: |
             kokkos-fft/base_nvcc_main

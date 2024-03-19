@@ -1,4 +1,6 @@
-// SPDX-License-Identifier: MIT
+// SPDX-FileCopyrightText: (C) The Kokkos-FFT development team, see COPYRIGHT.md file
+//
+// SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Complex.hpp>
@@ -21,34 +23,42 @@ int main(int argc, char* argv[]) {
     View1D<Kokkos::complex<double> > xc2c_inv("xc2c_inv", n0);
 
     Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-    Kokkos::fill_random(xc2c, random_pool, I);
+    execution_space exec;
+    Kokkos::fill_random(exec, xc2c, random_pool, I);
+    exec.fence();
 
     int axis = -1;
-    KokkosFFT::Impl::Plan fft_plan(execution_space(), xc2c, xc2c_hat,
+    KokkosFFT::Impl::Plan fft_plan(exec, xc2c, xc2c_hat,
                                    KokkosFFT::Direction::forward, axis);
-    KokkosFFT::fft(execution_space(), xc2c, xc2c_hat, fft_plan);
+    KokkosFFT::fft(exec, xc2c, xc2c_hat, fft_plan);
+    exec.fence();
 
-    KokkosFFT::Impl::Plan ifft_plan(execution_space(), xc2c_hat, xc2c_inv,
+    KokkosFFT::Impl::Plan ifft_plan(exec, xc2c_hat, xc2c_inv,
                                     KokkosFFT::Direction::backward, axis);
-    KokkosFFT::ifft(execution_space(), xc2c_hat, xc2c_inv, ifft_plan);
+    KokkosFFT::ifft(exec, xc2c_hat, xc2c_inv, ifft_plan);
+    exec.fence();
 
     // 1D R2C FFT
     View1D<double> xr2c("xr2c", n0);
     View1D<Kokkos::complex<double> > xr2c_hat("xr2c_hat", n0 / 2 + 1);
-    Kokkos::fill_random(xr2c, random_pool, 1);
+    Kokkos::fill_random(exec, xr2c, random_pool, 1);
+    exec.fence();
 
-    KokkosFFT::Impl::Plan rfft_plan(execution_space(), xr2c, xr2c_hat,
+    KokkosFFT::Impl::Plan rfft_plan(exec, xr2c, xr2c_hat,
                                     KokkosFFT::Direction::forward, axis);
-    KokkosFFT::rfft(execution_space(), xr2c, xr2c_hat, rfft_plan);
+    KokkosFFT::rfft(exec, xr2c, xr2c_hat, rfft_plan);
+    exec.fence();
 
     // 1D C2R FFT
     View1D<Kokkos::complex<double> > xc2r("xc2r_hat", n0 / 2 + 1);
     View1D<double> xc2r_hat("xc2r", n0);
-    Kokkos::fill_random(xc2r, random_pool, I);
+    Kokkos::fill_random(exec, xc2r, random_pool, I);
+    exec.fence();
 
-    KokkosFFT::Impl::Plan irfft_plan(execution_space(), xc2r, xc2r_hat,
+    KokkosFFT::Impl::Plan irfft_plan(exec, xc2r, xc2r_hat,
                                      KokkosFFT::Direction::backward, axis);
-    KokkosFFT::irfft(execution_space(), xc2r, xc2r_hat, irfft_plan);
+    KokkosFFT::irfft(exec, xc2r, xc2r_hat, irfft_plan);
+    exec.fence();
   }
   Kokkos::finalize();
 

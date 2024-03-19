@@ -1,3 +1,6 @@
+SPDX-FileCopyrightText: (C) The Kokkos-FFT development team, see COPYRIGHT.md file
+SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
+
 Multiple people have contributed to kokkos-fft. To show our appreciation for their
 public spirit, we list here in alphabetical order a condensed list of their
 contributions.
@@ -7,6 +10,9 @@ Yuuichi Asahi - CEA (yuuichi.asahi(at)cea.fr)
 * Maintainer
 * Initial designer and first development steps
 * Developer
+
+Julien Bigot - CEA (julien.bigot@cea.fr)
+* Licensing info
 
 Paul Zehner - CEA (paul.Zehner(at)cea.fr)
 * Co-maintainer

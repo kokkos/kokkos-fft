@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: (C) The Kokkos-FFT development team, see COPYRIGHT.md file
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
+
 function(get_tpls_list tpls_list)
     if(Kokkos_ENABLE_CUDA)
         list(APPEND tpls_list CUFFT)
