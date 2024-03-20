@@ -319,17 +319,19 @@ void ifft(const ExecutionSpace& exec_space, const InViewType& in,
       "ifft: execution_space cannot access data in OutViewType");
 
   InViewType _in;
-  // [TO DO] Modify crop_or_pad to perform the following lines
-  // KokkosFFT::Impl::crop_or_pad(exec_space, in, _in, n);
   if (n) {
     std::size_t _n = n.value();
     auto modified_shape =
         KokkosFFT::Impl::get_modified_shape(in, shape_type<1>({_n}));
+
+    /* [FIX THIS] Shallow copy should be sufficient
     if (KokkosFFT::Impl::is_crop_or_pad_needed(in, modified_shape)) {
       KokkosFFT::Impl::crop_or_pad(exec_space, in, _in, modified_shape);
     } else {
       _in = in;
     }
+    */
+    KokkosFFT::Impl::crop_or_pad(exec_space, in, _in, modified_shape);
   } else {
     _in = in;
   }
@@ -393,17 +395,18 @@ void ifft(const ExecutionSpace& exec_space, const InViewType& in,
       "ifft: execution_space cannot access data in OutViewType");
 
   InViewType _in;
-  // [TO DO] Modify crop_or_pad to perform the following lines
-  // KokkosFFT::Impl::crop_or_pad(exec_space, in, _in, n);
   if (n) {
     std::size_t _n = n.value();
     auto modified_shape =
         KokkosFFT::Impl::get_modified_shape(in, shape_type<1>({_n}));
+    /* [FIX THIS] Shallow copy should be sufficient
     if (KokkosFFT::Impl::is_crop_or_pad_needed(in, modified_shape)) {
       KokkosFFT::Impl::crop_or_pad(exec_space, in, _in, modified_shape);
     } else {
       _in = in;
     }
+    */
+    KokkosFFT::Impl::crop_or_pad(exec_space, in, _in, modified_shape);
   } else {
     _in = in;
   }

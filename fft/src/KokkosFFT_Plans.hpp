@@ -115,6 +115,9 @@ class Plan {
   //! axes for fft
   axis_type<DIM> m_axes;
 
+  //! Shape of the transformed axis of the output
+  shape_type<DIM> m_shape;
+
   //! directions of fft
   KokkosFFT::Direction m_direction;
 
@@ -140,10 +143,15 @@ class Plan {
   /// \param out [in] Ouput data
   /// \param direction [in] Direction of FFT (forward/backward)
   /// \param axis [in] Axis over which FFT is performed
+  /// \param n [in] Length of the transformed axis of the output (optional)
   //
   explicit Plan(const ExecutionSpace& exec_space, InViewType& in,
-                OutViewType& out, KokkosFFT::Direction direction, int axis)
-      : m_fft_size(1), m_is_transpose_needed(false), m_direction(direction) {
+                OutViewType& out, KokkosFFT::Direction direction, int axis,
+                std::optional<std::size_t> n = std::nullopt)
+      : m_fft_size(1),
+        m_is_transpose_needed(false),
+        m_direction(direction),
+        m_axes({axis}) {
     static_assert(Kokkos::is_view<InViewType>::value,
                   "Plan::Plan: InViewType is not a Kokkos::View.");
     static_assert(Kokkos::is_view<OutViewType>::value,
@@ -172,7 +180,6 @@ class Plan {
             ExecutionSpace, typename OutViewType::memory_space>::accessible,
         "Plan::Plan: execution_space cannot access data in OutViewType");
 
-    m_axes                     = {axis};
     m_in_extents               = KokkosFFT::Impl::extract_extents(in);
     m_out_extents              = KokkosFFT::Impl::extract_extents(out);
     std::tie(m_map, m_map_inv) = KokkosFFT::Impl::get_map_axes(in, axis);
@@ -188,10 +195,11 @@ class Plan {
   /// \param out [in] Ouput data
   /// \param direction [in] Direction of FFT (forward/backward)
   /// \param axes [in] Axes over which FFT is performed
+  /// \param s [in] Shape of the transformed axis of the output (optional)
   //
   explicit Plan(const ExecutionSpace& exec_space, InViewType& in,
                 OutViewType& out, KokkosFFT::Direction direction,
-                axis_type<DIM> axes)
+                axis_type<DIM> axes, shape_type<DIM> s = {0})
       : m_fft_size(1),
         m_is_transpose_needed(false),
         m_direction(direction),
@@ -237,6 +245,11 @@ class Plan {
     _destroy_info<ExecutionSpace, fft_info_type>(m_info);
     _destroy_plan<ExecutionSpace, fft_plan_type>(m_plan);
   }
+
+  Plan(const Plan&) = delete;
+  Plan& operator=(const Plan&) = delete;
+  Plan& operator=(Plan&&) = delete;
+  Plan(Plan&&)            = delete;
 
   /// \brief Sanity check of the plan used to call FFT interface with
   ///        pre-defined FFT plan. This raises an error if there is an
