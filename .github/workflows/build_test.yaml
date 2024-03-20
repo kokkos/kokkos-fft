@@ -317,11 +317,10 @@ jobs:
           # `singularity run` on the image URL fails because it cannot find
           # ghcr.io
           singularity pull oras://ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_singularity_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }}
-          # submit job
-          srun --nodes=1 --time=01:00:00 -p gpua100 --gres=gpu:1 \
           # run tests
-          singularity run --nv --bind $PWD/build:/work/build -H /work/build base_${{ matrix.backend.image }}_singularity_${{ needs.check_docker_files.outputs.image_suffix }}_${{ needs.check_docker_files.outputs.image_tag }}.sif \
-            ctest --output-on-failure
+          srun --nodes=1 --time=01:00:00 -p gpua100 --gres=gpu:1 \
+            singularity run --nv --bind $PWD/build:/work/build -H /work/build base_${{ matrix.backend.image }}_singularity_${{ needs.check_docker_files.outputs.image_suffix }}_${{ needs.check_docker_files.outputs.image_tag }}.sif \
+              ctest --output-on-failure
         if: ${{ matrix.backend.name == 'cuda' }}
 
       - name: Run SYCL tests with artifacts only
