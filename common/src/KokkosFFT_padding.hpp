@@ -12,16 +12,26 @@
 namespace KokkosFFT {
 namespace Impl {
 template <typename ViewType, std::size_t DIM>
-auto get_modified_shape(const ViewType& view, shape_type<DIM> shape) {
+auto get_modified_shape(const ViewType& view, shape_type<DIM> shape,
+                        axis_type<DIM> axes, bool is_C2R = false) {
   static_assert(ViewType::rank() >= DIM,
                 "get_modified_shape: Rank of View must be larger "
                 "than or equal to the Rank of new shape");
   static_assert(DIM > 0,
                 "get_modified_shape: Rank of FFT axes must be "
                 "larger than or equal to 1");
-
-  // [TO DO] Add a is_C2R arg. If is_C2R is true, then shape should be shape/2+1
   constexpr int rank = static_cast<int>(ViewType::rank());
+
+  // Convert the input axes to be in the range of [0, rank-1]
+  std::vector<int> positive_axes;
+  for (std::size_t i = 0; i < DIM; i++) {
+    int axis = KokkosFFT::Impl::convert_negative_axis(view, axes.at(i));
+    positive_axes.push_back(axis);
+  }
+
+  // Assert if the elements are overlapped
+  assert(!KokkosFFT::Impl::has_duplicate_values(positive_axes));
+  assert(!KokkosFFT::Impl::is_out_of_range_value_included(positive_axes, rank));
 
   using full_shape_type = shape_type<rank>;
   full_shape_type modified_shape;
@@ -31,13 +41,16 @@ auto get_modified_shape(const ViewType& view, shape_type<DIM> shape) {
 
   // Update shapes based on newly given shape
   for (int i = 0; i < DIM; i++) {
+    int positive_axis = positive_axes.at(i);
     assert(shape.at(i) > 0);
-    modified_shape.at(i) = shape.at(i);
+    modified_shape.at(positive_axis) = shape.at(i);
   }
 
-  // [TO DO] may return, is_modification_needed if modified_shape is not equal
-  // view.extents() May be implement other function. is_crop_or_pad_needed(view,
-  // shape);
+  if (is_C2R) {
+    int reshaped_axis                = positive_axes.back();
+    modified_shape.at(reshaped_axis) = modified_shape.at(reshaped_axis) / 2 + 1;
+  }
+
   return modified_shape;
 }
 
