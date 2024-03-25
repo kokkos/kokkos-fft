@@ -10,6 +10,8 @@
 using execution_space = Kokkos::DefaultExecutionSpace;
 template <typename T>
 using View3D = Kokkos::View<T***, execution_space>;
+template <std::size_t DIM>
+using axis_type = KokkosFFT::axis_type<DIM>;
 
 int main(int argc, char* argv[]) {
   Kokkos::initialize(argc, argv);
@@ -27,8 +29,8 @@ int main(int argc, char* argv[]) {
     Kokkos::fill_random(exec, xc2c, random_pool, I);
     exec.fence();
 
-    KokkosFFT::fftn(exec, xc2c, xc2c_hat);
-    KokkosFFT::ifftn(exec, xc2c_hat, xc2c_inv);
+    KokkosFFT::fftn(exec, xc2c, xc2c_hat, axis_type<3>{-3, -2, -1});
+    KokkosFFT::ifftn(exec, xc2c_hat, xc2c_inv, axis_type<3>{-3, -2, -1});
     exec.fence();
 
     // 3D R2C FFT
@@ -37,7 +39,7 @@ int main(int argc, char* argv[]) {
     Kokkos::fill_random(exec, xr2c, random_pool, 1);
     exec.fence();
 
-    KokkosFFT::rfftn(exec, xr2c, xr2c_hat);
+    KokkosFFT::rfftn(exec, xr2c, xr2c_hat, axis_type<3>{-3, -2, -1});
     exec.fence();
 
     // 3D C2R FFT
@@ -46,7 +48,7 @@ int main(int argc, char* argv[]) {
     Kokkos::fill_random(exec, xc2r, random_pool, I);
     exec.fence();
 
-    KokkosFFT::irfftn(exec, xc2r, xc2r_hat);
+    KokkosFFT::irfftn(exec, xc2r, xc2r_hat, axis_type<3>{-3, -2, -1});
     exec.fence();
   }
   Kokkos::finalize();
