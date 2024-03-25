@@ -1975,7 +1975,7 @@ void irfftn(const ExecutionSpace& exec_space, const InViewType& in,
   static_assert(std::is_floating_point<out_value_type>::value,
                 "irfftn: OutViewType must be real");
 
-  ifftn(exec_space, in, out, norm, _s);
+  ifftn(exec_space, in, out, norm, s);
 }
 
 /// \brief Inverse of rfftn
