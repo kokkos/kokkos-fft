@@ -10,6 +10,9 @@
 #include "Test_Types.hpp"
 #include "Test_Utils.hpp"
 
+template <std::size_t DIM>
+using shape_type = KokkosFFT::shape_type<DIM>;
+
 /// Kokkos equivalent of fft1 with numpy
 /// def fft1(x):
 ///    L = len(x)
@@ -1041,48 +1044,51 @@ void test_fft1_1dfft_5dview(T atol = 1.e-12) {
   using ComplexView5DType =
       Kokkos::View<Kokkos::complex<T>*****, LayoutType, execution_space>;
 
-  constexpr int DIM          = 5;
-  std::array<int, DIM> shape = {n0, n1, n2, n3, n4};
-  ComplexView5DType x("x", n0, n1, n2, n3, n4),
-      ref_x("ref_x", n0, n1, n2, n3, n4);
+  constexpr int DIM = 5;
+  shape_type<DIM> default_shape({n0, n1, n2, n3, n4});
+  ComplexView5DType x("x", n0, n1, n2, n3, n4);
 
   for (int axis = 0; axis < DIM; axis++) {
-    std::array<int, DIM> shape_c2r = shape;
-    shape_c2r.at(axis)             = shape_c2r.at(axis) / 2 + 1;
-    auto [_n0, _n1, _n2, _n3, _n4] = shape_c2r;
-    ComplexView5DType _x("_x", n0, n1, n2, n3, n4),
-        out("out", n0, n1, n2, n3, n4), ref_out("ref_out", n0, n1, n2, n3, n4);
-    RealView5DType xr("xr", n0, n1, n2, n3, n4),
-        ref_xr("ref_xr", n0, n1, n2, n3, n4), _xr("_xr", n0, n1, n2, n3, n4);
-    ComplexView5DType outr("outr", _n0, _n1, _n2, _n3, _n4);
+    for (int i0 = -1; i0 <= 1; i0++) {
+      shape_type<DIM> shape          = default_shape;
+      shape_type<DIM> shape_c2r      = default_shape;
+      const std::size_t n_new        = shape.at(axis) + i0;
+      shape.at(axis)                 = n_new;
+      shape_c2r.at(axis)             = n_new / 2 + 1;
+      auto [_n0, _n1, _n2, _n3, _n4] = shape;
+      auto [_m0, _m1, _m2, _m3, _m4] = shape_c2r;
+      ComplexView5DType _x("_x", _n0, _n1, _n2, _n3, _n4),
+          out("out", _n0, _n1, _n2, _n3, _n4), ref_x;
+      RealView5DType xr("xr", _n0, _n1, _n2, _n3, _n4),
+          _xr("_xr", _n0, _n1, _n2, _n3, _n4), ref_xr;
+      ComplexView5DType outr("outr", _m0, _m1, _m2, _m3, _m4);
 
-    const Kokkos::complex<T> I(1.0, 1.0);
-    Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-    Kokkos::fill_random(x, random_pool, I);
-    Kokkos::fill_random(xr, random_pool, 1);
+      const Kokkos::complex<T> I(1.0, 1.0);
+      Kokkos::Random_XorShift64_Pool<> random_pool(12345);
+      Kokkos::fill_random(x, random_pool, I);
+      Kokkos::fill_random(xr, random_pool, 1);
 
-    // Since HIP FFT destructs the input data, we need to keep the input data in
-    // different place
-    Kokkos::deep_copy(ref_x, x);
-    Kokkos::deep_copy(ref_xr, xr);
+      KokkosFFT::Impl::crop_or_pad(execution_space(), x, ref_x, shape);
+      KokkosFFT::Impl::crop_or_pad(execution_space(), xr, ref_xr, shape);
 
-    Kokkos::fence();
+      Kokkos::fence();
 
-    // Along one axis
-    // Simple identity tests
-    KokkosFFT::fft(execution_space(), x, out,
-                   KokkosFFT::Normalization::backward, axis);
-    KokkosFFT::ifft(execution_space(), out, _x,
-                    KokkosFFT::Normalization::backward, axis);
-    EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, atol));
+      // Along one axis
+      // Simple identity tests
+      KokkosFFT::fft(execution_space(), x, out,
+                     KokkosFFT::Normalization::backward, axis, n_new);
+      KokkosFFT::ifft(execution_space(), out, _x,
+                      KokkosFFT::Normalization::backward, axis, n_new);
+      EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, atol));
 
-    // Simple identity tests for r2c and c2r transforms
-    KokkosFFT::rfft(execution_space(), xr, outr,
-                    KokkosFFT::Normalization::backward, axis);
-    KokkosFFT::irfft(execution_space(), outr, _xr,
-                     KokkosFFT::Normalization::backward, axis);
+      // Simple identity tests for r2c and c2r transforms
+      KokkosFFT::rfft(execution_space(), xr, outr,
+                      KokkosFFT::Normalization::backward, axis, n_new);
+      KokkosFFT::irfft(execution_space(), outr, _xr,
+                       KokkosFFT::Normalization::backward, axis, n_new);
 
-    EXPECT_TRUE(allclose(_xr, ref_xr, 1.e-5, atol));
+      EXPECT_TRUE(allclose(_xr, ref_xr, 1.e-5, atol));
+    }
   }
 }
 
@@ -1093,50 +1099,51 @@ void test_fft1_1dfft_6dview(T atol = 1.e-12) {
   using ComplexView6DType =
       Kokkos::View<Kokkos::complex<T>******, LayoutType, execution_space>;
 
-  constexpr int DIM          = 6;
-  std::array<int, DIM> shape = {n0, n1, n2, n3, n4, n5};
-  ComplexView6DType x("x", n0, n1, n2, n3, n4, n5),
-      ref_x("ref_x", n0, n1, n2, n3, n4, n5);
+  constexpr int DIM = 6;
+  shape_type<DIM> default_shape({n0, n1, n2, n3, n4, n5});
+  ComplexView6DType x("x", n0, n1, n2, n3, n4, n5);
 
   for (int axis = 0; axis < DIM; axis++) {
-    std::array<int, DIM> shape_c2r      = shape;
-    shape_c2r.at(axis)                  = shape_c2r.at(axis) / 2 + 1;
-    auto [_n0, _n1, _n2, _n3, _n4, _n5] = shape_c2r;
-    ComplexView6DType _x("_x", n0, n1, n2, n3, n4, n5),
-        out("out", n0, n1, n2, n3, n4, n5),
-        ref_out("ref_out", n0, n1, n2, n3, n4, n5);
-    RealView6DType xr("xr", n0, n1, n2, n3, n4, n5),
-        ref_xr("ref_xr", n0, n1, n2, n3, n4, n5),
-        _xr("_xr", n0, n1, n2, n3, n4, n5);
-    ComplexView6DType outr("outr", _n0, _n1, _n2, _n3, _n4, _n5);
+    for (int i0 = -1; i0 <= 1; i0++) {
+      shape_type<DIM> shape               = default_shape;
+      shape_type<DIM> shape_c2r           = default_shape;
+      const std::size_t n_new             = shape.at(axis) + i0;
+      shape.at(axis)                      = n_new;
+      shape_c2r.at(axis)                  = n_new / 2 + 1;
+      auto [_n0, _n1, _n2, _n3, _n4, _n5] = shape;
+      auto [_m0, _m1, _m2, _m3, _m4, _m5] = shape_c2r;
+      ComplexView6DType _x("_x", _n0, _n1, _n2, _n3, _n4, _n5),
+          out("out", _n0, _n1, _n2, _n3, _n4, _n5), ref_x;
+      RealView6DType xr("xr", _n0, _n1, _n2, _n3, _n4, _n5),
+          _xr("_xr", _n0, _n1, _n2, _n3, _n4, _n5), ref_xr;
+      ComplexView6DType outr("outr", _m0, _m1, _m2, _m3, _m4, _m5);
 
-    const Kokkos::complex<T> I(1.0, 1.0);
-    Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-    Kokkos::fill_random(x, random_pool, I);
-    Kokkos::fill_random(xr, random_pool, 1);
+      const Kokkos::complex<T> I(1.0, 1.0);
+      Kokkos::Random_XorShift64_Pool<> random_pool(12345);
+      Kokkos::fill_random(x, random_pool, I);
+      Kokkos::fill_random(xr, random_pool, 1);
 
-    // Since HIP FFT destructs the input data, we need to keep the input data in
-    // different place
-    Kokkos::deep_copy(ref_x, x);
-    Kokkos::deep_copy(ref_xr, xr);
+      KokkosFFT::Impl::crop_or_pad(execution_space(), x, ref_x, shape);
+      KokkosFFT::Impl::crop_or_pad(execution_space(), xr, ref_xr, shape);
 
-    Kokkos::fence();
+      Kokkos::fence();
 
-    // Along one axis
-    // Simple identity tests
-    KokkosFFT::fft(execution_space(), x, out,
-                   KokkosFFT::Normalization::backward, axis);
-    KokkosFFT::ifft(execution_space(), out, _x,
-                    KokkosFFT::Normalization::backward, axis);
-    EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, atol));
+      // Along one axis
+      // Simple identity tests
+      KokkosFFT::fft(execution_space(), x, out,
+                     KokkosFFT::Normalization::backward, axis, n_new);
+      KokkosFFT::ifft(execution_space(), out, _x,
+                      KokkosFFT::Normalization::backward, axis, n_new);
+      EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, atol));
 
-    // Simple identity tests for r2c and c2r transforms
-    KokkosFFT::rfft(execution_space(), xr, outr,
-                    KokkosFFT::Normalization::backward, axis);
-    KokkosFFT::irfft(execution_space(), outr, _xr,
-                     KokkosFFT::Normalization::backward, axis);
+      // Simple identity tests for r2c and c2r transforms
+      KokkosFFT::rfft(execution_space(), xr, outr,
+                      KokkosFFT::Normalization::backward, axis, n_new);
+      KokkosFFT::irfft(execution_space(), outr, _xr,
+                       KokkosFFT::Normalization::backward, axis, n_new);
 
-    EXPECT_TRUE(allclose(_xr, ref_xr, 1.e-5, atol));
+      EXPECT_TRUE(allclose(_xr, ref_xr, 1.e-5, atol));
+    }
   }
 }
 
@@ -1147,104 +1154,106 @@ void test_fft1_1dfft_7dview(T atol = 1.e-12) {
   using ComplexView7DType =
       Kokkos::View<Kokkos::complex<T>*******, LayoutType, execution_space>;
 
-  constexpr int DIM          = 7;
-  std::array<int, DIM> shape = {n0, n1, n2, n3, n4, n5, n6};
-  ComplexView7DType x("x", n0, n1, n2, n3, n4, n5, n6),
-      ref_x("ref_x", n0, n1, n2, n3, n4, n5, n6);
+  constexpr int DIM = 7;
+  shape_type<DIM> default_shape({n0, n1, n2, n3, n4, n5, n6});
+  ComplexView7DType x("x", n0, n1, n2, n3, n4, n5, n6);
 
   for (int axis = 0; axis < DIM; axis++) {
-    std::array<int, DIM> shape_c2r           = shape;
-    shape_c2r.at(axis)                       = shape_c2r.at(axis) / 2 + 1;
-    auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6] = shape_c2r;
-    ComplexView7DType _x("_x", n0, n1, n2, n3, n4, n5, n6),
-        out("out", n0, n1, n2, n3, n4, n5, n6),
-        ref_out("ref_out", n0, n1, n2, n3, n4, n5, n6);
-    RealView7DType xr("xr", n0, n1, n2, n3, n4, n5, n6),
-        ref_xr("ref_xr", n0, n1, n2, n3, n4, n5, n6),
-        _xr("_xr", n0, n1, n2, n3, n4, n5, n6);
-    ComplexView7DType outr("outr", _n0, _n1, _n2, _n3, _n4, _n5, _n6);
+    for (int i0 = -1; i0 <= 1; i0++) {
+      shape_type<DIM> shape                    = default_shape;
+      shape_type<DIM> shape_c2r                = default_shape;
+      const std::size_t n_new                  = shape.at(axis) + i0;
+      shape.at(axis)                           = n_new;
+      shape_c2r.at(axis)                       = n_new / 2 + 1;
+      auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6] = shape;
+      auto [_m0, _m1, _m2, _m3, _m4, _m5, _m6] = shape_c2r;
+      ComplexView7DType _x("_x", _n0, _n1, _n2, _n3, _n4, _n5, _n6),
+          out("out", _n0, _n1, _n2, _n3, _n4, _n5, _n6), ref_x;
+      RealView7DType xr("xr", _n0, _n1, _n2, _n3, _n4, _n5, _n6),
+          _xr("_xr", _n0, _n1, _n2, _n3, _n4, _n5, _n6), ref_xr;
+      ComplexView7DType outr("outr", _m0, _m1, _m2, _m3, _m4, _m5, _m6);
 
-    const Kokkos::complex<T> I(1.0, 1.0);
-    Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-    Kokkos::fill_random(x, random_pool, I);
-    Kokkos::fill_random(xr, random_pool, 1);
+      const Kokkos::complex<T> I(1.0, 1.0);
+      Kokkos::Random_XorShift64_Pool<> random_pool(12345);
+      Kokkos::fill_random(x, random_pool, I);
+      Kokkos::fill_random(xr, random_pool, 1);
 
-    // Since HIP FFT destructs the input data, we need to keep the input data in
-    // different place
-    Kokkos::deep_copy(ref_x, x);
-    Kokkos::deep_copy(ref_xr, xr);
+      KokkosFFT::Impl::crop_or_pad(execution_space(), x, ref_x, shape);
+      KokkosFFT::Impl::crop_or_pad(execution_space(), xr, ref_xr, shape);
 
-    Kokkos::fence();
+      Kokkos::fence();
 
-    // Along one axis
-    // Simple identity tests
-    KokkosFFT::fft(execution_space(), x, out,
-                   KokkosFFT::Normalization::backward, axis);
-    KokkosFFT::ifft(execution_space(), out, _x,
-                    KokkosFFT::Normalization::backward, axis);
-    EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, atol));
+      // Along one axis
+      // Simple identity tests
+      KokkosFFT::fft(execution_space(), x, out,
+                     KokkosFFT::Normalization::backward, axis, n_new);
+      KokkosFFT::ifft(execution_space(), out, _x,
+                      KokkosFFT::Normalization::backward, axis, n_new);
+      EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, atol));
 
-    // Simple identity tests for r2c and c2r transforms
-    KokkosFFT::rfft(execution_space(), xr, outr,
-                    KokkosFFT::Normalization::backward, axis);
-    KokkosFFT::irfft(execution_space(), outr, _xr,
-                     KokkosFFT::Normalization::backward, axis);
+      // Simple identity tests for r2c and c2r transforms
+      KokkosFFT::rfft(execution_space(), xr, outr,
+                      KokkosFFT::Normalization::backward, axis, n_new);
+      KokkosFFT::irfft(execution_space(), outr, _xr,
+                       KokkosFFT::Normalization::backward, axis, n_new);
 
-    EXPECT_TRUE(allclose(_xr, ref_xr, 1.e-5, atol));
+      EXPECT_TRUE(allclose(_xr, ref_xr, 1.e-5, atol));
+    }
   }
 }
 
 template <typename T, typename LayoutType>
 void test_fft1_1dfft_8dview(T atol = 1.e-12) {
-  const int n0 = 2, n1 = 6, n2 = 8, n3 = 5, n4 = 4, n5 = 3, n6 = 4, n7 = 3;
+  const int n0 = 4, n1 = 6, n2 = 8, n3 = 5, n4 = 4, n5 = 3, n6 = 4, n7 = 3;
   using RealView8DType = Kokkos::View<T********, LayoutType, execution_space>;
   using ComplexView8DType =
       Kokkos::View<Kokkos::complex<T>********, LayoutType, execution_space>;
 
-  constexpr int DIM          = 8;
-  std::array<int, DIM> shape = {n0, n1, n2, n3, n4, n5, n6, n7};
-  ComplexView8DType x("x", n0, n1, n2, n3, n4, n5, n6, n7),
-      ref_x("ref_x", n0, n1, n2, n3, n4, n5, n6, n7);
+  constexpr int DIM = 8;
+  shape_type<DIM> default_shape({n0, n1, n2, n3, n4, n5, n6, n7});
+  ComplexView8DType x("x", n0, n1, n2, n3, n4, n5, n6, n7);
 
   for (int axis = 0; axis < DIM; axis++) {
-    std::array<int, DIM> shape_c2r                = shape;
-    shape_c2r.at(axis)                            = shape_c2r.at(axis) / 2 + 1;
-    auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7] = shape_c2r;
-    ComplexView8DType _x("_x", n0, n1, n2, n3, n4, n5, n6, n7),
-        out("out", n0, n1, n2, n3, n4, n5, n6, n7),
-        ref_out("ref_out", n0, n1, n2, n3, n4, n5, n6, n7);
-    RealView8DType xr("xr", n0, n1, n2, n3, n4, n5, n6, n7),
-        ref_xr("ref_xr", n0, n1, n2, n3, n4, n5, n6, n7),
-        _xr("_xr", n0, n1, n2, n3, n4, n5, n6, n7);
-    ComplexView8DType outr("outr", _n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7);
+    for (int i0 = -1; i0 <= 1; i0++) {
+      shape_type<DIM> shape                         = default_shape;
+      shape_type<DIM> shape_c2r                     = default_shape;
+      const std::size_t n_new                       = shape.at(axis) + i0;
+      shape.at(axis)                                = n_new;
+      shape_c2r.at(axis)                            = n_new / 2 + 1;
+      auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7] = shape;
+      auto [_m0, _m1, _m2, _m3, _m4, _m5, _m6, _m7] = shape_c2r;
+      ComplexView8DType _x("_x", _n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7),
+          out("out", _n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7), ref_x;
+      RealView8DType xr("xr", _n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7),
+          _xr("_xr", _n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7), ref_xr;
+      ComplexView8DType outr("outr", _m0, _m1, _m2, _m3, _m4, _m5, _m6, _m7);
 
-    const Kokkos::complex<T> I(1.0, 1.0);
-    Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-    Kokkos::fill_random(x, random_pool, I);
-    Kokkos::fill_random(xr, random_pool, 1);
+      const Kokkos::complex<T> I(1.0, 1.0);
+      Kokkos::Random_XorShift64_Pool<> random_pool(12345);
+      Kokkos::fill_random(x, random_pool, I);
+      Kokkos::fill_random(xr, random_pool, 1);
 
-    // Since HIP FFT destructs the input data, we need to keep the input data in
-    // different place
-    Kokkos::deep_copy(ref_x, x);
-    Kokkos::deep_copy(ref_xr, xr);
+      KokkosFFT::Impl::crop_or_pad(execution_space(), x, ref_x, shape);
+      KokkosFFT::Impl::crop_or_pad(execution_space(), xr, ref_xr, shape);
 
-    Kokkos::fence();
+      Kokkos::fence();
 
-    // Along one axis
-    // Simple identity tests
-    KokkosFFT::fft(execution_space(), x, out,
-                   KokkosFFT::Normalization::backward, axis);
-    KokkosFFT::ifft(execution_space(), out, _x,
-                    KokkosFFT::Normalization::backward, axis);
-    EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, atol));
+      // Along one axis
+      // Simple identity tests
+      KokkosFFT::fft(execution_space(), x, out,
+                     KokkosFFT::Normalization::backward, axis, n_new);
+      KokkosFFT::ifft(execution_space(), out, _x,
+                      KokkosFFT::Normalization::backward, axis, n_new);
+      EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, atol));
 
-    // Simple identity tests for r2c and c2r transforms
-    KokkosFFT::rfft(execution_space(), xr, outr,
-                    KokkosFFT::Normalization::backward, axis);
-    KokkosFFT::irfft(execution_space(), outr, _xr,
-                     KokkosFFT::Normalization::backward, axis);
+      // Simple identity tests for r2c and c2r transforms
+      KokkosFFT::rfft(execution_space(), xr, outr,
+                      KokkosFFT::Normalization::backward, axis, n_new);
+      KokkosFFT::irfft(execution_space(), outr, _xr,
+                       KokkosFFT::Normalization::backward, axis, n_new);
 
-    EXPECT_TRUE(allclose(_xr, ref_xr, 1.e-5, atol));
+      EXPECT_TRUE(allclose(_xr, ref_xr, 1.e-5, atol));
+    }
   }
 }
 
@@ -1736,14 +1745,100 @@ void test_fft2_2dirfft_2dview() {
 }
 
 template <typename T, typename LayoutType>
+void test_fft2_2dfft_2dview_shape(T atol = 1.0e-12) {
+  const int n0 = 4, n1 = 6;
+  using RealView2DType = Kokkos::View<T**, LayoutType, execution_space>;
+  using ComplexView2DType =
+      Kokkos::View<Kokkos::complex<T>**, LayoutType, execution_space>;
+
+  RealView2DType xr("xr", n0, n1), xr_ref("xr_ref", n0, n1);
+  ComplexView2DType x("x", n0, n1 / 2 + 1), x_ref("x_ref", n0, n1 / 2 + 1);
+
+  const Kokkos::complex<T> I(1.0, 1.0);
+  Kokkos::Random_XorShift64_Pool<> random_pool(12345);
+  Kokkos::fill_random(xr, random_pool, 1.0);
+  Kokkos::fill_random(x, random_pool, I);
+  Kokkos::deep_copy(xr_ref, xr);
+  Kokkos::deep_copy(x_ref, x);
+
+  using axes_type = KokkosFFT::axis_type<2>;
+  axes_type axes  = {-2, -1};
+
+  std::vector<std::size_t> shapes0 = {n0 / 2, n0, n0 * 2};
+  std::vector<std::size_t> shapes1 = {n1 / 2, n1, n1 * 2};
+
+  for (auto&& shape0 : shapes0) {
+    for (auto&& shape1 : shapes1) {
+      // Real to complex
+      ComplexView2DType outr("outr", shape0, shape1 / 2 + 1),
+          outr_b("outr_b", shape0, shape1 / 2 + 1),
+          outr_o("outr_o", shape0, shape1 / 2 + 1),
+          outr_f("outr_f", shape0, shape1 / 2 + 1);
+
+      shape_type<2> new_shape = {shape0, shape1};
+
+      Kokkos::deep_copy(xr, xr_ref);
+      KokkosFFT::rfft2(execution_space(), xr, outr,
+                       KokkosFFT::Normalization::none, axes, new_shape);
+
+      Kokkos::deep_copy(xr, xr_ref);
+      KokkosFFT::rfft2(execution_space(), xr, outr_b,
+                       KokkosFFT::Normalization::backward, axes, new_shape);
+
+      Kokkos::deep_copy(xr, xr_ref);
+      KokkosFFT::rfft2(execution_space(), xr, outr_o,
+                       KokkosFFT::Normalization::ortho, axes, new_shape);
+
+      Kokkos::deep_copy(xr, xr_ref);
+      KokkosFFT::rfft2(execution_space(), xr, outr_f,
+                       KokkosFFT::Normalization::forward, axes, new_shape);
+
+      multiply(outr_o, sqrt(static_cast<T>(shape0 * shape1)));
+      multiply(outr_f, static_cast<T>(shape0 * shape1));
+
+      EXPECT_TRUE(allclose(outr_b, outr, 1.e-5, atol));
+      EXPECT_TRUE(allclose(outr_o, outr, 1.e-5, atol));
+      EXPECT_TRUE(allclose(outr_f, outr, 1.e-5, atol));
+
+      // Complex to real
+      RealView2DType out("out", shape0, shape1), out_b("out_b", shape0, shape1),
+          out_o("out_o", shape0, shape1), out_f("out_f", shape0, shape1);
+
+      Kokkos::deep_copy(x, x_ref);
+      KokkosFFT::irfft2(execution_space(), x, out,
+                        KokkosFFT::Normalization::none, axes, new_shape);
+
+      Kokkos::deep_copy(x, x_ref);
+      KokkosFFT::irfft2(execution_space(), x, out_b,
+                        KokkosFFT::Normalization::backward, axes, new_shape);
+
+      Kokkos::deep_copy(x, x_ref);
+      KokkosFFT::irfft2(execution_space(), x, out_o,
+                        KokkosFFT::Normalization::ortho, axes, new_shape);
+
+      Kokkos::deep_copy(x, x_ref);
+      KokkosFFT::irfft2(execution_space(), x, out_f,
+                        KokkosFFT::Normalization::forward, axes, new_shape);
+
+      multiply(out_o, sqrt(static_cast<T>(shape0 * shape1)));
+      multiply(out_b, static_cast<T>(shape0 * shape1));
+
+      EXPECT_TRUE(allclose(out_b, out, 1.e-5, atol));
+      EXPECT_TRUE(allclose(out_o, out, 1.e-5, atol));
+      EXPECT_TRUE(allclose(out_f, out, 1.e-5, atol));
+    }
+  }
+}
+
+template <typename T, typename LayoutType>
 void test_fft2_2dfft_3dview(T atol = 1.e-12) {
   const int n0 = 10, n1 = 6, n2 = 8;
   using RealView3DType = Kokkos::View<T***, LayoutType, execution_space>;
   using ComplexView3DType =
       Kokkos::View<Kokkos::complex<T>***, LayoutType, execution_space>;
 
-  constexpr int DIM          = 3;
-  std::array<int, DIM> shape = {n0, n1, n2};
+  constexpr int DIM = 3;
+  shape_type<DIM> default_shape({n0, n1, n2});
   ComplexView3DType x("x", n0, n1, n2), ref_x("ref_x", n0, n1, n2);
 
   using axes_type = KokkosFFT::axis_type<2>;
@@ -1756,45 +1851,60 @@ void test_fft2_2dfft_3dview(T atol = 1.e-12) {
 
       axes_type axes = {axis0, axis1};
 
-      std::array<int, DIM> shape_c2r = shape;
-      shape_c2r.at(axis1)            = shape_c2r.at(axis1) / 2 + 1;
+      for (int i0 = -1; i0 <= 1; i0++) {
+        for (int i1 = -1; i1 <= 1; i1++) {
+          shape_type<DIM> shape     = default_shape;
+          shape_type<DIM> shape_c2r = default_shape;
 
-      auto [_n0, _n1, _n2] = shape_c2r;
+          std::size_t n0_new = static_cast<std::size_t>(shape.at(axis0) + i0);
+          std::size_t n1_new = static_cast<std::size_t>(shape.at(axis1) + i1);
+          shape_type<2> new_shape = {n0_new, n1_new};
 
-      ComplexView3DType _x("_x", n0, n1, n2), out("out", n0, n1, n2),
-          ref_out("ref_out", n0, n1, n2);
-      RealView3DType xr("xr", n0, n1, n2), ref_xr("ref_xr", n0, n1, n2),
-          _xr("_xr", n0, n1, n2);
-      ComplexView3DType outr("outr", _n0, _n1, _n2);
+          shape.at(axis0)     = n0_new;
+          shape.at(axis1)     = n1_new;
+          shape_c2r.at(axis0) = n0_new;
+          shape_c2r.at(axis1) = n1_new / 2 + 1;
 
-      const Kokkos::complex<T> I(1.0, 1.0);
-      Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-      Kokkos::fill_random(x, random_pool, I);
-      Kokkos::fill_random(xr, random_pool, 1);
+          auto [_n0, _n1, _n2] = shape;
+          auto [_m0, _m1, _m2] = shape_c2r;
 
-      Kokkos::deep_copy(ref_x, x);
-      Kokkos::deep_copy(ref_xr, xr);
+          ComplexView3DType _x("_x", _n0, _n1, _n2), out("out", _n0, _n1, _n2),
+              ref_x;
+          RealView3DType xr("xr", _n0, _n1, _n2), _xr("_xr", _n0, _n1, _n2),
+              ref_xr;
+          ComplexView3DType outr("outr", _m0, _m1, _m2);
 
-      Kokkos::fence();
+          const Kokkos::complex<T> I(1.0, 1.0);
+          Kokkos::Random_XorShift64_Pool<> random_pool(12345);
+          Kokkos::fill_random(x, random_pool, I);
+          Kokkos::fill_random(xr, random_pool, 1);
 
-      // Along one axis
-      // Simple identity tests
-      KokkosFFT::fft2(execution_space(), x, out,
-                      KokkosFFT::Normalization::backward, axes);
+          KokkosFFT::Impl::crop_or_pad(execution_space(), x, ref_x, shape);
+          KokkosFFT::Impl::crop_or_pad(execution_space(), xr, ref_xr, shape);
 
-      KokkosFFT::ifft2(execution_space(), out, _x,
-                       KokkosFFT::Normalization::backward, axes);
+          Kokkos::fence();
 
-      EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, atol));
+          // Along one axis
+          // Simple identity tests
+          KokkosFFT::fft2(execution_space(), x, out,
+                          KokkosFFT::Normalization::backward, axes, new_shape);
 
-      // Simple identity tests for r2c and c2r transforms
-      KokkosFFT::rfft2(execution_space(), xr, outr,
-                       KokkosFFT::Normalization::backward, axes);
+          KokkosFFT::ifft2(execution_space(), out, _x,
+                           KokkosFFT::Normalization::backward, axes, new_shape);
 
-      KokkosFFT::irfft2(execution_space(), outr, _xr,
-                        KokkosFFT::Normalization::backward, axes);
+          EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, atol));
 
-      EXPECT_TRUE(allclose(_xr, ref_xr, 1.e-5, atol));
+          // Simple identity tests for r2c and c2r transforms
+          KokkosFFT::rfft2(execution_space(), xr, outr,
+                           KokkosFFT::Normalization::backward, axes, new_shape);
+
+          KokkosFFT::irfft2(execution_space(), outr, _xr,
+                            KokkosFFT::Normalization::backward, axes,
+                            new_shape);
+
+          EXPECT_TRUE(allclose(_xr, ref_xr, 1.e-5, atol));
+        }
+      }
     }
   }
 }
@@ -1806,9 +1916,9 @@ void test_fft2_2dfft_4dview(T atol = 1.e-12) {
   using ComplexView4DType =
       Kokkos::View<Kokkos::complex<T>****, LayoutType, execution_space>;
 
-  constexpr int DIM          = 4;
-  std::array<int, DIM> shape = {n0, n1, n2, n3};
-  ComplexView4DType x("x", n0, n1, n2, n3), ref_x("ref_x", n0, n1, n2, n3);
+  constexpr int DIM = 4;
+  shape_type<DIM> default_shape({n0, n1, n2, n3});
+  ComplexView4DType x("x", n0, n1, n2, n3);
 
   using axes_type = KokkosFFT::axis_type<2>;
 
@@ -1820,44 +1930,60 @@ void test_fft2_2dfft_4dview(T atol = 1.e-12) {
 
       axes_type axes = {axis0, axis1};
 
-      std::array<int, DIM> shape_c2r = shape;
-      shape_c2r.at(axis1)            = shape_c2r.at(axis1) / 2 + 1;
+      for (int i0 = -1; i0 <= 1; i0++) {
+        for (int i1 = -1; i1 <= 1; i1++) {
+          shape_type<DIM> shape     = default_shape;
+          shape_type<DIM> shape_c2r = default_shape;
 
-      auto [_n0, _n1, _n2, _n3] = shape_c2r;
-      ComplexView4DType _x("_x", n0, n1, n2, n3), out("out", n0, n1, n2, n3),
-          ref_out("ref_out", n0, n1, n2, n3);
-      RealView4DType xr("xr", n0, n1, n2, n3), ref_xr("ref_xr", n0, n1, n2, n3),
-          _xr("_xr", n0, n1, n2, n3);
-      ComplexView4DType outr("outr", _n0, _n1, _n2, _n3);
+          std::size_t n0_new = static_cast<std::size_t>(shape.at(axis0) + i0);
+          std::size_t n1_new = static_cast<std::size_t>(shape.at(axis1) + i1);
+          shape_type<2> new_shape = {n0_new, n1_new};
 
-      const Kokkos::complex<T> I(1.0, 1.0);
-      Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-      Kokkos::fill_random(x, random_pool, I);
-      Kokkos::fill_random(xr, random_pool, 1);
+          shape.at(axis0)     = n0_new;
+          shape.at(axis1)     = n1_new;
+          shape_c2r.at(axis0) = n0_new;
+          shape_c2r.at(axis1) = n1_new / 2 + 1;
 
-      Kokkos::deep_copy(ref_x, x);
-      Kokkos::deep_copy(ref_xr, xr);
+          auto [_n0, _n1, _n2, _n3] = shape;
+          auto [_m0, _m1, _m2, _m3] = shape_c2r;
 
-      Kokkos::fence();
+          ComplexView4DType _x("_x", _n0, _n1, _n2, _n3),
+              out("out", _n0, _n1, _n2, _n3), ref_x;
+          RealView4DType xr("xr", _n0, _n1, _n2, _n3),
+              _xr("_xr", _n0, _n1, _n2, _n3), ref_xr;
+          ComplexView4DType outr("outr", _m0, _m1, _m2, _m3);
 
-      // Along one axis
-      // Simple identity tests
-      KokkosFFT::fft2(execution_space(), x, out,
-                      KokkosFFT::Normalization::backward, axes);
+          const Kokkos::complex<T> I(1.0, 1.0);
+          Kokkos::Random_XorShift64_Pool<> random_pool(12345);
+          Kokkos::fill_random(x, random_pool, I);
+          Kokkos::fill_random(xr, random_pool, 1);
 
-      KokkosFFT::ifft2(execution_space(), out, _x,
-                       KokkosFFT::Normalization::backward, axes);
+          KokkosFFT::Impl::crop_or_pad(execution_space(), x, ref_x, shape);
+          KokkosFFT::Impl::crop_or_pad(execution_space(), xr, ref_xr, shape);
 
-      EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, atol));
+          Kokkos::fence();
 
-      // Simple identity tests for r2c and c2r transforms
-      KokkosFFT::rfft2(execution_space(), xr, outr,
-                       KokkosFFT::Normalization::backward, axes);
+          // Along one axis
+          // Simple identity tests
+          KokkosFFT::fft2(execution_space(), x, out,
+                          KokkosFFT::Normalization::backward, axes, new_shape);
 
-      KokkosFFT::irfft2(execution_space(), outr, _xr,
-                        KokkosFFT::Normalization::backward, axes);
+          KokkosFFT::ifft2(execution_space(), out, _x,
+                           KokkosFFT::Normalization::backward, axes, new_shape);
 
-      EXPECT_TRUE(allclose(_xr, ref_xr, 1.e-5, atol));
+          EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, atol));
+
+          // Simple identity tests for r2c and c2r transforms
+          KokkosFFT::rfft2(execution_space(), xr, outr,
+                           KokkosFFT::Normalization::backward, axes, new_shape);
+
+          KokkosFFT::irfft2(execution_space(), outr, _xr,
+                            KokkosFFT::Normalization::backward, axes,
+                            new_shape);
+
+          EXPECT_TRUE(allclose(_xr, ref_xr, 1.e-5, atol));
+        }
+      }
     }
   }
 }
@@ -1869,10 +1995,9 @@ void test_fft2_2dfft_5dview(T atol = 1.e-12) {
   using ComplexView5DType =
       Kokkos::View<Kokkos::complex<T>*****, LayoutType, execution_space>;
 
-  constexpr int DIM          = 5;
-  std::array<int, DIM> shape = {n0, n1, n2, n3, n4};
-  ComplexView5DType x("x", n0, n1, n2, n3, n4),
-      ref_x("ref_x", n0, n1, n2, n3, n4);
+  constexpr int DIM = 5;
+  shape_type<DIM> default_shape({n0, n1, n2, n3, n4});
+  ComplexView5DType x("x", n0, n1, n2, n3, n4);
 
   using axes_type = KokkosFFT::axis_type<2>;
 
@@ -1884,45 +2009,60 @@ void test_fft2_2dfft_5dview(T atol = 1.e-12) {
 
       axes_type axes = {axis0, axis1};
 
-      std::array<int, DIM> shape_c2r = shape;
-      shape_c2r.at(axis1)            = shape_c2r.at(axis1) / 2 + 1;
+      for (int i0 = -1; i0 <= 1; i0++) {
+        for (int i1 = -1; i1 <= 1; i1++) {
+          shape_type<DIM> shape     = default_shape;
+          shape_type<DIM> shape_c2r = default_shape;
 
-      auto [_n0, _n1, _n2, _n3, _n4] = shape_c2r;
-      ComplexView5DType _x("_x", n0, n1, n2, n3, n4),
-          out("out", n0, n1, n2, n3, n4),
-          ref_out("ref_out", n0, n1, n2, n3, n4);
-      RealView5DType xr("xr", n0, n1, n2, n3, n4),
-          ref_xr("ref_xr", n0, n1, n2, n3, n4), _xr("_xr", n0, n1, n2, n3, n4);
-      ComplexView5DType outr("outr", _n0, _n1, _n2, _n3, _n4);
+          std::size_t n0_new = static_cast<std::size_t>(shape.at(axis0) + i0);
+          std::size_t n1_new = static_cast<std::size_t>(shape.at(axis1) + i1);
+          shape_type<2> new_shape = {n0_new, n1_new};
 
-      const Kokkos::complex<T> I(1.0, 1.0);
-      Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-      Kokkos::fill_random(x, random_pool, I);
-      Kokkos::fill_random(xr, random_pool, 1);
+          shape.at(axis0)     = n0_new;
+          shape.at(axis1)     = n1_new;
+          shape_c2r.at(axis0) = n0_new;
+          shape_c2r.at(axis1) = n1_new / 2 + 1;
 
-      Kokkos::deep_copy(ref_x, x);
-      Kokkos::deep_copy(ref_xr, xr);
+          auto [_n0, _n1, _n2, _n3, _n4] = shape;
+          auto [_m0, _m1, _m2, _m3, _m4] = shape_c2r;
 
-      Kokkos::fence();
+          ComplexView5DType _x("_x", _n0, _n1, _n2, _n3, _n4),
+              out("out", _n0, _n1, _n2, _n3, _n4), ref_x;
+          RealView5DType xr("xr", _n0, _n1, _n2, _n3, _n4),
+              _xr("_xr", _n0, _n1, _n2, _n3, _n4), ref_xr;
+          ComplexView5DType outr("outr", _m0, _m1, _m2, _m3, _m4);
 
-      // Along one axis
-      // Simple identity tests
-      KokkosFFT::fft2(execution_space(), x, out,
-                      KokkosFFT::Normalization::backward, axes);
+          const Kokkos::complex<T> I(1.0, 1.0);
+          Kokkos::Random_XorShift64_Pool<> random_pool(12345);
+          Kokkos::fill_random(x, random_pool, I);
+          Kokkos::fill_random(xr, random_pool, 1);
 
-      KokkosFFT::ifft2(execution_space(), out, _x,
-                       KokkosFFT::Normalization::backward, axes);
+          KokkosFFT::Impl::crop_or_pad(execution_space(), x, ref_x, shape);
+          KokkosFFT::Impl::crop_or_pad(execution_space(), xr, ref_xr, shape);
 
-      EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, atol));
+          Kokkos::fence();
 
-      // Simple identity tests for r2c and c2r transforms
-      KokkosFFT::rfft2(execution_space(), xr, outr,
-                       KokkosFFT::Normalization::backward, axes);
+          // Along one axis
+          // Simple identity tests
+          KokkosFFT::fft2(execution_space(), x, out,
+                          KokkosFFT::Normalization::backward, axes, new_shape);
 
-      KokkosFFT::irfft2(execution_space(), outr, _xr,
-                        KokkosFFT::Normalization::backward, axes);
+          KokkosFFT::ifft2(execution_space(), out, _x,
+                           KokkosFFT::Normalization::backward, axes, new_shape);
 
-      EXPECT_TRUE(allclose(_xr, ref_xr, 1.e-5, atol));
+          EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, atol));
+
+          // Simple identity tests for r2c and c2r transforms
+          KokkosFFT::rfft2(execution_space(), xr, outr,
+                           KokkosFFT::Normalization::backward, axes, new_shape);
+
+          KokkosFFT::irfft2(execution_space(), outr, _xr,
+                            KokkosFFT::Normalization::backward, axes,
+                            new_shape);
+
+          EXPECT_TRUE(allclose(_xr, ref_xr, 1.e-5, atol));
+        }
+      }
     }
   }
 }
@@ -1934,10 +2074,9 @@ void test_fft2_2dfft_6dview(T atol = 1.e-12) {
   using ComplexView6DType =
       Kokkos::View<Kokkos::complex<T>******, LayoutType, execution_space>;
 
-  constexpr int DIM          = 6;
-  std::array<int, DIM> shape = {n0, n1, n2, n3, n4, n5};
-  ComplexView6DType x("x", n0, n1, n2, n3, n4, n5),
-      ref_x("ref_x", n0, n1, n2, n3, n4, n5);
+  constexpr int DIM = 6;
+  shape_type<DIM> default_shape({n0, n1, n2, n3, n4, n5});
+  ComplexView6DType x("x", n0, n1, n2, n3, n4, n5);
 
   using axes_type = KokkosFFT::axis_type<2>;
 
@@ -1949,46 +2088,60 @@ void test_fft2_2dfft_6dview(T atol = 1.e-12) {
 
       axes_type axes = {axis0, axis1};
 
-      std::array<int, DIM> shape_c2r = shape;
-      shape_c2r.at(axis1)            = shape_c2r.at(axis1) / 2 + 1;
+      for (int i0 = -1; i0 <= 1; i0++) {
+        for (int i1 = -1; i1 <= 1; i1++) {
+          shape_type<DIM> shape     = default_shape;
+          shape_type<DIM> shape_c2r = default_shape;
 
-      auto [_n0, _n1, _n2, _n3, _n4, _n5] = shape_c2r;
-      ComplexView6DType _x("_x", n0, n1, n2, n3, n4, n5),
-          out("out", n0, n1, n2, n3, n4, n5),
-          ref_out("ref_out", n0, n1, n2, n3, n4, n5);
-      RealView6DType xr("xr", n0, n1, n2, n3, n4, n5),
-          ref_xr("ref_xr", n0, n1, n2, n3, n4, n5),
-          _xr("_xr", n0, n1, n2, n3, n4, n5);
-      ComplexView6DType outr("outr", _n0, _n1, _n2, _n3, _n4, _n5);
+          std::size_t n0_new = static_cast<std::size_t>(shape.at(axis0) + i0);
+          std::size_t n1_new = static_cast<std::size_t>(shape.at(axis1) + i1);
+          shape_type<2> new_shape = {n0_new, n1_new};
 
-      const Kokkos::complex<T> I(1.0, 1.0);
-      Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-      Kokkos::fill_random(x, random_pool, I);
-      Kokkos::fill_random(xr, random_pool, 1);
+          shape.at(axis0)     = n0_new;
+          shape.at(axis1)     = n1_new;
+          shape_c2r.at(axis0) = n0_new;
+          shape_c2r.at(axis1) = n1_new / 2 + 1;
 
-      Kokkos::deep_copy(ref_x, x);
-      Kokkos::deep_copy(ref_xr, xr);
+          auto [_n0, _n1, _n2, _n3, _n4, _n5] = shape;
+          auto [_m0, _m1, _m2, _m3, _m4, _m5] = shape_c2r;
 
-      Kokkos::fence();
+          ComplexView6DType _x("_x", _n0, _n1, _n2, _n3, _n4, _n5),
+              out("out", _n0, _n1, _n2, _n3, _n4, _n5), ref_x;
+          RealView6DType xr("xr", _n0, _n1, _n2, _n3, _n4, _n5),
+              _xr("_xr", _n0, _n1, _n2, _n3, _n4, _n5), ref_xr;
+          ComplexView6DType outr("outr", _m0, _m1, _m2, _m3, _m4, _m5);
 
-      // Along one axis
-      // Simple identity tests
-      KokkosFFT::fft2(execution_space(), x, out,
-                      KokkosFFT::Normalization::backward, axes);
+          const Kokkos::complex<T> I(1.0, 1.0);
+          Kokkos::Random_XorShift64_Pool<> random_pool(12345);
+          Kokkos::fill_random(x, random_pool, I);
+          Kokkos::fill_random(xr, random_pool, 1);
 
-      KokkosFFT::ifft2(execution_space(), out, _x,
-                       KokkosFFT::Normalization::backward, axes);
+          KokkosFFT::Impl::crop_or_pad(execution_space(), x, ref_x, shape);
+          KokkosFFT::Impl::crop_or_pad(execution_space(), xr, ref_xr, shape);
 
-      EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, atol));
+          Kokkos::fence();
 
-      // Simple identity tests for r2c and c2r transforms
-      KokkosFFT::rfft2(execution_space(), xr, outr,
-                       KokkosFFT::Normalization::backward, axes);
+          // Along one axis
+          // Simple identity tests
+          KokkosFFT::fft2(execution_space(), x, out,
+                          KokkosFFT::Normalization::backward, axes, new_shape);
 
-      KokkosFFT::irfft2(execution_space(), outr, _xr,
-                        KokkosFFT::Normalization::backward, axes);
+          KokkosFFT::ifft2(execution_space(), out, _x,
+                           KokkosFFT::Normalization::backward, axes, new_shape);
 
-      EXPECT_TRUE(allclose(_xr, ref_xr, 1.e-5, atol));
+          EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, atol));
+
+          // Simple identity tests for r2c and c2r transforms
+          KokkosFFT::rfft2(execution_space(), xr, outr,
+                           KokkosFFT::Normalization::backward, axes, new_shape);
+
+          KokkosFFT::irfft2(execution_space(), outr, _xr,
+                            KokkosFFT::Normalization::backward, axes,
+                            new_shape);
+
+          EXPECT_TRUE(allclose(_xr, ref_xr, 1.e-5, atol));
+        }
+      }
     }
   }
 }
@@ -2000,10 +2153,9 @@ void test_fft2_2dfft_7dview(T atol = 1.e-12) {
   using ComplexView7DType =
       Kokkos::View<Kokkos::complex<T>*******, LayoutType, execution_space>;
 
-  constexpr int DIM          = 7;
-  std::array<int, DIM> shape = {n0, n1, n2, n3, n4, n5, n6};
-  ComplexView7DType x("x", n0, n1, n2, n3, n4, n5, n6),
-      ref_x("ref_x", n0, n1, n2, n3, n4, n5, n6);
+  constexpr int DIM = 7;
+  shape_type<DIM> default_shape({n0, n1, n2, n3, n4, n5, n6});
+  ComplexView7DType x("x", n0, n1, n2, n3, n4, n5, n6);
 
   using axes_type = KokkosFFT::axis_type<2>;
   for (int axis0 = 0; axis0 < DIM; axis0++) {
@@ -2014,46 +2166,62 @@ void test_fft2_2dfft_7dview(T atol = 1.e-12) {
 
       axes_type axes = {axis0, axis1};
 
-      std::array<int, DIM> shape_c2r = shape;
-      shape_c2r.at(axis1)            = shape_c2r.at(axis1) / 2 + 1;
+      for (int i0 = -1; i0 <= 1; i0++) {
+        for (int i1 = -1; i1 <= 1; i1++) {
+          shape_type<DIM> shape     = default_shape;
+          shape_type<DIM> shape_c2r = default_shape;
 
-      auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6] = shape_c2r;
-      ComplexView7DType _x("_x", n0, n1, n2, n3, n4, n5, n6),
-          out("out", n0, n1, n2, n3, n4, n5, n6),
-          ref_out("ref_out", n0, n1, n2, n3, n4, n5, n6);
-      RealView7DType xr("xr", n0, n1, n2, n3, n4, n5, n6),
-          ref_xr("ref_xr", n0, n1, n2, n3, n4, n5, n6),
-          _xr("_xr", n0, n1, n2, n3, n4, n5, n6);
-      ComplexView7DType outr("outr", _n0, _n1, _n2, _n3, _n4, _n5, _n6);
+          std::size_t n0_new = static_cast<std::size_t>(shape.at(axis0) + i0);
+          std::size_t n1_new = static_cast<std::size_t>(shape.at(axis1) + i1);
+          shape_type<2> new_shape = {n0_new, n1_new};
 
-      const Kokkos::complex<T> I(1.0, 1.0);
-      Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-      Kokkos::fill_random(x, random_pool, I);
-      Kokkos::fill_random(xr, random_pool, 1);
+          shape.at(axis0)     = n0_new;
+          shape.at(axis1)     = n1_new;
+          shape_c2r.at(axis0) = n0_new;
+          shape_c2r.at(axis1) = n1_new / 2 + 1;
 
-      Kokkos::deep_copy(ref_x, x);
-      Kokkos::deep_copy(ref_xr, xr);
+          auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6] = shape;
+          auto [_m0, _m1, _m2, _m3, _m4, _m5, _m6] = shape_c2r;
 
-      Kokkos::fence();
+          ComplexView7DType _x("_x", _n0, _n1, _n2, _n3, _n4, _n5, _n6),
+              out("out", _n0, _n1, _n2, _n3, _n4, _n5, _n6), ref_x;
 
-      // Along one axis
-      // Simple identity tests
-      KokkosFFT::fft2(execution_space(), x, out,
-                      KokkosFFT::Normalization::backward, axes);
+          RealView7DType xr("xr", _n0, _n1, _n2, _n3, _n4, _n5, _n6),
+              _xr("_xr", _n0, _n1, _n2, _n3, _n4, _n5, _n6), ref_xr;
 
-      KokkosFFT::ifft2(execution_space(), out, _x,
-                       KokkosFFT::Normalization::backward, axes);
+          ComplexView7DType outr("outr", _m0, _m1, _m2, _m3, _m4, _m5, _m6);
 
-      EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, atol));
+          const Kokkos::complex<T> I(1.0, 1.0);
+          Kokkos::Random_XorShift64_Pool<> random_pool(12345);
+          Kokkos::fill_random(x, random_pool, I);
+          Kokkos::fill_random(xr, random_pool, 1);
 
-      // Simple identity tests for r2c and c2r transforms
-      KokkosFFT::rfft2(execution_space(), xr, outr,
-                       KokkosFFT::Normalization::backward, axes);
+          KokkosFFT::Impl::crop_or_pad(execution_space(), x, ref_x, shape);
+          KokkosFFT::Impl::crop_or_pad(execution_space(), xr, ref_xr, shape);
 
-      KokkosFFT::irfft2(execution_space(), outr, _xr,
-                        KokkosFFT::Normalization::backward, axes);
+          Kokkos::fence();
 
-      EXPECT_TRUE(allclose(_xr, ref_xr, 1.e-5, atol));
+          // Along one axis
+          // Simple identity tests
+          KokkosFFT::fft2(execution_space(), x, out,
+                          KokkosFFT::Normalization::backward, axes, new_shape);
+
+          KokkosFFT::ifft2(execution_space(), out, _x,
+                           KokkosFFT::Normalization::backward, axes, new_shape);
+
+          EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, atol));
+
+          // Simple identity tests for r2c and c2r transforms
+          KokkosFFT::rfft2(execution_space(), xr, outr,
+                           KokkosFFT::Normalization::backward, axes, new_shape);
+
+          KokkosFFT::irfft2(execution_space(), outr, _xr,
+                            KokkosFFT::Normalization::backward, axes,
+                            new_shape);
+
+          EXPECT_TRUE(allclose(_xr, ref_xr, 1.e-5, atol));
+        }
+      }
     }
   }
 }
@@ -2065,10 +2233,9 @@ void test_fft2_2dfft_8dview(T atol = 1.e-12) {
   using ComplexView8DType =
       Kokkos::View<Kokkos::complex<T>********, LayoutType, execution_space>;
 
-  constexpr int DIM          = 8;
-  std::array<int, DIM> shape = {n0, n1, n2, n3, n4, n5, n6, n7};
-  ComplexView8DType x("x", n0, n1, n2, n3, n4, n5, n6, n7),
-      ref_x("ref_x", n0, n1, n2, n3, n4, n5, n6, n7);
+  constexpr int DIM = 8;
+  shape_type<DIM> default_shape({n0, n1, n2, n3, n4, n5, n6, n7});
+  ComplexView8DType x("x", n0, n1, n2, n3, n4, n5, n6, n7);
 
   using axes_type = KokkosFFT::axis_type<2>;
   for (int axis0 = 0; axis0 < DIM; axis0++) {
@@ -2079,46 +2246,63 @@ void test_fft2_2dfft_8dview(T atol = 1.e-12) {
 
       axes_type axes = {axis0, axis1};
 
-      std::array<int, DIM> shape_c2r = shape;
-      shape_c2r.at(axis1)            = shape_c2r.at(axis1) / 2 + 1;
+      for (int i0 = -1; i0 <= 1; i0++) {
+        for (int i1 = -1; i1 <= 1; i1++) {
+          shape_type<DIM> shape     = default_shape;
+          shape_type<DIM> shape_c2r = default_shape;
 
-      auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7] = shape_c2r;
-      ComplexView8DType _x("_x", n0, n1, n2, n3, n4, n5, n6, n7),
-          out("out", n0, n1, n2, n3, n4, n5, n6, n7),
-          ref_out("ref_out", n0, n1, n2, n3, n4, n5, n6, n7);
-      RealView8DType xr("xr", n0, n1, n2, n3, n4, n5, n6, n7),
-          ref_xr("ref_xr", n0, n1, n2, n3, n4, n5, n6, n7),
-          _xr("_xr", n0, n1, n2, n3, n4, n5, n6, n7);
-      ComplexView8DType outr("outr", _n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7);
+          std::size_t n0_new = static_cast<std::size_t>(shape.at(axis0) + i0);
+          std::size_t n1_new = static_cast<std::size_t>(shape.at(axis1) + i1);
+          shape_type<2> new_shape = {n0_new, n1_new};
 
-      const Kokkos::complex<T> I(1.0, 1.0);
-      Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-      Kokkos::fill_random(x, random_pool, I);
-      Kokkos::fill_random(xr, random_pool, 1);
+          shape.at(axis0)     = n0_new;
+          shape.at(axis1)     = n1_new;
+          shape_c2r.at(axis0) = n0_new;
+          shape_c2r.at(axis1) = n1_new / 2 + 1;
 
-      Kokkos::deep_copy(ref_x, x);
-      Kokkos::deep_copy(ref_xr, xr);
+          auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7] = shape;
+          auto [_m0, _m1, _m2, _m3, _m4, _m5, _m6, _m7] = shape_c2r;
 
-      Kokkos::fence();
+          ComplexView8DType _x("_x", _n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7),
+              out("out", _n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7), ref_x;
 
-      // Along one axis
-      // Simple identity tests
-      KokkosFFT::fft2(execution_space(), x, out,
-                      KokkosFFT::Normalization::backward, axes);
+          RealView8DType xr("xr", _n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7),
+              _xr("_xr", _n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7), ref_xr;
 
-      KokkosFFT::ifft2(execution_space(), out, _x,
-                       KokkosFFT::Normalization::backward, axes);
+          ComplexView8DType outr("outr", _m0, _m1, _m2, _m3, _m4, _m5, _m6,
+                                 _m7);
 
-      EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, atol));
+          const Kokkos::complex<T> I(1.0, 1.0);
+          Kokkos::Random_XorShift64_Pool<> random_pool(12345);
+          Kokkos::fill_random(x, random_pool, I);
+          Kokkos::fill_random(xr, random_pool, 1);
 
-      // Simple identity tests for r2c and c2r transforms
-      KokkosFFT::rfft2(execution_space(), xr, outr,
-                       KokkosFFT::Normalization::backward, axes);
+          KokkosFFT::Impl::crop_or_pad(execution_space(), x, ref_x, shape);
+          KokkosFFT::Impl::crop_or_pad(execution_space(), xr, ref_xr, shape);
 
-      KokkosFFT::irfft2(execution_space(), outr, _xr,
-                        KokkosFFT::Normalization::backward, axes);
+          Kokkos::fence();
 
-      EXPECT_TRUE(allclose(_xr, ref_xr, 1.e-5, atol));
+          // Along one axis
+          // Simple identity tests
+          KokkosFFT::fft2(execution_space(), x, out,
+                          KokkosFFT::Normalization::backward, axes, new_shape);
+
+          KokkosFFT::ifft2(execution_space(), out, _x,
+                           KokkosFFT::Normalization::backward, axes, new_shape);
+
+          EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, atol));
+
+          // Simple identity tests for r2c and c2r transforms
+          KokkosFFT::rfft2(execution_space(), xr, outr,
+                           KokkosFFT::Normalization::backward, axes, new_shape);
+
+          KokkosFFT::irfft2(execution_space(), outr, _xr,
+                            KokkosFFT::Normalization::backward, axes,
+                            new_shape);
+
+          EXPECT_TRUE(allclose(_xr, ref_xr, 1.e-5, atol));
+        }
+      }
     }
   }
 }
@@ -2153,6 +2337,14 @@ TYPED_TEST(FFT2D, IRFFT2_2DView) {
   using layout_type = typename TestFixture::layout_type;
 
   test_fft2_2dirfft_2dview<float_type, layout_type>();
+}
+
+// fft2 on 2D Views with shape argument
+TYPED_TEST(FFT2D, 2DFFT_2DView_shape) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  test_fft2_2dfft_2dview_shape<float_type, layout_type>();
 }
 
 // batced fft2 on 3D Views
@@ -2234,27 +2426,8 @@ void test_fftn_2dfft_2dview() {
   KokkosFFT::fft(execution_space(), out1, out2,
                  KokkosFFT::Normalization::backward, /*axis=*/0);
 
-  KokkosFFT::fftn(execution_space(), x,
-                  out);  // default: KokkosFFT::Normalization::backward
-  KokkosFFT::fftn(execution_space(), x, out_b,
-                  KokkosFFT::Normalization::backward);
-  KokkosFFT::fftn(execution_space(), x, out_o, KokkosFFT::Normalization::ortho);
-  KokkosFFT::fftn(execution_space(), x, out_f,
-                  KokkosFFT::Normalization::forward);
-
-  multiply(out_o, sqrt(static_cast<T>(n0 * n1)));
-  multiply(out_f, static_cast<T>(n0 * n1));
-
-  EXPECT_TRUE(allclose(out, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_b, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_o, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_f, out2, 1.e-5, 1.e-6));
-
-  // Same tests with specifying axes
-  // np.fftn for 2D array is identical to np.fft(np.fft(x, axis=1), axis=0)
   using axes_type = KokkosFFT::axis_type<2>;
   axes_type axes  = {-2, -1};
-
   KokkosFFT::fftn(execution_space(), x, out,
                   axes);  // default: KokkosFFT::Normalization::backward
   KokkosFFT::fftn(execution_space(), x, out_b, axes,
@@ -2295,73 +2468,6 @@ void test_fftn_2dfft_2dview() {
 }
 
 template <typename T, typename LayoutType>
-void test_fftn_3dfft_3dview(T atol = 1.0e-6) {
-  const int n0 = 4, n1 = 6, n2 = 8;
-  using ComplexView3DType =
-      Kokkos::View<Kokkos::complex<T>***, LayoutType, execution_space>;
-
-  ComplexView3DType x("x", n0, n1, n2);
-  ComplexView3DType out("out", n0, n1, n2), out1("out1", n0, n1, n2),
-      out2("out2", n0, n1, n2), out3("out3", n0, n1, n2);
-  ComplexView3DType out_b("out_b", n0, n1, n2), out_o("out_o", n0, n1, n2),
-      out_f("out_f", n0, n1, n2);
-
-  const Kokkos::complex<T> I(1.0, 1.0);
-  Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-  Kokkos::fill_random(x, random_pool, I);
-
-  Kokkos::fence();
-
-  // np.fftn for 3D array is identical to np.fft(np.fft(np.fft(x, axis=2),
-  // axis=1), axis=0)
-  KokkosFFT::fft(execution_space(), x, out1, KokkosFFT::Normalization::backward,
-                 /*axis=*/2);
-  KokkosFFT::fft(execution_space(), out1, out2,
-                 KokkosFFT::Normalization::backward, /*axis=*/1);
-  KokkosFFT::fft(execution_space(), out2, out3,
-                 KokkosFFT::Normalization::backward, /*axis=*/0);
-
-  KokkosFFT::fftn(execution_space(), x,
-                  out);  // default: KokkosFFT::Normalization::backward
-  KokkosFFT::fftn(execution_space(), x, out_b,
-                  KokkosFFT::Normalization::backward);
-  KokkosFFT::fftn(execution_space(), x, out_o, KokkosFFT::Normalization::ortho);
-  KokkosFFT::fftn(execution_space(), x, out_f,
-                  KokkosFFT::Normalization::forward);
-
-  multiply(out_o, sqrt(static_cast<T>(n0 * n1 * n2)));
-  multiply(out_f, static_cast<T>(n0 * n1 * n2));
-
-  EXPECT_TRUE(allclose(out, out3, 1.e-5, atol));
-  EXPECT_TRUE(allclose(out_b, out3, 1.e-5, atol));
-  EXPECT_TRUE(allclose(out_o, out3, 1.e-5, atol));
-  EXPECT_TRUE(allclose(out_f, out3, 1.e-5, atol));
-
-  // Same tests with specifying axes
-  // np.fftn for 3D array is identical to np.fft(np.fft(np.fft(x, axis=2),
-  // axis=1), axis=0)
-  using axes_type = KokkosFFT::axis_type<3>;
-
-  KokkosFFT::fftn(
-      execution_space(), x, out,
-      axes_type{-3, -2, -1});  // default: KokkosFFT::Normalization::backward
-  KokkosFFT::fftn(execution_space(), x, out_b, axes_type{-3, -2, -1},
-                  KokkosFFT::Normalization::backward);
-  KokkosFFT::fftn(execution_space(), x, out_o, axes_type{-3, -2, -1},
-                  KokkosFFT::Normalization::ortho);
-  KokkosFFT::fftn(execution_space(), x, out_f, axes_type{-3, -2, -1},
-                  KokkosFFT::Normalization::forward);
-
-  multiply(out_o, sqrt(static_cast<T>(n0 * n1 * n2)));
-  multiply(out_f, static_cast<T>(n0 * n1 * n2));
-
-  EXPECT_TRUE(allclose(out, out3, 1.e-5, atol));
-  EXPECT_TRUE(allclose(out_b, out3, 1.e-5, atol));
-  EXPECT_TRUE(allclose(out_o, out3, 1.e-5, atol));
-  EXPECT_TRUE(allclose(out_f, out3, 1.e-5, atol));
-}
-
-template <typename T, typename LayoutType>
 void test_ifftn_2dfft_2dview() {
   const int n0 = 4, n1 = 6;
   using ComplexView2DType =
@@ -2380,32 +2486,13 @@ void test_ifftn_2dfft_2dview() {
   Kokkos::fence();
 
   // np.ifftn for 2D array is identical to np.ifft(np.ifft(x, axis=1), axis=0)
+  using axes_type = KokkosFFT::axis_type<2>;
+  axes_type axes  = {-2, -1};
+
   KokkosFFT::ifft(execution_space(), x, out1,
                   KokkosFFT::Normalization::backward, /*axis=*/1);
   KokkosFFT::ifft(execution_space(), out1, out2,
                   KokkosFFT::Normalization::backward, /*axis=*/0);
-
-  KokkosFFT::ifftn(execution_space(), x,
-                   out);  // default: KokkosFFT::Normalization::backward
-  KokkosFFT::ifftn(execution_space(), x, out_b,
-                   KokkosFFT::Normalization::backward);
-  KokkosFFT::ifftn(execution_space(), x, out_o,
-                   KokkosFFT::Normalization::ortho);
-  KokkosFFT::ifftn(execution_space(), x, out_f,
-                   KokkosFFT::Normalization::forward);
-
-  multiply(out_o, 1.0 / sqrt(static_cast<T>(n0 * n1)));
-  multiply(out_f, 1.0 / static_cast<T>(n0 * n1));
-
-  EXPECT_TRUE(allclose(out, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_b, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_o, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_f, out2, 1.e-5, 1.e-6));
-
-  // Same tests with specifying axes
-  // np.fftn for 2D array is identical to np.fft(np.fft(x, axis=1), axis=0)
-  using axes_type = KokkosFFT::axis_type<2>;
-  axes_type axes  = {-2, -1};
 
   KokkosFFT::ifftn(execution_space(), x, out,
                    axes);  // default: KokkosFFT::Normalization::backward
@@ -2446,74 +2533,6 @@ void test_ifftn_2dfft_2dview() {
 }
 
 template <typename T, typename LayoutType>
-void test_ifftn_3dfft_3dview() {
-  const int n0 = 4, n1 = 6, n2 = 8;
-  using ComplexView3DType =
-      Kokkos::View<Kokkos::complex<T>***, LayoutType, execution_space>;
-
-  ComplexView3DType x("x", n0, n1, n2);
-  ComplexView3DType out("out", n0, n1, n2), out1("out1", n0, n1, n2),
-      out2("out2", n0, n1, n2), out3("out3", n0, n1, n2);
-  ComplexView3DType out_b("out_b", n0, n1, n2), out_o("out_o", n0, n1, n2),
-      out_f("out_f", n0, n1, n2);
-
-  const Kokkos::complex<T> I(1.0, 1.0);
-  Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-  Kokkos::fill_random(x, random_pool, I);
-
-  Kokkos::fence();
-
-  // np.ifftn for 3D array is identical to np.ifft(np.ifft(np.ifft(x, axis=2),
-  // axis=1), axis=0)
-  KokkosFFT::ifft(execution_space(), x, out1,
-                  KokkosFFT::Normalization::backward, /*axis=*/2);
-  KokkosFFT::ifft(execution_space(), out1, out2,
-                  KokkosFFT::Normalization::backward, /*axis=*/1);
-  KokkosFFT::ifft(execution_space(), out2, out3,
-                  KokkosFFT::Normalization::backward, /*axis=*/0);
-
-  KokkosFFT::ifftn(execution_space(), x,
-                   out);  // default: KokkosFFT::Normalization::backward
-  KokkosFFT::ifftn(execution_space(), x, out_b,
-                   KokkosFFT::Normalization::backward);
-  KokkosFFT::ifftn(execution_space(), x, out_o,
-                   KokkosFFT::Normalization::ortho);
-  KokkosFFT::ifftn(execution_space(), x, out_f,
-                   KokkosFFT::Normalization::forward);
-
-  multiply(out_o, 1.0 / sqrt(static_cast<T>(n0 * n1 * n2)));
-  multiply(out_f, 1.0 / static_cast<T>(n0 * n1 * n2));
-
-  EXPECT_TRUE(allclose(out, out3, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_b, out3, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_o, out3, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_f, out3, 1.e-5, 1.e-6));
-
-  // Same tests with specifying axes
-  // np.ifftn for 3D array is identical to np.ifft(np.ifft(np.ifft(x, axis=2),
-  // axis=1), axis=0)
-  using axes_type = KokkosFFT::axis_type<3>;
-
-  KokkosFFT::ifftn(
-      execution_space(), x, out,
-      axes_type{-3, -2, -1});  // default: KokkosFFT::Normalization::backward
-  KokkosFFT::ifftn(execution_space(), x, out_b, axes_type{-3, -2, -1},
-                   KokkosFFT::Normalization::backward);
-  KokkosFFT::ifftn(execution_space(), x, out_o, axes_type{-3, -2, -1},
-                   KokkosFFT::Normalization::ortho);
-  KokkosFFT::ifftn(execution_space(), x, out_f, axes_type{-3, -2, -1},
-                   KokkosFFT::Normalization::forward);
-
-  multiply(out_o, 1.0 / sqrt(static_cast<T>(n0 * n1 * n2)));
-  multiply(out_f, 1.0 / static_cast<T>(n0 * n1 * n2));
-
-  EXPECT_TRUE(allclose(out, out3, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_b, out3, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_o, out3, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_f, out3, 1.e-5, 1.e-6));
-}
-
-template <typename T, typename LayoutType>
 void test_rfftn_2dfft_2dview() {
   const int n0 = 4, n1 = 6;
   using RealView2DType = Kokkos::View<T**, LayoutType, execution_space>;
@@ -2532,39 +2551,12 @@ void test_rfftn_2dfft_2dview() {
   Kokkos::fence();
 
   // np.rfftn for 2D array is identical to np.fft(np.rfft(x, axis=1), axis=0)
+  using axes_type = KokkosFFT::axis_type<2>;
+  axes_type axes  = {-2, -1};
   KokkosFFT::rfft(execution_space(), x, out1,
                   KokkosFFT::Normalization::backward, /*axis=*/1);
   KokkosFFT::fft(execution_space(), out1, out2,
                  KokkosFFT::Normalization::backward, /*axis=*/0);
-
-  Kokkos::deep_copy(x, x_ref);
-  KokkosFFT::rfftn(execution_space(), x,
-                   out);  // default: KokkosFFT::Normalization::backward
-
-  Kokkos::deep_copy(x, x_ref);
-  KokkosFFT::rfftn(execution_space(), x, out_b,
-                   KokkosFFT::Normalization::backward);
-
-  Kokkos::deep_copy(x, x_ref);
-  KokkosFFT::rfftn(execution_space(), x, out_o,
-                   KokkosFFT::Normalization::ortho);
-
-  Kokkos::deep_copy(x, x_ref);
-  KokkosFFT::rfftn(execution_space(), x, out_f,
-                   KokkosFFT::Normalization::forward);
-
-  multiply(out_o, sqrt(static_cast<T>(n0 * n1)));
-  multiply(out_f, static_cast<T>(n0 * n1));
-
-  EXPECT_TRUE(allclose(out, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_b, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_o, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_f, out2, 1.e-5, 1.e-6));
-
-  // Same tests with specifying axes
-  // np.rfftn for 2D array is identical to np.fft(np.rfft(x, axis=1), axis=0)
-  using axes_type = KokkosFFT::axis_type<2>;
-  axes_type axes  = {-2, -1};
 
   Kokkos::deep_copy(x, x_ref);
   KokkosFFT::rfftn(execution_space(), x, out,
@@ -2620,89 +2612,6 @@ void test_rfftn_2dfft_2dview() {
 }
 
 template <typename T, typename LayoutType>
-void test_rfftn_3dfft_3dview() {
-  const int n0 = 4, n1 = 6, n2 = 8;
-  using RealView3DType = Kokkos::View<T***, LayoutType, execution_space>;
-  using ComplexView3DType =
-      Kokkos::View<Kokkos::complex<T>***, LayoutType, execution_space>;
-
-  RealView3DType x("x", n0, n1, n2), x_ref("x_ref", n0, n1, n2);
-  ComplexView3DType out("out", n0, n1, n2 / 2 + 1),
-      out1("out1", n0, n1, n2 / 2 + 1), out2("out2", n0, n1, n2 / 2 + 1),
-      out3("out3", n0, n1, n2 / 2 + 1);
-  ComplexView3DType out_b("out_b", n0, n1, n2 / 2 + 1),
-      out_o("out_o", n0, n1, n2 / 2 + 1), out_f("out_f", n0, n1, n2 / 2 + 1);
-
-  Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-  Kokkos::fill_random(x, random_pool, 1);
-  Kokkos::deep_copy(x_ref, x);
-  Kokkos::fence();
-
-  // np.rfftn for 3D array is identical to np.fft(np.fft(np.rfft(x, axis=2),
-  // axis=1), axis=0)
-  KokkosFFT::rfft(execution_space(), x, out1,
-                  KokkosFFT::Normalization::backward, /*axis=*/2);
-  KokkosFFT::fft(execution_space(), out1, out2,
-                 KokkosFFT::Normalization::backward, /*axis=*/1);
-  KokkosFFT::fft(execution_space(), out2, out3,
-                 KokkosFFT::Normalization::backward, /*axis=*/0);
-
-  Kokkos::deep_copy(x, x_ref);
-  KokkosFFT::rfftn(execution_space(), x,
-                   out);  // default: KokkosFFT::Normalization::backward
-
-  Kokkos::deep_copy(x, x_ref);
-  KokkosFFT::rfftn(execution_space(), x, out_b,
-                   KokkosFFT::Normalization::backward);
-
-  Kokkos::deep_copy(x, x_ref);
-  KokkosFFT::rfftn(execution_space(), x, out_o,
-                   KokkosFFT::Normalization::ortho);
-
-  Kokkos::deep_copy(x, x_ref);
-  KokkosFFT::rfftn(execution_space(), x, out_f,
-                   KokkosFFT::Normalization::forward);
-
-  multiply(out_o, sqrt(static_cast<T>(n0 * n1 * n2)));
-  multiply(out_f, static_cast<T>(n0 * n1 * n2));
-
-  EXPECT_TRUE(allclose(out, out3, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_b, out3, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_o, out3, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_f, out3, 1.e-5, 1.e-6));
-
-  // Same tests with specifying axes
-  // np.rfftn for 3D array is identical to np.fft(np.fft(np.rfft(x, axis=2),
-  // axis=1), axis=0)
-  using axes_type = KokkosFFT::axis_type<3>;
-
-  Kokkos::deep_copy(x, x_ref);
-  KokkosFFT::rfftn(
-      execution_space(), x, out,
-      axes_type{-3, -2, -1});  // default: KokkosFFT::Normalization::backward
-
-  Kokkos::deep_copy(x, x_ref);
-  KokkosFFT::rfftn(execution_space(), x, out_b, axes_type{-3, -2, -1},
-                   KokkosFFT::Normalization::backward);
-
-  Kokkos::deep_copy(x, x_ref);
-  KokkosFFT::rfftn(execution_space(), x, out_o, axes_type{-3, -2, -1},
-                   KokkosFFT::Normalization::ortho);
-
-  Kokkos::deep_copy(x, x_ref);
-  KokkosFFT::rfftn(execution_space(), x, out_f, axes_type{-3, -2, -1},
-                   KokkosFFT::Normalization::forward);
-
-  multiply(out_o, sqrt(static_cast<T>(n0 * n1 * n2)));
-  multiply(out_f, static_cast<T>(n0 * n1 * n2));
-
-  EXPECT_TRUE(allclose(out, out3, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_b, out3, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_o, out3, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_f, out3, 1.e-5, 1.e-6));
-}
-
-template <typename T, typename LayoutType>
 void test_irfftn_2dfft_2dview() {
   const int n0 = 4, n1 = 6;
   using RealView2DType = Kokkos::View<T**, LayoutType, execution_space>;
@@ -2721,39 +2630,13 @@ void test_irfftn_2dfft_2dview() {
   Kokkos::deep_copy(x_ref, x);
 
   // np.irfftn for 2D array is identical to np.irfft(np.ifft(x, axis=0), axis=1)
+  using axes_type = KokkosFFT::axis_type<2>;
+  axes_type axes  = {-2, -1};
+
   KokkosFFT::ifft(execution_space(), x, out1,
                   KokkosFFT::Normalization::backward, /*axis=*/0);
   KokkosFFT::irfft(execution_space(), out1, out2,
                    KokkosFFT::Normalization::backward, /*axis=*/1);
-
-  Kokkos::deep_copy(x, x_ref);
-  KokkosFFT::irfftn(execution_space(), x,
-                    out);  // default: KokkosFFT::Normalization::backward
-
-  Kokkos::deep_copy(x, x_ref);
-  KokkosFFT::irfftn(execution_space(), x, out_b,
-                    KokkosFFT::Normalization::backward);
-
-  Kokkos::deep_copy(x, x_ref);
-  KokkosFFT::irfftn(execution_space(), x, out_o,
-                    KokkosFFT::Normalization::ortho);
-
-  Kokkos::deep_copy(x, x_ref);
-  KokkosFFT::irfftn(execution_space(), x, out_f,
-                    KokkosFFT::Normalization::forward);
-
-  multiply(out_o, 1.0 / sqrt(static_cast<T>(n0 * n1)));
-  multiply(out_f, 1.0 / static_cast<T>(n0 * n1));
-
-  EXPECT_TRUE(allclose(out, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_b, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_o, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_f, out2, 1.e-5, 1.e-6));
-
-  // Same tests with specifying axes
-  // np.irfftn for 2D array is identical to np.fft(np.rfft(x, axis=1), axis=0)
-  using axes_type = KokkosFFT::axis_type<2>;
-  axes_type axes  = {-2, -1};
 
   Kokkos::deep_copy(x, x_ref);
   KokkosFFT::irfftn(execution_space(), x, out,
@@ -2808,6 +2691,245 @@ void test_irfftn_2dfft_2dview() {
 }
 
 template <typename T, typename LayoutType>
+void test_fftn_2dfft_2dview_shape(T atol = 1.0e-12) {
+  const int n0 = 4, n1 = 6;
+  using RealView2DType = Kokkos::View<T**, LayoutType, execution_space>;
+  using ComplexView2DType =
+      Kokkos::View<Kokkos::complex<T>**, LayoutType, execution_space>;
+
+  RealView2DType xr("xr", n0, n1), xr_ref("xr_ref", n0, n1);
+  ComplexView2DType x("x", n0, n1 / 2 + 1), x_ref("x_ref", n0, n1 / 2 + 1);
+
+  const Kokkos::complex<T> I(1.0, 1.0);
+  Kokkos::Random_XorShift64_Pool<> random_pool(12345);
+  Kokkos::fill_random(xr, random_pool, 1.0);
+  Kokkos::fill_random(x, random_pool, I);
+  Kokkos::deep_copy(xr_ref, xr);
+  Kokkos::deep_copy(x_ref, x);
+
+  // np.irfftn for 2D array is identical to np.irfft(np.ifft(x, axis=0), axis=1)
+  using axes_type = KokkosFFT::axis_type<2>;
+  axes_type axes  = {-2, -1};
+
+  std::vector<std::size_t> shapes0 = {n0 / 2, n0, n0 * 2};
+  std::vector<std::size_t> shapes1 = {n1 / 2, n1, n1 * 2};
+
+  for (auto&& shape0 : shapes0) {
+    for (auto&& shape1 : shapes1) {
+      // Real to complex
+      ComplexView2DType outr("outr", shape0, shape1 / 2 + 1),
+          outr_b("outr_b", shape0, shape1 / 2 + 1),
+          outr_o("outr_o", shape0, shape1 / 2 + 1),
+          outr_f("outr_f", shape0, shape1 / 2 + 1);
+
+      shape_type<2> new_shape = {shape0, shape1};
+
+      Kokkos::deep_copy(xr, xr_ref);
+      KokkosFFT::rfftn(execution_space(), xr, outr, axes,
+                       KokkosFFT::Normalization::none, new_shape);
+
+      Kokkos::deep_copy(xr, xr_ref);
+      KokkosFFT::rfftn(execution_space(), xr, outr_b, axes,
+                       KokkosFFT::Normalization::backward, new_shape);
+
+      Kokkos::deep_copy(xr, xr_ref);
+      KokkosFFT::rfftn(execution_space(), xr, outr_o, axes,
+                       KokkosFFT::Normalization::ortho, new_shape);
+
+      Kokkos::deep_copy(xr, xr_ref);
+      KokkosFFT::rfftn(execution_space(), xr, outr_f, axes,
+                       KokkosFFT::Normalization::forward, new_shape);
+
+      multiply(outr_o, sqrt(static_cast<T>(shape0 * shape1)));
+      multiply(outr_f, static_cast<T>(shape0 * shape1));
+
+      EXPECT_TRUE(allclose(outr_b, outr, 1.e-5, atol));
+      EXPECT_TRUE(allclose(outr_o, outr, 1.e-5, atol));
+      EXPECT_TRUE(allclose(outr_f, outr, 1.e-5, atol));
+
+      // Complex to real
+      RealView2DType out("out", shape0, shape1), out_b("out_b", shape0, shape1),
+          out_o("out_o", shape0, shape1), out_f("out_f", shape0, shape1);
+
+      Kokkos::deep_copy(x, x_ref);
+      KokkosFFT::irfftn(execution_space(), x, out, axes,
+                        KokkosFFT::Normalization::none, new_shape);
+
+      Kokkos::deep_copy(x, x_ref);
+      KokkosFFT::irfftn(execution_space(), x, out_b, axes,
+                        KokkosFFT::Normalization::backward, new_shape);
+
+      Kokkos::deep_copy(x, x_ref);
+      KokkosFFT::irfftn(execution_space(), x, out_o, axes,
+                        KokkosFFT::Normalization::ortho, new_shape);
+
+      Kokkos::deep_copy(x, x_ref);
+      KokkosFFT::irfftn(execution_space(), x, out_f, axes,
+                        KokkosFFT::Normalization::forward, new_shape);
+
+      multiply(out_o, sqrt(static_cast<T>(shape0 * shape1)));
+      multiply(out_b, static_cast<T>(shape0 * shape1));
+
+      EXPECT_TRUE(allclose(out_b, out, 1.e-5, atol));
+      EXPECT_TRUE(allclose(out_o, out, 1.e-5, atol));
+      EXPECT_TRUE(allclose(out_f, out, 1.e-5, atol));
+    }
+  }
+}
+
+template <typename T, typename LayoutType>
+void test_fftn_3dfft_3dview(T atol = 1.0e-6) {
+  const int n0 = 4, n1 = 6, n2 = 8;
+  using ComplexView3DType =
+      Kokkos::View<Kokkos::complex<T>***, LayoutType, execution_space>;
+
+  ComplexView3DType x("x", n0, n1, n2);
+  ComplexView3DType out("out", n0, n1, n2), out1("out1", n0, n1, n2),
+      out2("out2", n0, n1, n2), out3("out3", n0, n1, n2);
+  ComplexView3DType out_b("out_b", n0, n1, n2), out_o("out_o", n0, n1, n2),
+      out_f("out_f", n0, n1, n2);
+
+  const Kokkos::complex<T> I(1.0, 1.0);
+  Kokkos::Random_XorShift64_Pool<> random_pool(12345);
+  Kokkos::fill_random(x, random_pool, I);
+
+  Kokkos::fence();
+
+  // np.fftn for 3D array is identical to np.fft(np.fft(np.fft(x, axis=2),
+  // axis=1), axis=0)
+  using axes_type = KokkosFFT::axis_type<3>;
+  axes_type axes  = {-3, -2, -1};
+
+  KokkosFFT::fft(execution_space(), x, out1, KokkosFFT::Normalization::backward,
+                 /*axis=*/2);
+  KokkosFFT::fft(execution_space(), out1, out2,
+                 KokkosFFT::Normalization::backward, /*axis=*/1);
+  KokkosFFT::fft(execution_space(), out2, out3,
+                 KokkosFFT::Normalization::backward, /*axis=*/0);
+
+  KokkosFFT::fftn(execution_space(), x, out,
+                  axes);  // default: KokkosFFT::Normalization::backward
+  KokkosFFT::fftn(execution_space(), x, out_b, axes,
+                  KokkosFFT::Normalization::backward);
+  KokkosFFT::fftn(execution_space(), x, out_o, axes,
+                  KokkosFFT::Normalization::ortho);
+  KokkosFFT::fftn(execution_space(), x, out_f, axes,
+                  KokkosFFT::Normalization::forward);
+
+  multiply(out_o, sqrt(static_cast<T>(n0 * n1 * n2)));
+  multiply(out_f, static_cast<T>(n0 * n1 * n2));
+
+  EXPECT_TRUE(allclose(out, out3, 1.e-5, atol));
+  EXPECT_TRUE(allclose(out_b, out3, 1.e-5, atol));
+  EXPECT_TRUE(allclose(out_o, out3, 1.e-5, atol));
+  EXPECT_TRUE(allclose(out_f, out3, 1.e-5, atol));
+}
+
+template <typename T, typename LayoutType>
+void test_ifftn_3dfft_3dview() {
+  const int n0 = 4, n1 = 6, n2 = 8;
+  using ComplexView3DType =
+      Kokkos::View<Kokkos::complex<T>***, LayoutType, execution_space>;
+
+  ComplexView3DType x("x", n0, n1, n2);
+  ComplexView3DType out("out", n0, n1, n2), out1("out1", n0, n1, n2),
+      out2("out2", n0, n1, n2), out3("out3", n0, n1, n2);
+  ComplexView3DType out_b("out_b", n0, n1, n2), out_o("out_o", n0, n1, n2),
+      out_f("out_f", n0, n1, n2);
+
+  const Kokkos::complex<T> I(1.0, 1.0);
+  Kokkos::Random_XorShift64_Pool<> random_pool(12345);
+  Kokkos::fill_random(x, random_pool, I);
+
+  Kokkos::fence();
+
+  // np.ifftn for 3D array is identical to np.ifft(np.ifft(np.ifft(x, axis=2),
+  // axis=1), axis=0)
+  using axes_type = KokkosFFT::axis_type<3>;
+  axes_type axes  = {-3, -2, -1};
+
+  KokkosFFT::ifft(execution_space(), x, out1,
+                  KokkosFFT::Normalization::backward, /*axis=*/2);
+  KokkosFFT::ifft(execution_space(), out1, out2,
+                  KokkosFFT::Normalization::backward, /*axis=*/1);
+  KokkosFFT::ifft(execution_space(), out2, out3,
+                  KokkosFFT::Normalization::backward, /*axis=*/0);
+
+  KokkosFFT::ifftn(execution_space(), x, out,
+                   axes);  // default: KokkosFFT::Normalization::backward
+  KokkosFFT::ifftn(execution_space(), x, out_b, axes,
+                   KokkosFFT::Normalization::backward);
+  KokkosFFT::ifftn(execution_space(), x, out_o, axes,
+                   KokkosFFT::Normalization::ortho);
+  KokkosFFT::ifftn(execution_space(), x, out_f, axes,
+                   KokkosFFT::Normalization::forward);
+
+  multiply(out_o, 1.0 / sqrt(static_cast<T>(n0 * n1 * n2)));
+  multiply(out_f, 1.0 / static_cast<T>(n0 * n1 * n2));
+
+  EXPECT_TRUE(allclose(out, out3, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(out_b, out3, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(out_o, out3, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(out_f, out3, 1.e-5, 1.e-6));
+}
+
+template <typename T, typename LayoutType>
+void test_rfftn_3dfft_3dview() {
+  const int n0 = 4, n1 = 6, n2 = 8;
+  using RealView3DType = Kokkos::View<T***, LayoutType, execution_space>;
+  using ComplexView3DType =
+      Kokkos::View<Kokkos::complex<T>***, LayoutType, execution_space>;
+
+  RealView3DType x("x", n0, n1, n2), x_ref("x_ref", n0, n1, n2);
+  ComplexView3DType out("out", n0, n1, n2 / 2 + 1),
+      out1("out1", n0, n1, n2 / 2 + 1), out2("out2", n0, n1, n2 / 2 + 1),
+      out3("out3", n0, n1, n2 / 2 + 1);
+  ComplexView3DType out_b("out_b", n0, n1, n2 / 2 + 1),
+      out_o("out_o", n0, n1, n2 / 2 + 1), out_f("out_f", n0, n1, n2 / 2 + 1);
+
+  Kokkos::Random_XorShift64_Pool<> random_pool(12345);
+  Kokkos::fill_random(x, random_pool, 1);
+  Kokkos::deep_copy(x_ref, x);
+  Kokkos::fence();
+
+  // np.rfftn for 3D array is identical to np.fft(np.fft(np.rfft(x, axis=2),
+  // axis=1), axis=0)
+  using axes_type = KokkosFFT::axis_type<3>;
+  axes_type axes  = {-3, -2, -1};
+
+  KokkosFFT::rfft(execution_space(), x, out1,
+                  KokkosFFT::Normalization::backward, /*axis=*/2);
+  KokkosFFT::fft(execution_space(), out1, out2,
+                 KokkosFFT::Normalization::backward, /*axis=*/1);
+  KokkosFFT::fft(execution_space(), out2, out3,
+                 KokkosFFT::Normalization::backward, /*axis=*/0);
+
+  Kokkos::deep_copy(x, x_ref);
+  KokkosFFT::rfftn(execution_space(), x, out,
+                   axes);  // default: KokkosFFT::Normalization::backward
+
+  Kokkos::deep_copy(x, x_ref);
+  KokkosFFT::rfftn(execution_space(), x, out_b, axes,
+                   KokkosFFT::Normalization::backward);
+
+  Kokkos::deep_copy(x, x_ref);
+  KokkosFFT::rfftn(execution_space(), x, out_o, axes,
+                   KokkosFFT::Normalization::ortho);
+
+  Kokkos::deep_copy(x, x_ref);
+  KokkosFFT::rfftn(execution_space(), x, out_f, axes,
+                   KokkosFFT::Normalization::forward);
+
+  multiply(out_o, sqrt(static_cast<T>(n0 * n1 * n2)));
+  multiply(out_f, static_cast<T>(n0 * n1 * n2));
+
+  EXPECT_TRUE(allclose(out, out3, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(out_b, out3, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(out_o, out3, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(out_f, out3, 1.e-5, 1.e-6));
+}
+
+template <typename T, typename LayoutType>
 void test_irfftn_3dfft_3dview() {
   const int n0 = 4, n1 = 6, n2 = 8;
   using RealView3DType = Kokkos::View<T***, LayoutType, execution_space>;
@@ -2829,6 +2951,9 @@ void test_irfftn_3dfft_3dview() {
 
   // np.irfftn for 3D array is identical to np.irfft(np.ifft(np.ifft(x, axis=0),
   // axis=1), axis=2)
+  using axes_type = KokkosFFT::axis_type<3>;
+  axes_type axes  = {-3, -2, -1};
+
   KokkosFFT::ifft(execution_space(), x, out1,
                   KokkosFFT::Normalization::backward, /*axis=*/0);
   KokkosFFT::ifft(execution_space(), out1, out2,
@@ -2837,19 +2962,19 @@ void test_irfftn_3dfft_3dview() {
                    KokkosFFT::Normalization::backward, /*axis=*/2);
 
   Kokkos::deep_copy(x, x_ref);
-  KokkosFFT::irfftn(execution_space(), x,
-                    out);  // default: KokkosFFT::Normalization::backward
+  KokkosFFT::irfftn(execution_space(), x, out,
+                    axes);  // default: KokkosFFT::Normalization::backward
 
   Kokkos::deep_copy(x, x_ref);
-  KokkosFFT::irfftn(execution_space(), x, out_b,
+  KokkosFFT::irfftn(execution_space(), x, out_b, axes,
                     KokkosFFT::Normalization::backward);
 
   Kokkos::deep_copy(x, x_ref);
-  KokkosFFT::irfftn(execution_space(), x, out_o,
+  KokkosFFT::irfftn(execution_space(), x, out_o, axes,
                     KokkosFFT::Normalization::ortho);
 
   Kokkos::deep_copy(x, x_ref);
-  KokkosFFT::irfftn(execution_space(), x, out_f,
+  KokkosFFT::irfftn(execution_space(), x, out_f, axes,
                     KokkosFFT::Normalization::forward);
 
   multiply(out_o, 1.0 / sqrt(static_cast<T>(n0 * n1 * n2)));
@@ -2859,36 +2984,100 @@ void test_irfftn_3dfft_3dview() {
   EXPECT_TRUE(allclose(out_b, out3, 1.e-5, 1.e-6));
   EXPECT_TRUE(allclose(out_o, out3, 1.e-5, 1.e-6));
   EXPECT_TRUE(allclose(out_f, out3, 1.e-5, 1.e-6));
+}
 
-  // Same tests with specifying axes
+template <typename T, typename LayoutType>
+void test_fftn_3dfft_3dview_shape(T atol = 1.0e-12) {
+  const int n0 = 4, n1 = 6, n2 = 8;
+  using RealView3DType = Kokkos::View<T***, LayoutType, execution_space>;
+  using ComplexView3DType =
+      Kokkos::View<Kokkos::complex<T>***, LayoutType, execution_space>;
+
+  RealView3DType xr("xr", n0, n1, n2), xr_ref("xr_ref", n0, n1, n2);
+  ComplexView3DType x("x", n0, n1, n2 / 2 + 1),
+      x_ref("x_ref", n0, n1, n2 / 2 + 1);
+
+  const Kokkos::complex<T> I(1.0, 1.0);
+  Kokkos::Random_XorShift64_Pool<> random_pool(12345);
+  Kokkos::fill_random(xr, random_pool, 1.0);
+  Kokkos::fill_random(x, random_pool, I);
+  Kokkos::deep_copy(xr_ref, xr);
+  Kokkos::deep_copy(x_ref, x);
+
   // np.irfftn for 3D array is identical to np.irfft(np.ifft(np.ifft(x, axis=0),
   // axis=1), axis=2)
   using axes_type = KokkosFFT::axis_type<3>;
+  axes_type axes  = {-3, -2, -1};
 
-  Kokkos::deep_copy(x, x_ref);
-  KokkosFFT::irfftn(
-      execution_space(), x, out,
-      axes_type{-3, -2, -1});  // default: KokkosFFT::Normalization::backward
+  std::vector<std::size_t> shapes0 = {n0 / 2, n0, n0 * 2};
+  std::vector<std::size_t> shapes1 = {n1 / 2, n1, n1 * 2};
+  std::vector<std::size_t> shapes2 = {n2 / 2, n2, n2 * 2};
 
-  Kokkos::deep_copy(x, x_ref);
-  KokkosFFT::irfftn(execution_space(), x, out_b, axes_type{-3, -2, -1},
-                    KokkosFFT::Normalization::backward);
+  for (auto&& shape0 : shapes0) {
+    for (auto&& shape1 : shapes1) {
+      for (auto&& shape2 : shapes2) {
+        shape_type<3> new_shape = {shape0, shape1, shape2};
 
-  Kokkos::deep_copy(x, x_ref);
-  KokkosFFT::irfftn(execution_space(), x, out_o, axes_type{-3, -2, -1},
-                    KokkosFFT::Normalization::ortho);
+        // Real to comple
+        ComplexView3DType outr("outr", shape0, shape1, shape2 / 2 + 1),
+            outr_b("outr_b", shape0, shape1, shape2 / 2 + 1),
+            outr_o("outr_o", shape0, shape1, shape2 / 2 + 1),
+            outr_f("outr_f", shape0, shape1, shape2 / 2 + 1);
 
-  Kokkos::deep_copy(x, x_ref);
-  KokkosFFT::irfftn(execution_space(), x, out_f, axes_type{-3, -2, -1},
-                    KokkosFFT::Normalization::forward);
+        Kokkos::deep_copy(xr, xr_ref);
+        KokkosFFT::rfftn(execution_space(), xr, outr, axes,
+                         KokkosFFT::Normalization::none, new_shape);
 
-  multiply(out_o, 1.0 / sqrt(static_cast<T>(n0 * n1 * n2)));
-  multiply(out_f, 1.0 / static_cast<T>(n0 * n1 * n2));
+        Kokkos::deep_copy(xr, xr_ref);
+        KokkosFFT::rfftn(execution_space(), xr, outr_b, axes,
+                         KokkosFFT::Normalization::backward, new_shape);
 
-  EXPECT_TRUE(allclose(out, out3, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_b, out3, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_o, out3, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_f, out3, 1.e-5, 1.e-6));
+        Kokkos::deep_copy(xr, xr_ref);
+        KokkosFFT::rfftn(execution_space(), xr, outr_o, axes,
+                         KokkosFFT::Normalization::ortho, new_shape);
+
+        Kokkos::deep_copy(xr, xr_ref);
+        KokkosFFT::rfftn(execution_space(), xr, outr_f, axes,
+                         KokkosFFT::Normalization::forward, new_shape);
+
+        multiply(outr_o, sqrt(static_cast<T>(shape0 * shape1 * shape2)));
+        multiply(outr_f, static_cast<T>(shape0 * shape1 * shape2));
+
+        EXPECT_TRUE(allclose(outr_b, outr, 1.e-5, atol));
+        EXPECT_TRUE(allclose(outr_o, outr, 1.e-5, atol));
+        EXPECT_TRUE(allclose(outr_f, outr, 1.e-5, atol));
+
+        // Complex to real
+        RealView3DType out("out", shape0, shape1, shape2),
+            out_b("out_b", shape0, shape1, shape2),
+            out_o("out_o", shape0, shape1, shape2),
+            out_f("out_f", shape0, shape1, shape2);
+
+        Kokkos::deep_copy(x, x_ref);
+        KokkosFFT::irfftn(execution_space(), x, out, axes,
+                          KokkosFFT::Normalization::none, new_shape);
+
+        Kokkos::deep_copy(x, x_ref);
+        KokkosFFT::irfftn(execution_space(), x, out_b, axes,
+                          KokkosFFT::Normalization::backward, new_shape);
+
+        Kokkos::deep_copy(x, x_ref);
+        KokkosFFT::irfftn(execution_space(), x, out_o, axes,
+                          KokkosFFT::Normalization::ortho, new_shape);
+
+        Kokkos::deep_copy(x, x_ref);
+        KokkosFFT::irfftn(execution_space(), x, out_f, axes,
+                          KokkosFFT::Normalization::forward, new_shape);
+
+        multiply(out_o, sqrt(static_cast<T>(shape0 * shape1 * shape2)));
+        multiply(out_b, static_cast<T>(shape0 * shape1 * shape2));
+
+        EXPECT_TRUE(allclose(out_b, out, 1.e-5, atol));
+        EXPECT_TRUE(allclose(out_o, out, 1.e-5, atol));
+        EXPECT_TRUE(allclose(out_f, out, 1.e-5, atol));
+      }
+    }
+  }
 }
 
 template <typename T, typename LayoutType>
@@ -3269,29 +3458,12 @@ TYPED_TEST(FFTND, 2DFFT_2DView) {
   test_fftn_2dfft_2dview<float_type, layout_type>();
 }
 
-// fftn on 3D Views
-TYPED_TEST(FFTND, 3DFFT_3DView) {
-  using float_type  = typename TestFixture::float_type;
-  using layout_type = typename TestFixture::layout_type;
-
-  float_type atol = std::is_same_v<float_type, float> ? 5.0e-5 : 1.0e-6;
-  test_fftn_3dfft_3dview<float_type, layout_type>(atol);
-}
-
 // ifftn on 2D Views
 TYPED_TEST(FFTND, 2DIFFT_2DView) {
   using float_type  = typename TestFixture::float_type;
   using layout_type = typename TestFixture::layout_type;
 
   test_ifftn_2dfft_2dview<float_type, layout_type>();
-}
-
-// ifftn on 3D Views
-TYPED_TEST(FFTND, 3DIFFT_3DView) {
-  using float_type  = typename TestFixture::float_type;
-  using layout_type = typename TestFixture::layout_type;
-
-  test_ifftn_3dfft_3dview<float_type, layout_type>();
 }
 
 // rfftn on 2D Views
@@ -3302,20 +3474,45 @@ TYPED_TEST(FFTND, 2DRFFT_2DView) {
   test_rfftn_2dfft_2dview<float_type, layout_type>();
 }
 
-// rfftn on 3D Views
-TYPED_TEST(FFTND, 3DRFFT_3DView) {
-  using float_type  = typename TestFixture::float_type;
-  using layout_type = typename TestFixture::layout_type;
-
-  test_rfftn_3dfft_3dview<float_type, layout_type>();
-}
-
 // irfftn on 2D Views
 TYPED_TEST(FFTND, 2DIRFFT_2DView) {
   using float_type  = typename TestFixture::float_type;
   using layout_type = typename TestFixture::layout_type;
 
   test_irfftn_2dfft_2dview<float_type, layout_type>();
+}
+
+// fftn on 2D Views with shape argument
+TYPED_TEST(FFTND, 2DFFT_2DView_shape) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  test_fftn_2dfft_2dview_shape<float_type, layout_type>();
+}
+
+// fftn on 3D Views
+TYPED_TEST(FFTND, 3DFFT_3DView) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  float_type atol = std::is_same_v<float_type, float> ? 5.0e-5 : 1.0e-10;
+  test_fftn_3dfft_3dview<float_type, layout_type>(atol);
+}
+
+// ifftn on 3D Views
+TYPED_TEST(FFTND, 3DIFFT_3DView) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  test_ifftn_3dfft_3dview<float_type, layout_type>();
+}
+
+// rfftn on 3D Views
+TYPED_TEST(FFTND, 3DRFFT_3DView) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  test_rfftn_3dfft_3dview<float_type, layout_type>();
 }
 
 // irfftn on 3D Views
@@ -3325,6 +3522,15 @@ TYPED_TEST(FFTND, 3DIRFFT_3DView) {
 
   test_irfftn_3dfft_3dview<float_type, layout_type>();
 }
+
+// fftn on 3D Views with shape argument
+TYPED_TEST(FFTND, 3DFFT_3DView_shape) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  test_fftn_3dfft_3dview_shape<float_type, layout_type>();
+}
+
 // batched fftn on 4D Views
 TYPED_TEST(FFTND, 3DFFT_batched_4DView) {
   using float_type  = typename TestFixture::float_type;
