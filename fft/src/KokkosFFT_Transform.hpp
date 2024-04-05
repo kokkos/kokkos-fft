@@ -177,9 +177,9 @@ void fft(const ExecutionSpace& exec_space, const InViewType& in,
 
   InViewType _in;
   if (n) {
-    std::size_t _n = n.value();
-    auto modified_shape =
-        KokkosFFT::Impl::get_modified_shape(in, shape_type<1>({_n}));
+    std::size_t _n      = n.value();
+    auto modified_shape = KokkosFFT::Impl::get_modified_shape(
+        in, shape_type<1>({_n}), axis_type<1>({axis}));
     if (KokkosFFT::Impl::is_crop_or_pad_needed(in, modified_shape)) {
       KokkosFFT::Impl::crop_or_pad(exec_space, in, _in, modified_shape);
     } else {
@@ -249,9 +249,9 @@ void fft(const ExecutionSpace& exec_space, const InViewType& in,
 
   InViewType _in;
   if (n) {
-    std::size_t _n = n.value();
-    auto modified_shape =
-        KokkosFFT::Impl::get_modified_shape(in, shape_type<1>({_n}));
+    std::size_t _n      = n.value();
+    auto modified_shape = KokkosFFT::Impl::get_modified_shape(
+        in, shape_type<1>({_n}), axis_type<1>({axis}));
     if (KokkosFFT::Impl::is_crop_or_pad_needed(in, modified_shape)) {
       KokkosFFT::Impl::crop_or_pad(exec_space, in, _in, modified_shape);
     } else {
@@ -318,11 +318,14 @@ void ifft(const ExecutionSpace& exec_space, const InViewType& in,
           ExecutionSpace, typename OutViewType::memory_space>::accessible,
       "ifft: execution_space cannot access data in OutViewType");
 
+  using out_value_type = typename OutViewType::non_const_value_type;
+
   InViewType _in;
   if (n) {
-    std::size_t _n = n.value();
-    auto modified_shape =
-        KokkosFFT::Impl::get_modified_shape(in, shape_type<1>({_n}));
+    std::size_t _n      = n.value();
+    bool is_C2R         = std::is_floating_point<out_value_type>::value;
+    auto modified_shape = KokkosFFT::Impl::get_modified_shape(
+        in, shape_type<1>({_n}), axis_type<1>({axis}), is_C2R);
 
     /* [FIX THIS] Shallow copy should be sufficient
     if (KokkosFFT::Impl::is_crop_or_pad_needed(in, modified_shape)) {
@@ -394,11 +397,14 @@ void ifft(const ExecutionSpace& exec_space, const InViewType& in,
           ExecutionSpace, typename OutViewType::memory_space>::accessible,
       "ifft: execution_space cannot access data in OutViewType");
 
+  using out_value_type = typename OutViewType::non_const_value_type;
+
   InViewType _in;
   if (n) {
-    std::size_t _n = n.value();
-    auto modified_shape =
-        KokkosFFT::Impl::get_modified_shape(in, shape_type<1>({_n}));
+    std::size_t _n      = n.value();
+    bool is_C2R         = std::is_floating_point<out_value_type>::value;
+    auto modified_shape = KokkosFFT::Impl::get_modified_shape(
+        in, shape_type<1>({_n}), axis_type<1>({axis}), is_C2R);
     /* [FIX THIS] Shallow copy should be sufficient
     if (KokkosFFT::Impl::is_crop_or_pad_needed(in, modified_shape)) {
       KokkosFFT::Impl::crop_or_pad(exec_space, in, _in, modified_shape);
@@ -575,12 +581,7 @@ void irfft(const ExecutionSpace& exec_space, const InViewType& in,
                 "irfft: InViewType must be complex");
   static_assert(std::is_floating_point<out_value_type>::value,
                 "irfft: OutViewType must be real");
-  if (n) {
-    std::size_t _n = n.value() / 2 + 1;
-    ifft(exec_space, in, out, norm, axis, _n);
-  } else {
-    ifft(exec_space, in, out, norm, axis);
-  }
+  ifft(exec_space, in, out, norm, axis, n);
 }
 
 /// \brief Inverse of rfft with a given
@@ -626,12 +627,8 @@ void irfft(const ExecutionSpace& exec_space, const InViewType& in,
                 "irfft: InViewType must be complex");
   static_assert(std::is_floating_point<out_value_type>::value,
                 "irfft: OutViewType must be real");
-  if (n) {
-    std::size_t _n = n.value() / 2 + 1;
-    ifft(exec_space, in, out, plan, norm, axis, _n);
-  } else {
-    ifft(exec_space, in, out, plan, norm, axis);
-  }
+
+  ifft(exec_space, in, out, plan, norm, axis, n);
 }
 
 /// \brief One dimensional FFT of a signal that has Hermitian symmetry
@@ -865,12 +862,11 @@ void ihfft(const ExecutionSpace& exec_space, const InViewType& in,
 /// \param norm [in] How the normalization is applied (optional)
 /// \param axes [in] Axes over which FFT is performed (optional)
 /// \param s [in] Shape of the transformed axis of the output (optional)
-template <typename ExecutionSpace, typename InViewType, typename OutViewType,
-          std::size_t DIM = 1>
+template <typename ExecutionSpace, typename InViewType, typename OutViewType>
 void fft2(const ExecutionSpace& exec_space, const InViewType& in,
           OutViewType& out,
           KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
-          axis_type<2> axes = {-2, -1}, shape_type<DIM> s = {0}) {
+          axis_type<2> axes = {-2, -1}, shape_type<2> s = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "fft2: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
@@ -897,9 +893,9 @@ void fft2(const ExecutionSpace& exec_space, const InViewType& in,
       "fft2: execution_space cannot access data in OutViewType");
 
   InViewType _in;
-  shape_type<DIM> zeros = {0};  // default shape means no crop or pad
+  shape_type<2> zeros = {0};  // default shape means no crop or pad
   if (s != zeros) {
-    auto modified_shape = KokkosFFT::Impl::get_modified_shape(in, s);
+    auto modified_shape = KokkosFFT::Impl::get_modified_shape(in, s, axes);
     if (KokkosFFT::Impl::is_crop_or_pad_needed(in, modified_shape)) {
       KokkosFFT::Impl::crop_or_pad(exec_space, in, _in, modified_shape);
     } else {
@@ -936,11 +932,11 @@ void fft2(const ExecutionSpace& exec_space, const InViewType& in,
 /// \param axes [in] Axes over which FFT is performed (optional)
 /// \param s [in] Shape of the transformed axis of the output (optional)
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
-          typename PlanType, std::size_t DIM = 1>
+          typename PlanType>
 void fft2(const ExecutionSpace& exec_space, const InViewType& in,
           OutViewType& out, const PlanType& plan,
           KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
-          axis_type<2> axes = {-2, -1}, shape_type<DIM> s = {0}) {
+          axis_type<2> axes = {-2, -1}, shape_type<2> s = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "fft2: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
@@ -967,9 +963,9 @@ void fft2(const ExecutionSpace& exec_space, const InViewType& in,
       "fft2: execution_space cannot access data in OutViewType");
 
   InViewType _in;
-  shape_type<DIM> zeros = {0};  // default shape means no crop or pad
+  shape_type<2> zeros = {0};  // default shape means no crop or pad
   if (s != zeros) {
-    auto modified_shape = KokkosFFT::Impl::get_modified_shape(in, s);
+    auto modified_shape = KokkosFFT::Impl::get_modified_shape(in, s, axes);
     if (KokkosFFT::Impl::is_crop_or_pad_needed(in, modified_shape)) {
       KokkosFFT::Impl::crop_or_pad(exec_space, in, _in, modified_shape);
     } else {
@@ -1005,12 +1001,11 @@ void fft2(const ExecutionSpace& exec_space, const InViewType& in,
 /// \param norm [in] How the normalization is applied (optional)
 /// \param axes [in] Axes over which FFT is performed (optional)
 /// \param s [in] Shape of the transformed axis of the output (optional)
-template <typename ExecutionSpace, typename InViewType, typename OutViewType,
-          std::size_t DIM = 1>
+template <typename ExecutionSpace, typename InViewType, typename OutViewType>
 void ifft2(const ExecutionSpace& exec_space, const InViewType& in,
            OutViewType& out,
            KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
-           axis_type<2> axes = {-2, -1}, shape_type<DIM> s = {0}) {
+           axis_type<2> axes = {-2, -1}, shape_type<2> s = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "ifft2: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
@@ -1036,10 +1031,14 @@ void ifft2(const ExecutionSpace& exec_space, const InViewType& in,
           ExecutionSpace, typename OutViewType::memory_space>::accessible,
       "ifft2: execution_space cannot access data in OutViewType");
 
+  using out_value_type = typename OutViewType::non_const_value_type;
+
   InViewType _in;
-  shape_type<DIM> zeros = {0};  // default shape means no crop or pad
+  shape_type<2> zeros = {0};  // default shape means no crop or pad
   if (s != zeros) {
-    auto modified_shape = KokkosFFT::Impl::get_modified_shape(in, s);
+    bool is_C2R = std::is_floating_point<out_value_type>::value;
+    auto modified_shape =
+        KokkosFFT::Impl::get_modified_shape(in, s, axes, is_C2R);
     if (KokkosFFT::Impl::is_crop_or_pad_needed(in, modified_shape)) {
       KokkosFFT::Impl::crop_or_pad(exec_space, in, _in, modified_shape);
     } else {
@@ -1076,11 +1075,11 @@ void ifft2(const ExecutionSpace& exec_space, const InViewType& in,
 /// \param axes [in] Axes over which FFT is performed (optional)
 /// \param s [in] Shape of the transformed axis of the output (optional)
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
-          typename PlanType, std::size_t DIM = 1>
+          typename PlanType>
 void ifft2(const ExecutionSpace& exec_space, const InViewType& in,
            OutViewType& out, const PlanType& plan,
            KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
-           axis_type<2> axes = {-2, -1}, shape_type<DIM> s = {0}) {
+           axis_type<2> axes = {-2, -1}, shape_type<2> s = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "ifft2: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
@@ -1106,10 +1105,14 @@ void ifft2(const ExecutionSpace& exec_space, const InViewType& in,
           ExecutionSpace, typename OutViewType::memory_space>::accessible,
       "ifft2: execution_space cannot access data in OutViewType");
 
+  using out_value_type = typename OutViewType::non_const_value_type;
+
   InViewType _in;
-  shape_type<DIM> zeros = {0};  // default shape means no crop or pad
+  shape_type<2> zeros = {0};  // default shape means no crop or pad
   if (s != zeros) {
-    auto modified_shape = KokkosFFT::Impl::get_modified_shape(in, s);
+    bool is_C2R = std::is_floating_point<out_value_type>::value;
+    auto modified_shape =
+        KokkosFFT::Impl::get_modified_shape(in, s, axes, is_C2R);
     if (KokkosFFT::Impl::is_crop_or_pad_needed(in, modified_shape)) {
       KokkosFFT::Impl::crop_or_pad(exec_space, in, _in, modified_shape);
     } else {
@@ -1145,12 +1148,11 @@ void ifft2(const ExecutionSpace& exec_space, const InViewType& in,
 /// \param norm [in] How the normalization is applied (optional)
 /// \param axes [in] Axes over which FFT is performed (optional)
 /// \param s [in] Shape of the transformed axis of the output (optional)
-template <typename ExecutionSpace, typename InViewType, typename OutViewType,
-          std::size_t DIM = 1>
+template <typename ExecutionSpace, typename InViewType, typename OutViewType>
 void rfft2(const ExecutionSpace& exec_space, const InViewType& in,
            OutViewType& out,
            KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
-           axis_type<2> axes = {-2, -1}, shape_type<DIM> s = {0}) {
+           axis_type<2> axes = {-2, -1}, shape_type<2> s = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "rfft2: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
@@ -1197,11 +1199,11 @@ void rfft2(const ExecutionSpace& exec_space, const InViewType& in,
 /// \param axes [in] Axes over which FFT is performed (optional)
 /// \param s [in] Shape of the transformed axis of the output (optional)
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
-          typename PlanType, std::size_t DIM = 1>
+          typename PlanType>
 void rfft2(const ExecutionSpace& exec_space, const InViewType& in,
            OutViewType& out, const PlanType& plan,
            KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
-           axis_type<2> axes = {-2, -1}, shape_type<DIM> s = {0}) {
+           axis_type<2> axes = {-2, -1}, shape_type<2> s = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "rfft2: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
@@ -1246,12 +1248,11 @@ void rfft2(const ExecutionSpace& exec_space, const InViewType& in,
 /// \param norm [in] How the normalization is applied (optional)
 /// \param axes [in] Axes over which FFT is performed (optional)
 /// \param s [in] Shape of the transformed axis of the output (optional)
-template <typename ExecutionSpace, typename InViewType, typename OutViewType,
-          std::size_t DIM = 1>
+template <typename ExecutionSpace, typename InViewType, typename OutViewType>
 void irfft2(const ExecutionSpace& exec_space, const InViewType& in,
             OutViewType& out,
             KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
-            axis_type<2> axes = {-2, -1}, shape_type<DIM> s = {0}) {
+            axis_type<2> axes = {-2, -1}, shape_type<2> s = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "irfft2: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
@@ -1286,15 +1287,7 @@ void irfft2(const ExecutionSpace& exec_space, const InViewType& in,
   static_assert(std::is_floating_point<out_value_type>::value,
                 "irfft2: OutViewType must be real");
 
-  shape_type<DIM> zeros = {0};  // default shape means no crop or pad
-  shape_type<DIM> _s    = {0};
-  if (s != zeros) {
-    for (int i = 0; i < DIM; i++) {
-      _s.at(i) = s.at(i) / 2 + 1;
-    }
-  }
-
-  ifft2(exec_space, in, out, norm, axes, _s);
+  ifft2(exec_space, in, out, norm, axes, s);
 }
 
 /// \brief Inverse of rfft2 with a given plan
@@ -1307,11 +1300,11 @@ void irfft2(const ExecutionSpace& exec_space, const InViewType& in,
 /// \param axes [in] Axes over which FFT is performed (optional)
 /// \param s [in] Shape of the transformed axis of the output (optional)
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
-          typename PlanType, std::size_t DIM = 1>
+          typename PlanType>
 void irfft2(const ExecutionSpace& exec_space, const InViewType& in,
             OutViewType& out, const PlanType& plan,
             KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
-            axis_type<2> axes = {-2, -1}, shape_type<DIM> s = {0}) {
+            axis_type<2> axes = {-2, -1}, shape_type<2> s = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "irfft2: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
@@ -1346,15 +1339,7 @@ void irfft2(const ExecutionSpace& exec_space, const InViewType& in,
   static_assert(std::is_floating_point<out_value_type>::value,
                 "irfft2: OutViewType must be real");
 
-  shape_type<DIM> zeros = {0};  // default shape means no crop or pad
-  shape_type<DIM> _s    = {0};
-  if (s != zeros) {
-    for (int i = 0; i < DIM; i++) {
-      _s.at(i) = s.at(i) / 2 + 1;
-    }
-  }
-
-  ifft2(exec_space, in, out, plan, norm, axes, _s);
+  ifft2(exec_space, in, out, plan, norm, axes, s);
 }
 
 // ND FFT
@@ -1405,7 +1390,7 @@ void fftn(const ExecutionSpace& exec_space, const InViewType& in,
   InViewType _in;
   shape_type<DIM> zeros = {0};  // default shape means no crop or pad
   if (s != zeros) {
-    auto modified_shape = KokkosFFT::Impl::get_modified_shape(in, s);
+    auto modified_shape = KokkosFFT::Impl::get_modified_shape(in, s, axes);
     if (KokkosFFT::Impl::is_crop_or_pad_needed(in, modified_shape)) {
       KokkosFFT::Impl::crop_or_pad(exec_space, in, _in, modified_shape);
     } else {
@@ -1441,11 +1426,11 @@ void fftn(const ExecutionSpace& exec_space, const InViewType& in,
 /// \param norm [in] How the normalization is applied (optional)
 /// \param s [in] Shape of the transformed axis of the output (optional)
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
-          std::size_t DIM1 = 1, std::size_t DIM2 = 1>
+          std::size_t DIM = 1>
 void fftn(const ExecutionSpace& exec_space, const InViewType& in,
-          OutViewType& out, axis_type<DIM1> axes,
+          OutViewType& out, axis_type<DIM> axes,
           KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
-          shape_type<DIM2> s            = {0}) {
+          shape_type<DIM> s             = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "fftn: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
@@ -1472,9 +1457,9 @@ void fftn(const ExecutionSpace& exec_space, const InViewType& in,
       "fftn: execution_space cannot access data in OutViewType");
 
   InViewType _in;
-  shape_type<DIM2> zeros = {0};  // default shape means no crop or pad
+  shape_type<DIM> zeros = {0};  // default shape means no crop or pad
   if (s != zeros) {
-    auto modified_shape = KokkosFFT::Impl::get_modified_shape(in, s);
+    auto modified_shape = KokkosFFT::Impl::get_modified_shape(in, s, axes);
     if (KokkosFFT::Impl::is_crop_or_pad_needed(in, modified_shape)) {
       KokkosFFT::Impl::crop_or_pad(exec_space, in, _in, modified_shape);
     } else {
@@ -1511,11 +1496,11 @@ void fftn(const ExecutionSpace& exec_space, const InViewType& in,
 /// \param norm [in] How the normalization is applied (optional)
 /// \param s [in] Shape of the transformed axis of the output (optional)
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
-          typename PlanType, std::size_t DIM1 = 1, std::size_t DIM2 = 1>
+          typename PlanType, std::size_t DIM = 1>
 void fftn(const ExecutionSpace& exec_space, const InViewType& in,
-          OutViewType& out, const PlanType& plan, axis_type<DIM1> axes,
+          OutViewType& out, const PlanType& plan, axis_type<DIM> axes,
           KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
-          shape_type<DIM2> s            = {0}) {
+          shape_type<DIM> s             = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "fftn: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
@@ -1542,9 +1527,9 @@ void fftn(const ExecutionSpace& exec_space, const InViewType& in,
       "fftn: execution_space cannot access data in OutViewType");
 
   InViewType _in;
-  shape_type<DIM2> zeros = {0};  // default shape means no crop or pad
+  shape_type<DIM> zeros = {0};  // default shape means no crop or pad
   if (s != zeros) {
-    auto modified_shape = KokkosFFT::Impl::get_modified_shape(in, s);
+    auto modified_shape = KokkosFFT::Impl::get_modified_shape(in, s, axes);
     if (KokkosFFT::Impl::is_crop_or_pad_needed(in, modified_shape)) {
       KokkosFFT::Impl::crop_or_pad(exec_space, in, _in, modified_shape);
     } else {
@@ -1618,7 +1603,7 @@ void ifftn(const ExecutionSpace& exec_space, const InViewType& in,
   InViewType _in;
   shape_type<DIM> zeros = {0};  // default shape means no crop or pad
   if (s != zeros) {
-    auto modified_shape = KokkosFFT::Impl::get_modified_shape(in, s);
+    auto modified_shape = KokkosFFT::Impl::get_modified_shape(in, s, axes);
     if (KokkosFFT::Impl::is_crop_or_pad_needed(in, modified_shape)) {
       KokkosFFT::Impl::crop_or_pad(exec_space, in, _in, modified_shape);
     } else {
@@ -1654,11 +1639,11 @@ void ifftn(const ExecutionSpace& exec_space, const InViewType& in,
 /// \param norm [in] How the normalization is applied (optional)
 /// \param s [in] Shape of the transformed axis of the output (optional)
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
-          std::size_t DIM1 = 1, std::size_t DIM2 = 1>
+          std::size_t DIM = 1>
 void ifftn(const ExecutionSpace& exec_space, const InViewType& in,
-           OutViewType& out, axis_type<DIM1> axes,
+           OutViewType& out, axis_type<DIM> axes,
            KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
-           shape_type<DIM2> s            = {0}) {
+           shape_type<DIM> s             = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "ifftn: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
@@ -1684,10 +1669,14 @@ void ifftn(const ExecutionSpace& exec_space, const InViewType& in,
           ExecutionSpace, typename OutViewType::memory_space>::accessible,
       "ifftn: execution_space cannot access data in OutViewType");
 
+  using out_value_type = typename OutViewType::non_const_value_type;
+
   InViewType _in;
-  shape_type<DIM2> zeros = {0};  // default shape means no crop or pad
+  shape_type<DIM> zeros = {0};  // default shape means no crop or pad
   if (s != zeros) {
-    auto modified_shape = KokkosFFT::Impl::get_modified_shape(in, s);
+    bool is_C2R = std::is_floating_point<out_value_type>::value;
+    auto modified_shape =
+        KokkosFFT::Impl::get_modified_shape(in, s, axes, is_C2R);
     if (KokkosFFT::Impl::is_crop_or_pad_needed(in, modified_shape)) {
       KokkosFFT::Impl::crop_or_pad(exec_space, in, _in, modified_shape);
     } else {
@@ -1724,11 +1713,11 @@ void ifftn(const ExecutionSpace& exec_space, const InViewType& in,
 /// \param norm [in] How the normalization is applied (optional)
 /// \param s [in] Shape of the transformed axis of the output (optional)
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
-          typename PlanType, std::size_t DIM1 = 1, std::size_t DIM2 = 1>
+          typename PlanType, std::size_t DIM = 1>
 void ifftn(const ExecutionSpace& exec_space, const InViewType& in,
-           OutViewType& out, const PlanType& plan, axis_type<DIM1> axes,
+           OutViewType& out, const PlanType& plan, axis_type<DIM> axes,
            KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
-           shape_type<DIM2> s            = {0}) {
+           shape_type<DIM> s             = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "ifftn: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
@@ -1754,10 +1743,14 @@ void ifftn(const ExecutionSpace& exec_space, const InViewType& in,
           ExecutionSpace, typename OutViewType::memory_space>::accessible,
       "ifftn: execution_space cannot access data in OutViewType");
 
+  using out_value_type = typename OutViewType::non_const_value_type;
+
   InViewType _in;
-  shape_type<DIM2> zeros = {0};  // default shape means no crop or pad
+  shape_type<DIM> zeros = {0};  // default shape means no crop or pad
   if (s != zeros) {
-    auto modified_shape = KokkosFFT::Impl::get_modified_shape(in, s);
+    bool is_C2R = std::is_floating_point<out_value_type>::value;
+    auto modified_shape =
+        KokkosFFT::Impl::get_modified_shape(in, s, axes, is_C2R);
     if (KokkosFFT::Impl::is_crop_or_pad_needed(in, modified_shape)) {
       KokkosFFT::Impl::crop_or_pad(exec_space, in, _in, modified_shape);
     } else {
@@ -1844,11 +1837,11 @@ void rfftn(const ExecutionSpace& exec_space, const InViewType& in,
 /// \param norm [in] How the normalization is applied (optional)
 /// \param s [in] Shape of the transformed axis of the output (optional)
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
-          typename PlanType, std::size_t DIM1 = 1, std::size_t DIM2 = 1>
+          typename PlanType, std::size_t DIM = 1>
 void rfftn(const ExecutionSpace& exec_space, const InViewType& in,
-           OutViewType& out, const PlanType& plan, axis_type<DIM1> axes,
+           OutViewType& out, const PlanType& plan, axis_type<DIM> axes,
            KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
-           shape_type<DIM2> s            = {0}) {
+           shape_type<DIM> s             = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "rfftn: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
@@ -1894,11 +1887,11 @@ void rfftn(const ExecutionSpace& exec_space, const InViewType& in,
 /// \param norm [in] How the normalization is applied (optional)
 /// \param s [in] Shape of the transformed axis of the output (optional)
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
-          std::size_t DIM1 = 1, std::size_t DIM2 = 1>
+          std::size_t DIM = 1>
 void rfftn(const ExecutionSpace& exec_space, const InViewType& in,
-           OutViewType& out, axis_type<DIM1> axes,
+           OutViewType& out, axis_type<DIM> axes,
            KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
-           shape_type<DIM2> s            = {0}) {
+           shape_type<DIM> s             = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "rfftn: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
@@ -1982,15 +1975,7 @@ void irfftn(const ExecutionSpace& exec_space, const InViewType& in,
   static_assert(std::is_floating_point<out_value_type>::value,
                 "irfftn: OutViewType must be real");
 
-  shape_type<DIM> zeros = {0};  // default shape means no crop or pad
-  shape_type<DIM> _s    = {0};
-  if (s != zeros) {
-    for (int i = 0; i < DIM; i++) {
-      _s.at(i) = s.at(i) / 2 + 1;
-    }
-  }
-
-  ifftn(exec_space, in, out, norm, _s);
+  ifftn(exec_space, in, out, norm, s);
 }
 
 /// \brief Inverse of rfftn
@@ -2002,11 +1987,11 @@ void irfftn(const ExecutionSpace& exec_space, const InViewType& in,
 /// \param norm [in] How the normalization is applied (optional)
 /// \param s [in] Shape of the transformed axis of the output (optional)
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
-          std::size_t DIM1 = 1, std::size_t DIM2 = 1>
+          std::size_t DIM = 1>
 void irfftn(const ExecutionSpace& exec_space, const InViewType& in,
-            OutViewType& out, axis_type<DIM1> axes,
+            OutViewType& out, axis_type<DIM> axes,
             KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
-            shape_type<DIM2> s            = {0}) {
+            shape_type<DIM> s             = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "irfftn: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
@@ -2041,15 +2026,7 @@ void irfftn(const ExecutionSpace& exec_space, const InViewType& in,
   static_assert(std::is_floating_point<out_value_type>::value,
                 "irfftn: OutViewType must be real");
 
-  shape_type<DIM2> zeros = {0};  // default shape means no crop or pad
-  shape_type<DIM2> _s    = {0};
-  if (s != zeros) {
-    for (int i = 0; i < DIM2; i++) {
-      _s.at(i) = s.at(i) / 2 + 1;
-    }
-  }
-
-  ifftn(exec_space, in, out, axes, norm, _s);
+  ifftn(exec_space, in, out, axes, norm, s);
 }
 
 /// \brief Inverse of rfftn with a given plan
@@ -2062,11 +2039,11 @@ void irfftn(const ExecutionSpace& exec_space, const InViewType& in,
 /// \param norm [in] How the normalization is applied (optional)
 /// \param s [in] Shape of the transformed axis of the output (optional)
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
-          typename PlanType, std::size_t DIM1 = 1, std::size_t DIM2 = 1>
+          typename PlanType, std::size_t DIM = 1>
 void irfftn(const ExecutionSpace& exec_space, const InViewType& in,
-            OutViewType& out, const PlanType& plan, axis_type<DIM1> axes,
+            OutViewType& out, const PlanType& plan, axis_type<DIM> axes,
             KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
-            shape_type<DIM2> s            = {0}) {
+            shape_type<DIM> s             = {0}) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "irfftn: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<OutViewType>::value,
@@ -2101,15 +2078,7 @@ void irfftn(const ExecutionSpace& exec_space, const InViewType& in,
   static_assert(std::is_floating_point<out_value_type>::value,
                 "irfftn: OutViewType must be real");
 
-  shape_type<DIM2> zeros = {0};  // default shape means no crop or pad
-  shape_type<DIM2> _s    = {0};
-  if (s != zeros) {
-    for (int i = 0; i < DIM2; i++) {
-      _s.at(i) = s.at(i) / 2 + 1;
-    }
-  }
-
-  ifftn(exec_space, in, out, plan, axes, norm, _s);
+  ifftn(exec_space, in, out, plan, axes, norm, s);
 }
 }  // namespace KokkosFFT
 
