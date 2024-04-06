@@ -55,6 +55,7 @@ namespace Impl {
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           std::size_t DIM = 1>
 class Plan {
+ public:
   //! The type of Kokkos execution pace
   using execSpace = ExecutionSpace;
 
@@ -96,6 +97,10 @@ class Plan {
 
   //! The type of extents of input/output views
   using extents_type = shape_type<InViewType::rank()>;
+
+ private:
+  //! Execution space
+  execSpace m_exec_space;
 
   //! Dynamically allocatable fft plan.
   std::unique_ptr<fft_plan_type> m_plan;
@@ -148,7 +153,8 @@ class Plan {
   explicit Plan(const ExecutionSpace& exec_space, InViewType& in,
                 OutViewType& out, KokkosFFT::Direction direction, int axis,
                 std::optional<std::size_t> n = std::nullopt)
-      : m_fft_size(1),
+      : m_exec_space(exec_space),
+        m_fft_size(1),
         m_is_transpose_needed(false),
         m_direction(direction),
         m_axes({axis}) {
@@ -200,7 +206,8 @@ class Plan {
   explicit Plan(const ExecutionSpace& exec_space, InViewType& in,
                 OutViewType& out, KokkosFFT::Direction direction,
                 axis_type<DIM> axes, shape_type<DIM> s = {0})
-      : m_fft_size(1),
+      : m_exec_space(exec_space),
+        m_fft_size(1),
         m_is_transpose_needed(false),
         m_direction(direction),
         m_axes(axes) {
@@ -311,14 +318,18 @@ class Plan {
     }
   }
 
+  /// \brief Return the execution space
+  execSpace const& exec_space() const noexcept { return m_exec_space; }
+
   /// \brief Return the FFT plan
   fft_plan_type& plan() const { return *m_plan; }
 
   /// \brief Return the FFT info
-  const fft_info_type& info() const { return m_info; }
+  fft_info_type const& info() const { return m_info; }
 
   /// \brief Return the FFT size
   fft_size_type fft_size() const { return m_fft_size; }
+  KokkosFFT::Direction direction() const { return m_direction; }
   bool is_transpose_needed() const { return m_is_transpose_needed; }
   map_type map() const { return m_map; }
   map_type map_inv() const { return m_map_inv; }
