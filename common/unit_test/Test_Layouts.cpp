@@ -29,6 +29,7 @@ TYPED_TEST_SUITE(Layouts2D, test_types);
 template <typename LayoutType>
 void test_layouts_1d() {
   const int n0         = 6;
+  using axes_type      = KokkosFFT::axis_type<1>;
   using RealView1Dtype = Kokkos::View<double*, LayoutType, execution_space>;
   using ComplexView1Dtype =
       Kokkos::View<Kokkos::complex<double>*, LayoutType, execution_space>;
@@ -44,11 +45,12 @@ void test_layouts_1d() {
   ref_out_extents_r2c.at(0) = n0 / 2 + 1;
   ref_fft_extents_r2c.at(0) = n0;
 
-  auto [in_extents_r2c, out_extents_r2c, fft_extents_r2c] =
-      KokkosFFT::Impl::get_extents(xr, xc, 0);
+  auto [in_extents_r2c, out_extents_r2c, fft_extents_r2c, howmany_r2c] =
+      KokkosFFT::Impl::get_extents(xr, xc, axes_type({0}));
   EXPECT_TRUE(in_extents_r2c == ref_in_extents_r2c);
   EXPECT_TRUE(out_extents_r2c == ref_out_extents_r2c);
   EXPECT_TRUE(fft_extents_r2c == ref_fft_extents_r2c);
+  EXPECT_EQ(howmany_r2c, 1);
 
   // C2R
   std::vector<int> ref_in_extents_c2r(1), ref_out_extents_c2r(1),
@@ -57,11 +59,12 @@ void test_layouts_1d() {
   ref_out_extents_c2r.at(0) = n0;
   ref_fft_extents_c2r.at(0) = n0;
 
-  auto [in_extents_c2r, out_extents_c2r, fft_extents_c2r] =
-      KokkosFFT::Impl::get_extents(xc, xr, 0);
+  auto [in_extents_c2r, out_extents_c2r, fft_extents_c2r, howmany_c2r] =
+      KokkosFFT::Impl::get_extents(xc, xr, axes_type({0}));
   EXPECT_TRUE(in_extents_c2r == ref_in_extents_c2r);
   EXPECT_TRUE(out_extents_c2r == ref_out_extents_c2r);
   EXPECT_TRUE(fft_extents_c2r == ref_fft_extents_c2r);
+  EXPECT_EQ(howmany_c2r, 1);
 
   // C2C
   std::vector<int> ref_in_extents_c2c(1), ref_out_extents_c2c(1),
@@ -70,16 +73,18 @@ void test_layouts_1d() {
   ref_out_extents_c2c.at(0) = n0;
   ref_fft_extents_c2c.at(0) = n0;
 
-  auto [in_extents_c2c, out_extents_c2c, fft_extents_c2c] =
-      KokkosFFT::Impl::get_extents(xcin, xcout, 0);
+  auto [in_extents_c2c, out_extents_c2c, fft_extents_c2c, howmany_c2c] =
+      KokkosFFT::Impl::get_extents(xcin, xcout, axes_type({0}));
   EXPECT_TRUE(in_extents_c2c == ref_in_extents_c2c);
   EXPECT_TRUE(out_extents_c2c == ref_out_extents_c2c);
   EXPECT_TRUE(fft_extents_c2c == ref_fft_extents_c2c);
+  EXPECT_EQ(howmany_c2c, 1);
 }
 
 template <typename LayoutType>
 void test_layouts_1d_batched_FFT_2d() {
   const int n0 = 6, n1 = 10;
+  using axes_type      = KokkosFFT::axis_type<1>;
   using RealView2Dtype = Kokkos::View<double**, LayoutType, execution_space>;
   using ComplexView2Dtype =
       Kokkos::View<Kokkos::complex<double>**, LayoutType, execution_space>;
@@ -100,7 +105,7 @@ void test_layouts_1d_batched_FFT_2d() {
   // R2C
   auto [in_extents_r2c_axis0, out_extents_r2c_axis0, fft_extents_r2c_axis0,
         howmany_r2c_axis0] =
-      KokkosFFT::Impl::get_extents_batched(xr2, xc2_axis0, 0);
+      KokkosFFT::Impl::get_extents(xr2, xc2_axis0, axes_type({0}));
   EXPECT_TRUE(in_extents_r2c_axis0 == ref_in_extents_r2c_axis0);
   EXPECT_TRUE(fft_extents_r2c_axis0 == ref_fft_extents_r2c_axis0);
   EXPECT_TRUE(out_extents_r2c_axis0 == ref_out_extents_r2c_axis0);
@@ -108,7 +113,7 @@ void test_layouts_1d_batched_FFT_2d() {
 
   auto [in_extents_r2c_axis1, out_extents_r2c_axis1, fft_extents_r2c_axis1,
         howmany_r2c_axis1] =
-      KokkosFFT::Impl::get_extents_batched(xr2, xc2_axis1, 1);
+      KokkosFFT::Impl::get_extents(xr2, xc2_axis1, axes_type({1}));
   EXPECT_TRUE(in_extents_r2c_axis1 == ref_in_extents_r2c_axis1);
   EXPECT_TRUE(fft_extents_r2c_axis1 == ref_fft_extents_r2c_axis1);
   EXPECT_TRUE(out_extents_r2c_axis1 == ref_out_extents_r2c_axis1);
@@ -117,7 +122,7 @@ void test_layouts_1d_batched_FFT_2d() {
   // C2R
   auto [in_extents_c2r_axis0, out_extents_c2r_axis0, fft_extents_c2r_axis0,
         howmany_c2r_axis0] =
-      KokkosFFT::Impl::get_extents_batched(xc2_axis0, xr2, 0);
+      KokkosFFT::Impl::get_extents(xc2_axis0, xr2, axes_type({0}));
   EXPECT_TRUE(in_extents_c2r_axis0 == ref_out_extents_r2c_axis0);
   EXPECT_TRUE(fft_extents_c2r_axis0 == ref_fft_extents_r2c_axis0);
   EXPECT_TRUE(out_extents_c2r_axis0 == ref_in_extents_r2c_axis0);
@@ -125,7 +130,7 @@ void test_layouts_1d_batched_FFT_2d() {
 
   auto [in_extents_c2r_axis1, out_extents_c2r_axis1, fft_extents_c2r_axis1,
         howmany_c2r_axis1] =
-      KokkosFFT::Impl::get_extents_batched(xc2_axis1, xr2, 1);
+      KokkosFFT::Impl::get_extents(xc2_axis1, xr2, axes_type({1}));
   EXPECT_TRUE(in_extents_c2r_axis1 == ref_out_extents_r2c_axis1);
   EXPECT_TRUE(fft_extents_c2r_axis1 == ref_fft_extents_r2c_axis1);
   EXPECT_TRUE(out_extents_c2r_axis1 == ref_in_extents_r2c_axis1);
@@ -134,7 +139,7 @@ void test_layouts_1d_batched_FFT_2d() {
   // C2C
   auto [in_extents_c2c_axis0, out_extents_c2c_axis0, fft_extents_c2c_axis0,
         howmany_c2c_axis0] =
-      KokkosFFT::Impl::get_extents_batched(xcin2, xcout2, 0);
+      KokkosFFT::Impl::get_extents(xcin2, xcout2, axes_type({0}));
   EXPECT_TRUE(in_extents_c2c_axis0 == ref_in_extents_r2c_axis0);
   EXPECT_TRUE(fft_extents_c2c_axis0 == ref_fft_extents_r2c_axis0);
   EXPECT_TRUE(out_extents_c2c_axis0 == ref_in_extents_r2c_axis0);
@@ -142,7 +147,7 @@ void test_layouts_1d_batched_FFT_2d() {
 
   auto [in_extents_c2c_axis1, out_extents_c2c_axis1, fft_extents_c2c_axis1,
         howmany_c2c_axis1] =
-      KokkosFFT::Impl::get_extents_batched(xcin2, xcout2, 1);
+      KokkosFFT::Impl::get_extents(xcin2, xcout2, axes_type({1}));
   EXPECT_TRUE(in_extents_c2c_axis1 == ref_in_extents_r2c_axis1);
   EXPECT_TRUE(fft_extents_c2c_axis1 == ref_fft_extents_r2c_axis1);
   EXPECT_TRUE(out_extents_c2c_axis1 == ref_in_extents_r2c_axis1);
@@ -152,6 +157,7 @@ void test_layouts_1d_batched_FFT_2d() {
 template <typename LayoutType>
 void test_layouts_1d_batched_FFT_3d() {
   const int n0 = 6, n1 = 10, n2 = 8;
+  using axes_type      = KokkosFFT::axis_type<1>;
   using RealView3Dtype = Kokkos::View<double***, LayoutType, execution_space>;
   using ComplexView3Dtype =
       Kokkos::View<Kokkos::complex<double>***, LayoutType, execution_space>;
@@ -181,7 +187,7 @@ void test_layouts_1d_batched_FFT_3d() {
   // R2C
   auto [in_extents_r2c_axis0, out_extents_r2c_axis0, fft_extents_r2c_axis0,
         howmany_r2c_axis0] =
-      KokkosFFT::Impl::get_extents_batched(xr3, xc3_axis0, 0);
+      KokkosFFT::Impl::get_extents(xr3, xc3_axis0, axes_type({0}));
   EXPECT_TRUE(in_extents_r2c_axis0 == ref_in_extents_r2c_axis0);
   EXPECT_TRUE(fft_extents_r2c_axis0 == ref_fft_extents_r2c_axis0);
   EXPECT_TRUE(out_extents_r2c_axis0 == ref_out_extents_r2c_axis0);
@@ -189,7 +195,7 @@ void test_layouts_1d_batched_FFT_3d() {
 
   auto [in_extents_r2c_axis1, out_extents_r2c_axis1, fft_extents_r2c_axis1,
         howmany_r2c_axis1] =
-      KokkosFFT::Impl::get_extents_batched(xr3, xc3_axis1, 1);
+      KokkosFFT::Impl::get_extents(xr3, xc3_axis1, axes_type({1}));
   EXPECT_TRUE(in_extents_r2c_axis1 == ref_in_extents_r2c_axis1);
   EXPECT_TRUE(fft_extents_r2c_axis1 == ref_fft_extents_r2c_axis1);
   EXPECT_TRUE(out_extents_r2c_axis1 == ref_out_extents_r2c_axis1);
@@ -197,7 +203,7 @@ void test_layouts_1d_batched_FFT_3d() {
 
   auto [in_extents_r2c_axis2, out_extents_r2c_axis2, fft_extents_r2c_axis2,
         howmany_r2c_axis2] =
-      KokkosFFT::Impl::get_extents_batched(xr3, xc3_axis2, 2);
+      KokkosFFT::Impl::get_extents(xr3, xc3_axis2, axes_type({2}));
   EXPECT_TRUE(in_extents_r2c_axis2 == ref_in_extents_r2c_axis2);
   EXPECT_TRUE(fft_extents_r2c_axis2 == ref_fft_extents_r2c_axis2);
   EXPECT_TRUE(out_extents_r2c_axis2 == ref_out_extents_r2c_axis2);
@@ -206,7 +212,7 @@ void test_layouts_1d_batched_FFT_3d() {
   // C2R
   auto [in_extents_c2r_axis0, out_extents_c2r_axis0, fft_extents_c2r_axis0,
         howmany_c2r_axis0] =
-      KokkosFFT::Impl::get_extents_batched(xc3_axis0, xr3, 0);
+      KokkosFFT::Impl::get_extents(xc3_axis0, xr3, axes_type({0}));
   EXPECT_TRUE(in_extents_c2r_axis0 == ref_out_extents_r2c_axis0);
   EXPECT_TRUE(fft_extents_c2r_axis0 == ref_fft_extents_r2c_axis0);
   EXPECT_TRUE(out_extents_c2r_axis0 == ref_in_extents_r2c_axis0);
@@ -214,7 +220,7 @@ void test_layouts_1d_batched_FFT_3d() {
 
   auto [in_extents_c2r_axis1, out_extents_c2r_axis1, fft_extents_c2r_axis1,
         howmany_c2r_axis1] =
-      KokkosFFT::Impl::get_extents_batched(xc3_axis1, xr3, 1);
+      KokkosFFT::Impl::get_extents(xc3_axis1, xr3, axes_type({1}));
   EXPECT_TRUE(in_extents_c2r_axis1 == ref_out_extents_r2c_axis1);
   EXPECT_TRUE(fft_extents_c2r_axis1 == ref_fft_extents_r2c_axis1);
   EXPECT_TRUE(out_extents_c2r_axis1 == ref_in_extents_r2c_axis1);
@@ -222,7 +228,7 @@ void test_layouts_1d_batched_FFT_3d() {
 
   auto [in_extents_c2r_axis2, out_extents_c2r_axis2, fft_extents_c2r_axis2,
         howmany_c2r_axis2] =
-      KokkosFFT::Impl::get_extents_batched(xc3_axis2, xr3, 2);
+      KokkosFFT::Impl::get_extents(xc3_axis2, xr3, axes_type({2}));
   EXPECT_TRUE(in_extents_c2r_axis2 == ref_out_extents_r2c_axis2);
   EXPECT_TRUE(fft_extents_c2r_axis2 == ref_fft_extents_r2c_axis2);
   EXPECT_TRUE(out_extents_c2r_axis2 == ref_in_extents_r2c_axis2);
@@ -231,7 +237,7 @@ void test_layouts_1d_batched_FFT_3d() {
   // C2C
   auto [in_extents_c2c_axis0, out_extents_c2c_axis0, fft_extents_c2c_axis0,
         howmany_c2c_axis0] =
-      KokkosFFT::Impl::get_extents_batched(xcin3, xcout3, 0);
+      KokkosFFT::Impl::get_extents(xcin3, xcout3, axes_type({0}));
   EXPECT_TRUE(in_extents_c2c_axis0 == ref_in_extents_r2c_axis0);
   EXPECT_TRUE(fft_extents_c2c_axis0 == ref_fft_extents_r2c_axis0);
   EXPECT_TRUE(out_extents_c2c_axis0 == ref_in_extents_r2c_axis0);
@@ -239,7 +245,7 @@ void test_layouts_1d_batched_FFT_3d() {
 
   auto [in_extents_c2c_axis1, out_extents_c2c_axis1, fft_extents_c2c_axis1,
         howmany_c2c_axis1] =
-      KokkosFFT::Impl::get_extents_batched(xcin3, xcout3, 1);
+      KokkosFFT::Impl::get_extents(xcin3, xcout3, axes_type({1}));
   EXPECT_TRUE(in_extents_c2c_axis1 == ref_in_extents_r2c_axis1);
   EXPECT_TRUE(fft_extents_c2c_axis1 == ref_fft_extents_r2c_axis1);
   EXPECT_TRUE(out_extents_c2c_axis1 == ref_in_extents_r2c_axis1);
@@ -247,7 +253,7 @@ void test_layouts_1d_batched_FFT_3d() {
 
   auto [in_extents_c2c_axis2, out_extents_c2c_axis2, fft_extents_c2c_axis2,
         howmany_c2c_axis2] =
-      KokkosFFT::Impl::get_extents_batched(xcin3, xcout3, 2);
+      KokkosFFT::Impl::get_extents(xcin3, xcout3, axes_type({2}));
   EXPECT_TRUE(in_extents_c2c_axis2 == ref_in_extents_r2c_axis2);
   EXPECT_TRUE(fft_extents_c2c_axis2 == ref_fft_extents_r2c_axis2);
   EXPECT_TRUE(out_extents_c2c_axis2 == ref_in_extents_r2c_axis2);
@@ -276,63 +282,79 @@ TYPED_TEST(Layouts1D, 1DFFT_batched_3DView) {
 template <typename LayoutType>
 void test_layouts_2d() {
   const int n0 = 6, n1 = 10;
+  using axes_type      = KokkosFFT::axis_type<2>;
   using RealView2Dtype = Kokkos::View<double**, LayoutType, execution_space>;
   using ComplexView2Dtype =
       Kokkos::View<Kokkos::complex<double>**, LayoutType, execution_space>;
 
   RealView2Dtype xr2("xr2", n0, n1);
-  ComplexView2Dtype xc2_axis0("xc2_axis0", n0 / 2 + 1, n1);
-  ComplexView2Dtype xc2_axis1("xc2_axis1", n0, n1 / 2 + 1);
+  ComplexView2Dtype xc2_axis01("xc2_axis01", n0, n1 / 2 + 1);
+  ComplexView2Dtype xc2_axis10("xc2_axis10", n0 / 2 + 1, n1);
   ComplexView2Dtype xcin2("xcin2", n0, n1), xcout2("xcout2", n0, n1);
 
-  std::vector<int> ref_in_extents_r2c_axis0{n1, n0};
-  std::vector<int> ref_in_extents_r2c_axis1{n0, n1};
-  std::vector<int> ref_fft_extents_r2c_axis0{n1, n0};
-  std::vector<int> ref_fft_extents_r2c_axis1{n0, n1};
-  std::vector<int> ref_out_extents_r2c_axis0{n1, n0 / 2 + 1};
-  std::vector<int> ref_out_extents_r2c_axis1{n0, n1 / 2 + 1};
+  std::vector<int> ref_in_extents_r2c_axis01{n0, n1};
+  std::vector<int> ref_in_extents_r2c_axis10{n1, n0};
+  std::vector<int> ref_fft_extents_r2c_axis01{n0, n1};
+  std::vector<int> ref_fft_extents_r2c_axis10{n1, n0};
+  std::vector<int> ref_out_extents_r2c_axis01{n0, n1 / 2 + 1};
+  std::vector<int> ref_out_extents_r2c_axis10{n1, n0 / 2 + 1};
 
   // R2C
-  auto [in_extents_r2c_axis0, out_extents_r2c_axis0, fft_extents_r2c_axis0] =
-      KokkosFFT::Impl::get_extents(xr2, xc2_axis0, 0);
-  auto [in_extents_r2c_axis1, out_extents_r2c_axis1, fft_extents_r2c_axis1] =
-      KokkosFFT::Impl::get_extents(xr2, xc2_axis1, 1);
-  EXPECT_TRUE(in_extents_r2c_axis0 == ref_in_extents_r2c_axis0);
-  EXPECT_TRUE(in_extents_r2c_axis1 == ref_in_extents_r2c_axis1);
+  auto [in_extents_r2c_axis01, out_extents_r2c_axis01, fft_extents_r2c_axis01,
+        howmany_r2c_axis01] =
+      KokkosFFT::Impl::get_extents(xr2, xc2_axis01, axes_type({0, 1}));
+  auto [in_extents_r2c_axis10, out_extents_r2c_axis10, fft_extents_r2c_axis10,
+        howmany_r2c_axis10] =
+      KokkosFFT::Impl::get_extents(xr2, xc2_axis10, axes_type({1, 0}));
+  EXPECT_TRUE(in_extents_r2c_axis01 == ref_in_extents_r2c_axis01);
+  EXPECT_TRUE(in_extents_r2c_axis10 == ref_in_extents_r2c_axis10);
 
-  EXPECT_TRUE(fft_extents_r2c_axis0 == ref_fft_extents_r2c_axis0);
-  EXPECT_TRUE(fft_extents_r2c_axis1 == ref_fft_extents_r2c_axis1);
+  EXPECT_TRUE(fft_extents_r2c_axis01 == ref_fft_extents_r2c_axis01);
+  EXPECT_TRUE(fft_extents_r2c_axis10 == ref_fft_extents_r2c_axis10);
 
-  EXPECT_TRUE(out_extents_r2c_axis0 == ref_out_extents_r2c_axis0);
-  EXPECT_TRUE(out_extents_r2c_axis1 == ref_out_extents_r2c_axis1);
+  EXPECT_TRUE(out_extents_r2c_axis01 == ref_out_extents_r2c_axis01);
+  EXPECT_TRUE(out_extents_r2c_axis10 == ref_out_extents_r2c_axis10);
+
+  EXPECT_EQ(howmany_r2c_axis01, 1);
+  EXPECT_EQ(howmany_r2c_axis10, 1);
 
   // C2R
-  auto [in_extents_c2r_axis0, out_extents_c2r_axis0, fft_extents_c2r_axis0] =
-      KokkosFFT::Impl::get_extents(xc2_axis0, xr2, 0);
-  auto [in_extents_c2r_axis1, out_extents_c2r_axis1, fft_extents_c2r_axis1] =
-      KokkosFFT::Impl::get_extents(xc2_axis1, xr2, 1);
-  EXPECT_TRUE(in_extents_c2r_axis0 == ref_out_extents_r2c_axis0);
-  EXPECT_TRUE(in_extents_c2r_axis1 == ref_out_extents_r2c_axis1);
+  auto [in_extents_c2r_axis01, out_extents_c2r_axis01, fft_extents_c2r_axis01,
+        howmany_c2r_axis01] =
+      KokkosFFT::Impl::get_extents(xc2_axis01, xr2, axes_type({0, 1}));
+  auto [in_extents_c2r_axis10, out_extents_c2r_axis10, fft_extents_c2r_axis10,
+        howmany_c2r_axis10] =
+      KokkosFFT::Impl::get_extents(xc2_axis10, xr2, axes_type({1, 0}));
+  EXPECT_TRUE(in_extents_c2r_axis01 == ref_out_extents_r2c_axis01);
+  EXPECT_TRUE(in_extents_c2r_axis10 == ref_out_extents_r2c_axis10);
 
-  EXPECT_TRUE(fft_extents_c2r_axis0 == ref_fft_extents_r2c_axis0);
-  EXPECT_TRUE(fft_extents_c2r_axis1 == ref_fft_extents_r2c_axis1);
+  EXPECT_TRUE(fft_extents_c2r_axis01 == ref_fft_extents_r2c_axis01);
+  EXPECT_TRUE(fft_extents_c2r_axis10 == ref_fft_extents_r2c_axis10);
 
-  EXPECT_TRUE(out_extents_c2r_axis0 == ref_in_extents_r2c_axis0);
-  EXPECT_TRUE(out_extents_c2r_axis1 == ref_in_extents_r2c_axis1);
+  EXPECT_TRUE(out_extents_c2r_axis01 == ref_in_extents_r2c_axis01);
+  EXPECT_TRUE(out_extents_c2r_axis10 == ref_in_extents_r2c_axis10);
+
+  EXPECT_EQ(howmany_c2r_axis01, 1);
+  EXPECT_EQ(howmany_c2r_axis10, 1);
 
   // C2C
-  auto [in_extents_c2c_axis0, out_extents_c2c_axis0, fft_extents_c2c_axis0] =
-      KokkosFFT::Impl::get_extents(xcin2, xcout2, 0);
-  auto [in_extents_c2c_axis1, out_extents_c2c_axis1, fft_extents_c2c_axis1] =
-      KokkosFFT::Impl::get_extents(xcin2, xcout2, 1);
-  EXPECT_TRUE(in_extents_c2c_axis0 == ref_in_extents_r2c_axis0);
-  EXPECT_TRUE(in_extents_c2c_axis1 == ref_in_extents_r2c_axis1);
+  auto [in_extents_c2c_axis01, out_extents_c2c_axis01, fft_extents_c2c_axis01,
+        howmany_c2c_axis01] =
+      KokkosFFT::Impl::get_extents(xcin2, xcout2, axes_type({0, 1}));
+  auto [in_extents_c2c_axis10, out_extents_c2c_axis10, fft_extents_c2c_axis10,
+        howmany_c2c_axis10] =
+      KokkosFFT::Impl::get_extents(xcin2, xcout2, axes_type({1, 0}));
+  EXPECT_TRUE(in_extents_c2c_axis01 == ref_in_extents_r2c_axis01);
+  EXPECT_TRUE(in_extents_c2c_axis10 == ref_in_extents_r2c_axis10);
 
-  EXPECT_TRUE(fft_extents_c2c_axis0 == ref_fft_extents_r2c_axis0);
-  EXPECT_TRUE(fft_extents_c2c_axis1 == ref_fft_extents_r2c_axis1);
+  EXPECT_TRUE(fft_extents_c2c_axis01 == ref_fft_extents_r2c_axis01);
+  EXPECT_TRUE(fft_extents_c2c_axis10 == ref_fft_extents_r2c_axis10);
 
-  EXPECT_TRUE(out_extents_c2c_axis0 == ref_in_extents_r2c_axis0);
-  EXPECT_TRUE(out_extents_c2c_axis1 == ref_in_extents_r2c_axis1);
+  EXPECT_TRUE(out_extents_c2c_axis01 == ref_in_extents_r2c_axis01);
+  EXPECT_TRUE(out_extents_c2c_axis10 == ref_in_extents_r2c_axis10);
+
+  EXPECT_EQ(howmany_c2c_axis01, 1);
+  EXPECT_EQ(howmany_c2c_axis10, 1);
 }
 
 template <typename LayoutType>
@@ -386,7 +408,7 @@ void test_layouts_2d_batched_FFT_3d() {
   // R2C
   auto [in_extents_r2c_axis_01, out_extents_r2c_axis_01,
         fft_extents_r2c_axis_01, howmany_r2c_axis_01] =
-      KokkosFFT::Impl::get_extents_batched(xr3, xc3_axis_01, axes_type({0, 1}));
+      KokkosFFT::Impl::get_extents(xr3, xc3_axis_01, axes_type({0, 1}));
   EXPECT_TRUE(in_extents_r2c_axis_01 == ref_in_extents_r2c_axis_01);
   EXPECT_TRUE(fft_extents_r2c_axis_01 == ref_fft_extents_r2c_axis_01);
   EXPECT_TRUE(out_extents_r2c_axis_01 == ref_out_extents_r2c_axis_01);
@@ -394,7 +416,7 @@ void test_layouts_2d_batched_FFT_3d() {
 
   auto [in_extents_r2c_axis_02, out_extents_r2c_axis_02,
         fft_extents_r2c_axis_02, howmany_r2c_axis_02] =
-      KokkosFFT::Impl::get_extents_batched(xr3, xc3_axis_02, axes_type({0, 2}));
+      KokkosFFT::Impl::get_extents(xr3, xc3_axis_02, axes_type({0, 2}));
   EXPECT_TRUE(in_extents_r2c_axis_02 == ref_in_extents_r2c_axis_02);
   EXPECT_TRUE(fft_extents_r2c_axis_02 == ref_fft_extents_r2c_axis_02);
   EXPECT_TRUE(out_extents_r2c_axis_02 == ref_out_extents_r2c_axis_02);
@@ -402,7 +424,7 @@ void test_layouts_2d_batched_FFT_3d() {
 
   auto [in_extents_r2c_axis_10, out_extents_r2c_axis_10,
         fft_extents_r2c_axis_10, howmany_r2c_axis_10] =
-      KokkosFFT::Impl::get_extents_batched(xr3, xc3_axis_10, axes_type({1, 0}));
+      KokkosFFT::Impl::get_extents(xr3, xc3_axis_10, axes_type({1, 0}));
   EXPECT_TRUE(in_extents_r2c_axis_10 == ref_in_extents_r2c_axis_10);
   EXPECT_TRUE(fft_extents_r2c_axis_10 == ref_fft_extents_r2c_axis_10);
   EXPECT_TRUE(out_extents_r2c_axis_10 == ref_out_extents_r2c_axis_10);
@@ -410,7 +432,7 @@ void test_layouts_2d_batched_FFT_3d() {
 
   auto [in_extents_r2c_axis_12, out_extents_r2c_axis_12,
         fft_extents_r2c_axis_12, howmany_r2c_axis_12] =
-      KokkosFFT::Impl::get_extents_batched(xr3, xc3_axis_12, axes_type({1, 2}));
+      KokkosFFT::Impl::get_extents(xr3, xc3_axis_12, axes_type({1, 2}));
   EXPECT_TRUE(in_extents_r2c_axis_12 == ref_in_extents_r2c_axis_12);
   EXPECT_TRUE(fft_extents_r2c_axis_12 == ref_fft_extents_r2c_axis_12);
   EXPECT_TRUE(out_extents_r2c_axis_12 == ref_out_extents_r2c_axis_12);
@@ -418,7 +440,7 @@ void test_layouts_2d_batched_FFT_3d() {
 
   auto [in_extents_r2c_axis_20, out_extents_r2c_axis_20,
         fft_extents_r2c_axis_20, howmany_r2c_axis_20] =
-      KokkosFFT::Impl::get_extents_batched(xr3, xc3_axis_20, axes_type({2, 0}));
+      KokkosFFT::Impl::get_extents(xr3, xc3_axis_20, axes_type({2, 0}));
   EXPECT_TRUE(in_extents_r2c_axis_20 == ref_in_extents_r2c_axis_20);
   EXPECT_TRUE(fft_extents_r2c_axis_20 == ref_fft_extents_r2c_axis_20);
   EXPECT_TRUE(out_extents_r2c_axis_20 == ref_out_extents_r2c_axis_20);
@@ -426,7 +448,7 @@ void test_layouts_2d_batched_FFT_3d() {
 
   auto [in_extents_r2c_axis_21, out_extents_r2c_axis_21,
         fft_extents_r2c_axis_21, howmany_r2c_axis_21] =
-      KokkosFFT::Impl::get_extents_batched(xr3, xc3_axis_21, axes_type({2, 1}));
+      KokkosFFT::Impl::get_extents(xr3, xc3_axis_21, axes_type({2, 1}));
   EXPECT_TRUE(in_extents_r2c_axis_21 == ref_in_extents_r2c_axis_21);
   EXPECT_TRUE(fft_extents_r2c_axis_21 == ref_fft_extents_r2c_axis_21);
   EXPECT_TRUE(out_extents_r2c_axis_21 == ref_out_extents_r2c_axis_21);
@@ -435,7 +457,7 @@ void test_layouts_2d_batched_FFT_3d() {
   // C2R
   auto [in_extents_c2r_axis_01, out_extents_c2r_axis_01,
         fft_extents_c2r_axis_01, howmany_c2r_axis_01] =
-      KokkosFFT::Impl::get_extents_batched(xc3_axis_01, xr3, axes_type({0, 1}));
+      KokkosFFT::Impl::get_extents(xc3_axis_01, xr3, axes_type({0, 1}));
   EXPECT_TRUE(in_extents_c2r_axis_01 == ref_out_extents_r2c_axis_01);
   EXPECT_TRUE(fft_extents_c2r_axis_01 == ref_fft_extents_r2c_axis_01);
   EXPECT_TRUE(out_extents_c2r_axis_01 == ref_in_extents_r2c_axis_01);
@@ -443,7 +465,7 @@ void test_layouts_2d_batched_FFT_3d() {
 
   auto [in_extents_c2r_axis_02, out_extents_c2r_axis_02,
         fft_extents_c2r_axis_02, howmany_c2r_axis_02] =
-      KokkosFFT::Impl::get_extents_batched(xc3_axis_02, xr3, axes_type({0, 2}));
+      KokkosFFT::Impl::get_extents(xc3_axis_02, xr3, axes_type({0, 2}));
   EXPECT_TRUE(in_extents_c2r_axis_02 == ref_out_extents_r2c_axis_02);
   EXPECT_TRUE(fft_extents_c2r_axis_02 == ref_fft_extents_r2c_axis_02);
   EXPECT_TRUE(out_extents_c2r_axis_02 == ref_in_extents_r2c_axis_02);
@@ -451,7 +473,7 @@ void test_layouts_2d_batched_FFT_3d() {
 
   auto [in_extents_c2r_axis_10, out_extents_c2r_axis_10,
         fft_extents_c2r_axis_10, howmany_c2r_axis_10] =
-      KokkosFFT::Impl::get_extents_batched(xc3_axis_10, xr3, axes_type({1, 0}));
+      KokkosFFT::Impl::get_extents(xc3_axis_10, xr3, axes_type({1, 0}));
   EXPECT_TRUE(in_extents_c2r_axis_10 == ref_out_extents_r2c_axis_10);
   EXPECT_TRUE(fft_extents_c2r_axis_10 == ref_fft_extents_r2c_axis_10);
   EXPECT_TRUE(out_extents_c2r_axis_10 == ref_in_extents_r2c_axis_10);
@@ -459,7 +481,7 @@ void test_layouts_2d_batched_FFT_3d() {
 
   auto [in_extents_c2r_axis_12, out_extents_c2r_axis_12,
         fft_extents_c2r_axis_12, howmany_c2r_axis_12] =
-      KokkosFFT::Impl::get_extents_batched(xc3_axis_12, xr3, axes_type({1, 2}));
+      KokkosFFT::Impl::get_extents(xc3_axis_12, xr3, axes_type({1, 2}));
   EXPECT_TRUE(in_extents_c2r_axis_12 == ref_out_extents_r2c_axis_12);
   EXPECT_TRUE(fft_extents_c2r_axis_12 == ref_fft_extents_r2c_axis_12);
   EXPECT_TRUE(out_extents_c2r_axis_12 == ref_in_extents_r2c_axis_12);
@@ -467,7 +489,7 @@ void test_layouts_2d_batched_FFT_3d() {
 
   auto [in_extents_c2r_axis_20, out_extents_c2r_axis_20,
         fft_extents_c2r_axis_20, howmany_c2r_axis_20] =
-      KokkosFFT::Impl::get_extents_batched(xc3_axis_20, xr3, axes_type({2, 0}));
+      KokkosFFT::Impl::get_extents(xc3_axis_20, xr3, axes_type({2, 0}));
   EXPECT_TRUE(in_extents_c2r_axis_20 == ref_out_extents_r2c_axis_20);
   EXPECT_TRUE(fft_extents_c2r_axis_20 == ref_fft_extents_r2c_axis_20);
   EXPECT_TRUE(out_extents_c2r_axis_20 == ref_in_extents_r2c_axis_20);
@@ -475,7 +497,7 @@ void test_layouts_2d_batched_FFT_3d() {
 
   auto [in_extents_c2r_axis_21, out_extents_c2r_axis_21,
         fft_extents_c2r_axis_21, howmany_c2r_axis_21] =
-      KokkosFFT::Impl::get_extents_batched(xc3_axis_21, xr3, axes_type({2, 1}));
+      KokkosFFT::Impl::get_extents(xc3_axis_21, xr3, axes_type({2, 1}));
   EXPECT_TRUE(in_extents_c2r_axis_21 == ref_out_extents_r2c_axis_21);
   EXPECT_TRUE(fft_extents_c2r_axis_21 == ref_fft_extents_r2c_axis_21);
   EXPECT_TRUE(out_extents_c2r_axis_21 == ref_in_extents_r2c_axis_21);
@@ -484,7 +506,7 @@ void test_layouts_2d_batched_FFT_3d() {
   // C2C
   auto [in_extents_c2c_axis_01, out_extents_c2c_axis_01,
         fft_extents_c2c_axis_01, howmany_c2c_axis_01] =
-      KokkosFFT::Impl::get_extents_batched(xcin3, xcout3, axes_type({0, 1}));
+      KokkosFFT::Impl::get_extents(xcin3, xcout3, axes_type({0, 1}));
   EXPECT_TRUE(in_extents_c2c_axis_01 == ref_in_extents_r2c_axis_01);
   EXPECT_TRUE(fft_extents_c2c_axis_01 == ref_fft_extents_r2c_axis_01);
   EXPECT_TRUE(out_extents_c2c_axis_01 == ref_in_extents_r2c_axis_01);
@@ -492,7 +514,7 @@ void test_layouts_2d_batched_FFT_3d() {
 
   auto [in_extents_c2c_axis_02, out_extents_c2c_axis_02,
         fft_extents_c2c_axis_02, howmany_c2c_axis_02] =
-      KokkosFFT::Impl::get_extents_batched(xcin3, xcout3, axes_type({0, 2}));
+      KokkosFFT::Impl::get_extents(xcin3, xcout3, axes_type({0, 2}));
   EXPECT_TRUE(in_extents_c2c_axis_02 == ref_in_extents_r2c_axis_02);
   EXPECT_TRUE(fft_extents_c2c_axis_02 == ref_fft_extents_r2c_axis_02);
   EXPECT_TRUE(out_extents_c2c_axis_02 == ref_in_extents_r2c_axis_02);
@@ -500,7 +522,7 @@ void test_layouts_2d_batched_FFT_3d() {
 
   auto [in_extents_c2c_axis_10, out_extents_c2c_axis_10,
         fft_extents_c2c_axis_10, howmany_c2c_axis_10] =
-      KokkosFFT::Impl::get_extents_batched(xcin3, xcout3, axes_type({1, 0}));
+      KokkosFFT::Impl::get_extents(xcin3, xcout3, axes_type({1, 0}));
   EXPECT_TRUE(in_extents_c2c_axis_10 == ref_in_extents_r2c_axis_10);
   EXPECT_TRUE(fft_extents_c2c_axis_10 == ref_fft_extents_r2c_axis_10);
   EXPECT_TRUE(out_extents_c2c_axis_10 == ref_in_extents_r2c_axis_10);
@@ -508,7 +530,7 @@ void test_layouts_2d_batched_FFT_3d() {
 
   auto [in_extents_c2c_axis_12, out_extents_c2c_axis_12,
         fft_extents_c2c_axis_12, howmany_c2c_axis_12] =
-      KokkosFFT::Impl::get_extents_batched(xcin3, xcout3, axes_type({1, 2}));
+      KokkosFFT::Impl::get_extents(xcin3, xcout3, axes_type({1, 2}));
   EXPECT_TRUE(in_extents_c2c_axis_12 == ref_in_extents_r2c_axis_12);
   EXPECT_TRUE(fft_extents_c2c_axis_12 == ref_fft_extents_r2c_axis_12);
   EXPECT_TRUE(out_extents_c2c_axis_12 == ref_in_extents_r2c_axis_12);
@@ -516,7 +538,7 @@ void test_layouts_2d_batched_FFT_3d() {
 
   auto [in_extents_c2c_axis_20, out_extents_c2c_axis_20,
         fft_extents_c2c_axis_20, howmany_c2c_axis_20] =
-      KokkosFFT::Impl::get_extents_batched(xcin3, xcout3, axes_type({2, 0}));
+      KokkosFFT::Impl::get_extents(xcin3, xcout3, axes_type({2, 0}));
   EXPECT_TRUE(in_extents_c2c_axis_20 == ref_in_extents_r2c_axis_20);
   EXPECT_TRUE(fft_extents_c2c_axis_20 == ref_fft_extents_r2c_axis_20);
   EXPECT_TRUE(out_extents_c2c_axis_20 == ref_in_extents_r2c_axis_20);
@@ -524,7 +546,7 @@ void test_layouts_2d_batched_FFT_3d() {
 
   auto [in_extents_c2c_axis_21, out_extents_c2c_axis_21,
         fft_extents_c2c_axis_21, howmany_c2c_axis_21] =
-      KokkosFFT::Impl::get_extents_batched(xcin3, xcout3, axes_type({2, 1}));
+      KokkosFFT::Impl::get_extents(xcin3, xcout3, axes_type({2, 1}));
   EXPECT_TRUE(in_extents_c2c_axis_21 == ref_in_extents_r2c_axis_21);
   EXPECT_TRUE(fft_extents_c2c_axis_21 == ref_fft_extents_r2c_axis_21);
   EXPECT_TRUE(out_extents_c2c_axis_21 == ref_in_extents_r2c_axis_21);
