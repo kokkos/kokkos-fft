@@ -69,7 +69,7 @@ auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
       KokkosFFT::Impl::transform_type<ExecutionSpace, in_value_type,
                                       out_value_type>::type();
   auto [in_extents, out_extents, fft_extents, howmany] =
-      KokkosFFT::Impl::get_extents_batched(in, out, axes);
+      KokkosFFT::Impl::get_extents(in, out, axes);
   int idist    = std::accumulate(in_extents.begin(), in_extents.end(), 1,
                               std::multiplies<>());
   int odist    = std::accumulate(out_extents.begin(), out_extents.end(), 1,

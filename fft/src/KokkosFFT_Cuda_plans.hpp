@@ -36,16 +36,15 @@ auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
   cudaStream_t stream = exec_space.cuda_stream();
   cufftSetStream((*plan), stream);
 
-  const int batch = 1;
   auto type = KokkosFFT::Impl::transform_type<ExecutionSpace, in_value_type,
                                               out_value_type>::type();
-  auto [in_extents, out_extents, fft_extents] =
+  auto [in_extents, out_extents, fft_extents, howmany] =
       KokkosFFT::Impl::get_extents(in, out, axes);
   const int nx = fft_extents.at(0);
   int fft_size = std::accumulate(fft_extents.begin(), fft_extents.end(), 1,
                                  std::multiplies<>());
 
-  cufft_rt = cufftPlan1d(&(*plan), nx, type, batch);
+  cufft_rt = cufftPlan1d(&(*plan), nx, type, howmany);
   if (cufft_rt != CUFFT_SUCCESS) throw std::runtime_error("cufftPlan1d failed");
   return fft_size;
 }
@@ -77,7 +76,7 @@ auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
 
   auto type = KokkosFFT::Impl::transform_type<ExecutionSpace, in_value_type,
                                               out_value_type>::type();
-  auto [in_extents, out_extents, fft_extents] =
+  [[maybe_unused]] auto [in_extents, out_extents, fft_extents, howmany] =
       KokkosFFT::Impl::get_extents(in, out, axes);
   const int nx = fft_extents.at(0), ny = fft_extents.at(1);
   int fft_size = std::accumulate(fft_extents.begin(), fft_extents.end(), 1,
@@ -115,7 +114,7 @@ auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
 
   auto type = KokkosFFT::Impl::transform_type<ExecutionSpace, in_value_type,
                                               out_value_type>::type();
-  auto [in_extents, out_extents, fft_extents] =
+  [[maybe_unused]] auto [in_extents, out_extents, fft_extents, howmany] =
       KokkosFFT::Impl::get_extents(in, out, axes);
 
   const int nx = fft_extents.at(0), ny = fft_extents.at(1),
@@ -154,7 +153,7 @@ auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
       KokkosFFT::Impl::transform_type<ExecutionSpace, in_value_type,
                                       out_value_type>::type();
   auto [in_extents, out_extents, fft_extents, howmany] =
-      KokkosFFT::Impl::get_extents_batched(in, out, axes);
+      KokkosFFT::Impl::get_extents(in, out, axes);
   int idist    = std::accumulate(in_extents.begin(), in_extents.end(), 1,
                               std::multiplies<>());
   int odist    = std::accumulate(out_extents.begin(), out_extents.end(), 1,
