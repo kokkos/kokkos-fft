@@ -14,6 +14,7 @@
 #include <Kokkos_Core.hpp>
 #include "KokkosFFT_default_types.hpp"
 #include "KokkosFFT_transpose.hpp"
+#include "KokkosFFT_padding.hpp"
 #include "KokkosFFT_utils.hpp"
 
 #if defined(KOKKOS_ENABLE_CUDA)
@@ -117,11 +118,14 @@ class Plan {
   //! whether transpose is needed or not
   bool m_is_transpose_needed;
 
+  //! whether crop or pad is needed or not
+  bool m_is_crop_or_pad_needed;
+
   //! axes for fft
   axis_type<DIM> m_axes;
 
   //! Shape of the transformed axis of the output
-  shape_type<DIM> m_shape;
+  extents_type m_shape;
 
   //! directions of fft
   KokkosFFT::Direction m_direction;
@@ -186,12 +190,24 @@ class Plan {
             ExecutionSpace, typename OutViewType::memory_space>::accessible,
         "Plan::Plan: execution_space cannot access data in OutViewType");
 
+    shape_type<1> s = {0};
+    if (n) {
+      std::size_t _n = n.value();
+      s              = shape_type<1>({_n});
+    }
+
+    bool is_C2R = is_complex<in_value_type>::value &&
+                  std::is_floating_point<out_value_type>::value;
+
     m_in_extents               = KokkosFFT::Impl::extract_extents(in);
     m_out_extents              = KokkosFFT::Impl::extract_extents(out);
     std::tie(m_map, m_map_inv) = KokkosFFT::Impl::get_map_axes(in, axis);
     m_is_transpose_needed      = KokkosFFT::Impl::is_transpose_needed(m_map);
+    m_shape = KokkosFFT::Impl::get_modified_shape(in, s, m_axes, is_C2R);
+    m_is_crop_or_pad_needed =
+        KokkosFFT::Impl::is_crop_or_pad_needed(in, m_shape);
     m_fft_size = KokkosFFT::Impl::_create(exec_space, m_plan, in, out, m_buffer,
-                                          m_info, direction, m_axes);
+                                          m_info, direction, m_axes, s);
   }
 
   /// \brief Constructor for multidimensional FFT
@@ -240,12 +256,18 @@ class Plan {
             ExecutionSpace, typename OutViewType::memory_space>::accessible,
         "Plan::Plan: execution_space cannot access data in OutViewType");
 
+    bool is_C2R = is_complex<in_value_type>::value &&
+                  std::is_floating_point<out_value_type>::value;
+
     m_in_extents               = KokkosFFT::Impl::extract_extents(in);
     m_out_extents              = KokkosFFT::Impl::extract_extents(out);
     std::tie(m_map, m_map_inv) = KokkosFFT::Impl::get_map_axes(in, axes);
     m_is_transpose_needed      = KokkosFFT::Impl::is_transpose_needed(m_map);
+    m_shape = KokkosFFT::Impl::get_modified_shape(in, s, m_axes, is_C2R);
+    m_is_crop_or_pad_needed =
+        KokkosFFT::Impl::is_crop_or_pad_needed(in, m_shape);
     m_fft_size = KokkosFFT::Impl::_create(exec_space, m_plan, in, out, m_buffer,
-                                          m_info, direction, axes);
+                                          m_info, direction, axes, s);
   }
 
   ~Plan() {
@@ -331,6 +353,8 @@ class Plan {
   fft_size_type fft_size() const { return m_fft_size; }
   KokkosFFT::Direction direction() const { return m_direction; }
   bool is_transpose_needed() const { return m_is_transpose_needed; }
+  bool is_crop_or_pad_needed() const { return m_is_crop_or_pad_needed; }
+  extents_type shape() const { return m_shape; }
   map_type map() const { return m_map; }
   map_type map_inv() const { return m_map_inv; }
   nonConstInViewType& in_T() { return m_in_T; }

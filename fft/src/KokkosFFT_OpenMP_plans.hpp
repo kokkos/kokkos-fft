@@ -37,7 +37,8 @@ auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
              const InViewType& in, const OutViewType& out,
              [[maybe_unused]] BufferViewType& buffer,
              [[maybe_unused]] InfoType& execution_info,
-             [[maybe_unused]] Direction direction, axis_type<fft_rank> axes) {
+             [[maybe_unused]] Direction direction, axis_type<fft_rank> axes,
+             shape_type<fft_rank> s) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "KokkosFFT::_create: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<InViewType>::value,
@@ -57,7 +58,7 @@ auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
       KokkosFFT::Impl::transform_type<ExecutionSpace, in_value_type,
                                       out_value_type>::type();
   auto [in_extents, out_extents, fft_extents, howmany] =
-      KokkosFFT::Impl::get_extents(in, out, axes);
+      KokkosFFT::Impl::get_extents(in, out, axes, s);
   int idist    = std::accumulate(in_extents.begin(), in_extents.end(), 1,
                               std::multiplies<>());
   int odist    = std::accumulate(out_extents.begin(), out_extents.end(), 1,
