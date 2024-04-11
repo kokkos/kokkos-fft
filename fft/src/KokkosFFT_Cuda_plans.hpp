@@ -21,7 +21,8 @@ auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
              const InViewType& in, const OutViewType& out,
              [[maybe_unused]] BufferViewType& buffer,
              [[maybe_unused]] InfoType& execution_info,
-             [[maybe_unused]] Direction direction, axis_type<1> axes, shape_type<1> s) {
+             [[maybe_unused]] Direction direction, axis_type<1> axes,
+             shape_type<1> s) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "KokkosFFT::_create: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<InViewType>::value,
@@ -59,7 +60,8 @@ auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
              const InViewType& in, const OutViewType& out,
              [[maybe_unused]] BufferViewType& buffer,
              [[maybe_unused]] InfoType& execution_info,
-             [[maybe_unused]] Direction direction, axis_type<2> axes, shape_type<2> s) {
+             [[maybe_unused]] Direction direction, axis_type<2> axes,
+             shape_type<2> s) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "KokkosFFT::_create: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<InViewType>::value,
@@ -97,7 +99,8 @@ auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
              const InViewType& in, const OutViewType& out,
              [[maybe_unused]] BufferViewType& buffer,
              [[maybe_unused]] InfoType& execution_info,
-             [[maybe_unused]] Direction direction, axis_type<3> axes, shape_type<3> s) {
+             [[maybe_unused]] Direction direction, axis_type<3> axes,
+             shape_type<3> s) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "KokkosFFT::_create: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<InViewType>::value,
