@@ -12,6 +12,7 @@
 #include "KokkosFFT_common_types.hpp"
 #include "KokkosFFT_utils.hpp"
 #include "KokkosFFT_transpose.hpp"
+#include "KokkosFFT_padding.hpp"
 
 namespace KokkosFFT {
 namespace Impl {
@@ -20,13 +21,10 @@ namespace Impl {
 */
 template <typename InViewType, typename OutViewType, std::size_t DIM = 1>
 auto get_extents(const InViewType& in, const OutViewType& out,
-                 axis_type<DIM> _axes) {
+                 axis_type<DIM> axes, shape_type<DIM> shape = {0}) {
   using in_value_type     = typename InViewType::non_const_value_type;
   using out_value_type    = typename OutViewType::non_const_value_type;
   using array_layout_type = typename InViewType::array_layout;
-
-  // index map after transpose over axis
-  auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(in, _axes);
 
   static_assert(InViewType::rank() >= DIM,
                 "KokkosFFT::get_map_axes: Rank of View must be larger thane or "
@@ -41,20 +39,32 @@ auto get_extents(const InViewType& in, const OutViewType& out,
           ? 0
           : (rank - 1);
 
-  std::vector<int> _in_extents, _out_extents, _fft_extents;
+  // index map after transpose over axis
+  auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(in, axes);
+
+  // Get new shape based on shape parameter
+  // [TO DO] get_modified shape should take out as well and check is_C2R
+  // internally
+  bool is_C2R = is_complex<in_value_type>::value &&
+                std::is_floating_point<out_value_type>::value;
+  auto modified_in_shape =
+      KokkosFFT::Impl::get_modified_shape(in, shape, axes, is_C2R);
 
   // Get extents for the inner most axes in LayoutRight
   // If we allow the FFT on the layoutLeft, this part should be modified
+  std::vector<int> _in_extents, _out_extents, _fft_extents;
   for (std::size_t i = 0; i < rank; i++) {
-    auto _idx = map.at(i);
-    _in_extents.push_back(in.extent(_idx));
-    _out_extents.push_back(out.extent(_idx));
+    auto _idx       = map.at(i);
+    auto in_extent  = modified_in_shape.at(_idx);
+    auto out_extent = out.extent(_idx);
+    _in_extents.push_back(in_extent);
+    _out_extents.push_back(out_extent);
 
     // The extent for transform is always equal to the extent
     // of the extent of real type (R2C or C2R)
     // For C2C, the in and out extents are the same.
     // In the end, we can just use the largest extent among in and out extents.
-    auto fft_extent = std::max(in.extent(_idx), out.extent(_idx));
+    auto fft_extent = std::max(in_extent, out_extent);
     _fft_extents.push_back(fft_extent);
   }
 
