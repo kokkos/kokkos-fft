@@ -22,6 +22,11 @@ auto get_modified_shape(const ViewType& view, shape_type<DIM> shape,
                 "larger than or equal to 1");
   constexpr int rank = static_cast<int>(ViewType::rank());
 
+  shape_type<DIM> zeros = {0};  // default shape means no crop or pad
+  if (shape == zeros) {
+    return KokkosFFT::Impl::extract_extents(view);
+  }
+
   // Convert the input axes to be in the range of [0, rank-1]
   std::vector<int> positive_axes;
   for (std::size_t i = 0; i < DIM; i++) {
