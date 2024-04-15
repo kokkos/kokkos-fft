@@ -30,13 +30,11 @@ int main(int argc, char* argv[]) {
     int axis = -1;
     KokkosFFT::Impl::Plan fft_plan(exec, xc2c, xc2c_hat,
                                    KokkosFFT::Direction::forward, axis);
-    // KokkosFFT::fft(exec, xc2c, xc2c_hat, fft_plan);
     KokkosFFT::Impl::fft_exec_impl(fft_plan, xc2c, xc2c_hat);
     exec.fence();
 
     KokkosFFT::Impl::Plan ifft_plan(exec, xc2c_hat, xc2c_inv,
                                     KokkosFFT::Direction::backward, axis);
-    // KokkosFFT::ifft(exec, xc2c_hat, xc2c_inv, ifft_plan);
     KokkosFFT::Impl::fft_exec_impl(ifft_plan, xc2c_hat, xc2c_inv);
     exec.fence();
 
@@ -48,7 +46,6 @@ int main(int argc, char* argv[]) {
 
     KokkosFFT::Impl::Plan rfft_plan(exec, xr2c, xr2c_hat,
                                     KokkosFFT::Direction::forward, axis);
-    // KokkosFFT::rfft(exec, xr2c, xr2c_hat, rfft_plan);
     KokkosFFT::Impl::fft_exec_impl(rfft_plan, xr2c, xr2c_hat);
     exec.fence();
 
@@ -60,7 +57,6 @@ int main(int argc, char* argv[]) {
 
     KokkosFFT::Impl::Plan irfft_plan(exec, xc2r, xc2r_hat,
                                      KokkosFFT::Direction::backward, axis);
-    // KokkosFFT::irfft(exec, xc2r, xc2r_hat, irfft_plan);
     KokkosFFT::Impl::fft_exec_impl(irfft_plan, xc2r, xc2r_hat);
     exec.fence();
   }
