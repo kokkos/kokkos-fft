@@ -286,22 +286,15 @@ class Plan {
   ///
   /// \param in [in] Input data
   /// \param out [in] Ouput data
-  /// \param direction [in] Direction of FFT (forward/backward)
-  /// \param axes [in] Axes over which FFT is performed
-  template <typename ExecutionSpace2, typename InViewType2,
-            typename OutViewType2>
-  void good(const InViewType2& in, const OutViewType2& out,
-            KokkosFFT::Direction direction, axis_type<DIM> axes) const {
-    static_assert(std::is_same_v<ExecutionSpace2, execSpace>,
-                  "Plan::good: Execution spaces for plan and "
-                  "execution are not identical.");
+  template <typename InViewType2, typename OutViewType2>
+  void good(const InViewType2& in, const OutViewType2& out) const {
     static_assert(
         Kokkos::SpaceAccessibility<
-            ExecutionSpace2, typename InViewType2::memory_space>::accessible,
+            ExecutionSpace, typename InViewType2::memory_space>::accessible,
         "Plan::good: execution_space cannot access data in InViewType");
     static_assert(
         Kokkos::SpaceAccessibility<
-            ExecutionSpace2, typename OutViewType2::memory_space>::accessible,
+            ExecutionSpace, typename OutViewType2::memory_space>::accessible,
         "Plan::good: execution_space cannot access data in OutViewType");
 
     using nonConstInViewType2  = std::remove_cv_t<InViewType2>;
@@ -313,16 +306,21 @@ class Plan {
                   "Plan::good: OutViewType for plan and "
                   "execution are not identical.");
 
-    if (direction != m_direction) {
+    using in_value_type  = typename InViewType2::non_const_value_type;
+    using out_value_type = typename OutViewType2::non_const_value_type;
+
+    if (std::is_floating_point<in_value_type>::value &&
+        m_direction != KokkosFFT::Direction::forward) {
       throw std::runtime_error(
-          "Plan::good: directions for plan and execution are "
-          "not identical.");
+          "Plan::good: real to complex transform is constrcuted with backward "
+          "direction.");
     }
 
-    if (axes != m_axes) {
+    if (std::is_floating_point<out_value_type>::value &&
+        m_direction != KokkosFFT::Direction::backward) {
       throw std::runtime_error(
-          "Plan::good: axes for plan and execution are "
-          "not identical.");
+          "Plan::good: complex to real transform is constrcuted with forward "
+          "direction.");
     }
 
     auto in_extents  = KokkosFFT::Impl::extract_extents(in);
@@ -357,8 +355,6 @@ class Plan {
   extents_type shape() const { return m_shape; }
   map_type map() const { return m_map; }
   map_type map_inv() const { return m_map_inv; }
-  nonConstInViewType& in_T() { return m_in_T; }
-  nonConstOutViewType& out_T() { return m_out_T; }
 };
 }  // namespace Impl
 }  // namespace KokkosFFT
