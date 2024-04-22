@@ -178,19 +178,19 @@ void test_fft1_identity_reuse_plan(T atol = 1.0e-12) {
     int axis = -1;
     KokkosFFT::Impl::Plan fft_plan(execution_space(), a, out,
                                    KokkosFFT::Direction::forward, axis);
-    KokkosFFT::fft(execution_space(), a, out, fft_plan);
+    KokkosFFT::Impl::fft_exec_impl(fft_plan, a, out);
 
     KokkosFFT::Impl::Plan ifft_plan(execution_space(), out, _a,
                                     KokkosFFT::Direction::backward, axis);
-    KokkosFFT::ifft(execution_space(), out, _a, ifft_plan);
+    KokkosFFT::Impl::fft_exec_impl(ifft_plan, out, _a);
 
     KokkosFFT::Impl::Plan rfft_plan(execution_space(), ar, outr,
                                     KokkosFFT::Direction::forward, axis);
-    KokkosFFT::rfft(execution_space(), ar, outr, rfft_plan);
+    KokkosFFT::Impl::fft_exec_impl(rfft_plan, ar, outr);
 
     KokkosFFT::Impl::Plan irfft_plan(execution_space(), outr, _ar,
                                      KokkosFFT::Direction::backward, axis);
-    KokkosFFT::irfft(execution_space(), outr, _ar, irfft_plan);
+    KokkosFFT::Impl::fft_exec_impl(irfft_plan, outr, _ar);
 
     EXPECT_TRUE(allclose(_a, a_ref, 1.e-5, atol));
     EXPECT_TRUE(allclose(_ar, ar_ref, 1.e-5, atol));
@@ -223,52 +223,17 @@ void test_fft1_identity_reuse_plan(T atol = 1.0e-12) {
   KokkosFFT::Impl::Plan irfft_plan(execution_space(), outr, _ar,
                                    KokkosFFT::Direction::backward, axis);
 
-  // Check if errors are correctly raised aginst wrong axis
-  int wrong_axis = 0;
-  EXPECT_THROW(KokkosFFT::fft(execution_space(), a, out, fft_plan,
-                              KokkosFFT::Normalization::backward, wrong_axis),
-               std::runtime_error);
-
-  EXPECT_THROW(KokkosFFT::ifft(execution_space(), out, _a, ifft_plan,
-                               KokkosFFT::Normalization::backward, wrong_axis),
-               std::runtime_error);
-
-  EXPECT_THROW(KokkosFFT::rfft(execution_space(), ar, outr, rfft_plan,
-                               KokkosFFT::Normalization::backward, wrong_axis),
-               std::runtime_error);
-
-  EXPECT_THROW(KokkosFFT::irfft(execution_space(), outr, _ar, irfft_plan,
-                                KokkosFFT::Normalization::backward, wrong_axis),
-               std::runtime_error);
-
   // Check if errors are correctly raised aginst wrong dirction
-  KokkosFFT::Direction wrong_fft_direction = KokkosFFT::Direction::backward;
-  KokkosFFT::Impl::Plan wrong_fft_plan(execution_space(), a, out,
-                                       wrong_fft_direction, axis);
-
+  KokkosFFT::Direction wrong_fft_direction  = KokkosFFT::Direction::backward;
   KokkosFFT::Direction wrong_ifft_direction = KokkosFFT::Direction::forward;
-  KokkosFFT::Impl::Plan wrong_ifft_plan(execution_space(), out, _a,
-                                        wrong_ifft_direction, axis);
-
   KokkosFFT::Impl::Plan wrong_rfft_plan(execution_space(), ar, outr,
                                         wrong_fft_direction, axis);
   KokkosFFT::Impl::Plan wrong_irfft_plan(execution_space(), outr, _ar,
                                          wrong_ifft_direction, axis);
 
-  EXPECT_THROW(KokkosFFT::fft(execution_space(), a, out, wrong_fft_plan,
-                              KokkosFFT::Normalization::backward, axis),
+  EXPECT_THROW(KokkosFFT::Impl::fft_exec_impl(wrong_rfft_plan, ar, outr),
                std::runtime_error);
-
-  EXPECT_THROW(KokkosFFT::ifft(execution_space(), out, _a, wrong_ifft_plan,
-                               KokkosFFT::Normalization::backward, axis),
-               std::runtime_error);
-
-  EXPECT_THROW(KokkosFFT::rfft(execution_space(), ar, outr, wrong_rfft_plan,
-                               KokkosFFT::Normalization::backward, axis),
-               std::runtime_error);
-
-  EXPECT_THROW(KokkosFFT::irfft(execution_space(), outr, _ar, wrong_irfft_plan,
-                                KokkosFFT::Normalization::backward, axis),
+  EXPECT_THROW(KokkosFFT::Impl::fft_exec_impl(wrong_irfft_plan, outr, _ar),
                std::runtime_error);
 
   // Check if errors are correctly raised aginst wrong extents
@@ -280,47 +245,53 @@ void test_fft1_identity_reuse_plan(T atol = 1.0e-12) {
 
   // fft
   // With incorrect input shape
-  EXPECT_THROW(KokkosFFT::fft(execution_space(), a_wrong, out, fft_plan,
-                              KokkosFFT::Normalization::backward, axis),
+  EXPECT_THROW(KokkosFFT::Impl::fft_exec_impl(
+                   fft_plan, a_wrong, out, KokkosFFT::Normalization::backward),
                std::runtime_error);
 
   // With incorrect output shape
-  EXPECT_THROW(KokkosFFT::fft(execution_space(), a, out_wrong, fft_plan,
-                              KokkosFFT::Normalization::backward, axis),
+  EXPECT_THROW(KokkosFFT::Impl::fft_exec_impl(
+                   fft_plan, a, out_wrong, KokkosFFT::Normalization::backward),
                std::runtime_error);
 
   // ifft
   // With incorrect input shape
-  EXPECT_THROW(KokkosFFT::ifft(execution_space(), out_wrong, _a, ifft_plan,
-                               KokkosFFT::Normalization::backward, axis),
-               std::runtime_error);
+  EXPECT_THROW(
+      KokkosFFT::Impl::fft_exec_impl(ifft_plan, out_wrong, _a,
+                                     KokkosFFT::Normalization::backward),
+      std::runtime_error);
 
   // With incorrect output shape
-  EXPECT_THROW(KokkosFFT::ifft(execution_space(), out, _a_wrong, ifft_plan,
-                               KokkosFFT::Normalization::backward, axis),
-               std::runtime_error);
+  EXPECT_THROW(
+      KokkosFFT::Impl::fft_exec_impl(ifft_plan, out, _a_wrong,
+                                     KokkosFFT::Normalization::backward),
+      std::runtime_error);
 
   // rfft
   // With incorrect input shape
-  EXPECT_THROW(KokkosFFT::rfft(execution_space(), ar_wrong, outr, rfft_plan,
-                               KokkosFFT::Normalization::backward, axis),
-               std::runtime_error);
+  EXPECT_THROW(
+      KokkosFFT::Impl::fft_exec_impl(rfft_plan, ar_wrong, outr,
+                                     KokkosFFT::Normalization::backward),
+      std::runtime_error);
 
   // With incorrect output shape
-  EXPECT_THROW(KokkosFFT::rfft(execution_space(), ar, out_wrong, rfft_plan,
-                               KokkosFFT::Normalization::backward, axis),
-               std::runtime_error);
+  EXPECT_THROW(
+      KokkosFFT::Impl::fft_exec_impl(rfft_plan, ar, out_wrong,
+                                     KokkosFFT::Normalization::backward),
+      std::runtime_error);
 
   // irfft
   // With incorrect input shape
-  EXPECT_THROW(KokkosFFT::irfft(execution_space(), outr_wrong, _ar, irfft_plan,
-                                KokkosFFT::Normalization::backward, axis),
-               std::runtime_error);
+  EXPECT_THROW(
+      KokkosFFT::Impl::fft_exec_impl(irfft_plan, outr_wrong, _ar,
+                                     KokkosFFT::Normalization::backward),
+      std::runtime_error);
 
   // With incorrect output shape
-  EXPECT_THROW(KokkosFFT::irfft(execution_space(), outr, _ar_wrong, irfft_plan,
-                                KokkosFFT::Normalization::backward, axis),
-               std::runtime_error);
+  EXPECT_THROW(
+      KokkosFFT::Impl::fft_exec_impl(irfft_plan, outr, _ar_wrong,
+                                     KokkosFFT::Normalization::backward),
+      std::runtime_error);
 }
 
 template <typename T, typename LayoutType>
@@ -457,34 +428,6 @@ void test_fft1_1dhfft_1dview() {
   EXPECT_TRUE(allclose(out_b, out, 1.e-5, 1.e-6));
   EXPECT_TRUE(allclose(out_o, out, 1.e-5, 1.e-6));
   EXPECT_TRUE(allclose(out_f, out, 1.e-5, 1.e-6));
-
-  // Reuse plans
-  int axis = -1;
-
-  Kokkos::deep_copy(x_herm, x_herm_ref);
-  KokkosFFT::Impl::Plan hfft_plan(execution_space(), x_herm, out,
-                                  KokkosFFT::Direction::backward, axis);
-  KokkosFFT::hfft(execution_space(), x_herm, out, hfft_plan);
-
-  Kokkos::deep_copy(x_herm, x_herm_ref);
-  KokkosFFT::hfft(execution_space(), x_herm, out_b, hfft_plan,
-                  KokkosFFT::Normalization::backward);
-
-  Kokkos::deep_copy(x_herm, x_herm_ref);
-  KokkosFFT::hfft(execution_space(), x_herm, out_o, hfft_plan,
-                  KokkosFFT::Normalization::ortho);
-
-  Kokkos::deep_copy(x_herm, x_herm_ref);
-  KokkosFFT::hfft(execution_space(), x_herm, out_f, hfft_plan,
-                  KokkosFFT::Normalization::forward);
-
-  multiply(out_o, sqrt(static_cast<T>(len)));
-  multiply(out_f, static_cast<T>(len));
-
-  EXPECT_TRUE(allclose(out, ref, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_b, out, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_o, out, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_f, out, 1.e-5, 1.e-6));
 }
 
 template <typename T, typename LayoutType>
@@ -539,42 +482,6 @@ void test_fft1_1dihfft_1dview() {
   KokkosFFT::hfft(execution_space(), x_herm, out1_f,
                   KokkosFFT::Normalization::forward);
   KokkosFFT::ihfft(execution_space(), out1_f, out2_f,
-                   KokkosFFT::Normalization::forward);
-
-  EXPECT_TRUE(allclose(out2, x_herm_ref, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out2_b, x_herm_ref, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out2_o, x_herm_ref, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out2_f, x_herm_ref, 1.e-5, 1.e-6));
-
-  // Reuse plans
-  int axis = -1;
-  KokkosFFT::Impl::Plan hfft_plan(execution_space(), x_herm, out1,
-                                  KokkosFFT::Direction::backward, axis);
-  KokkosFFT::Impl::Plan ihfft_plan(execution_space(), out1, out2,
-                                   KokkosFFT::Direction::forward, axis);
-
-  Kokkos::deep_copy(x_herm, x_herm_ref);
-  KokkosFFT::hfft(execution_space(), x_herm, out1,
-                  hfft_plan);  // default: KokkosFFT::Normalization::backward
-  KokkosFFT::ihfft(execution_space(), out1, out2,
-                   ihfft_plan);  // default: KokkosFFT::Normalization::backward
-
-  Kokkos::deep_copy(x_herm, x_herm_ref);
-  KokkosFFT::hfft(execution_space(), x_herm, out1_b, hfft_plan,
-                  KokkosFFT::Normalization::backward);
-  KokkosFFT::ihfft(execution_space(), out1_b, out2_b, ihfft_plan,
-                   KokkosFFT::Normalization::backward);
-
-  Kokkos::deep_copy(x_herm, x_herm_ref);
-  KokkosFFT::hfft(execution_space(), x_herm, out1_o, hfft_plan,
-                  KokkosFFT::Normalization::ortho);
-  KokkosFFT::ihfft(execution_space(), out1_o, out2_o, ihfft_plan,
-                   KokkosFFT::Normalization::ortho);
-
-  Kokkos::deep_copy(x_herm, x_herm_ref);
-  KokkosFFT::hfft(execution_space(), x_herm, out1_f, hfft_plan,
-                  KokkosFFT::Normalization::forward);
-  KokkosFFT::ihfft(execution_space(), out1_f, out2_f, ihfft_plan,
                    KokkosFFT::Normalization::forward);
 
   EXPECT_TRUE(allclose(out2, x_herm_ref, 1.e-5, 1.e-6));
@@ -1425,14 +1332,14 @@ void test_fft2_2dfft_2dview() {
   axes_type axes  = {-2, -1};
   KokkosFFT::Impl::Plan fft2_plan(execution_space(), x, out,
                                   KokkosFFT::Direction::forward, axes);
-  KokkosFFT::fft2(execution_space(), x, out,
-                  fft2_plan);  // default: KokkosFFT::Normalization::backward
-  KokkosFFT::fft2(execution_space(), x, out_b, fft2_plan,
-                  KokkosFFT::Normalization::backward);
-  KokkosFFT::fft2(execution_space(), x, out_o, fft2_plan,
-                  KokkosFFT::Normalization::ortho);
-  KokkosFFT::fft2(execution_space(), x, out_f, fft2_plan,
-                  KokkosFFT::Normalization::forward);
+
+  KokkosFFT::Impl::fft_exec_impl(fft2_plan, x, out);
+  KokkosFFT::Impl::fft_exec_impl(fft2_plan, x, out_b,
+                                 KokkosFFT::Normalization::backward);
+  KokkosFFT::Impl::fft_exec_impl(fft2_plan, x, out_o,
+                                 KokkosFFT::Normalization::ortho);
+  KokkosFFT::Impl::fft_exec_impl(fft2_plan, x, out_f,
+                                 KokkosFFT::Normalization::forward);
 
   multiply(out_o, sqrt(static_cast<T>(n0 * n1)));
   multiply(out_f, static_cast<T>(n0 * n1));
@@ -1467,12 +1374,13 @@ void test_fft2_2dfft_2dview() {
   // Reuse plans np.fft2(axes=(-1, -2))
   KokkosFFT::Impl::Plan fft2_plan_axes10(execution_space(), x, out,
                                          KokkosFFT::Direction::forward, axes10);
-  KokkosFFT::fft2(execution_space(), x, out_b, fft2_plan_axes10,
-                  KokkosFFT::Normalization::backward, axes10);
-  KokkosFFT::fft2(execution_space(), x, out_o, fft2_plan_axes10,
-                  KokkosFFT::Normalization::ortho, axes10);
-  KokkosFFT::fft2(execution_space(), x, out_f, fft2_plan_axes10,
-                  KokkosFFT::Normalization::forward, axes10);
+
+  KokkosFFT::Impl::fft_exec_impl(fft2_plan_axes10, x, out_b,
+                                 KokkosFFT::Normalization::backward);
+  KokkosFFT::Impl::fft_exec_impl(fft2_plan_axes10, x, out_o,
+                                 KokkosFFT::Normalization::ortho);
+  KokkosFFT::Impl::fft_exec_impl(fft2_plan_axes10, x, out_f,
+                                 KokkosFFT::Normalization::forward);
 
   multiply(out_o, sqrt(static_cast<T>(n0 * n1)));
   multiply(out_f, static_cast<T>(n0 * n1));
@@ -1529,14 +1437,13 @@ void test_fft2_2difft_2dview() {
   KokkosFFT::Impl::Plan ifft2_plan(execution_space(), x, out,
                                    KokkosFFT::Direction::backward, axes);
 
-  KokkosFFT::ifft2(execution_space(), x, out,
-                   ifft2_plan);  // default: KokkosFFT::Normalization::backward
-  KokkosFFT::ifft2(execution_space(), x, out_b, ifft2_plan,
-                   KokkosFFT::Normalization::backward);
-  KokkosFFT::ifft2(execution_space(), x, out_o, ifft2_plan,
-                   KokkosFFT::Normalization::ortho);
-  KokkosFFT::ifft2(execution_space(), x, out_f, ifft2_plan,
-                   KokkosFFT::Normalization::forward);
+  KokkosFFT::Impl::fft_exec_impl(ifft2_plan, x, out);
+  KokkosFFT::Impl::fft_exec_impl(ifft2_plan, x, out_b,
+                                 KokkosFFT::Normalization::backward);
+  KokkosFFT::Impl::fft_exec_impl(ifft2_plan, x, out_o,
+                                 KokkosFFT::Normalization::ortho);
+  KokkosFFT::Impl::fft_exec_impl(ifft2_plan, x, out_f,
+                                 KokkosFFT::Normalization::forward);
 
   multiply(out_o, 1.0 / sqrt(static_cast<T>(n0 * n1)));
   multiply(out_f, 1.0 / static_cast<T>(n0 * n1));
@@ -1570,12 +1477,12 @@ void test_fft2_2difft_2dview() {
   KokkosFFT::Impl::Plan ifft2_plan_axes10(
       execution_space(), x, out, KokkosFFT::Direction::backward, axes10);
 
-  KokkosFFT::ifft2(execution_space(), x, out_b, ifft2_plan_axes10,
-                   KokkosFFT::Normalization::backward, axes10);
-  KokkosFFT::ifft2(execution_space(), x, out_o, ifft2_plan_axes10,
-                   KokkosFFT::Normalization::ortho, axes10);
-  KokkosFFT::ifft2(execution_space(), x, out_f, ifft2_plan_axes10,
-                   KokkosFFT::Normalization::forward, axes10);
+  KokkosFFT::Impl::fft_exec_impl(ifft2_plan_axes10, x, out_b,
+                                 KokkosFFT::Normalization::backward);
+  KokkosFFT::Impl::fft_exec_impl(ifft2_plan_axes10, x, out_o,
+                                 KokkosFFT::Normalization::ortho);
+  KokkosFFT::Impl::fft_exec_impl(ifft2_plan_axes10, x, out_f,
+                                 KokkosFFT::Normalization::forward);
 
   multiply(out_o, 1.0 / sqrt(static_cast<T>(n0 * n1)));
   multiply(out_f, 1.0 / static_cast<T>(n0 * n1));
@@ -1640,20 +1547,19 @@ void test_fft2_2drfft_2dview() {
                                    KokkosFFT::Direction::forward, axes);
 
   Kokkos::deep_copy(x, x_ref);
-  KokkosFFT::rfft2(execution_space(), x, out,
-                   rfft2_plan);  // default: KokkosFFT::Normalization::backward
+  KokkosFFT::Impl::fft_exec_impl(rfft2_plan, x, out);
 
   Kokkos::deep_copy(x, x_ref);
-  KokkosFFT::rfft2(execution_space(), x, out_b, rfft2_plan,
-                   KokkosFFT::Normalization::backward);
+  KokkosFFT::Impl::fft_exec_impl(rfft2_plan, x, out_b,
+                                 KokkosFFT::Normalization::backward);
 
   Kokkos::deep_copy(x, x_ref);
-  KokkosFFT::rfft2(execution_space(), x, out_o, rfft2_plan,
-                   KokkosFFT::Normalization::ortho);
+  KokkosFFT::Impl::fft_exec_impl(rfft2_plan, x, out_o,
+                                 KokkosFFT::Normalization::ortho);
 
   Kokkos::deep_copy(x, x_ref);
-  KokkosFFT::rfft2(execution_space(), x, out_f, rfft2_plan,
-                   KokkosFFT::Normalization::forward);
+  KokkosFFT::Impl::fft_exec_impl(rfft2_plan, x, out_f,
+                                 KokkosFFT::Normalization::forward);
 
   multiply(out_o, sqrt(static_cast<T>(n0 * n1)));
   multiply(out_f, static_cast<T>(n0 * n1));
@@ -1719,21 +1625,20 @@ void test_fft2_2dirfft_2dview() {
                                     KokkosFFT::Direction::backward, axes);
 
   Kokkos::deep_copy(x, x_ref);
-  KokkosFFT::irfft2(
-      execution_space(), x, out,
-      irfft2_plan);  // default: KokkosFFT::Normalization::backward
+  KokkosFFT::Impl::fft_exec_impl(
+      irfft2_plan, x, out);  // default: KokkosFFT::Normalization::backward
 
   Kokkos::deep_copy(x, x_ref);
-  KokkosFFT::irfft2(execution_space(), x, out_b, irfft2_plan,
-                    KokkosFFT::Normalization::backward);
+  KokkosFFT::Impl::fft_exec_impl(irfft2_plan, x, out_b,
+                                 KokkosFFT::Normalization::backward);
 
   Kokkos::deep_copy(x, x_ref);
-  KokkosFFT::irfft2(execution_space(), x, out_o, irfft2_plan,
-                    KokkosFFT::Normalization::ortho);
+  KokkosFFT::Impl::fft_exec_impl(irfft2_plan, x, out_o,
+                                 KokkosFFT::Normalization::ortho);
 
   Kokkos::deep_copy(x, x_ref);
-  KokkosFFT::irfft2(execution_space(), x, out_f, irfft2_plan,
-                    KokkosFFT::Normalization::forward);
+  KokkosFFT::Impl::fft_exec_impl(irfft2_plan, x, out_f,
+                                 KokkosFFT::Normalization::forward);
 
   multiply(out_o, 1.0 / sqrt(static_cast<T>(n0 * n1)));
   multiply(out_f, 1.0 / static_cast<T>(n0 * n1));
@@ -2449,14 +2354,13 @@ void test_fftn_2dfft_2dview() {
   KokkosFFT::Impl::Plan fftn_plan(execution_space(), x, out,
                                   KokkosFFT::Direction::forward, axes);
 
-  KokkosFFT::fftn(execution_space(), x, out, fftn_plan,
-                  axes);  // default: KokkosFFT::Normalization::backward
-  KokkosFFT::fftn(execution_space(), x, out_b, fftn_plan, axes,
-                  KokkosFFT::Normalization::backward);
-  KokkosFFT::fftn(execution_space(), x, out_o, fftn_plan, axes,
-                  KokkosFFT::Normalization::ortho);
-  KokkosFFT::fftn(execution_space(), x, out_f, fftn_plan, axes,
-                  KokkosFFT::Normalization::forward);
+  KokkosFFT::Impl::fft_exec_impl(fftn_plan, x, out);
+  KokkosFFT::Impl::fft_exec_impl(fftn_plan, x, out_b,
+                                 KokkosFFT::Normalization::backward);
+  KokkosFFT::Impl::fft_exec_impl(fftn_plan, x, out_o,
+                                 KokkosFFT::Normalization::ortho);
+  KokkosFFT::Impl::fft_exec_impl(fftn_plan, x, out_f,
+                                 KokkosFFT::Normalization::forward);
 
   multiply(out_o, sqrt(static_cast<T>(n0 * n1)));
   multiply(out_f, static_cast<T>(n0 * n1));
@@ -2514,14 +2418,14 @@ void test_ifftn_2dfft_2dview() {
   // Reuse plans
   KokkosFFT::Impl::Plan ifftn_plan(execution_space(), x, out,
                                    KokkosFFT::Direction::backward, axes);
-  KokkosFFT::ifftn(execution_space(), x, out, ifftn_plan,
-                   axes);  // default: KokkosFFT::Normalization::backward
-  KokkosFFT::ifftn(execution_space(), x, out_b, ifftn_plan, axes,
-                   KokkosFFT::Normalization::backward);
-  KokkosFFT::ifftn(execution_space(), x, out_o, ifftn_plan, axes,
-                   KokkosFFT::Normalization::ortho);
-  KokkosFFT::ifftn(execution_space(), x, out_f, ifftn_plan, axes,
-                   KokkosFFT::Normalization::forward);
+
+  KokkosFFT::Impl::fft_exec_impl(ifftn_plan, x, out);
+  KokkosFFT::Impl::fft_exec_impl(ifftn_plan, x, out_b,
+                                 KokkosFFT::Normalization::backward);
+  KokkosFFT::Impl::fft_exec_impl(ifftn_plan, x, out_o,
+                                 KokkosFFT::Normalization::ortho);
+  KokkosFFT::Impl::fft_exec_impl(ifftn_plan, x, out_f,
+                                 KokkosFFT::Normalization::forward);
 
   multiply(out_o, 1.0 / sqrt(static_cast<T>(n0 * n1)));
   multiply(out_f, 1.0 / static_cast<T>(n0 * n1));
@@ -2587,20 +2491,19 @@ void test_rfftn_2dfft_2dview() {
                                    KokkosFFT::Direction::forward, axes);
 
   Kokkos::deep_copy(x, x_ref);
-  KokkosFFT::rfftn(execution_space(), x, out, rfftn_plan,
-                   axes);  // default: KokkosFFT::Normalization::backward
+  KokkosFFT::Impl::fft_exec_impl(rfftn_plan, x, out);
 
   Kokkos::deep_copy(x, x_ref);
-  KokkosFFT::rfftn(execution_space(), x, out_b, rfftn_plan, axes,
-                   KokkosFFT::Normalization::backward);
+  KokkosFFT::Impl::fft_exec_impl(rfftn_plan, x, out_b,
+                                 KokkosFFT::Normalization::backward);
 
   Kokkos::deep_copy(x, x_ref);
-  KokkosFFT::rfftn(execution_space(), x, out_o, rfftn_plan, axes,
-                   KokkosFFT::Normalization::ortho);
+  KokkosFFT::Impl::fft_exec_impl(rfftn_plan, x, out_o,
+                                 KokkosFFT::Normalization::ortho);
 
   Kokkos::deep_copy(x, x_ref);
-  KokkosFFT::rfftn(execution_space(), x, out_f, rfftn_plan, axes,
-                   KokkosFFT::Normalization::forward);
+  KokkosFFT::Impl::fft_exec_impl(rfftn_plan, x, out_f,
+                                 KokkosFFT::Normalization::forward);
 
   multiply(out_o, sqrt(static_cast<T>(n0 * n1)));
   multiply(out_f, static_cast<T>(n0 * n1));
@@ -2666,20 +2569,19 @@ void test_irfftn_2dfft_2dview() {
   KokkosFFT::Impl::Plan irfftn_plan(execution_space(), x, out,
                                     KokkosFFT::Direction::backward, axes);
   Kokkos::deep_copy(x, x_ref);
-  KokkosFFT::irfftn(execution_space(), x, out, irfftn_plan,
-                    axes);  // default: KokkosFFT::Normalization::backward
+  KokkosFFT::Impl::fft_exec_impl(irfftn_plan, x, out);
 
   Kokkos::deep_copy(x, x_ref);
-  KokkosFFT::irfftn(execution_space(), x, out_b, irfftn_plan, axes,
-                    KokkosFFT::Normalization::backward);
+  KokkosFFT::Impl::fft_exec_impl(irfftn_plan, x, out_b,
+                                 KokkosFFT::Normalization::backward);
 
   Kokkos::deep_copy(x, x_ref);
-  KokkosFFT::irfftn(execution_space(), x, out_o, irfftn_plan, axes,
-                    KokkosFFT::Normalization::ortho);
+  KokkosFFT::Impl::fft_exec_impl(irfftn_plan, x, out_o,
+                                 KokkosFFT::Normalization::ortho);
 
   Kokkos::deep_copy(x, x_ref);
-  KokkosFFT::irfftn(execution_space(), x, out_f, irfftn_plan, axes,
-                    KokkosFFT::Normalization::forward);
+  KokkosFFT::Impl::fft_exec_impl(irfftn_plan, x, out_f,
+                                 KokkosFFT::Normalization::forward);
 
   multiply(out_o, 1.0 / sqrt(static_cast<T>(n0 * n1)));
   multiply(out_f, 1.0 / static_cast<T>(n0 * n1));
