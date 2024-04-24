@@ -190,6 +190,20 @@ class Plan {
             ExecutionSpace, typename OutViewType::memory_space>::accessible,
         "Plan::Plan: execution_space cannot access data in OutViewType");
 
+    if (std::is_floating_point<in_value_type>::value &&
+        m_direction != KokkosFFT::Direction::forward) {
+      throw std::runtime_error(
+          "Plan::Plan: real to complex transform is constrcuted with backward "
+          "direction.");
+    }
+
+    if (std::is_floating_point<out_value_type>::value &&
+        m_direction != KokkosFFT::Direction::backward) {
+      throw std::runtime_error(
+          "Plan::Plan: complex to real transform is constrcuted with forward "
+          "direction.");
+    }
+
     shape_type<1> s = {0};
     if (n) {
       std::size_t _n = n.value();
@@ -256,6 +270,20 @@ class Plan {
             ExecutionSpace, typename OutViewType::memory_space>::accessible,
         "Plan::Plan: execution_space cannot access data in OutViewType");
 
+    if (std::is_floating_point<in_value_type>::value &&
+        m_direction != KokkosFFT::Direction::forward) {
+      throw std::runtime_error(
+          "Plan::Plan: real to complex transform is constrcuted with backward "
+          "direction.");
+    }
+
+    if (std::is_floating_point<out_value_type>::value &&
+        m_direction != KokkosFFT::Direction::backward) {
+      throw std::runtime_error(
+          "Plan::Plan: complex to real transform is constrcuted with forward "
+          "direction.");
+    }
+
     bool is_C2R = is_complex<in_value_type>::value &&
                   std::is_floating_point<out_value_type>::value;
 
@@ -305,23 +333,6 @@ class Plan {
     static_assert(std::is_same_v<nonConstOutViewType2, nonConstOutViewType>,
                   "Plan::good: OutViewType for plan and "
                   "execution are not identical.");
-
-    using in_value_type  = typename InViewType2::non_const_value_type;
-    using out_value_type = typename OutViewType2::non_const_value_type;
-
-    if (std::is_floating_point<in_value_type>::value &&
-        m_direction != KokkosFFT::Direction::forward) {
-      throw std::runtime_error(
-          "Plan::good: real to complex transform is constrcuted with backward "
-          "direction.");
-    }
-
-    if (std::is_floating_point<out_value_type>::value &&
-        m_direction != KokkosFFT::Direction::backward) {
-      throw std::runtime_error(
-          "Plan::good: complex to real transform is constrcuted with forward "
-          "direction.");
-    }
 
     auto in_extents  = KokkosFFT::Impl::extract_extents(in);
     auto out_extents = KokkosFFT::Impl::extract_extents(out);
