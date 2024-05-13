@@ -334,25 +334,6 @@ class Plan {
                   "Plan::good: OutViewType for plan and "
                   "execution are not identical.");
 
-    /*
-    using in_value_type  = typename InViewType2::non_const_value_type;
-    using out_value_type = typename OutViewType2::non_const_value_type;
-
-    if (std::is_floating_point<in_value_type>::value &&
-        m_direction != KokkosFFT::Direction::forward) {
-      throw std::runtime_error(
-          "Plan::good: real to complex transform is constrcuted with backward "
-          "direction.");
-    }
-
-    if (std::is_floating_point<out_value_type>::value &&
-        m_direction != KokkosFFT::Direction::backward) {
-      throw std::runtime_error(
-          "Plan::good: complex to real transform is constrcuted with forward "
-          "direction.");
-    }
-    */
-
     auto in_extents  = KokkosFFT::Impl::extract_extents(in);
     auto out_extents = KokkosFFT::Impl::extract_extents(out);
     if (in_extents != m_in_extents) {
