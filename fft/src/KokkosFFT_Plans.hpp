@@ -210,9 +210,6 @@ class Plan {
       s              = shape_type<1>({_n});
     }
 
-    bool is_C2R = is_complex<in_value_type>::value &&
-                  std::is_floating_point<out_value_type>::value;
-
     m_in_extents               = KokkosFFT::Impl::extract_extents(in);
     m_out_extents              = KokkosFFT::Impl::extract_extents(out);
     std::tie(m_map, m_map_inv) = KokkosFFT::Impl::get_map_axes(in, axis);
@@ -283,9 +280,6 @@ class Plan {
           "Plan::Plan: complex to real transform is constrcuted with forward "
           "direction.");
     }
-
-    bool is_C2R = is_complex<in_value_type>::value &&
-                  std::is_floating_point<out_value_type>::value;
 
     m_in_extents               = KokkosFFT::Impl::extract_extents(in);
     m_out_extents              = KokkosFFT::Impl::extract_extents(out);
