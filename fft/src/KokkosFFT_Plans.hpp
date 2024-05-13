@@ -217,7 +217,7 @@ class Plan {
     m_out_extents              = KokkosFFT::Impl::extract_extents(out);
     std::tie(m_map, m_map_inv) = KokkosFFT::Impl::get_map_axes(in, axis);
     m_is_transpose_needed      = KokkosFFT::Impl::is_transpose_needed(m_map);
-    m_shape = KokkosFFT::Impl::get_modified_shape(in, s, m_axes, is_C2R);
+    m_shape = KokkosFFT::Impl::get_modified_shape(in, out, s, m_axes);
     m_is_crop_or_pad_needed =
         KokkosFFT::Impl::is_crop_or_pad_needed(in, m_shape);
     m_fft_size = KokkosFFT::Impl::_create(exec_space, m_plan, in, out, m_buffer,
@@ -291,7 +291,7 @@ class Plan {
     m_out_extents              = KokkosFFT::Impl::extract_extents(out);
     std::tie(m_map, m_map_inv) = KokkosFFT::Impl::get_map_axes(in, axes);
     m_is_transpose_needed      = KokkosFFT::Impl::is_transpose_needed(m_map);
-    m_shape = KokkosFFT::Impl::get_modified_shape(in, s, m_axes, is_C2R);
+    m_shape = KokkosFFT::Impl::get_modified_shape(in, out, s, m_axes);
     m_is_crop_or_pad_needed =
         KokkosFFT::Impl::is_crop_or_pad_needed(in, m_shape);
     m_fft_size = KokkosFFT::Impl::_create(exec_space, m_plan, in, out, m_buffer,
@@ -333,6 +333,25 @@ class Plan {
     static_assert(std::is_same_v<nonConstOutViewType2, nonConstOutViewType>,
                   "Plan::good: OutViewType for plan and "
                   "execution are not identical.");
+
+    /*
+    using in_value_type  = typename InViewType2::non_const_value_type;
+    using out_value_type = typename OutViewType2::non_const_value_type;
+
+    if (std::is_floating_point<in_value_type>::value &&
+        m_direction != KokkosFFT::Direction::forward) {
+      throw std::runtime_error(
+          "Plan::good: real to complex transform is constrcuted with backward "
+          "direction.");
+    }
+
+    if (std::is_floating_point<out_value_type>::value &&
+        m_direction != KokkosFFT::Direction::backward) {
+      throw std::runtime_error(
+          "Plan::good: complex to real transform is constrcuted with forward "
+          "direction.");
+    }
+    */
 
     auto in_extents  = KokkosFFT::Impl::extract_extents(in);
     auto out_extents = KokkosFFT::Impl::extract_extents(out);

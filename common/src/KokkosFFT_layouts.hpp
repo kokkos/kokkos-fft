@@ -43,12 +43,8 @@ auto get_extents(const InViewType& in, const OutViewType& out,
   auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(in, axes);
 
   // Get new shape based on shape parameter
-  // [TO DO] get_modified shape should take out as well and check is_C2R
-  // internally
-  bool is_C2R = is_complex<in_value_type>::value &&
-                std::is_floating_point<out_value_type>::value;
   auto modified_in_shape =
-      KokkosFFT::Impl::get_modified_shape(in, shape, axes, is_C2R);
+      KokkosFFT::Impl::get_modified_shape(in, out, shape, axes);
 
   // Get extents for the inner most axes in LayoutRight
   // If we allow the FFT on the layoutLeft, this part should be modified

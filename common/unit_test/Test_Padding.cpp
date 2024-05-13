@@ -15,24 +15,46 @@ using shape_type = KokkosFFT::shape_type<DIM>;
 template <std::size_t DIM>
 using axes_type = KokkosFFT::axis_type<DIM>;
 
-class GetModifiedShape1D : public ::testing::TestWithParam<bool> {};
-class GetModifiedShape2D : public ::testing::TestWithParam<bool> {};
-class GetModifiedShape3D : public ::testing::TestWithParam<bool> {};
+using test_types = ::testing::Types<double, Kokkos::complex<double>>;
+
+// Basically the same fixtures, used for labeling tests
+template <typename T>
+struct GetModifiedShape1D : public ::testing::Test {
+  using float_type = T;
+};
+
+template <typename T>
+struct GetModifiedShape2D : public ::testing::Test {
+  using float_type = T;
+};
+
+template <typename T>
+struct GetModifiedShape3D : public ::testing::Test {
+  using float_type = T;
+};
+
+TYPED_TEST_SUITE(GetModifiedShape1D, test_types);
+TYPED_TEST_SUITE(GetModifiedShape2D, test_types);
+TYPED_TEST_SUITE(GetModifiedShape3D, test_types);
 
 auto get_c2r_shape(std::size_t len, bool is_C2R) {
   return is_C2R ? (len / 2 + 1) : len;
 }
 
-void test_reshape1D_1DView(bool is_C2R) {
+template <typename T>
+void test_reshape1D_1DView() {
   const int len = 30, len_pad = 32, len_crop = 28;
-  View1D<double> x("x", len);
+  bool is_C2R = !KokkosFFT::Impl::is_complex<T>::value;
 
-  auto shape     = KokkosFFT::Impl::get_modified_shape(x, shape_type<1>{len},
-                                                   axes_type<1>{-1}, is_C2R);
+  View1D<T> x_out("x_out", len);
+  View1D<Kokkos::complex<double>> x("x", get_c2r_shape(len, is_C2R));
+
+  auto shape = KokkosFFT::Impl::get_modified_shape(x, x_out, shape_type<1>{len},
+                                                   axes_type<1>{-1});
   auto shape_pad = KokkosFFT::Impl::get_modified_shape(
-      x, shape_type<1>{len_pad}, axes_type<1>{-1}, is_C2R);
+      x, x_out, shape_type<1>{len_pad}, axes_type<1>{-1});
   auto shape_crop = KokkosFFT::Impl::get_modified_shape(
-      x, shape_type<1>{len_crop}, axes_type<1>{-1}, is_C2R);
+      x, x_out, shape_type<1>{len_crop}, axes_type<1>{-1});
 
   shape_type<1> ref_shape      = {get_c2r_shape(len, is_C2R)};
   shape_type<1> ref_shape_pad  = {get_c2r_shape(len_pad, is_C2R)};
@@ -43,192 +65,237 @@ void test_reshape1D_1DView(bool is_C2R) {
   EXPECT_TRUE(shape_crop == ref_shape_crop);
 }
 
-void test_reshape1D_2DView(bool is_C2R) {
+template <typename T>
+void test_reshape1D_2DView() {
   const int n0 = 30, n1 = 15;
-  View2D<double> x("x", n0, n1);
+  bool is_C2R = !KokkosFFT::Impl::is_complex<T>::value;
+
+  View2D<T> x_out("x_out", n0, n1);
   constexpr int DIM = 2;
 
   shape_type<2> default_shape({n0, n1});
-
   for (int axis0 = 0; axis0 < DIM; axis0++) {
+    shape_type<2> in_shape = default_shape;
+    in_shape.at(axis0)     = get_c2r_shape(x_out.extent(axis0), is_C2R);
+    auto [_n0, _n1]        = in_shape;
+    View2D<Kokkos::complex<double>> x("x", _n0, _n1);
     for (int i0 = -1; i0 <= 1; i0++) {
       shape_type<2> ref_shape = default_shape;
       std::size_t n_new       = static_cast<std::size_t>(x.extent(axis0) + i0);
       ref_shape.at(axis0)     = get_c2r_shape(n_new, is_C2R);
-      auto modified_shape     = KokkosFFT::Impl::get_modified_shape(
-          x, shape_type<1>{n_new}, axes_type<1>{axis0}, is_C2R);
+
+      auto modified_shape = KokkosFFT::Impl::get_modified_shape(
+          x, x_out, shape_type<1>{n_new}, axes_type<1>{axis0});
 
       EXPECT_TRUE(modified_shape == ref_shape);
     }
   }
 }
 
-void test_reshape1D_3DView(bool is_C2R) {
+template <typename T>
+void test_reshape1D_3DView() {
   const int n0 = 30, n1 = 15, n2 = 8;
-  View3D<double> x("x", n0, n1, n2);
+  bool is_C2R = !KokkosFFT::Impl::is_complex<T>::value;
+
+  View3D<T> x_out("x_out", n0, n1, n2);
   constexpr int DIM = 3;
 
   shape_type<3> default_shape({n0, n1, n2});
-
   for (int axis0 = 0; axis0 < DIM; axis0++) {
+    shape_type<3> in_shape = default_shape;
+    in_shape.at(axis0)     = get_c2r_shape(x_out.extent(axis0), is_C2R);
+    auto [_n0, _n1, _n2]   = in_shape;
+    View3D<Kokkos::complex<double>> x("x", _n0, _n1, _n2);
     for (int i0 = -1; i0 <= 1; i0++) {
       shape_type<3> ref_shape = default_shape;
       std::size_t n_new       = static_cast<std::size_t>(x.extent(axis0) + i0);
       ref_shape.at(axis0)     = get_c2r_shape(n_new, is_C2R);
-      auto modified_shape     = KokkosFFT::Impl::get_modified_shape(
-          x, shape_type<1>{n_new}, axes_type<1>{axis0}, is_C2R);
+
+      auto modified_shape = KokkosFFT::Impl::get_modified_shape(
+          x, x_out, shape_type<1>{n_new}, axes_type<1>{axis0});
 
       EXPECT_TRUE(modified_shape == ref_shape);
     }
   }
 }
 
-void test_reshape1D_4DView(bool is_C2R) {
+template <typename T>
+void test_reshape1D_4DView() {
   const int n0 = 5, n1 = 11, n2 = 10, n3 = 8;
-  View4D<double> x("x", n0, n1, n2, n3);
+  bool is_C2R = !KokkosFFT::Impl::is_complex<T>::value;
+  View4D<T> x_out("x_out", n0, n1, n2, n3);
 
   constexpr int DIM = 4;
   shape_type<4> default_shape({n0, n1, n2, n3});
-
   for (int axis0 = 0; axis0 < DIM; axis0++) {
+    shape_type<4> in_shape    = default_shape;
+    in_shape.at(axis0)        = get_c2r_shape(x_out.extent(axis0), is_C2R);
+    auto [_n0, _n1, _n2, _n3] = in_shape;
+    View4D<Kokkos::complex<double>> x("x", _n0, _n1, _n2, _n3);
     for (int i0 = -1; i0 <= 1; i0++) {
       shape_type<4> ref_shape = default_shape;
       std::size_t n_new       = static_cast<std::size_t>(x.extent(axis0) + i0);
       ref_shape.at(axis0)     = get_c2r_shape(n_new, is_C2R);
-      auto modified_shape     = KokkosFFT::Impl::get_modified_shape(
-          x, shape_type<1>{n_new}, axes_type<1>{axis0}, is_C2R);
+
+      auto modified_shape = KokkosFFT::Impl::get_modified_shape(
+          x, x_out, shape_type<1>{n_new}, axes_type<1>{axis0});
 
       EXPECT_TRUE(modified_shape == ref_shape);
     }
   }
 }
 
-void test_reshape1D_5DView(bool is_C2R) {
+template <typename T>
+void test_reshape1D_5DView() {
   const int n0 = 5, n1 = 11, n2 = 10, n3 = 8, n4 = 3;
-  View5D<double> x("x", n0, n1, n2, n3, n4);
+  bool is_C2R = !KokkosFFT::Impl::is_complex<T>::value;
+  View5D<T> x_out("x_out", n0, n1, n2, n3, n4);
 
   constexpr int DIM = 5;
   shape_type<5> default_shape({n0, n1, n2, n3, n4});
 
   for (int axis0 = 0; axis0 < DIM; axis0++) {
+    shape_type<5> in_shape         = default_shape;
+    in_shape.at(axis0)             = get_c2r_shape(x_out.extent(axis0), is_C2R);
+    auto [_n0, _n1, _n2, _n3, _n4] = in_shape;
+    View5D<Kokkos::complex<double>> x("x", _n0, _n1, _n2, _n3, _n4);
     for (int i0 = -1; i0 <= 1; i0++) {
       shape_type<5> ref_shape = default_shape;
       std::size_t n_new       = static_cast<std::size_t>(x.extent(axis0) + i0);
       ref_shape.at(axis0)     = get_c2r_shape(n_new, is_C2R);
-      auto modified_shape     = KokkosFFT::Impl::get_modified_shape(
-          x, shape_type<1>{n_new}, axes_type<1>{axis0}, is_C2R);
+
+      auto modified_shape = KokkosFFT::Impl::get_modified_shape(
+          x, x_out, shape_type<1>{n_new}, axes_type<1>{axis0});
 
       EXPECT_TRUE(modified_shape == ref_shape);
     }
   }
 }
 
-void test_reshape1D_6DView(bool is_C2R) {
+template <typename T>
+void test_reshape1D_6DView() {
   const int n0 = 5, n1 = 11, n2 = 10, n3 = 8, n4 = 3, n5 = 4;
-  View6D<double> x("x", n0, n1, n2, n3, n4, n5);
+  bool is_C2R = !KokkosFFT::Impl::is_complex<T>::value;
+  View6D<T> x_out("x_out", n0, n1, n2, n3, n4, n5);
 
   constexpr int DIM = 6;
   shape_type<6> default_shape({n0, n1, n2, n3, n4, n5});
-
   for (int axis0 = 0; axis0 < DIM; axis0++) {
+    shape_type<6> in_shape = default_shape;
+    in_shape.at(axis0)     = get_c2r_shape(x_out.extent(axis0), is_C2R);
+    auto [_n0, _n1, _n2, _n3, _n4, _n5] = in_shape;
+    View6D<Kokkos::complex<double>> x("x", _n0, _n1, _n2, _n3, _n4, _n5);
     for (int i0 = -1; i0 <= 1; i0++) {
       shape_type<6> ref_shape = default_shape;
       std::size_t n_new       = static_cast<std::size_t>(x.extent(axis0) + i0);
       ref_shape.at(axis0)     = get_c2r_shape(n_new, is_C2R);
-      auto modified_shape     = KokkosFFT::Impl::get_modified_shape(
-          x, shape_type<1>{n_new}, axes_type<1>{axis0}, is_C2R);
+
+      auto modified_shape = KokkosFFT::Impl::get_modified_shape(
+          x, x_out, shape_type<1>{n_new}, axes_type<1>{axis0});
 
       EXPECT_TRUE(modified_shape == ref_shape);
     }
   }
 }
 
-void test_reshape1D_7DView(bool is_C2R) {
+template <typename T>
+void test_reshape1D_7DView() {
   const int n0 = 5, n1 = 11, n2 = 10, n3 = 8, n4 = 3, n5 = 4, n6 = 7;
-  View7D<double> x("x", n0, n1, n2, n3, n4, n5, n6);
+  bool is_C2R = !KokkosFFT::Impl::is_complex<T>::value;
+  View7D<T> x_out("x_out", n0, n1, n2, n3, n4, n5, n6);
 
   constexpr int DIM = 7;
   shape_type<7> default_shape({n0, n1, n2, n3, n4, n5, n6});
-
   for (int axis0 = 0; axis0 < DIM; axis0++) {
+    shape_type<7> in_shape = default_shape;
+    in_shape.at(axis0)     = get_c2r_shape(x_out.extent(axis0), is_C2R);
+    auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6] = in_shape;
+    View7D<Kokkos::complex<double>> x("x", _n0, _n1, _n2, _n3, _n4, _n5, _n6);
     for (int i0 = -1; i0 <= 1; i0++) {
       shape_type<7> ref_shape = default_shape;
       std::size_t n_new       = static_cast<std::size_t>(x.extent(axis0) + i0);
       ref_shape.at(axis0)     = get_c2r_shape(n_new, is_C2R);
-      auto modified_shape     = KokkosFFT::Impl::get_modified_shape(
-          x, shape_type<1>{n_new}, axes_type<1>{axis0}, is_C2R);
+
+      auto modified_shape = KokkosFFT::Impl::get_modified_shape(
+          x, x_out, shape_type<1>{n_new}, axes_type<1>{axis0});
 
       EXPECT_TRUE(modified_shape == ref_shape);
     }
   }
 }
 
-void test_reshape1D_8DView(bool is_C2R) {
+template <typename T>
+void test_reshape1D_8DView() {
   const int n0 = 5, n1 = 11, n2 = 10, n3 = 8, n4 = 3, n5 = 4, n6 = 7, n7 = 9;
-  View8D<double> x("x", n0, n1, n2, n3, n4, n5, n6, n7);
+  bool is_C2R = !KokkosFFT::Impl::is_complex<T>::value;
+  View8D<T> x_out("x_out", n0, n1, n2, n3, n4, n5, n6, n7);
 
   constexpr int DIM = 8;
   shape_type<8> default_shape({n0, n1, n2, n3, n4, n5, n6, n7});
-
   for (int axis0 = 0; axis0 < DIM; axis0++) {
+    shape_type<8> in_shape = default_shape;
+    in_shape.at(axis0)     = get_c2r_shape(x_out.extent(axis0), is_C2R);
+    auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7] = in_shape;
+    View8D<Kokkos::complex<double>> x("x", _n0, _n1, _n2, _n3, _n4, _n5, _n6,
+                                      _n7);
     for (int i0 = -1; i0 <= 1; i0++) {
       shape_type<8> ref_shape = default_shape;
       std::size_t n_new       = static_cast<std::size_t>(x.extent(axis0) + i0);
       ref_shape.at(axis0)     = get_c2r_shape(n_new, is_C2R);
-      auto modified_shape     = KokkosFFT::Impl::get_modified_shape(
-          x, shape_type<1>{n_new}, axes_type<1>{axis0}, is_C2R);
+
+      auto modified_shape = KokkosFFT::Impl::get_modified_shape(
+          x, x_out, shape_type<1>{n_new}, axes_type<1>{axis0});
 
       EXPECT_TRUE(modified_shape == ref_shape);
     }
   }
 }
 
-TEST_P(GetModifiedShape1D, 1DView) {
-  bool is_C2R = GetParam();
-  test_reshape1D_1DView(is_C2R);
+TYPED_TEST(GetModifiedShape1D, 1DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape1D_1DView<float_type>();
 }
 
-TEST_P(GetModifiedShape1D, 2DView) {
-  bool is_C2R = GetParam();
-  test_reshape1D_2DView(is_C2R);
+TYPED_TEST(GetModifiedShape1D, 2DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape1D_2DView<float_type>();
 }
 
-TEST_P(GetModifiedShape1D, 3DView) {
-  bool is_C2R = GetParam();
-  test_reshape1D_3DView(is_C2R);
+TYPED_TEST(GetModifiedShape1D, 3DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape1D_3DView<float_type>();
 }
 
-TEST_P(GetModifiedShape1D, 4DView) {
-  bool is_C2R = GetParam();
-  test_reshape1D_4DView(is_C2R);
+TYPED_TEST(GetModifiedShape1D, 4DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape1D_4DView<float_type>();
 }
 
-TEST_P(GetModifiedShape1D, 5DView) {
-  bool is_C2R = GetParam();
-  test_reshape1D_5DView(is_C2R);
+TYPED_TEST(GetModifiedShape1D, 5DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape1D_5DView<float_type>();
 }
 
-TEST_P(GetModifiedShape1D, 6DView) {
-  bool is_C2R = GetParam();
-  test_reshape1D_6DView(is_C2R);
+TYPED_TEST(GetModifiedShape1D, 6DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape1D_6DView<float_type>();
 }
 
-TEST_P(GetModifiedShape1D, 7DView) {
-  bool is_C2R = GetParam();
-  test_reshape1D_7DView(is_C2R);
+TYPED_TEST(GetModifiedShape1D, 7DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape1D_7DView<float_type>();
 }
 
-TEST_P(GetModifiedShape1D, 8DView) {
-  bool is_C2R = GetParam();
-  test_reshape1D_8DView(is_C2R);
+TYPED_TEST(GetModifiedShape1D, 8DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape1D_8DView<float_type>();
 }
 
-INSTANTIATE_TEST_SUITE_P(CropOrPad, GetModifiedShape1D,
-                         ::testing::Values(true, false));
-
-void test_reshape2D_2DView(bool is_C2R) {
+template <typename T>
+void test_reshape2D_2DView() {
   const int n0 = 30, n1 = 15;
-  View2D<double> x("x", n0, n1);
+  bool is_C2R = !KokkosFFT::Impl::is_complex<T>::value;
+  View2D<T> x_out("x_out", n0, n1);
   constexpr int DIM = 2;
   shape_type<2> default_shape({n0, n1});
 
@@ -236,7 +303,10 @@ void test_reshape2D_2DView(bool is_C2R) {
     for (int axis1 = 0; axis1 < DIM; axis1++) {
       if (axis0 == axis1) continue;
       axes_type<2> axes({axis0, axis1});
-
+      shape_type<2> in_shape = default_shape;
+      in_shape.at(axis1)     = get_c2r_shape(x_out.extent(axis1), is_C2R);
+      auto [_n0, _n1]        = in_shape;
+      View2D<Kokkos::complex<double>> x("x", _n0, _n1);
       for (int i0 = -1; i0 <= 1; i0++) {
         for (int i1 = -1; i1 <= 1; i1++) {
           shape_type<2> ref_shape = default_shape;
@@ -248,7 +318,7 @@ void test_reshape2D_2DView(bool is_C2R) {
           shape_type<2> new_shape = {n0_new, n1_new};
 
           auto modified_shape =
-              KokkosFFT::Impl::get_modified_shape(x, new_shape, axes, is_C2R);
+              KokkosFFT::Impl::get_modified_shape(x, x_out, new_shape, axes);
           EXPECT_TRUE(modified_shape == ref_shape);
         }
       }
@@ -256,9 +326,11 @@ void test_reshape2D_2DView(bool is_C2R) {
   }
 }
 
-void test_reshape2D_3DView(bool is_C2R) {
+template <typename T>
+void test_reshape2D_3DView() {
   const int n0 = 30, n1 = 15, n2 = 8;
-  View3D<double> x("x", n0, n1, n2);
+  bool is_C2R = !KokkosFFT::Impl::is_complex<T>::value;
+  View3D<T> x_out("x_out", n0, n1, n2);
   constexpr int DIM = 3;
   shape_type<3> default_shape({n0, n1, n2});
 
@@ -266,6 +338,10 @@ void test_reshape2D_3DView(bool is_C2R) {
     for (int axis1 = 0; axis1 < DIM; axis1++) {
       if (axis0 == axis1) continue;
       axes_type<2> axes({axis0, axis1});
+      shape_type<3> in_shape = default_shape;
+      in_shape.at(axis1)     = get_c2r_shape(x_out.extent(axis1), is_C2R);
+      auto [_n0, _n1, _n2]   = in_shape;
+      View3D<Kokkos::complex<double>> x("x", _n0, _n1, _n2);
       for (int i0 = -1; i0 <= 1; i0++) {
         for (int i1 = -1; i1 <= 1; i1++) {
           shape_type<3> ref_shape = default_shape;
@@ -277,7 +353,7 @@ void test_reshape2D_3DView(bool is_C2R) {
           shape_type<2> new_shape = {n0_new, n1_new};
 
           auto modified_shape =
-              KokkosFFT::Impl::get_modified_shape(x, new_shape, axes, is_C2R);
+              KokkosFFT::Impl::get_modified_shape(x, x_out, new_shape, axes);
           EXPECT_TRUE(modified_shape == ref_shape);
         }
       }
@@ -285,9 +361,11 @@ void test_reshape2D_3DView(bool is_C2R) {
   }
 }
 
-void test_reshape2D_4DView(bool is_C2R) {
+template <typename T>
+void test_reshape2D_4DView() {
   const int n0 = 5, n1 = 11, n2 = 10, n3 = 8;
-  View4D<double> x("x", n0, n1, n2, n3);
+  bool is_C2R = !KokkosFFT::Impl::is_complex<T>::value;
+  View4D<T> x_out("x_out", n0, n1, n2, n3);
   constexpr int DIM = 4;
   shape_type<4> default_shape({n0, n1, n2, n3});
 
@@ -295,6 +373,10 @@ void test_reshape2D_4DView(bool is_C2R) {
     for (int axis1 = 0; axis1 < DIM; axis1++) {
       if (axis0 == axis1) continue;
       axes_type<2> axes({axis0, axis1});
+      shape_type<4> in_shape    = default_shape;
+      in_shape.at(axis1)        = get_c2r_shape(x_out.extent(axis1), is_C2R);
+      auto [_n0, _n1, _n2, _n3] = in_shape;
+      View4D<Kokkos::complex<double>> x("x", _n0, _n1, _n2, _n3);
       for (int i0 = -1; i0 <= 1; i0++) {
         for (int i1 = -1; i1 <= 1; i1++) {
           shape_type<4> ref_shape = default_shape;
@@ -306,7 +388,7 @@ void test_reshape2D_4DView(bool is_C2R) {
           shape_type<2> new_shape = {n0_new, n1_new};
 
           auto modified_shape =
-              KokkosFFT::Impl::get_modified_shape(x, new_shape, axes, is_C2R);
+              KokkosFFT::Impl::get_modified_shape(x, x_out, new_shape, axes);
           EXPECT_TRUE(modified_shape == ref_shape);
         }
       }
@@ -314,9 +396,11 @@ void test_reshape2D_4DView(bool is_C2R) {
   }
 }
 
-void test_reshape2D_5DView(bool is_C2R) {
+template <typename T>
+void test_reshape2D_5DView() {
   const int n0 = 5, n1 = 11, n2 = 10, n3 = 8, n4 = 3;
-  View5D<double> x("x", n0, n1, n2, n3, n4);
+  bool is_C2R = !KokkosFFT::Impl::is_complex<T>::value;
+  View5D<T> x_out("x_out", n0, n1, n2, n3, n4);
   constexpr int DIM = 5;
   shape_type<5> default_shape({n0, n1, n2, n3, n4});
 
@@ -324,6 +408,10 @@ void test_reshape2D_5DView(bool is_C2R) {
     for (int axis1 = 0; axis1 < DIM; axis1++) {
       if (axis0 == axis1) continue;
       axes_type<2> axes({axis0, axis1});
+      shape_type<5> in_shape = default_shape;
+      in_shape.at(axis1)     = get_c2r_shape(x_out.extent(axis1), is_C2R);
+      auto [_n0, _n1, _n2, _n3, _n4] = in_shape;
+      View5D<Kokkos::complex<double>> x("x", _n0, _n1, _n2, _n3, _n4);
       for (int i0 = -1; i0 <= 1; i0++) {
         for (int i1 = -1; i1 <= 1; i1++) {
           shape_type<5> ref_shape = default_shape;
@@ -335,7 +423,7 @@ void test_reshape2D_5DView(bool is_C2R) {
           shape_type<2> new_shape = {n0_new, n1_new};
 
           auto modified_shape =
-              KokkosFFT::Impl::get_modified_shape(x, new_shape, axes, is_C2R);
+              KokkosFFT::Impl::get_modified_shape(x, x_out, new_shape, axes);
           EXPECT_TRUE(modified_shape == ref_shape);
         }
       }
@@ -343,9 +431,11 @@ void test_reshape2D_5DView(bool is_C2R) {
   }
 }
 
-void test_reshape2D_6DView(bool is_C2R) {
+template <typename T>
+void test_reshape2D_6DView() {
   const int n0 = 5, n1 = 11, n2 = 10, n3 = 8, n4 = 3, n5 = 4;
-  View6D<double> x("x", n0, n1, n2, n3, n4, n5);
+  bool is_C2R = !KokkosFFT::Impl::is_complex<T>::value;
+  View6D<T> x_out("x_out", n0, n1, n2, n3, n4, n5);
   constexpr int DIM = 6;
   shape_type<6> default_shape({n0, n1, n2, n3, n4, n5});
 
@@ -353,6 +443,10 @@ void test_reshape2D_6DView(bool is_C2R) {
     for (int axis1 = 0; axis1 < DIM; axis1++) {
       if (axis0 == axis1) continue;
       axes_type<2> axes({axis0, axis1});
+      shape_type<6> in_shape = default_shape;
+      in_shape.at(axis1)     = get_c2r_shape(x_out.extent(axis1), is_C2R);
+      auto [_n0, _n1, _n2, _n3, _n4, _n5] = in_shape;
+      View6D<Kokkos::complex<double>> x("x", _n0, _n1, _n2, _n3, _n4, _n5);
       for (int i0 = -1; i0 <= 1; i0++) {
         for (int i1 = -1; i1 <= 1; i1++) {
           shape_type<6> ref_shape = default_shape;
@@ -364,7 +458,7 @@ void test_reshape2D_6DView(bool is_C2R) {
           shape_type<2> new_shape = {n0_new, n1_new};
 
           auto modified_shape =
-              KokkosFFT::Impl::get_modified_shape(x, new_shape, axes, is_C2R);
+              KokkosFFT::Impl::get_modified_shape(x, x_out, new_shape, axes);
           EXPECT_TRUE(modified_shape == ref_shape);
         }
       }
@@ -372,9 +466,11 @@ void test_reshape2D_6DView(bool is_C2R) {
   }
 }
 
-void test_reshape2D_7DView(bool is_C2R) {
+template <typename T>
+void test_reshape2D_7DView() {
   const int n0 = 5, n1 = 11, n2 = 10, n3 = 8, n4 = 3, n5 = 4, n6 = 7;
-  View7D<double> x("x", n0, n1, n2, n3, n4, n5, n6);
+  bool is_C2R = !KokkosFFT::Impl::is_complex<T>::value;
+  View7D<T> x_out("x_out", n0, n1, n2, n3, n4, n5, n6);
   constexpr int DIM = 7;
   shape_type<7> default_shape({n0, n1, n2, n3, n4, n5, n6});
 
@@ -382,6 +478,10 @@ void test_reshape2D_7DView(bool is_C2R) {
     for (int axis1 = 0; axis1 < DIM; axis1++) {
       if (axis0 == axis1) continue;
       axes_type<2> axes({axis0, axis1});
+      shape_type<7> in_shape = default_shape;
+      in_shape.at(axis1)     = get_c2r_shape(x_out.extent(axis1), is_C2R);
+      auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6] = in_shape;
+      View7D<Kokkos::complex<double>> x("x", _n0, _n1, _n2, _n3, _n4, _n5, _n6);
       for (int i0 = -1; i0 <= 1; i0++) {
         for (int i1 = -1; i1 <= 1; i1++) {
           shape_type<7> ref_shape = default_shape;
@@ -393,7 +493,7 @@ void test_reshape2D_7DView(bool is_C2R) {
           shape_type<2> new_shape = {n0_new, n1_new};
 
           auto modified_shape =
-              KokkosFFT::Impl::get_modified_shape(x, new_shape, axes, is_C2R);
+              KokkosFFT::Impl::get_modified_shape(x, x_out, new_shape, axes);
           EXPECT_TRUE(modified_shape == ref_shape);
         }
       }
@@ -401,9 +501,11 @@ void test_reshape2D_7DView(bool is_C2R) {
   }
 }
 
-void test_reshape2D_8DView(bool is_C2R) {
+template <typename T>
+void test_reshape2D_8DView() {
   const int n0 = 5, n1 = 11, n2 = 10, n3 = 8, n4 = 3, n5 = 4, n6 = 7, n7 = 9;
-  View8D<double> x("x", n0, n1, n2, n3, n4, n5, n6, n7);
+  bool is_C2R = !KokkosFFT::Impl::is_complex<T>::value;
+  View8D<T> x_out("x_out", n0, n1, n2, n3, n4, n5, n6, n7);
   constexpr int DIM = 8;
   shape_type<8> default_shape({n0, n1, n2, n3, n4, n5, n6, n7});
 
@@ -411,6 +513,11 @@ void test_reshape2D_8DView(bool is_C2R) {
     for (int axis1 = 0; axis1 < DIM; axis1++) {
       if (axis0 == axis1) continue;
       axes_type<2> axes({axis0, axis1});
+      shape_type<8> in_shape = default_shape;
+      in_shape.at(axis1)     = get_c2r_shape(x_out.extent(axis1), is_C2R);
+      auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7] = in_shape;
+      View8D<Kokkos::complex<double>> x("x", _n0, _n1, _n2, _n3, _n4, _n5, _n6,
+                                        _n7);
       for (int i0 = -1; i0 <= 1; i0++) {
         for (int i1 = -1; i1 <= 1; i1++) {
           shape_type<8> ref_shape = default_shape;
@@ -422,7 +529,7 @@ void test_reshape2D_8DView(bool is_C2R) {
           shape_type<2> new_shape = {n0_new, n1_new};
 
           auto modified_shape =
-              KokkosFFT::Impl::get_modified_shape(x, new_shape, axes, is_C2R);
+              KokkosFFT::Impl::get_modified_shape(x, x_out, new_shape, axes);
           EXPECT_TRUE(modified_shape == ref_shape);
         }
       }
@@ -430,47 +537,46 @@ void test_reshape2D_8DView(bool is_C2R) {
   }
 }
 
-TEST_P(GetModifiedShape2D, 2DView) {
-  bool is_C2R = GetParam();
-  test_reshape2D_2DView(is_C2R);
+TYPED_TEST(GetModifiedShape2D, 2DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape2D_2DView<float_type>();
 }
 
-TEST_P(GetModifiedShape2D, 3DView) {
-  bool is_C2R = GetParam();
-  test_reshape2D_3DView(is_C2R);
+TYPED_TEST(GetModifiedShape2D, 3DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape2D_2DView<float_type>();
 }
 
-TEST_P(GetModifiedShape2D, 4DView) {
-  bool is_C2R = GetParam();
-  test_reshape2D_4DView(is_C2R);
+TYPED_TEST(GetModifiedShape2D, 4DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape2D_4DView<float_type>();
 }
 
-TEST_P(GetModifiedShape2D, 5DView) {
-  bool is_C2R = GetParam();
-  test_reshape2D_5DView(is_C2R);
+TYPED_TEST(GetModifiedShape2D, 5DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape2D_5DView<float_type>();
 }
 
-TEST_P(GetModifiedShape2D, 6DView) {
-  bool is_C2R = GetParam();
-  test_reshape2D_6DView(is_C2R);
+TYPED_TEST(GetModifiedShape2D, 6DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape2D_6DView<float_type>();
 }
 
-TEST_P(GetModifiedShape2D, 7DView) {
-  bool is_C2R = GetParam();
-  test_reshape2D_7DView(is_C2R);
+TYPED_TEST(GetModifiedShape2D, 7DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape2D_7DView<float_type>();
 }
 
-TEST_P(GetModifiedShape2D, 8DView) {
-  bool is_C2R = GetParam();
-  test_reshape2D_8DView(is_C2R);
+TYPED_TEST(GetModifiedShape2D, 8DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape2D_8DView<float_type>();
 }
 
-INSTANTIATE_TEST_SUITE_P(CropOrPad, GetModifiedShape2D,
-                         ::testing::Values(true, false));
-
-void test_reshape3D_3DView(bool is_C2R) {
+template <typename T>
+void test_reshape3D_3DView() {
   const int n0 = 30, n1 = 15, n2 = 8;
-  View3D<double> x("x", n0, n1, n2);
+  bool is_C2R = !KokkosFFT::Impl::is_complex<T>::value;
+  View3D<T> x_out("x_out", n0, n1, n2);
 
   constexpr int DIM = 3;
   shape_type<3> default_shape({n0, n1, n2});
@@ -480,7 +586,10 @@ void test_reshape3D_3DView(bool is_C2R) {
       for (int axis2 = 0; axis2 < DIM; axis2++) {
         if (axis0 == axis1 || axis0 == axis2 || axis1 == axis2) continue;
         axes_type<3> axes({axis0, axis1, axis2});
-
+        shape_type<3> in_shape = default_shape;
+        in_shape.at(axis2)     = get_c2r_shape(x_out.extent(axis2), is_C2R);
+        auto [_n0, _n1, _n2]   = in_shape;
+        View3D<Kokkos::complex<double>> x("x", _n0, _n1, _n2);
         for (int i0 = -1; i0 <= 1; i0++) {
           for (int i1 = -1; i1 <= 1; i1++) {
             for (int i2 = -1; i2 <= 1; i2++) {
@@ -498,7 +607,7 @@ void test_reshape3D_3DView(bool is_C2R) {
 
               shape_type<3> new_shape = {n0_new, n1_new, n2_new};
               auto modified_shape     = KokkosFFT::Impl::get_modified_shape(
-                  x, new_shape, axes, is_C2R);
+                      x, x_out, new_shape, axes);
 
               EXPECT_TRUE(modified_shape == ref_shape);
             }
@@ -509,9 +618,11 @@ void test_reshape3D_3DView(bool is_C2R) {
   }
 }
 
-void test_reshape3D_4DView(bool is_C2R) {
+template <typename T>
+void test_reshape3D_4DView() {
   const int n0 = 5, n1 = 11, n2 = 10, n3 = 8;
-  View4D<double> x("x", n0, n1, n2, n3);
+  bool is_C2R = !KokkosFFT::Impl::is_complex<T>::value;
+  View4D<T> x_out("x_out", n0, n1, n2, n3);
 
   constexpr int DIM = 4;
   shape_type<4> default_shape({n0, n1, n2, n3});
@@ -521,7 +632,10 @@ void test_reshape3D_4DView(bool is_C2R) {
       for (int axis2 = 0; axis2 < DIM; axis2++) {
         if (axis0 == axis1 || axis0 == axis2 || axis1 == axis2) continue;
         axes_type<3> axes({axis0, axis1, axis2});
-
+        shape_type<4> in_shape    = default_shape;
+        in_shape.at(axis2)        = get_c2r_shape(x_out.extent(axis2), is_C2R);
+        auto [_n0, _n1, _n2, _n3] = in_shape;
+        View4D<Kokkos::complex<double>> x("x", _n0, _n1, _n2, _n3);
         for (int i0 = -1; i0 <= 1; i0++) {
           for (int i1 = -1; i1 <= 1; i1++) {
             for (int i2 = -1; i2 <= 1; i2++) {
@@ -540,7 +654,7 @@ void test_reshape3D_4DView(bool is_C2R) {
               shape_type<3> new_shape = {n0_new, n1_new, n2_new};
 
               auto modified_shape = KokkosFFT::Impl::get_modified_shape(
-                  x, new_shape, axes, is_C2R);
+                  x, x_out, new_shape, axes);
               EXPECT_TRUE(modified_shape == ref_shape);
             }
           }
@@ -550,9 +664,11 @@ void test_reshape3D_4DView(bool is_C2R) {
   }
 }
 
-void test_reshape3D_5DView(bool is_C2R) {
+template <typename T>
+void test_reshape3D_5DView() {
   const int n0 = 5, n1 = 11, n2 = 10, n3 = 8, n4 = 3;
-  View5D<double> x("x", n0, n1, n2, n3, n4);
+  bool is_C2R = !KokkosFFT::Impl::is_complex<T>::value;
+  View5D<T> x_out("x_out", n0, n1, n2, n3, n4);
   constexpr int DIM = 5;
   shape_type<5> default_shape({n0, n1, n2, n3, n4});
 
@@ -561,7 +677,10 @@ void test_reshape3D_5DView(bool is_C2R) {
       for (int axis2 = 0; axis2 < DIM; axis2++) {
         if (axis0 == axis1 || axis0 == axis2 || axis1 == axis2) continue;
         axes_type<3> axes({axis0, axis1, axis2});
-
+        shape_type<5> in_shape = default_shape;
+        in_shape.at(axis2)     = get_c2r_shape(x_out.extent(axis2), is_C2R);
+        auto [_n0, _n1, _n2, _n3, _n4] = in_shape;
+        View5D<Kokkos::complex<double>> x("x", _n0, _n1, _n2, _n3, _n4);
         for (int i0 = -1; i0 <= 1; i0++) {
           for (int i1 = -1; i1 <= 1; i1++) {
             for (int i2 = -1; i2 <= 1; i2++) {
@@ -580,7 +699,7 @@ void test_reshape3D_5DView(bool is_C2R) {
               shape_type<3> new_shape = {n0_new, n1_new, n2_new};
 
               auto modified_shape = KokkosFFT::Impl::get_modified_shape(
-                  x, new_shape, axes, is_C2R);
+                  x, x_out, new_shape, axes);
               EXPECT_TRUE(modified_shape == ref_shape);
             }
           }
@@ -590,9 +709,11 @@ void test_reshape3D_5DView(bool is_C2R) {
   }
 }
 
-void test_reshape3D_6DView(bool is_C2R) {
+template <typename T>
+void test_reshape3D_6DView() {
   const int n0 = 5, n1 = 11, n2 = 10, n3 = 8, n4 = 3, n5 = 4;
-  View6D<double> x("x", n0, n1, n2, n3, n4, n5);
+  bool is_C2R = !KokkosFFT::Impl::is_complex<T>::value;
+  View6D<T> x_out("x_out", n0, n1, n2, n3, n4, n5);
   constexpr int DIM = 6;
   shape_type<6> default_shape({n0, n1, n2, n3, n4, n5});
 
@@ -601,7 +722,10 @@ void test_reshape3D_6DView(bool is_C2R) {
       for (int axis2 = 0; axis2 < DIM; axis2++) {
         if (axis0 == axis1 || axis0 == axis2 || axis1 == axis2) continue;
         axes_type<3> axes({axis0, axis1, axis2});
-
+        shape_type<6> in_shape = default_shape;
+        in_shape.at(axis2)     = get_c2r_shape(x_out.extent(axis2), is_C2R);
+        auto [_n0, _n1, _n2, _n3, _n4, _n5] = in_shape;
+        View6D<Kokkos::complex<double>> x("x", _n0, _n1, _n2, _n3, _n4, _n5);
         for (int i0 = -1; i0 <= 1; i0++) {
           for (int i1 = -1; i1 <= 1; i1++) {
             for (int i2 = -1; i2 <= 1; i2++) {
@@ -620,7 +744,7 @@ void test_reshape3D_6DView(bool is_C2R) {
               shape_type<3> new_shape = {n0_new, n1_new, n2_new};
 
               auto modified_shape = KokkosFFT::Impl::get_modified_shape(
-                  x, new_shape, axes, is_C2R);
+                  x, x_out, new_shape, axes);
               EXPECT_TRUE(modified_shape == ref_shape);
             }
           }
@@ -630,9 +754,11 @@ void test_reshape3D_6DView(bool is_C2R) {
   }
 }
 
-void test_reshape3D_7DView(bool is_C2R) {
+template <typename T>
+void test_reshape3D_7DView() {
   const int n0 = 5, n1 = 11, n2 = 10, n3 = 8, n4 = 3, n5 = 4, n6 = 7;
-  View7D<double> x("x", n0, n1, n2, n3, n4, n5, n6);
+  bool is_C2R = !KokkosFFT::Impl::is_complex<T>::value;
+  View7D<T> x_out("x_out", n0, n1, n2, n3, n4, n5, n6);
   constexpr int DIM = 7;
   shape_type<7> default_shape({n0, n1, n2, n3, n4, n5, n6});
 
@@ -641,7 +767,11 @@ void test_reshape3D_7DView(bool is_C2R) {
       for (int axis2 = 0; axis2 < DIM; axis2++) {
         if (axis0 == axis1 || axis0 == axis2 || axis1 == axis2) continue;
         axes_type<3> axes({axis0, axis1, axis2});
-
+        shape_type<7> in_shape = default_shape;
+        in_shape.at(axis2)     = get_c2r_shape(x_out.extent(axis2), is_C2R);
+        auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6] = in_shape;
+        View7D<Kokkos::complex<double>> x("x", _n0, _n1, _n2, _n3, _n4, _n5,
+                                          _n6);
         for (int i0 = -1; i0 <= 1; i0++) {
           for (int i1 = -1; i1 <= 1; i1++) {
             for (int i2 = -1; i2 <= 1; i2++) {
@@ -660,7 +790,7 @@ void test_reshape3D_7DView(bool is_C2R) {
               shape_type<3> new_shape = {n0_new, n1_new, n2_new};
 
               auto modified_shape = KokkosFFT::Impl::get_modified_shape(
-                  x, new_shape, axes, is_C2R);
+                  x, x_out, new_shape, axes);
               EXPECT_TRUE(modified_shape == ref_shape);
             }
           }
@@ -670,18 +800,23 @@ void test_reshape3D_7DView(bool is_C2R) {
   }
 }
 
-void test_reshape3D_8DView(bool is_C2R) {
+template <typename T>
+void test_reshape3D_8DView() {
   const int n0 = 5, n1 = 11, n2 = 10, n3 = 8, n4 = 3, n5 = 4, n6 = 7, n7 = 9;
-  View8D<double> x("x", n0, n1, n2, n3, n4, n5, n6, n7);
+  bool is_C2R = !KokkosFFT::Impl::is_complex<T>::value;
+  View8D<T> x_out("x_out", n0, n1, n2, n3, n4, n5, n6, n7);
   constexpr int DIM = 8;
   shape_type<8> default_shape({n0, n1, n2, n3, n4, n5, n6, n7});
-
   for (int axis0 = 0; axis0 < DIM; axis0++) {
     for (int axis1 = 0; axis1 < DIM; axis1++) {
       for (int axis2 = 0; axis2 < DIM; axis2++) {
         if (axis0 == axis1 || axis0 == axis2 || axis1 == axis2) continue;
         axes_type<3> axes({axis0, axis1, axis2});
-
+        shape_type<8> in_shape = default_shape;
+        in_shape.at(axis2)     = get_c2r_shape(x_out.extent(axis2), is_C2R);
+        auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7] = in_shape;
+        View8D<Kokkos::complex<double>> x("x", _n0, _n1, _n2, _n3, _n4, _n5,
+                                          _n6, _n7);
         for (int i0 = -1; i0 <= 1; i0++) {
           for (int i1 = -1; i1 <= 1; i1++) {
             for (int i2 = -1; i2 <= 1; i2++) {
@@ -700,7 +835,7 @@ void test_reshape3D_8DView(bool is_C2R) {
               shape_type<3> new_shape = {n0_new, n1_new, n2_new};
 
               auto modified_shape = KokkosFFT::Impl::get_modified_shape(
-                  x, new_shape, axes, is_C2R);
+                  x, x_out, new_shape, axes);
               EXPECT_TRUE(modified_shape == ref_shape);
             }
           }
@@ -710,38 +845,35 @@ void test_reshape3D_8DView(bool is_C2R) {
   }
 }
 
-TEST_P(GetModifiedShape3D, 3DView) {
-  bool is_C2R = GetParam();
-  test_reshape3D_3DView(is_C2R);
+TYPED_TEST(GetModifiedShape3D, 3DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape3D_3DView<float_type>();
 }
 
-TEST_P(GetModifiedShape3D, 4DView) {
-  bool is_C2R = GetParam();
-  test_reshape3D_4DView(is_C2R);
+TYPED_TEST(GetModifiedShape3D, 4DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape3D_4DView<float_type>();
 }
 
-TEST_P(GetModifiedShape3D, 5DView) {
-  bool is_C2R = GetParam();
-  test_reshape3D_5DView(is_C2R);
+TYPED_TEST(GetModifiedShape3D, 5DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape3D_5DView<float_type>();
 }
 
-TEST_P(GetModifiedShape3D, 6DView) {
-  bool is_C2R = GetParam();
-  test_reshape3D_6DView(is_C2R);
+TYPED_TEST(GetModifiedShape3D, 6DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape3D_6DView<float_type>();
 }
 
-TEST_P(GetModifiedShape3D, 7DView) {
-  bool is_C2R = GetParam();
-  test_reshape3D_7DView(is_C2R);
+TYPED_TEST(GetModifiedShape3D, 7DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape3D_7DView<float_type>();
 }
 
-TEST_P(GetModifiedShape3D, 8DView) {
-  bool is_C2R = GetParam();
-  test_reshape3D_8DView(is_C2R);
+TYPED_TEST(GetModifiedShape3D, 8DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape3D_8DView<float_type>();
 }
-
-INSTANTIATE_TEST_SUITE_P(CropOrPad, GetModifiedShape3D,
-                         ::testing::Values(true, false));
 
 TEST(IsCropOrPadNeeded, 1DView) {
   const int len = 30, len_pad = 32, len_crop = 28;
