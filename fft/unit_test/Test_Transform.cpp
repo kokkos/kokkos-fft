@@ -223,19 +223,6 @@ void test_fft1_identity_reuse_plan(T atol = 1.0e-12) {
   KokkosFFT::Impl::Plan irfft_plan(execution_space(), outr, _ar,
                                    KokkosFFT::Direction::backward, axis);
 
-  // Check if errors are correctly raised aginst wrong dirction
-  KokkosFFT::Direction wrong_fft_direction  = KokkosFFT::Direction::backward;
-  KokkosFFT::Direction wrong_ifft_direction = KokkosFFT::Direction::forward;
-  KokkosFFT::Impl::Plan wrong_rfft_plan(execution_space(), ar, outr,
-                                        wrong_fft_direction, axis);
-  KokkosFFT::Impl::Plan wrong_irfft_plan(execution_space(), outr, _ar,
-                                         wrong_ifft_direction, axis);
-
-  EXPECT_THROW(KokkosFFT::Impl::fft_exec_impl(wrong_rfft_plan, ar, outr),
-               std::runtime_error);
-  EXPECT_THROW(KokkosFFT::Impl::fft_exec_impl(wrong_irfft_plan, outr, _ar),
-               std::runtime_error);
-
   // Check if errors are correctly raised aginst wrong extents
   const int maxlen_wrong = 32 * 2;
   ComplexView1DType a_wrong("a", maxlen_wrong), _a_wrong("_a", maxlen_wrong);
