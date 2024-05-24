@@ -37,7 +37,7 @@ int main(int argc, char* argv[]) {
     // any combination of inputs/outputs can be managed or unmanaged views
     // should work on all functions in any number of dimensions
     // 3D C2C FFT (Forward and Backward)
-    
+
     // combined storage buffer for xc2c and xc2c_inv
     View1D<Kokkos::complex<double>> storage(
         "storage", (UView3D<Kokkos::complex<double>>::required_allocation_size(
