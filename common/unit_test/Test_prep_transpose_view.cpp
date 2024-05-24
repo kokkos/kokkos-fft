@@ -113,9 +113,15 @@ void test_unmanaged_prep_transpose_view() {
     }
 
     LayoutType layout_orig;
-    layout_orig.dimension[0] = 1;
-    for (int i = 0; i < DIMS; ++i) {
+    layout_orig.dimension[0] = 5;
+    if (DIMS == 0) {
+      // give the 1D version a larger original shape so it will reshape down to
+      // a portion of the allocation
+      layout_orig.dimension[0] = 10;
+    }
+    for (int i = 1; i < DIMS; ++i) {
       layout_orig.dimension[0] *= 5;
+      layout_orig.dimension[i] = 1;
     }
     InManagedViewType in("in", layout);
     OutManagedViewType out("out", layout_orig);
