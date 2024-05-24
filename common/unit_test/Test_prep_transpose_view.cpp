@@ -142,7 +142,9 @@ void test_unmanaged_prep_transpose_view() {
     }
 
     LayoutType layout_orig;
-    layout_orig.dimension[0] = 1;
+    for (int i = 0; i < DIMS; ++i) {
+      layout_orig.dimension[i] = 1;
+    }
     InManagedViewType in("in", layout);
     OutManagedViewType out("out", layout_orig);
     OutViewType u_out(out.data(), layout_orig);
