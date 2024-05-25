@@ -24,6 +24,14 @@ struct real_type<Kokkos::complex<T>> {
 };
 
 template <typename T>
+struct managable_view_type {
+  using type = Kokkos::View<typename T::data_type, typename T::array_layout,
+                            typename T::memory_space,
+                            Kokkos::MemoryTraits<T::memory_traits::impl_value &
+                                                 ~unsigned(Kokkos::Unmanaged)>>;
+};
+
+template <typename T>
 using real_type_t = typename real_type<T>::type;
 
 template <typename T>
@@ -197,6 +205,149 @@ auto extract_extents(const ViewType& view) {
     extents.at(i) = view.extent(i);
   }
   return extents;
+}
+
+template <typename ViewType, typename Label>
+void create_view(ViewType& out, const Label& label,
+                 const std::array<int, 1>& extents) {
+  out = ViewType(label, extents[0]);
+}
+
+template <typename ViewType, typename Label>
+void create_view(ViewType& out, const Label& label,
+                 const std::array<int, 2>& extents) {
+  out = ViewType(label, extents[0], extents[1]);
+}
+
+template <typename ViewType, typename Label>
+void create_view(ViewType& out, const Label& label,
+                 const std::array<int, 3>& extents) {
+  out = ViewType(label, extents[0], extents[1], extents[2]);
+}
+
+template <typename ViewType, typename Label>
+void create_view(ViewType& out, const Label& label,
+                 const std::array<int, 4>& extents) {
+  out = ViewType(label, extents[0], extents[1], extents[2], extents[3]);
+}
+
+template <typename ViewType, typename Label>
+void create_view(ViewType& out, const Label& label,
+                 const std::array<int, 5>& extents) {
+  out = ViewType(label, extents[0], extents[1], extents[2], extents[3],
+                 extents[4]);
+}
+
+template <typename ViewType, typename Label>
+void create_view(ViewType& out, const Label& label,
+                 const std::array<int, 6>& extents) {
+  out = ViewType(label, extents[0], extents[1], extents[2], extents[3],
+                 extents[4], extents[5]);
+}
+
+template <typename ViewType, typename Label>
+void create_view(ViewType& out, const Label& label,
+                 const std::array<int, 7>& extents) {
+  out = ViewType(label, extents[0], extents[1], extents[2], extents[3],
+                 extents[4], extents[5], extents[6]);
+}
+
+template <typename ViewType, typename Label>
+void create_view(ViewType& out, const Label& label,
+                 const std::array<int, 8>& extents) {
+  out = ViewType(label, extents[0], extents[1], extents[2], extents[3],
+                 extents[4], extents[5], extents[6], extents[7]);
+}
+
+template <typename ViewType>
+void reshape_view(ViewType& out, const std::array<int, 1>& extents) {
+  if (ViewType::required_allocation_size(out.layout()) >=
+      ViewType::required_allocation_size(extents[0])) {
+    out = ViewType(out.data(), extents[0]);
+  } else {
+    throw std::runtime_error("reshape_view: insufficient memory");
+  }
+}
+
+template <typename ViewType>
+void reshape_view(ViewType& out, const std::array<int, 2>& extents) {
+  if (ViewType::required_allocation_size(out.layout()) >=
+      ViewType::required_allocation_size(extents[0], extents[1])) {
+    out = ViewType(out.data(), extents[0], extents[1]);
+  } else {
+    throw std::runtime_error("reshape_view: insufficient memory");
+  }
+}
+
+template <typename ViewType>
+void reshape_view(ViewType& out, const std::array<int, 3>& extents) {
+  if (ViewType::required_allocation_size(out.layout()) >=
+      ViewType::required_allocation_size(extents[0], extents[1], extents[2])) {
+    out = ViewType(out.data(), extents[0], extents[1], extents[2]);
+  } else {
+    throw std::runtime_error("reshape_view: insufficient memory");
+  }
+}
+
+template <typename ViewType>
+void reshape_view(ViewType& out, const std::array<int, 4>& extents) {
+  if (ViewType::required_allocation_size(out.layout()) >=
+      ViewType::required_allocation_size(extents[0], extents[1], extents[2],
+                                         extents[3])) {
+    out = ViewType(out.data(), extents[0], extents[1], extents[2], extents[3]);
+  } else {
+    throw std::runtime_error("reshape_view: insufficient memory");
+  }
+}
+
+template <typename ViewType>
+void reshape_view(ViewType& out, const std::array<int, 5>& extents) {
+  if (ViewType::required_allocation_size(out.layout()) >=
+      ViewType::required_allocation_size(extents[0], extents[1], extents[2],
+                                         extents[3], extents[4])) {
+    out = ViewType(out.data(), extents[0], extents[1], extents[2], extents[3],
+                   extents[4]);
+  } else {
+    throw std::runtime_error("reshape_view: insufficient memory");
+  }
+}
+
+template <typename ViewType>
+void reshape_view(ViewType& out, const std::array<int, 6>& extents) {
+  if (ViewType::required_allocation_size(out.layout()) >=
+      ViewType::required_allocation_size(extents[0], extents[1], extents[2],
+                                         extents[3], extents[4], extents[5])) {
+    out = ViewType(out.data(), extents[0], extents[1], extents[2], extents[3],
+                   extents[4], extents[5]);
+  } else {
+    throw std::runtime_error("reshape_view: insufficient memory");
+  }
+}
+
+template <typename ViewType>
+void reshape_view(ViewType& out, const std::array<int, 7>& extents) {
+  if (ViewType::required_allocation_size(out.layout()) >=
+      ViewType::required_allocation_size(extents[0], extents[1], extents[2],
+                                         extents[3], extents[4], extents[5],
+                                         extents[6])) {
+    out = ViewType(out.data(), extents[0], extents[1], extents[2], extents[3],
+                   extents[4], extents[5], extents[6]);
+  } else {
+    throw std::runtime_error("reshape_view: insufficient memory");
+  }
+}
+
+template <typename ViewType>
+void reshape_view(ViewType& out, const std::array<int, 8>& extents) {
+  if (ViewType::required_allocation_size(out.layout()) >=
+      ViewType::required_allocation_size(extents[0], extents[1], extents[2],
+                                         extents[3], extents[4], extents[5],
+                                         extents[6], extents[7])) {
+    out = ViewType(out.data(), extents[0], extents[1], extents[2], extents[3],
+                   extents[4], extents[5], extents[6], extents[7]);
+  } else {
+    throw std::runtime_error("reshape_view: insufficient memory");
+  }
 }
 
 }  // namespace Impl

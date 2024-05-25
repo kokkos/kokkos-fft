@@ -80,11 +80,11 @@ auto is_crop_or_pad_needed(const ViewType& view,
   return not_same;
 }
 
-template <typename ExecutionSpace, typename ViewType>
-void _crop_or_pad(const ExecutionSpace& exec_space, const ViewType& in,
-                  ViewType& out, shape_type<1> s) {
+template <typename ExecutionSpace, typename InViewType, typename OutViewType>
+void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
+                  OutViewType& out, shape_type<1> s) {
   auto _n0 = s.at(0);
-  out      = ViewType("out", _n0);
+  out      = OutViewType("out", _n0);
 
   auto n0 = std::min(_n0, in.extent(0));
 
@@ -94,13 +94,13 @@ void _crop_or_pad(const ExecutionSpace& exec_space, const ViewType& in,
       KOKKOS_LAMBDA(int i0) { out(i0) = in(i0); });
 }
 
-template <typename ExecutionSpace, typename ViewType>
-void _crop_or_pad(const ExecutionSpace& exec_space, const ViewType& in,
-                  ViewType& out, shape_type<2> s) {
+template <typename ExecutionSpace, typename InViewType, typename OutViewType>
+void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
+                  OutViewType& out, shape_type<2> s) {
   constexpr std::size_t DIM = 2;
 
   auto [_n0, _n1] = s;
-  out             = ViewType("out", _n0, _n1);
+  out             = OutViewType("out", _n0, _n1);
 
   int n0 = std::min(_n0, in.extent(0));
   int n1 = std::min(_n1, in.extent(1));
@@ -119,13 +119,13 @@ void _crop_or_pad(const ExecutionSpace& exec_space, const ViewType& in,
       range, KOKKOS_LAMBDA(int i0, int i1) { out(i0, i1) = in(i0, i1); });
 }
 
-template <typename ExecutionSpace, typename ViewType>
-void _crop_or_pad(const ExecutionSpace& exec_space, const ViewType& in,
-                  ViewType& out, shape_type<3> s) {
+template <typename ExecutionSpace, typename InViewType, typename OutViewType>
+void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
+                  OutViewType& out, shape_type<3> s) {
   constexpr std::size_t DIM = 3;
 
   auto [_n0, _n1, _n2] = s;
-  out                  = ViewType("out", _n0, _n1, _n2);
+  out                  = OutViewType("out", _n0, _n1, _n2);
 
   int n0 = std::min(_n0, in.extent(0));
   int n1 = std::min(_n1, in.extent(1));
@@ -148,13 +148,13 @@ void _crop_or_pad(const ExecutionSpace& exec_space, const ViewType& in,
       });
 }
 
-template <typename ExecutionSpace, typename ViewType>
-void _crop_or_pad(const ExecutionSpace& exec_space, const ViewType& in,
-                  ViewType& out, shape_type<4> s) {
+template <typename ExecutionSpace, typename InViewType, typename OutViewType>
+void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
+                  OutViewType& out, shape_type<4> s) {
   constexpr std::size_t DIM = 4;
 
   auto [_n0, _n1, _n2, _n3] = s;
-  out                       = ViewType("out", _n0, _n1, _n2, _n3);
+  out                       = OutViewType("out", _n0, _n1, _n2, _n3);
 
   int n0 = std::min(_n0, in.extent(0));
   int n1 = std::min(_n1, in.extent(1));
@@ -178,13 +178,13 @@ void _crop_or_pad(const ExecutionSpace& exec_space, const ViewType& in,
       });
 }
 
-template <typename ExecutionSpace, typename ViewType>
-void _crop_or_pad(const ExecutionSpace& exec_space, const ViewType& in,
-                  ViewType& out, shape_type<5> s) {
+template <typename ExecutionSpace, typename InViewType, typename OutViewType>
+void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
+                  OutViewType& out, shape_type<5> s) {
   constexpr std::size_t DIM = 5;
 
   auto [_n0, _n1, _n2, _n3, _n4] = s;
-  out                            = ViewType("out", _n0, _n1, _n2, _n3, _n4);
+  out                            = OutViewType("out", _n0, _n1, _n2, _n3, _n4);
 
   int n0 = std::min(_n0, in.extent(0));
   int n1 = std::min(_n1, in.extent(1));
@@ -209,13 +209,13 @@ void _crop_or_pad(const ExecutionSpace& exec_space, const ViewType& in,
       });
 }
 
-template <typename ExecutionSpace, typename ViewType>
-void _crop_or_pad(const ExecutionSpace& exec_space, const ViewType& in,
-                  ViewType& out, shape_type<6> s) {
+template <typename ExecutionSpace, typename InViewType, typename OutViewType>
+void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
+                  OutViewType& out, shape_type<6> s) {
   constexpr std::size_t DIM = 6;
 
   auto [_n0, _n1, _n2, _n3, _n4, _n5] = s;
-  out = ViewType("out", _n0, _n1, _n2, _n3, _n4, _n5);
+  out = OutViewType("out", _n0, _n1, _n2, _n3, _n4, _n5);
 
   int n0 = std::min(_n0, in.extent(0));
   int n1 = std::min(_n1, in.extent(1));
@@ -242,13 +242,13 @@ void _crop_or_pad(const ExecutionSpace& exec_space, const ViewType& in,
       });
 }
 
-template <typename ExecutionSpace, typename ViewType>
-void _crop_or_pad(const ExecutionSpace& exec_space, const ViewType& in,
-                  ViewType& out, shape_type<7> s) {
+template <typename ExecutionSpace, typename InViewType, typename OutViewType>
+void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
+                  OutViewType& out, shape_type<7> s) {
   constexpr std::size_t DIM = 6;
 
   auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6] = s;
-  out = ViewType("out", _n0, _n1, _n2, _n3, _n4, _n5, _n6);
+  out = OutViewType("out", _n0, _n1, _n2, _n3, _n4, _n5, _n6);
 
   int n0 = std::min(_n0, in.extent(0));
   int n1 = std::min(_n1, in.extent(1));
@@ -278,13 +278,13 @@ void _crop_or_pad(const ExecutionSpace& exec_space, const ViewType& in,
       });
 }
 
-template <typename ExecutionSpace, typename ViewType>
-void _crop_or_pad(const ExecutionSpace& exec_space, const ViewType& in,
-                  ViewType& out, shape_type<8> s) {
+template <typename ExecutionSpace, typename InViewType, typename OutViewType>
+void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
+                  OutViewType& out, shape_type<8> s) {
   constexpr std::size_t DIM = 6;
 
   auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7] = s;
-  out = ViewType("out", _n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7);
+  out = OutViewType("out", _n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7);
 
   int n0 = std::min(_n0, in.extent(0));
   int n1 = std::min(_n1, in.extent(1));
@@ -318,10 +318,14 @@ void _crop_or_pad(const ExecutionSpace& exec_space, const ViewType& in,
       });
 }
 
-template <typename ExecutionSpace, typename ViewType, std::size_t DIM = 1>
-void crop_or_pad(const ExecutionSpace& exec_space, const ViewType& in,
-                 ViewType& out, shape_type<DIM> s) {
-  static_assert(ViewType::rank() == DIM,
+template <typename ExecutionSpace, typename InViewType, typename OutViewType,
+          std::size_t DIM = 1>
+void crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
+                 OutViewType& out, shape_type<DIM> s) {
+  static_assert(InViewType::rank() == DIM,
+                "crop_or_pad: Rank of View must be equal to Rank "
+                "of extended shape.");
+  static_assert(OutViewType::rank() == DIM,
                 "crop_or_pad: Rank of View must be equal to Rank "
                 "of extended shape.");
   _crop_or_pad(exec_space, in, out, s);

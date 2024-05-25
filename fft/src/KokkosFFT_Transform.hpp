@@ -40,6 +40,8 @@
 #include "KokkosFFT_OpenMP_transform.hpp"
 #endif
 
+#include <type_traits>
+
 // General Transform Interface
 namespace KokkosFFT {
 namespace Impl {
@@ -129,17 +131,23 @@ void fft_exec_impl(
   plan.template good<InViewType, OutViewType>(in, out);
 
   const auto exec_space = plan.exec_space();
+  using ManagableInViewType =
+      typename KokkosFFT::Impl::managable_view_type<InViewType>::type;
+  using ManagableOutViewType =
+      typename KokkosFFT::Impl::managable_view_type<OutViewType>::type;
+  ManagableInViewType _in_s;
   InViewType _in;
   if (plan.is_crop_or_pad_needed()) {
     auto new_shape = plan.shape();
-    KokkosFFT::Impl::crop_or_pad(exec_space, in, _in, new_shape);
+    KokkosFFT::Impl::crop_or_pad(exec_space, in, _in_s, new_shape);
+    _in = _in_s;
   } else {
     _in = in;
   }
 
   if (plan.is_transpose_needed()) {
-    InViewType in_T;
-    OutViewType out_T;
+    ManagableInViewType in_T;
+    ManagableOutViewType out_T;
 
     KokkosFFT::Impl::transpose(exec_space, _in, in_T, plan.map());
     KokkosFFT::Impl::transpose(exec_space, out, out_T, plan.map());

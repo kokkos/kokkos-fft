@@ -86,6 +86,31 @@ auto get_map_axes(const ViewType& view, int axis) {
   return get_map_axes(view, axis_type<1>({axis}));
 }
 
+template <class InViewType, class OutViewType, std::size_t DIMS>
+void _prep_transpose_view(InViewType& in, OutViewType& out,
+                          axis_type<DIMS> _map) {
+  constexpr std::size_t rank = OutViewType::rank();
+
+  // Assign a View if not a shallow copy
+  bool is_out_view_ready = true;
+  std::array<int, rank> out_extents;
+  for (int i = 0; i < rank; i++) {
+    out_extents.at(i) = in.extent(_map.at(i));
+    if (out_extents.at(i) != out.extent(i)) {
+      is_out_view_ready = false;
+    }
+  }
+
+  if (!is_out_view_ready) {
+    if constexpr (!OutViewType::memory_traits::is_unmanaged) {
+      KokkosFFT::Impl::create_view(out, "out", out_extents);
+    } else {
+      // try to reshape out if it currently has enough memory available
+      KokkosFFT::Impl::reshape_view(out, out_extents);
+    }
+  }
+}
+
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           std::enable_if_t<InViewType::rank() == 1, std::nullptr_t> = nullptr>
 void _transpose(const ExecutionSpace& exec_space, InViewType& in,
@@ -110,19 +135,7 @@ void _transpose(const ExecutionSpace& exec_space, InViewType& in,
                    // [TO DO] Choose optimal tile sizes for each device
   );
 
-  bool is_out_view_ready = true;
-  std::array<int, rank> out_extents;
-  for (int i = 0; i < rank; i++) {
-    out_extents.at(i) = in.extent(_map.at(i));
-    if (out_extents.at(i) != out.extent(i)) {
-      is_out_view_ready = false;
-    }
-  }
-
-  if (!is_out_view_ready) {
-    auto [_n0, _n1] = out_extents;
-    out             = OutViewType("out", _n0, _n1);
-  }
+  _prep_transpose_view(in, out, _map);
 
   Kokkos::parallel_for(
       range, KOKKOS_LAMBDA(int i0, int i1) { out(i1, i0) = in(i0, i1); });
@@ -148,20 +161,7 @@ void _transpose(const ExecutionSpace& exec_space, InViewType& in,
       // [TO DO] Choose optimal tile sizes for each device
   );
 
-  // Assign a View if not a shallow copy
-  bool is_out_view_ready = true;
-  std::array<int, rank> out_extents;
-  for (int i = 0; i < rank; i++) {
-    out_extents.at(i) = in.extent(_map.at(i));
-    if (out_extents.at(i) != out.extent(i)) {
-      is_out_view_ready = false;
-    }
-  }
-
-  if (!is_out_view_ready) {
-    auto [_n0, _n1, _n2] = out_extents;
-    out                  = OutViewType("out", _n0, _n1, _n2);
-  }
+  _prep_transpose_view(in, out, _map);
 
   Kokkos::Array<int, 3> map = {_map[0], _map[1], _map[2]};
   Kokkos::parallel_for(
@@ -196,20 +196,7 @@ void _transpose(const ExecutionSpace& exec_space, InViewType& in,
                    // [TO DO] Choose optimal tile sizes for each device
   );
 
-  // Assign a View if not a shallow copy
-  bool is_out_view_ready = true;
-  std::array<int, rank> out_extents;
-  for (int i = 0; i < rank; i++) {
-    out_extents.at(i) = in.extent(_map.at(i));
-    if (out_extents.at(i) != out.extent(i)) {
-      is_out_view_ready = false;
-    }
-  }
-
-  if (!is_out_view_ready) {
-    auto [_n0, _n1, _n2, _n3] = out_extents;
-    out                       = OutViewType("out", _n0, _n1, _n2, _n3);
-  }
+  _prep_transpose_view(in, out, _map);
 
   Kokkos::Array<int, rank> map = {_map[0], _map[1], _map[2], _map[3]};
   Kokkos::parallel_for(
@@ -246,20 +233,7 @@ void _transpose(const ExecutionSpace& exec_space, InViewType& in,
                    // [TO DO] Choose optimal tile sizes for each device
   );
 
-  // Assign a View if not a shallow copy
-  bool is_out_view_ready = true;
-  std::array<int, rank> out_extents;
-  for (int i = 0; i < rank; i++) {
-    out_extents.at(i) = in.extent(_map.at(i));
-    if (out_extents.at(i) != out.extent(i)) {
-      is_out_view_ready = false;
-    }
-  }
-
-  if (!is_out_view_ready) {
-    auto [_n0, _n1, _n2, _n3, _n4] = out_extents;
-    out = OutViewType("out", _n0, _n1, _n2, _n3, _n4);
-  }
+  _prep_transpose_view(in, out, _map);
 
   Kokkos::Array<int, rank> map = {_map[0], _map[1], _map[2], _map[3], _map[4]};
   Kokkos::parallel_for(
@@ -298,20 +272,7 @@ void _transpose(const ExecutionSpace& exec_space, InViewType& in,
                    // [TO DO] Choose optimal tile sizes for each device
   );
 
-  // Assign a View if not a shallow copy
-  bool is_out_view_ready = true;
-  std::array<int, rank> out_extents;
-  for (int i = 0; i < rank; i++) {
-    out_extents.at(i) = in.extent(_map.at(i));
-    if (out_extents.at(i) != out.extent(i)) {
-      is_out_view_ready = false;
-    }
-  }
-
-  if (!is_out_view_ready) {
-    auto [_n0, _n1, _n2, _n3, _n4, _n5] = out_extents;
-    out = OutViewType("out", _n0, _n1, _n2, _n3, _n4, _n5);
-  }
+  _prep_transpose_view(in, out, _map);
 
   Kokkos::Array<int, rank> map = {_map[0], _map[1], _map[2],
                                   _map[3], _map[4], _map[5]};
@@ -352,20 +313,7 @@ void _transpose(const ExecutionSpace& exec_space, InViewType& in,
                    // [TO DO] Choose optimal tile sizes for each device
   );
 
-  // Assign a View if not a shallow copy
-  bool is_out_view_ready = true;
-  std::array<int, rank> out_extents;
-  for (int i = 0; i < rank; i++) {
-    out_extents.at(i) = in.extent(_map.at(i));
-    if (out_extents.at(i) != out.extent(i)) {
-      is_out_view_ready = false;
-    }
-  }
-
-  if (!is_out_view_ready) {
-    auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6] = out_extents;
-    out = OutViewType("out", _n0, _n1, _n2, _n3, _n4, _n5, _n6);
-  }
+  _prep_transpose_view(in, out, _map);
 
   Kokkos::Array<int, rank> map = {_map[0], _map[1], _map[2], _map[3],
                                   _map[4], _map[5], _map[6]};
@@ -412,20 +360,7 @@ void _transpose(const ExecutionSpace& exec_space, InViewType& in,
                    // [TO DO] Choose optimal tile sizes for each device
   );
 
-  // Assign a View if not a shallow copy
-  bool is_out_view_ready = true;
-  std::array<int, rank> out_extents;
-  for (int i = 0; i < rank; i++) {
-    out_extents.at(i) = in.extent(_map.at(i));
-    if (out_extents.at(i) != out.extent(i)) {
-      is_out_view_ready = false;
-    }
-  }
-
-  if (!is_out_view_ready) {
-    auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7] = out_extents;
-    out = OutViewType("out", _n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7);
-  }
+  _prep_transpose_view(in, out, _map);
 
   Kokkos::Array<int, rank> map = {_map[0], _map[1], _map[2], _map[3],
                                   _map[4], _map[5], _map[6], _map[7]};
