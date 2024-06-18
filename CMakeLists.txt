@@ -142,7 +142,7 @@ install(
 )
 
 install(
-    FILES ${CMAKE_SOURCE_DIR}/cmake/FindFFTW.cmake
+    FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindFFTW.cmake
     DESTINATION ${INSTALL_LIBDIR}
 )
 
