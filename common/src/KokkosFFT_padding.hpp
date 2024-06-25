@@ -20,10 +20,10 @@ namespace Impl {
 /// \tparam DIM         The dimensionality of the shape and axes
 ///
 /// \param in [in] Input view from which to derive the new shape
-/// \param out [in] Ouput view (unused but necessary for type deduction)
-/// \param shape [in] THe new shape of the input view. If the shape is zero,
+/// \param out [in] Output view (unused but necessary for type deduction)
+/// \param shape [in] The new shape of the input view. If the shape is zero,
 /// no modifications are made.
-/// \param axis [in] Axis over which the shape modification is applied.
+/// \param axes [in] Axes over which the shape modification is applied.
 template <typename InViewType, typename OutViewType, std::size_t DIM>
 auto get_modified_shape(const InViewType in, const OutViewType /* out */,
                         shape_type<DIM> shape, axis_type<DIM> axes) {
