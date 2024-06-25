@@ -155,9 +155,16 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Create Docker container
+        run: |
+          docker create \
+          --volume ${{ github.workspace }}:/work \
+          --name container \
+          ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }}
+
       - name: Configure
         run: |
-          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
+          docker exec container \
             cmake -B build \
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
             -DCMAKE_C_COMPILER=${{ matrix.backend.compiler.c }} \
@@ -173,7 +180,7 @@ jobs:
 
       - name: Build
         run: |
-          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
+          docker exec container \
             cmake --build build -j $(( $(nproc) * 2 + 1 ))
 
       - name: Prepare artifacts
@@ -207,8 +214,8 @@ jobs:
 
       - name: Configure and build test project as subdirectory
         run: |
-          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
-          cmake -B install_test/as_subdirectory/build \
+          docker exec container \
+            cmake -B install_test/as_subdirectory/build \
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
             -DCMAKE_C_COMPILER=${{ matrix.backend.compiler.c }} \
             -DCMAKE_CXX_COMPILER=${{ matrix.backend.compiler.cxx }} \
@@ -217,12 +224,12 @@ jobs:
             ${{ matrix.backend.cmake_flags.kokkos_fft }} \
             ${{ matrix.target.cmake_flags }} \
             install_test/as_subdirectory
-          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
-          cmake --build install_test/as_subdirectory/build
+          docker exec container \
+            cmake --build install_test/as_subdirectory/build
 
       - name: Configure, build and install Kokkos as library
         run: |
-          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
+          docker exec container \
             cmake -B build_kokkos \
             -DCMAKE_INSTALL_PREFIX=/work/install \
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
@@ -231,14 +238,14 @@ jobs:
             -DCMAKE_CXX_STANDARD=17 \
             ${{ matrix.backend.cmake_flags.kokkos }} \
             tpls/kokkos
-          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
+          docker exec container \
             cmake --build build_kokkos -j $(( $(nproc) * 2 + 1 ))
-          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
+          docker exec container \
             cmake --install build_kokkos
 
       - name: Configure, build and install KokkosFFT as library
         run: |
-          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
+          docker exec container \
             cmake -B build_kokkos_fft \
             -DCMAKE_INSTALL_PREFIX=/work/install\
             -DCMAKE_PREFIX_PATH=/work/install \
@@ -248,14 +255,14 @@ jobs:
             -DCMAKE_CXX_STANDARD=17 \
             ${{ matrix.backend.cmake_flags.kokkos_fft }} \
             ${{ matrix.target.cmake_flags }}
-          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
+          docker exec container \
             cmake --build build_kokkos_fft -j $(( $(nproc) * 2 + 1 ))
-          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
+          docker exec container \
             cmake --install build_kokkos_fft
 
       - name: Configure and build test project as library
         run: |
-          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
+          docker exec container \
             cmake -B install_test/as_library/build \
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
             -DCMAKE_PREFIX_PATH=/work/install \
@@ -263,7 +270,7 @@ jobs:
             -DCMAKE_CXX_COMPILER=${{ matrix.backend.compiler.cxx }} \
             -DCMAKE_CXX_STANDARD=17 \
             install_test/as_library
-          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
+          docker exec container \
             cmake --build install_test/as_library/build -j $(( $(nproc) * 2 + 1 ))
 
   # test the project
