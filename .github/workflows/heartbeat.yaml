@@ -14,7 +14,11 @@ on:
 
 jobs:
   heartbeat:
-    runs-on: "self-hosted"
+    runs-on: ["self-hosted", ${{ matrix.runner }}]
+
+    strategy:
+      matrix:
+        runner: ["cuda"]
 
     steps:
       - name: Heartbeat
