@@ -11,9 +11,21 @@
 
 namespace KokkosFFT {
 namespace Impl {
+
+/// \brief Return a new shape of the input view based on the
+/// specified input shape and axes.
+///
+/// \tparam InViewType The input view type
+/// \tparam OutViewType The output view type
+/// \tparam DIM         The dimensionality of the shape and axes
+///
+/// \param in [in] Input view from which to derive the new shape
+/// \param out [in] Ouput view (unused but necessary for type deduction)
+/// \param shape [in] THe new shape of the input view. If the shape is zero,
+/// no modifications are made.
+/// \param axis [in] Axis over which the shape modification is applied.
 template <typename InViewType, typename OutViewType, std::size_t DIM>
-auto get_modified_shape(const InViewType& in,
-                        [[maybe_unused]] const OutViewType& out,
+auto get_modified_shape(const InViewType in, const OutViewType /* out */,
                         shape_type<DIM> shape, axis_type<DIM> axes) {
   static_assert(InViewType::rank() >= DIM,
                 "get_modified_shape: Rank of Input View must be larger "
@@ -59,7 +71,7 @@ auto get_modified_shape(const InViewType& in,
   using out_value_type = typename OutViewType::non_const_value_type;
 
   bool is_C2R = is_complex<in_value_type>::value &&
-                std::is_floating_point<out_value_type>::value;
+                std::is_floating_point_v<out_value_type>;
 
   if (is_C2R) {
     int reshaped_axis                = positive_axes.back();
