@@ -607,7 +607,7 @@ void test_reshape3D_3DView() {
 
               shape_type<3> new_shape = {n0_new, n1_new, n2_new};
               auto modified_shape     = KokkosFFT::Impl::get_modified_shape(
-                      x_in, x_out, new_shape, axes);
+                  x_in, x_out, new_shape, axes);
 
               EXPECT_TRUE(modified_shape == ref_shape);
             }
