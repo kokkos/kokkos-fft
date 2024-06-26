@@ -117,7 +117,7 @@ void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
 }
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
+void _crop_or_pad(const ExecutionSpace&, const InViewType& in,
                   OutViewType& out, shape_type<2> s) {
   constexpr std::size_t DIM = 2;
 
@@ -143,7 +143,7 @@ void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
 }
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
+void _crop_or_pad(const ExecutionSpace&, const InViewType& in,
                   OutViewType& out, shape_type<3> s) {
   constexpr std::size_t DIM = 3;
 
@@ -172,7 +172,7 @@ void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
 }
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
+void _crop_or_pad(const ExecutionSpace&, const InViewType& in,
                   OutViewType& out, shape_type<4> s) {
   constexpr std::size_t DIM = 4;
 
@@ -202,7 +202,7 @@ void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
 }
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
+void _crop_or_pad(const ExecutionSpace&, const InViewType& in,
                   OutViewType& out, shape_type<5> s) {
   constexpr std::size_t DIM = 5;
 
@@ -233,7 +233,7 @@ void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
 }
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
+void _crop_or_pad(const ExecutionSpace&, const InViewType& in,
                   OutViewType& out, shape_type<6> s) {
   constexpr std::size_t DIM = 6;
 
@@ -266,7 +266,7 @@ void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
 }
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
+void _crop_or_pad(const ExecutionSpace&, const InViewType& in,
                   OutViewType& out, shape_type<7> s) {
   constexpr std::size_t DIM = 6;
 
@@ -302,7 +302,7 @@ void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
 }
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
+void _crop_or_pad(const ExecutionSpace&, const InViewType& in,
                   OutViewType& out, shape_type<8> s) {
   constexpr std::size_t DIM = 6;
 
