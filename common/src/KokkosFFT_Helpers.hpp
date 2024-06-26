@@ -69,8 +69,8 @@ void _roll(const ExecutionSpace& exec_space, ViewType& inout,
 }
 
 template <typename ExecutionSpace, typename ViewType, std::size_t DIM1 = 1>
-void _roll(const ExecutionSpace&, ViewType& inout,
-           axis_type<2> shift, axis_type<DIM1> axes) {
+void _roll(const ExecutionSpace&, ViewType& inout, axis_type<2> shift,
+           axis_type<DIM1> axes) {
   constexpr int DIM0 = 2;
   static_assert(ViewType::rank() == DIM0, "_roll: Rank of View must be 2.");
   int n0 = inout.extent(0), n1 = inout.extent(1);
