@@ -73,7 +73,7 @@ jobs:
               cxx: g++
             cmake_flags:
               kokkos: -DKokkos_ENABLE_OPENMP=ON
-              kokkos_fft: ""
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
           - name: threads
             image: gcc
             compiler:
@@ -81,7 +81,7 @@ jobs:
               cxx: g++
             cmake_flags:
               kokkos: -DKokkos_ENABLE_THREADS=ON
-              kokkos_fft: ""
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
           - name: serial
             image: gcc
             compiler:
@@ -89,7 +89,7 @@ jobs:
               cxx: g++
             cmake_flags:
               kokkos: -DKokkos_ENABLE_SERIAL=ON
-              kokkos_fft: ""
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
           - name: cuda
             image: nvcc
             compiler:
