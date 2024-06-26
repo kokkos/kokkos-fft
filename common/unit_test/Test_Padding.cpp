@@ -81,8 +81,8 @@ void test_reshape1D_2DView() {
     View2D<Kokkos::complex<double>> x_in("x_in", _n0, _n1);
     for (int i0 = -1; i0 <= 1; i0++) {
       shape_type<2> ref_shape = default_shape;
-      std::size_t n_new   = static_cast<std::size_t>(x_in.extent(axis0) + i0);
-      ref_shape.at(axis0) = get_c2r_shape(n_new, is_C2R);
+      auto n_new              = x_in.extent(axis0) + i0;
+      ref_shape.at(axis0)     = get_c2r_shape(n_new, is_C2R);
 
       auto modified_shape = KokkosFFT::Impl::get_modified_shape(
           x_in, x_out, shape_type<1>{n_new}, axes_type<1>{axis0});
@@ -108,8 +108,8 @@ void test_reshape1D_3DView() {
     View3D<Kokkos::complex<double>> x_in("x_in", _n0, _n1, _n2);
     for (int i0 = -1; i0 <= 1; i0++) {
       shape_type<3> ref_shape = default_shape;
-      std::size_t n_new   = static_cast<std::size_t>(x_in.extent(axis0) + i0);
-      ref_shape.at(axis0) = get_c2r_shape(n_new, is_C2R);
+      auto n_new              = x_in.extent(axis0) + i0;
+      ref_shape.at(axis0)     = get_c2r_shape(n_new, is_C2R);
 
       auto modified_shape = KokkosFFT::Impl::get_modified_shape(
           x_in, x_out, shape_type<1>{n_new}, axes_type<1>{axis0});
@@ -134,8 +134,8 @@ void test_reshape1D_4DView() {
     View4D<Kokkos::complex<double>> x_in("x_in", _n0, _n1, _n2, _n3);
     for (int i0 = -1; i0 <= 1; i0++) {
       shape_type<4> ref_shape = default_shape;
-      std::size_t n_new   = static_cast<std::size_t>(x_in.extent(axis0) + i0);
-      ref_shape.at(axis0) = get_c2r_shape(n_new, is_C2R);
+      auto n_new              = x_in.extent(axis0) + i0;
+      ref_shape.at(axis0)     = get_c2r_shape(n_new, is_C2R);
 
       auto modified_shape = KokkosFFT::Impl::get_modified_shape(
           x_in, x_out, shape_type<1>{n_new}, axes_type<1>{axis0});
@@ -161,8 +161,8 @@ void test_reshape1D_5DView() {
     View5D<Kokkos::complex<double>> x_in("x_in", _n0, _n1, _n2, _n3, _n4);
     for (int i0 = -1; i0 <= 1; i0++) {
       shape_type<5> ref_shape = default_shape;
-      std::size_t n_new   = static_cast<std::size_t>(x_in.extent(axis0) + i0);
-      ref_shape.at(axis0) = get_c2r_shape(n_new, is_C2R);
+      auto n_new              = x_in.extent(axis0) + i0;
+      ref_shape.at(axis0)     = get_c2r_shape(n_new, is_C2R);
 
       auto modified_shape = KokkosFFT::Impl::get_modified_shape(
           x_in, x_out, shape_type<1>{n_new}, axes_type<1>{axis0});
@@ -187,8 +187,8 @@ void test_reshape1D_6DView() {
     View6D<Kokkos::complex<double>> x_in("x_in", _n0, _n1, _n2, _n3, _n4, _n5);
     for (int i0 = -1; i0 <= 1; i0++) {
       shape_type<6> ref_shape = default_shape;
-      std::size_t n_new   = static_cast<std::size_t>(x_in.extent(axis0) + i0);
-      ref_shape.at(axis0) = get_c2r_shape(n_new, is_C2R);
+      auto n_new              = x_in.extent(axis0) + i0;
+      ref_shape.at(axis0)     = get_c2r_shape(n_new, is_C2R);
 
       auto modified_shape = KokkosFFT::Impl::get_modified_shape(
           x_in, x_out, shape_type<1>{n_new}, axes_type<1>{axis0});
@@ -214,8 +214,8 @@ void test_reshape1D_7DView() {
                                          _n6);
     for (int i0 = -1; i0 <= 1; i0++) {
       shape_type<7> ref_shape = default_shape;
-      std::size_t n_new   = static_cast<std::size_t>(x_in.extent(axis0) + i0);
-      ref_shape.at(axis0) = get_c2r_shape(n_new, is_C2R);
+      auto n_new              = x_in.extent(axis0) + i0;
+      ref_shape.at(axis0)     = get_c2r_shape(n_new, is_C2R);
 
       auto modified_shape = KokkosFFT::Impl::get_modified_shape(
           x_in, x_out, shape_type<1>{n_new}, axes_type<1>{axis0});
@@ -241,8 +241,8 @@ void test_reshape1D_8DView() {
                                          _n6, _n7);
     for (int i0 = -1; i0 <= 1; i0++) {
       shape_type<8> ref_shape = default_shape;
-      std::size_t n_new   = static_cast<std::size_t>(x_in.extent(axis0) + i0);
-      ref_shape.at(axis0) = get_c2r_shape(n_new, is_C2R);
+      auto n_new              = x_in.extent(axis0) + i0;
+      ref_shape.at(axis0)     = get_c2r_shape(n_new, is_C2R);
 
       auto modified_shape = KokkosFFT::Impl::get_modified_shape(
           x_in, x_out, shape_type<1>{n_new}, axes_type<1>{axis0});
@@ -311,12 +311,10 @@ void test_reshape2D_2DView() {
       for (int i0 = -1; i0 <= 1; i0++) {
         for (int i1 = -1; i1 <= 1; i1++) {
           shape_type<2> ref_shape = default_shape;
-          std::size_t n0_new =
-              static_cast<std::size_t>(x_in.extent(axis0) + i0);
-          std::size_t n1_new =
-              static_cast<std::size_t>(x_in.extent(axis1) + i1);
-          ref_shape.at(axis0) = n0_new;
-          ref_shape.at(axis1) = get_c2r_shape(n1_new, is_C2R);
+          auto n0_new             = x_in.extent(axis0) + i0;
+          auto n1_new             = x_in.extent(axis1) + i1;
+          ref_shape.at(axis0)     = n0_new;
+          ref_shape.at(axis1)     = get_c2r_shape(n1_new, is_C2R);
 
           shape_type<2> new_shape = {n0_new, n1_new};
 
@@ -348,12 +346,10 @@ void test_reshape2D_3DView() {
       for (int i0 = -1; i0 <= 1; i0++) {
         for (int i1 = -1; i1 <= 1; i1++) {
           shape_type<3> ref_shape = default_shape;
-          std::size_t n0_new =
-              static_cast<std::size_t>(x_in.extent(axis0) + i0);
-          std::size_t n1_new =
-              static_cast<std::size_t>(x_in.extent(axis1) + i1);
-          ref_shape.at(axis0) = n0_new;
-          ref_shape.at(axis1) = get_c2r_shape(n1_new, is_C2R);
+          auto n0_new             = x_in.extent(axis0) + i0;
+          auto n1_new             = x_in.extent(axis1) + i1;
+          ref_shape.at(axis0)     = n0_new;
+          ref_shape.at(axis1)     = get_c2r_shape(n1_new, is_C2R);
 
           shape_type<2> new_shape = {n0_new, n1_new};
 
@@ -385,12 +381,10 @@ void test_reshape2D_4DView() {
       for (int i0 = -1; i0 <= 1; i0++) {
         for (int i1 = -1; i1 <= 1; i1++) {
           shape_type<4> ref_shape = default_shape;
-          std::size_t n0_new =
-              static_cast<std::size_t>(x_in.extent(axis0) + i0);
-          std::size_t n1_new =
-              static_cast<std::size_t>(x_in.extent(axis1) + i1);
-          ref_shape.at(axis0) = n0_new;
-          ref_shape.at(axis1) = get_c2r_shape(n1_new, is_C2R);
+          auto n0_new             = x_in.extent(axis0) + i0;
+          auto n1_new             = x_in.extent(axis1) + i1;
+          ref_shape.at(axis0)     = n0_new;
+          ref_shape.at(axis1)     = get_c2r_shape(n1_new, is_C2R);
 
           shape_type<2> new_shape = {n0_new, n1_new};
 
@@ -422,12 +416,10 @@ void test_reshape2D_5DView() {
       for (int i0 = -1; i0 <= 1; i0++) {
         for (int i1 = -1; i1 <= 1; i1++) {
           shape_type<5> ref_shape = default_shape;
-          std::size_t n0_new =
-              static_cast<std::size_t>(x_in.extent(axis0) + i0);
-          std::size_t n1_new =
-              static_cast<std::size_t>(x_in.extent(axis1) + i1);
-          ref_shape.at(axis0) = n0_new;
-          ref_shape.at(axis1) = get_c2r_shape(n1_new, is_C2R);
+          auto n0_new             = x_in.extent(axis0) + i0;
+          auto n1_new             = x_in.extent(axis1) + i1;
+          ref_shape.at(axis0)     = n0_new;
+          ref_shape.at(axis1)     = get_c2r_shape(n1_new, is_C2R);
 
           shape_type<2> new_shape = {n0_new, n1_new};
 
@@ -460,12 +452,10 @@ void test_reshape2D_6DView() {
       for (int i0 = -1; i0 <= 1; i0++) {
         for (int i1 = -1; i1 <= 1; i1++) {
           shape_type<6> ref_shape = default_shape;
-          std::size_t n0_new =
-              static_cast<std::size_t>(x_in.extent(axis0) + i0);
-          std::size_t n1_new =
-              static_cast<std::size_t>(x_in.extent(axis1) + i1);
-          ref_shape.at(axis0) = n0_new;
-          ref_shape.at(axis1) = get_c2r_shape(n1_new, is_C2R);
+          auto n0_new             = x_in.extent(axis0) + i0;
+          auto n1_new             = x_in.extent(axis1) + i1;
+          ref_shape.at(axis0)     = n0_new;
+          ref_shape.at(axis1)     = get_c2r_shape(n1_new, is_C2R);
 
           shape_type<2> new_shape = {n0_new, n1_new};
 
@@ -498,12 +488,10 @@ void test_reshape2D_7DView() {
       for (int i0 = -1; i0 <= 1; i0++) {
         for (int i1 = -1; i1 <= 1; i1++) {
           shape_type<7> ref_shape = default_shape;
-          std::size_t n0_new =
-              static_cast<std::size_t>(x_in.extent(axis0) + i0);
-          std::size_t n1_new =
-              static_cast<std::size_t>(x_in.extent(axis1) + i1);
-          ref_shape.at(axis0) = n0_new;
-          ref_shape.at(axis1) = get_c2r_shape(n1_new, is_C2R);
+          auto n0_new             = x_in.extent(axis0) + i0;
+          auto n1_new             = x_in.extent(axis1) + i1;
+          ref_shape.at(axis0)     = n0_new;
+          ref_shape.at(axis1)     = get_c2r_shape(n1_new, is_C2R);
 
           shape_type<2> new_shape = {n0_new, n1_new};
 
@@ -536,12 +524,10 @@ void test_reshape2D_8DView() {
       for (int i0 = -1; i0 <= 1; i0++) {
         for (int i1 = -1; i1 <= 1; i1++) {
           shape_type<8> ref_shape = default_shape;
-          std::size_t n0_new =
-              static_cast<std::size_t>(x_in.extent(axis0) + i0);
-          std::size_t n1_new =
-              static_cast<std::size_t>(x_in.extent(axis1) + i1);
-          ref_shape.at(axis0) = n0_new;
-          ref_shape.at(axis1) = get_c2r_shape(n1_new, is_C2R);
+          auto n0_new             = x_in.extent(axis0) + i0;
+          auto n1_new             = x_in.extent(axis1) + i1;
+          ref_shape.at(axis0)     = n0_new;
+          ref_shape.at(axis1)     = get_c2r_shape(n1_new, is_C2R);
 
           shape_type<2> new_shape = {n0_new, n1_new};
 
@@ -561,7 +547,7 @@ TYPED_TEST(GetModifiedShape2D, 2DView) {
 
 TYPED_TEST(GetModifiedShape2D, 3DView) {
   using float_type = typename TestFixture::float_type;
-  test_reshape2D_2DView<float_type>();
+  test_reshape2D_3DView<float_type>();
 }
 
 TYPED_TEST(GetModifiedShape2D, 4DView) {
@@ -611,12 +597,9 @@ void test_reshape3D_3DView() {
           for (int i1 = -1; i1 <= 1; i1++) {
             for (int i2 = -1; i2 <= 1; i2++) {
               shape_type<3> ref_shape = default_shape;
-              std::size_t n0_new =
-                  static_cast<std::size_t>(x_in.extent(axis0) + i0);
-              std::size_t n1_new =
-                  static_cast<std::size_t>(x_in.extent(axis1) + i1);
-              std::size_t n2_new =
-                  static_cast<std::size_t>(x_in.extent(axis2) + i2);
+              auto n0_new             = x_in.extent(axis0) + i0;
+              auto n1_new             = x_in.extent(axis1) + i1;
+              auto n2_new             = x_in.extent(axis2) + i2;
 
               ref_shape.at(axis0) = n0_new;
               ref_shape.at(axis1) = n1_new;
@@ -624,7 +607,7 @@ void test_reshape3D_3DView() {
 
               shape_type<3> new_shape = {n0_new, n1_new, n2_new};
               auto modified_shape     = KokkosFFT::Impl::get_modified_shape(
-                  x_in, x_out, new_shape, axes);
+                      x_in, x_out, new_shape, axes);
 
               EXPECT_TRUE(modified_shape == ref_shape);
             }
@@ -657,12 +640,9 @@ void test_reshape3D_4DView() {
           for (int i1 = -1; i1 <= 1; i1++) {
             for (int i2 = -1; i2 <= 1; i2++) {
               shape_type<4> ref_shape = default_shape;
-              std::size_t n0_new =
-                  static_cast<std::size_t>(x_in.extent(axis0) + i0);
-              std::size_t n1_new =
-                  static_cast<std::size_t>(x_in.extent(axis1) + i1);
-              std::size_t n2_new =
-                  static_cast<std::size_t>(x_in.extent(axis2) + i2);
+              auto n0_new             = x_in.extent(axis0) + i0;
+              auto n1_new             = x_in.extent(axis1) + i1;
+              auto n2_new             = x_in.extent(axis2) + i2;
 
               ref_shape.at(axis0) = n0_new;
               ref_shape.at(axis1) = n1_new;
@@ -702,12 +682,9 @@ void test_reshape3D_5DView() {
           for (int i1 = -1; i1 <= 1; i1++) {
             for (int i2 = -1; i2 <= 1; i2++) {
               shape_type<5> ref_shape = default_shape;
-              std::size_t n0_new =
-                  static_cast<std::size_t>(x_in.extent(axis0) + i0);
-              std::size_t n1_new =
-                  static_cast<std::size_t>(x_in.extent(axis1) + i1);
-              std::size_t n2_new =
-                  static_cast<std::size_t>(x_in.extent(axis2) + i2);
+              auto n0_new             = x_in.extent(axis0) + i0;
+              auto n1_new             = x_in.extent(axis1) + i1;
+              auto n2_new             = x_in.extent(axis2) + i2;
 
               ref_shape.at(axis0) = n0_new;
               ref_shape.at(axis1) = n1_new;
@@ -748,12 +725,9 @@ void test_reshape3D_6DView() {
           for (int i1 = -1; i1 <= 1; i1++) {
             for (int i2 = -1; i2 <= 1; i2++) {
               shape_type<6> ref_shape = default_shape;
-              std::size_t n0_new =
-                  static_cast<std::size_t>(x_in.extent(axis0) + i0);
-              std::size_t n1_new =
-                  static_cast<std::size_t>(x_in.extent(axis1) + i1);
-              std::size_t n2_new =
-                  static_cast<std::size_t>(x_in.extent(axis2) + i2);
+              auto n0_new             = x_in.extent(axis0) + i0;
+              auto n1_new             = x_in.extent(axis1) + i1;
+              auto n2_new             = x_in.extent(axis2) + i2;
 
               ref_shape.at(axis0) = n0_new;
               ref_shape.at(axis1) = n1_new;
@@ -794,12 +768,9 @@ void test_reshape3D_7DView() {
           for (int i1 = -1; i1 <= 1; i1++) {
             for (int i2 = -1; i2 <= 1; i2++) {
               shape_type<7> ref_shape = default_shape;
-              std::size_t n0_new =
-                  static_cast<std::size_t>(x_in.extent(axis0) + i0);
-              std::size_t n1_new =
-                  static_cast<std::size_t>(x_in.extent(axis1) + i1);
-              std::size_t n2_new =
-                  static_cast<std::size_t>(x_in.extent(axis2) + i2);
+              auto n0_new             = x_in.extent(axis0) + i0;
+              auto n1_new             = x_in.extent(axis1) + i1;
+              auto n2_new             = x_in.extent(axis2) + i2;
 
               ref_shape.at(axis0) = n0_new;
               ref_shape.at(axis1) = n1_new;
@@ -839,12 +810,9 @@ void test_reshape3D_8DView() {
           for (int i1 = -1; i1 <= 1; i1++) {
             for (int i2 = -1; i2 <= 1; i2++) {
               shape_type<8> ref_shape = default_shape;
-              std::size_t n0_new =
-                  static_cast<std::size_t>(x_in.extent(axis0) + i0);
-              std::size_t n1_new =
-                  static_cast<std::size_t>(x_in.extent(axis1) + i1);
-              std::size_t n2_new =
-                  static_cast<std::size_t>(x_in.extent(axis2) + i2);
+              auto n0_new             = x_in.extent(axis0) + i0;
+              auto n1_new             = x_in.extent(axis1) + i1;
+              auto n2_new             = x_in.extent(axis2) + i2;
 
               ref_shape.at(axis0) = n0_new;
               ref_shape.at(axis1) = n1_new;
