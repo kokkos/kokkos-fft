@@ -66,7 +66,7 @@ struct complex_view_type {
 };
 
 template <typename ViewType>
-auto convert_negative_axis(const ViewType& view, int _axis = -1) {
+auto convert_negative_axis(ViewType, int _axis = -1) {
   static_assert(Kokkos::is_view<ViewType>::value,
                 "convert_negative_axis: ViewType is not a Kokkos::View.");
   int rank = static_cast<int>(ViewType::rank());

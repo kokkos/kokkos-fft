@@ -40,7 +40,8 @@ auto _get_shift(const ViewType& inout, axis_type<DIM> _axes,
 
 template <typename ExecutionSpace, typename ViewType>
 void _roll(const ExecutionSpace& exec_space, ViewType& inout,
-           axis_type<1> shift, axis_type<1> axes) {
+           axis_type<1> shift, axis_type<1>) {
+  // FIXME: why `axes` is not used?
   static_assert(ViewType::rank() == 1, "_roll: Rank of View must be 1.");
   std::size_t n0 = inout.extent(0);
 
@@ -68,7 +69,7 @@ void _roll(const ExecutionSpace& exec_space, ViewType& inout,
 }
 
 template <typename ExecutionSpace, typename ViewType, std::size_t DIM1 = 1>
-void _roll(const ExecutionSpace& exec_space, ViewType& inout,
+void _roll(const ExecutionSpace&, ViewType& inout,
            axis_type<2> shift, axis_type<DIM1> axes) {
   constexpr int DIM0 = 2;
   static_assert(ViewType::rank() == DIM0, "_roll: Rank of View must be 2.");
@@ -179,7 +180,7 @@ namespace KokkosFFT {
 ///
 /// \return Sampling frequency
 template <typename ExecutionSpace, typename RealType>
-auto fftfreq(const ExecutionSpace& exec_space, const std::size_t n,
+auto fftfreq(const ExecutionSpace&, const std::size_t n,
              const RealType d = 1.0) {
   static_assert(std::is_floating_point<RealType>::value,
                 "fftfreq: d must be float or double");
@@ -214,7 +215,7 @@ auto fftfreq(const ExecutionSpace& exec_space, const std::size_t n,
 ///
 /// \return Sampling frequency starting from zero
 template <typename ExecutionSpace, typename RealType>
-auto rfftfreq(const ExecutionSpace& exec_space, const std::size_t n,
+auto rfftfreq(const ExecutionSpace&, const std::size_t n,
               const RealType d = 1.0) {
   static_assert(std::is_floating_point<RealType>::value,
                 "fftfreq: d must be float or double");
