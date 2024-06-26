@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: (C) The Kokkos-FFT development team, see COPYRIGHT.md file
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
+
+# Send a dummy job to the custom runners every two weeks to keep them alive.
+# See https://github.com/actions/runner/issues/756 .
+
+name: CI self-hosted runners heartbeat
+
+on:
+  schedule:
+    - cron: "0 1 1,15 * *" # every 1st and 15th of the month at 1am UTC
+  workflow_dispatch:
+
+jobs:
+  heartbeat:
+    runs-on: ${{ matrix.runner }}
+
+    strategy:
+      matrix:
+        runner:
+          - ["self-hosted", "cuda"]
+
+    steps:
+      - name: Heartbeat
+        run: echo "Runner is alive"
