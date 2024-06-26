@@ -31,7 +31,7 @@ auto _get_shift(const ViewType& inout, axis_type<DIM> _axes,
   assert(!KokkosFFT::Impl::is_out_of_range_value_included(axes, rank));
 
   axis_type<rank> shift = {0};
-  for (int i = 0; i < DIM; i++) {
+  for (int i = 0; i < static_cast<int>(DIM); i++) {
     int axis       = axes.at(i);
     shift.at(axis) = inout.extent(axis) / 2 * direction;
   }
@@ -56,7 +56,7 @@ void _roll(const ExecutionSpace& exec_space, ViewType& inout,
     Kokkos::parallel_for(
         Kokkos::RangePolicy<ExecutionSpace, Kokkos::IndexType<std::size_t>>(
             exec_space, 0, len),
-        KOKKOS_LAMBDA(const int& i) {
+        KOKKOS_LAMBDA(std::size_t i) {
           tmp(i + shift0) = inout(i);
           if (i + shift1 < n0) {
             tmp(i) = inout(i + shift1);
@@ -70,7 +70,7 @@ void _roll(const ExecutionSpace& exec_space, ViewType& inout,
 template <typename ExecutionSpace, typename ViewType, std::size_t DIM1 = 1>
 void _roll(const ExecutionSpace& exec_space, ViewType& inout,
            axis_type<2> shift, axis_type<DIM1> axes) {
-  constexpr std::size_t DIM0 = 2;
+  constexpr int DIM0 = 2;
   static_assert(ViewType::rank() == DIM0, "_roll: Rank of View must be 2.");
   int n0 = inout.extent(0), n1 = inout.extent(1);
 
@@ -90,7 +90,7 @@ void _roll(const ExecutionSpace& exec_space, ViewType& inout,
   );
 
   axis_type<2> shift0 = {0}, shift1 = {0}, shift2 = {n0 / 2, n1 / 2};
-  for (int i = 0; i < DIM1; i++) {
+  for (int i = 0; static_cast<std::size_t>(i) < DIM1; i++) {
     int axis = axes.at(i);
 
     auto [_shift0, _shift1, _shift2] =

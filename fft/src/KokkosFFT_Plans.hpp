@@ -110,16 +110,16 @@ class Plan {
   fft_info_type m_info;
 
   //! fft size
-  fft_size_type m_fft_size;
+  fft_size_type m_fft_size = 1;
 
   //! maps for forward and backward transpose
   map_type m_map, m_map_inv;
 
   //! whether transpose is needed or not
-  bool m_is_transpose_needed;
+  bool m_is_transpose_needed = false;
 
   //! whether crop or pad is needed or not
-  bool m_is_crop_or_pad_needed;
+  bool m_is_crop_or_pad_needed = false;
 
   //! axes for fft
   axis_type<DIM> m_axes;
@@ -158,10 +158,8 @@ class Plan {
                 OutViewType& out, KokkosFFT::Direction direction, int axis,
                 std::optional<std::size_t> n = std::nullopt)
       : m_exec_space(exec_space),
-        m_fft_size(1),
-        m_is_transpose_needed(false),
-        m_direction(direction),
-        m_axes({axis}) {
+        m_axes({axis}),
+        m_direction(direction) {
     static_assert(Kokkos::is_view<InViewType>::value,
                   "Plan::Plan: InViewType is not a Kokkos::View.");
     static_assert(Kokkos::is_view<OutViewType>::value,
@@ -234,10 +232,8 @@ class Plan {
                 OutViewType& out, KokkosFFT::Direction direction,
                 axis_type<DIM> axes, shape_type<DIM> s = {0})
       : m_exec_space(exec_space),
-        m_fft_size(1),
-        m_is_transpose_needed(false),
-        m_direction(direction),
-        m_axes(axes) {
+        m_axes(axes),
+        m_direction(direction) {
     static_assert(Kokkos::is_view<InViewType>::value,
                   "Plan::Plan: InViewType is not a Kokkos::View.");
     static_assert(Kokkos::is_view<OutViewType>::value,

@@ -160,7 +160,7 @@ inline std::vector<ElementType> arange(const ElementType start,
   ElementType delta = (stop - start) / length;
 
   // thrust::sequence
-  for (auto i = 0; i < length; i++) {
+  for (std::size_t i = 0; i < length; i++) {
     ElementType value = start + delta * i;
     result.push_back(value);
   }
@@ -175,7 +175,6 @@ void conjugate(const ExecutionSpace& exec_space, const InViewType& in,
   static_assert(Kokkos::is_view<OutViewType>::value,
                 "conjugate: OutViewType is not a Kokkos::View.");
 
-  using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
 
   static_assert(KokkosFFT::Impl::is_complex<out_value_type>::value,
@@ -189,8 +188,7 @@ void conjugate(const ExecutionSpace& exec_space, const InViewType& in,
   Kokkos::parallel_for(
       Kokkos::RangePolicy<ExecutionSpace, Kokkos::IndexType<std::size_t>>(
           exec_space, 0, size),
-      KOKKOS_LAMBDA(const int& i) {
-        out_value_type tmp = in_data[i];
+      KOKKOS_LAMBDA(std::size_t i) {
         out_data[i]        = Kokkos::conj(in_data[i]);
       });
 }

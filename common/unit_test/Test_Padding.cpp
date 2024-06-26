@@ -1384,8 +1384,8 @@ TEST(CropOrPad3D, 3DView) {
         for (int i2 = 0; i2 < n2; i2++) {
           for (int i1 = 0; i1 < n1; i1++) {
             for (int i0 = 0; i0 < n0; i0++) {
-              if (i0 >= h_ref_x.extent(0) || i1 >= h_ref_x.extent(1) ||
-                  i2 >= h_ref_x.extent(2))
+              if (static_cast<std::size_t>(i0) >= h_ref_x.extent(0) || static_cast<std::size_t>(i1) >= h_ref_x.extent(1) ||
+                  static_cast<std::size_t>(i2) >= h_ref_x.extent(2))
                 continue;
               h_ref_x(i0, i1, i2) = h_x(i0, i1, i2);
             }
@@ -1426,12 +1426,13 @@ TEST(CropOrPad4D, 4DView) {
         View4D<double> ref_x("ref_x", n0_new, n1_new, n2_new, n3_new);
 
         auto h_ref_x = Kokkos::create_mirror_view(ref_x);
+        // TODO: stop loop early
         for (int i3 = 0; i3 < n3; i3++) {
           for (int i2 = 0; i2 < n2; i2++) {
             for (int i1 = 0; i1 < n1; i1++) {
               for (int i0 = 0; i0 < n0; i0++) {
-                if (i0 >= h_ref_x.extent(0) || i1 >= h_ref_x.extent(1) ||
-                    i2 >= h_ref_x.extent(2) || i3 >= h_ref_x.extent(3))
+                if (static_cast<std::size_t>(i0) >= h_ref_x.extent(0) || static_cast<std::size_t>(i1) >= h_ref_x.extent(1) ||
+                    static_cast<std::size_t>(i2) >= h_ref_x.extent(2) || static_cast<std::size_t>(i3) >= h_ref_x.extent(3))
                   continue;
                 h_ref_x(i0, i1, i2, i3) = h_x(i0, i1, i2, i3);
               }
@@ -1480,9 +1481,9 @@ TEST(CropOrPad5D, 5DView) {
             for (int i2 = 0; i2 < n2; i2++) {
               for (int i1 = 0; i1 < n1; i1++) {
                 for (int i0 = 0; i0 < n0; i0++) {
-                  if (i0 >= h_ref_x.extent(0) || i1 >= h_ref_x.extent(1) ||
-                      i2 >= h_ref_x.extent(2) || i3 >= h_ref_x.extent(3) ||
-                      i4 >= h_ref_x.extent(4))
+                  if (static_cast<std::size_t>(i0) >= h_ref_x.extent(0) || static_cast<std::size_t>(i1) >= h_ref_x.extent(1) ||
+                      static_cast<std::size_t>(i2) >= h_ref_x.extent(2) || static_cast<std::size_t>(i3) >= h_ref_x.extent(3) ||
+                      static_cast<std::size_t>(i4) >= h_ref_x.extent(4))
                     continue;
                   h_ref_x(i0, i1, i2, i3, i4) = h_x(i0, i1, i2, i3, i4);
                 }
@@ -1537,9 +1538,9 @@ TEST(CropOrPad6D, 6DView) {
               for (int i2 = 0; i2 < n2; i2++) {
                 for (int i1 = 0; i1 < n1; i1++) {
                   for (int i0 = 0; i0 < n0; i0++) {
-                    if (i0 >= h_ref_x.extent(0) || i1 >= h_ref_x.extent(1) ||
-                        i2 >= h_ref_x.extent(2) || i3 >= h_ref_x.extent(3) ||
-                        i4 >= h_ref_x.extent(4) || i5 >= h_ref_x.extent(5))
+                    if (static_cast<std::size_t>(i0) >= h_ref_x.extent(0) || static_cast<std::size_t>(i1) >= h_ref_x.extent(1) ||
+                        static_cast<std::size_t>(i2) >= h_ref_x.extent(2) || static_cast<std::size_t>(i3) >= h_ref_x.extent(3) ||
+                        static_cast<std::size_t>(i4) >= h_ref_x.extent(4) || static_cast<std::size_t>(i5) >= h_ref_x.extent(5))
                       continue;
                     h_ref_x(i0, i1, i2, i3, i4, i5) =
                         h_x(i0, i1, i2, i3, i4, i5);
@@ -1599,10 +1600,10 @@ TEST(CropOrPad7D, 7DView) {
                 for (int i2 = 0; i2 < n2; i2++) {
                   for (int i1 = 0; i1 < n1; i1++) {
                     for (int i0 = 0; i0 < n0; i0++) {
-                      if (i0 >= h_ref_x.extent(0) || i1 >= h_ref_x.extent(1) ||
-                          i2 >= h_ref_x.extent(2) || i3 >= h_ref_x.extent(3) ||
-                          i4 >= h_ref_x.extent(4) || i5 >= h_ref_x.extent(5) ||
-                          i6 >= h_ref_x.extent(6))
+                      if (static_cast<std::size_t>(i0) >= h_ref_x.extent(0) || static_cast<std::size_t>(i1) >= h_ref_x.extent(1) ||
+                          static_cast<std::size_t>(i2) >= h_ref_x.extent(2) || static_cast<std::size_t>(i3) >= h_ref_x.extent(3) ||
+                          static_cast<std::size_t>(i4) >= h_ref_x.extent(4) || static_cast<std::size_t>(i5) >= h_ref_x.extent(5) ||
+                          static_cast<std::size_t>(i6) >= h_ref_x.extent(6))
                         continue;
                       h_ref_x(i0, i1, i2, i3, i4, i5, i6) =
                           h_x(i0, i1, i2, i3, i4, i5, i6);
@@ -1666,13 +1667,14 @@ TEST(CropOrPad8D, 8DView) {
                   for (int i2 = 0; i2 < n2; i2++) {
                     for (int i1 = 0; i1 < n1; i1++) {
                       for (int i0 = 0; i0 < n0; i0++) {
-                        if (i0 >= h_ref_x.extent(0) ||
-                            i1 >= h_ref_x.extent(1) ||
-                            i2 >= h_ref_x.extent(2) ||
-                            i3 >= h_ref_x.extent(3) ||
-                            i4 >= h_ref_x.extent(4) ||
-                            i5 >= h_ref_x.extent(5) ||
-                            i6 >= h_ref_x.extent(6) || i7 >= h_ref_x.extent(7))
+                        if (static_cast<std::size_t>(i0) >= h_ref_x.extent(0) ||
+                            static_cast<std::size_t>(i1) >= h_ref_x.extent(1) ||
+                            static_cast<std::size_t>(i2) >= h_ref_x.extent(2) ||
+                            static_cast<std::size_t>(i3) >= h_ref_x.extent(3) ||
+                            static_cast<std::size_t>(i4) >= h_ref_x.extent(4) ||
+                            static_cast<std::size_t>(i5) >= h_ref_x.extent(5) ||
+                            static_cast<std::size_t>(i6) >= h_ref_x.extent(6) ||
+                            static_cast<std::size_t>(i7) >= h_ref_x.extent(7))
                           continue;
                         h_ref_x(i0, i1, i2, i3, i4, i5, i6, i7) =
                             h_x(i0, i1, i2, i3, i4, i5, i6, i7);

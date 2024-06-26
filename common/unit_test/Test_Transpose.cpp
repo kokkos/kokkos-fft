@@ -387,8 +387,8 @@ void test_transpose_1d_2dview() {
       RealView2Dtype ref("ref", _n0, _n1);
       auto h_ref = Kokkos::create_mirror_view(ref);
       // Filling the transposed View
-      for (int i0 = 0; i0 < h_x.extent(0); i0++) {
-        for (int i1 = 0; i1 < h_x.extent(1); i1++) {
+      for (int i0 = 0; static_cast<std::size_t>(i0) < h_x.extent(0); i0++) {
+        for (int i1 = 0; static_cast<std::size_t>(i1) < h_x.extent(1); i1++) {
           h_ref(i1, i0) = h_x(i0, i1);
         }
       }
@@ -442,9 +442,9 @@ void test_transpose_1d_3dview() {
       RealView3Dtype ref("ref", _n0, _n1, _n2);
       auto h_ref = Kokkos::create_mirror_view(ref);
       // Filling the transposed View
-      for (int i0 = 0; i0 < h_x.extent(0); i0++) {
-        for (int i1 = 0; i1 < h_x.extent(1); i1++) {
-          for (int i2 = 0; i2 < h_x.extent(2); i2++) {
+      for (int i0 = 0; static_cast<std::size_t>(i0) < h_x.extent(0); i0++) {
+        for (int i1 = 0; static_cast<std::size_t>(i1) < h_x.extent(1); i1++) {
+          for (int i2 = 0; static_cast<std::size_t>(i2) < h_x.extent(2); i2++) {
             int _i0 = (map[0] == 1) ? i1 : (map[0] == 2) ? i2 : i0;
             int _i1 = (map[1] == 0) ? i0 : (map[1] == 2) ? i2 : i1;
             int _i2 = (map[2] == 0) ? i0 : (map[2] == 1) ? i1 : i2;
@@ -503,10 +503,10 @@ void test_transpose_1d_4dview() {
       RealView4Dtype ref("ref", _n0, _n1, _n2, _n3);
       auto h_ref = Kokkos::create_mirror_view(ref);
       // Filling the transposed View
-      for (int i0 = 0; i0 < h_x.extent(0); i0++) {
-        for (int i1 = 0; i1 < h_x.extent(1); i1++) {
-          for (int i2 = 0; i2 < h_x.extent(2); i2++) {
-            for (int i3 = 0; i3 < h_x.extent(3); i3++) {
+      for (int i0 = 0; static_cast<std::size_t>(i0) < h_x.extent(0); i0++) {
+        for (int i1 = 0; static_cast<std::size_t>(i1) < h_x.extent(1); i1++) {
+          for (int i2 = 0; static_cast<std::size_t>(i2) < h_x.extent(2); i2++) {
+            for (int i3 = 0; static_cast<std::size_t>(i3) < h_x.extent(3); i3++) {
               int _i0 = (map[0] == 1)   ? i1
                         : (map[0] == 2) ? i2
                         : (map[0] == 3) ? i3
@@ -579,11 +579,11 @@ void test_transpose_1d_5dview() {
       RealView5Dtype ref("ref", _n0, _n1, _n2, _n3, _n4);
       auto h_ref = Kokkos::create_mirror_view(ref);
       // Filling the transposed View
-      for (int i0 = 0; i0 < h_x.extent(0); i0++) {
-        for (int i1 = 0; i1 < h_x.extent(1); i1++) {
-          for (int i2 = 0; i2 < h_x.extent(2); i2++) {
-            for (int i3 = 0; i3 < h_x.extent(3); i3++) {
-              for (int i4 = 0; i4 < h_x.extent(4); i4++) {
+      for (int i0 = 0; static_cast<std::size_t>(i0) < h_x.extent(0); i0++) {
+        for (int i1 = 0; static_cast<std::size_t>(i1) < h_x.extent(1); i1++) {
+          for (int i2 = 0; static_cast<std::size_t>(i2) < h_x.extent(2); i2++) {
+            for (int i3 = 0; static_cast<std::size_t>(i3) < h_x.extent(3); i3++) {
+              for (int i4 = 0; static_cast<std::size_t>(i4) < h_x.extent(4); i4++) {
                 int _i0                        = (map[0] == 1)   ? i1
                                                  : (map[0] == 2) ? i2
                                                  : (map[0] == 3) ? i3
@@ -666,12 +666,12 @@ void test_transpose_1d_6dview() {
       RealView6Dtype ref("ref", _n0, _n1, _n2, _n3, _n4, _n5);
       auto h_ref = Kokkos::create_mirror_view(ref);
       // Filling the transposed View
-      for (int i0 = 0; i0 < h_x.extent(0); i0++) {
-        for (int i1 = 0; i1 < h_x.extent(1); i1++) {
-          for (int i2 = 0; i2 < h_x.extent(2); i2++) {
-            for (int i3 = 0; i3 < h_x.extent(3); i3++) {
-              for (int i4 = 0; i4 < h_x.extent(4); i4++) {
-                for (int i5 = 0; i5 < h_x.extent(5); i5++) {
+      for (int i0 = 0; static_cast<std::size_t>(i0) < h_x.extent(0); i0++) {
+        for (int i1 = 0; static_cast<std::size_t>(i1) < h_x.extent(1); i1++) {
+          for (int i2 = 0; static_cast<std::size_t>(i2) < h_x.extent(2); i2++) {
+            for (int i3 = 0; static_cast<std::size_t>(i3) < h_x.extent(3); i3++) {
+              for (int i4 = 0; static_cast<std::size_t>(i4) < h_x.extent(4); i4++) {
+                for (int i5 = 0; static_cast<std::size_t>(i5) < h_x.extent(5); i5++) {
                   int _i0 = (map[0] == 1)   ? i1
                             : (map[0] == 2) ? i2
                             : (map[0] == 3) ? i3
@@ -767,13 +767,13 @@ void test_transpose_1d_7dview() {
       RealView7Dtype ref("ref", _n0, _n1, _n2, _n3, _n4, _n5, _n6);
       auto h_ref = Kokkos::create_mirror_view(ref);
       // Filling the transposed View
-      for (int i0 = 0; i0 < h_x.extent(0); i0++) {
-        for (int i1 = 0; i1 < h_x.extent(1); i1++) {
-          for (int i2 = 0; i2 < h_x.extent(2); i2++) {
-            for (int i3 = 0; i3 < h_x.extent(3); i3++) {
-              for (int i4 = 0; i4 < h_x.extent(4); i4++) {
-                for (int i5 = 0; i5 < h_x.extent(5); i5++) {
-                  for (int i6 = 0; i6 < h_x.extent(6); i6++) {
+      for (int i0 = 0; static_cast<std::size_t>(i0) < h_x.extent(0); i0++) {
+        for (int i1 = 0; static_cast<std::size_t>(i1) < h_x.extent(1); i1++) {
+          for (int i2 = 0; static_cast<std::size_t>(i2) < h_x.extent(2); i2++) {
+            for (int i3 = 0; static_cast<std::size_t>(i3) < h_x.extent(3); i3++) {
+              for (int i4 = 0; static_cast<std::size_t>(i4) < h_x.extent(4); i4++) {
+                for (int i5 = 0; static_cast<std::size_t>(i5) < h_x.extent(5); i5++) {
+                  for (int i6 = 0; static_cast<std::size_t>(i6) < h_x.extent(6); i6++) {
                     int _i0 = (map[0] == 1)   ? i1
                               : (map[0] == 2) ? i2
                               : (map[0] == 3) ? i3
@@ -883,14 +883,14 @@ void test_transpose_1d_8dview() {
       RealView8Dtype ref("ref", _n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7);
       auto h_ref = Kokkos::create_mirror_view(ref);
       // Filling the transposed View
-      for (int i0 = 0; i0 < h_x.extent(0); i0++) {
-        for (int i1 = 0; i1 < h_x.extent(1); i1++) {
-          for (int i2 = 0; i2 < h_x.extent(2); i2++) {
-            for (int i3 = 0; i3 < h_x.extent(3); i3++) {
-              for (int i4 = 0; i4 < h_x.extent(4); i4++) {
-                for (int i5 = 0; i5 < h_x.extent(5); i5++) {
-                  for (int i6 = 0; i6 < h_x.extent(6); i6++) {
-                    for (int i7 = 0; i7 < h_x.extent(7); i7++) {
+      for (int i0 = 0; static_cast<std::size_t>(i0) < h_x.extent(0); i0++) {
+        for (int i1 = 0; static_cast<std::size_t>(i1) < h_x.extent(1); i1++) {
+          for (int i2 = 0; static_cast<std::size_t>(i2) < h_x.extent(2); i2++) {
+            for (int i3 = 0; static_cast<std::size_t>(i3) < h_x.extent(3); i3++) {
+              for (int i4 = 0; static_cast<std::size_t>(i4) < h_x.extent(4); i4++) {
+                for (int i5 = 0; static_cast<std::size_t>(i5) < h_x.extent(5); i5++) {
+                  for (int i6 = 0; static_cast<std::size_t>(i6) < h_x.extent(6); i6++) {
+                    for (int i7 = 0; static_cast<std::size_t>(i7) < h_x.extent(7); i7++) {
                       int _i0 = (map[0] == 1)   ? i1
                                 : (map[0] == 2) ? i2
                                 : (map[0] == 3) ? i3
@@ -1044,8 +1044,8 @@ void test_transpose_2d_2dview() {
   auto h_ref = Kokkos::create_mirror_view(ref);
   Kokkos::deep_copy(h_x, x);
 
-  for (int i0 = 0; i0 < h_x.extent(0); i0++) {
-    for (int i1 = 0; i1 < h_x.extent(1); i1++) {
+  for (int i0 = 0; static_cast<std::size_t>(i0) < h_x.extent(0); i0++) {
+    for (int i1 = 0; static_cast<std::size_t>(i1) < h_x.extent(1); i1++) {
       h_ref(i1, i0) = h_x(i0, i1);
     }
   }
@@ -1105,9 +1105,9 @@ void test_transpose_2d_3dview() {
         RealView3Dtype ref("ref", _n0, _n1, _n2);
         auto h_ref = Kokkos::create_mirror_view(ref);
         // Filling the transposed View
-        for (int i0 = 0; i0 < h_x.extent(0); i0++) {
-          for (int i1 = 0; i1 < h_x.extent(1); i1++) {
-            for (int i2 = 0; i2 < h_x.extent(2); i2++) {
+        for (int i0 = 0; static_cast<std::size_t>(i0) < h_x.extent(0); i0++) {
+          for (int i1 = 0; static_cast<std::size_t>(i1) < h_x.extent(1); i1++) {
+            for (int i2 = 0; static_cast<std::size_t>(i2) < h_x.extent(2); i2++) {
               int _i0 = (map[0] == 1) ? i1 : (map[0] == 2) ? i2 : i0;
               int _i1 = (map[1] == 0) ? i0 : (map[1] == 2) ? i2 : i1;
               int _i2 = (map[2] == 0) ? i0 : (map[2] == 1) ? i1 : i2;
@@ -1171,10 +1171,10 @@ void test_transpose_2d_4dview() {
         RealView4Dtype ref("ref", _n0, _n1, _n2, _n3);
         auto h_ref = Kokkos::create_mirror_view(ref);
         // Filling the transposed View
-        for (int i0 = 0; i0 < h_x.extent(0); i0++) {
-          for (int i1 = 0; i1 < h_x.extent(1); i1++) {
-            for (int i2 = 0; i2 < h_x.extent(2); i2++) {
-              for (int i3 = 0; i3 < h_x.extent(3); i3++) {
+        for (int i0 = 0; static_cast<std::size_t>(i0) < h_x.extent(0); i0++) {
+          for (int i1 = 0; static_cast<std::size_t>(i1) < h_x.extent(1); i1++) {
+            for (int i2 = 0; static_cast<std::size_t>(i2) < h_x.extent(2); i2++) {
+              for (int i3 = 0; static_cast<std::size_t>(i3) < h_x.extent(3); i3++) {
                 int _i0 = (map[0] == 1)   ? i1
                           : (map[0] == 2) ? i2
                           : (map[0] == 3) ? i3
@@ -1252,11 +1252,11 @@ void test_transpose_2d_5dview() {
         RealView5Dtype ref("ref", _n0, _n1, _n2, _n3, _n4);
         auto h_ref = Kokkos::create_mirror_view(ref);
         // Filling the transposed View
-        for (int i0 = 0; i0 < h_x.extent(0); i0++) {
-          for (int i1 = 0; i1 < h_x.extent(1); i1++) {
-            for (int i2 = 0; i2 < h_x.extent(2); i2++) {
-              for (int i3 = 0; i3 < h_x.extent(3); i3++) {
-                for (int i4 = 0; i4 < h_x.extent(4); i4++) {
+        for (int i0 = 0; static_cast<std::size_t>(i0) < h_x.extent(0); i0++) {
+          for (int i1 = 0; static_cast<std::size_t>(i1) < h_x.extent(1); i1++) {
+            for (int i2 = 0; static_cast<std::size_t>(i2) < h_x.extent(2); i2++) {
+              for (int i3 = 0; static_cast<std::size_t>(i3) < h_x.extent(3); i3++) {
+                for (int i4 = 0; static_cast<std::size_t>(i4) < h_x.extent(4); i4++) {
                   int _i0                        = (map[0] == 1)   ? i1
                                                    : (map[0] == 2) ? i2
                                                    : (map[0] == 3) ? i3
@@ -1344,12 +1344,12 @@ void test_transpose_2d_6dview() {
         RealView6Dtype ref("ref", _n0, _n1, _n2, _n3, _n4, _n5);
         auto h_ref = Kokkos::create_mirror_view(ref);
         // Filling the transposed View
-        for (int i0 = 0; i0 < h_x.extent(0); i0++) {
-          for (int i1 = 0; i1 < h_x.extent(1); i1++) {
-            for (int i2 = 0; i2 < h_x.extent(2); i2++) {
-              for (int i3 = 0; i3 < h_x.extent(3); i3++) {
-                for (int i4 = 0; i4 < h_x.extent(4); i4++) {
-                  for (int i5 = 0; i5 < h_x.extent(5); i5++) {
+        for (int i0 = 0; static_cast<std::size_t>(i0) < h_x.extent(0); i0++) {
+          for (int i1 = 0; static_cast<std::size_t>(i1) < h_x.extent(1); i1++) {
+            for (int i2 = 0; static_cast<std::size_t>(i2) < h_x.extent(2); i2++) {
+              for (int i3 = 0; static_cast<std::size_t>(i3) < h_x.extent(3); i3++) {
+                for (int i4 = 0; static_cast<std::size_t>(i4) < h_x.extent(4); i4++) {
+                  for (int i5 = 0; static_cast<std::size_t>(i5) < h_x.extent(5); i5++) {
                     int _i0 = (map[0] == 1)   ? i1
                               : (map[0] == 2) ? i2
                               : (map[0] == 3) ? i3
@@ -1450,13 +1450,13 @@ void test_transpose_2d_7dview() {
         RealView7Dtype ref("ref", _n0, _n1, _n2, _n3, _n4, _n5, _n6);
         auto h_ref = Kokkos::create_mirror_view(ref);
         // Filling the transposed View
-        for (int i0 = 0; i0 < h_x.extent(0); i0++) {
-          for (int i1 = 0; i1 < h_x.extent(1); i1++) {
-            for (int i2 = 0; i2 < h_x.extent(2); i2++) {
-              for (int i3 = 0; i3 < h_x.extent(3); i3++) {
-                for (int i4 = 0; i4 < h_x.extent(4); i4++) {
-                  for (int i5 = 0; i5 < h_x.extent(5); i5++) {
-                    for (int i6 = 0; i6 < h_x.extent(6); i6++) {
+        for (int i0 = 0; static_cast<std::size_t>(i0) < h_x.extent(0); i0++) {
+          for (int i1 = 0; static_cast<std::size_t>(i1) < h_x.extent(1); i1++) {
+            for (int i2 = 0; static_cast<std::size_t>(i2) < h_x.extent(2); i2++) {
+              for (int i3 = 0; static_cast<std::size_t>(i3) < h_x.extent(3); i3++) {
+                for (int i4 = 0; static_cast<std::size_t>(i4) < h_x.extent(4); i4++) {
+                  for (int i5 = 0; static_cast<std::size_t>(i5) < h_x.extent(5); i5++) {
+                    for (int i6 = 0; static_cast<std::size_t>(i6) < h_x.extent(6); i6++) {
                       int _i0 = (map[0] == 1)   ? i1
                                 : (map[0] == 2) ? i2
                                 : (map[0] == 3) ? i3
@@ -1571,14 +1571,14 @@ void test_transpose_2d_8dview() {
         RealView8Dtype ref("ref", _n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7);
         auto h_ref = Kokkos::create_mirror_view(ref);
         // Filling the transposed View
-        for (int i0 = 0; i0 < h_x.extent(0); i0++) {
-          for (int i1 = 0; i1 < h_x.extent(1); i1++) {
-            for (int i2 = 0; i2 < h_x.extent(2); i2++) {
-              for (int i3 = 0; i3 < h_x.extent(3); i3++) {
-                for (int i4 = 0; i4 < h_x.extent(4); i4++) {
-                  for (int i5 = 0; i5 < h_x.extent(5); i5++) {
-                    for (int i6 = 0; i6 < h_x.extent(6); i6++) {
-                      for (int i7 = 0; i7 < h_x.extent(7); i7++) {
+        for (int i0 = 0; static_cast<std::size_t>(i0) < h_x.extent(0); i0++) {
+          for (int i1 = 0; static_cast<std::size_t>(i1) < h_x.extent(1); i1++) {
+            for (int i2 = 0; static_cast<std::size_t>(i2) < h_x.extent(2); i2++) {
+              for (int i3 = 0; static_cast<std::size_t>(i3) < h_x.extent(3); i3++) {
+                for (int i4 = 0; static_cast<std::size_t>(i4) < h_x.extent(4); i4++) {
+                  for (int i5 = 0; static_cast<std::size_t>(i5) < h_x.extent(5); i5++) {
+                    for (int i6 = 0; static_cast<std::size_t>(i6) < h_x.extent(6); i6++) {
+                      for (int i7 = 0; static_cast<std::size_t>(i7) < h_x.extent(7); i7++) {
                         int _i0 = (map[0] == 1)   ? i1
                                   : (map[0] == 2) ? i2
                                   : (map[0] == 3) ? i3
@@ -1738,9 +1738,9 @@ void test_transpose_3d_3dview() {
 
   Kokkos::deep_copy(h_x, x);
 
-  for (int i0 = 0; i0 < h_x.extent(0); i0++) {
-    for (int i1 = 0; i1 < h_x.extent(1); i1++) {
-      for (int i2 = 0; i2 < h_x.extent(2); i2++) {
+  for (int i0 = 0; static_cast<std::size_t>(i0) < h_x.extent(0); i0++) {
+    for (int i1 = 0; static_cast<std::size_t>(i1) < h_x.extent(1); i1++) {
+      for (int i2 = 0; static_cast<std::size_t>(i2) < h_x.extent(2); i2++) {
         h_ref_axis021(i0, i2, i1) = h_x(i0, i1, i2);
         h_ref_axis102(i1, i0, i2) = h_x(i0, i1, i2);
         h_ref_axis120(i1, i2, i0) = h_x(i0, i1, i2);
@@ -1828,10 +1828,10 @@ void test_transpose_3d_4dview() {
           RealView4Dtype ref("ref", _n0, _n1, _n2, _n3);
           auto h_ref = Kokkos::create_mirror_view(ref);
           // Filling the transposed View
-          for (int i0 = 0; i0 < h_x.extent(0); i0++) {
-            for (int i1 = 0; i1 < h_x.extent(1); i1++) {
-              for (int i2 = 0; i2 < h_x.extent(2); i2++) {
-                for (int i3 = 0; i3 < h_x.extent(3); i3++) {
+          for (int i0 = 0; static_cast<std::size_t>(i0) < h_x.extent(0); i0++) {
+            for (int i1 = 0; static_cast<std::size_t>(i1) < h_x.extent(1); i1++) {
+              for (int i2 = 0; static_cast<std::size_t>(i2) < h_x.extent(2); i2++) {
+                for (int i3 = 0; static_cast<std::size_t>(i3) < h_x.extent(3); i3++) {
                   int _i0 = (map[0] == 1)   ? i1
                             : (map[0] == 2) ? i2
                             : (map[0] == 3) ? i3
@@ -1912,11 +1912,11 @@ void test_transpose_3d_5dview() {
           RealView5Dtype ref("ref", _n0, _n1, _n2, _n3, _n4);
           auto h_ref = Kokkos::create_mirror_view(ref);
           // Filling the transposed View
-          for (int i0 = 0; i0 < h_x.extent(0); i0++) {
-            for (int i1 = 0; i1 < h_x.extent(1); i1++) {
-              for (int i2 = 0; i2 < h_x.extent(2); i2++) {
-                for (int i3 = 0; i3 < h_x.extent(3); i3++) {
-                  for (int i4 = 0; i4 < h_x.extent(4); i4++) {
+          for (int i0 = 0; static_cast<std::size_t>(i0) < h_x.extent(0); i0++) {
+            for (int i1 = 0; static_cast<std::size_t>(i1) < h_x.extent(1); i1++) {
+              for (int i2 = 0; static_cast<std::size_t>(i2) < h_x.extent(2); i2++) {
+                for (int i3 = 0; static_cast<std::size_t>(i3) < h_x.extent(3); i3++) {
+                  for (int i4 = 0; static_cast<std::size_t>(i4) < h_x.extent(4); i4++) {
                     int _i0                        = (map[0] == 1)   ? i1
                                                      : (map[0] == 2) ? i2
                                                      : (map[0] == 3) ? i3
@@ -2007,12 +2007,12 @@ void test_transpose_3d_6dview() {
           RealView6Dtype ref("ref", _n0, _n1, _n2, _n3, _n4, _n5);
           auto h_ref = Kokkos::create_mirror_view(ref);
           // Filling the transposed View
-          for (int i0 = 0; i0 < h_x.extent(0); i0++) {
-            for (int i1 = 0; i1 < h_x.extent(1); i1++) {
-              for (int i2 = 0; i2 < h_x.extent(2); i2++) {
-                for (int i3 = 0; i3 < h_x.extent(3); i3++) {
-                  for (int i4 = 0; i4 < h_x.extent(4); i4++) {
-                    for (int i5 = 0; i5 < h_x.extent(5); i5++) {
+          for (int i0 = 0; static_cast<std::size_t>(i0) < h_x.extent(0); i0++) {
+            for (int i1 = 0; static_cast<std::size_t>(i1) < h_x.extent(1); i1++) {
+              for (int i2 = 0; static_cast<std::size_t>(i2) < h_x.extent(2); i2++) {
+                for (int i3 = 0; static_cast<std::size_t>(i3) < h_x.extent(3); i3++) {
+                  for (int i4 = 0; static_cast<std::size_t>(i4) < h_x.extent(4); i4++) {
+                    for (int i5 = 0; static_cast<std::size_t>(i5) < h_x.extent(5); i5++) {
                       int _i0 = (map[0] == 1)   ? i1
                                 : (map[0] == 2) ? i2
                                 : (map[0] == 3) ? i3
@@ -2116,13 +2116,13 @@ void test_transpose_3d_7dview() {
           RealView7Dtype ref("ref", _n0, _n1, _n2, _n3, _n4, _n5, _n6);
           auto h_ref = Kokkos::create_mirror_view(ref);
           // Filling the transposed View
-          for (int i0 = 0; i0 < h_x.extent(0); i0++) {
-            for (int i1 = 0; i1 < h_x.extent(1); i1++) {
-              for (int i2 = 0; i2 < h_x.extent(2); i2++) {
-                for (int i3 = 0; i3 < h_x.extent(3); i3++) {
-                  for (int i4 = 0; i4 < h_x.extent(4); i4++) {
-                    for (int i5 = 0; i5 < h_x.extent(5); i5++) {
-                      for (int i6 = 0; i6 < h_x.extent(6); i6++) {
+          for (int i0 = 0; static_cast<std::size_t>(i0) < h_x.extent(0); i0++) {
+            for (int i1 = 0; static_cast<std::size_t>(i1) < h_x.extent(1); i1++) {
+              for (int i2 = 0; static_cast<std::size_t>(i2) < h_x.extent(2); i2++) {
+                for (int i3 = 0; static_cast<std::size_t>(i3) < h_x.extent(3); i3++) {
+                  for (int i4 = 0; static_cast<std::size_t>(i4) < h_x.extent(4); i4++) {
+                    for (int i5 = 0; static_cast<std::size_t>(i5) < h_x.extent(5); i5++) {
+                      for (int i6 = 0; static_cast<std::size_t>(i6) < h_x.extent(6); i6++) {
                         int _i0 = (map[0] == 1)   ? i1
                                   : (map[0] == 2) ? i2
                                   : (map[0] == 3) ? i3
@@ -2240,14 +2240,14 @@ void test_transpose_3d_8dview() {
           RealView8Dtype ref("ref", _n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7);
           auto h_ref = Kokkos::create_mirror_view(ref);
           // Filling the transposed View
-          for (int i0 = 0; i0 < h_x.extent(0); i0++) {
-            for (int i1 = 0; i1 < h_x.extent(1); i1++) {
-              for (int i2 = 0; i2 < h_x.extent(2); i2++) {
-                for (int i3 = 0; i3 < h_x.extent(3); i3++) {
-                  for (int i4 = 0; i4 < h_x.extent(4); i4++) {
-                    for (int i5 = 0; i5 < h_x.extent(5); i5++) {
-                      for (int i6 = 0; i6 < h_x.extent(6); i6++) {
-                        for (int i7 = 0; i7 < h_x.extent(7); i7++) {
+          for (int i0 = 0; static_cast<std::size_t>(i0) < h_x.extent(0); i0++) {
+            for (int i1 = 0; static_cast<std::size_t>(i1) < h_x.extent(1); i1++) {
+              for (int i2 = 0; static_cast<std::size_t>(i2) < h_x.extent(2); i2++) {
+                for (int i3 = 0; static_cast<std::size_t>(i3) < h_x.extent(3); i3++) {
+                  for (int i4 = 0; static_cast<std::size_t>(i4) < h_x.extent(4); i4++) {
+                    for (int i5 = 0; static_cast<std::size_t>(i5) < h_x.extent(5); i5++) {
+                      for (int i6 = 0; static_cast<std::size_t>(i6) < h_x.extent(6); i6++) {
+                        for (int i7 = 0; static_cast<std::size_t>(i7) < h_x.extent(7); i7++) {
                           int _i0 = (map[0] == 1)   ? i1
                                     : (map[0] == 2) ? i2
                                     : (map[0] == 3) ? i3
