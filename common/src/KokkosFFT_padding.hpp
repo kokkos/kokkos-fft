@@ -61,7 +61,7 @@ auto get_modified_shape(const InViewType in, const OutViewType /* out */,
   }
 
   // Update shapes based on newly given shape
-  for (int i = 0; i < DIM; i++) {
+  for (int i = 0; i < static_cast<int>(DIM); i++) {
     int positive_axis = positive_axes.at(i);
     assert(shape.at(i) > 0);
     modified_shape.at(positive_axis) = shape.at(i);
