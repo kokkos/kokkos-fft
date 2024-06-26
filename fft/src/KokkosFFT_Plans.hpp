@@ -210,14 +210,11 @@ class Plan {
       s              = shape_type<1>({_n});
     }
 
-    bool is_C2R = is_complex<in_value_type>::value &&
-                  std::is_floating_point<out_value_type>::value;
-
     m_in_extents               = KokkosFFT::Impl::extract_extents(in);
     m_out_extents              = KokkosFFT::Impl::extract_extents(out);
     std::tie(m_map, m_map_inv) = KokkosFFT::Impl::get_map_axes(in, axis);
     m_is_transpose_needed      = KokkosFFT::Impl::is_transpose_needed(m_map);
-    m_shape = KokkosFFT::Impl::get_modified_shape(in, s, m_axes, is_C2R);
+    m_shape = KokkosFFT::Impl::get_modified_shape(in, out, s, m_axes);
     m_is_crop_or_pad_needed =
         KokkosFFT::Impl::is_crop_or_pad_needed(in, m_shape);
     m_fft_size = KokkosFFT::Impl::_create(exec_space, m_plan, in, out, m_buffer,
@@ -284,14 +281,11 @@ class Plan {
           "direction.");
     }
 
-    bool is_C2R = is_complex<in_value_type>::value &&
-                  std::is_floating_point<out_value_type>::value;
-
     m_in_extents               = KokkosFFT::Impl::extract_extents(in);
     m_out_extents              = KokkosFFT::Impl::extract_extents(out);
     std::tie(m_map, m_map_inv) = KokkosFFT::Impl::get_map_axes(in, axes);
     m_is_transpose_needed      = KokkosFFT::Impl::is_transpose_needed(m_map);
-    m_shape = KokkosFFT::Impl::get_modified_shape(in, s, m_axes, is_C2R);
+    m_shape = KokkosFFT::Impl::get_modified_shape(in, out, s, m_axes);
     m_is_crop_or_pad_needed =
         KokkosFFT::Impl::is_crop_or_pad_needed(in, m_shape);
     m_fft_size = KokkosFFT::Impl::_create(exec_space, m_plan, in, out, m_buffer,
