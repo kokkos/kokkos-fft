@@ -85,8 +85,8 @@ void _roll(const ExecutionSpace& exec_space, ViewType& inout,
   using point_type = typename range_type::point_type;
 
   range_type range(
-      point_type{{0, 0}}, point_type{{len0, len1}}, tile_type{{4, 4}}
-      // [TO DO] Choose optimal tile sizes for each device
+      exec_space, point_type{{0, 0}}, point_type{{len0, len1}},
+      tile_type{{4, 4}}  // [TO DO] Choose optimal tile sizes for each device
   );
 
   axis_type<2> shift0 = {0}, shift1 = {0}, shift2 = {n0 / 2, n1 / 2};
@@ -179,7 +179,7 @@ namespace KokkosFFT {
 ///
 /// \return Sampling frequency
 template <typename ExecutionSpace, typename RealType>
-auto fftfreq(const ExecutionSpace& exec_space, const std::size_t n,
+auto fftfreq(const ExecutionSpace&, const std::size_t n,
              const RealType d = 1.0) {
   static_assert(std::is_floating_point<RealType>::value,
                 "fftfreq: d must be float or double");
@@ -214,7 +214,7 @@ auto fftfreq(const ExecutionSpace& exec_space, const std::size_t n,
 ///
 /// \return Sampling frequency starting from zero
 template <typename ExecutionSpace, typename RealType>
-auto rfftfreq(const ExecutionSpace& exec_space, const std::size_t n,
+auto rfftfreq(const ExecutionSpace&, const std::size_t n,
               const RealType d = 1.0) {
   static_assert(std::is_floating_point<RealType>::value,
                 "fftfreq: d must be float or double");
