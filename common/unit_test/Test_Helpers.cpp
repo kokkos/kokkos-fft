@@ -229,7 +229,7 @@ void test_fftshift1D_1DView(int n0) {
     _y_ref = {-4, -3, -2, -1, 0, 1, 2, 3, 4};
   }
 
-  for (std::size_t i = 0; i < n0; i++) {
+  for (int i = 0; i < n0; i++) {
     h_x_ref(i) = static_cast<double>(_x_ref.at(i));
     h_y_ref(i) = static_cast<double>(_y_ref.at(i));
   }
@@ -283,8 +283,8 @@ void test_fftshift1D_2DView(int n0) {
                5,  6,  7,  8,  9,  10, 11, 12, 13, -13, -12, -11, -10};
   }
 
-  for (std::size_t i1 = 0; i1 < n1; i1++) {
-    for (std::size_t i0 = 0; i0 < n0; i0++) {
+  for (int i1 = 0; i1 < n1; i1++) {
+    for (int i0 = 0; i0 < n0; i0++) {
       std::size_t i         = i0 + i1 * n0;
       h_x_ref(i0, i1)       = static_cast<double>(_x_ref.at(i));
       h_y_axis0_ref(i0, i1) = static_cast<double>(_y0_ref.at(i));
@@ -340,8 +340,8 @@ void test_fftshift2D_2DView(int n0) {
               1,  2,  3,  4,  -13, -12, -11, -10, 9,  10, 11, 12, 13};
   }
 
-  for (std::size_t i1 = 0; i1 < n1; i1++) {
-    for (std::size_t i0 = 0; i0 < n0; i0++) {
+  for (int i1 = 0; i1 < n1; i1++) {
+    for (int i0 = 0; i0 < n0; i0++) {
       std::size_t i   = i0 + i1 * n0;
       h_x_ref(i0, i1) = static_cast<double>(_x_ref.at(i));
       h_y_ref(i0, i1) = static_cast<double>(_y_ref.at(i));

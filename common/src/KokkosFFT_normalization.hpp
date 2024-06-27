@@ -24,8 +24,8 @@ void _normalize(const ExecutionSpace& exec_space, ViewType& inout,
 }
 
 template <typename ViewType>
-auto _coefficients(const ViewType& inout, Direction direction,
-                   Normalization normalization, std::size_t fft_size) {
+auto _coefficients(ViewType, Direction direction, Normalization normalization,
+                   std::size_t fft_size) {
   using value_type =
       KokkosFFT::Impl::real_type_t<typename ViewType::non_const_value_type>;
   value_type coef                    = 1;

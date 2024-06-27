@@ -89,14 +89,14 @@ auto get_map_axes(const ViewType& view, int axis) {
 template <class InViewType, class OutViewType, std::size_t DIMS>
 void _prep_transpose_view(InViewType& in, OutViewType& out,
                           axis_type<DIMS> _map) {
-  constexpr std::size_t rank = OutViewType::rank();
+  constexpr int rank = OutViewType::rank();
 
   // Assign a View if not a shallow copy
   bool is_out_view_ready = true;
   std::array<int, rank> out_extents;
   for (int i = 0; i < rank; i++) {
     out_extents.at(i) = in.extent(_map.at(i));
-    if (out_extents.at(i) != out.extent(i)) {
+    if (static_cast<std::size_t>(out_extents.at(i)) != out.extent(i)) {
       is_out_view_ready = false;
     }
   }
@@ -113,15 +113,15 @@ void _prep_transpose_view(InViewType& in, OutViewType& out,
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           std::enable_if_t<InViewType::rank() == 1, std::nullptr_t> = nullptr>
-void _transpose(const ExecutionSpace& exec_space, InViewType& in,
-                OutViewType& out, [[maybe_unused]] axis_type<1> _map) {}
+void _transpose(const ExecutionSpace&, InViewType&, OutViewType&,
+                axis_type<1>) {
+  // FIXME: Comment why empty?
+}
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void _transpose(const ExecutionSpace& exec_space, InViewType& in,
-                OutViewType& out, axis_type<2> _map) {
-  constexpr std::size_t DIM  = 2;
-  constexpr std::size_t rank = InViewType::rank();
-  using array_layout_type    = typename InViewType::array_layout;
+void _transpose(const ExecutionSpace&, InViewType& in, OutViewType& out,
+                axis_type<2> _map) {
+  constexpr std::size_t DIM = 2;
 
   using range_type = Kokkos::MDRangePolicy<
       ExecutionSpace,
@@ -142,11 +142,10 @@ void _transpose(const ExecutionSpace& exec_space, InViewType& in,
 }
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void _transpose(const ExecutionSpace& exec_space, InViewType& in,
-                OutViewType& out, axis_type<3> _map) {
+void _transpose(const ExecutionSpace&, InViewType& in, OutViewType& out,
+                axis_type<3> _map) {
   constexpr std::size_t DIM  = 3;
   constexpr std::size_t rank = InViewType::rank();
-  using array_layout_type    = typename InViewType::array_layout;
 
   using range_type = Kokkos::MDRangePolicy<
       ExecutionSpace,
@@ -176,11 +175,10 @@ void _transpose(const ExecutionSpace& exec_space, InViewType& in,
 }
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void _transpose(const ExecutionSpace& exec_space, InViewType& in,
-                OutViewType& out, axis_type<4> _map) {
+void _transpose(const ExecutionSpace&, InViewType& in, OutViewType& out,
+                axis_type<4> _map) {
   constexpr std::size_t DIM  = 4;
   constexpr std::size_t rank = InViewType::rank();
-  using array_layout_type    = typename InViewType::array_layout;
 
   using range_type = Kokkos::MDRangePolicy<
       ExecutionSpace,
@@ -212,11 +210,10 @@ void _transpose(const ExecutionSpace& exec_space, InViewType& in,
 }
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void _transpose(const ExecutionSpace& exec_space, InViewType& in,
-                OutViewType& out, axis_type<5> _map) {
+void _transpose(const ExecutionSpace&, InViewType& in, OutViewType& out,
+                axis_type<5> _map) {
   constexpr std::size_t DIM  = 5;
   constexpr std::size_t rank = InViewType::rank();
-  using array_layout_type    = typename InViewType::array_layout;
 
   using range_type = Kokkos::MDRangePolicy<
       ExecutionSpace,
@@ -250,11 +247,10 @@ void _transpose(const ExecutionSpace& exec_space, InViewType& in,
 }
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void _transpose(const ExecutionSpace& exec_space, InViewType& in,
-                OutViewType& out, axis_type<6> _map) {
+void _transpose(const ExecutionSpace&, InViewType& in, OutViewType& out,
+                axis_type<6> _map) {
   constexpr std::size_t DIM  = 6;
   constexpr std::size_t rank = InViewType::rank();
-  using array_layout_type    = typename InViewType::array_layout;
 
   using range_type = Kokkos::MDRangePolicy<
       ExecutionSpace,
@@ -290,12 +286,12 @@ void _transpose(const ExecutionSpace& exec_space, InViewType& in,
       });
 }
 
+// FIXME: not used?
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void _transpose(const ExecutionSpace& exec_space, InViewType& in,
-                OutViewType& out, axis_type<7> _map) {
+void _transpose(const ExecutionSpace&, InViewType& in, OutViewType& out,
+                axis_type<7> _map) {
   constexpr std::size_t DIM  = 6;
   constexpr std::size_t rank = InViewType::rank();
-  using array_layout_type    = typename InViewType::array_layout;
 
   using range_type = Kokkos::MDRangePolicy<
       ExecutionSpace,
@@ -336,12 +332,11 @@ void _transpose(const ExecutionSpace& exec_space, InViewType& in,
 }
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void _transpose(const ExecutionSpace& exec_space, InViewType& in,
-                OutViewType& out, axis_type<8> _map) {
+void _transpose(const ExecutionSpace&, InViewType& in, OutViewType& out,
+                axis_type<8> _map) {
   constexpr std::size_t DIM = 6;
 
   constexpr std::size_t rank = InViewType::rank();
-  using array_layout_type    = typename InViewType::array_layout;
 
   using range_type = Kokkos::MDRangePolicy<
       ExecutionSpace,
@@ -408,10 +403,6 @@ template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           std::size_t DIM = 1>
 void transpose(const ExecutionSpace& exec_space, InViewType& in,
                OutViewType& out, axis_type<DIM> _map) {
-  using in_value_type     = typename InViewType::non_const_value_type;
-  using out_value_type    = typename OutViewType::non_const_value_type;
-  using array_layout_type = typename InViewType::array_layout;
-
   static_assert(Kokkos::is_view<InViewType>::value,
                 "transpose: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<InViewType>::value,

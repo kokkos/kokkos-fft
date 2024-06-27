@@ -66,7 +66,7 @@ struct complex_view_type {
 };
 
 template <typename ViewType>
-auto convert_negative_axis(const ViewType& view, int _axis = -1) {
+auto convert_negative_axis(ViewType, int _axis = -1) {
   static_assert(Kokkos::is_view<ViewType>::value,
                 "convert_negative_axis: ViewType is not a Kokkos::View.");
   int rank = static_cast<int>(ViewType::rank());
@@ -160,7 +160,7 @@ inline std::vector<ElementType> arange(const ElementType start,
   ElementType delta = (stop - start) / length;
 
   // thrust::sequence
-  for (auto i = 0; i < length; i++) {
+  for (std::size_t i = 0; i < length; i++) {
     ElementType value = start + delta * i;
     result.push_back(value);
   }
@@ -175,7 +175,6 @@ void conjugate(const ExecutionSpace& exec_space, const InViewType& in,
   static_assert(Kokkos::is_view<OutViewType>::value,
                 "conjugate: OutViewType is not a Kokkos::View.");
 
-  using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
 
   static_assert(KokkosFFT::Impl::is_complex<out_value_type>::value,
@@ -189,10 +188,7 @@ void conjugate(const ExecutionSpace& exec_space, const InViewType& in,
   Kokkos::parallel_for(
       Kokkos::RangePolicy<ExecutionSpace, Kokkos::IndexType<std::size_t>>(
           exec_space, 0, size),
-      KOKKOS_LAMBDA(const int& i) {
-        out_value_type tmp = in_data[i];
-        out_data[i]        = Kokkos::conj(in_data[i]);
-      });
+      KOKKOS_LAMBDA(std::size_t i) { out_data[i] = Kokkos::conj(in_data[i]); });
 }
 
 template <typename ViewType>

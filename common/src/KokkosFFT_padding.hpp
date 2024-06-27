@@ -61,7 +61,7 @@ auto get_modified_shape(const InViewType in, const OutViewType /* out */,
   }
 
   // Update shapes based on newly given shape
-  for (int i = 0; i < DIM; i++) {
+  for (int i = 0; i < static_cast<int>(DIM); i++) {
     int positive_axis = positive_axes.at(i);
     assert(shape.at(i) > 0);
     modified_shape.at(positive_axis) = shape.at(i);
@@ -117,8 +117,8 @@ void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
 }
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
-                  OutViewType& out, shape_type<2> s) {
+void _crop_or_pad(const ExecutionSpace&, const InViewType& in, OutViewType& out,
+                  shape_type<2> s) {
   constexpr std::size_t DIM = 2;
 
   auto [_n0, _n1] = s;
@@ -142,8 +142,8 @@ void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
 }
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
-                  OutViewType& out, shape_type<3> s) {
+void _crop_or_pad(const ExecutionSpace&, const InViewType& in, OutViewType& out,
+                  shape_type<3> s) {
   constexpr std::size_t DIM = 3;
 
   auto [_n0, _n1, _n2] = s;
@@ -171,8 +171,8 @@ void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
 }
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
-                  OutViewType& out, shape_type<4> s) {
+void _crop_or_pad(const ExecutionSpace&, const InViewType& in, OutViewType& out,
+                  shape_type<4> s) {
   constexpr std::size_t DIM = 4;
 
   auto [_n0, _n1, _n2, _n3] = s;
@@ -201,8 +201,8 @@ void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
 }
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
-                  OutViewType& out, shape_type<5> s) {
+void _crop_or_pad(const ExecutionSpace&, const InViewType& in, OutViewType& out,
+                  shape_type<5> s) {
   constexpr std::size_t DIM = 5;
 
   auto [_n0, _n1, _n2, _n3, _n4] = s;
@@ -232,8 +232,8 @@ void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
 }
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
-                  OutViewType& out, shape_type<6> s) {
+void _crop_or_pad(const ExecutionSpace&, const InViewType& in, OutViewType& out,
+                  shape_type<6> s) {
   constexpr std::size_t DIM = 6;
 
   auto [_n0, _n1, _n2, _n3, _n4, _n5] = s;
@@ -265,8 +265,8 @@ void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
 }
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
-                  OutViewType& out, shape_type<7> s) {
+void _crop_or_pad(const ExecutionSpace&, const InViewType& in, OutViewType& out,
+                  shape_type<7> s) {
   constexpr std::size_t DIM = 6;
 
   auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6] = s;
@@ -301,8 +301,8 @@ void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
 }
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
-                  OutViewType& out, shape_type<8> s) {
+void _crop_or_pad(const ExecutionSpace&, const InViewType& in, OutViewType& out,
+                  shape_type<8> s) {
   constexpr std::size_t DIM = 6;
 
   auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7] = s;
