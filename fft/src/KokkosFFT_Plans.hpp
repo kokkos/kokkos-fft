@@ -157,9 +157,7 @@ class Plan {
   explicit Plan(const ExecutionSpace& exec_space, InViewType& in,
                 OutViewType& out, KokkosFFT::Direction direction, int axis,
                 std::optional<std::size_t> n = std::nullopt)
-      : m_exec_space(exec_space),
-        m_axes({axis}),
-        m_direction(direction) {
+      : m_exec_space(exec_space), m_axes({axis}), m_direction(direction) {
     static_assert(Kokkos::is_view<InViewType>::value,
                   "Plan::Plan: InViewType is not a Kokkos::View.");
     static_assert(Kokkos::is_view<OutViewType>::value,
@@ -231,9 +229,7 @@ class Plan {
   explicit Plan(const ExecutionSpace& exec_space, InViewType& in,
                 OutViewType& out, KokkosFFT::Direction direction,
                 axis_type<DIM> axes, shape_type<DIM> s = {0})
-      : m_exec_space(exec_space),
-        m_axes(axes),
-        m_direction(direction) {
+      : m_exec_space(exec_space), m_axes(axes), m_direction(direction) {
     static_assert(Kokkos::is_view<InViewType>::value,
                   "Plan::Plan: InViewType is not a Kokkos::View.");
     static_assert(Kokkos::is_view<OutViewType>::value,
