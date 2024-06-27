@@ -133,8 +133,9 @@ void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
   using tile_type  = typename range_type::tile_type;
   using point_type = typename range_type::point_type;
 
-  range_type range(point_type{{0, 0}}, point_type{{n0, n1}}, tile_type{{4, 4}}
-                   // [TO DO] Choose optimal tile sizes for each device
+  range_type range(
+      exec_space, point_type{{0, 0}}, point_type{{n0, n1}}, tile_type{{4, 4}}
+      // [TO DO] Choose optimal tile sizes for each device
   );
 
   Kokkos::parallel_for(
@@ -160,8 +161,8 @@ void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
   using point_type = typename range_type::point_type;
 
   range_type range(
-      point_type{{0, 0, 0}}, point_type{{n0, n1, n2}}, tile_type{{4, 4, 4}}
-      // [TO DO] Choose optimal tile sizes for each device
+      exec_space, point_type{{0, 0, 0}}, point_type{{n0, n1, n2}},
+      tile_type{{4, 4, 4}}  // [TO DO] Choose optimal tile sizes for each device
   );
 
   Kokkos::parallel_for(
@@ -189,8 +190,8 @@ void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
   using tile_type  = typename range_type::tile_type;
   using point_type = typename range_type::point_type;
 
-  range_type range(point_type{{0, 0, 0, 0}}, point_type{{n0, n1, n2, n3}},
-                   tile_type{{4, 4, 4, 4}}
+  range_type range(exec_space, point_type{{0, 0, 0, 0}},
+                   point_type{{n0, n1, n2, n3}}, tile_type{{4, 4, 4, 4}}
                    // [TO DO] Choose optimal tile sizes for each device
   );
 
@@ -220,7 +221,7 @@ void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
   using tile_type  = typename range_type::tile_type;
   using point_type = typename range_type::point_type;
 
-  range_type range(point_type{{0, 0, 0, 0, 0}},
+  range_type range(exec_space, point_type{{0, 0, 0, 0, 0}},
                    point_type{{n0, n1, n2, n3, n4}}, tile_type{{4, 4, 4, 4, 1}}
                    // [TO DO] Choose optimal tile sizes for each device
   );
@@ -252,7 +253,7 @@ void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
   using tile_type  = typename range_type::tile_type;
   using point_type = typename range_type::point_type;
 
-  range_type range(point_type{{0, 0, 0, 0, 0, 0}},
+  range_type range(exec_space, point_type{{0, 0, 0, 0, 0, 0}},
                    point_type{{n0, n1, n2, n3, n4, n5}},
                    tile_type{{4, 4, 4, 4, 1, 1}}
                    // [TO DO] Choose optimal tile sizes for each device
@@ -286,7 +287,7 @@ void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
   using tile_type  = typename range_type::tile_type;
   using point_type = typename range_type::point_type;
 
-  range_type range(point_type{{0, 0, 0, 0, 0, 0}},
+  range_type range(exec_space, point_type{{0, 0, 0, 0, 0, 0}},
                    point_type{{n0, n1, n2, n3, n4, n5}},
                    tile_type{{4, 4, 4, 4, 1, 1}}
                    // [TO DO] Choose optimal tile sizes for each device
@@ -323,7 +324,7 @@ void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
   using tile_type  = typename range_type::tile_type;
   using point_type = typename range_type::point_type;
 
-  range_type range(point_type{{0, 0, 0, 0, 0, 0}},
+  range_type range(exec_space, point_type{{0, 0, 0, 0, 0, 0}},
                    point_type{{n0, n1, n2, n3, n4, n5}},
                    tile_type{{4, 4, 4, 4, 1, 1}}
                    // [TO DO] Choose optimal tile sizes for each device

@@ -113,8 +113,8 @@ void _prep_transpose_view(InViewType& in, OutViewType& out,
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           std::enable_if_t<InViewType::rank() == 1, std::nullptr_t> = nullptr>
-void _transpose(const ExecutionSpace& exec_space, InViewType& in,
-                OutViewType& out, [[maybe_unused]] axis_type<1> _map) {}
+void _transpose(const ExecutionSpace&, InViewType& in, OutViewType& out,
+                [[maybe_unused]] axis_type<1> _map) {}
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
 void _transpose(const ExecutionSpace& exec_space, InViewType& in,
@@ -131,8 +131,9 @@ void _transpose(const ExecutionSpace& exec_space, InViewType& in,
 
   int n0 = in.extent(0), n1 = in.extent(1);
 
-  range_type range(point_type{{0, 0}}, point_type{{n0, n1}}, tile_type{{4, 4}}
-                   // [TO DO] Choose optimal tile sizes for each device
+  range_type range(
+      exec_space, point_type{{0, 0}}, point_type{{n0, n1}}, tile_type{{4, 4}}
+      // [TO DO] Choose optimal tile sizes for each device
   );
 
   _prep_transpose_view(in, out, _map);
@@ -157,8 +158,8 @@ void _transpose(const ExecutionSpace& exec_space, InViewType& in,
   int n0 = in.extent(0), n1 = in.extent(1), n2 = in.extent(2);
 
   range_type range(
-      point_type{{0, 0, 0}}, point_type{{n0, n1, n2}}, tile_type{{4, 4, 4}}
-      // [TO DO] Choose optimal tile sizes for each device
+      exec_space, point_type{{0, 0, 0}}, point_type{{n0, n1, n2}},
+      tile_type{{4, 4, 4}}  // [TO DO] Choose optimal tile sizes for each device
   );
 
   _prep_transpose_view(in, out, _map);
@@ -191,8 +192,8 @@ void _transpose(const ExecutionSpace& exec_space, InViewType& in,
   int n0 = in.extent(0), n1 = in.extent(1), n2 = in.extent(2),
       n3 = in.extent(3);
 
-  range_type range(point_type{{0, 0, 0, 0}}, point_type{{n0, n1, n2, n3}},
-                   tile_type{{4, 4, 4, 4}}
+  range_type range(exec_space, point_type{{0, 0, 0, 0}},
+                   point_type{{n0, n1, n2, n3}}, tile_type{{4, 4, 4, 4}}
                    // [TO DO] Choose optimal tile sizes for each device
   );
 
@@ -228,7 +229,7 @@ void _transpose(const ExecutionSpace& exec_space, InViewType& in,
       n3 = in.extent(3);
   int n4 = in.extent(4);
 
-  range_type range(point_type{{0, 0, 0, 0, 0}},
+  range_type range(exec_space, point_type{{0, 0, 0, 0, 0}},
                    point_type{{n0, n1, n2, n3, n4}}, tile_type{{4, 4, 4, 4, 1}}
                    // [TO DO] Choose optimal tile sizes for each device
   );
@@ -266,7 +267,7 @@ void _transpose(const ExecutionSpace& exec_space, InViewType& in,
       n3 = in.extent(3);
   int n4 = in.extent(4), n5 = in.extent(5);
 
-  range_type range(point_type{{0, 0, 0, 0, 0, 0}},
+  range_type range(exec_space, point_type{{0, 0, 0, 0, 0, 0}},
                    point_type{{n0, n1, n2, n3, n4, n5}},
                    tile_type{{4, 4, 4, 4, 1, 1}}
                    // [TO DO] Choose optimal tile sizes for each device
@@ -307,7 +308,7 @@ void _transpose(const ExecutionSpace& exec_space, InViewType& in,
       n3 = in.extent(3);
   int n4 = in.extent(4), n5 = in.extent(5), n6 = in.extent(6);
 
-  range_type range(point_type{{0, 0, 0, 0, 0, 0}},
+  range_type range(exec_space, point_type{{0, 0, 0, 0, 0, 0}},
                    point_type{{n0, n1, n2, n3, n4, n5}},
                    tile_type{{4, 4, 4, 4, 1, 1}}
                    // [TO DO] Choose optimal tile sizes for each device
@@ -354,7 +355,7 @@ void _transpose(const ExecutionSpace& exec_space, InViewType& in,
   int n4 = in.extent(4), n5 = in.extent(5), n6 = in.extent(6),
       n7 = in.extent(7);
 
-  range_type range(point_type{{0, 0, 0, 0, 0, 0}},
+  range_type range(exec_space, point_type{{0, 0, 0, 0, 0, 0}},
                    point_type{{n0, n1, n2, n3, n4, n5}},
                    tile_type{{4, 4, 4, 4, 1, 1}}
                    // [TO DO] Choose optimal tile sizes for each device
