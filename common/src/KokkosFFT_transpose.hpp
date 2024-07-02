@@ -287,7 +287,6 @@ void _transpose(const ExecutionSpace& exec_space, InViewType& in,
       });
 }
 
-// FIXME: not used?
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
 void _transpose(const ExecutionSpace& exec_space, InViewType& in,
                 OutViewType& out, axis_type<7> _map) {
