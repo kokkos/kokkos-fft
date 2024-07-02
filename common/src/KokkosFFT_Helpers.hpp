@@ -179,7 +179,7 @@ namespace KokkosFFT {
 ///
 /// \return Sampling frequency
 template <typename ExecutionSpace, typename RealType>
-auto fftfreq(const ExecutionSpace&, const std::size_t n,
+auto fftfreq(const ExecutionSpace& exec_space, const std::size_t n,
              const RealType d = 1.0) {
   static_assert(std::is_floating_point<RealType>::value,
                 "fftfreq: d must be float or double");
@@ -214,7 +214,7 @@ auto fftfreq(const ExecutionSpace&, const std::size_t n,
 ///
 /// \return Sampling frequency starting from zero
 template <typename ExecutionSpace, typename RealType>
-auto rfftfreq(const ExecutionSpace&, const std::size_t n,
+auto rfftfreq(const ExecutionSpace& exec_space, const std::size_t n,
               const RealType d = 1.0) {
   static_assert(std::is_floating_point<RealType>::value,
                 "fftfreq: d must be float or double");

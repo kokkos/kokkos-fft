@@ -113,8 +113,8 @@ void _prep_transpose_view(InViewType& in, OutViewType& out,
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           std::enable_if_t<InViewType::rank() == 1, std::nullptr_t> = nullptr>
-void _transpose(const ExecutionSpace&, InViewType& in, OutViewType& out,
-                [[maybe_unused]] axis_type<1> _map) {}
+void _transpose(const ExecutionSpace& exec_space, InViewType& in,
+                OutViewType& out, [[maybe_unused]] axis_type<1> _map) {}
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
 void _transpose(const ExecutionSpace& exec_space, InViewType& in,
