@@ -41,7 +41,7 @@ auto _get_shift(const ViewType& inout, axis_type<DIM> _axes,
 template <typename ExecutionSpace, typename ViewType>
 void _roll(const ExecutionSpace& exec_space, ViewType& inout,
            axis_type<1> shift, axis_type<1>) {
-  // FIXME: why `axes` is not used?
+  // Last parameter is ignored but present for keeping the interface consistent
   static_assert(ViewType::rank() == 1, "_roll: Rank of View must be 1.");
   std::size_t n0 = inout.extent(0);
 

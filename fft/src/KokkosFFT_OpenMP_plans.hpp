@@ -122,7 +122,7 @@ template <typename ExecutionSpace, typename InfoType,
               std::is_same_v<ExecutionSpace, Kokkos::DefaultHostExecutionSpace>,
               std::nullptr_t> = nullptr>
 void _destroy_info(InfoType&) {
-  // FIXME: why empty?
+  // not used, no finalization is required
 }
 }  // namespace Impl
 }  // namespace KokkosFFT
