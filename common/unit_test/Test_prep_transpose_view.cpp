@@ -12,7 +12,7 @@
 
 template <typename InViewType, typename OutViewType>
 void test_managed_prep_transpose_view() {
-  constexpr std::size_t DIMS = InViewType::rank();
+  constexpr int DIMS = InViewType::rank();
   static_assert(InViewType::rank() == OutViewType::rank(),
                 "input and output have different ranks");
 
@@ -70,7 +70,7 @@ void test_managed_prep_transpose_view() {
 
 template <typename InViewType, typename OutViewType>
 void test_unmanaged_prep_transpose_view() {
-  constexpr std::size_t DIMS = InViewType::rank();
+  constexpr int DIMS = InViewType::rank();
   static_assert(InViewType::rank() == OutViewType::rank(),
                 "input and output have different ranks");
 
