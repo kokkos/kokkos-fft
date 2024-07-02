@@ -119,8 +119,8 @@ void _transpose(const ExecutionSpace&, InViewType&, OutViewType&,
 }
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void _transpose(const ExecutionSpace&, InViewType& in, OutViewType& out,
-                axis_type<2> _map) {
+void _transpose(const ExecutionSpace& exec_space, InViewType& in,
+                OutViewType& out, axis_type<2> _map) {
   constexpr std::size_t DIM = 2;
 
   using range_type = Kokkos::MDRangePolicy<
@@ -143,8 +143,8 @@ void _transpose(const ExecutionSpace&, InViewType& in, OutViewType& out,
 }
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void _transpose(const ExecutionSpace&, InViewType& in, OutViewType& out,
-                axis_type<3> _map) {
+void _transpose(const ExecutionSpace& exec_space, InViewType& in,
+                OutViewType& out, axis_type<3> _map) {
   constexpr std::size_t DIM  = 3;
   constexpr std::size_t rank = InViewType::rank();
 
@@ -176,8 +176,8 @@ void _transpose(const ExecutionSpace&, InViewType& in, OutViewType& out,
 }
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void _transpose(const ExecutionSpace&, InViewType& in, OutViewType& out,
-                axis_type<4> _map) {
+void _transpose(const ExecutionSpace& exec_space, InViewType& in,
+                OutViewType& out, axis_type<4> _map) {
   constexpr std::size_t DIM  = 4;
   constexpr std::size_t rank = InViewType::rank();
 
@@ -211,8 +211,8 @@ void _transpose(const ExecutionSpace&, InViewType& in, OutViewType& out,
 }
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void _transpose(const ExecutionSpace&, InViewType& in, OutViewType& out,
-                axis_type<5> _map) {
+void _transpose(const ExecutionSpace& exec_space, InViewType& in,
+                OutViewType& out, axis_type<5> _map) {
   constexpr std::size_t DIM  = 5;
   constexpr std::size_t rank = InViewType::rank();
 
@@ -248,8 +248,8 @@ void _transpose(const ExecutionSpace&, InViewType& in, OutViewType& out,
 }
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void _transpose(const ExecutionSpace&, InViewType& in, OutViewType& out,
-                axis_type<6> _map) {
+void _transpose(const ExecutionSpace& exec_space, InViewType& in,
+                OutViewType& out, axis_type<6> _map) {
   constexpr std::size_t DIM  = 6;
   constexpr std::size_t rank = InViewType::rank();
 
@@ -289,8 +289,8 @@ void _transpose(const ExecutionSpace&, InViewType& in, OutViewType& out,
 
 // FIXME: not used?
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void _transpose(const ExecutionSpace&, InViewType& in, OutViewType& out,
-                axis_type<7> _map) {
+void _transpose(const ExecutionSpace& exec_space, InViewType& in,
+                OutViewType& out, axis_type<7> _map) {
   constexpr std::size_t DIM  = 6;
   constexpr std::size_t rank = InViewType::rank();
 
@@ -333,8 +333,8 @@ void _transpose(const ExecutionSpace&, InViewType& in, OutViewType& out,
 }
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void _transpose(const ExecutionSpace&, InViewType& in, OutViewType& out,
-                axis_type<8> _map) {
+void _transpose(const ExecutionSpace& exec_space, InViewType& in,
+                OutViewType& out, axis_type<8> _map) {
   constexpr std::size_t DIM = 6;
 
   constexpr std::size_t rank = InViewType::rank();
