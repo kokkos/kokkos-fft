@@ -100,7 +100,6 @@ auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
   static_assert(
       InViewType::rank() >= fft_rank,
       "KokkosFFT::_create: Rank of View must be larger than Rank of FFT.");
-  const int rank = fft_rank;
 
   constexpr auto type =
       KokkosFFT::Impl::transform_type<ExecutionSpace, in_value_type,
@@ -113,11 +112,6 @@ auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
                               std::multiplies<>());
   int fft_size = std::accumulate(fft_extents.begin(), fft_extents.end(), 1,
                                  std::multiplies<>());
-
-  auto* idata = reinterpret_cast<typename KokkosFFT::Impl::fft_data_type<
-      ExecutionSpace, in_value_type>::type*>(in.data());
-  auto* odata = reinterpret_cast<typename KokkosFFT::Impl::fft_data_type<
-      ExecutionSpace, out_value_type>::type*>(out.data());
 
   // For the moment, considering the contiguous layout only
   // Create plan
@@ -211,7 +205,6 @@ template <typename ExecutionSpace, typename InfoType,
 void _destroy_info(InfoType& execution_info) {
   rocfft_execution_info_destroy(execution_info);
 }
-
 }  // namespace Impl
 }  // namespace KokkosFFT
 
