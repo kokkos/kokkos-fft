@@ -1,23 +1,23 @@
-# SPDX-FileCopyrightText: (C) The Kokkos-FFT development team, see COPYRIGHT.md file
+#SPDX - FileCopyrightText : (C)The Kokkos - FFT development team, \
+    see COPYRIGHT.md file
 #
-# SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
+#SPDX - License - Identifier : MIT OR Apache - 2.0 WITH LLVM - exception
 
-add_executable(unit-tests-kokkos-fft-common
-    Test_Main.cpp
-    Test_Utils.cpp
-    Test_Normalization.cpp
-    Test_Transpose.cpp
-    Test_Layouts.cpp
-    Test_Padding.cpp
-    Test_Helpers.cpp
-    Test_prep_transpose_view.cpp
-)
+add_executable(
+    unit - tests - kokkos - fft -
+    common Test_Main.cpp Test_Utils.cpp Test_Traits.cpp Test_Normalization
+        .cpp Test_Transpose.cpp Test_Layouts.cpp Test_Padding.cpp Test_Helpers
+        .cpp Test_prep_transpose_view.cpp)
 
-target_compile_features(unit-tests-kokkos-fft-common PUBLIC cxx_std_17)
-target_compile_options(unit-tests-kokkos-fft-common PUBLIC -std=c++17)
+    target_compile_features(unit - tests - kokkos - fft -
+                            common PUBLIC cxx_std_17)
+        target_compile_options(unit - tests - kokkos - fft - common PUBLIC -
+                                   std = c++ 17)
 
-target_link_libraries(unit-tests-kokkos-fft-common PUBLIC common GTest::gtest)
+            target_link_libraries(unit - tests - kokkos - fft -
+                                  common PUBLIC common GTest::gtest)
 
-# Enable GoogleTest
-include(GoogleTest)
-gtest_discover_tests(unit-tests-kokkos-fft-common PROPERTIES DISCOVERY_TIMEOUT 600)
+#Enable GoogleTest
+                include(GoogleTest) gtest_discover_tests(
+                    unit - tests - kokkos - fft -
+                    common PROPERTIES DISCOVERY_TIMEOUT 600)

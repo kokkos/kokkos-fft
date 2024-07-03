@@ -4,7 +4,7 @@
 
 #ifndef TEST_TYPES_HPP
 #define TEST_TYPES_HPP
-
+#include <Kokkos_Core.hpp>
 #include <Kokkos_Complex.hpp>
 using execution_space = Kokkos::DefaultExecutionSpace;
 template <typename T>
