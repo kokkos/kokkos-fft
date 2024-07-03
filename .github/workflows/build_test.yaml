@@ -105,7 +105,7 @@ jobs:
               cxx: hipcc
             cmake_flags:
               kokkos: -DKokkos_ENABLE_HIP=ON -DKokkos_ARCH_VEGA90A=ON
-              kokkos_fft: -DKokkosFFT_ENABLE_ROCFFT=ON
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror" -DKokkosFFT_ENABLE_ROCFFT=ON
           - name: rocm
             image: rocm
             compiler:
@@ -113,7 +113,7 @@ jobs:
               cxx: hipcc
             cmake_flags:
               kokkos: -DKokkos_ENABLE_HIP=ON -DKokkos_ARCH_VEGA90A=ON
-              kokkos_fft: ""
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror"
           - name: sycl
             image: intel
             compiler:
