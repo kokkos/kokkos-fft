@@ -49,10 +49,8 @@ template <
     std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::Experimental::SYCL>,
                      std::nullptr_t> = nullptr>
 auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
-             const InViewType& in, const OutViewType& out,
-             [[maybe_unused]] BufferViewType& buffer,
-             [[maybe_unused]] InfoType& execution_info,
-             [[maybe_unused]] Direction direction, axis_type<fft_rank> axes,
+             const InViewType& in, const OutViewType& out, BufferViewType&,
+             InfoType&, Direction /*direction*/, axis_type<fft_rank> axes,
              shape_type<fft_rank> s) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "KokkosFFT::_create: InViewType is not a Kokkos::View.");
@@ -76,9 +74,6 @@ auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
                               std::multiplies<>());
   int fft_size = std::accumulate(fft_extents.begin(), fft_extents.end(), 1,
                                  std::multiplies<>());
-
-  // For the moment, considering the contiguous layout only
-  auto sign = KokkosFFT::Impl::direction_type<ExecutionSpace>(direction);
 
   // Create plan
   auto in_strides   = compute_strides<int, std::int64_t>(in_extents);

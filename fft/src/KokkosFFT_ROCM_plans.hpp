@@ -88,7 +88,7 @@ template <typename ExecutionSpace, typename PlanType, typename InViewType,
 auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
              const InViewType& in, const OutViewType& out,
              BufferViewType& buffer, InfoType& execution_info,
-             [[maybe_unused]] Direction direction, axis_type<fft_rank> axes,
+             Direction direction, axis_type<fft_rank> axes,
              shape_type<fft_rank> s) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "KokkosFFT::_create: InViewType is not a Kokkos::View.");
