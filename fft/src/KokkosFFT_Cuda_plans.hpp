@@ -194,7 +194,9 @@ void _destroy_plan(std::unique_ptr<PlanType>& plan) {
 template <typename ExecutionSpace, typename InfoType,
           std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::Cuda>,
                            std::nullptr_t> = nullptr>
-void _destroy_info(InfoType& plan) {}
+void _destroy_info(InfoType&) {
+  // not used, no finalization is required
+}
 }  // namespace Impl
 }  // namespace KokkosFFT
 
