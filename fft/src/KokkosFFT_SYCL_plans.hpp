@@ -64,7 +64,6 @@ auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
   static_assert(
       InViewType::rank() >= fft_rank,
       "KokkosFFT::_create: Rank of View must be larger than Rank of FFT.");
-  const int rank = fft_rank;
 
   constexpr auto type =
       KokkosFFT::Impl::transform_type<ExecutionSpace, in_value_type,
@@ -77,11 +76,6 @@ auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
                               std::multiplies<>());
   int fft_size = std::accumulate(fft_extents.begin(), fft_extents.end(), 1,
                                  std::multiplies<>());
-
-  auto* idata = reinterpret_cast<typename KokkosFFT::Impl::fft_data_type<
-      ExecutionSpace, in_value_type>::type*>(in.data());
-  auto* odata = reinterpret_cast<typename KokkosFFT::Impl::fft_data_type<
-      ExecutionSpace, out_value_type>::type*>(out.data());
 
   // For the moment, considering the contiguous layout only
   auto sign = KokkosFFT::Impl::direction_type<ExecutionSpace>(direction);
@@ -118,18 +112,21 @@ auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
   return fft_size;
 }
 
-// In oneMKL, plans are destroybed by destructor
 template <
     typename ExecutionSpace, typename PlanType,
     std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::Experimental::SYCL>,
                      std::nullptr_t> = nullptr>
-void _destroy_plan(std::unique_ptr<PlanType>& plan) {}
+void _destroy_plan(std::unique_ptr<PlanType>&) {
+  // In oneMKL, plans are destroybed by destructor
+}
 
 template <
     typename ExecutionSpace, typename InfoType,
     std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::Experimental::SYCL>,
                      std::nullptr_t> = nullptr>
-void _destroy_info(InfoType& plan) {}
+void _destroy_info(InfoType) {
+  // not used, no finalization is required
+}
 }  // namespace Impl
 }  // namespace KokkosFFT
 
