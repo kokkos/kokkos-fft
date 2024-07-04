@@ -73,7 +73,8 @@ auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
 
   // For the moment, considering the contiguous layout only
   int istride = 1, ostride = 1;
-  auto sign = KokkosFFT::Impl::direction_type<ExecutionSpace>(direction);
+  [[maybe_unused]] auto sign =
+      KokkosFFT::Impl::direction_type<ExecutionSpace>(direction);
 
   plan = std::make_unique<PlanType>();
   if constexpr (type == KokkosFFT::Impl::FFTWTransformType::R2C) {
