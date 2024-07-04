@@ -96,8 +96,8 @@ jobs:
               c: gcc
               cxx: g++
             cmake_flags:
-              kokkos: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror" -DKokkos_ENABLE_CUDA=ON -DKokkos_ARCH_AMPERE80=ON
-              kokkos_fft: ""
+              kokkos: -DKokkos_ENABLE_CUDA=ON -DKokkos_ARCH_AMPERE80=ON
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror"
           - name: hip
             image: rocm
             compiler:
