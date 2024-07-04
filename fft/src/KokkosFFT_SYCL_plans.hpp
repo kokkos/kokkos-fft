@@ -63,9 +63,6 @@ auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
       InViewType::rank() >= fft_rank,
       "KokkosFFT::_create: Rank of View must be larger than Rank of FFT.");
 
-  constexpr auto type =
-      KokkosFFT::Impl::transform_type<ExecutionSpace, in_value_type,
-                                      out_value_type>::type();
   auto [in_extents, out_extents, fft_extents, howmany] =
       KokkosFFT::Impl::get_extents(in, out, axes, s);
   int idist    = std::accumulate(in_extents.begin(), in_extents.end(), 1,
