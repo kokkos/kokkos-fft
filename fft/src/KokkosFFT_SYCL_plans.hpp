@@ -119,7 +119,7 @@ template <
     typename ExecutionSpace, typename InfoType,
     std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::Experimental::SYCL>,
                      std::nullptr_t> = nullptr>
-void _destroy_info(InfoType) {
+void _destroy_info(InfoType&) {
   // not used, no finalization is required
 }
 }  // namespace Impl
