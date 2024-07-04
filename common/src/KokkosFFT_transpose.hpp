@@ -73,7 +73,7 @@ auto get_map_axes(const ViewType& view, axis_type<DIM> _axes) {
     map_inv.push_back(get_index(map, i));
   }
 
-  using full_axis_type = axis_type<rank>;
+  using full_axis_type     = axis_type<rank>;
   full_axis_type array_map = {0}, array_map_inv = {0};
   std::copy(map.begin(), map.end(), array_map.begin());
   std::copy(map_inv.begin(), map_inv.end(), array_map_inv.begin());
