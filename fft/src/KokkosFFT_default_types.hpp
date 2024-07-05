@@ -18,11 +18,11 @@
 #elif defined(KOKKOS_ENABLE_SYCL)
 #include "KokkosFFT_SYCL_types.hpp"
 #elif defined(KOKKOS_ENABLE_OPENMP)
-#include "KokkosFFT_OpenMP_types.hpp"
+#include "KokkosFFT_Host_types.hpp"
 #elif defined(KOKKOS_ENABLE_THREADS)
-#include "KokkosFFT_OpenMP_types.hpp"
+#include "KokkosFFT_Host_types.hpp"
 #else
-#include "KokkosFFT_OpenMP_types.hpp"
+#include "KokkosFFT_Host_types.hpp"
 #endif
 
 #include "KokkosFFT_utils.hpp"
