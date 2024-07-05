@@ -11,7 +11,7 @@
 namespace KokkosFFT {
 namespace Impl {
 inline void _exec(rocfft_plan& plan, float* idata, std::complex<float>* odata,
-                  [[maybe_unused]] int direction,
+                  int /*direction*/,
                   const rocfft_execution_info& execution_info) {
   rocfft_status status =
       rocfft_execute(plan, (void**)&idata, (void**)&odata, execution_info);
@@ -20,7 +20,7 @@ inline void _exec(rocfft_plan& plan, float* idata, std::complex<float>* odata,
 }
 
 inline void _exec(rocfft_plan& plan, double* idata, std::complex<double>* odata,
-                  [[maybe_unused]] int direction,
+                  int /*direction*/,
                   const rocfft_execution_info& execution_info) {
   rocfft_status status =
       rocfft_execute(plan, (void**)&idata, (void**)&odata, execution_info);
@@ -29,7 +29,7 @@ inline void _exec(rocfft_plan& plan, double* idata, std::complex<double>* odata,
 }
 
 inline void _exec(rocfft_plan& plan, std::complex<float>* idata, float* odata,
-                  [[maybe_unused]] int direction,
+                  int /*direction*/,
                   const rocfft_execution_info& execution_info) {
   rocfft_status status =
       rocfft_execute(plan, (void**)&idata, (void**)&odata, execution_info);
@@ -38,7 +38,7 @@ inline void _exec(rocfft_plan& plan, std::complex<float>* idata, float* odata,
 }
 
 inline void _exec(rocfft_plan& plan, std::complex<double>* idata, double* odata,
-                  [[maybe_unused]] int direction,
+                  int /*direction*/,
                   const rocfft_execution_info& execution_info) {
   rocfft_status status =
       rocfft_execute(plan, (void**)&idata, (void**)&odata, execution_info);
@@ -47,7 +47,7 @@ inline void _exec(rocfft_plan& plan, std::complex<double>* idata, double* odata,
 }
 
 inline void _exec(rocfft_plan& plan, std::complex<float>* idata,
-                  std::complex<float>* odata, [[maybe_unused]] int direction,
+                  std::complex<float>* odata, int /*direction*/,
                   const rocfft_execution_info& execution_info) {
   rocfft_status status =
       rocfft_execute(plan, (void**)&idata, (void**)&odata, execution_info);
@@ -56,7 +56,7 @@ inline void _exec(rocfft_plan& plan, std::complex<float>* idata,
 }
 
 inline void _exec(rocfft_plan& plan, std::complex<double>* idata,
-                  std::complex<double>* odata, [[maybe_unused]] int direction,
+                  std::complex<double>* odata, int /*direction*/,
                   const rocfft_execution_info& execution_info) {
   rocfft_status status =
       rocfft_execute(plan, (void**)&idata, (void**)&odata, execution_info);

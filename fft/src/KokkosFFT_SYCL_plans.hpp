@@ -49,10 +49,8 @@ template <
     std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::Experimental::SYCL>,
                      std::nullptr_t> = nullptr>
 auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
-             const InViewType& in, const OutViewType& out,
-             [[maybe_unused]] BufferViewType& buffer,
-             [[maybe_unused]] InfoType& execution_info,
-             [[maybe_unused]] Direction direction, axis_type<fft_rank> axes,
+             const InViewType& in, const OutViewType& out, BufferViewType&,
+             InfoType&, Direction /*direction*/, axis_type<fft_rank> axes,
              shape_type<fft_rank> s) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "KokkosFFT::_create: InViewType is not a Kokkos::View.");
@@ -64,11 +62,7 @@ auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
   static_assert(
       InViewType::rank() >= fft_rank,
       "KokkosFFT::_create: Rank of View must be larger than Rank of FFT.");
-  const int rank = fft_rank;
 
-  constexpr auto type =
-      KokkosFFT::Impl::transform_type<ExecutionSpace, in_value_type,
-                                      out_value_type>::type();
   auto [in_extents, out_extents, fft_extents, howmany] =
       KokkosFFT::Impl::get_extents(in, out, axes, s);
   int idist    = std::accumulate(in_extents.begin(), in_extents.end(), 1,
@@ -77,14 +71,6 @@ auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
                               std::multiplies<>());
   int fft_size = std::accumulate(fft_extents.begin(), fft_extents.end(), 1,
                                  std::multiplies<>());
-
-  auto* idata = reinterpret_cast<typename KokkosFFT::Impl::fft_data_type<
-      ExecutionSpace, in_value_type>::type*>(in.data());
-  auto* odata = reinterpret_cast<typename KokkosFFT::Impl::fft_data_type<
-      ExecutionSpace, out_value_type>::type*>(out.data());
-
-  // For the moment, considering the contiguous layout only
-  auto sign = KokkosFFT::Impl::direction_type<ExecutionSpace>(direction);
 
   // Create plan
   auto in_strides   = compute_strides<int, std::int64_t>(in_extents);
@@ -118,18 +104,21 @@ auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
   return fft_size;
 }
 
-// In oneMKL, plans are destroybed by destructor
 template <
     typename ExecutionSpace, typename PlanType,
     std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::Experimental::SYCL>,
                      std::nullptr_t> = nullptr>
-void _destroy_plan(std::unique_ptr<PlanType>& plan) {}
+void _destroy_plan(std::unique_ptr<PlanType>&) {
+  // In oneMKL, plans are destroybed by destructor
+}
 
 template <
     typename ExecutionSpace, typename InfoType,
     std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::Experimental::SYCL>,
                      std::nullptr_t> = nullptr>
-void _destroy_info(InfoType& plan) {}
+void _destroy_info(InfoType&) {
+  // not used, no finalization is required
+}
 }  // namespace Impl
 }  // namespace KokkosFFT
 

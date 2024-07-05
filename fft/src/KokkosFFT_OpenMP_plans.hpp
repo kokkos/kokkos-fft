@@ -34,11 +34,9 @@ template <typename ExecutionSpace, typename PlanType, typename InViewType,
               std::is_same_v<ExecutionSpace, Kokkos::DefaultHostExecutionSpace>,
               std::nullptr_t> = nullptr>
 auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
-             const InViewType& in, const OutViewType& out,
-             [[maybe_unused]] BufferViewType& buffer,
-             [[maybe_unused]] InfoType& execution_info,
-             [[maybe_unused]] Direction direction, axis_type<fft_rank> axes,
-             shape_type<fft_rank> s) {
+             const InViewType& in, const OutViewType& out, BufferViewType&,
+             InfoType&, [[maybe_unused]] Direction direction,
+             axis_type<fft_rank> axes, shape_type<fft_rank> s) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "KokkosFFT::_create: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<InViewType>::value,
