@@ -16,7 +16,7 @@
 #if defined(KOKKOS_ENABLE_CUDA)
 #include "KokkosFFT_Cuda_transform.hpp"
 #ifdef ENABLE_HOST_AND_DEVICE
-#include "KokkosFFT_OpenMP_transform.hpp"
+#include "KokkosFFT_Host_transform.hpp"
 #endif
 #elif defined(KOKKOS_ENABLE_HIP)
 #if defined(KOKKOSFFT_ENABLE_TPL_ROCFFT)
@@ -25,19 +25,19 @@
 #include "KokkosFFT_HIP_transform.hpp"
 #endif
 #ifdef ENABLE_HOST_AND_DEVICE
-#include "KokkosFFT_OpenMP_transform.hpp"
+#include "KokkosFFT_Host_transform.hpp"
 #endif
 #elif defined(KOKKOS_ENABLE_SYCL)
 #include "KokkosFFT_SYCL_transform.hpp"
 #ifdef ENABLE_HOST_AND_DEVICE
-#include "KokkosFFT_OpenMP_transform.hpp"
+#include "KokkosFFT_Host_transform.hpp"
 #endif
 #elif defined(KOKKOS_ENABLE_OPENMP)
-#include "KokkosFFT_OpenMP_transform.hpp"
+#include "KokkosFFT_Host_transform.hpp"
 #elif defined(KOKKOS_ENABLE_THREADS)
-#include "KokkosFFT_OpenMP_transform.hpp"
+#include "KokkosFFT_Host_transform.hpp"
 #else
-#include "KokkosFFT_OpenMP_transform.hpp"
+#include "KokkosFFT_Host_transform.hpp"
 #endif
 
 #include <type_traits>

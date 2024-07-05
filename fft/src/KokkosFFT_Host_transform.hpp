@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
-#ifndef KOKKOSFFT_OPENMP_TRANSFORM_HPP
-#define KOKKOSFFT_OPENMP_TRANSFORM_HPP
+#ifndef KOKKOSFFT_HOST_TRANSFORM_HPP
+#define KOKKOSFFT_HOST_TRANSFORM_HPP
 
 #include <fftw3.h>
 

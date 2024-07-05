@@ -20,7 +20,7 @@
 #if defined(KOKKOS_ENABLE_CUDA)
 #include "KokkosFFT_Cuda_plans.hpp"
 #ifdef ENABLE_HOST_AND_DEVICE
-#include "KokkosFFT_OpenMP_plans.hpp"
+#include "KokkosFFT_Host_plans.hpp"
 #endif
 #elif defined(KOKKOS_ENABLE_HIP)
 #if defined(KOKKOSFFT_ENABLE_TPL_ROCFFT)
@@ -29,19 +29,19 @@
 #include "KokkosFFT_HIP_plans.hpp"
 #endif
 #ifdef ENABLE_HOST_AND_DEVICE
-#include "KokkosFFT_OpenMP_plans.hpp"
+#include "KokkosFFT_Host_plans.hpp"
 #endif
 #elif defined(KOKKOS_ENABLE_SYCL)
 #include "KokkosFFT_SYCL_plans.hpp"
 #ifdef ENABLE_HOST_AND_DEVICE
-#include "KokkosFFT_OpenMP_plans.hpp"
+#include "KokkosFFT_Host_plans.hpp"
 #endif
 #elif defined(KOKKOS_ENABLE_OPENMP)
-#include "KokkosFFT_OpenMP_plans.hpp"
+#include "KokkosFFT_Host_plans.hpp"
 #elif defined(KOKKOS_ENABLE_THREADS)
-#include "KokkosFFT_OpenMP_plans.hpp"
+#include "KokkosFFT_Host_plans.hpp"
 #else
-#include "KokkosFFT_OpenMP_plans.hpp"
+#include "KokkosFFT_Host_plans.hpp"
 #endif
 
 namespace KokkosFFT {
