@@ -12,10 +12,9 @@
 namespace KokkosFFT {
 namespace Impl {
 template <typename ViewType, std::size_t DIM = 1>
-auto _get_shift(const ViewType& inout, axis_type<DIM> _axes,
-                int direction = 1) {
+auto get_shift(const ViewType& inout, axis_type<DIM> _axes, int direction = 1) {
   static_assert(DIM > 0,
-                "_get_shift: Rank of shift axes must be "
+                "get_shift: Rank of shift axes must be "
                 "larger than or equal to 1.");
 
   // Convert the input axes to be in the range of [0, rank-1]
@@ -39,10 +38,10 @@ auto _get_shift(const ViewType& inout, axis_type<DIM> _axes,
 }
 
 template <typename ExecutionSpace, typename ViewType>
-void _roll(const ExecutionSpace& exec_space, ViewType& inout,
-           axis_type<1> shift, axis_type<1>) {
+void roll_impl(const ExecutionSpace& exec_space, ViewType& inout,
+               axis_type<1> shift, axis_type<1>) {
   // Last parameter is ignored but present for keeping the interface consistent
-  static_assert(ViewType::rank() == 1, "_roll: Rank of View must be 1.");
+  static_assert(ViewType::rank() == 1, "roll_impl: Rank of View must be 1.");
   std::size_t n0 = inout.extent(0);
 
   ViewType tmp("tmp", n0);
@@ -69,10 +68,10 @@ void _roll(const ExecutionSpace& exec_space, ViewType& inout,
 }
 
 template <typename ExecutionSpace, typename ViewType, std::size_t DIM1 = 1>
-void _roll(const ExecutionSpace& exec_space, ViewType& inout,
-           axis_type<2> shift, axis_type<DIM1> axes) {
+void roll_impl(const ExecutionSpace& exec_space, ViewType& inout,
+               axis_type<2> shift, axis_type<DIM1> axes) {
   constexpr int DIM0 = 2;
-  static_assert(ViewType::rank() == DIM0, "_roll: Rank of View must be 2.");
+  static_assert(ViewType::rank() == DIM0, "roll_impl: Rank of View must be 2.");
   int n0 = inout.extent(0), n1 = inout.extent(1);
 
   ViewType tmp("tmp", n0, n1);
@@ -130,43 +129,43 @@ void _roll(const ExecutionSpace& exec_space, ViewType& inout,
 }
 
 template <typename ExecutionSpace, typename ViewType, std::size_t DIM = 1>
-void _fftshift(const ExecutionSpace& exec_space, ViewType& inout,
-               axis_type<DIM> axes) {
+void fftshift_impl(const ExecutionSpace& exec_space, ViewType& inout,
+                   axis_type<DIM> axes) {
   static_assert(Kokkos::is_view<ViewType>::value,
-                "_fftshift: ViewType is not a Kokkos::View.");
+                "fftshift_impl: ViewType is not a Kokkos::View.");
   static_assert(
       KokkosFFT::Impl::is_layout_left_or_right_v<ViewType>,
-      "_fftshift: ViewType must be either LayoutLeft or LayoutRight.");
+      "fftshift_impl: ViewType must be either LayoutLeft or LayoutRight.");
   static_assert(
       Kokkos::SpaceAccessibility<ExecutionSpace,
                                  typename ViewType::memory_space>::accessible,
-      "_fftshift: execution_space cannot access data in ViewType");
+      "fftshift_impl: execution_space cannot access data in ViewType");
 
   static_assert(ViewType::rank() >= DIM,
-                "_fftshift: Rank of View must be larger thane "
+                "fftshift_impl: Rank of View must be larger thane "
                 "or equal to the Rank of shift axes.");
-  auto shift = _get_shift(inout, axes);
-  _roll(exec_space, inout, shift, axes);
+  auto shift = get_shift(inout, axes);
+  roll_impl(exec_space, inout, shift, axes);
 }
 
 template <typename ExecutionSpace, typename ViewType, std::size_t DIM = 1>
-void _ifftshift(const ExecutionSpace& exec_space, ViewType& inout,
-                axis_type<DIM> axes) {
+void ifftshift_impl(const ExecutionSpace& exec_space, ViewType& inout,
+                    axis_type<DIM> axes) {
   static_assert(Kokkos::is_view<ViewType>::value,
-                "_ifftshift: ViewType is not a Kokkos::View.");
+                "ifftshift_impl: ViewType is not a Kokkos::View.");
   static_assert(
       KokkosFFT::Impl::is_layout_left_or_right_v<ViewType>,
-      "_ifftshift: ViewType must be either LayoutLeft or LayoutRight.");
+      "ifftshift_impl: ViewType must be either LayoutLeft or LayoutRight.");
   static_assert(
       Kokkos::SpaceAccessibility<ExecutionSpace,
                                  typename ViewType::memory_space>::accessible,
-      "_ifftshift: execution_space cannot access data in ViewType");
+      "ifftshift_impl: execution_space cannot access data in ViewType");
 
   static_assert(ViewType::rank() >= DIM,
-                "_ifftshift: Rank of View must be larger "
+                "ifftshift_impl: Rank of View must be larger "
                 "thane or equal to the Rank of shift axes.");
-  auto shift = _get_shift(inout, axes, -1);
-  _roll(exec_space, inout, shift, axes);
+  auto shift = get_shift(inout, axes, -1);
+  roll_impl(exec_space, inout, shift, axes);
 }
 }  // namespace Impl
 }  // namespace KokkosFFT
@@ -246,12 +245,12 @@ void fftshift(const ExecutionSpace& exec_space, ViewType& inout,
               std::optional<int> axes = std::nullopt) {
   if (axes) {
     axis_type<1> _axes{axes.value()};
-    KokkosFFT::Impl::_fftshift(exec_space, inout, _axes);
+    KokkosFFT::Impl::fftshift_impl(exec_space, inout, _axes);
   } else {
     constexpr std::size_t rank = ViewType::rank();
     constexpr int start        = -static_cast<int>(rank);
     axis_type<rank> _axes      = KokkosFFT::Impl::index_sequence<rank>(start);
-    KokkosFFT::Impl::_fftshift(exec_space, inout, _axes);
+    KokkosFFT::Impl::fftshift_impl(exec_space, inout, _axes);
   }
 }
 
@@ -263,7 +262,7 @@ void fftshift(const ExecutionSpace& exec_space, ViewType& inout,
 template <typename ExecutionSpace, typename ViewType, std::size_t DIM = 1>
 void fftshift(const ExecutionSpace& exec_space, ViewType& inout,
               axis_type<DIM> axes) {
-  KokkosFFT::Impl::_fftshift(exec_space, inout, axes);
+  KokkosFFT::Impl::fftshift_impl(exec_space, inout, axes);
 }
 
 /// \brief The inverse of fftshift
@@ -276,12 +275,12 @@ void ifftshift(const ExecutionSpace& exec_space, ViewType& inout,
                std::optional<int> axes = std::nullopt) {
   if (axes) {
     axis_type<1> _axes{axes.value()};
-    KokkosFFT::Impl::_ifftshift(exec_space, inout, _axes);
+    KokkosFFT::Impl::ifftshift_impl(exec_space, inout, _axes);
   } else {
     constexpr std::size_t rank = ViewType::rank();
     constexpr int start        = -static_cast<int>(rank);
     axis_type<rank> _axes      = KokkosFFT::Impl::index_sequence<rank>(start);
-    KokkosFFT::Impl::_ifftshift(exec_space, inout, _axes);
+    KokkosFFT::Impl::ifftshift_impl(exec_space, inout, _axes);
   }
 }
 
@@ -293,7 +292,7 @@ void ifftshift(const ExecutionSpace& exec_space, ViewType& inout,
 template <typename ExecutionSpace, typename ViewType, std::size_t DIM = 1>
 void ifftshift(const ExecutionSpace& exec_space, ViewType& inout,
                axis_type<DIM> axes) {
-  KokkosFFT::Impl::_ifftshift(exec_space, inout, axes);
+  KokkosFFT::Impl::ifftshift_impl(exec_space, inout, axes);
 }
 }  // namespace KokkosFFT
 
