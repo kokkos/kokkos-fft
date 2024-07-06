@@ -12,8 +12,8 @@
 namespace KokkosFFT {
 namespace Impl {
 template <typename ExecutionSpace, typename ViewType, typename T>
-void _normalize(const ExecutionSpace& exec_space, ViewType& inout,
-                const T coef) {
+void normalize_impl(const ExecutionSpace& exec_space, ViewType& inout,
+                    const T coef) {
   std::size_t size = inout.size();
   auto* data       = inout.data();
 
@@ -24,8 +24,8 @@ void _normalize(const ExecutionSpace& exec_space, ViewType& inout,
 }
 
 template <typename ViewType>
-auto _coefficients(ViewType, Direction direction, Normalization normalization,
-                   std::size_t fft_size) {
+auto coefficients_impl(ViewType, Direction direction,
+                       Normalization normalization, std::size_t fft_size) {
   using value_type =
       KokkosFFT::Impl::real_type_t<typename ViewType::non_const_value_type>;
   value_type coef                    = 1;
@@ -63,8 +63,8 @@ void normalize(const ExecutionSpace& exec_space, ViewType& inout,
                Direction direction, Normalization normalization,
                std::size_t fft_size) {
   auto [coef, to_normalize] =
-      _coefficients(inout, direction, normalization, fft_size);
-  if (to_normalize) _normalize(exec_space, inout, coef);
+      coefficients_impl(inout, direction, normalization, fft_size);
+  if (to_normalize) normalize_impl(exec_space, inout, coef);
 }
 
 inline auto swap_direction(Normalization normalization) {

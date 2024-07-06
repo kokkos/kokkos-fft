@@ -87,15 +87,15 @@ auto get_map_axes(const ViewType& view, int axis) {
 }
 
 template <class InViewType, class OutViewType, std::size_t DIMS>
-void _prep_transpose_view(InViewType& in, OutViewType& out,
-                          axis_type<DIMS> _map) {
+void prep_transpose_view(InViewType& in, OutViewType& out,
+                         axis_type<DIMS> map) {
   constexpr int rank = OutViewType::rank();
 
   // Assign a View if not a shallow copy
   bool is_out_view_ready = true;
   std::array<int, rank> out_extents;
   for (int i = 0; i < rank; i++) {
-    out_extents.at(i) = in.extent(_map.at(i));
+    out_extents.at(i) = in.extent(map.at(i));
     if (static_cast<std::size_t>(out_extents.at(i)) != out.extent(i)) {
       is_out_view_ready = false;
     }
@@ -111,16 +111,9 @@ void _prep_transpose_view(InViewType& in, OutViewType& out,
   }
 }
 
-template <typename ExecutionSpace, typename InViewType, typename OutViewType,
-          std::enable_if_t<InViewType::rank() == 1, std::nullptr_t> = nullptr>
-void _transpose(const ExecutionSpace&, InViewType&, OutViewType&,
-                axis_type<1>) {
-  // FIXME: Comment why empty?
-}
-
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void _transpose(const ExecutionSpace& exec_space, InViewType& in,
-                OutViewType& out, axis_type<2> _map) {
+void transpose_impl(const ExecutionSpace& exec_space, InViewType& in,
+                    OutViewType& out, axis_type<2> _map) {
   constexpr std::size_t DIM = 2;
 
   using range_type = Kokkos::MDRangePolicy<
@@ -136,15 +129,15 @@ void _transpose(const ExecutionSpace& exec_space, InViewType& in,
       // [TO DO] Choose optimal tile sizes for each device
   );
 
-  _prep_transpose_view(in, out, _map);
+  prep_transpose_view(in, out, _map);
 
   Kokkos::parallel_for(
       range, KOKKOS_LAMBDA(int i0, int i1) { out(i1, i0) = in(i0, i1); });
 }
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void _transpose(const ExecutionSpace& exec_space, InViewType& in,
-                OutViewType& out, axis_type<3> _map) {
+void transpose_impl(const ExecutionSpace& exec_space, InViewType& in,
+                    OutViewType& out, axis_type<3> _map) {
   constexpr std::size_t DIM  = 3;
   constexpr std::size_t rank = InViewType::rank();
 
@@ -161,7 +154,7 @@ void _transpose(const ExecutionSpace& exec_space, InViewType& in,
       tile_type{{4, 4, 4}}  // [TO DO] Choose optimal tile sizes for each device
   );
 
-  _prep_transpose_view(in, out, _map);
+  prep_transpose_view(in, out, _map);
 
   Kokkos::Array<int, 3> map = {_map[0], _map[1], _map[2]};
   Kokkos::parallel_for(
@@ -176,8 +169,8 @@ void _transpose(const ExecutionSpace& exec_space, InViewType& in,
 }
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void _transpose(const ExecutionSpace& exec_space, InViewType& in,
-                OutViewType& out, axis_type<4> _map) {
+void transpose_impl(const ExecutionSpace& exec_space, InViewType& in,
+                    OutViewType& out, axis_type<4> _map) {
   constexpr std::size_t DIM  = 4;
   constexpr std::size_t rank = InViewType::rank();
 
@@ -195,7 +188,7 @@ void _transpose(const ExecutionSpace& exec_space, InViewType& in,
                    // [TO DO] Choose optimal tile sizes for each device
   );
 
-  _prep_transpose_view(in, out, _map);
+  prep_transpose_view(in, out, _map);
 
   Kokkos::Array<int, rank> map = {_map[0], _map[1], _map[2], _map[3]};
   Kokkos::parallel_for(
@@ -211,8 +204,8 @@ void _transpose(const ExecutionSpace& exec_space, InViewType& in,
 }
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void _transpose(const ExecutionSpace& exec_space, InViewType& in,
-                OutViewType& out, axis_type<5> _map) {
+void transpose_impl(const ExecutionSpace& exec_space, InViewType& in,
+                    OutViewType& out, axis_type<5> _map) {
   constexpr std::size_t DIM  = 5;
   constexpr std::size_t rank = InViewType::rank();
 
@@ -231,7 +224,7 @@ void _transpose(const ExecutionSpace& exec_space, InViewType& in,
                    // [TO DO] Choose optimal tile sizes for each device
   );
 
-  _prep_transpose_view(in, out, _map);
+  prep_transpose_view(in, out, _map);
 
   Kokkos::Array<int, rank> map = {_map[0], _map[1], _map[2], _map[3], _map[4]};
   Kokkos::parallel_for(
@@ -248,8 +241,8 @@ void _transpose(const ExecutionSpace& exec_space, InViewType& in,
 }
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void _transpose(const ExecutionSpace& exec_space, InViewType& in,
-                OutViewType& out, axis_type<6> _map) {
+void transpose_impl(const ExecutionSpace& exec_space, InViewType& in,
+                    OutViewType& out, axis_type<6> _map) {
   constexpr std::size_t DIM  = 6;
   constexpr std::size_t rank = InViewType::rank();
 
@@ -269,7 +262,7 @@ void _transpose(const ExecutionSpace& exec_space, InViewType& in,
                    // [TO DO] Choose optimal tile sizes for each device
   );
 
-  _prep_transpose_view(in, out, _map);
+  prep_transpose_view(in, out, _map);
 
   Kokkos::Array<int, rank> map = {_map[0], _map[1], _map[2],
                                   _map[3], _map[4], _map[5]};
@@ -288,8 +281,8 @@ void _transpose(const ExecutionSpace& exec_space, InViewType& in,
 }
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void _transpose(const ExecutionSpace& exec_space, InViewType& in,
-                OutViewType& out, axis_type<7> _map) {
+void transpose_impl(const ExecutionSpace& exec_space, InViewType& in,
+                    OutViewType& out, axis_type<7> _map) {
   constexpr std::size_t DIM  = 6;
   constexpr std::size_t rank = InViewType::rank();
 
@@ -309,7 +302,7 @@ void _transpose(const ExecutionSpace& exec_space, InViewType& in,
                    // [TO DO] Choose optimal tile sizes for each device
   );
 
-  _prep_transpose_view(in, out, _map);
+  prep_transpose_view(in, out, _map);
 
   Kokkos::Array<int, rank> map = {_map[0], _map[1], _map[2], _map[3],
                                   _map[4], _map[5], _map[6]};
@@ -332,8 +325,8 @@ void _transpose(const ExecutionSpace& exec_space, InViewType& in,
 }
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void _transpose(const ExecutionSpace& exec_space, InViewType& in,
-                OutViewType& out, axis_type<8> _map) {
+void transpose_impl(const ExecutionSpace& exec_space, InViewType& in,
+                    OutViewType& out, axis_type<8> _map) {
   constexpr std::size_t DIM = 6;
 
   constexpr std::size_t rank = InViewType::rank();
@@ -355,7 +348,7 @@ void _transpose(const ExecutionSpace& exec_space, InViewType& in,
                    // [TO DO] Choose optimal tile sizes for each device
   );
 
-  _prep_transpose_view(in, out, _map);
+  prep_transpose_view(in, out, _map);
 
   Kokkos::Array<int, rank> map = {_map[0], _map[1], _map[2], _map[3],
                                   _map[4], _map[5], _map[6], _map[7]};
@@ -402,7 +395,7 @@ void _transpose(const ExecutionSpace& exec_space, InViewType& in,
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           std::size_t DIM = 1>
 void transpose(const ExecutionSpace& exec_space, InViewType& in,
-               OutViewType& out, axis_type<DIM> _map) {
+               OutViewType& out, axis_type<DIM> map) {
   static_assert(Kokkos::is_view<InViewType>::value,
                 "transpose: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<InViewType>::value,
@@ -416,11 +409,14 @@ void transpose(const ExecutionSpace& exec_space, InViewType& in,
                 "transpose: Rank of View must be equal to Rank of "
                 "transpose axes.");
 
-  if (!KokkosFFT::Impl::is_transpose_needed(_map)) {
+  if (!KokkosFFT::Impl::is_transpose_needed(map)) {
     throw std::runtime_error("transpose: transpose not necessary");
   }
 
-  _transpose(exec_space, in, out, _map);
+  // in order not to call transpose_impl for 1D case
+  if constexpr (DIM > 1) {
+    transpose_impl(exec_space, in, out, map);
+  }
 }
 }  // namespace Impl
 }  // namespace KokkosFFT

@@ -42,7 +42,7 @@ void test_managed_prep_transpose_view() {
     InViewType in("in", layout);
     OutViewType out("out", layout);
     auto data_prev = out.data();
-    KokkosFFT::Impl::_prep_transpose_view(in, out, map);
+    KokkosFFT::Impl::prep_transpose_view(in, out, map);
     // ensure no allocation
     EXPECT_EQ(data_prev, out.data());
     // check shape
@@ -60,7 +60,7 @@ void test_managed_prep_transpose_view() {
     }
     InViewType in("in", layout);
     OutViewType out;
-    KokkosFFT::Impl::_prep_transpose_view(in, out, map);
+    KokkosFFT::Impl::prep_transpose_view(in, out, map);
     // check shape
     for (int i = 0; i < DIMS; ++i) {
       EXPECT_EQ(out.extent(i), 5);
@@ -96,7 +96,7 @@ void test_unmanaged_prep_transpose_view() {
     OutManagedViewType out("out", layout);
     OutViewType u_out(out.data(), layout);
     auto data_prev = out.data();
-    KokkosFFT::Impl::_prep_transpose_view(in, u_out, map);
+    KokkosFFT::Impl::prep_transpose_view(in, u_out, map);
     EXPECT_EQ(data_prev, u_out.data());
     // check shape
     for (int i = 0; i < DIMS; ++i) {
@@ -126,7 +126,7 @@ void test_unmanaged_prep_transpose_view() {
     InManagedViewType in("in", layout);
     OutManagedViewType out("out", layout_orig);
     OutViewType u_out(out.data(), layout_orig);
-    KokkosFFT::Impl::_prep_transpose_view(in, u_out, map);
+    KokkosFFT::Impl::prep_transpose_view(in, u_out, map);
     // check shape
     for (int i = 0; i < DIMS; ++i) {
       EXPECT_EQ(u_out.extent(i), 5);
@@ -148,7 +148,7 @@ void test_unmanaged_prep_transpose_view() {
     InManagedViewType in("in", layout);
     OutManagedViewType out("out", layout_orig);
     OutViewType u_out(out.data(), layout_orig);
-    EXPECT_THROW(KokkosFFT::Impl::_prep_transpose_view(in, u_out, map),
+    EXPECT_THROW(KokkosFFT::Impl::prep_transpose_view(in, u_out, map),
                  std::runtime_error);
   }
 }
