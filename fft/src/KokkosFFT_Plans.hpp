@@ -213,8 +213,8 @@ class Plan {
     m_shape = KokkosFFT::Impl::get_modified_shape(in, out, s, m_axes);
     m_is_crop_or_pad_needed =
         KokkosFFT::Impl::is_crop_or_pad_needed(in, m_shape);
-    m_fft_size = KokkosFFT::Impl::_create(exec_space, m_plan, in, out, m_buffer,
-                                          m_info, direction, m_axes, s);
+    m_fft_size = KokkosFFT::Impl::create_plan(
+        exec_space, m_plan, in, out, m_buffer, m_info, direction, m_axes, s);
   }
 
   /// \brief Constructor for multidimensional FFT
@@ -280,13 +280,13 @@ class Plan {
     m_shape = KokkosFFT::Impl::get_modified_shape(in, out, s, m_axes);
     m_is_crop_or_pad_needed =
         KokkosFFT::Impl::is_crop_or_pad_needed(in, m_shape);
-    m_fft_size = KokkosFFT::Impl::_create(exec_space, m_plan, in, out, m_buffer,
-                                          m_info, direction, axes, s);
+    m_fft_size = KokkosFFT::Impl::create_plan(
+        exec_space, m_plan, in, out, m_buffer, m_info, direction, axes, s);
   }
 
   ~Plan() {
-    _destroy_info<ExecutionSpace, fft_info_type>(m_info);
-    _destroy_plan<ExecutionSpace, fft_plan_type>(m_plan);
+    destroy_plan_and_info<ExecutionSpace, fft_plan_type, fft_info_type>(m_plan,
+                                                                        m_info);
   }
 
   Plan(const Plan&) = delete;

@@ -12,7 +12,7 @@
 namespace KokkosFFT {
 namespace Impl {
 template <typename ExecutionSpace, typename T>
-void _init_threads([[maybe_unused]] const ExecutionSpace& exec_space) {
+void init_threads([[maybe_unused]] const ExecutionSpace& exec_space) {
 #if defined(KOKKOS_ENABLE_OPENMP) || defined(KOKKOS_ENABLE_THREADS)
   int nthreads = exec_space.concurrency();
 
@@ -33,23 +33,24 @@ template <typename ExecutionSpace, typename PlanType, typename InViewType,
           std::enable_if_t<
               std::is_same_v<ExecutionSpace, Kokkos::DefaultHostExecutionSpace>,
               std::nullptr_t> = nullptr>
-auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
-             const InViewType& in, const OutViewType& out, BufferViewType&,
-             InfoType&, [[maybe_unused]] Direction direction,
-             axis_type<fft_rank> axes, shape_type<fft_rank> s) {
+auto create_plan(const ExecutionSpace& exec_space,
+                 std::unique_ptr<PlanType>& plan, const InViewType& in,
+                 const OutViewType& out, BufferViewType&, InfoType&,
+                 [[maybe_unused]] Direction direction, axis_type<fft_rank> axes,
+                 shape_type<fft_rank> s) {
   static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::_create: InViewType is not a Kokkos::View.");
+                "KokkosFFT::create_plan: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::_create: OutViewType is not a Kokkos::View.");
+                "KokkosFFT::create_plan: OutViewType is not a Kokkos::View.");
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
 
   static_assert(
       InViewType::rank() >= fft_rank,
-      "KokkosFFT::_create: Rank of View must be larger than Rank of FFT.");
+      "KokkosFFT::create_plan: Rank of View must be larger than Rank of FFT.");
   const int rank = fft_rank;
 
-  _init_threads<ExecutionSpace, KokkosFFT::Impl::real_type_t<in_value_type>>(
+  init_threads<ExecutionSpace, KokkosFFT::Impl::real_type_t<in_value_type>>(
       exec_space);
 
   constexpr auto type =
@@ -104,11 +105,11 @@ auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
   return fft_size;
 }
 
-template <typename ExecutionSpace, typename PlanType,
+template <typename ExecutionSpace, typename PlanType, typename InfoType,
           std::enable_if_t<
               std::is_same_v<ExecutionSpace, Kokkos::DefaultHostExecutionSpace>,
               std::nullptr_t> = nullptr>
-void _destroy_plan(std::unique_ptr<PlanType>& plan) {
+void destroy_plan_and_info(std::unique_ptr<PlanType>& plan, InfoType&) {
   if constexpr (std::is_same_v<PlanType, fftwf_plan>) {
     fftwf_destroy_plan(*plan);
   } else {
@@ -116,13 +117,6 @@ void _destroy_plan(std::unique_ptr<PlanType>& plan) {
   }
 }
 
-template <typename ExecutionSpace, typename InfoType,
-          std::enable_if_t<
-              std::is_same_v<ExecutionSpace, Kokkos::DefaultHostExecutionSpace>,
-              std::nullptr_t> = nullptr>
-void _destroy_info(InfoType&) {
-  // not used, no finalization is required
-}
 }  // namespace Impl
 }  // namespace KokkosFFT
 
