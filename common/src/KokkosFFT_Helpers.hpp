@@ -38,10 +38,10 @@ auto get_shift(const ViewType& inout, axis_type<DIM> _axes, int direction = 1) {
 }
 
 template <typename ExecutionSpace, typename ViewType>
-void roll_impl(const ExecutionSpace& exec_space, ViewType& inout,
-               axis_type<1> shift, axis_type<1>) {
+void roll(const ExecutionSpace& exec_space, ViewType& inout, axis_type<1> shift,
+          axis_type<1>) {
   // Last parameter is ignored but present for keeping the interface consistent
-  static_assert(ViewType::rank() == 1, "roll_impl: Rank of View must be 1.");
+  static_assert(ViewType::rank() == 1, "roll: Rank of View must be 1.");
   std::size_t n0 = inout.extent(0);
 
   ViewType tmp("tmp", n0);
@@ -68,10 +68,10 @@ void roll_impl(const ExecutionSpace& exec_space, ViewType& inout,
 }
 
 template <typename ExecutionSpace, typename ViewType, std::size_t DIM1 = 1>
-void roll_impl(const ExecutionSpace& exec_space, ViewType& inout,
-               axis_type<2> shift, axis_type<DIM1> axes) {
+void roll(const ExecutionSpace& exec_space, ViewType& inout, axis_type<2> shift,
+          axis_type<DIM1> axes) {
   constexpr int DIM0 = 2;
-  static_assert(ViewType::rank() == DIM0, "roll_impl: Rank of View must be 2.");
+  static_assert(ViewType::rank() == DIM0, "roll: Rank of View must be 2.");
   int n0 = inout.extent(0), n1 = inout.extent(1);
 
   ViewType tmp("tmp", n0, n1);
@@ -145,7 +145,7 @@ void fftshift_impl(const ExecutionSpace& exec_space, ViewType& inout,
                 "fftshift_impl: Rank of View must be larger thane "
                 "or equal to the Rank of shift axes.");
   auto shift = get_shift(inout, axes);
-  roll_impl(exec_space, inout, shift, axes);
+  roll(exec_space, inout, shift, axes);
 }
 
 template <typename ExecutionSpace, typename ViewType, std::size_t DIM = 1>
@@ -165,7 +165,7 @@ void ifftshift_impl(const ExecutionSpace& exec_space, ViewType& inout,
                 "ifftshift_impl: Rank of View must be larger "
                 "thane or equal to the Rank of shift axes.");
   auto shift = get_shift(inout, axes, -1);
-  roll_impl(exec_space, inout, shift, axes);
+  roll(exec_space, inout, shift, axes);
 }
 }  // namespace Impl
 }  // namespace KokkosFFT
