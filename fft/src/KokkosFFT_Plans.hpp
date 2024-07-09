@@ -285,8 +285,8 @@ class Plan {
   }
 
   ~Plan() {
-    destroy_info<ExecutionSpace, fft_info_type>(m_info);
-    destroy_plan<ExecutionSpace, fft_plan_type>(m_plan);
+    destroy_plan_and_info<ExecutionSpace, fft_plan_type, fft_info_type>(m_plan,
+                                                                        m_info);
   }
 
   Plan(const Plan&) = delete;
