@@ -154,21 +154,21 @@ void test_get_shift(int direction) {
   KokkosFFT::axis_type<2> shift2_even_ref       = {direction * n_even / 2,
                                              direction * n2 / 2};
 
-  auto shift1_odd = KokkosFFT::Impl::_get_shift(
+  auto shift1_odd = KokkosFFT::Impl::get_shift(
       x1_odd, KokkosFFT::axis_type<1>({0}), direction);
-  auto shift1_even = KokkosFFT::Impl::_get_shift(
+  auto shift1_even = KokkosFFT::Impl::get_shift(
       x1_even, KokkosFFT::axis_type<1>({0}), direction);
-  auto shift1_axis0_odd = KokkosFFT::Impl::_get_shift(
+  auto shift1_axis0_odd = KokkosFFT::Impl::get_shift(
       x2_odd, KokkosFFT::axis_type<1>({0}), direction);
-  auto shift1_axis0_even = KokkosFFT::Impl::_get_shift(
+  auto shift1_axis0_even = KokkosFFT::Impl::get_shift(
       x2_even, KokkosFFT::axis_type<1>({0}), direction);
-  auto shift1_axis1_odd = KokkosFFT::Impl::_get_shift(
+  auto shift1_axis1_odd = KokkosFFT::Impl::get_shift(
       x2_odd, KokkosFFT::axis_type<1>({1}), direction);
-  auto shift1_axis1_even = KokkosFFT::Impl::_get_shift(
+  auto shift1_axis1_even = KokkosFFT::Impl::get_shift(
       x2_even, KokkosFFT::axis_type<1>({1}), direction);
-  auto shift2_odd = KokkosFFT::Impl::_get_shift(
+  auto shift2_odd = KokkosFFT::Impl::get_shift(
       x2_odd, KokkosFFT::axis_type<2>({0, 1}), direction);
-  auto shift2_even = KokkosFFT::Impl::_get_shift(
+  auto shift2_even = KokkosFFT::Impl::get_shift(
       x2_even, KokkosFFT::axis_type<2>({0, 1}), direction);
 
   EXPECT_TRUE(shift1_odd == shift1_odd_ref);

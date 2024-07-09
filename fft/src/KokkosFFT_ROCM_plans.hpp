@@ -85,21 +85,21 @@ template <typename ExecutionSpace, typename PlanType, typename InViewType,
           std::size_t fft_rank             = 1,
           std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
                            std::nullptr_t> = nullptr>
-auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
-             const InViewType& in, const OutViewType& out,
-             BufferViewType& buffer, InfoType& execution_info,
-             Direction direction, axis_type<fft_rank> axes,
-             shape_type<fft_rank> s) {
+auto create_plan(const ExecutionSpace& exec_space,
+                 std::unique_ptr<PlanType>& plan, const InViewType& in,
+                 const OutViewType& out, BufferViewType& buffer,
+                 InfoType& execution_info, Direction direction,
+                 axis_type<fft_rank> axes, shape_type<fft_rank> s) {
   static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::_create: InViewType is not a Kokkos::View.");
+                "KokkosFFT::create_plan: InViewType is not a Kokkos::View.");
   static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::_create: OutViewType is not a Kokkos::View.");
+                "KokkosFFT::create_plan: OutViewType is not a Kokkos::View.");
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
 
   static_assert(
       InViewType::rank() >= fft_rank,
-      "KokkosFFT::_create: Rank of View must be larger than Rank of FFT.");
+      "KokkosFFT::create_plan: Rank of View must be larger than Rank of FFT.");
 
   constexpr auto type =
       KokkosFFT::Impl::transform_type<ExecutionSpace, in_value_type,
@@ -195,14 +195,14 @@ auto _create(const ExecutionSpace& exec_space, std::unique_ptr<PlanType>& plan,
 template <typename ExecutionSpace, typename PlanType,
           std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
                            std::nullptr_t> = nullptr>
-void _destroy_plan(std::unique_ptr<PlanType>& plan) {
+void destroy_plan(std::unique_ptr<PlanType>& plan) {
   rocfft_plan_destroy(*plan);
 }
 
 template <typename ExecutionSpace, typename InfoType,
           std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
                            std::nullptr_t> = nullptr>
-void _destroy_info(InfoType& execution_info) {
+void destroy_info(InfoType& execution_info) {
   rocfft_execution_info_destroy(execution_info);
 }
 }  // namespace Impl

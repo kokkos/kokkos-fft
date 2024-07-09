@@ -11,36 +11,36 @@
 namespace KokkosFFT {
 namespace Impl {
 template <typename PlanType, typename... Args>
-void _exec(PlanType& plan, float* idata, std::complex<float>* odata,
-           int /*direction*/, Args...) {
+void exec_plan(PlanType& plan, float* idata, std::complex<float>* odata,
+               int /*direction*/, Args...) {
   oneapi::mkl::dft::compute_forward(plan, idata,
                                     reinterpret_cast<float*>(odata));
 }
 
 template <typename PlanType, typename... Args>
-void _exec(PlanType& plan, double* idata, std::complex<double>* odata,
-           int /*direction*/, Args...) {
+void exec_plan(PlanType& plan, double* idata, std::complex<double>* odata,
+               int /*direction*/, Args...) {
   oneapi::mkl::dft::compute_forward(plan, idata,
                                     reinterpret_cast<double*>(odata));
 }
 
 template <typename PlanType, typename... Args>
-void _exec(PlanType& plan, std::complex<float>* idata, float* odata,
-           int /*direction*/, Args...) {
+void exec_plan(PlanType& plan, std::complex<float>* idata, float* odata,
+               int /*direction*/, Args...) {
   oneapi::mkl::dft::compute_backward(plan, reinterpret_cast<float*>(idata),
                                      odata);
 }
 
 template <typename PlanType, typename... Args>
-void _exec(PlanType& plan, std::complex<double>* idata, double* odata,
-           int /*direction*/, Args...) {
+void exec_plan(PlanType& plan, std::complex<double>* idata, double* odata,
+               int /*direction*/, Args...) {
   oneapi::mkl::dft::compute_backward(plan, reinterpret_cast<double*>(idata),
                                      odata);
 }
 
 template <typename PlanType, typename... Args>
-void _exec(PlanType& plan, std::complex<float>* idata,
-           std::complex<float>* odata, int direction, Args...) {
+void exec_plan(PlanType& plan, std::complex<float>* idata,
+               std::complex<float>* odata, int direction, Args...) {
   if (direction == 1) {
     oneapi::mkl::dft::compute_forward(plan, idata, odata);
   } else {
@@ -49,8 +49,8 @@ void _exec(PlanType& plan, std::complex<float>* idata,
 }
 
 template <typename PlanType, typename... Args>
-void _exec(PlanType& plan, std::complex<double>* idata,
-           std::complex<double>* odata, int direction, Args...) {
+void exec_plan(PlanType& plan, std::complex<double>* idata,
+               std::complex<double>* odata, int direction, Args...) {
   if (direction == 1) {
     oneapi::mkl::dft::compute_forward(plan, idata, odata);
   } else {

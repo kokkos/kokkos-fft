@@ -88,10 +88,8 @@ auto is_crop_or_pad_needed(const ViewType& view,
                 "is_crop_or_pad_needed: Rank of View must be equal to Rank "
                 "of extended shape.");
 
-  // [TO DO] Add a is_C2R arg. If is_C2R is true, then shape should be shape/2+1
   constexpr int rank = static_cast<int>(ViewType::rank());
-
-  bool not_same = false;
+  bool not_same      = false;
   for (int i = 0; i < rank; i++) {
     if (modified_shape.at(i) != view.extent(i)) {
       not_same = true;
@@ -103,8 +101,8 @@ auto is_crop_or_pad_needed(const ViewType& view,
 }
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
-                  OutViewType& out, shape_type<1> s) {
+void crop_or_pad_impl(const ExecutionSpace& exec_space, const InViewType& in,
+                      OutViewType& out, shape_type<1> s) {
   auto _n0 = s.at(0);
   out      = OutViewType("out", _n0);
 
@@ -117,8 +115,8 @@ void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
 }
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
-                  OutViewType& out, shape_type<2> s) {
+void crop_or_pad_impl(const ExecutionSpace& exec_space, const InViewType& in,
+                      OutViewType& out, shape_type<2> s) {
   constexpr std::size_t DIM = 2;
 
   auto [_n0, _n1] = s;
@@ -143,8 +141,8 @@ void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
 }
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
-                  OutViewType& out, shape_type<3> s) {
+void crop_or_pad_impl(const ExecutionSpace& exec_space, const InViewType& in,
+                      OutViewType& out, shape_type<3> s) {
   constexpr std::size_t DIM = 3;
 
   auto [_n0, _n1, _n2] = s;
@@ -172,8 +170,8 @@ void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
 }
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
-                  OutViewType& out, shape_type<4> s) {
+void crop_or_pad_impl(const ExecutionSpace& exec_space, const InViewType& in,
+                      OutViewType& out, shape_type<4> s) {
   constexpr std::size_t DIM = 4;
 
   auto [_n0, _n1, _n2, _n3] = s;
@@ -202,8 +200,8 @@ void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
 }
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
-                  OutViewType& out, shape_type<5> s) {
+void crop_or_pad_impl(const ExecutionSpace& exec_space, const InViewType& in,
+                      OutViewType& out, shape_type<5> s) {
   constexpr std::size_t DIM = 5;
 
   auto [_n0, _n1, _n2, _n3, _n4] = s;
@@ -233,8 +231,8 @@ void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
 }
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
-                  OutViewType& out, shape_type<6> s) {
+void crop_or_pad_impl(const ExecutionSpace& exec_space, const InViewType& in,
+                      OutViewType& out, shape_type<6> s) {
   constexpr std::size_t DIM = 6;
 
   auto [_n0, _n1, _n2, _n3, _n4, _n5] = s;
@@ -266,8 +264,8 @@ void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
 }
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
-                  OutViewType& out, shape_type<7> s) {
+void crop_or_pad_impl(const ExecutionSpace& exec_space, const InViewType& in,
+                      OutViewType& out, shape_type<7> s) {
   constexpr std::size_t DIM = 6;
 
   auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6] = s;
@@ -302,8 +300,8 @@ void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
 }
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void _crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
-                  OutViewType& out, shape_type<8> s) {
+void crop_or_pad_impl(const ExecutionSpace& exec_space, const InViewType& in,
+                      OutViewType& out, shape_type<8> s) {
   constexpr std::size_t DIM = 6;
 
   auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7] = s;
@@ -351,7 +349,7 @@ void crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
   static_assert(OutViewType::rank() == DIM,
                 "crop_or_pad: Rank of View must be equal to Rank "
                 "of extended shape.");
-  _crop_or_pad(exec_space, in, out, s);
+  crop_or_pad_impl(exec_space, in, out, s);
 }
 }  // namespace Impl
 }  // namespace KokkosFFT

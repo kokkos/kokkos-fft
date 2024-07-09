@@ -89,7 +89,7 @@ void exec_impl(
 
   auto const exec_space = plan.exec_space();
   auto const direction  = direction_type<ExecutionSpace>(plan.direction());
-  KokkosFFT::Impl::_exec(plan.plan(), idata, odata, direction, plan.info());
+  KokkosFFT::Impl::exec_plan(plan.plan(), idata, odata, direction, plan.info());
   KokkosFFT::Impl::normalize(exec_space, out, plan.direction(), norm,
                              plan.fft_size());
 }
