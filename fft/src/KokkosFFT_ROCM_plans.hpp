@@ -192,18 +192,13 @@ auto create_plan(const ExecutionSpace& exec_space,
   return fft_size;
 }
 
-template <typename ExecutionSpace, typename PlanType,
+template <typename ExecutionSpace, typename PlanType, typename InfoType,
           std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
                            std::nullptr_t> = nullptr>
-void destroy_plan(std::unique_ptr<PlanType>& plan) {
-  rocfft_plan_destroy(*plan);
-}
-
-template <typename ExecutionSpace, typename InfoType,
-          std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
-                           std::nullptr_t> = nullptr>
-void destroy_info(InfoType& execution_info) {
+void destroy_plan_and_info(std::unique_ptr<PlanType>& plan,
+                           InfoType& execution_info) {
   rocfft_execution_info_destroy(execution_info);
+  rocfft_plan_destroy(*plan);
 }
 }  // namespace Impl
 }  // namespace KokkosFFT

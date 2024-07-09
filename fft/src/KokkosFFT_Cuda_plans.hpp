@@ -177,18 +177,11 @@ auto create_plan(const ExecutionSpace& exec_space,
   return fft_size;
 }
 
-template <typename ExecutionSpace, typename PlanType,
+template <typename ExecutionSpace, typename PlanType, typename InfoType,
           std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::Cuda>,
                            std::nullptr_t> = nullptr>
-void destroy_plan(std::unique_ptr<PlanType>& plan) {
+void destroy_plan_and_info(std::unique_ptr<PlanType>& plan, InfoType&) {
   cufftDestroy(*plan);
-}
-
-template <typename ExecutionSpace, typename InfoType,
-          std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::Cuda>,
-                           std::nullptr_t> = nullptr>
-void destroy_info(InfoType&) {
-  // not used, no finalization is required
 }
 }  // namespace Impl
 }  // namespace KokkosFFT
