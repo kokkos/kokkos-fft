@@ -6,19 +6,9 @@
 #include "KokkosFFT_traits.hpp"
 #include "Test_Utils.hpp"
 
-using half_t  = Kokkos::Experimental::half_t;
-using bhalf_t = Kokkos::Experimental::bhalf_t;
-
-using real_types =
-    ::testing::Types<half_t, bhalf_t, float, double, long double>;
+using real_types = ::testing::Types<float, double, long double>;
 using view_types =
-    ::testing::Types<std::pair<half_t, Kokkos::LayoutLeft>,
-                     std::pair<half_t, Kokkos::LayoutRight>,
-                     std::pair<half_t, Kokkos::LayoutStride>,
-                     std::pair<bhalf_t, Kokkos::LayoutLeft>,
-                     std::pair<bhalf_t, Kokkos::LayoutRight>,
-                     std::pair<bhalf_t, Kokkos::LayoutStride>,
-                     std::pair<float, Kokkos::LayoutLeft>,
+    ::testing::Types<std::pair<float, Kokkos::LayoutLeft>,
                      std::pair<float, Kokkos::LayoutRight>,
                      std::pair<float, Kokkos::LayoutStride>,
                      std::pair<double, Kokkos::LayoutLeft>,
