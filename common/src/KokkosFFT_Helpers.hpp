@@ -181,7 +181,7 @@ namespace KokkosFFT {
 template <typename ExecutionSpace, typename RealType>
 auto fftfreq(const ExecutionSpace&, const std::size_t n,
              const RealType d = 1.0) {
-  static_assert(std::is_floating_point<RealType>::value,
+  static_assert(KokkosFFT::Impl::is_real_v<RealType>,
                 "fftfreq: d must be float or double");
   using ViewType = Kokkos::View<RealType*, ExecutionSpace>;
   ViewType freq("freq", n);
@@ -216,7 +216,7 @@ auto fftfreq(const ExecutionSpace&, const std::size_t n,
 template <typename ExecutionSpace, typename RealType>
 auto rfftfreq(const ExecutionSpace&, const std::size_t n,
               const RealType d = 1.0) {
-  static_assert(std::is_floating_point<RealType>::value,
+  static_assert(KokkosFFT::Impl::is_real_v<RealType>,
                 "fftfreq: d must be float or double");
   using ViewType = Kokkos::View<RealType*, ExecutionSpace>;
 

@@ -292,9 +292,9 @@ void rfft(const ExecutionSpace& exec_space, const InViewType& in,
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
 
-  static_assert(std::is_floating_point<in_value_type>::value,
+  static_assert(KokkosFFT::Impl::is_real_v<in_value_type>,
                 "rfft: InViewType must be real");
-  static_assert(KokkosFFT::Impl::is_complex<out_value_type>::value,
+  static_assert(KokkosFFT::Impl::is_complex_v<out_value_type>,
                 "rfft: OutViewType must be complex");
 
   fft(exec_space, in, out, norm, axis, n);
@@ -341,9 +341,9 @@ void irfft(const ExecutionSpace& exec_space, const InViewType& in,
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
 
-  static_assert(KokkosFFT::Impl::is_complex<in_value_type>::value,
+  static_assert(KokkosFFT::Impl::is_complex_v<in_value_type>,
                 "irfft: InViewType must be complex");
-  static_assert(std::is_floating_point<out_value_type>::value,
+  static_assert(KokkosFFT::Impl::is_real_v<out_value_type>,
                 "irfft: OutViewType must be real");
   ifft(exec_space, in, out, norm, axis, n);
 }
@@ -391,9 +391,9 @@ void hfft(const ExecutionSpace& exec_space, const InViewType& in,
   // type
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
-  static_assert(KokkosFFT::Impl::is_complex<in_value_type>::value,
+  static_assert(KokkosFFT::Impl::is_complex_v<in_value_type>,
                 "hfft: InViewType must be complex");
-  static_assert(std::is_floating_point<out_value_type>::value,
+  static_assert(KokkosFFT::Impl::is_real_v<out_value_type>,
                 "hfft: OutViewType must be real");
   auto new_norm = KokkosFFT::Impl::swap_direction(norm);
   // using ComplexViewType = typename
@@ -444,9 +444,9 @@ void ihfft(const ExecutionSpace& exec_space, const InViewType& in,
 
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
-  static_assert(std::is_floating_point<in_value_type>::value,
+  static_assert(KokkosFFT::Impl::is_real_v<in_value_type>,
                 "ihfft: InViewType must be real");
-  static_assert(KokkosFFT::Impl::is_complex<out_value_type>::value,
+  static_assert(KokkosFFT::Impl::is_complex_v<out_value_type>,
                 "ihfft: OutViewType must be complex");
 
   auto new_norm = KokkosFFT::Impl::swap_direction(norm);
@@ -585,9 +585,9 @@ void rfft2(const ExecutionSpace& exec_space, const InViewType& in,
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
 
-  static_assert(std::is_floating_point<in_value_type>::value,
+  static_assert(KokkosFFT::Impl::is_real_v<in_value_type>,
                 "rfft2: InViewType must be real");
-  static_assert(KokkosFFT::Impl::is_complex<out_value_type>::value,
+  static_assert(KokkosFFT::Impl::is_complex_v<out_value_type>,
                 "rfft2: OutViewType must be complex");
 
   fft2(exec_space, in, out, norm, axes, s);
@@ -635,9 +635,9 @@ void irfft2(const ExecutionSpace& exec_space, const InViewType& in,
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
 
-  static_assert(KokkosFFT::Impl::is_complex<in_value_type>::value,
+  static_assert(KokkosFFT::Impl::is_complex_v<in_value_type>,
                 "irfft2: InViewType must be complex");
-  static_assert(std::is_floating_point<out_value_type>::value,
+  static_assert(KokkosFFT::Impl::is_real_v<out_value_type>,
                 "irfft2: OutViewType must be real");
 
   ifft2(exec_space, in, out, norm, axes, s);
@@ -775,9 +775,9 @@ void rfftn(const ExecutionSpace& exec_space, const InViewType& in,
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
 
-  static_assert(std::is_floating_point<in_value_type>::value,
+  static_assert(KokkosFFT::Impl::is_real_v<in_value_type>,
                 "rfftn: InViewType must be real");
-  static_assert(KokkosFFT::Impl::is_complex<out_value_type>::value,
+  static_assert(KokkosFFT::Impl::is_complex_v<out_value_type>,
                 "rfftn: OutViewType must be complex");
 
   fftn(exec_space, in, out, axes, norm, s);
@@ -826,9 +826,9 @@ void irfftn(const ExecutionSpace& exec_space, const InViewType& in,
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
 
-  static_assert(KokkosFFT::Impl::is_complex<in_value_type>::value,
+  static_assert(KokkosFFT::Impl::is_complex_v<in_value_type>,
                 "irfftn: InViewType must be complex");
-  static_assert(std::is_floating_point<out_value_type>::value,
+  static_assert(KokkosFFT::Impl::is_real_v<out_value_type>,
                 "irfftn: OutViewType must be real");
 
   ifftn(exec_space, in, out, axes, norm, s);

@@ -64,9 +64,9 @@ auto get_extents(const InViewType& in, const OutViewType& out,
     _fft_extents.push_back(fft_extent);
   }
 
-  if (std::is_floating_point<in_value_type>::value) {
+  if (is_real_v<in_value_type>) {
     // Then R2C
-    if (is_complex<out_value_type>::value) {
+    if (is_complex_v<out_value_type>) {
       assert(_out_extents.at(inner_most_axis) ==
              _in_extents.at(inner_most_axis) / 2 + 1);
     } else {
@@ -75,9 +75,9 @@ auto get_extents(const InViewType& in, const OutViewType& out,
     }
   }
 
-  if (std::is_floating_point<out_value_type>::value) {
+  if (is_real_v<out_value_type>) {
     // Then C2R
-    if (is_complex<in_value_type>::value) {
+    if (is_complex_v<in_value_type>) {
       assert(_in_extents.at(inner_most_axis) ==
              _out_extents.at(inner_most_axis) / 2 + 1);
     } else {
