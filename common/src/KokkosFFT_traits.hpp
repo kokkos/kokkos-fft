@@ -19,6 +19,7 @@ struct base_floating_point<Kokkos::complex<T>> {
   using value_type = T;
 };
 
+/// \brief Helper to extract the base floating point type from a complex type
 template <typename T>
 using base_floating_point_type = typename base_floating_point<T>::value_type;
 
@@ -30,6 +31,8 @@ struct is_real<
     T, std::enable_if_t<std::is_same_v<T, float> || std::is_same_v<T, double>>>
     : std::true_type {};
 
+/// \brief Helper to check if a type is an acceptable real type (float/double)
+/// for Kokkos-FFT
 template <typename T>
 inline constexpr bool is_real_v = is_real<T>::value;
 
@@ -42,6 +45,8 @@ struct is_complex<
     std::enable_if_t<std::is_same_v<T, float> || std::is_same_v<T, double>>>
     : std::true_type {};
 
+/// \brief Helper to check if a type is an acceptable complex type
+/// (Kokkos::complex<float>/Kokkos::complex<double>) for Kokkos-FFT
 template <typename T>
 inline constexpr bool is_complex_v = is_complex<T>::value;
 
@@ -60,11 +65,14 @@ struct is_admissible_value_type<
                          is_complex_v<typename T::non_const_value_type>)>>
     : std::true_type {};
 
+/// \brief Helper to check if a type is an acceptable value type
+/// (float/double/Kokkos::complex<float>/Kokkos::complex<double>) for Kokkos-FFT
+///        When applied to Kokkos::View, then check if a value type is an
+///        acceptable real/complex type.
 template <typename T>
 inline constexpr bool is_admissible_value_type_v =
     is_admissible_value_type<T>::value;
 
-// is layout admissible for KokkosFFT
 template <typename ViewType, typename Enable = void>
 struct is_layout_left_or_right : std::false_type {};
 
@@ -77,11 +85,12 @@ struct is_layout_left_or_right<
          std::is_same_v<typename ViewType::array_layout, Kokkos::LayoutRight>)>>
     : std::true_type {};
 
+/// \brief Helper to check if a View layout is an acceptable layout type
+/// (Kokkos::LayoutLeft/Kokkos::LayoutRight) for Kokkos-FFT
 template <typename ViewType>
 inline constexpr bool is_layout_left_or_right_v =
     is_layout_left_or_right<ViewType>::value;
 
-// is view admissible for KokkosFFT
 template <typename ViewType, typename Enable = void>
 struct is_admissible_view : std::false_type {};
 
@@ -92,10 +101,13 @@ struct is_admissible_view<
                                is_admissible_value_type_v<ViewType>>>
     : std::true_type {};
 
+/// \brief Helper to check if a View is an acceptable for Kokkos-FFT. Values and
+/// layout are checked
 template <typename ViewType>
 inline constexpr bool is_admissible_view_v =
     is_admissible_view<ViewType>::value;
 
+/// \brief Helper to define a managable View type from the original view type
 template <typename T>
 struct managable_view_type {
   using type = Kokkos::View<typename T::data_type, typename T::array_layout,
@@ -104,6 +116,8 @@ struct managable_view_type {
                                                  ~unsigned(Kokkos::Unmanaged)>>;
 };
 
+/// \brief Helper to define a complex 1D View type from a real/complex 1D View
+/// type, while keeping other properties
 template <typename ExecutionSpace, typename ViewType,
           std::enable_if_t<ViewType::rank() == 1, std::nullptr_t> = nullptr>
 struct complex_view_type {
