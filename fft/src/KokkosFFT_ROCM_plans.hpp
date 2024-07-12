@@ -42,7 +42,8 @@ auto get_in_out_array_type(TransformType type,
 
 template <typename ValueType>
 rocfft_precision get_in_out_array_type() {
-  return std::is_same_v<KokkosFFT::Impl::real_type_t<ValueType>, float>
+  return std::is_same_v<KokkosFFT::Impl::base_floating_point_type<ValueType>,
+                        float>
              ? rocfft_precision_single
              : rocfft_precision_double;
 }

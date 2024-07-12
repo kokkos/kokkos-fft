@@ -37,8 +37,10 @@ TYPED_TEST_SUITE(RealAndComplexViewTypes, view_types);
 // Tests for real type deduction
 template <typename RealType, typename ComplexType>
 void test_get_real_type() {
-  using real_type_from_RealType    = KokkosFFT::Impl::real_type_t<RealType>;
-  using real_type_from_ComplexType = KokkosFFT::Impl::real_type_t<ComplexType>;
+  using real_type_from_RealType =
+      KokkosFFT::Impl::base_floating_point_type<RealType>;
+  using real_type_from_ComplexType =
+      KokkosFFT::Impl::base_floating_point_type<ComplexType>;
 
   static_assert(std::is_same_v<real_type_from_RealType, RealType>,
                 "Real type not deduced correctly from real type");
@@ -60,7 +62,7 @@ void test_admissible_real_type() {
 
 template <typename T>
 void test_admissible_complex_type() {
-  using real_type = KokkosFFT::Impl::real_type_t<T>;
+  using real_type = KokkosFFT::Impl::base_floating_point_type<T>;
   if constexpr (std::is_same_v<real_type, float> ||
                 std::is_same_v<real_type, double>) {
     static_assert(KokkosFFT::Impl::is_complex_v<T>,
@@ -96,7 +98,7 @@ TYPED_TEST(RealAndComplexTypes, admissible_complex_type) {
 template <typename T, typename LayoutType>
 void test_admissible_value_type() {
   using ViewType  = Kokkos::View<T*, LayoutType>;
-  using real_type = KokkosFFT::Impl::real_type_t<T>;
+  using real_type = KokkosFFT::Impl::base_floating_point_type<T>;
   if constexpr (std::is_same_v<real_type, float> ||
                 std::is_same_v<real_type, double>) {
     static_assert(KokkosFFT::Impl::is_admissible_value_type_v<ViewType>,
@@ -123,7 +125,7 @@ void test_admissible_layout_type() {
 template <typename T, typename LayoutType>
 void test_admissible_view_type() {
   using ViewType  = Kokkos::View<T*, LayoutType>;
-  using real_type = KokkosFFT::Impl::real_type_t<T>;
+  using real_type = KokkosFFT::Impl::base_floating_point_type<T>;
   if constexpr (
       (std::is_same_v<real_type, float> || std::is_same_v<real_type, double>)&&(
           std::is_same_v<LayoutType, Kokkos::LayoutLeft> ||

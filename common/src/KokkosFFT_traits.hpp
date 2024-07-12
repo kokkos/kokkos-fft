@@ -6,25 +6,21 @@
 #define KOKKOSFFT_TRAITS_HPP
 
 #include <Kokkos_Core.hpp>
-#include <vector>
-#include <set>
-#include <algorithm>
-#include <numeric>
 
 namespace KokkosFFT {
 namespace Impl {
 template <typename T>
-struct real_type {
-  using type = T;
+struct base_floating_point {
+  using value_type = T;
 };
 
 template <typename T>
-struct real_type<Kokkos::complex<T>> {
-  using type = T;
+struct base_floating_point<Kokkos::complex<T>> {
+  using value_type = T;
 };
 
 template <typename T>
-using real_type_t = typename real_type<T>::type;
+using base_floating_point_type = typename base_floating_point<T>::value_type;
 
 template <typename T, typename Enable = void>
 struct is_real : std::false_type {};
@@ -111,9 +107,9 @@ struct managable_view_type {
 template <typename ExecutionSpace, typename ViewType,
           std::enable_if_t<ViewType::rank() == 1, std::nullptr_t> = nullptr>
 struct complex_view_type {
-  using value_type        = typename ViewType::non_const_value_type;
-  using float_type        = KokkosFFT::Impl::real_type_t<value_type>;
-  using complex_type      = Kokkos::complex<float_type>;
+  using value_type   = typename ViewType::non_const_value_type;
+  using float_type   = KokkosFFT::Impl::base_floating_point_type<value_type>;
+  using complex_type = Kokkos::complex<float_type>;
   using array_layout_type = typename ViewType::array_layout;
   using type = Kokkos::View<complex_type*, array_layout_type, ExecutionSpace>;
 };

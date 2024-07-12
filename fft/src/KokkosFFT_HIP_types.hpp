@@ -55,8 +55,8 @@ struct FFTDataType {
 template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTPlanType {
   using fftwHandle = std::conditional_t<
-      std::is_same_v<KokkosFFT::Impl::real_type_t<T1>, float>, fftwf_plan,
-      fftw_plan>;
+      std::is_same_v<KokkosFFT::Impl::base_floating_point_type<T1>, float>,
+      fftwf_plan, fftw_plan>;
   using type = std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
                                   hipfftHandle, fftwHandle>;
 };
