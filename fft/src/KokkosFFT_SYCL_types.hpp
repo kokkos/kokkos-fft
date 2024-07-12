@@ -114,14 +114,16 @@ template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTPlanType<ExecutionSpace, T1, Kokkos::complex<T2>> {
   using float_type = T1;
   static constexpr oneapi::mkl::dft::precision prec =
-      std::is_same_v<KokkosFFT::Impl::real_type_t<float_type>, float>
+      std::is_same_v<KokkosFFT::Impl::base_floating_point_type<float_type>,
+                     float>
           ? oneapi::mkl::dft::precision::SINGLE
           : oneapi::mkl::dft::precision::DOUBLE;
   static constexpr oneapi::mkl::dft::domain dom =
       oneapi::mkl::dft::domain::REAL;
 
   using fftwHandle = std::conditional_t<
-      std::is_same_v<KokkosFFT::Impl::real_type_t<float_type>, float>,
+      std::is_same_v<KokkosFFT::Impl::base_floating_point_type<float_type>,
+                     float>,
       fftwf_plan, fftw_plan>;
 
   using onemklHandle = oneapi::mkl::dft::descriptor<prec, dom>;
@@ -134,14 +136,16 @@ template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTPlanType<ExecutionSpace, Kokkos::complex<T1>, T2> {
   using float_type = T2;
   static constexpr oneapi::mkl::dft::precision prec =
-      std::is_same_v<KokkosFFT::Impl::real_type_t<float_type>, float>
+      std::is_same_v<KokkosFFT::Impl::base_floating_point_type<float_type>,
+                     float>
           ? oneapi::mkl::dft::precision::SINGLE
           : oneapi::mkl::dft::precision::DOUBLE;
   static constexpr oneapi::mkl::dft::domain dom =
       oneapi::mkl::dft::domain::REAL;
 
   using fftwHandle = std::conditional_t<
-      std::is_same_v<KokkosFFT::Impl::real_type_t<float_type>, float>,
+      std::is_same_v<KokkosFFT::Impl::base_floating_point_type<float_type>,
+                     float>,
       fftwf_plan, fftw_plan>;
 
   using onemklHandle = oneapi::mkl::dft::descriptor<prec, dom>;
@@ -152,16 +156,18 @@ struct FFTPlanType<ExecutionSpace, Kokkos::complex<T1>, T2> {
 
 template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTPlanType<ExecutionSpace, Kokkos::complex<T1>, Kokkos::complex<T2>> {
-  using float_type = KokkosFFT::Impl::real_type_t<T1>;
+  using float_type = KokkosFFT::Impl::base_floating_point_type<T1>;
   static constexpr oneapi::mkl::dft::precision prec =
-      std::is_same_v<KokkosFFT::Impl::real_type_t<float_type>, float>
+      std::is_same_v<KokkosFFT::Impl::base_floating_point_type<float_type>,
+                     float>
           ? oneapi::mkl::dft::precision::SINGLE
           : oneapi::mkl::dft::precision::DOUBLE;
   static constexpr oneapi::mkl::dft::domain dom =
       oneapi::mkl::dft::domain::COMPLEX;
 
   using fftwHandle = std::conditional_t<
-      std::is_same_v<KokkosFFT::Impl::real_type_t<float_type>, float>,
+      std::is_same_v<KokkosFFT::Impl::base_floating_point_type<float_type>,
+                     float>,
       fftwf_plan, fftw_plan>;
 
   using onemklHandle = oneapi::mkl::dft::descriptor<prec, dom>;
@@ -201,7 +207,8 @@ template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTPlanType<ExecutionSpace, T1, Kokkos::complex<T2>> {
   using float_type = T1;
   static constexpr oneapi::mkl::dft::precision prec =
-      std::is_same_v<KokkosFFT::Impl::real_type_t<float_type>, float>
+      std::is_same_v<KokkosFFT::Impl::base_floating_point_type<float_type>,
+                     float>
           ? oneapi::mkl::dft::precision::SINGLE
           : oneapi::mkl::dft::precision::DOUBLE;
   static constexpr oneapi::mkl::dft::domain dom =
@@ -214,7 +221,8 @@ template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTPlanType<ExecutionSpace, Kokkos::complex<T1>, T2> {
   using float_type = T2;
   static constexpr oneapi::mkl::dft::precision prec =
-      std::is_same_v<KokkosFFT::Impl::real_type_t<float_type>, float>
+      std::is_same_v<KokkosFFT::Impl::base_floating_point_type<float_type>,
+                     float>
           ? oneapi::mkl::dft::precision::SINGLE
           : oneapi::mkl::dft::precision::DOUBLE;
   static constexpr oneapi::mkl::dft::domain dom =
@@ -225,9 +233,10 @@ struct FFTPlanType<ExecutionSpace, Kokkos::complex<T1>, T2> {
 
 template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTPlanType<ExecutionSpace, Kokkos::complex<T1>, Kokkos::complex<T2>> {
-  using float_type = KokkosFFT::Impl::real_type_t<T1>;
+  using float_type = KokkosFFT::Impl::base_floating_point_type<T1>;
   static constexpr oneapi::mkl::dft::precision prec =
-      std::is_same_v<KokkosFFT::Impl::real_type_t<float_type>, float>
+      std::is_same_v<KokkosFFT::Impl::base_floating_point_type<float_type>,
+                     float>
           ? oneapi::mkl::dft::precision::SINGLE
           : oneapi::mkl::dft::precision::DOUBLE;
   static constexpr oneapi::mkl::dft::domain dom =

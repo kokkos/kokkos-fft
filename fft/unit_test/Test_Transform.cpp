@@ -22,7 +22,7 @@ using shape_type = KokkosFFT::shape_type<DIM>;
 template <typename ViewType>
 void fft1(ViewType& in, ViewType& out) {
   using value_type      = typename ViewType::non_const_value_type;
-  using real_value_type = KokkosFFT::Impl::real_type_t<value_type>;
+  using real_value_type = KokkosFFT::Impl::base_floating_point_type<value_type>;
 
   static_assert(KokkosFFT::Impl::is_complex<value_type>::value,
                 "fft1: ViewType must be complex");
@@ -62,7 +62,7 @@ void fft1(ViewType& in, ViewType& out) {
 template <typename ViewType>
 void ifft1(ViewType& in, ViewType& out) {
   using value_type      = typename ViewType::non_const_value_type;
-  using real_value_type = KokkosFFT::Impl::real_type_t<value_type>;
+  using real_value_type = KokkosFFT::Impl::base_floating_point_type<value_type>;
 
   static_assert(KokkosFFT::Impl::is_complex<value_type>::value,
                 "ifft1: ViewType must be complex");

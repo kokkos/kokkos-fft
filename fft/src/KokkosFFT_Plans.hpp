@@ -67,7 +67,7 @@ class Plan {
   using out_value_type = typename OutViewType::non_const_value_type;
 
   //! The real value type of input/output views
-  using float_type = KokkosFFT::Impl::real_type_t<in_value_type>;
+  using float_type = KokkosFFT::Impl::base_floating_point_type<in_value_type>;
 
   //! The layout type of input/output views
   using layout_type = typename InViewType::array_layout;

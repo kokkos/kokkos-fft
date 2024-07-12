@@ -50,7 +50,8 @@ auto create_plan(const ExecutionSpace& exec_space,
       "KokkosFFT::create_plan: Rank of View must be larger than Rank of FFT.");
   const int rank = fft_rank;
 
-  init_threads<ExecutionSpace, KokkosFFT::Impl::real_type_t<in_value_type>>(
+  init_threads<ExecutionSpace,
+               KokkosFFT::Impl::base_floating_point_type<in_value_type>>(
       exec_space);
 
   constexpr auto type =

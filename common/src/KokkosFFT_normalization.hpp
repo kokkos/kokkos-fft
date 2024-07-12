@@ -26,8 +26,8 @@ void normalize_impl(const ExecutionSpace& exec_space, ViewType& inout,
 template <typename ViewType>
 auto get_coefficients(ViewType, Direction direction,
                       Normalization normalization, std::size_t fft_size) {
-  using value_type =
-      KokkosFFT::Impl::real_type_t<typename ViewType::non_const_value_type>;
+  using value_type = KokkosFFT::Impl::base_floating_point_type<
+      typename ViewType::non_const_value_type>;
   value_type coef                    = 1;
   [[maybe_unused]] bool to_normalize = false;
 

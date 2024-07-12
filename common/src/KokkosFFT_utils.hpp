@@ -10,60 +10,10 @@
 #include <set>
 #include <algorithm>
 #include <numeric>
+#include "KokkosFFT_traits.hpp"
 
 namespace KokkosFFT {
 namespace Impl {
-template <typename T>
-struct real_type {
-  using type = T;
-};
-
-template <typename T>
-struct real_type<Kokkos::complex<T>> {
-  using type = T;
-};
-
-template <typename T>
-struct managable_view_type {
-  using type = Kokkos::View<typename T::data_type, typename T::array_layout,
-                            typename T::memory_space,
-                            Kokkos::MemoryTraits<T::memory_traits::impl_value &
-                                                 ~unsigned(Kokkos::Unmanaged)>>;
-};
-
-template <typename T>
-using real_type_t = typename real_type<T>::type;
-
-template <typename T>
-struct is_complex : std::false_type {};
-
-template <typename T>
-struct is_complex<Kokkos::complex<T>> : std::true_type {};
-
-template <typename ViewType, typename Enable = void>
-struct is_layout_left_or_right : std::false_type {};
-
-template <typename ViewType>
-struct is_layout_left_or_right<
-    ViewType,
-    std::enable_if_t<
-        std::is_same_v<typename ViewType::array_layout, Kokkos::LayoutLeft> ||
-        std::is_same_v<typename ViewType::array_layout, Kokkos::LayoutRight>>>
-    : std::true_type {};
-
-template <typename ViewType>
-inline constexpr bool is_layout_left_or_right_v =
-    is_layout_left_or_right<ViewType>::value;
-
-template <typename ExecutionSpace, typename ViewType,
-          std::enable_if_t<ViewType::rank() == 1, std::nullptr_t> = nullptr>
-struct complex_view_type {
-  using value_type        = typename ViewType::non_const_value_type;
-  using float_type        = KokkosFFT::Impl::real_type_t<value_type>;
-  using complex_type      = Kokkos::complex<float_type>;
-  using array_layout_type = typename ViewType::array_layout;
-  using type = Kokkos::View<complex_type*, array_layout_type, ExecutionSpace>;
-};
 
 template <typename ViewType>
 auto convert_negative_axis(ViewType, int _axis = -1) {
