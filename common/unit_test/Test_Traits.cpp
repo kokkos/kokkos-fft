@@ -29,6 +29,12 @@ using view_types =
                      std::pair<long double, Kokkos::LayoutStride>>;
 
 // Define all the combinations
+using paired_value_types =
+    tuple_to_types_t<cartesian_product_t<base_real_types, base_real_types>>;
+
+using paired_layout_types =
+    tuple_to_types_t<cartesian_product_t<base_layout_types, base_layout_types>>;
+
 using paired_view_types =
     tuple_to_types_t<cartesian_product_t<base_real_types, base_layout_types,
                                          base_real_types, base_layout_types>>;
@@ -54,6 +60,26 @@ struct RealAndComplexViewTypes : public ::testing::Test {
 };
 
 template <typename T>
+struct PairedValueTypes : public ::testing::Test {
+  using real_type1 = typename std::tuple_element_t<0, T>;
+  using real_type2 = typename std::tuple_element_t<1, T>;
+
+  virtual void SetUp() {
+    GTEST_SKIP() << "Skipping all tests for this fixture";
+  }
+};
+
+template <typename T>
+struct PairedLayoutTypes : public ::testing::Test {
+  using layout_type1 = typename std::tuple_element_t<0, T>;
+  using layout_type2 = typename std::tuple_element_t<1, T>;
+
+  virtual void SetUp() {
+    GTEST_SKIP() << "Skipping all tests for this fixture";
+  }
+};
+
+template <typename T>
 struct PairedViewTypes : public ::testing::Test {
   using real_type1   = typename std::tuple_element_t<0, T>;
   using layout_type1 = typename std::tuple_element_t<1, T>;
@@ -67,6 +93,8 @@ struct PairedViewTypes : public ::testing::Test {
 
 TYPED_TEST_SUITE(RealAndComplexTypes, real_types);
 TYPED_TEST_SUITE(RealAndComplexViewTypes, view_types);
+TYPED_TEST_SUITE(PairedValueTypes, paired_value_types);
+TYPED_TEST_SUITE(PairedLayoutTypes, paired_layout_types);
 TYPED_TEST_SUITE(PairedViewTypes, paired_view_types);
 
 // Tests for real type deduction
@@ -267,17 +295,17 @@ TYPED_TEST(RealAndComplexViewTypes, operatable_view_type) {
 }
 
 // Tests for multiple Views
-template <typename RealType1, typename RealType2, typename LayoutType>
+template <typename RealType1, typename RealType2>
 void test_have_same_precision() {
   using real_type1    = RealType1;
   using real_type2    = RealType2;
   using complex_type1 = Kokkos::complex<real_type1>;
   using complex_type2 = Kokkos::complex<real_type2>;
 
-  using RealViewType1    = Kokkos::View<real_type1*, LayoutType>;
-  using ComplexViewType1 = Kokkos::View<complex_type1*, LayoutType>;
-  using RealViewType2    = Kokkos::View<real_type2*, LayoutType>;
-  using ComplexViewType2 = Kokkos::View<complex_type2*, LayoutType>;
+  using RealViewType1    = Kokkos::View<real_type1*>;
+  using ComplexViewType1 = Kokkos::View<complex_type1*>;
+  using RealViewType2    = Kokkos::View<real_type2*>;
+  using ComplexViewType2 = Kokkos::View<complex_type2*>;
 
   if constexpr (std::is_same_v<real_type1, real_type2>) {
     // Tests for values
@@ -329,8 +357,9 @@ void test_have_same_precision() {
   }
 }
 
-template <typename RealType, typename LayoutType1, typename LayoutType2>
+template <typename LayoutType1, typename LayoutType2>
 void test_have_same_layout() {
+  using RealType  = double;
   using ViewType1 = Kokkos::View<RealType*, LayoutType1>;
   using ViewType2 = Kokkos::View<RealType*, LayoutType2>;
 
@@ -345,13 +374,14 @@ void test_have_same_layout() {
   }
 }
 
-template <typename RealType, typename LayoutType>
+template <typename LayoutType1, typename LayoutType2>
 void test_have_same_rank() {
-  using DynamicRank1ViewType       = Kokkos::View<RealType*, LayoutType>;
-  using DynamicRank2ViewType       = Kokkos::View<RealType**, LayoutType>;
-  using StaticRank1ViewType        = Kokkos::View<RealType[3], LayoutType>;
-  using StaticRank2ViewType        = Kokkos::View<RealType[2][5], LayoutType>;
-  using DynamicStaticRank2ViewType = Kokkos::View<RealType* [5], LayoutType>;
+  using RealType                   = double;
+  using DynamicRank1ViewType       = Kokkos::View<RealType*, LayoutType1>;
+  using DynamicRank2ViewType       = Kokkos::View<RealType**, LayoutType1>;
+  using StaticRank1ViewType        = Kokkos::View<RealType[3], LayoutType2>;
+  using StaticRank2ViewType        = Kokkos::View<RealType[2][5], LayoutType2>;
+  using DynamicStaticRank2ViewType = Kokkos::View<RealType* [5], LayoutType1>;
   static_assert(KokkosFFT::Impl::have_same_rank_v<DynamicRank1ViewType,
                                                   StaticRank1ViewType>,
                 "ViewTypes have the same rank");
@@ -508,27 +538,25 @@ void test_are_operatable_views() {
   }
 }
 
-TYPED_TEST(PairedViewTypes, have_same_precision) {
-  using real_type1  = typename TestFixture::real_type1;
-  using real_type2  = typename TestFixture::real_type2;
-  using layout_type = typename TestFixture::layout_type1;
+TYPED_TEST(PairedValueTypes, have_same_precision) {
+  using real_type1 = typename TestFixture::real_type1;
+  using real_type2 = typename TestFixture::real_type2;
 
-  test_have_same_precision<real_type1, real_type2, layout_type>();
+  test_have_same_precision<real_type1, real_type2>();
 }
 
-TYPED_TEST(PairedViewTypes, have_same_layout) {
-  using real_type    = typename TestFixture::real_type1;
+TYPED_TEST(PairedLayoutTypes, have_same_layout) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_have_same_layout<real_type, layout_type1, layout_type2>();
+  test_have_same_layout<layout_type1, layout_type2>();
 }
 
-TYPED_TEST(PairedViewTypes, have_same_rank) {
-  using real_type   = typename TestFixture::real_type1;
-  using layout_type = typename TestFixture::layout_type1;
+TYPED_TEST(PairedLayoutTypes, have_same_rank) {
+  using layout_type1 = typename TestFixture::layout_type1;
+  using layout_type2 = typename TestFixture::layout_type2;
 
-  test_have_same_rank<real_type, layout_type>();
+  test_have_same_rank<layout_type1, layout_type2>();
 }
 
 TYPED_TEST(PairedViewTypes, are_operatable_views) {
