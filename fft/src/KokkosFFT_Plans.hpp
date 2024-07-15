@@ -186,14 +186,14 @@ class Plan {
             ExecutionSpace, typename OutViewType::memory_space>::accessible,
         "Plan::Plan: execution_space cannot access data in OutViewType");
 
-    if (std::is_floating_point<in_value_type>::value &&
+    if (KokkosFFT::Impl::is_real_v<in_value_type> &&
         m_direction != KokkosFFT::Direction::forward) {
       throw std::runtime_error(
           "Plan::Plan: real to complex transform is constrcuted with backward "
           "direction.");
     }
 
-    if (std::is_floating_point<out_value_type>::value &&
+    if (KokkosFFT::Impl::is_real_v<out_value_type> &&
         m_direction != KokkosFFT::Direction::backward) {
       throw std::runtime_error(
           "Plan::Plan: complex to real transform is constrcuted with forward "

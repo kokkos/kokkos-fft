@@ -70,8 +70,7 @@ auto get_modified_shape(const InViewType in, const OutViewType /* out */,
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
 
-  bool is_C2R = is_complex<in_value_type>::value &&
-                std::is_floating_point_v<out_value_type>;
+  bool is_C2R = is_complex_v<in_value_type> && is_real_v<out_value_type>;
 
   if (is_C2R) {
     int reshaped_axis                = positive_axes.back();
