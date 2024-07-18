@@ -7,7 +7,7 @@
 #include "Test_Utils.hpp"
 
 // All the tests in this file are compile time tests, so we skip all the tests
-// by GTEST_SKIP().
+// by GTEST_SKIP(). gtest is used for type parameterization.
 
 // Define the types to combine
 using base_real_types = std::tuple<float, double, long double>;
@@ -105,8 +105,11 @@ void test_get_real_type() {
   using real_type_from_ComplexType =
       KokkosFFT::Impl::base_floating_point_type<ComplexType>;
 
+  // base floating point type of RealType is RealType
   static_assert(std::is_same_v<real_type_from_RealType, RealType>,
                 "Real type not deduced correctly from real type");
+
+  // base floating point type of Kokkos::complex<RealType> is RealType
   static_assert(std::is_same_v<real_type_from_ComplexType, RealType>,
                 "Real type not deduced correctly from complex type");
 }
@@ -114,26 +117,32 @@ void test_get_real_type() {
 // Tests for admissible real types (float or double)
 template <typename T>
 void test_admissible_real_type() {
+  // Tests that a real type is float or double
   if constexpr (std::is_same_v<T, float> || std::is_same_v<T, double>) {
+    // T is float or double
     static_assert(KokkosFFT::Impl::is_real_v<T>,
                   "Real type must be float or double");
   } else {
+    // T is not float or double
     static_assert(!KokkosFFT::Impl::is_real_v<T>,
-                  "Real type must be float or double");
+                  "Real type must not be float or double");
   }
 }
 
 template <typename T>
 void test_admissible_complex_type() {
   using real_type = KokkosFFT::Impl::base_floating_point_type<T>;
+  // Tests that a base floating point type of complex value is float or double
   if constexpr (std::is_same_v<real_type, float> ||
                 std::is_same_v<real_type, double>) {
+    // T is Kokkos::complex<float> or Kokkos::complex<double>
     static_assert(KokkosFFT::Impl::is_complex_v<T>,
                   "Complex type must be Kokkos::complex<float> or "
                   "Kokkos::complex<double>");
   } else {
+    // T is not Kokkos::complex<float> or Kokkos::complex<double>
     static_assert(!KokkosFFT::Impl::is_complex_v<T>,
-                  "Complex type must be Kokkos::complex<float> or "
+                  "Complex type must not be Kokkos::complex<float> or "
                   "Kokkos::complex<double>");
   }
 }
@@ -162,26 +171,38 @@ template <typename T, typename LayoutType>
 void test_admissible_value_type() {
   using ViewType  = Kokkos::View<T*, LayoutType>;
   using real_type = KokkosFFT::Impl::base_floating_point_type<T>;
+  // Tests that a Value or View has a addmissible value type
   if constexpr (std::is_same_v<real_type, float> ||
                 std::is_same_v<real_type, double>) {
+    // Base floating point type of a Value is float or double
+    static_assert(KokkosFFT::Impl::is_admissible_value_type_v<T>,
+                  "Base value type must be float or double");
+
+    // Base floating point type of a View is float or double
     static_assert(KokkosFFT::Impl::is_admissible_value_type_v<ViewType>,
-                  "Real type must be float or double");
+                  "Base value type of a View must be float or double");
   } else {
+    // Base floating point type of a Value is not float or double
+    static_assert(!KokkosFFT::Impl::is_admissible_value_type_v<T>,
+                  "Base value type of a View must not be float or double");
+
+    // Base floating point type of a View is not float or double
     static_assert(!KokkosFFT::Impl::is_admissible_value_type_v<ViewType>,
-                  "Real type must be float or double");
+                  "Base value type of a View must not be float or double");
   }
 }
 
 template <typename T, typename LayoutType>
 void test_admissible_layout_type() {
   using ViewType = Kokkos::View<T*, LayoutType>;
+  // Tests that the View has a layout in LayoutLeft or LayoutRight
   if constexpr (std::is_same_v<LayoutType, Kokkos::LayoutLeft> ||
                 std::is_same_v<LayoutType, Kokkos::LayoutRight>) {
     static_assert(KokkosFFT::Impl::is_layout_left_or_right_v<ViewType>,
                   "View Layout must be either LayoutLeft or LayoutRight.");
   } else {
     static_assert(!KokkosFFT::Impl::is_layout_left_or_right_v<ViewType>,
-                  "View Layout must be either LayoutLeft or LayoutRight.");
+                  "View Layout must not be either LayoutLeft or LayoutRight.");
   }
 }
 
@@ -189,19 +210,28 @@ template <typename T, typename LayoutType>
 void test_admissible_view_type() {
   using ViewType  = Kokkos::View<T*, LayoutType>;
   using real_type = KokkosFFT::Impl::base_floating_point_type<T>;
-  if constexpr (
-      (std::is_same_v<real_type, float> || std::is_same_v<real_type, double>)&&(
-          std::is_same_v<LayoutType, Kokkos::LayoutLeft> ||
-          std::is_same_v<LayoutType, Kokkos::LayoutRight>)) {
-    static_assert(KokkosFFT::Impl::is_admissible_view_v<ViewType>,
-                  "View value type must be float, double, "
-                  "Kokkos::Complex<float>, Kokkos::Complex<double>. Layout "
-                  "must be either LayoutLeft or LayoutRight.");
+
+  // Tests that the View has a base floating point type in float or double
+  if constexpr ((std::is_same_v<real_type, float> ||
+                 std::is_same_v<real_type, double>)) {
+    // Tests that the View has a layout in LayoutLeft or LayoutRight
+    if constexpr (std::is_same_v<LayoutType, Kokkos::LayoutLeft> ||
+                  std::is_same_v<LayoutType, Kokkos::LayoutRight>) {
+      static_assert(KokkosFFT::Impl::is_admissible_view_v<ViewType>,
+                    "View value type must be float, double, "
+                    "Kokkos::Complex<float>, Kokkos::Complex<double>. Layout "
+                    "must be either LayoutLeft or LayoutRight.");
+    } else {
+      // View is not admissible because layout is not in LayoutLeft or
+      // LayoutRight
+      static_assert(!KokkosFFT::Impl::is_admissible_view_v<ViewType>,
+                    "Layout must be either LayoutLeft or LayoutRight.");
+    }
   } else {
+    // View is not admissible because the base floating point type is not in
+    // float or double
     static_assert(!KokkosFFT::Impl::is_admissible_view_v<ViewType>,
-                  "View value type must be float, double, "
-                  "Kokkos::Complex<float>, Kokkos::Complex<double>. Layout "
-                  "must be either LayoutLeft or LayoutRight.");
+                  "Base value type must be float or double");
   }
 }
 
@@ -215,32 +245,43 @@ template <typename ExecutionSpace1, typename ExecutionSpace2, typename T,
 void test_operatable_view_type() {
   using ViewType  = Kokkos::View<T*, LayoutType, ExecutionSpace2>;
   using real_type = KokkosFFT::Impl::base_floating_point_type<T>;
+
+  // Tests that a View is accessible from the ExecutionSpace
   if constexpr (Kokkos::SpaceAccessibility<
                     ExecutionSpace1,
                     typename ViewType::memory_space>::accessible) {
+    // Tests that the View has a base floating point type in float or double
     if constexpr ((std::is_same_v<real_type, float> ||
-                   std::is_same_v<
-                       real_type,
-                       double>)&&(std::is_same_v<LayoutType,
-                                                 Kokkos::LayoutLeft> ||
-                                  std::is_same_v<LayoutType,
-                                                 Kokkos::LayoutRight>)) {
-      static_assert(
-          KokkosFFT::Impl::is_operatable_view_v<ExecutionSpace1, ViewType>,
-          "View value type must be float, double, "
-          "Kokkos::Complex<float>, Kokkos::Complex<double>. Layout "
-          "must be either LayoutLeft or LayoutRight.");
+                   std::is_same_v<real_type, double>)) {
+      // Tests that the View has a layout in LayoutLeft or LayoutRight
+      if constexpr (std::is_same_v<LayoutType, Kokkos::LayoutLeft> ||
+                    std::is_same_v<LayoutType, Kokkos::LayoutRight>) {
+        // View is operatable
+        static_assert(
+            KokkosFFT::Impl::is_operatable_view_v<ExecutionSpace1, ViewType>,
+            "View value type must be float, double, "
+            "Kokkos::Complex<float>, or Kokkos::Complex<double>. Layout "
+            "must be either LayoutLeft or LayoutRight.");
+      } else {
+        // View is not operatable because layout is not in LayoutLeft or
+        // LayoutRight
+        static_assert(
+            !KokkosFFT::Impl::is_operatable_view_v<ExecutionSpace1, ViewType>,
+            "Layout must be either LayoutLeft or LayoutRight.");
+      }
     } else {
+      // View is not operatable because the base floating point type is not in
+      // float or double
       static_assert(
           !KokkosFFT::Impl::is_operatable_view_v<ExecutionSpace1, ViewType>,
-          "View value type must be float, double, "
-          "Kokkos::Complex<float>, Kokkos::Complex<double>. Layout "
-          "must be either LayoutLeft or LayoutRight.");
+          "Base value type must be float or double");
     }
   } else {
+    // View is not operatable because it is not accessible from
+    // ExecutionSpace
     static_assert(
         !KokkosFFT::Impl::is_operatable_view_v<ExecutionSpace1, ViewType>,
-        "execution_space cannot access data in ViewType");
+        "ExecutionSpace cannot access data in ViewType");
   }
 }
 
@@ -296,7 +337,7 @@ TYPED_TEST(RealAndComplexViewTypes, operatable_view_type) {
 
 // Tests for multiple Views
 template <typename RealType1, typename RealType2>
-void test_have_same_precision() {
+void test_have_same_base_floating_point_type() {
   using real_type1    = RealType1;
   using real_type2    = RealType2;
   using complex_type1 = Kokkos::complex<real_type1>;
@@ -307,53 +348,65 @@ void test_have_same_precision() {
   using RealViewType2    = Kokkos::View<real_type2*>;
   using ComplexViewType2 = Kokkos::View<complex_type2*>;
 
+  // Tests that Values or Views have the same base floating point type
   if constexpr (std::is_same_v<real_type1, real_type2>) {
-    // Tests for values
+    // Values must have the same base floating point type
     static_assert(
-        KokkosFFT::Impl::have_same_precision_v<real_type1, complex_type1>,
-        "Values have the same base precisions");
+        KokkosFFT::Impl::have_same_base_floating_point_type_v<real_type1,
+                                                              complex_type1>,
+        "Values must have the same base floating point type");
     static_assert(
-        KokkosFFT::Impl::have_same_precision_v<complex_type1, real_type2>,
-        "Values have the same base precisions");
+        KokkosFFT::Impl::have_same_base_floating_point_type_v<complex_type1,
+                                                              real_type2>,
+        "Values must have the same base floating point type");
     static_assert(
-        KokkosFFT::Impl::have_same_precision_v<complex_type1, complex_type2>,
-        "Values have the same base precisions");
+        KokkosFFT::Impl::have_same_base_floating_point_type_v<complex_type1,
+                                                              complex_type2>,
+        "Values must have the same base floating point type");
 
-    // Tests for Views
+    // Views must have the same base floating point type
     static_assert(
-        KokkosFFT::Impl::have_same_precision_v<RealViewType1, RealViewType2>,
-        "ViewTypes have the same base precisions");
+        KokkosFFT::Impl::have_same_base_floating_point_type_v<RealViewType1,
+                                                              RealViewType2>,
+        "ViewTypes must have the same base floating point type");
     static_assert(
-        KokkosFFT::Impl::have_same_precision_v<RealViewType1, ComplexViewType2>,
-        "ViewTypes have the same base precisions");
+        KokkosFFT::Impl::have_same_base_floating_point_type_v<RealViewType1,
+                                                              ComplexViewType2>,
+        "ViewTypes must have the same base floating point type");
     static_assert(
-        KokkosFFT::Impl::have_same_precision_v<ComplexViewType1, RealViewType2>,
-        "ViewTypes have the same base precisions");
-    static_assert(KokkosFFT::Impl::have_same_precision_v<ComplexViewType1,
-                                                         ComplexViewType2>,
-                  "ViewTypes have the same base precisions");
+        KokkosFFT::Impl::have_same_base_floating_point_type_v<ComplexViewType1,
+                                                              RealViewType2>,
+        "ViewTypes must have the same base floating point type");
+    static_assert(
+        KokkosFFT::Impl::have_same_base_floating_point_type_v<ComplexViewType1,
+                                                              ComplexViewType2>,
+        "ViewTypes must have the same base floating point type");
   } else {
-    // Tests for values
+    // Values must not have the same base floating point type
     static_assert(
-        !KokkosFFT::Impl::have_same_precision_v<complex_type1, real_type2>,
-        "Values have the same base precisions");
+        !KokkosFFT::Impl::have_same_base_floating_point_type_v<complex_type1,
+                                                               real_type2>,
+        "Values must not have the same base floating point type");
     static_assert(
-        !KokkosFFT::Impl::have_same_precision_v<complex_type1, complex_type2>,
-        "Values have the same base precisions");
+        !KokkosFFT::Impl::have_same_base_floating_point_type_v<complex_type1,
+                                                               complex_type2>,
+        "Values must not have the same base floating point type");
 
-    // Tests for Views
+    // Views must not have the same base floating point type
     static_assert(
-        !KokkosFFT::Impl::have_same_precision_v<RealViewType1, RealViewType2>,
-        "ViewTypes have the same base precisions");
-    static_assert(!KokkosFFT::Impl::have_same_precision_v<RealViewType1,
-                                                          ComplexViewType2>,
-                  "ViewTypes have the same base precisions");
-    static_assert(!KokkosFFT::Impl::have_same_precision_v<ComplexViewType1,
-                                                          RealViewType2>,
-                  "ViewTypes have the same base precisions");
-    static_assert(!KokkosFFT::Impl::have_same_precision_v<ComplexViewType1,
-                                                          ComplexViewType2>,
-                  "ViewTypes have the same base precisions");
+        !KokkosFFT::Impl::have_same_base_floating_point_type_v<RealViewType1,
+                                                               RealViewType2>,
+        "ViewTypes must not have the same base floating point type");
+    static_assert(!KokkosFFT::Impl::have_same_base_floating_point_type_v<
+                      RealViewType1, ComplexViewType2>,
+                  "ViewTypes must not have the same base floating point type");
+    static_assert(
+        !KokkosFFT::Impl::have_same_base_floating_point_type_v<ComplexViewType1,
+                                                               RealViewType2>,
+        "ViewTypes must not have the same base floating point type");
+    static_assert(!KokkosFFT::Impl::have_same_base_floating_point_type_v<
+                      ComplexViewType1, ComplexViewType2>,
+                  "ViewTypes must not have the same base floating point type");
   }
 }
 
@@ -363,14 +416,15 @@ void test_have_same_layout() {
   using ViewType1 = Kokkos::View<RealType*, LayoutType1>;
   using ViewType2 = Kokkos::View<RealType*, LayoutType2>;
 
+  // Tests that Views have the same layout
   if constexpr (std::is_same_v<LayoutType1, LayoutType2>) {
-    // Tests for Views
+    // Views must have the same layout
     static_assert(KokkosFFT::Impl::have_same_layout_v<ViewType1, ViewType2>,
-                  "ViewTypes have the same layout");
+                  "ViewTypes must have the same layout");
   } else {
-    // Tests for Views
+    // Views must not have the same layout
     static_assert(!KokkosFFT::Impl::have_same_layout_v<ViewType1, ViewType2>,
-                  "ViewTypes have the same layout");
+                  "ViewTypes must not have the same layout");
   }
 }
 
@@ -382,34 +436,37 @@ void test_have_same_rank() {
   using StaticRank1ViewType        = Kokkos::View<RealType[3], LayoutType2>;
   using StaticRank2ViewType        = Kokkos::View<RealType[2][5], LayoutType2>;
   using DynamicStaticRank2ViewType = Kokkos::View<RealType* [5], LayoutType1>;
+
+  // Views must have the same rank
   static_assert(KokkosFFT::Impl::have_same_rank_v<DynamicRank1ViewType,
                                                   StaticRank1ViewType>,
-                "ViewTypes have the same rank");
+                "ViewTypes must have the same rank");
   static_assert(KokkosFFT::Impl::have_same_rank_v<DynamicRank2ViewType,
                                                   StaticRank2ViewType>,
-                "ViewTypes have the same rank");
+                "ViewTypes must have the same rank");
   static_assert(KokkosFFT::Impl::have_same_rank_v<DynamicRank2ViewType,
                                                   DynamicStaticRank2ViewType>,
-                "ViewTypes have the same rank");
+                "ViewTypes must have the same rank");
 
+  // Views must not have the same rank
   static_assert(!KokkosFFT::Impl::have_same_rank_v<DynamicRank1ViewType,
                                                    DynamicRank2ViewType>,
-                "ViewTypes have the same rank");
+                "ViewTypes must not have the same rank");
   static_assert(!KokkosFFT::Impl::have_same_rank_v<DynamicRank1ViewType,
                                                    StaticRank2ViewType>,
-                "ViewTypes have the same rank");
+                "ViewTypes must not have the same rank");
   static_assert(!KokkosFFT::Impl::have_same_rank_v<DynamicRank1ViewType,
                                                    DynamicStaticRank2ViewType>,
-                "ViewTypes have the same rank");
+                "ViewTypes must not have the same rank");
   static_assert(!KokkosFFT::Impl::have_same_rank_v<StaticRank1ViewType,
                                                    DynamicRank2ViewType>,
-                "ViewTypes have the same rank");
+                "ViewTypes must not have the same rank");
   static_assert(!KokkosFFT::Impl::have_same_rank_v<StaticRank1ViewType,
                                                    StaticRank2ViewType>,
-                "ViewTypes have the same rank");
+                "ViewTypes must not have the same rank");
   static_assert(!KokkosFFT::Impl::have_same_rank_v<StaticRank1ViewType,
                                                    DynamicStaticRank2ViewType>,
-                "ViewTypes have the same rank");
+                "ViewTypes must not have the same rank");
 }
 
 // \brief Test if two Views are operatable
@@ -443,7 +500,8 @@ void test_are_operatable_views() {
   if constexpr (Kokkos::SpaceAccessibility<
                     ExecutionSpace1,
                     typename RealViewType1::memory_space>::accessible) {
-    // Tests that the Views have the same precision in float or double
+    // Tests that the Views have the same base floating point type in float or
+    // double
     if constexpr (std::is_same_v<RealType1, RealType2> &&
                   (std::is_same_v<RealType1, float> ||
                    std::is_same_v<RealType1, double>)) {
@@ -479,6 +537,8 @@ void test_are_operatable_views() {
                           ExecutionSpace1, ComplexViewType1, ComplexViewType3>,
                       "InViewType and OutViewType must have the same rank");
       } else {
+        // Views are not operatable because they do not have the same layout in
+        // LayoutLeft or LayoutRight
         static_assert(!KokkosFFT::Impl::are_operatable_views_v<
                           ExecutionSpace1, RealViewType1, RealViewType2>,
                       "Layouts are not identical or one of them is not "
@@ -497,6 +557,8 @@ void test_are_operatable_views() {
                       "LayoutLeft or LayoutRight");
       }
     } else {
+      // Views are not operatable because they do not have the same base
+      // floating point type in float or double
       static_assert(!KokkosFFT::Impl::are_operatable_views_v<
                         ExecutionSpace1, RealViewType1, RealViewType2>,
                     "Base value types are not identical or one of them is not "
@@ -538,11 +600,11 @@ void test_are_operatable_views() {
   }
 }
 
-TYPED_TEST(PairedValueTypes, have_same_precision) {
+TYPED_TEST(PairedValueTypes, have_same_base_floating_point_type) {
   using real_type1 = typename TestFixture::real_type1;
   using real_type2 = typename TestFixture::real_type2;
 
-  test_have_same_precision<real_type1, real_type2>();
+  test_have_same_base_floating_point_type<real_type1, real_type2>();
 }
 
 TYPED_TEST(PairedLayoutTypes, have_same_layout) {

@@ -131,10 +131,10 @@ inline constexpr bool is_operatable_view_v =
 
 // Traits for binary operations
 template <typename T1, typename T2, typename Enable = void>
-struct have_same_precision : std::false_type {};
+struct have_same_base_floating_point_type : std::false_type {};
 
 template <typename T1, typename T2>
-struct have_same_precision<
+struct have_same_base_floating_point_type<
     T1, T2,
     std::enable_if_t<!Kokkos::is_view_v<T1> && !Kokkos::is_view_v<T2> &&
                      std::is_same_v<base_floating_point_type<T1>,
@@ -142,7 +142,7 @@ struct have_same_precision<
     : std::true_type {};
 
 template <typename InViewType, typename OutViewType>
-struct have_same_precision<
+struct have_same_base_floating_point_type<
     InViewType, OutViewType,
     std::enable_if_t<
         Kokkos::is_view_v<InViewType> && Kokkos::is_view_v<OutViewType> &&
@@ -152,12 +152,12 @@ struct have_same_precision<
                 typename OutViewType::non_const_value_type>>>>
     : std::true_type {};
 
-/// \brief Helper to check if two value have the same base precision type.
+/// \brief Helper to check if two value have the same base floating point type.
 /// When applied to Kokkos::View, then check if values of views have the same
-/// base precision type.
+/// base floating point type.
 template <typename T1, typename T2>
-inline constexpr bool have_same_precision_v =
-    have_same_precision<T1, T2>::value;
+inline constexpr bool have_same_base_floating_point_type_v =
+    have_same_base_floating_point_type<T1, T2>::value;
 
 template <typename InViewType, typename OutViewType, typename Enable = void>
 struct have_same_layout : std::false_type {};
@@ -199,12 +199,12 @@ struct are_operatable_views : std::false_type {};
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
 struct are_operatable_views<
     ExecutionSpace, InViewType, OutViewType,
-    std::enable_if_t<is_operatable_view_v<ExecutionSpace, InViewType> &&
-                     is_operatable_view_v<ExecutionSpace, OutViewType> &&
-                     have_same_precision_v<InViewType, OutViewType> &&
-                     have_same_layout_v<InViewType, OutViewType> &&
-                     have_same_rank_v<InViewType, OutViewType>>>
-    : std::true_type {};
+    std::enable_if_t<
+        is_operatable_view_v<ExecutionSpace, InViewType> &&
+        is_operatable_view_v<ExecutionSpace, OutViewType> &&
+        have_same_base_floating_point_type_v<InViewType, OutViewType> &&
+        have_same_layout_v<InViewType, OutViewType> &&
+        have_same_rank_v<InViewType, OutViewType>>> : std::true_type {};
 
 /// \brief Helper to check if Views are acceptable View for Kokkos-FFT and
 /// memory space are accessible from the ExecutionSpace.
