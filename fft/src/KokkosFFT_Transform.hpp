@@ -53,6 +53,7 @@ void exec_impl(
     KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward) {
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
+  using ExecutionSpace = typename PlanType::execSpace;
 
   auto* idata = reinterpret_cast<typename KokkosFFT::Impl::fft_data_type<
       ExecutionSpace, in_value_type>::type*>(in.data());
@@ -71,6 +72,7 @@ void fft_exec_impl(
     const PlanType& plan, const InViewType& in, OutViewType& out,
     // KokkosFFT::Direction direction,
     KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward) {
+  using ExecutionSpace = typename PlanType::execSpace;
   static_assert(
       KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
                                               OutViewType>,
