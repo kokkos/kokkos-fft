@@ -13,6 +13,7 @@
 
 #include <Kokkos_Core.hpp>
 #include "KokkosFFT_default_types.hpp"
+#include "KokkosFFT_traits.hpp"
 #include "KokkosFFT_transpose.hpp"
 #include "KokkosFFT_padding.hpp"
 #include "KokkosFFT_utils.hpp"
@@ -158,33 +159,14 @@ class Plan {
                 OutViewType& out, KokkosFFT::Direction direction, int axis,
                 std::optional<std::size_t> n = std::nullopt)
       : m_exec_space(exec_space), m_axes({axis}), m_direction(direction) {
-    static_assert(Kokkos::is_view<InViewType>::value,
-                  "Plan::Plan: InViewType is not a Kokkos::View.");
-    static_assert(Kokkos::is_view<OutViewType>::value,
-                  "Plan::Plan: OutViewType is not a Kokkos::View.");
     static_assert(
-        KokkosFFT::Impl::is_layout_left_or_right_v<InViewType>,
-        "Plan::Plan: InViewType must be either LayoutLeft or LayoutRight.");
-    static_assert(
-        KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
-        "Plan::Plan: OutViewType must be either LayoutLeft or LayoutRight.");
-
-    static_assert(InViewType::rank() == OutViewType::rank(),
-                  "Plan::Plan: InViewType and OutViewType must have "
-                  "the same rank.");
-    static_assert(std::is_same_v<typename InViewType::array_layout,
-                                 typename OutViewType::array_layout>,
-                  "Plan::Plan: InViewType and OutViewType must have "
-                  "the same Layout.");
-
-    static_assert(
-        Kokkos::SpaceAccessibility<
-            ExecutionSpace, typename InViewType::memory_space>::accessible,
-        "Plan::Plan: execution_space cannot access data in InViewType");
-    static_assert(
-        Kokkos::SpaceAccessibility<
-            ExecutionSpace, typename OutViewType::memory_space>::accessible,
-        "Plan::Plan: execution_space cannot access data in OutViewType");
+        KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
+                                                OutViewType>,
+        "Plan::Plan: InViewType and OutViewType must have the same base "
+        "floating point type (float/double), the same layout "
+        "(LayoutLeft/LayoutRight), "
+        "and the same rank. ExecutionSpace must be accessible to the data in "
+        "InViewType and OutViewType.");
 
     if (KokkosFFT::Impl::is_real_v<in_value_type> &&
         m_direction != KokkosFFT::Direction::forward) {
@@ -230,34 +212,14 @@ class Plan {
                 OutViewType& out, KokkosFFT::Direction direction,
                 axis_type<DIM> axes, shape_type<DIM> s = {0})
       : m_exec_space(exec_space), m_axes(axes), m_direction(direction) {
-    static_assert(Kokkos::is_view<InViewType>::value,
-                  "Plan::Plan: InViewType is not a Kokkos::View.");
-    static_assert(Kokkos::is_view<OutViewType>::value,
-                  "Plan::Plan: OutViewType is not a Kokkos::View.");
     static_assert(
-        KokkosFFT::Impl::is_layout_left_or_right_v<InViewType>,
-        "Plan::Plan: InViewType must be either LayoutLeft or LayoutRight.");
-    static_assert(
-        KokkosFFT::Impl::is_layout_left_or_right_v<OutViewType>,
-        "Plan::Plan: OutViewType must be either LayoutLeft or LayoutRight.");
-
-    static_assert(InViewType::rank() == OutViewType::rank(),
-                  "Plan::Plan: InViewType and OutViewType must have "
-                  "the same rank.");
-
-    static_assert(std::is_same_v<typename InViewType::array_layout,
-                                 typename OutViewType::array_layout>,
-                  "Plan::Plan: InViewType and OutViewType must have "
-                  "the same Layout.");
-
-    static_assert(
-        Kokkos::SpaceAccessibility<
-            ExecutionSpace, typename InViewType::memory_space>::accessible,
-        "Plan::Plan: execution_space cannot access data in InViewType");
-    static_assert(
-        Kokkos::SpaceAccessibility<
-            ExecutionSpace, typename OutViewType::memory_space>::accessible,
-        "Plan::Plan: execution_space cannot access data in OutViewType");
+        KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
+                                                OutViewType>,
+        "Plan::Plan: InViewType and OutViewType must have the same base "
+        "floating point type (float/double), the same layout "
+        "(LayoutLeft/LayoutRight), "
+        "and the same rank. ExecutionSpace must be accessible to the data in "
+        "InViewType and OutViewType.");
 
     if (std::is_floating_point<in_value_type>::value &&
         m_direction != KokkosFFT::Direction::forward) {
@@ -302,15 +264,6 @@ class Plan {
   /// \param out [in] Ouput data
   template <typename InViewType2, typename OutViewType2>
   void good(const InViewType2& in, const OutViewType2& out) const {
-    static_assert(
-        Kokkos::SpaceAccessibility<
-            ExecutionSpace, typename InViewType2::memory_space>::accessible,
-        "Plan::good: execution_space cannot access data in InViewType");
-    static_assert(
-        Kokkos::SpaceAccessibility<
-            ExecutionSpace, typename OutViewType2::memory_space>::accessible,
-        "Plan::good: execution_space cannot access data in OutViewType");
-
     using nonConstInViewType2  = std::remove_cv_t<InViewType2>;
     using nonConstOutViewType2 = std::remove_cv_t<OutViewType2>;
     static_assert(std::is_same_v<nonConstInViewType2, nonConstInViewType>,
