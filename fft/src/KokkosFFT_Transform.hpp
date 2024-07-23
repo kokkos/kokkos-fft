@@ -139,6 +139,8 @@ void fft(const ExecutionSpace& exec_space, const InViewType& in,
       "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
       "same rank. ExecutionSpace must be accessible to the data in InViewType "
       "and OutViewType.");
+  static_assert(InViewType::rank() >= 1,
+                "fft: View rank must be larger than or equal to 1");
 
   KokkosFFT::Impl::Plan plan(exec_space, in, out, KokkosFFT::Direction::forward,
                              axis, n);
@@ -165,6 +167,8 @@ void ifft(const ExecutionSpace& exec_space, const InViewType& in,
       "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
       "same rank. ExecutionSpace must be accessible to the data in InViewType "
       "and OutViewType.");
+  static_assert(InViewType::rank() >= 1,
+                "ifft: View rank must be larger than or equal to 1");
 
   KokkosFFT::Impl::Plan plan(exec_space, in, out,
                              KokkosFFT::Direction::backward, axis, n);
@@ -191,6 +195,8 @@ void rfft(const ExecutionSpace& exec_space, const InViewType& in,
       "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
       "same rank. ExecutionSpace must be accessible to the data in InViewType "
       "and OutViewType.");
+  static_assert(InViewType::rank() >= 1,
+                "rfft: View rank must be larger than or equal to 1");
 
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
@@ -224,6 +230,8 @@ void irfft(const ExecutionSpace& exec_space, const InViewType& in,
       "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
       "same rank. ExecutionSpace must be accessible to the data in InViewType "
       "and OutViewType.");
+  static_assert(InViewType::rank() >= 1,
+                "irfft: View rank must be larger than or equal to 1");
 
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
@@ -255,6 +263,8 @@ void hfft(const ExecutionSpace& exec_space, const InViewType& in,
       "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
       "same rank. ExecutionSpace must be accessible to the data in InViewType "
       "and OutViewType.");
+  static_assert(InViewType::rank() >= 1,
+                "hfft: View rank must be larger than or equal to 1");
 
   // [TO DO]
   // allow real type as input, need to obtain complex view type from in view
@@ -295,6 +305,8 @@ void ihfft(const ExecutionSpace& exec_space, const InViewType& in,
       "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
       "same rank. ExecutionSpace must be accessible to the data in InViewType "
       "and OutViewType.");
+  static_assert(InViewType::rank() >= 1,
+                "ihfft: View rank must be larger than or equal to 1");
 
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
@@ -332,6 +344,8 @@ void fft2(const ExecutionSpace& exec_space, const InViewType& in,
       "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
       "same rank. ExecutionSpace must be accessible to the data in InViewType "
       "and OutViewType.");
+  static_assert(InViewType::rank() >= 2,
+                "fft2: View rank must be larger than or equal to 2");
 
   KokkosFFT::Impl::Plan plan(exec_space, in, out, KokkosFFT::Direction::forward,
                              axes, s);
@@ -359,6 +373,8 @@ void ifft2(const ExecutionSpace& exec_space, const InViewType& in,
       "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
       "same rank. ExecutionSpace must be accessible to the data in InViewType "
       "and OutViewType.");
+  static_assert(InViewType::rank() >= 2,
+                "ifft2: View rank must be larger than or equal to 2");
 
   KokkosFFT::Impl::Plan plan(exec_space, in, out,
                              KokkosFFT::Direction::backward, axes, s);
@@ -386,6 +402,9 @@ void rfft2(const ExecutionSpace& exec_space, const InViewType& in,
       "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
       "same rank. ExecutionSpace must be accessible to the data in InViewType "
       "and OutViewType.");
+  static_assert(InViewType::rank() >= 2,
+                "rfft2: View rank must be larger than or equal to 2");
+
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
 
@@ -418,6 +437,8 @@ void irfft2(const ExecutionSpace& exec_space, const InViewType& in,
       "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
       "same rank. ExecutionSpace must be accessible to the data in InViewType "
       "and OutViewType.");
+  static_assert(InViewType::rank() >= 2,
+                "irfft2: View rank must be larger than or equal to 2");
 
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
@@ -453,6 +474,11 @@ void fftn(const ExecutionSpace& exec_space, const InViewType& in,
       "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
       "same rank. ExecutionSpace must be accessible to the data in InViewType "
       "and OutViewType.");
+  static_assert(DIM >= 1 && DIM <= KokkosFFT::MAX_FFT_DIM,
+                "fftn: the Rank of FFT axes must be between 1 and MAX_FFT_DIM");
+  static_assert(
+      InViewType::rank() >= DIM,
+      "fftn: View rank must be larger than or equal to the Rank of FFT axes");
 
   KokkosFFT::Impl::Plan plan(exec_space, in, out, KokkosFFT::Direction::forward,
                              axes, s);
@@ -481,6 +507,12 @@ void ifftn(const ExecutionSpace& exec_space, const InViewType& in,
       "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
       "same rank. ExecutionSpace must be accessible to the data in InViewType "
       "and OutViewType.");
+  static_assert(
+      DIM >= 1 && DIM <= KokkosFFT::MAX_FFT_DIM,
+      "ifftn: the Rank of FFT axes must be between 1 and MAX_FFT_DIM");
+  static_assert(
+      InViewType::rank() >= DIM,
+      "ifftn: View rank must be larger than or equal to the Rank of FFT axes");
 
   KokkosFFT::Impl::Plan plan(exec_space, in, out,
                              KokkosFFT::Direction::backward, axes, s);
@@ -509,6 +541,12 @@ void rfftn(const ExecutionSpace& exec_space, const InViewType& in,
       "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
       "same rank. ExecutionSpace must be accessible to the data in InViewType "
       "and OutViewType.");
+  static_assert(
+      DIM >= 1 && DIM <= KokkosFFT::MAX_FFT_DIM,
+      "rfftn: the Rank of FFT axes must be between 1 and MAX_FFT_DIM");
+  static_assert(
+      InViewType::rank() >= DIM,
+      "rfftn: View rank must be larger than or equal to the Rank of FFT axes");
 
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
@@ -543,6 +581,12 @@ void irfftn(const ExecutionSpace& exec_space, const InViewType& in,
       "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
       "same rank. ExecutionSpace must be accessible to the data in InViewType "
       "and OutViewType.");
+  static_assert(
+      DIM >= 1 && DIM <= KokkosFFT::MAX_FFT_DIM,
+      "irfftn: the Rank of FFT axes must be between 1 and MAX_FFT_DIM");
+  static_assert(
+      InViewType::rank() >= DIM,
+      "irfftn: View rank must be larger than or equal to the Rank of FFT axes");
 
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
