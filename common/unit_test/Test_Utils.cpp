@@ -38,6 +38,14 @@ void test_convert_negative_axes_1d() {
 
   EXPECT_EQ(converted_axis_0, ref_converted_axis_0);
   EXPECT_EQ(converted_axis_minus1, ref_converted_axis_minus1);
+
+  // Check if errors are correctly raised aginst invalid axis
+  // axis must be in [-1, 1)
+  EXPECT_THROW({ KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/1); },
+               std::runtime_error);
+
+  EXPECT_THROW({ KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/-2); },
+               std::runtime_error);
 }
 
 template <typename LayoutType>
@@ -58,6 +66,14 @@ void test_convert_negative_axes_2d() {
   EXPECT_EQ(converted_axis_0, ref_converted_axis_0);
   EXPECT_EQ(converted_axis_1, ref_converted_axis_1);
   EXPECT_EQ(converted_axis_minus1, ref_converted_axis_minus1);
+
+  // Check if errors are correctly raised aginst invalid axis
+  // axis must be in [-2, 2)
+  EXPECT_THROW({ KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/2); },
+               std::runtime_error);
+
+  EXPECT_THROW({ KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/-3); },
+               std::runtime_error);
 }
 
 template <typename LayoutType>
@@ -85,6 +101,14 @@ void test_convert_negative_axes_3d() {
   EXPECT_EQ(converted_axis_2, ref_converted_axis_2);
   EXPECT_EQ(converted_axis_minus1, ref_converted_axis_minus1);
   EXPECT_EQ(converted_axis_minus2, ref_converted_axis_minus2);
+
+  // Check if errors are correctly raised aginst invalid axis
+  // axis must be in [-3, 3)
+  EXPECT_THROW({ KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/3); },
+               std::runtime_error);
+
+  EXPECT_THROW({ KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/-4); },
+               std::runtime_error);
 }
 
 template <typename LayoutType>
@@ -119,6 +143,14 @@ void test_convert_negative_axes_4d() {
   EXPECT_EQ(converted_axis_minus1, ref_converted_axis_minus1);
   EXPECT_EQ(converted_axis_minus2, ref_converted_axis_minus2);
   EXPECT_EQ(converted_axis_minus3, ref_converted_axis_minus3);
+
+  // Check if errors are correctly raised aginst invalid axis
+  // axis must be in [-4, 4)
+  EXPECT_THROW({ KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/4); },
+               std::runtime_error);
+
+  EXPECT_THROW({ KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/-5); },
+               std::runtime_error);
 }
 
 // Tests for 1D View
@@ -247,6 +279,18 @@ TEST(GetIndex, Vectors) {
   EXPECT_THROW(KokkosFFT::Impl::get_index(v, -1), std::runtime_error);
 
   EXPECT_THROW(KokkosFFT::Impl::get_index(v, 5), std::runtime_error);
+}
+
+TEST(HasDuplicateValues, Array) {
+  std::vector<int> v0 = {0, 1, 1};
+  std::vector<int> v1 = {0, 1, 1, 1};
+  std::vector<int> v2 = {0, 1, 2, 3};
+  std::vector<int> v3 = {0};
+
+  EXPECT_TRUE(KokkosFFT::Impl::has_duplicate_values(v0));
+  EXPECT_TRUE(KokkosFFT::Impl::has_duplicate_values(v1));
+  EXPECT_FALSE(KokkosFFT::Impl::has_duplicate_values(v2));
+  EXPECT_FALSE(KokkosFFT::Impl::has_duplicate_values(v3));
 }
 
 TEST(IsOutOfRangeValueIncluded, Array) {
