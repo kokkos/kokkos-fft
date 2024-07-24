@@ -167,6 +167,8 @@ class Plan {
         "(LayoutLeft/LayoutRight), "
         "and the same rank. ExecutionSpace must be accessible to the data in "
         "InViewType and OutViewType.");
+    static_assert(InViewType::rank() >= 1,
+                  "Plan::Plan: View rank must be larger than or equal to 1");
 
     if (KokkosFFT::Impl::is_real_v<in_value_type> &&
         m_direction != KokkosFFT::Direction::forward) {
@@ -220,6 +222,12 @@ class Plan {
         "(LayoutLeft/LayoutRight), "
         "and the same rank. ExecutionSpace must be accessible to the data in "
         "InViewType and OutViewType.");
+    static_assert(
+        DIM >= 1 && DIM <= KokkosFFT::MAX_FFT_DIM,
+        "Plan::Plan: the Rank of FFT axes must be between 1 and MAX_FFT_DIM");
+    static_assert(InViewType::rank() >= DIM,
+                  "Plan::Plan: View rank must be larger than or equal to the "
+                  "Rank of FFT axes");
 
     if (std::is_floating_point<in_value_type>::value &&
         m_direction != KokkosFFT::Direction::forward) {

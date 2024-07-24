@@ -34,6 +34,9 @@ enum class Direction {
   backward,
 };
 
+//! Maximum FFT dimension allowed in KokkosFFT
+constexpr std::size_t MAX_FFT_DIM = 3;
+
 }  // namespace KokkosFFT
 
 #endif
