@@ -26,7 +26,10 @@ auto convert_negative_axis(ViewType, int _axis = -1) {
   static_assert(Kokkos::is_view<ViewType>::value,
                 "convert_negative_axis: ViewType is not a Kokkos::View.");
   int rank = static_cast<int>(ViewType::rank());
-  assert(_axis >= -rank && _axis < rank);  // axis should be in [-rank, rank-1]
+  if (_axis < -rank || _axis >= rank) {
+    throw std::runtime_error("axis should be in [-rank, rank-1]");
+  }
+
   int axis = _axis < 0 ? rank + _axis : _axis;
   return axis;
 }
