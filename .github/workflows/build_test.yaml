@@ -96,8 +96,8 @@ jobs:
           - name: cuda
             image: nvcc
             compiler:
-              c: gcc
-              cxx: g++
+              c: gcc-12
+              cxx: g++-12
             cmake_flags:
               cxx_standard: 20
               kokkos: -DKokkos_ENABLE_CUDA=ON -DKokkos_ARCH_AMPERE80=ON

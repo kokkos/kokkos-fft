@@ -15,6 +15,8 @@ RUN apt-get update && apt-get install -y \
         git \
         ccache \
         libfftw3-dev \
+	gcc-12 \
+	g++-12 \
         $ADDITIONAL_PACKAGES \
         && \
     apt-get clean && \
