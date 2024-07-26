@@ -77,7 +77,10 @@ jobs:
             docker/${{ matrix.image.name }}
 
       - name: Push Docker image
-        run: docker push ghcr.io/kokkos/kokkos-fft/base_${{ matrix.image.name }}_${{ inputs.image_suffix }}:${{ inputs.image_tag }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: base_${{ matrix.image.name }}_${{ inputs.image_suffix }}:${{ inputs.image_tag }}
+          path: ghcr.io/kokkos/kokkos-fft/base_${{ matrix.image.name }}_${{ inputs.image_suffix }}:${{ inputs.image_tag }}
 
       - name: Convert Docker image to Singularity
         run: singularity build base.sif docker://ghcr.io/kokkos/kokkos-fft/base_${{ matrix.image.name }}_${{ inputs.image_suffix }}:${{ inputs.image_tag }}
