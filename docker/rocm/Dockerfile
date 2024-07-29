@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
-ARG BASE=rocm/dev-ubuntu-20.04
+ARG BASE=rocm/dev-ubuntu-22.04:5.6-complete
 FROM $BASE
 
 ARG ADDITIONAL_PACKAGES

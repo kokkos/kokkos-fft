@@ -12,6 +12,12 @@
 #include <numeric>
 #include "KokkosFFT_traits.hpp"
 
+#if defined(KOKKOS_ENABLE_CXX17)
+#include <cstdlib>
+#else
+#include <source_location>
+#endif
+
 namespace KokkosFFT {
 namespace Impl {
 
