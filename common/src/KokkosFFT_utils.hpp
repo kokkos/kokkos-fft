@@ -50,26 +50,21 @@ inline void check_precondition(const bool expression,
   }
   throw std::runtime_error(ss.str());
 }
-inline void check_precondition(const bool expression, const std::string& msg,
-                               const char* file_name, int line,
-                               const char* function_name) {
-  std::stringstream ss("file: ");
-  ss << file_name << '(' << line << ") `" << function_name << "`: " << msg
-     << '\n';
-  if (!expression) {
-    throw std::runtime_error(ss.str());
-  }
-}
-#endif
 
 template <typename ViewType>
 auto convert_negative_axis(ViewType, int _axis = -1) {
   static_assert(Kokkos::is_view<ViewType>::value,
                 "convert_negative_axis: ViewType is not a Kokkos::View.");
   int rank = static_cast<int>(ViewType::rank());
+<<<<<<< HEAD
   if (_axis < -rank || _axis >= rank) {
     throw std::runtime_error("axis should be in [-rank, rank-1]");
   }
+=======
+
+  KOKKOSFFT_EXPECTS(_axis >= -rank && _axis < rank,
+                    "Axis must be in [-rank, rank-1]");
+>>>>>>> a786585 (improve assertion)
 
   int axis = _axis < 0 ? rank + _axis : _axis;
   return axis;

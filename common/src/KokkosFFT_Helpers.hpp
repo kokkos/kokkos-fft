@@ -23,12 +23,12 @@ auto get_shift(const ViewType& inout, axis_type<DIM> _axes, int direction = 1) {
 
   // Assert if the elements are overlapped
   constexpr int rank = ViewType::rank();
-  check_precondition(!KokkosFFT::Impl::has_duplicate_values(axes),
-                     "axes are overlapped");
-  check_precondition(
+  KOKKOSFFT_EXPECTS(!KokkosFFT::Impl::has_duplicate_values(axes),
+                    "Axes overlap");
+  KOKKOSFFT_EXPECTS(
       !KokkosFFT::Impl::is_out_of_range_value_included(axes, rank),
-      "axes include out of range index."
-      "axes should be in the range of [-rank, rank-1].");
+      "Axes include an out-of-range index."
+      "Axes must be in the range of [-rank, rank-1].");
 
   axis_type<rank> shift = {0};
   for (int i = 0; i < static_cast<int>(DIM); i++) {

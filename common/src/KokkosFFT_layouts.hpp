@@ -67,12 +67,11 @@ auto get_extents(const InViewType& in, const OutViewType& out,
   if (is_real_v<in_value_type>) {
     // Then R2C
     if (is_complex_v<out_value_type>) {
-      if (_out_extents.at(inner_most_axis) !=
-          _in_extents.at(inner_most_axis) / 2 + 1) {
-        throw std::runtime_error(
-            "For R2C, the output extent of transform should be input extent / "
-            "2 + 1");
-      }
+      KOKKOSFFT_EXPECTS(
+          _out_extents.at(inner_most_axis) ==
+              _in_extents.at(inner_most_axis) / 2 + 1,
+          "For R2C, the 'output extent' of transform must be equal to "
+          "'input extent'/2 + 1");
     } else {
       throw std::runtime_error(
           "If the input type is real, the output type should be complex");
@@ -82,12 +81,11 @@ auto get_extents(const InViewType& in, const OutViewType& out,
   if (is_real_v<out_value_type>) {
     // Then C2R
     if (is_complex_v<in_value_type>) {
-      if (_in_extents.at(inner_most_axis) !=
-          _out_extents.at(inner_most_axis) / 2 + 1) {
-        throw std::runtime_error(
-            "For C2R, the input extent of transform should be output extent / "
-            "2 + 1");
-      }
+      KOKKOSFFT_EXPECTS(
+          _in_extents.at(inner_most_axis) ==
+              _out_extents.at(inner_most_axis) / 2 + 1,
+          "For C2R, the 'input extent' of transform must be equal to "
+          "'output extent' / 2 + 1");
     } else {
       throw std::runtime_error(
           "If the output type is real, the input type should be complex");
