@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
-ARG BASE=ubuntu:22.04
+ARG BASE=ubuntu:20.04
 FROM $BASE
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -21,7 +21,7 @@ ENV FFTWDIR "/usr"
 
 RUN git config --global --add safe.directory "*"
 
-ARG GCC_VERSION=8
+ARG GCC_VERSION=11
 RUN echo "deb http://dk.archive.ubuntu.com/ubuntu/ xenial main" >> /etc/apt/sources.list && \
     echo "deb http://dk.archive.ubuntu.com/ubuntu/ xenial universe" >> /etc/apt/sources.list && \
     apt-get update && apt-get install -y g++-$GCC_VERSION && \
