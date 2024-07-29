@@ -72,6 +72,7 @@ jobs:
               c: gcc
               cxx: g++
             cmake_flags:
+              cxx_standard: 17
               kokkos: -DKokkos_ENABLE_OPENMP=ON
               kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
           - name: threads
@@ -80,6 +81,7 @@ jobs:
               c: gcc
               cxx: g++
             cmake_flags:
+              cxx_standard: 20
               kokkos: -DKokkos_ENABLE_THREADS=ON
               kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
           - name: serial
@@ -88,6 +90,7 @@ jobs:
               c: gcc
               cxx: g++
             cmake_flags:
+              cxx_standard: 17
               kokkos: -DKokkos_ENABLE_SERIAL=ON
               kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
           - name: cuda
@@ -96,6 +99,7 @@ jobs:
               c: gcc
               cxx: g++
             cmake_flags:
+              cxx_standard: 17
               kokkos: -DKokkos_ENABLE_CUDA=ON -DKokkos_ARCH_AMPERE80=ON
               kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror"
           - name: hip
@@ -104,16 +108,18 @@ jobs:
               c: hipcc
               cxx: hipcc
             cmake_flags:
+              cxx_standard: 17
               kokkos: -DKokkos_ENABLE_HIP=ON -DKokkos_ARCH_VEGA90A=ON
-              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror" -DKokkosFFT_ENABLE_ROCFFT=ON
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror"
           - name: rocm
             image: rocm
             compiler:
               c: hipcc
               cxx: hipcc
             cmake_flags:
+              cxx_standard: 20
               kokkos: -DKokkos_ENABLE_HIP=ON -DKokkos_ARCH_VEGA90A=ON
-              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror"
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror" -DKokkosFFT_ENABLE_ROCFFT=ON
           - name: sycl
             image: intel
             compiler:
@@ -122,6 +128,7 @@ jobs:
             cmake_flags:
               # building for Intel PVC was unsuccessful without the proper
               # device, so for now, we simply generate generic Intel GPU code
+              cxx_standard: 17
               kokkos: -DKokkos_ENABLE_SYCL=ON -DKokkos_ARCH_INTEL_GEN=ON
               kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra"
         target:
@@ -162,7 +169,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
             -DCMAKE_C_COMPILER=${{ matrix.backend.compiler.c }} \
             -DCMAKE_CXX_COMPILER=${{ matrix.backend.compiler.cxx }} \
-            -DCMAKE_CXX_STANDARD=17 \
+            -DCMAKE_CXX_STANDARD=${{ matrix.backend.cmake_flags.cxx_standard }} \
             -DKokkosFFT_ENABLE_EXAMPLES=ON \
             -DKokkosFFT_ENABLE_TESTS=ON \
             -DKokkosFFT_ENABLE_BENCHMARK=ON \
@@ -212,7 +219,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
             -DCMAKE_C_COMPILER=${{ matrix.backend.compiler.c }} \
             -DCMAKE_CXX_COMPILER=${{ matrix.backend.compiler.cxx }} \
-            -DCMAKE_CXX_STANDARD=17 \
+            -DCMAKE_CXX_STANDARD=${{ matrix.backend.cmake_flags.cxx_standard }} \
             ${{ matrix.backend.cmake_flags.kokkos }} \
             ${{ matrix.backend.cmake_flags.kokkos_fft }} \
             ${{ matrix.target.cmake_flags }} \
@@ -228,7 +235,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
             -DCMAKE_C_COMPILER=${{ matrix.backend.compiler.c }} \
             -DCMAKE_CXX_COMPILER=${{ matrix.backend.compiler.cxx }} \
-            -DCMAKE_CXX_STANDARD=17 \
+            -DCMAKE_CXX_STANDARD=${{ matrix.backend.cmake_flags.cxx_standard }} \
             ${{ matrix.backend.cmake_flags.kokkos }} \
             tpls/kokkos
           docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
@@ -245,7 +252,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
             -DCMAKE_C_COMPILER=${{ matrix.backend.compiler.c }} \
             -DCMAKE_CXX_COMPILER=${{ matrix.backend.compiler.cxx }} \
-            -DCMAKE_CXX_STANDARD=17 \
+            -DCMAKE_CXX_STANDARD=${{ matrix.backend.cmake_flags.cxx_standard }} \
             ${{ matrix.backend.cmake_flags.kokkos_fft }} \
             ${{ matrix.target.cmake_flags }}
           docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
@@ -261,7 +268,7 @@ jobs:
             -DCMAKE_PREFIX_PATH=/work/install \
             -DCMAKE_C_COMPILER=${{ matrix.backend.compiler.c }} \
             -DCMAKE_CXX_COMPILER=${{ matrix.backend.compiler.cxx }} \
-            -DCMAKE_CXX_STANDARD=17 \
+            -DCMAKE_CXX_STANDARD=${{ matrix.backend.cmake_flags.cxx_standard }} \
             install_test/as_library
           docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
             cmake --build install_test/as_library/build -j $(( $(nproc) * 2 + 1 ))
