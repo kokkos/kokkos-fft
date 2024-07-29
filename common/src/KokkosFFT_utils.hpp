@@ -14,12 +14,53 @@
 
 #if defined(KOKKOS_ENABLE_CXX17)
 #include <cstdlib>
+#define KOKKOSFFT_EXPECTS(expression, msg)                                   \
+  KokkosFFT::Impl::check_precondition((expression), msg, __FILE__, __LINE__, \
+                                      __FUNCTION__)
 #else
 #include <source_location>
+#define KOKKOSFFT_EXPECTS(expression, msg)                            \
+  KokkosFFT::Impl::check_precondition(                                \
+      (expression), msg, std::source_location::current().file_name(), \
+      std::source_location::current().line(),                         \
+      std::source_location::current().function_name(),                \
+      std::source_location::current().column())
 #endif
 
 namespace KokkosFFT {
 namespace Impl {
+
+inline void check_precondition(const bool expression,
+                               [[maybe_unused]] const std::string& msg,
+                               [[maybe_unused]] const char* file_name, int line,
+                               [[maybe_unused]] const char* function_name,
+                               [[maybe_unused]] const int column = -1) {
+  // Quick return if possible
+  if (expression) return;
+
+  std::stringstream ss("file: ");
+  if (column == -1) {
+    // For C++ 17
+    ss << file_name << '(' << line << ") `" << function_name << "`: " << msg
+       << '\n';
+  } else {
+    // For C++ 20 and later
+    ss << file_name << '(' << line << ':' << column << ") `" << function_name
+       << "`: " << msg << '\n';
+  }
+  throw std::runtime_error(ss.str());
+}
+inline void check_precondition(const bool expression, const std::string& msg,
+                               const char* file_name, int line,
+                               const char* function_name) {
+  std::stringstream ss("file: ");
+  ss << file_name << '(' << line << ") `" << function_name << "`: " << msg
+     << '\n';
+  if (!expression) {
+    throw std::runtime_error(ss.str());
+  }
+}
+#endif
 
 template <typename ViewType>
 auto convert_negative_axis(ViewType, int _axis = -1) {
