@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
-ARG BASE=ubuntu:20.04
+ARG BASE=ubuntu:22.04
 FROM $BASE
 
 ENV DEBIAN_FRONTEND=noninteractive
