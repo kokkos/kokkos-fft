@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
-ARG BASE=ubuntu:20.04
+ARG BASE=ubuntu:22.04
 FROM $BASE
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -20,14 +20,6 @@ RUN apt-get update && apt-get install -y \
 ENV FFTWDIR "/usr"
 
 RUN git config --global --add safe.directory "*"
-
-ARG GCC_VERSION=11
-RUN echo "deb http://dk.archive.ubuntu.com/ubuntu/ xenial main" >> /etc/apt/sources.list && \
-    echo "deb http://dk.archive.ubuntu.com/ubuntu/ xenial universe" >> /etc/apt/sources.list && \
-    apt-get update && apt-get install -y gcc-$GCC_VERSION && g++-$GCC_VERSION && \
-    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-$GCC_VERSION $GCC_VERSION && \
-    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-$GCC_VERSION $GCC_VERSION && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN KEYDUMP_URL=https://cloud.cees.ornl.gov/download && \
     KEYDUMP_FILE=keydump && \
