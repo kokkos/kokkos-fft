@@ -51,8 +51,12 @@ auto get_modified_shape(const InViewType in, const OutViewType /* out */,
   }
 
   // Assert if the elements are overlapped
-  assert(!KokkosFFT::Impl::has_duplicate_values(positive_axes));
-  assert(!KokkosFFT::Impl::is_out_of_range_value_included(positive_axes, rank));
+  KOKKOSFFT_EXPECTS(!KokkosFFT::Impl::has_duplicate_values(positive_axes),
+                    "Axes overlap");
+  KOKKOSFFT_EXPECTS(
+      !KokkosFFT::Impl::is_out_of_range_value_included(positive_axes, rank),
+      "Axes include an out-of-range index."
+      "Axes must be in the range of [-rank, rank-1].");
 
   using full_shape_type = shape_type<rank>;
   full_shape_type modified_shape;
