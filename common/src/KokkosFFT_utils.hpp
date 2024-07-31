@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <numeric>
 #include "KokkosFFT_traits.hpp"
+#include "KokkosFFT_common_types.hpp"
 
 #if defined(KOKKOS_ENABLE_CXX17)
 #include <cstdlib>
@@ -85,26 +86,60 @@ auto convert_negative_shift(const ViewType& view, int _shift, int _axis) {
   return std::tuple<int, int, int>({shift0, shift1, shift2});
 }
 
-template <typename T>
-bool is_found(std::vector<T>& values, const T& key) {
+template <typename ContainerType, typename ValueType>
+bool is_found(ContainerType& values, const ValueType& key) {
+  using value_type = KokkosFFT::Impl::base_container_value_type<ContainerType>;
+  static_assert(std::is_same_v<value_type, ValueType>,
+                "Container value type must match ValueType");
   return std::find(values.begin(), values.end(), key) != values.end();
 }
 
-template <typename T>
-bool has_duplicate_values(const std::vector<T>& values) {
-  std::set<T> set_values(values.begin(), values.end());
+template <typename ContainerType>
+bool has_duplicate_values(const ContainerType& values) {
+  using value_type = KokkosFFT::Impl::base_container_value_type<ContainerType>;
+  std::set<value_type> set_values(values.begin(), values.end());
   return set_values.size() < values.size();
 }
 
-template <typename IntType, std::enable_if_t<std::is_integral_v<IntType>,
-                                             std::nullptr_t> = nullptr>
-bool is_out_of_range_value_included(const std::vector<IntType>& values,
-                                    IntType max) {
+template <
+    typename ContainerType, typename IntType,
+    std::enable_if_t<std::is_integral_v<IntType>, std::nullptr_t> = nullptr>
+bool is_out_of_range_value_included(const ContainerType& values, IntType max) {
+  using value_type = KokkosFFT::Impl::base_container_value_type<ContainerType>;
+  static_assert(std::is_same_v<value_type, IntType>,
+                "Container value type must match IntType");
   bool is_included = false;
   for (auto value : values) {
     is_included = value >= max;
   }
   return is_included;
+}
+
+template <
+    typename ViewType, template <typename, std::size_t> class ArrayType,
+    typename IntType, std::size_t DIM = 1,
+    std::enable_if_t<std::is_integral_v<IntType>, std::nullptr_t> = nullptr>
+bool are_valid_axes(const ViewType& view, const ArrayType<IntType, DIM>& axes) {
+  static_assert(
+      DIM >= 1 && DIM <= KokkosFFT::MAX_FFT_DIM,
+      "are_valid_axes: the Rank of FFT axes must be between 1 and MAX_FFT_DIM");
+  static_assert(ViewType::rank() >= DIM,
+                "are_valid_axes: View rank must be larger than or equal to the "
+                "Rank of FFT axes");
+  constexpr int rank = ViewType::rank();
+
+  // Convert the input axes to be in the range of [0, rank-1]
+  std::vector<int> non_negative_axes;
+  for (std::size_t i = 0; i < DIM; i++) {
+    int axis = KokkosFFT::Impl::convert_negative_axis(view, axes[i]);
+    non_negative_axes.push_back(axis);
+  }
+
+  bool is_valid = (!KokkosFFT::Impl::has_duplicate_values(non_negative_axes)) &&
+                  (!KokkosFFT::Impl::is_out_of_range_value_included(
+                      non_negative_axes, rank));
+
+  return is_valid;
 }
 
 template <std::size_t DIM = 1>
@@ -114,9 +149,12 @@ bool is_transpose_needed(std::array<int, DIM> map) {
   return map != contiguous_map;
 }
 
-template <typename T>
-std::size_t get_index(std::vector<T>& values, const T& key) {
-  auto it           = find(values.begin(), values.end(), key);
+template <typename ContainerType, typename ValueType>
+std::size_t get_index(ContainerType& values, const ValueType& key) {
+  using value_type = KokkosFFT::Impl::base_container_value_type<ContainerType>;
+  static_assert(std::is_same_v<value_type, ValueType>,
+                "Container value type must match ValueType");
+  auto it           = std::find(values.begin(), values.end(), key);
   std::size_t index = 0;
   if (it != values.end()) {
     index = it - values.begin();
