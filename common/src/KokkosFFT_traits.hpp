@@ -215,6 +215,31 @@ inline constexpr bool are_operatable_views_v =
 
 // Other traits
 
+template <typename ContainerType>
+struct base_container_value;
+
+template <template <typename, typename...> class ContainerType,
+          typename ValueType, typename... Args>
+struct base_container_value<ContainerType<ValueType, Args...>> {
+  using value_type = ValueType;
+};
+
+// Specialization for std::array
+template <typename ValueType, std::size_t N>
+struct base_container_value<std::array<ValueType, N>> {
+  using value_type = ValueType;
+};
+
+// Specialization for Kokkos::Array
+template <typename ValueType, std::size_t N>
+struct base_container_value<Kokkos::Array<ValueType, N>> {
+  using value_type = ValueType;
+};
+
+/// \brief Helper to extract the base value type from a container
+template <typename T>
+using base_container_value_type = typename base_container_value<T>::value_type;
+
 /// \brief Helper to define a managable View type from the original view type
 template <typename T>
 struct managable_view_type {
