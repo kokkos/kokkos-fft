@@ -379,9 +379,8 @@ void test_are_valid_axes() {
   EXPECT_TRUE(KokkosFFT::Impl::are_valid_axes(view4, axes2));
   EXPECT_TRUE(KokkosFFT::Impl::are_valid_axes(view4, axes4));
 
-  // 3D axes on 3D Views with out of range -> should throw
-  EXPECT_THROW(KokkosFFT::Impl::are_valid_axes(view3, axes4),
-               std::runtime_error);
+  // 3D axes on 3D Views with out of range -> should fail
+  EXPECT_FALSE(KokkosFFT::Impl::are_valid_axes(view3, axes4));
 
   // axes include overlap -> should fail
   EXPECT_FALSE(KokkosFFT::Impl::are_valid_axes(view3, axes3));

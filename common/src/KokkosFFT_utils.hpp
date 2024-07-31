@@ -130,9 +130,16 @@ bool are_valid_axes(const ViewType& view, const ArrayType<IntType, DIM>& axes) {
 
   // Convert the input axes to be in the range of [0, rank-1]
   std::vector<int> non_negative_axes;
-  for (std::size_t i = 0; i < DIM; i++) {
-    int axis = KokkosFFT::Impl::convert_negative_axis(view, axes[i]);
-    non_negative_axes.push_back(axis);
+
+  // In case of exception, we capture it and return false,
+  // since we do not want to throw an exception here
+  try {
+    for (std::size_t i = 0; i < DIM; i++) {
+      int axis = KokkosFFT::Impl::convert_negative_axis(view, axes[i]);
+      non_negative_axes.push_back(axis);
+    }
+  } catch (std::exception& e) {
+    return false;
   }
 
   bool is_valid = (!KokkosFFT::Impl::has_duplicate_values(non_negative_axes)) &&
