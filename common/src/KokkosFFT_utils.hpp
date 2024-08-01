@@ -87,11 +87,11 @@ auto convert_negative_shift(const ViewType& view, int _shift, int _axis) {
 }
 
 template <typename ContainerType, typename ValueType>
-bool is_found(ContainerType& values, const ValueType& key) {
+bool is_found(ContainerType& values, const ValueType& value) {
   using value_type = KokkosFFT::Impl::base_container_value_type<ContainerType>;
   static_assert(std::is_same_v<value_type, ValueType>,
                 "Container value type must match ValueType");
-  return std::find(values.begin(), values.end(), key) != values.end();
+  return std::find(values.begin(), values.end(), value) != values.end();
 }
 
 template <typename ContainerType>
@@ -158,16 +158,16 @@ bool is_transpose_needed(std::array<int, DIM> map) {
 }
 
 template <typename ContainerType, typename ValueType>
-std::size_t get_index(ContainerType& values, const ValueType& key) {
+std::size_t get_index(ContainerType& values, const ValueType& value) {
   using value_type = KokkosFFT::Impl::base_container_value_type<ContainerType>;
   static_assert(std::is_same_v<value_type, ValueType>,
                 "Container value type must match ValueType");
-  auto it           = std::find(values.begin(), values.end(), key);
+  auto it           = std::find(values.begin(), values.end(), value);
   std::size_t index = 0;
   if (it != values.end()) {
     index = it - values.begin();
   } else {
-    throw std::runtime_error("key is not included in values");
+    throw std::runtime_error("value is not included in values");
   }
 
   return index;
