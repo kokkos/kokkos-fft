@@ -127,11 +127,9 @@ bool are_valid_axes(const ViewType& view, const ArrayType<IntType, DIM>& axes) {
                 "are_valid_axes: View rank must be larger than or equal to the "
                 "Rank of FFT axes");
 
+  // Convert the input axes to be in the range of [0, rank-1]
   // int type is choosen for consistency with the rest of the code
   // the axes are defined with int type
-  constexpr int rank = ViewType::rank();
-
-  // Convert the input axes to be in the range of [0, rank-1]
   std::array<int, DIM> non_negative_axes;
 
   // In case axis is out of range, 'convert_negative_axis' will throw an
