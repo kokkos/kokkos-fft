@@ -385,6 +385,18 @@ void test_are_valid_axes() {
   // axes include overlap -> should fail
   EXPECT_FALSE(KokkosFFT::Impl::are_valid_axes(view3, axes3));
   EXPECT_FALSE(KokkosFFT::Impl::are_valid_axes(view4, axes3));
+
+  if constexpr (std::is_signed_v<IntType>) {
+    // {0, 1, -2} is converted to {0, 1, 1} for 3D View and {0, 1, 2}
+    // for 4D View. Invalid for 3D View but valid for 4D View
+    std::array<IntType, 3> axes5 = {0, 1, -2};
+
+    // axes include overlap -> should fail
+    EXPECT_FALSE(KokkosFFT::Impl::are_valid_axes(view3, axes5));
+
+    // axes do not include overlap -> OK
+    EXPECT_TRUE(KokkosFFT::Impl::are_valid_axes(view4, axes5));
+  }
 }
 
 TYPED_TEST(ContainerTypes, is_found_from_vector) {
