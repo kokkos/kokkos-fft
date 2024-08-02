@@ -9,6 +9,9 @@
 // All the tests in this file are compile time tests, so we skip all the tests
 // by GTEST_SKIP(). gtest is used for type parameterization.
 
+// Int like types
+using base_int_types = ::testing::Types<int, std::size_t>;
+
 // Define the types to combine
 using base_real_types = std::tuple<float, double, long double>;
 
@@ -38,6 +41,19 @@ using paired_layout_types =
 using paired_view_types =
     tuple_to_types_t<cartesian_product_t<base_real_types, base_layout_types,
                                          base_real_types, base_layout_types>>;
+
+template <typename T>
+struct ContainerTypes : public ::testing::Test {
+  static constexpr std::size_t rank = 3;
+  using value_type                  = T;
+  using vector_type                 = std::vector<T>;
+  using std_array_type              = std::array<T, rank>;
+  using Kokkos_array_type           = Kokkos::Array<T, rank>;
+
+  virtual void SetUp() {
+    GTEST_SKIP() << "Skipping all tests for this fixture";
+  }
+};
 
 template <typename T>
 struct RealAndComplexTypes : public ::testing::Test {
@@ -91,11 +107,44 @@ struct PairedViewTypes : public ::testing::Test {
   }
 };
 
+TYPED_TEST_SUITE(ContainerTypes, base_int_types);
 TYPED_TEST_SUITE(RealAndComplexTypes, real_types);
 TYPED_TEST_SUITE(RealAndComplexViewTypes, view_types);
 TYPED_TEST_SUITE(PairedValueTypes, paired_value_types);
 TYPED_TEST_SUITE(PairedLayoutTypes, paired_layout_types);
 TYPED_TEST_SUITE(PairedViewTypes, paired_view_types);
+
+// Tests for base value type deduction
+template <typename ValueType, typename ContainerType>
+void test_get_container_value_type() {
+  using value_type_ContainerType =
+      KokkosFFT::Impl::base_container_value_type<ContainerType>;
+
+  // base value type of ContainerType is ValueType
+  static_assert(std::is_same_v<value_type_ContainerType, ValueType>,
+                "Value type not deduced correctly from ContainerType");
+}
+
+TYPED_TEST(ContainerTypes, get_value_type_from_vector) {
+  using value_type     = typename TestFixture::value_type;
+  using container_type = typename TestFixture::vector_type;
+
+  test_get_container_value_type<value_type, container_type>();
+}
+
+TYPED_TEST(ContainerTypes, get_value_type_from_std_array) {
+  using value_type     = typename TestFixture::value_type;
+  using container_type = typename TestFixture::std_array_type;
+
+  test_get_container_value_type<value_type, container_type>();
+}
+
+TYPED_TEST(ContainerTypes, get_value_type_from_kokkos_array) {
+  using value_type     = typename TestFixture::value_type;
+  using container_type = typename TestFixture::Kokkos_array_type;
+
+  test_get_container_value_type<value_type, container_type>();
+}
 
 // Tests for real type deduction
 template <typename RealType, typename ComplexType>
