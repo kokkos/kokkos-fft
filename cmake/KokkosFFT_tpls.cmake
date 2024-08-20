@@ -35,11 +35,11 @@ function(get_tpls_list tpls_list backend_list)
         list(APPEND backend_list "  Host Serial")
     endif()
 
-    list(FIND tpls_list "FFTW_SERIAL" idx_FFTW_SERIAL)
     if(KokkosFFT_ENABLE_HOST_AND_DEVICE)
         # Check if TPL is already included
         list(FIND tpls_list "FFTW_OPENMP" idx_FFTW_OPENMP)
         list(FIND tpls_list "FFTW_THREADS" idx_FFTW_THREADS)
+        list(FIND tpls_list "FFTW_SERIAL" idx_FFTW_SERIAL)
         if(Kokkos_ENABLE_OPENMP AND (${idx_FFTW_OPENMP} EQUAL -1))
             list(APPEND tpls_list FFTW_OPENMP)
             list(APPEND backend_list "Host Parallel")
@@ -55,6 +55,7 @@ function(get_tpls_list tpls_list backend_list)
     endif()
 
     # Enable Serial if Device is not used
+    list(FIND tpls_list "FFTW_SERIAL" idx_FFTW_SERIAL)
     if(NOT ${KOKKOSFFT_HAS_DEVICE})
         if(Kokkos_ENABLE_SERIAL AND (${idx_FFTW_SERIAL} EQUAL -1))
             list(APPEND tpls_list FFTW_SERIAL)
