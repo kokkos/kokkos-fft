@@ -25,6 +25,9 @@
 /* CUFFT */
 #cmakedefine KOKKOSFFT_ENABLE_TPL_CUFFT
 
+/* ROCFFT */
+#cmakedefine KOKKOSFFT_ENABLE_TPL_ROCFFT
+
 /* HIPFFT */
 #cmakedefine KOKKOSFFT_ENABLE_TPL_HIPFFT
 
