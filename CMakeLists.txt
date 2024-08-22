@@ -49,14 +49,6 @@ set(KOKKOSFFT_BACKEND_LIST)
 include(KokkosFFT_tpls)
 get_tpls_list(KOKKOSFFT_TPL_LIST KOKKOSFFT_BACKEND_LIST)
 
-# Get the size of the lists
-list(LENGTH KOKKOSFFT_TPL_LIST KOKKOSFFT_TPL_LIST_LEN)
-list(LENGTH KOKKOSFFT_BACKEND_LIST KOKKOSFFT_BACKEND_LIST_LEN)
-
-if(NOT KOKKOSFFT_TPL_LIST_LEN EQUAL KOKKOSFFT_BACKEND_LIST_LEN)
-    message(FATAL_ERROR "Lists have different lengths, cannot zip")
-endif()
-
 # ==================================================================
 # CMake Summary
 # ==================================================================
@@ -65,12 +57,11 @@ message("")
 message(STATUS "KokkosFFT version: ${KOKKOSFFT_VERSION_MAJOR}.${KOKKOSFFT_VERSION_MINOR}.${KOKKOSFFT_VERSION_PATCH}")
 message(STATUS "KokkosFFT TPLs:")
 if(KOKKOSFFT_TPL_LIST)
-    math(EXPR LOOP_LEN "${KOKKOSFFT_TPL_LIST_LEN} - 1")
-    foreach(i RANGE 0 ${LOOP_LEN})
+    include(KokkosFFT_utils)
+    foreach(BACKEND TPL IN ZIP_LISTS KOKKOSFFT_BACKEND_LIST KOKKOSFFT_TPL_LIST)
         # [TO DO] show more information about the library (like location)
-        list(GET KOKKOSFFT_BACKEND_LIST ${i} BACKEND)
-        list(GET KOKKOSFFT_TPL_LIST ${i} TPL)
-        message(STATUS "    ${BACKEND}: ${TPL}")
+        pad_string(BACKEND_PADDED "${BACKEND}" 13)
+        message(STATUS "    ${BACKEND_PADDED}: ${TPL}")
     endforeach()
 else()
     message(STATUS " (None)")
