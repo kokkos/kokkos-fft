@@ -2,34 +2,75 @@
 #
 # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
-function(get_tpls_list tpls_list)
+# \brief Get the list of required FFT tpls based on the
+#        CMake configuration
+#        Display Tpls in the Kokkos order
+#        Device Parallel:
+#        Host Parallel:
+#        Host Serial:
+# \param tpls_list[inout] A list of tpls that are needed
+# \param backend_list[inout] A list of backends corresponding to tpls
+#        backend_list is used to display
+function(get_tpls_list tpls_list backend_list)
+    set(KOKKOSFFT_HAS_DEVICE FALSE)
     if(Kokkos_ENABLE_CUDA)
+        set(KOKKOSFFT_HAS_DEVICE TRUE)
         list(APPEND tpls_list CUFFT)
+        list(APPEND backend_list "Device Parallel")
     elseif(Kokkos_ENABLE_HIP)
+        set(KOKKOSFFT_HAS_DEVICE TRUE)
         if(KokkosFFT_ENABLE_ROCFFT)
             list(APPEND tpls_list ROCFFT)
         else()
             list(APPEND tpls_list HIPFFT)
         endif()
+        list(APPEND backend_list "Device Parallel")
     elseif(Kokkos_ENABLE_SYCL)
+        set(KOKKOSFFT_HAS_DEVICE TRUE)
         list(APPEND tpls_list ONEMKL)
+        list(APPEND backend_list "Device Parallel")
     elseif(Kokkos_ENABLE_OPENMP)
         list(APPEND tpls_list FFTW_OPENMP)
+        list(APPEND backend_list "Host Parallel")
     elseif(Kokkos_ENABLE_THREADS)
         list(APPEND tpls_list FFTW_THREADS)
+        list(APPEND backend_list "Host Parallel")
     elseif(Kokkos_ENABLE_SERIAL)
-        list(APPEND tpls_list FFTW)
+        list(APPEND tpls_list FFTW_SERIAL)
+        list(APPEND backend_list "Host Serial")
     endif()
 
     if(KokkosFFT_ENABLE_HOST_AND_DEVICE)
-        if(Kokkos_ENABLE_OPENMP)
+        # Check if TPL is already included
+        if(Kokkos_ENABLE_OPENMP AND NOT ("FFTW_OPENMP" IN_LIST tpls_list))
             list(APPEND tpls_list FFTW_OPENMP)
-        elseif(Kokkos_ENABLE_THREADS)
+            list(APPEND backend_list "Host Parallel")
+        elseif(Kokkos_ENABLE_THREADS AND NOT ("FFTW_THREADS" IN_LIST tpls_list))
             list(APPEND tpls_list FFTW_THREADS)
-        else()
-            list(APPEND tpls_list FFTW)
+            list(APPEND backend_list "Host Parallel")
+        endif()
+
+        if(Kokkos_ENABLE_SERIAL AND NOT ("FFTW_SERIAL" IN_LIST tpls_list))
+            list(APPEND tpls_list FFTW_SERIAL)
+            list(APPEND backend_list "Host Serial")
         endif()
     endif()
 
+    # Enable Serial if Device is not used
+    if(NOT ${KOKKOSFFT_HAS_DEVICE} AND (Kokkos_ENABLE_SERIAL AND NOT ("FFTW_SERIAL" IN_LIST tpls_list)))
+        list(APPEND tpls_list FFTW_SERIAL)
+        list(APPEND backend_list "Host Serial")
+    endif()
+
+    # Get the size of the lists
+    list(LENGTH tpls_list tpls_list_len)
+    list(LENGTH backend_list backend_list_len)
+
+    if(NOT tpls_list_len EQUAL backend_list_len)
+        message(FATAL_ERROR "Lists have different lengths, cannot zip")
+    endif()
+
     set(${tpls_list} ${${tpls_list}} PARENT_SCOPE)
+    set(${backend_list} ${${backend_list}} PARENT_SCOPE)
 endfunction()
+

@@ -45,8 +45,9 @@ endif ()
 
 # Set tpls
 set(KOKKOSFFT_TPL_LIST)
+set(KOKKOSFFT_BACKEND_LIST)
 include(KokkosFFT_tpls)
-get_tpls_list(KOKKOSFFT_TPL_LIST)
+get_tpls_list(KOKKOSFFT_TPL_LIST KOKKOSFFT_BACKEND_LIST)
 
 # ==================================================================
 # CMake Summary
@@ -56,9 +57,11 @@ message("")
 message(STATUS "KokkosFFT version: ${KOKKOSFFT_VERSION_MAJOR}.${KOKKOSFFT_VERSION_MINOR}.${KOKKOSFFT_VERSION_PATCH}")
 message(STATUS "KokkosFFT TPLs:")
 if(KOKKOSFFT_TPL_LIST)
-    foreach(TPL ${KOKKOSFFT_TPL_LIST})
+    include(KokkosFFT_utils)
+    foreach(BACKEND TPL IN ZIP_LISTS KOKKOSFFT_BACKEND_LIST KOKKOSFFT_TPL_LIST)
         # [TO DO] show more information about the library (like location)
-        message(STATUS " ${TPL}")
+        pad_string(BACKEND_PADDED "${BACKEND}" 13)
+        message(STATUS "    ${BACKEND_PADDED}: ${TPL}")
     endforeach()
 else()
     message(STATUS " (None)")
