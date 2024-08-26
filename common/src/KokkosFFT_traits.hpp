@@ -261,6 +261,50 @@ struct complex_view_type {
   using type = Kokkos::View<complex_type*, array_layout_type, ExecutionSpace>;
 };
 
+template <typename ExecutionSpace, typename Enable = void>
+struct is_AnyHostSpace : std::false_type {};
+#if defined(KOKKOS_ENABLE_SERIAL)
+template <typename ExecutionSpace>
+struct is_AnyHostSpace<
+    ExecutionSpace,
+    std::enable_if_t<
+        std::is_same_v<ExecutionSpace, Kokkos::Serial> ||
+        std::is_same_v<ExecutionSpace, Kokkos::DefaultHostExecutionSpace>>>
+    : std::true_type {};
+#else
+template <typename ExecutionSpace>
+struct is_AnyHostSpace<ExecutionSpace,
+                       std::enable_if_t<std::is_same_v<
+                           ExecutionSpace, Kokkos::DefaultHostExecutionSpace>>>
+    : std::true_type {};
+#endif
+
+/// \brief Helper to check if the ExecutionSpace is one of the enabled
+/// HostExecutionSpaces
+template <typename ExecutionSpace>
+inline constexpr bool is_AnyHostSpace_v =
+    is_AnyHostSpace<ExecutionSpace>::value;
+
+#if !defined(ENABLE_HOST_AND_DEVICE) &&                           \
+    (defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) || \
+     defined(KOKKOS_ENABLE_SYCL))
+template <typename ExecutionSpace, typename Enable = void>
+struct is_AllowedSpace : std::false_type {};
+template <typename ExecutionSpace>
+struct is_AllowedSpace<ExecutionSpace,
+                       std::enable_if_t<std::is_same_v<
+                           ExecutionSpace, Kokkos::DefaultExecutionSpace>>>
+    : std::true_type {};
+#else
+template <typename ExecutionSpace>
+struct is_AllowedSpace : std::true_type {};
+#endif
+
+/// \brief Helper to check if the ExecutionSpace is allowed to construct a plan
+template <typename ExecutionSpace>
+inline constexpr bool is_AllowedSpace_v =
+    is_AllowedSpace<ExecutionSpace>::value;
+
 }  // namespace Impl
 }  // namespace KokkosFFT
 

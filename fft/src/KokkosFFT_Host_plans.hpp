@@ -8,9 +8,11 @@
 #include <numeric>
 #include "KokkosFFT_default_types.hpp"
 #include "KokkosFFT_layouts.hpp"
+#include "KokkosFFT_traits.hpp"
 
 namespace KokkosFFT {
 namespace Impl {
+
 template <typename ExecutionSpace, typename T>
 void init_threads([[maybe_unused]] const ExecutionSpace& exec_space) {
 #if defined(KOKKOS_ENABLE_OPENMP) || defined(KOKKOS_ENABLE_THREADS)
@@ -31,7 +33,7 @@ template <typename ExecutionSpace, typename PlanType, typename InViewType,
           typename OutViewType, typename BufferViewType, typename InfoType,
           std::size_t fft_rank = 1,
           std::enable_if_t<
-              std::is_same_v<ExecutionSpace, Kokkos::DefaultHostExecutionSpace>,
+              is_HostSpace_v<ExecutionSpace>,
               std::nullptr_t> = nullptr>
 auto create_plan(const ExecutionSpace& exec_space,
                  std::unique_ptr<PlanType>& plan, const InViewType& in,
@@ -108,7 +110,7 @@ auto create_plan(const ExecutionSpace& exec_space,
 
 template <typename ExecutionSpace, typename PlanType, typename InfoType,
           std::enable_if_t<
-              std::is_same_v<ExecutionSpace, Kokkos::DefaultHostExecutionSpace>,
+              is_HostSpace_v<ExecutionSpace>,
               std::nullptr_t> = nullptr>
 void destroy_plan_and_info(std::unique_ptr<PlanType>& plan, InfoType&) {
   if constexpr (std::is_same_v<PlanType, fftwf_plan>) {
