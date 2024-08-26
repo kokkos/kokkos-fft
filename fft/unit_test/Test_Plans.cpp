@@ -15,9 +15,9 @@ using test_types = ::testing::Types<std::pair<float, Kokkos::LayoutLeft>,
                                     std::pair<double, Kokkos::LayoutRight> >;
 
 #if defined(KOKKOS_ENABLE_SERIAL)
-using execution_spaces = ::testing::Types<Kokkos::Serial,
-                                          Kokkos::DefaultHostExecutionSpace,
-                                          Kokkos::DefaultExecutionSpace>;
+using execution_spaces =
+    ::testing::Types<Kokkos::Serial, Kokkos::DefaultHostExecutionSpace,
+                     Kokkos::DefaultExecutionSpace>;
 #else
 using execution_spaces = ::testing::Types<Kokkos::DefaultHostExecutionSpace,
                                           Kokkos::DefaultExecutionSpace>;
@@ -59,24 +59,35 @@ TYPED_TEST_SUITE(Plans3D, test_types);
 // Tests for execution space
 template <typename ExecutionSpace>
 void test_plan_constructible() {
-  using ValueType = double;
+  using ValueType      = double;
   using RealView1DType = Kokkos::View<ValueType*, ExecutionSpace>;
   using ComplexView1DType =
       Kokkos::View<Kokkos::complex<ValueType>*, ExecutionSpace>;
-  using PlanType = KokkosFFT::Impl::Plan<ExecutionSpace, RealView1DType, ComplexView1DType>;
+  using PlanType =
+      KokkosFFT::Impl::Plan<ExecutionSpace, RealView1DType, ComplexView1DType>;
 
-  #if !defined(ENABLE_HOST_AND_DEVICE) && (defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) || defined(KOKKOS_ENABLE_SYCL))
-    // For GPUs without ENABLE_HOST_AND_DEVICE, a plan can be constructible from Kokkos::DefaultExecutionSpace only
-    if constexpr (std::is_same_v<ExecutionSpace, Kokkos::DefaultExecutionSpace>) {
-      static_assert(std::is_constructible_v<PlanType, const ExecutionSpace&, RealView1DType&, ComplexView1DType&, KokkosFFT::Direction, int>);
-    } else {
-      static_assert(!std::is_constructible_v<PlanType, const ExecutionSpace&, RealView1DType&, ComplexView1DType&, KokkosFFT::Direction, int>);
-    }
-  #else
-    // For CPUs or GPUs with ENABLE_HOST_AND_DEVICE, 
-    // a plan can be constructible from Kokkos::DefaultExecutionSpace, Kokkos::DefaultHostExecutionSpace or Kokkos::Serial (if enabled)
-    static_assert(std::is_constructible_v<PlanType, const ExecutionSpace&, RealView1DType&, ComplexView1DType&, KokkosFFT::Direction, int>);
-  #endif
+#if !defined(ENABLE_HOST_AND_DEVICE) &&                           \
+    (defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) || \
+     defined(KOKKOS_ENABLE_SYCL))
+  // For GPUs without ENABLE_HOST_AND_DEVICE, a plan can be constructible from
+  // Kokkos::DefaultExecutionSpace only
+  if constexpr (std::is_same_v<ExecutionSpace, Kokkos::DefaultExecutionSpace>) {
+    static_assert(std::is_constructible_v<PlanType, const ExecutionSpace&,
+                                          RealView1DType&, ComplexView1DType&,
+                                          KokkosFFT::Direction, int>);
+  } else {
+    static_assert(!std::is_constructible_v<PlanType, const ExecutionSpace&,
+                                           RealView1DType&, ComplexView1DType&,
+                                           KokkosFFT::Direction, int>);
+  }
+#else
+  // For CPUs or GPUs with ENABLE_HOST_AND_DEVICE,
+  // a plan can be constructible from Kokkos::DefaultExecutionSpace,
+  // Kokkos::DefaultHostExecutionSpace or Kokkos::Serial (if enabled)
+  static_assert(
+      std::is_constructible_v<PlanType, const ExecutionSpace&, RealView1DType&,
+                              ComplexView1DType&, KokkosFFT::Direction, int>);
+#endif
 }
 
 // Tests for 1D FFT plan on 1D View

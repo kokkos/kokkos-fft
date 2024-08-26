@@ -32,9 +32,8 @@ void init_threads([[maybe_unused]] const ExecutionSpace& exec_space) {
 template <typename ExecutionSpace, typename PlanType, typename InViewType,
           typename OutViewType, typename BufferViewType, typename InfoType,
           std::size_t fft_rank = 1,
-          std::enable_if_t<
-              is_HostSpace_v<ExecutionSpace>,
-              std::nullptr_t> = nullptr>
+          std::enable_if_t<is_AnyHostSpace_v<ExecutionSpace>, std::nullptr_t> =
+              nullptr>
 auto create_plan(const ExecutionSpace& exec_space,
                  std::unique_ptr<PlanType>& plan, const InViewType& in,
                  const OutViewType& out, BufferViewType&, InfoType&,
@@ -109,9 +108,8 @@ auto create_plan(const ExecutionSpace& exec_space,
 }
 
 template <typename ExecutionSpace, typename PlanType, typename InfoType,
-          std::enable_if_t<
-              is_HostSpace_v<ExecutionSpace>,
-              std::nullptr_t> = nullptr>
+          std::enable_if_t<is_AnyHostSpace_v<ExecutionSpace>, std::nullptr_t> =
+              nullptr>
 void destroy_plan_and_info(std::unique_ptr<PlanType>& plan, InfoType&) {
   if constexpr (std::is_same_v<PlanType, fftwf_plan>) {
     fftwf_destroy_plan(*plan);
