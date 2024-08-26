@@ -155,12 +155,12 @@ class Plan {
   /// \param axis [in] Axis over which FFT is performed
   /// \param n [in] Length of the transformed axis of the output (optional)
   //
-  explicit Plan(
-      const ExecutionSpace& exec_space, InViewType& in, OutViewType& out,
-      KokkosFFT::Direction direction, int axis,
-      std::optional<std::size_t> n = std::nullopt,
-      std::enable_if_t<is_AllowedSpace_v<execSpace>, std::nullptr_t> = nullptr)
+  explicit Plan(const ExecutionSpace& exec_space, InViewType& in,
+                OutViewType& out, KokkosFFT::Direction direction, int axis,
+                std::optional<std::size_t> n = std::nullopt)
       : m_exec_space(exec_space), m_axes({axis}), m_direction(direction) {
+    static_assert(KokkosFFT::Impl::is_AllowedSpace_v<ExecutionSpace>,
+                  "Plan::Plan: ExecutionSpace is not allowed ");
     static_assert(
         KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
                                                 OutViewType>,
@@ -212,12 +212,12 @@ class Plan {
   /// \param axes [in] Axes over which FFT is performed
   /// \param s [in] Shape of the transformed axis of the output (optional)
   //
-  explicit Plan(
-      const ExecutionSpace& exec_space, InViewType& in, OutViewType& out,
-      KokkosFFT::Direction direction, axis_type<DIM> axes,
-      shape_type<DIM> s                                              = {0},
-      std::enable_if_t<is_AllowedSpace_v<execSpace>, std::nullptr_t> = nullptr)
+  explicit Plan(const ExecutionSpace& exec_space, InViewType& in,
+                OutViewType& out, KokkosFFT::Direction direction,
+                axis_type<DIM> axes, shape_type<DIM> s = {0})
       : m_exec_space(exec_space), m_axes(axes), m_direction(direction) {
+    static_assert(KokkosFFT::Impl::is_AllowedSpace_v<ExecutionSpace>,
+                  "Plan::Plan: ExecutionSpace is not allowed ");
     static_assert(
         KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
                                                 OutViewType>,
