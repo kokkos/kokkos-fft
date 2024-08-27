@@ -263,21 +263,12 @@ struct complex_view_type {
 
 template <typename ExecutionSpace, typename Enable = void>
 struct is_AnyHostSpace : std::false_type {};
-#if defined(KOKKOS_ENABLE_SERIAL)
-template <typename ExecutionSpace>
-struct is_AnyHostSpace<
-    ExecutionSpace,
-    std::enable_if_t<
-        std::is_same_v<ExecutionSpace, Kokkos::Serial> ||
-        std::is_same_v<ExecutionSpace, Kokkos::DefaultHostExecutionSpace>>>
-    : std::true_type {};
-#else
+
 template <typename ExecutionSpace>
 struct is_AnyHostSpace<ExecutionSpace,
-                       std::enable_if_t<std::is_same_v<
-                           ExecutionSpace, Kokkos::DefaultHostExecutionSpace>>>
+                       std::enable_if_t<Kokkos::SpaceAccessibility<
+                           ExecutionSpace, Kokkos::HostSpace>::accessible>>
     : std::true_type {};
-#endif
 
 /// \brief Helper to check if the ExecutionSpace is one of the enabled
 /// HostExecutionSpaces
