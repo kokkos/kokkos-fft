@@ -126,7 +126,7 @@ void test_is_any_host_exec_space() {
 #endif
 #if defined(KOKKOS_ENABLE_THREADS)
   static_assert(KokkosFFT::Impl::is_AnyHostSpace_v<Kokkos::Threads>,
-                "Kokkos::THREADS must be a HostSpace");
+                "Kokkos::Threads must be a HostSpace");
 #endif
 }
 

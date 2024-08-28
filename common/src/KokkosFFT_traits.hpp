@@ -261,14 +261,11 @@ struct complex_view_type {
   using type = Kokkos::View<complex_type*, array_layout_type, ExecutionSpace>;
 };
 
-template <typename ExecutionSpace, typename Enable = void>
-struct is_AnyHostSpace : std::false_type {};
-
 template <typename ExecutionSpace>
-struct is_AnyHostSpace<ExecutionSpace,
-                       std::enable_if_t<Kokkos::SpaceAccessibility<
-                           ExecutionSpace, Kokkos::HostSpace>::accessible>>
-    : std::true_type {};
+struct is_AnyHostSpace
+    : std::integral_constant<
+          bool, Kokkos::SpaceAccessibility<ExecutionSpace,
+                                           Kokkos::HostSpace>::accessible> {};
 
 /// \brief Helper to check if the ExecutionSpace is one of the enabled
 /// HostExecutionSpaces
@@ -279,13 +276,9 @@ inline constexpr bool is_AnyHostSpace_v =
 #if !defined(ENABLE_HOST_AND_DEVICE) &&                           \
     (defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) || \
      defined(KOKKOS_ENABLE_SYCL))
-template <typename ExecutionSpace, typename Enable = void>
-struct is_AllowedSpace : std::false_type {};
 template <typename ExecutionSpace>
-struct is_AllowedSpace<ExecutionSpace,
-                       std::enable_if_t<std::is_same_v<
-                           ExecutionSpace, Kokkos::DefaultExecutionSpace>>>
-    : std::true_type {};
+struct is_AllowedSpace
+    : std::is_same<ExecutionSpace, Kokkos::DefaultExecutionSpace> {};
 #else
 template <typename ExecutionSpace>
 struct is_AllowedSpace : std::true_type {};
