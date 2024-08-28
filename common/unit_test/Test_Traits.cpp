@@ -114,6 +114,27 @@ TYPED_TEST_SUITE(PairedValueTypes, paired_value_types);
 TYPED_TEST_SUITE(PairedLayoutTypes, paired_layout_types);
 TYPED_TEST_SUITE(PairedViewTypes, paired_view_types);
 
+// Tests for host execution space
+void test_is_any_host_exec_space() {
+#if defined(KOKKOS_ENABLE_SERIAL)
+  static_assert(KokkosFFT::Impl::is_AnyHostSpace_v<Kokkos::Serial>,
+                "Kokkos::Serial must be a HostSpace");
+#endif
+#if defined(KOKKOS_ENABLE_OPENMP)
+  static_assert(KokkosFFT::Impl::is_AnyHostSpace_v<Kokkos::OpenMP>,
+                "Kokkos::OpenMP must be a HostSpace");
+#endif
+#if defined(KOKKOS_ENABLE_THREADS)
+  static_assert(KokkosFFT::Impl::is_AnyHostSpace_v<Kokkos::Threads>,
+                "Kokkos::Threads must be a HostSpace");
+#endif
+}
+
+TEST(ExecutionSpace, test_is_any_host_exec_space) {
+  GTEST_SKIP() << "Skipping all tests";
+  test_is_any_host_exec_space();
+}
+
 // Tests for base value type deduction
 template <typename ValueType, typename ContainerType>
 void test_get_container_value_type() {

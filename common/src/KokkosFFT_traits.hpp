@@ -261,6 +261,34 @@ struct complex_view_type {
   using type = Kokkos::View<complex_type*, array_layout_type, ExecutionSpace>;
 };
 
+template <typename ExecutionSpace>
+struct is_AnyHostSpace
+    : std::integral_constant<
+          bool, Kokkos::SpaceAccessibility<ExecutionSpace,
+                                           Kokkos::HostSpace>::accessible> {};
+
+/// \brief Helper to check if the ExecutionSpace is one of the enabled
+/// HostExecutionSpaces
+template <typename ExecutionSpace>
+inline constexpr bool is_AnyHostSpace_v =
+    is_AnyHostSpace<ExecutionSpace>::value;
+
+#if !defined(ENABLE_HOST_AND_DEVICE) &&                           \
+    (defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) || \
+     defined(KOKKOS_ENABLE_SYCL))
+template <typename ExecutionSpace>
+struct is_AllowedSpace
+    : std::is_same<ExecutionSpace, Kokkos::DefaultExecutionSpace> {};
+#else
+template <typename ExecutionSpace>
+struct is_AllowedSpace : std::true_type {};
+#endif
+
+/// \brief Helper to check if the ExecutionSpace is allowed to construct a plan
+template <typename ExecutionSpace>
+inline constexpr bool is_AllowedSpace_v =
+    is_AllowedSpace<ExecutionSpace>::value;
+
 }  // namespace Impl
 }  // namespace KokkosFFT
 

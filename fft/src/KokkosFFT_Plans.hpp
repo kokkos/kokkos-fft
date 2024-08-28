@@ -159,6 +159,8 @@ class Plan {
                 OutViewType& out, KokkosFFT::Direction direction, int axis,
                 std::optional<std::size_t> n = std::nullopt)
       : m_exec_space(exec_space), m_axes({axis}), m_direction(direction) {
+    static_assert(KokkosFFT::Impl::is_AllowedSpace_v<ExecutionSpace>,
+                  "Plan::Plan: ExecutionSpace is not allowed ");
     static_assert(
         KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
                                                 OutViewType>,
@@ -214,6 +216,8 @@ class Plan {
                 OutViewType& out, KokkosFFT::Direction direction,
                 axis_type<DIM> axes, shape_type<DIM> s = {0})
       : m_exec_space(exec_space), m_axes(axes), m_direction(direction) {
+    static_assert(KokkosFFT::Impl::is_AllowedSpace_v<ExecutionSpace>,
+                  "Plan::Plan: ExecutionSpace is not allowed ");
     static_assert(
         KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
                                                 OutViewType>,
@@ -259,6 +263,7 @@ class Plan {
                                                                         m_info);
   }
 
+  Plan()            = delete;
   Plan(const Plan&) = delete;
   Plan& operator=(const Plan&) = delete;
   Plan& operator=(Plan&&) = delete;
