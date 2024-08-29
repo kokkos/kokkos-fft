@@ -40,7 +40,7 @@ auto get_map_axes(const ViewType& view, axis_type<DIM> _axes) {
   map.reserve(rank);
   map_inv.reserve(rank);
 
-  if (std::is_same<array_layout_type, Kokkos::LayoutRight>::value) {
+  if (std::is_same_v<array_layout_type, Kokkos::LayoutRight>) {
     // Stack axes not specified by axes (0, 1, 4)
     for (int i = 0; i < rank; i++) {
       if (!is_found(axes, i)) {
