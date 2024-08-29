@@ -14,15 +14,8 @@ namespace KokkosFFT {
 namespace Impl {
 template <typename ViewType, std::size_t DIM>
 auto get_map_axes(const ViewType& view, axis_type<DIM> _axes) {
-  static_assert(ViewType::rank() >= DIM,
-                "get_map_axes: Rank of View must be larger thane or "
-                "equal to the Rank of FFT axes.");
-  static_assert(DIM > 0,
-                "get_map_axes: Rank of FFT axes must be larger than "
-                "or equal to 1.");
-
-  constexpr int rank      = static_cast<int>(ViewType::rank());
-  using array_layout_type = typename ViewType::array_layout;
+  KOKKOSFFT_EXPECTS(KokkosFFT::Impl::are_valid_axes(view, _axes),
+                    "get_map_axes: input axes are not valid for the view");
 
   // Convert the input axes to be in the range of [0, rank-1]
   std::vector<int> axes;
@@ -31,16 +24,14 @@ auto get_map_axes(const ViewType& view, axis_type<DIM> _axes) {
     axes.push_back(axis);
   }
 
-  // Assert if the elements are overlapped
-  assert(!KokkosFFT::Impl::has_duplicate_values(axes));
-
   // how indices are map
   // For 5D View and axes are (2,3), map would be (0, 1, 4, 2, 3)
+  constexpr int rank = static_cast<int>(ViewType::rank());
   std::vector<int> map, map_inv;
   map.reserve(rank);
   map_inv.reserve(rank);
 
-  if (std::is_same_v<array_layout_type, Kokkos::LayoutRight>) {
+  if (std::is_same_v<typename ViewType::array_layout, Kokkos::LayoutRight>) {
     // Stack axes not specified by axes (0, 1, 4)
     for (int i = 0; i < rank; i++) {
       if (!is_found(axes, i)) {
@@ -396,22 +387,21 @@ template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           std::size_t DIM = 1>
 void transpose(const ExecutionSpace& exec_space, InViewType& in,
                OutViewType& out, axis_type<DIM> map) {
-  static_assert(Kokkos::is_view<InViewType>::value,
-                "transpose: InViewType is not a Kokkos::View.");
-  static_assert(Kokkos::is_view<InViewType>::value,
-                "transpose: OutViewType is not a Kokkos::View.");
-
-  static_assert(InViewType::rank() == OutViewType::rank(),
-                "transpose: InViewType and OutViewType must have "
-                "the same rank.");
+  static_assert(
+      KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
+                                              OutViewType>,
+      "transpose: InViewType and OutViewType must have the same base floating "
+      "point "
+      "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
+      "same rank. ExecutionSpace must be accessible to the data in InViewType "
+      "and OutViewType.");
 
   static_assert(InViewType::rank() == DIM,
                 "transpose: Rank of View must be equal to Rank of "
                 "transpose axes.");
 
-  if (!KokkosFFT::Impl::is_transpose_needed(map)) {
-    throw std::runtime_error("transpose: transpose not necessary");
-  }
+  KOKKOSFFT_EXPECTS(KokkosFFT::Impl::is_transpose_needed(map),
+                    "transpose: transpose not necessary");
 
   // in order not to call transpose_impl for 1D case
   if constexpr (DIM > 1) {

@@ -27,16 +27,11 @@ namespace Impl {
 template <typename InViewType, typename OutViewType, std::size_t DIM>
 auto get_modified_shape(const InViewType in, const OutViewType /* out */,
                         shape_type<DIM> shape, axis_type<DIM> axes) {
-  static_assert(InViewType::rank() >= DIM,
-                "get_modified_shape: Rank of Input View must be larger "
-                "than or equal to the Rank of new shape");
-  static_assert(OutViewType::rank() >= DIM,
-                "get_modified_shape: Rank of Output View must be larger "
-                "than or equal to the Rank of new shape");
-  static_assert(DIM > 0,
-                "get_modified_shape: Rank of FFT axes must be "
-                "larger than or equal to 1");
-  constexpr int rank = static_cast<int>(InViewType::rank());
+  static_assert(
+      KokkosFFT::Impl::have_same_rank_v<InViewType, OutViewType>,
+      "get_modified_shape: Input View and Output View must have the same rank");
+  KOKKOSFFT_EXPECTS(KokkosFFT::Impl::are_valid_axes(in, axes),
+                    "input axes are not valid for the view");
 
   shape_type<DIM> zeros = {0};  // default shape means no crop or pad
   if (shape == zeros) {
@@ -50,14 +45,7 @@ auto get_modified_shape(const InViewType in, const OutViewType /* out */,
     positive_axes.push_back(axis);
   }
 
-  // Assert if the elements are overlapped
-  KOKKOSFFT_EXPECTS(!KokkosFFT::Impl::has_duplicate_values(positive_axes),
-                    "Axes overlap");
-  KOKKOSFFT_EXPECTS(
-      !KokkosFFT::Impl::is_out_of_range_value_included(positive_axes, rank),
-      "Axes include an out-of-range index."
-      "Axes must be in the range of [-rank, rank-1].");
-
+  constexpr int rank    = static_cast<int>(InViewType::rank());
   using full_shape_type = shape_type<rank>;
   full_shape_type modified_shape;
   for (int i = 0; i < rank; i++) {
@@ -346,12 +334,14 @@ template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           std::size_t DIM = 1>
 void crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
                  OutViewType& out, shape_type<DIM> s) {
-  static_assert(InViewType::rank() == DIM,
-                "crop_or_pad: Rank of View must be equal to Rank "
-                "of extended shape.");
-  static_assert(OutViewType::rank() == DIM,
-                "crop_or_pad: Rank of View must be equal to Rank "
-                "of extended shape.");
+  static_assert(
+      KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
+                                              OutViewType>,
+      "crop_or_pad: InViewType and OutViewType must have the same base "
+      "floating point "
+      "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
+      "same rank. ExecutionSpace must be accessible to the data in InViewType "
+      "and OutViewType.");
   crop_or_pad_impl(exec_space, in, out, s);
 }
 }  // namespace Impl

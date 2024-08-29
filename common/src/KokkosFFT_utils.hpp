@@ -54,7 +54,7 @@ inline void check_precondition(const bool expression,
 
 template <typename ViewType>
 auto convert_negative_axis(ViewType, int _axis = -1) {
-  static_assert(Kokkos::is_view<ViewType>::value,
+  static_assert(Kokkos::is_view_v<ViewType>,
                 "convert_negative_axis: ViewType is not a Kokkos::View.");
   int rank = static_cast<int>(ViewType::rank());
 
@@ -67,7 +67,7 @@ auto convert_negative_axis(ViewType, int _axis = -1) {
 
 template <typename ViewType>
 auto convert_negative_shift(const ViewType& view, int _shift, int _axis) {
-  static_assert(Kokkos::is_view<ViewType>::value,
+  static_assert(Kokkos::is_view_v<ViewType>,
                 "convert_negative_shift: ViewType is not a Kokkos::View.");
   int axis                    = convert_negative_axis(view, _axis);
   int extent                  = view.extent(axis);
@@ -118,14 +118,12 @@ bool is_out_of_range_value_included(const ContainerType& values, IntType max) {
 template <
     typename ViewType, template <typename, std::size_t> class ArrayType,
     typename IntType, std::size_t DIM = 1,
-    std::enable_if_t<std::is_integral_v<IntType>, std::nullptr_t> = nullptr>
+    std::enable_if_t<Kokkos::is_view_v<ViewType> && std::is_integral_v<IntType>,
+                     std::nullptr_t> = nullptr>
 bool are_valid_axes(const ViewType& view, const ArrayType<IntType, DIM>& axes) {
   static_assert(
-      DIM >= 1 && DIM <= KokkosFFT::MAX_FFT_DIM,
-      "are_valid_axes: the Rank of FFT axes must be between 1 and MAX_FFT_DIM");
-  static_assert(ViewType::rank() >= DIM,
-                "are_valid_axes: View rank must be larger than or equal to the "
-                "Rank of FFT axes");
+      DIM >= 1 && DIM <= ViewType::rank(),
+      "are_valid_axes: the Rank of FFT axes must be between 1 and View rank");
 
   // Convert the input axes to be in the range of [0, rank-1]
   // int type is choosen for consistency with the rest of the code
@@ -160,15 +158,9 @@ std::size_t get_index(ContainerType& values, const ValueType& value) {
   using value_type = KokkosFFT::Impl::base_container_value_type<ContainerType>;
   static_assert(std::is_same_v<value_type, ValueType>,
                 "Container value type must match ValueType");
-  auto it           = std::find(values.begin(), values.end(), value);
-  std::size_t index = 0;
-  if (it != values.end()) {
-    index = it - values.begin();
-  } else {
-    throw std::runtime_error("value is not included in values");
-  }
-
-  return index;
+  auto it = std::find(values.begin(), values.end(), value);
+  KOKKOSFFT_EXPECTS(it != values.end(), "value is not included in values");
+  return it - values.begin();
 }
 
 template <typename T, std::size_t... I>
@@ -203,14 +195,17 @@ inline std::vector<ElementType> arange(const ElementType start,
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
 void conjugate(const ExecutionSpace& exec_space, const InViewType& in,
                OutViewType& out) {
-  static_assert(Kokkos::is_view<InViewType>::value,
-                "conjugate: InViewType is not a Kokkos::View.");
-  static_assert(Kokkos::is_view<OutViewType>::value,
-                "conjugate: OutViewType is not a Kokkos::View.");
+  static_assert(
+      KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
+                                              OutViewType>,
+      "conjugate: InViewType and OutViewType must have the same base floating "
+      "point "
+      "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
+      "same rank. ExecutionSpace must be accessible to the data in InViewType "
+      "and OutViewType.");
 
   using out_value_type = typename OutViewType::non_const_value_type;
-
-  static_assert(KokkosFFT::Impl::is_complex<out_value_type>::value,
+  static_assert(KokkosFFT::Impl::is_complex_v<out_value_type>,
                 "conjugate: OutViewType must be complex");
   std::size_t size = in.size();
   out              = OutViewType("out", in.layout());
@@ -226,7 +221,7 @@ void conjugate(const ExecutionSpace& exec_space, const InViewType& in,
 
 template <typename ViewType>
 auto extract_extents(const ViewType& view) {
-  static_assert(Kokkos::is_view<ViewType>::value,
+  static_assert(Kokkos::is_view_v<ViewType>,
                 "extract_extents: ViewType is not a Kokkos::View.");
   constexpr std::size_t rank = ViewType::rank();
   std::array<std::size_t, rank> extents;
@@ -290,93 +285,82 @@ void create_view(ViewType& out, const Label& label,
 
 template <typename ViewType>
 void reshape_view(ViewType& out, const std::array<int, 1>& extents) {
-  if (ViewType::required_allocation_size(out.layout()) >=
-      ViewType::required_allocation_size(extents[0])) {
-    out = ViewType(out.data(), extents[0]);
-  } else {
-    throw std::runtime_error("reshape_view: insufficient memory");
-  }
+  KOKKOSFFT_EXPECTS(ViewType::required_allocation_size(out.layout()) >=
+                        ViewType::required_allocation_size(extents[0]),
+                    "reshape_view: insufficient memory");
+  out = ViewType(out.data(), extents[0]);
 }
 
 template <typename ViewType>
 void reshape_view(ViewType& out, const std::array<int, 2>& extents) {
-  if (ViewType::required_allocation_size(out.layout()) >=
-      ViewType::required_allocation_size(extents[0], extents[1])) {
-    out = ViewType(out.data(), extents[0], extents[1]);
-  } else {
-    throw std::runtime_error("reshape_view: insufficient memory");
-  }
+  KOKKOSFFT_EXPECTS(
+      ViewType::required_allocation_size(out.layout()) >=
+          ViewType::required_allocation_size(extents[0], extents[1]),
+      "reshape_view: insufficient memory");
+  out = ViewType(out.data(), extents[0], extents[1]);
 }
 
 template <typename ViewType>
 void reshape_view(ViewType& out, const std::array<int, 3>& extents) {
-  if (ViewType::required_allocation_size(out.layout()) >=
-      ViewType::required_allocation_size(extents[0], extents[1], extents[2])) {
-    out = ViewType(out.data(), extents[0], extents[1], extents[2]);
-  } else {
-    throw std::runtime_error("reshape_view: insufficient memory");
-  }
+  KOKKOSFFT_EXPECTS(ViewType::required_allocation_size(out.layout()) >=
+                        ViewType::required_allocation_size(
+                            extents[0], extents[1], extents[2]),
+                    "reshape_view: insufficient memory");
+  out = ViewType(out.data(), extents[0], extents[1], extents[2]);
 }
 
 template <typename ViewType>
 void reshape_view(ViewType& out, const std::array<int, 4>& extents) {
-  if (ViewType::required_allocation_size(out.layout()) >=
-      ViewType::required_allocation_size(extents[0], extents[1], extents[2],
-                                         extents[3])) {
-    out = ViewType(out.data(), extents[0], extents[1], extents[2], extents[3]);
-  } else {
-    throw std::runtime_error("reshape_view: insufficient memory");
-  }
+  KOKKOSFFT_EXPECTS(ViewType::required_allocation_size(out.layout()) >=
+                        ViewType::required_allocation_size(
+                            extents[0], extents[1], extents[2], extents[3]),
+                    "reshape_view: insufficient memory");
+
+  out = ViewType(out.data(), extents[0], extents[1], extents[2], extents[3]);
 }
 
 template <typename ViewType>
 void reshape_view(ViewType& out, const std::array<int, 5>& extents) {
-  if (ViewType::required_allocation_size(out.layout()) >=
-      ViewType::required_allocation_size(extents[0], extents[1], extents[2],
-                                         extents[3], extents[4])) {
-    out = ViewType(out.data(), extents[0], extents[1], extents[2], extents[3],
-                   extents[4]);
-  } else {
-    throw std::runtime_error("reshape_view: insufficient memory");
-  }
+  KOKKOSFFT_EXPECTS(
+      ViewType::required_allocation_size(out.layout()) >=
+          ViewType::required_allocation_size(extents[0], extents[1], extents[2],
+                                             extents[3], extents[4]),
+      "reshape_view: insufficient memory");
+  out = ViewType(out.data(), extents[0], extents[1], extents[2], extents[3],
+                 extents[4]);
 }
 
 template <typename ViewType>
 void reshape_view(ViewType& out, const std::array<int, 6>& extents) {
-  if (ViewType::required_allocation_size(out.layout()) >=
-      ViewType::required_allocation_size(extents[0], extents[1], extents[2],
-                                         extents[3], extents[4], extents[5])) {
-    out = ViewType(out.data(), extents[0], extents[1], extents[2], extents[3],
-                   extents[4], extents[5]);
-  } else {
-    throw std::runtime_error("reshape_view: insufficient memory");
-  }
+  KOKKOSFFT_EXPECTS(ViewType::required_allocation_size(out.layout()) >=
+                        ViewType::required_allocation_size(
+                            extents[0], extents[1], extents[2], extents[3],
+                            extents[4], extents[5]),
+                    "reshape_view: insufficient memory");
+  out = ViewType(out.data(), extents[0], extents[1], extents[2], extents[3],
+                 extents[4], extents[5]);
 }
 
 template <typename ViewType>
 void reshape_view(ViewType& out, const std::array<int, 7>& extents) {
-  if (ViewType::required_allocation_size(out.layout()) >=
-      ViewType::required_allocation_size(extents[0], extents[1], extents[2],
-                                         extents[3], extents[4], extents[5],
-                                         extents[6])) {
-    out = ViewType(out.data(), extents[0], extents[1], extents[2], extents[3],
-                   extents[4], extents[5], extents[6]);
-  } else {
-    throw std::runtime_error("reshape_view: insufficient memory");
-  }
+  KOKKOSFFT_EXPECTS(ViewType::required_allocation_size(out.layout()) >=
+                        ViewType::required_allocation_size(
+                            extents[0], extents[1], extents[2], extents[3],
+                            extents[4], extents[5], extents[6]),
+                    "reshape_view: insufficient memory");
+  out = ViewType(out.data(), extents[0], extents[1], extents[2], extents[3],
+                 extents[4], extents[5], extents[6]);
 }
 
 template <typename ViewType>
 void reshape_view(ViewType& out, const std::array<int, 8>& extents) {
-  if (ViewType::required_allocation_size(out.layout()) >=
-      ViewType::required_allocation_size(extents[0], extents[1], extents[2],
-                                         extents[3], extents[4], extents[5],
-                                         extents[6], extents[7])) {
-    out = ViewType(out.data(), extents[0], extents[1], extents[2], extents[3],
-                   extents[4], extents[5], extents[6], extents[7]);
-  } else {
-    throw std::runtime_error("reshape_view: insufficient memory");
-  }
+  KOKKOSFFT_EXPECTS(ViewType::required_allocation_size(out.layout()) >=
+                        ViewType::required_allocation_size(
+                            extents[0], extents[1], extents[2], extents[3],
+                            extents[4], extents[5], extents[6], extents[7]),
+                    "reshape_view: insufficient memory");
+  out = ViewType(out.data(), extents[0], extents[1], extents[2], extents[3],
+                 extents[4], extents[5], extents[6], extents[7]);
 }
 
 }  // namespace Impl

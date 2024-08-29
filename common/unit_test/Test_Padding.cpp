@@ -44,7 +44,7 @@ auto get_c2r_shape(std::size_t len, bool is_C2R) {
 template <typename T>
 void test_reshape1D_1DView() {
   const int len = 30, len_pad = 32, len_crop = 28;
-  bool is_C2R = !KokkosFFT::Impl::is_complex<T>::value;
+  bool is_C2R = !KokkosFFT::Impl::is_complex_v<T>;
 
   View1D<T> x_out("x_out", len);
   View1D<Kokkos::complex<double>> x_in("x_in", get_c2r_shape(len, is_C2R));
@@ -68,7 +68,7 @@ void test_reshape1D_1DView() {
 template <typename T>
 void test_reshape1D_2DView() {
   const int n0 = 30, n1 = 15;
-  bool is_C2R = !KokkosFFT::Impl::is_complex<T>::value;
+  bool is_C2R = !KokkosFFT::Impl::is_complex_v<T>;
 
   View2D<T> x_out("x_out", n0, n1);
   constexpr int DIM = 2;
@@ -95,7 +95,7 @@ void test_reshape1D_2DView() {
 template <typename T>
 void test_reshape1D_3DView() {
   const int n0 = 30, n1 = 15, n2 = 8;
-  bool is_C2R = !KokkosFFT::Impl::is_complex<T>::value;
+  bool is_C2R = !KokkosFFT::Impl::is_complex_v<T>;
 
   View3D<T> x_out("x_out", n0, n1, n2);
   constexpr int DIM = 3;
@@ -122,7 +122,7 @@ void test_reshape1D_3DView() {
 template <typename T>
 void test_reshape1D_4DView() {
   const int n0 = 5, n1 = 11, n2 = 10, n3 = 8;
-  bool is_C2R = !KokkosFFT::Impl::is_complex<T>::value;
+  bool is_C2R = !KokkosFFT::Impl::is_complex_v<T>;
   View4D<T> x_out("x_out", n0, n1, n2, n3);
 
   constexpr int DIM = 4;
@@ -148,7 +148,7 @@ void test_reshape1D_4DView() {
 template <typename T>
 void test_reshape1D_5DView() {
   const int n0 = 5, n1 = 11, n2 = 10, n3 = 8, n4 = 3;
-  bool is_C2R = !KokkosFFT::Impl::is_complex<T>::value;
+  bool is_C2R = !KokkosFFT::Impl::is_complex_v<T>;
   View5D<T> x_out("x_out", n0, n1, n2, n3, n4);
 
   constexpr int DIM = 5;
@@ -175,7 +175,7 @@ void test_reshape1D_5DView() {
 template <typename T>
 void test_reshape1D_6DView() {
   const int n0 = 5, n1 = 11, n2 = 10, n3 = 8, n4 = 3, n5 = 4;
-  bool is_C2R = !KokkosFFT::Impl::is_complex<T>::value;
+  bool is_C2R = !KokkosFFT::Impl::is_complex_v<T>;
   View6D<T> x_out("x_out", n0, n1, n2, n3, n4, n5);
 
   constexpr int DIM = 6;
@@ -201,7 +201,7 @@ void test_reshape1D_6DView() {
 template <typename T>
 void test_reshape1D_7DView() {
   const int n0 = 5, n1 = 11, n2 = 10, n3 = 8, n4 = 3, n5 = 4, n6 = 7;
-  bool is_C2R = !KokkosFFT::Impl::is_complex<T>::value;
+  bool is_C2R = !KokkosFFT::Impl::is_complex_v<T>;
   View7D<T> x_out("x_out", n0, n1, n2, n3, n4, n5, n6);
 
   constexpr int DIM = 7;
@@ -228,7 +228,7 @@ void test_reshape1D_7DView() {
 template <typename T>
 void test_reshape1D_8DView() {
   const int n0 = 5, n1 = 11, n2 = 10, n3 = 8, n4 = 3, n5 = 4, n6 = 7, n7 = 9;
-  bool is_C2R = !KokkosFFT::Impl::is_complex<T>::value;
+  bool is_C2R = !KokkosFFT::Impl::is_complex_v<T>;
   View8D<T> x_out("x_out", n0, n1, n2, n3, n4, n5, n6, n7);
 
   constexpr int DIM = 8;
@@ -295,7 +295,7 @@ TYPED_TEST(GetModifiedShape1D, 8DView) {
 template <typename T>
 void test_reshape2D_2DView() {
   const int n0 = 30, n1 = 15;
-  bool is_C2R = !KokkosFFT::Impl::is_complex<T>::value;
+  bool is_C2R = !KokkosFFT::Impl::is_complex_v<T>;
   View2D<T> x_out("x_out", n0, n1);
   constexpr int DIM = 2;
   shape_type<2> default_shape({n0, n1});
@@ -330,7 +330,7 @@ void test_reshape2D_2DView() {
 template <typename T>
 void test_reshape2D_3DView() {
   const int n0 = 30, n1 = 15, n2 = 8;
-  bool is_C2R = !KokkosFFT::Impl::is_complex<T>::value;
+  bool is_C2R = !KokkosFFT::Impl::is_complex_v<T>;
   View3D<T> x_out("x_out", n0, n1, n2);
   constexpr int DIM = 3;
   shape_type<3> default_shape({n0, n1, n2});
@@ -365,7 +365,7 @@ void test_reshape2D_3DView() {
 template <typename T>
 void test_reshape2D_4DView() {
   const int n0 = 5, n1 = 11, n2 = 10, n3 = 8;
-  bool is_C2R = !KokkosFFT::Impl::is_complex<T>::value;
+  bool is_C2R = !KokkosFFT::Impl::is_complex_v<T>;
   View4D<T> x_out("x_out", n0, n1, n2, n3);
   constexpr int DIM = 4;
   shape_type<4> default_shape({n0, n1, n2, n3});
@@ -400,7 +400,7 @@ void test_reshape2D_4DView() {
 template <typename T>
 void test_reshape2D_5DView() {
   const int n0 = 5, n1 = 11, n2 = 10, n3 = 8, n4 = 3;
-  bool is_C2R = !KokkosFFT::Impl::is_complex<T>::value;
+  bool is_C2R = !KokkosFFT::Impl::is_complex_v<T>;
   View5D<T> x_out("x_out", n0, n1, n2, n3, n4);
   constexpr int DIM = 5;
   shape_type<5> default_shape({n0, n1, n2, n3, n4});
@@ -435,7 +435,7 @@ void test_reshape2D_5DView() {
 template <typename T>
 void test_reshape2D_6DView() {
   const int n0 = 5, n1 = 11, n2 = 10, n3 = 8, n4 = 3, n5 = 4;
-  bool is_C2R = !KokkosFFT::Impl::is_complex<T>::value;
+  bool is_C2R = !KokkosFFT::Impl::is_complex_v<T>;
   View6D<T> x_out("x_out", n0, n1, n2, n3, n4, n5);
   constexpr int DIM = 6;
   shape_type<6> default_shape({n0, n1, n2, n3, n4, n5});
@@ -471,7 +471,7 @@ void test_reshape2D_6DView() {
 template <typename T>
 void test_reshape2D_7DView() {
   const int n0 = 5, n1 = 11, n2 = 10, n3 = 8, n4 = 3, n5 = 4, n6 = 7;
-  bool is_C2R = !KokkosFFT::Impl::is_complex<T>::value;
+  bool is_C2R = !KokkosFFT::Impl::is_complex_v<T>;
   View7D<T> x_out("x_out", n0, n1, n2, n3, n4, n5, n6);
   constexpr int DIM = 7;
   shape_type<7> default_shape({n0, n1, n2, n3, n4, n5, n6});
@@ -507,7 +507,7 @@ void test_reshape2D_7DView() {
 template <typename T>
 void test_reshape2D_8DView() {
   const int n0 = 5, n1 = 11, n2 = 10, n3 = 8, n4 = 3, n5 = 4, n6 = 7, n7 = 9;
-  bool is_C2R = !KokkosFFT::Impl::is_complex<T>::value;
+  bool is_C2R = !KokkosFFT::Impl::is_complex_v<T>;
   View8D<T> x_out("x_out", n0, n1, n2, n3, n4, n5, n6, n7);
   constexpr int DIM = 8;
   shape_type<8> default_shape({n0, n1, n2, n3, n4, n5, n6, n7});
@@ -578,7 +578,7 @@ TYPED_TEST(GetModifiedShape2D, 8DView) {
 template <typename T>
 void test_reshape3D_3DView() {
   const int n0 = 30, n1 = 15, n2 = 8;
-  bool is_C2R = !KokkosFFT::Impl::is_complex<T>::value;
+  bool is_C2R = !KokkosFFT::Impl::is_complex_v<T>;
   View3D<T> x_out("x_out", n0, n1, n2);
 
   constexpr int DIM = 3;
@@ -607,7 +607,7 @@ void test_reshape3D_3DView() {
 
               shape_type<3> new_shape = {n0_new, n1_new, n2_new};
               auto modified_shape     = KokkosFFT::Impl::get_modified_shape(
-                  x_in, x_out, new_shape, axes);
+                      x_in, x_out, new_shape, axes);
 
               EXPECT_TRUE(modified_shape == ref_shape);
             }
@@ -621,7 +621,7 @@ void test_reshape3D_3DView() {
 template <typename T>
 void test_reshape3D_4DView() {
   const int n0 = 5, n1 = 11, n2 = 10, n3 = 8;
-  bool is_C2R = !KokkosFFT::Impl::is_complex<T>::value;
+  bool is_C2R = !KokkosFFT::Impl::is_complex_v<T>;
   View4D<T> x_out("x_out", n0, n1, n2, n3);
 
   constexpr int DIM = 4;
@@ -664,7 +664,7 @@ void test_reshape3D_4DView() {
 template <typename T>
 void test_reshape3D_5DView() {
   const int n0 = 5, n1 = 11, n2 = 10, n3 = 8, n4 = 3;
-  bool is_C2R = !KokkosFFT::Impl::is_complex<T>::value;
+  bool is_C2R = !KokkosFFT::Impl::is_complex_v<T>;
   View5D<T> x_out("x_out", n0, n1, n2, n3, n4);
   constexpr int DIM = 5;
   shape_type<5> default_shape({n0, n1, n2, n3, n4});
@@ -706,7 +706,7 @@ void test_reshape3D_5DView() {
 template <typename T>
 void test_reshape3D_6DView() {
   const int n0 = 5, n1 = 11, n2 = 10, n3 = 8, n4 = 3, n5 = 4;
-  bool is_C2R = !KokkosFFT::Impl::is_complex<T>::value;
+  bool is_C2R = !KokkosFFT::Impl::is_complex_v<T>;
   View6D<T> x_out("x_out", n0, n1, n2, n3, n4, n5);
   constexpr int DIM = 6;
   shape_type<6> default_shape({n0, n1, n2, n3, n4, n5});
@@ -749,7 +749,7 @@ void test_reshape3D_6DView() {
 template <typename T>
 void test_reshape3D_7DView() {
   const int n0 = 5, n1 = 11, n2 = 10, n3 = 8, n4 = 3, n5 = 4, n6 = 7;
-  bool is_C2R = !KokkosFFT::Impl::is_complex<T>::value;
+  bool is_C2R = !KokkosFFT::Impl::is_complex_v<T>;
   View7D<T> x_out("x_out", n0, n1, n2, n3, n4, n5, n6);
   constexpr int DIM = 7;
   shape_type<7> default_shape({n0, n1, n2, n3, n4, n5, n6});
@@ -792,7 +792,7 @@ void test_reshape3D_7DView() {
 template <typename T>
 void test_reshape3D_8DView() {
   const int n0 = 5, n1 = 11, n2 = 10, n3 = 8, n4 = 3, n5 = 4, n6 = 7, n7 = 9;
-  bool is_C2R = !KokkosFFT::Impl::is_complex<T>::value;
+  bool is_C2R = !KokkosFFT::Impl::is_complex_v<T>;
   View8D<T> x_out("x_out", n0, n1, n2, n3, n4, n5, n6, n7);
   constexpr int DIM = 8;
   shape_type<8> default_shape({n0, n1, n2, n3, n4, n5, n6, n7});
