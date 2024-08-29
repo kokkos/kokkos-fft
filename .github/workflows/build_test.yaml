@@ -73,7 +73,7 @@ jobs:
               cxx: clang++
             cmake_flags:
               cxx_standard: 17
-              kokkos: -DKokkos_ENABLE_OPENMP=ON
+              kokkos: -DKokkos_ENABLE_SERIAL=ON
               kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON -DCMAKE_CXX_CLANG_TIDY="clang-tidy;-warnings-as-errors=*"
           - name: openmp
             image: gcc
