@@ -66,6 +66,15 @@ jobs:
     strategy:
       matrix:
         backend:
+          - name: clang-tidy
+            image: clang
+            compiler:
+              c: clang
+              cxx: clang++
+            cmake_flags:
+              cxx_standard: 17
+              kokkos: -DKokkos_ENABLE_OPENMP=ON
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON -DCMAKE_CXX_CLANG_TIDY="clang-tidy;-warnings-as-errors=*"
           - name: openmp
             image: gcc
             compiler:
@@ -137,6 +146,10 @@ jobs:
           - name: host_device
             cmake_flags: -DKokkosFFT_ENABLE_HOST_AND_DEVICE=ON
         exclude:
+          - backend:
+              name: clang-tidy
+            target:
+              name: host_device
           - backend:
               name: openmp
             target:

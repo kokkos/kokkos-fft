@@ -1,0 +1,8 @@
+# SPDX-FileCopyrightText: (C) The Kokkos-FFT development team, see COPYRIGHT.md file
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
+
+Checks: '-*,kokkos-*,modernize-type-traits,modernize-use-using,modernize-use-nullptr,cppcoreguidelines-pro-type-cstyle-cast'
+FormatStyle: file
+HeaderFilterRegex: '(common|fft).*\.hpp'
+ExcludeHeaderFilterRegex: '(tpls).*\.hpp'
