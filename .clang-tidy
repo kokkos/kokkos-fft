@@ -4,5 +4,7 @@
 
 Checks: '-*,kokkos-*,modernize-type-traits,modernize-use-using,modernize-use-nullptr,cppcoreguidelines-pro-type-cstyle-cast'
 FormatStyle: file
+HeaderFileExtensions: ['h','hh','hpp','hxx']
+ImplementationFileExtensions: ['c','cc','cpp','cxx']
 HeaderFilterRegex: '(common|fft).*\.hpp'
-ExcludeHeaderFilterRegex: '(tpls).*\.hpp'
+ExcludeHeaderFilterRegex: '(tpls).*\.(h|cc|hpp)'
