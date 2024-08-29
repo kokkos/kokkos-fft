@@ -233,14 +233,14 @@ class Plan {
                   "Plan::Plan: View rank must be larger than or equal to the "
                   "Rank of FFT axes");
 
-    if (std::is_floating_point<in_value_type>::value &&
+    if (KokkosFFT::Impl::is_real_v<in_value_type> &&
         m_direction != KokkosFFT::Direction::forward) {
       throw std::runtime_error(
           "Plan::Plan: real to complex transform is constrcuted with backward "
           "direction.");
     }
 
-    if (std::is_floating_point<out_value_type>::value &&
+    if (KokkosFFT::Impl::is_real_v<out_value_type> &&
         m_direction != KokkosFFT::Direction::backward) {
       throw std::runtime_error(
           "Plan::Plan: complex to real transform is constrcuted with forward "

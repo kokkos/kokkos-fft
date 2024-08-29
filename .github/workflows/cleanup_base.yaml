@@ -31,5 +31,7 @@ jobs:
             kokkos-fft/base_rocm_pr
             kokkos-fft/base_gcc_main
             kokkos-fft/base_gcc_pr
+            kokkos-fft/base_clang_main
+            kokkos-fft/base_clang_pr
             kokkos-fft/base_intel_main
             kokkos-fft/base_intel_pr

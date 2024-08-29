@@ -37,6 +37,8 @@ jobs:
         image:
           - name: gcc
             use_singularity: false
+          - name: clang
+            use_singularity: false
           - name: nvcc
             use_singularity: true
           - name: rocm

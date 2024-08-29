@@ -92,7 +92,7 @@ auto get_extents(const InViewType& in, const OutViewType& out,
     }
   }
 
-  if (std::is_same<array_layout_type, Kokkos::LayoutLeft>::value) {
+  if (std::is_same_v<array_layout_type, Kokkos::LayoutLeft>) {
     std::reverse(_in_extents.begin(), _in_extents.end());
     std::reverse(_out_extents.begin(), _out_extents.end());
     std::reverse(_fft_extents.begin(), _fft_extents.end());
