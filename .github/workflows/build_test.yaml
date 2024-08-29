@@ -75,6 +75,7 @@ jobs:
               cxx_standard: 17
               kokkos: -DKokkos_ENABLE_SERIAL=ON
               kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON -DCMAKE_CXX_CLANG_TIDY="clang-tidy;-warnings-as-errors=*"
+              benchmark: OFF
           - name: openmp
             image: gcc
             compiler:
@@ -83,7 +84,8 @@ jobs:
             cmake_flags:
               cxx_standard: 17
               kokkos: -DKokkos_ENABLE_OPENMP=ON -DKokkos_ENABLE_SERIAL=ON
-              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON -DKokkosFFT_ENABLE_BENCHMARK=ON
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
+              benchmark: ON
           - name: threads
             image: gcc
             compiler:
@@ -92,7 +94,8 @@ jobs:
             cmake_flags:
               cxx_standard: 20
               kokkos: -DKokkos_ENABLE_THREADS=ON
-              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON -DKokkosFFT_ENABLE_BENCHMARK=ON
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
+              benchmark: ON
           - name: serial
             image: gcc
             compiler:
@@ -101,7 +104,8 @@ jobs:
             cmake_flags:
               cxx_standard: 17
               kokkos: -DKokkos_ENABLE_SERIAL=ON
-              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON -DKokkosFFT_ENABLE_BENCHMARK=ON
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
+              benchmark: ON
           - name: cuda
             image: nvcc
             compiler:
@@ -110,7 +114,8 @@ jobs:
             cmake_flags:
               cxx_standard: 17
               kokkos: -DKokkos_ENABLE_CUDA=ON -DKokkos_ARCH_AMPERE80=ON -DKokkos_ENABLE_OPENMP=ON -DKokkos_ENABLE_SERIAL=ON
-              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror" -DKokkosFFT_ENABLE_BENCHMARK=ON
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror"
+              benchmark: ON
           - name: hip
             image: rocm
             compiler:
@@ -119,7 +124,8 @@ jobs:
             cmake_flags:
               cxx_standard: 17
               kokkos: -DKokkos_ENABLE_HIP=ON -DKokkos_ARCH_VEGA90A=ON -DKokkos_ENABLE_THREADS=ON
-              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror" -DKokkosFFT_ENABLE_BENCHMARK=ON
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror"
+              benchmark: ON
           - name: rocm
             image: rocm
             compiler:
@@ -128,7 +134,8 @@ jobs:
             cmake_flags:
               cxx_standard: 20
               kokkos: -DKokkos_ENABLE_HIP=ON -DKokkos_ARCH_VEGA90A=ON
-              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror" -DKokkosFFT_ENABLE_ROCFFT=ON -DKokkosFFT_ENABLE_BENCHMARK=ON
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror" -DKokkosFFT_ENABLE_ROCFFT=ON
+              benchmark: ON
           - name: sycl
             image: intel
             compiler:
@@ -139,7 +146,8 @@ jobs:
               # device, so for now, we simply generate generic Intel GPU code
               cxx_standard: 17
               kokkos: -DKokkos_ENABLE_SYCL=ON -DKokkos_ARCH_INTEL_GEN=ON
-              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DKokkosFFT_ENABLE_BENCHMARK=ON
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra"
+              benchmark: ON
         target:
           - name: native
             cmake_flags: ""
@@ -184,6 +192,7 @@ jobs:
             -DCMAKE_CXX_COMPILER=${{ matrix.backend.compiler.cxx }} \
             -DCMAKE_CXX_STANDARD=${{ matrix.backend.cmake_flags.cxx_standard }} \
             -DKokkosFFT_ENABLE_EXAMPLES=ON \
+            -DKokkosFFT_ENABLE_BENCHMARK=${{ matrix.backend.cmake_flags.benchmark }} \
             -DKokkosFFT_ENABLE_TESTS=ON \
             -DKokkosFFT_ENABLE_INTERNAL_KOKKOS=ON \
             ${{ matrix.backend.cmake_flags.kokkos }} \
