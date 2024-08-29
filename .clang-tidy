@@ -7,4 +7,4 @@ FormatStyle: file
 HeaderFileExtensions: ['h','hh','hpp','hxx']
 ImplementationFileExtensions: ['c','cc','cpp','cxx']
 HeaderFilterRegex: '(common|fft).*\.hpp'
-ExcludeHeaderFilterRegex: '(tpls).*\.(h|cc|hpp)'
+ExcludeHeaderFilterRegex: '(tpls).*\.(hpp)'
