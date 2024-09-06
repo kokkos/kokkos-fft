@@ -26,12 +26,8 @@ auto get_extents(const InViewType& in, const OutViewType& out,
   using out_value_type    = typename OutViewType::non_const_value_type;
   using array_layout_type = typename InViewType::array_layout;
 
-  static_assert(InViewType::rank() >= DIM,
-                "KokkosFFT::get_map_axes: Rank of View must be larger thane or "
-                "equal to the Rank of FFT axes.");
-  static_assert(DIM > 0,
-                "KokkosFFT::get_map_axes: Rank of FFT axes must be larger than "
-                "or equal to 1.");
+  KOKKOSFFT_EXPECTS(KokkosFFT::Impl::are_valid_axes(in, axes),
+                    "input axes are not valid for the view");
 
   constexpr std::size_t rank = InViewType::rank;
   [[maybe_unused]] int inner_most_axis =
@@ -64,32 +60,25 @@ auto get_extents(const InViewType& in, const OutViewType& out,
     _fft_extents.push_back(fft_extent);
   }
 
+  static_assert(!(is_real_v<in_value_type> && is_real_v<out_value_type>),
+                "get_extents: real to real transform is not supported");
+
   if (is_real_v<in_value_type>) {
     // Then R2C
-    if (is_complex_v<out_value_type>) {
-      KOKKOSFFT_EXPECTS(
-          _out_extents.at(inner_most_axis) ==
-              _in_extents.at(inner_most_axis) / 2 + 1,
-          "For R2C, the 'output extent' of transform must be equal to "
-          "'input extent'/2 + 1");
-    } else {
-      throw std::runtime_error(
-          "If the input type is real, the output type should be complex");
-    }
+    KOKKOSFFT_EXPECTS(
+        _out_extents.at(inner_most_axis) ==
+            _in_extents.at(inner_most_axis) / 2 + 1,
+        "For R2C, the 'output extent' of transform must be equal to "
+        "'input extent'/2 + 1");
   }
 
   if (is_real_v<out_value_type>) {
     // Then C2R
-    if (is_complex_v<in_value_type>) {
-      KOKKOSFFT_EXPECTS(
-          _in_extents.at(inner_most_axis) ==
-              _out_extents.at(inner_most_axis) / 2 + 1,
-          "For C2R, the 'input extent' of transform must be equal to "
-          "'output extent' / 2 + 1");
-    } else {
-      throw std::runtime_error(
-          "If the output type is real, the input type should be complex");
-    }
+    KOKKOSFFT_EXPECTS(
+        _in_extents.at(inner_most_axis) ==
+            _out_extents.at(inner_most_axis) / 2 + 1,
+        "For C2R, the 'input extent' of transform must be equal to "
+        "'output extent' / 2 + 1");
   }
 
   if (std::is_same_v<array_layout_type, Kokkos::LayoutLeft>) {

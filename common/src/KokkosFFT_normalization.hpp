@@ -62,6 +62,11 @@ template <typename ExecutionSpace, typename ViewType>
 void normalize(const ExecutionSpace& exec_space, ViewType& inout,
                Direction direction, Normalization normalization,
                std::size_t fft_size) {
+  static_assert(KokkosFFT::Impl::is_operatable_view_v<ExecutionSpace, ViewType>,
+                "normalize: View value type must be float, double, "
+                "Kokkos::Complex<float>, or Kokkos::Complex<double>. "
+                "Layout must be either LayoutLeft or LayoutRight. "
+                "ExecutionSpace must be able to access data in ViewType");
   auto [coef, to_normalize] =
       get_coefficients(inout, direction, normalization, fft_size);
   if (to_normalize) normalize_impl(exec_space, inout, coef);
