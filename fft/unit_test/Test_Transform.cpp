@@ -24,7 +24,7 @@ void fft1(ViewType& in, ViewType& out) {
   using value_type      = typename ViewType::non_const_value_type;
   using real_value_type = KokkosFFT::Impl::base_floating_point_type<value_type>;
 
-  static_assert(KokkosFFT::Impl::is_complex<value_type>::value,
+  static_assert(KokkosFFT::Impl::is_complex_v<value_type>,
                 "fft1: ViewType must be complex");
 
   const value_type I(0.0, 1.0);
@@ -64,7 +64,7 @@ void ifft1(ViewType& in, ViewType& out) {
   using value_type      = typename ViewType::non_const_value_type;
   using real_value_type = KokkosFFT::Impl::base_floating_point_type<value_type>;
 
-  static_assert(KokkosFFT::Impl::is_complex<value_type>::value,
+  static_assert(KokkosFFT::Impl::is_complex_v<value_type>,
                 "ifft1: ViewType must be complex");
 
   const value_type I(0.0, 1.0);
