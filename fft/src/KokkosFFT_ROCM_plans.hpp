@@ -109,9 +109,9 @@ auto create_plan(const ExecutionSpace& exec_space,
   auto [in_extents, out_extents, fft_extents, howmany] =
       KokkosFFT::Impl::get_extents(in, out, axes, s);
   int idist    = std::accumulate(in_extents.begin(), in_extents.end(), 1,
-                                 std::multiplies<>());
+                              std::multiplies<>());
   int odist    = std::accumulate(out_extents.begin(), out_extents.end(), 1,
-                                 std::multiplies<>());
+                              std::multiplies<>());
   int fft_size = std::accumulate(fft_extents.begin(), fft_extents.end(), 1,
                                  std::multiplies<>());
 
