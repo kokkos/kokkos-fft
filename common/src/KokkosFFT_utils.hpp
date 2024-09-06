@@ -13,12 +13,7 @@
 #include "KokkosFFT_traits.hpp"
 #include "KokkosFFT_common_types.hpp"
 
-#if defined(KOKKOS_ENABLE_CXX17)
-#include <cstdlib>
-#define KOKKOSFFT_EXPECTS(expression, msg)                                   \
-  KokkosFFT::Impl::check_precondition((expression), msg, __FILE__, __LINE__, \
-                                      __FUNCTION__)
-#else
+#if defined(__cpp_lib_source_location) && __cpp_lib_source_location >= 201907L
 #include <source_location>
 #define KOKKOSFFT_EXPECTS(expression, msg)                            \
   KokkosFFT::Impl::check_precondition(                                \
@@ -26,6 +21,11 @@
       std::source_location::current().line(),                         \
       std::source_location::current().function_name(),                \
       std::source_location::current().column())
+#else
+#include <cstdlib>
+#define KOKKOSFFT_EXPECTS(expression, msg)                                   \
+  KokkosFFT::Impl::check_precondition((expression), msg, __FILE__, __LINE__, \
+                                      __FUNCTION__)
 #endif
 
 namespace KokkosFFT {
@@ -55,7 +55,7 @@ inline void check_precondition(const bool expression,
 template <typename ViewType>
 auto convert_negative_axis(ViewType, int _axis = -1) {
   static_assert(Kokkos::is_view_v<ViewType>,
-                "convert_negative_axis: ViewType is not a Kokkos::View.");
+                "convert_negative_axis: ViewType must be a Kokkos::View.");
   int rank = static_cast<int>(ViewType::rank());
 
   KOKKOSFFT_EXPECTS(_axis >= -rank && _axis < rank,
@@ -68,7 +68,7 @@ auto convert_negative_axis(ViewType, int _axis = -1) {
 template <typename ViewType>
 auto convert_negative_shift(const ViewType& view, int _shift, int _axis) {
   static_assert(Kokkos::is_view_v<ViewType>,
-                "convert_negative_shift: ViewType is not a Kokkos::View.");
+                "convert_negative_shift: ViewType must be a Kokkos::View.");
   int axis                    = convert_negative_axis(view, _axis);
   int extent                  = view.extent(axis);
   [[maybe_unused]] int shift0 = 0, shift1 = 0, shift2 = extent / 2;
@@ -90,7 +90,7 @@ template <typename ContainerType, typename ValueType>
 bool is_found(ContainerType& values, const ValueType& value) {
   using value_type = KokkosFFT::Impl::base_container_value_type<ContainerType>;
   static_assert(std::is_same_v<value_type, ValueType>,
-                "Container value type must match ValueType");
+                "is_found: Container value type must match ValueType");
   return std::find(values.begin(), values.end(), value) != values.end();
 }
 
@@ -101,13 +101,15 @@ bool has_duplicate_values(const ContainerType& values) {
   return set_values.size() < values.size();
 }
 
-template <
-    typename ContainerType, typename IntType,
-    std::enable_if_t<std::is_integral_v<IntType>, std::nullptr_t> = nullptr>
+template <typename ContainerType, typename IntType>
 bool is_out_of_range_value_included(const ContainerType& values, IntType max) {
+  static_assert(
+      std::is_integral_v<IntType>,
+      "is_out_of_range_value_included: IntType must be an integral type");
   using value_type = KokkosFFT::Impl::base_container_value_type<ContainerType>;
   static_assert(std::is_same_v<value_type, IntType>,
-                "Container value type must match IntType");
+                "is_out_of_range_value_included: Container value type must "
+                "match IntType");
   bool is_included = false;
   for (auto value : values) {
     is_included = value >= max;
@@ -121,6 +123,10 @@ template <
     std::enable_if_t<Kokkos::is_view_v<ViewType> && std::is_integral_v<IntType>,
                      std::nullptr_t> = nullptr>
 bool are_valid_axes(const ViewType& view, const ArrayType<IntType, DIM>& axes) {
+  static_assert(Kokkos::is_view_v<ViewType>,
+                "are_valid_axes: ViewType must be a Kokkos::View");
+  static_assert(std::is_integral_v<IntType>,
+                "are_valid_axes: IntType must be an integral type");
   static_assert(
       DIM >= 1 && DIM <= ViewType::rank(),
       "are_valid_axes: the Rank of FFT axes must be between 1 and View rank");
@@ -157,7 +163,7 @@ template <typename ContainerType, typename ValueType>
 std::size_t get_index(ContainerType& values, const ValueType& value) {
   using value_type = KokkosFFT::Impl::base_container_value_type<ContainerType>;
   static_assert(std::is_same_v<value_type, ValueType>,
-                "Container value type must match ValueType");
+                "get_index: Container value type must match ValueType");
   auto it = std::find(values.begin(), values.end(), value);
   KOKKOSFFT_EXPECTS(it != values.end(), "value is not included in values");
   return it - values.begin();
