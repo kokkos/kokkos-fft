@@ -178,13 +178,13 @@ class Plan {
     if constexpr (KokkosFFT::Impl::is_real_v<in_value_type>) {
       KOKKOSFFT_EXPECTS(
           m_direction == KokkosFFT::Direction::forward,
-          "real to complex transform is constrcuted with backward direction.");
+          "real to complex transform is constructed with backward direction.");
     }
 
     if constexpr (KokkosFFT::Impl::is_real_v<out_value_type>) {
       KOKKOSFFT_EXPECTS(
           m_direction == KokkosFFT::Direction::backward,
-          "complex to real transform is constrcuted with forward direction.");
+          "complex to real transform is constructed with forward direction.");
     }
 
     shape_type<1> s = {0};
@@ -239,13 +239,13 @@ class Plan {
     if constexpr (KokkosFFT::Impl::is_real_v<in_value_type>) {
       KOKKOSFFT_EXPECTS(
           m_direction == KokkosFFT::Direction::forward,
-          "real to complex transform is constrcuted with backward direction.");
+          "real to complex transform is constructed with backward direction.");
     }
 
     if constexpr (KokkosFFT::Impl::is_real_v<out_value_type>) {
       KOKKOSFFT_EXPECTS(
           m_direction == KokkosFFT::Direction::backward,
-          "complex to real transform is constrcuted with forward direction.");
+          "complex to real transform is constructed with forward direction.");
     }
 
     m_in_extents               = KokkosFFT::Impl::extract_extents(in);
