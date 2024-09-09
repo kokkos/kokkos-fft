@@ -7,7 +7,7 @@
 
 #include <stdexcept>
 #include <sstream>
-#include <string>
+#include <string_view>
 
 #if defined(__cpp_lib_source_location) && __cpp_lib_source_location >= 201907L
 #include <source_location>
@@ -28,10 +28,10 @@ namespace KokkosFFT {
 namespace Impl {
 
 inline void check_precondition(const bool expression,
-                               [[maybe_unused]] const std::string& msg,
-                               [[maybe_unused]] const char* file_name, int line,
-                               [[maybe_unused]] const char* function_name,
-                               [[maybe_unused]] const int column = -1) {
+                               const std::string_view& msg,
+                               const char* file_name, int line,
+                               const char* function_name,
+                               const int column = -1) {
   // Quick return if possible
   if (expression) return;
 
