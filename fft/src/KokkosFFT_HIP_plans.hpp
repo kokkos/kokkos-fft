@@ -8,6 +8,7 @@
 #include <numeric>
 #include "KokkosFFT_HIP_types.hpp"
 #include "KokkosFFT_layouts.hpp"
+#include "KokkosFFT_asserts.hpp"
 
 namespace KokkosFFT {
 namespace Impl {
@@ -30,8 +31,7 @@ auto create_plan(const ExecutionSpace& exec_space,
 
   plan                   = std::make_unique<PlanType>();
   hipfftResult hipfft_rt = hipfftCreate(&(*plan));
-  if (hipfft_rt != HIPFFT_SUCCESS)
-    throw std::runtime_error("hipfftCreate failed");
+  KOKKOSFFT_EXPECTS(hipfft_rt == HIPFFT_SUCCESS, "hipfftCreate failed");
 
   hipStream_t stream = exec_space.hip_stream();
   hipfftSetStream((*plan), stream);
@@ -45,8 +45,8 @@ auto create_plan(const ExecutionSpace& exec_space,
                                  std::multiplies<>());
 
   hipfft_rt = hipfftPlan1d(&(*plan), nx, type, howmany);
-  if (hipfft_rt != HIPFFT_SUCCESS)
-    throw std::runtime_error("hipfftPlan1d failed");
+  KOKKOSFFT_EXPECTS(hipfft_rt == HIPFFT_SUCCESS, "hipfftPlan1d failed");
+
   return fft_size;
 }
 
@@ -69,8 +69,7 @@ auto create_plan(const ExecutionSpace& exec_space,
 
   plan                   = std::make_unique<PlanType>();
   hipfftResult hipfft_rt = hipfftCreate(&(*plan));
-  if (hipfft_rt != HIPFFT_SUCCESS)
-    throw std::runtime_error("hipfftCreate failed");
+  KOKKOSFFT_EXPECTS(hipfft_rt == HIPFFT_SUCCESS, "hipfftCreate failed");
 
   hipStream_t stream = exec_space.hip_stream();
   hipfftSetStream((*plan), stream);
@@ -84,8 +83,8 @@ auto create_plan(const ExecutionSpace& exec_space,
                                  std::multiplies<>());
 
   hipfft_rt = hipfftPlan2d(&(*plan), nx, ny, type);
-  if (hipfft_rt != HIPFFT_SUCCESS)
-    throw std::runtime_error("hipfftPlan2d failed");
+  KOKKOSFFT_EXPECTS(hipfft_rt == HIPFFT_SUCCESS, "hipfftPlan2d failed");
+
   return fft_size;
 }
 
@@ -108,8 +107,7 @@ auto create_plan(const ExecutionSpace& exec_space,
 
   plan                   = std::make_unique<PlanType>();
   hipfftResult hipfft_rt = hipfftCreate(&(*plan));
-  if (hipfft_rt != HIPFFT_SUCCESS)
-    throw std::runtime_error("hipfftCreate failed");
+  KOKKOSFFT_EXPECTS(hipfft_rt == HIPFFT_SUCCESS, "hipfftCreate failed");
 
   hipStream_t stream = exec_space.hip_stream();
   hipfftSetStream((*plan), stream);
@@ -125,8 +123,8 @@ auto create_plan(const ExecutionSpace& exec_space,
                                  std::multiplies<>());
 
   hipfft_rt = hipfftPlan3d(&(*plan), nx, ny, nz, type);
-  if (hipfft_rt != HIPFFT_SUCCESS)
-    throw std::runtime_error("hipfftPlan3d failed");
+  KOKKOSFFT_EXPECTS(hipfft_rt == HIPFFT_SUCCESS, "hipfftPlan3d failed");
+
   return fft_size;
 }
 
@@ -169,8 +167,7 @@ auto create_plan(const ExecutionSpace& exec_space,
 
   plan                   = std::make_unique<PlanType>();
   hipfftResult hipfft_rt = hipfftCreate(&(*plan));
-  if (hipfft_rt != HIPFFT_SUCCESS)
-    throw std::runtime_error("hipfftCreate failed");
+  KOKKOSFFT_EXPECTS(hipfft_rt == HIPFFT_SUCCESS, "hipfftCreate failed");
 
   hipStream_t stream = exec_space.hip_stream();
   hipfftSetStream((*plan), stream);
@@ -179,8 +176,8 @@ auto create_plan(const ExecutionSpace& exec_space,
                              in_extents.data(), istride, idist,
                              out_extents.data(), ostride, odist, type, howmany);
 
-  if (hipfft_rt != HIPFFT_SUCCESS)
-    throw std::runtime_error("hipfftPlan failed");
+  KOKKOSFFT_EXPECTS(hipfft_rt == HIPFFT_SUCCESS, "hipfftPlanMany failed");
+
   return fft_size;
 }
 

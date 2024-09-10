@@ -7,6 +7,7 @@
 
 #include <complex>
 #include <rocfft/rocfft.h>
+#include "KokkosFFT_asserts.hpp"
 
 namespace KokkosFFT {
 namespace Impl {
@@ -15,8 +16,8 @@ inline void exec_plan(rocfft_plan& plan, float* idata,
                       const rocfft_execution_info& execution_info) {
   rocfft_status status =
       rocfft_execute(plan, (void**)&idata, (void**)&odata, execution_info);
-  if (status != rocfft_status_success)
-    throw std::runtime_error("rocfft_execute for R2C failed");
+  KOKKOSFFT_EXPECTS(status == rocfft_status_success,
+                    "rocfft_execute for R2C failed");
 }
 
 inline void exec_plan(rocfft_plan& plan, double* idata,
@@ -24,8 +25,8 @@ inline void exec_plan(rocfft_plan& plan, double* idata,
                       const rocfft_execution_info& execution_info) {
   rocfft_status status =
       rocfft_execute(plan, (void**)&idata, (void**)&odata, execution_info);
-  if (status != rocfft_status_success)
-    throw std::runtime_error("rocfft_execute for D2Z failed");
+  KOKKOSFFT_EXPECTS(status == rocfft_status_success,
+                    "rocfft_execute for D2Z failed");
 }
 
 inline void exec_plan(rocfft_plan& plan, std::complex<float>* idata,
@@ -33,8 +34,8 @@ inline void exec_plan(rocfft_plan& plan, std::complex<float>* idata,
                       const rocfft_execution_info& execution_info) {
   rocfft_status status =
       rocfft_execute(plan, (void**)&idata, (void**)&odata, execution_info);
-  if (status != rocfft_status_success)
-    throw std::runtime_error("rocfft_execute for C2R failed");
+  KOKKOSFFT_EXPECTS(status == rocfft_status_success,
+                    "rocfft_execute for C2R failed");
 }
 
 inline void exec_plan(rocfft_plan& plan, std::complex<double>* idata,
@@ -42,8 +43,8 @@ inline void exec_plan(rocfft_plan& plan, std::complex<double>* idata,
                       const rocfft_execution_info& execution_info) {
   rocfft_status status =
       rocfft_execute(plan, (void**)&idata, (void**)&odata, execution_info);
-  if (status != rocfft_status_success)
-    throw std::runtime_error("rocfft_execute for Z2D failed");
+  KOKKOSFFT_EXPECTS(status == rocfft_status_success,
+                    "rocfft_execute for Z2D failed");
 }
 
 inline void exec_plan(rocfft_plan& plan, std::complex<float>* idata,
@@ -51,8 +52,8 @@ inline void exec_plan(rocfft_plan& plan, std::complex<float>* idata,
                       const rocfft_execution_info& execution_info) {
   rocfft_status status =
       rocfft_execute(plan, (void**)&idata, (void**)&odata, execution_info);
-  if (status != rocfft_status_success)
-    throw std::runtime_error("rocfft_execute for C2C failed");
+  KOKKOSFFT_EXPECTS(status == rocfft_status_success,
+                    "rocfft_execute for C2C failed");
 }
 
 inline void exec_plan(rocfft_plan& plan, std::complex<double>* idata,
@@ -60,8 +61,8 @@ inline void exec_plan(rocfft_plan& plan, std::complex<double>* idata,
                       const rocfft_execution_info& execution_info) {
   rocfft_status status =
       rocfft_execute(plan, (void**)&idata, (void**)&odata, execution_info);
-  if (status != rocfft_status_success)
-    throw std::runtime_error("rocfft_execute for Z2Z failed");
+  KOKKOSFFT_EXPECTS(status == rocfft_status_success,
+                    "rocfft_execute for Z2Z failed");
 }
 
 }  // namespace Impl

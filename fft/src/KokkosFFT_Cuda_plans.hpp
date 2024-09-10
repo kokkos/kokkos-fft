@@ -8,6 +8,7 @@
 #include <numeric>
 #include "KokkosFFT_Cuda_types.hpp"
 #include "KokkosFFT_layouts.hpp"
+#include "KokkosFFT_asserts.hpp"
 
 namespace KokkosFFT {
 namespace Impl {
@@ -30,7 +31,7 @@ auto create_plan(const ExecutionSpace& exec_space,
 
   plan                 = std::make_unique<PlanType>();
   cufftResult cufft_rt = cufftCreate(&(*plan));
-  if (cufft_rt != CUFFT_SUCCESS) throw std::runtime_error("cufftCreate failed");
+  KOKKOSFFT_EXPECTS(cufft_rt == CUFFT_SUCCESS, "cufftCreate failed");
 
   cudaStream_t stream = exec_space.cuda_stream();
   cufftSetStream((*plan), stream);
@@ -44,7 +45,8 @@ auto create_plan(const ExecutionSpace& exec_space,
                                  std::multiplies<>());
 
   cufft_rt = cufftPlan1d(&(*plan), nx, type, howmany);
-  if (cufft_rt != CUFFT_SUCCESS) throw std::runtime_error("cufftPlan1d failed");
+  KOKKOSFFT_EXPECTS(cufft_rt == CUFFT_SUCCESS, "cufftPlan1d failed");
+
   return fft_size;
 }
 
@@ -67,7 +69,7 @@ auto create_plan(const ExecutionSpace& exec_space,
 
   plan                 = std::make_unique<PlanType>();
   cufftResult cufft_rt = cufftCreate(&(*plan));
-  if (cufft_rt != CUFFT_SUCCESS) throw std::runtime_error("cufftCreate failed");
+  KOKKOSFFT_EXPECTS(cufft_rt == CUFFT_SUCCESS, "cufftCreate failed");
 
   cudaStream_t stream = exec_space.cuda_stream();
   cufftSetStream((*plan), stream);
@@ -81,7 +83,8 @@ auto create_plan(const ExecutionSpace& exec_space,
                                  std::multiplies<>());
 
   cufft_rt = cufftPlan2d(&(*plan), nx, ny, type);
-  if (cufft_rt != CUFFT_SUCCESS) throw std::runtime_error("cufftPlan2d failed");
+  KOKKOSFFT_EXPECTS(cufft_rt == CUFFT_SUCCESS, "cufftPlan2d failed");
+
   return fft_size;
 }
 
@@ -104,7 +107,7 @@ auto create_plan(const ExecutionSpace& exec_space,
 
   plan                 = std::make_unique<PlanType>();
   cufftResult cufft_rt = cufftCreate(&(*plan));
-  if (cufft_rt != CUFFT_SUCCESS) throw std::runtime_error("cufftCreate failed");
+  KOKKOSFFT_EXPECTS(cufft_rt == CUFFT_SUCCESS, "cufftCreate failed");
 
   cudaStream_t stream = exec_space.cuda_stream();
   cufftSetStream((*plan), stream);
@@ -120,7 +123,8 @@ auto create_plan(const ExecutionSpace& exec_space,
                                  std::multiplies<>());
 
   cufft_rt = cufftPlan3d(&(*plan), nx, ny, nz, type);
-  if (cufft_rt != CUFFT_SUCCESS) throw std::runtime_error("cufftPlan3d failed");
+  KOKKOSFFT_EXPECTS(cufft_rt == CUFFT_SUCCESS, "cufftPlan3d failed");
+
   return fft_size;
 }
 
@@ -163,7 +167,7 @@ auto create_plan(const ExecutionSpace& exec_space,
 
   plan                 = std::make_unique<PlanType>();
   cufftResult cufft_rt = cufftCreate(&(*plan));
-  if (cufft_rt != CUFFT_SUCCESS) throw std::runtime_error("cufftCreate failed");
+  KOKKOSFFT_EXPECTS(cufft_rt == CUFFT_SUCCESS, "cufftCreate failed");
 
   cudaStream_t stream = exec_space.cuda_stream();
   cufftSetStream((*plan), stream);
@@ -171,8 +175,8 @@ auto create_plan(const ExecutionSpace& exec_space,
   cufft_rt = cufftPlanMany(&(*plan), rank, fft_extents.data(),
                            in_extents.data(), istride, idist,
                            out_extents.data(), ostride, odist, type, howmany);
-  if (cufft_rt != CUFFT_SUCCESS)
-    throw std::runtime_error("cufftPlanMany failed");
+
+  KOKKOSFFT_EXPECTS(cufft_rt == CUFFT_SUCCESS, "cufftPlanMany failed");
 
   return fft_size;
 }
