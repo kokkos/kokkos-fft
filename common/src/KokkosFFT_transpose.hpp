@@ -14,8 +14,8 @@ namespace KokkosFFT {
 namespace Impl {
 template <typename ViewType, std::size_t DIM>
 auto get_map_axes(const ViewType& view, axis_type<DIM> _axes) {
-  KOKKOSFFT_EXPECTS(KokkosFFT::Impl::are_valid_axes(view, _axes),
-                    "get_map_axes: input axes are not valid for the view");
+  KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(view, _axes),
+                     "get_map_axes: input axes are not valid for the view");
 
   // Convert the input axes to be in the range of [0, rank-1]
   std::vector<int> axes;
@@ -400,8 +400,8 @@ void transpose(const ExecutionSpace& exec_space, InViewType& in,
                 "transpose: Rank of View must be equal to Rank of "
                 "transpose axes.");
 
-  KOKKOSFFT_EXPECTS(KokkosFFT::Impl::is_transpose_needed(map),
-                    "transpose: transpose not necessary");
+  KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::is_transpose_needed(map),
+                     "transpose: transpose not necessary");
 
   // in order not to call transpose_impl for 1D case
   if constexpr (DIM > 1) {

@@ -26,8 +26,8 @@ auto get_extents(const InViewType& in, const OutViewType& out,
   using out_value_type    = typename OutViewType::non_const_value_type;
   using array_layout_type = typename InViewType::array_layout;
 
-  KOKKOSFFT_EXPECTS(KokkosFFT::Impl::are_valid_axes(in, axes),
-                    "input axes are not valid for the view");
+  KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axes),
+                     "input axes are not valid for the view");
 
   constexpr std::size_t rank = InViewType::rank;
   [[maybe_unused]] int inner_most_axis =
@@ -65,8 +65,8 @@ auto get_extents(const InViewType& in, const OutViewType& out,
 
   if (is_real_v<in_value_type>) {
     // Then R2C
-    KOKKOSFFT_EXPECTS(
-        _out_extents.at(inner_most_axis) ==
+    KOKKOSFFT_THROW_IF(
+        _out_extents.at(inner_most_axis) !=
             _in_extents.at(inner_most_axis) / 2 + 1,
         "For R2C, the 'output extent' of transform must be equal to "
         "'input extent'/2 + 1");
@@ -74,8 +74,8 @@ auto get_extents(const InViewType& in, const OutViewType& out,
 
   if (is_real_v<out_value_type>) {
     // Then C2R
-    KOKKOSFFT_EXPECTS(
-        _in_extents.at(inner_most_axis) ==
+    KOKKOSFFT_THROW_IF(
+        _in_extents.at(inner_most_axis) !=
             _out_extents.at(inner_most_axis) / 2 + 1,
         "For C2R, the 'input extent' of transform must be equal to "
         "'output extent' / 2 + 1");

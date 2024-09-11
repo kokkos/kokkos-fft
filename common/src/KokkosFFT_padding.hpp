@@ -30,8 +30,8 @@ auto get_modified_shape(const InViewType in, const OutViewType /* out */,
   static_assert(
       KokkosFFT::Impl::have_same_rank_v<InViewType, OutViewType>,
       "get_modified_shape: Input View and Output View must have the same rank");
-  KOKKOSFFT_EXPECTS(KokkosFFT::Impl::are_valid_axes(in, axes),
-                    "input axes are not valid for the view");
+  KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axes),
+                     "input axes are not valid for the view");
 
   shape_type<DIM> zeros = {0};  // default shape means no crop or pad
   if (shape == zeros) {

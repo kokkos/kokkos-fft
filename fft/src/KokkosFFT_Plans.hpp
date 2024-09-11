@@ -172,18 +172,18 @@ class Plan {
     static_assert(InViewType::rank() >= 1,
                   "Plan::Plan: View rank must be larger than or equal to 1");
 
-    KOKKOSFFT_EXPECTS(KokkosFFT::Impl::are_valid_axes(in, m_axes),
-                      "axes are invalid for in/out views");
+    KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, m_axes),
+                       "axes are invalid for in/out views");
 
     if constexpr (KokkosFFT::Impl::is_real_v<in_value_type>) {
-      KOKKOSFFT_EXPECTS(
-          m_direction == KokkosFFT::Direction::forward,
+      KOKKOSFFT_THROW_IF(
+          m_direction != KokkosFFT::Direction::forward,
           "real to complex transform is constructed with backward direction.");
     }
 
     if constexpr (KokkosFFT::Impl::is_real_v<out_value_type>) {
-      KOKKOSFFT_EXPECTS(
-          m_direction == KokkosFFT::Direction::backward,
+      KOKKOSFFT_THROW_IF(
+          m_direction != KokkosFFT::Direction::backward,
           "complex to real transform is constructed with forward direction.");
     }
 
@@ -234,17 +234,17 @@ class Plan {
                   "Plan::Plan: View rank must be larger than or equal to the "
                   "Rank of FFT axes");
 
-    KOKKOSFFT_EXPECTS(KokkosFFT::Impl::are_valid_axes(in, m_axes),
-                      "axes are invalid for in/out views");
+    KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, m_axes),
+                       "axes are invalid for in/out views");
     if constexpr (KokkosFFT::Impl::is_real_v<in_value_type>) {
-      KOKKOSFFT_EXPECTS(
-          m_direction == KokkosFFT::Direction::forward,
+      KOKKOSFFT_THROW_IF(
+          m_direction != KokkosFFT::Direction::forward,
           "real to complex transform is constructed with backward direction.");
     }
 
     if constexpr (KokkosFFT::Impl::is_real_v<out_value_type>) {
-      KOKKOSFFT_EXPECTS(
-          m_direction == KokkosFFT::Direction::backward,
+      KOKKOSFFT_THROW_IF(
+          m_direction != KokkosFFT::Direction::backward,
           "complex to real transform is constructed with forward direction.");
     }
 
@@ -290,12 +290,12 @@ class Plan {
     auto in_extents  = KokkosFFT::Impl::extract_extents(in);
     auto out_extents = KokkosFFT::Impl::extract_extents(out);
 
-    KOKKOSFFT_EXPECTS(
-        in_extents == m_in_extents,
+    KOKKOSFFT_THROW_IF(
+        in_extents != m_in_extents,
         "extents of input View for plan and execution are not identical.");
 
-    KOKKOSFFT_EXPECTS(
-        out_extents == m_out_extents,
+    KOKKOSFFT_THROW_IF(
+        out_extents != m_out_extents,
         "extents of output View for plan and execution are not identical.");
   }
 
