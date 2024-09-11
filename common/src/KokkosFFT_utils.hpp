@@ -23,8 +23,8 @@ auto convert_negative_axis(ViewType, int _axis = -1) {
                 "convert_negative_axis: ViewType must be a Kokkos::View.");
   int rank = static_cast<int>(ViewType::rank());
 
-  KOKKOSFFT_EXPECTS(_axis >= -rank && _axis < rank,
-                    "Axis must be in [-rank, rank-1]");
+  KOKKOSFFT_THROW_IF(_axis < -rank || _axis >= rank,
+                     "Axis must be in [-rank, rank-1]");
 
   int axis = _axis < 0 ? rank + _axis : _axis;
   return axis;
@@ -130,7 +130,7 @@ std::size_t get_index(ContainerType& values, const ValueType& value) {
   static_assert(std::is_same_v<value_type, ValueType>,
                 "get_index: Container value type must match ValueType");
   auto it = std::find(values.begin(), values.end(), value);
-  KOKKOSFFT_EXPECTS(it != values.end(), "value is not included in values");
+  KOKKOSFFT_THROW_IF(it == values.end(), "value is not included in values");
   return it - values.begin();
 }
 
@@ -256,16 +256,16 @@ void create_view(ViewType& out, const Label& label,
 
 template <typename ViewType>
 void reshape_view(ViewType& out, const std::array<int, 1>& extents) {
-  KOKKOSFFT_EXPECTS(ViewType::required_allocation_size(out.layout()) >=
-                        ViewType::required_allocation_size(extents[0]),
-                    "reshape_view: insufficient memory");
+  KOKKOSFFT_THROW_IF(ViewType::required_allocation_size(out.layout()) <
+                         ViewType::required_allocation_size(extents[0]),
+                     "reshape_view: insufficient memory");
   out = ViewType(out.data(), extents[0]);
 }
 
 template <typename ViewType>
 void reshape_view(ViewType& out, const std::array<int, 2>& extents) {
-  KOKKOSFFT_EXPECTS(
-      ViewType::required_allocation_size(out.layout()) >=
+  KOKKOSFFT_THROW_IF(
+      ViewType::required_allocation_size(out.layout()) <
           ViewType::required_allocation_size(extents[0], extents[1]),
       "reshape_view: insufficient memory");
   out = ViewType(out.data(), extents[0], extents[1]);
@@ -273,27 +273,27 @@ void reshape_view(ViewType& out, const std::array<int, 2>& extents) {
 
 template <typename ViewType>
 void reshape_view(ViewType& out, const std::array<int, 3>& extents) {
-  KOKKOSFFT_EXPECTS(ViewType::required_allocation_size(out.layout()) >=
-                        ViewType::required_allocation_size(
-                            extents[0], extents[1], extents[2]),
-                    "reshape_view: insufficient memory");
+  KOKKOSFFT_THROW_IF(ViewType::required_allocation_size(out.layout()) <
+                         ViewType::required_allocation_size(
+                             extents[0], extents[1], extents[2]),
+                     "reshape_view: insufficient memory");
   out = ViewType(out.data(), extents[0], extents[1], extents[2]);
 }
 
 template <typename ViewType>
 void reshape_view(ViewType& out, const std::array<int, 4>& extents) {
-  KOKKOSFFT_EXPECTS(ViewType::required_allocation_size(out.layout()) >=
-                        ViewType::required_allocation_size(
-                            extents[0], extents[1], extents[2], extents[3]),
-                    "reshape_view: insufficient memory");
+  KOKKOSFFT_THROW_IF(ViewType::required_allocation_size(out.layout()) <
+                         ViewType::required_allocation_size(
+                             extents[0], extents[1], extents[2], extents[3]),
+                     "reshape_view: insufficient memory");
 
   out = ViewType(out.data(), extents[0], extents[1], extents[2], extents[3]);
 }
 
 template <typename ViewType>
 void reshape_view(ViewType& out, const std::array<int, 5>& extents) {
-  KOKKOSFFT_EXPECTS(
-      ViewType::required_allocation_size(out.layout()) >=
+  KOKKOSFFT_THROW_IF(
+      ViewType::required_allocation_size(out.layout()) <
           ViewType::required_allocation_size(extents[0], extents[1], extents[2],
                                              extents[3], extents[4]),
       "reshape_view: insufficient memory");
@@ -303,33 +303,33 @@ void reshape_view(ViewType& out, const std::array<int, 5>& extents) {
 
 template <typename ViewType>
 void reshape_view(ViewType& out, const std::array<int, 6>& extents) {
-  KOKKOSFFT_EXPECTS(ViewType::required_allocation_size(out.layout()) >=
-                        ViewType::required_allocation_size(
-                            extents[0], extents[1], extents[2], extents[3],
-                            extents[4], extents[5]),
-                    "reshape_view: insufficient memory");
+  KOKKOSFFT_THROW_IF(ViewType::required_allocation_size(out.layout()) <
+                         ViewType::required_allocation_size(
+                             extents[0], extents[1], extents[2], extents[3],
+                             extents[4], extents[5]),
+                     "reshape_view: insufficient memory");
   out = ViewType(out.data(), extents[0], extents[1], extents[2], extents[3],
                  extents[4], extents[5]);
 }
 
 template <typename ViewType>
 void reshape_view(ViewType& out, const std::array<int, 7>& extents) {
-  KOKKOSFFT_EXPECTS(ViewType::required_allocation_size(out.layout()) >=
-                        ViewType::required_allocation_size(
-                            extents[0], extents[1], extents[2], extents[3],
-                            extents[4], extents[5], extents[6]),
-                    "reshape_view: insufficient memory");
+  KOKKOSFFT_THROW_IF(ViewType::required_allocation_size(out.layout()) <
+                         ViewType::required_allocation_size(
+                             extents[0], extents[1], extents[2], extents[3],
+                             extents[4], extents[5], extents[6]),
+                     "reshape_view: insufficient memory");
   out = ViewType(out.data(), extents[0], extents[1], extents[2], extents[3],
                  extents[4], extents[5], extents[6]);
 }
 
 template <typename ViewType>
 void reshape_view(ViewType& out, const std::array<int, 8>& extents) {
-  KOKKOSFFT_EXPECTS(ViewType::required_allocation_size(out.layout()) >=
-                        ViewType::required_allocation_size(
-                            extents[0], extents[1], extents[2], extents[3],
-                            extents[4], extents[5], extents[6], extents[7]),
-                    "reshape_view: insufficient memory");
+  KOKKOSFFT_THROW_IF(ViewType::required_allocation_size(out.layout()) <
+                         ViewType::required_allocation_size(
+                             extents[0], extents[1], extents[2], extents[3],
+                             extents[4], extents[5], extents[6], extents[7]),
+                     "reshape_view: insufficient memory");
   out = ViewType(out.data(), extents[0], extents[1], extents[2], extents[3],
                  extents[4], extents[5], extents[6], extents[7]);
 }

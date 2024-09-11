@@ -11,7 +11,7 @@
 
 #if defined(__cpp_lib_source_location) && __cpp_lib_source_location >= 201907L
 #include <source_location>
-#define KOKKOSFFT_EXPECTS(expression, msg)                            \
+#define KOKKOSFFT_THROW_IF(expression, msg)                           \
   KokkosFFT::Impl::check_precondition(                                \
       (expression), msg, std::source_location::current().file_name(), \
       std::source_location::current().line(),                         \
@@ -19,7 +19,7 @@
       std::source_location::current().column())
 #else
 #include <cstdlib>
-#define KOKKOSFFT_EXPECTS(expression, msg)                                   \
+#define KOKKOSFFT_THROW_IF(expression, msg)                                  \
   KokkosFFT::Impl::check_precondition((expression), msg, __FILE__, __LINE__, \
                                       __FUNCTION__)
 #endif
@@ -33,7 +33,7 @@ inline void check_precondition(const bool expression,
                                const char* function_name,
                                const int column = -1) {
   // Quick return if possible
-  if (expression) return;
+  if (!expression) return;
 
   std::stringstream ss("file: ");
   if (column == -1) {
