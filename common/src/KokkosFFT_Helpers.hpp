@@ -55,6 +55,7 @@ void roll(const ExecutionSpace& exec_space, ViewType& inout, axis_type<1> shift,
   // shift2 == 0 means shift
   if (shift2 == 0) {
     Kokkos::parallel_for(
+        "KokkosFFT::roll",
         Kokkos::RangePolicy<ExecutionSpace, Kokkos::IndexType<std::size_t>>(
             exec_space, 0, len),
         KOKKOS_LAMBDA(std::size_t i) {
@@ -106,7 +107,7 @@ void roll(const ExecutionSpace& exec_space, ViewType& inout, axis_type<2> shift,
   int shift_02 = shift2.at(0), shift_12 = shift2.at(1);
 
   Kokkos::parallel_for(
-      range, KOKKOS_LAMBDA(int i0, int i1) {
+      "KokkosFFT::roll", range, KOKKOS_LAMBDA(int i0, int i1) {
         if (i0 + shift_00 < n0 && i1 + shift_10 < n1) {
           tmp(i0 + shift_00, i1 + shift_10) = inout(i0, i1);
         }

@@ -185,6 +185,7 @@ void conjugate(const ExecutionSpace& exec_space, const InViewType& in,
   auto* out_data = out.data();
 
   Kokkos::parallel_for(
+      "KokkosFFT::conjugate",
       Kokkos::RangePolicy<ExecutionSpace, Kokkos::IndexType<std::size_t>>(
           exec_space, 0, size),
       KOKKOS_LAMBDA(std::size_t i) { out_data[i] = Kokkos::conj(in_data[i]); });

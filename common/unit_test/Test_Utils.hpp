@@ -24,6 +24,7 @@ bool allclose(const AViewType& a, const BViewType& b, double rtol = 1.e-5,
 
   int error = 0;
   Kokkos::parallel_reduce(
+      "KokkosFFT::Test::allclose",
       Kokkos::RangePolicy<execution_space, Kokkos::IndexType<std::size_t>>{0,
                                                                            n},
       KOKKOS_LAMBDA(const int& i, int& err) {
@@ -44,6 +45,7 @@ void multiply(ViewType& x, T a) {
   auto* ptr_x  = x.data();
 
   Kokkos::parallel_for(
+      "KokkosFFT::Test::multiply",
       Kokkos::RangePolicy<execution_space, Kokkos::IndexType<std::size_t>>{0,
                                                                            n},
       KOKKOS_LAMBDA(const int& i) { ptr_x[i] = ptr_x[i] * a; });
