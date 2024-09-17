@@ -18,6 +18,7 @@ void normalize_impl(const ExecutionSpace& exec_space, ViewType& inout,
   auto* data       = inout.data();
 
   Kokkos::parallel_for(
+      "KokkosFFT::normalize",
       Kokkos::RangePolicy<ExecutionSpace, Kokkos::IndexType<std::size_t>>(
           exec_space, 0, size),
       KOKKOS_LAMBDA(const int& i) { data[i] *= coef; });

@@ -100,6 +100,7 @@ void crop_or_pad_impl(const ExecutionSpace& exec_space, const InViewType& in,
   auto n0 = std::min(_n0, in.extent(0));
 
   Kokkos::parallel_for(
+      "KokkosFFT::crop_or_pad",
       Kokkos::RangePolicy<ExecutionSpace, Kokkos::IndexType<std::size_t>>(
           exec_space, 0, n0),
       KOKKOS_LAMBDA(int i0) { out(i0) = in(i0); });
@@ -128,7 +129,8 @@ void crop_or_pad_impl(const ExecutionSpace& exec_space, const InViewType& in,
   );
 
   Kokkos::parallel_for(
-      range, KOKKOS_LAMBDA(int i0, int i1) { out(i0, i1) = in(i0, i1); });
+      "KokkosFFT::crop_or_pad", range,
+      KOKKOS_LAMBDA(int i0, int i1) { out(i0, i1) = in(i0, i1); });
 }
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
@@ -155,7 +157,7 @@ void crop_or_pad_impl(const ExecutionSpace& exec_space, const InViewType& in,
   );
 
   Kokkos::parallel_for(
-      range, KOKKOS_LAMBDA(int i0, int i1, int i2) {
+      "KokkosFFT::crop_or_pad", range, KOKKOS_LAMBDA(int i0, int i1, int i2) {
         out(i0, i1, i2) = in(i0, i1, i2);
       });
 }
@@ -185,7 +187,8 @@ void crop_or_pad_impl(const ExecutionSpace& exec_space, const InViewType& in,
   );
 
   Kokkos::parallel_for(
-      range, KOKKOS_LAMBDA(int i0, int i1, int i2, int i3) {
+      "KokkosFFT::crop_or_pad", range,
+      KOKKOS_LAMBDA(int i0, int i1, int i2, int i3) {
         out(i0, i1, i2, i3) = in(i0, i1, i2, i3);
       });
 }
@@ -216,7 +219,8 @@ void crop_or_pad_impl(const ExecutionSpace& exec_space, const InViewType& in,
   );
 
   Kokkos::parallel_for(
-      range, KOKKOS_LAMBDA(int i0, int i1, int i2, int i3, int i4) {
+      "KokkosFFT::crop_or_pad", range,
+      KOKKOS_LAMBDA(int i0, int i1, int i2, int i3, int i4) {
         out(i0, i1, i2, i3, i4) = in(i0, i1, i2, i3, i4);
       });
 }
@@ -249,7 +253,8 @@ void crop_or_pad_impl(const ExecutionSpace& exec_space, const InViewType& in,
   );
 
   Kokkos::parallel_for(
-      range, KOKKOS_LAMBDA(int i0, int i1, int i2, int i3, int i4, int i5) {
+      "KokkosFFT::crop_or_pad", range,
+      KOKKOS_LAMBDA(int i0, int i1, int i2, int i3, int i4, int i5) {
         out(i0, i1, i2, i3, i4, i5) = in(i0, i1, i2, i3, i4, i5);
       });
 }
@@ -283,7 +288,8 @@ void crop_or_pad_impl(const ExecutionSpace& exec_space, const InViewType& in,
   );
 
   Kokkos::parallel_for(
-      range, KOKKOS_LAMBDA(int i0, int i1, int i2, int i3, int i4, int i5) {
+      "KokkosFFT::crop_or_pad", range,
+      KOKKOS_LAMBDA(int i0, int i1, int i2, int i3, int i4, int i5) {
         for (int i6 = 0; i6 < n6; i6++) {
           out(i0, i1, i2, i3, i4, i5, i6) = in(i0, i1, i2, i3, i4, i5, i6);
         }
@@ -320,7 +326,8 @@ void crop_or_pad_impl(const ExecutionSpace& exec_space, const InViewType& in,
   );
 
   Kokkos::parallel_for(
-      range, KOKKOS_LAMBDA(int i0, int i1, int i2, int i3, int i4, int i5) {
+      "KokkosFFT::crop_or_pad", range,
+      KOKKOS_LAMBDA(int i0, int i1, int i2, int i3, int i4, int i5) {
         for (int i6 = 0; i6 < n6; i6++) {
           for (int i7 = 0; i7 < n7; i7++) {
             out(i0, i1, i2, i3, i4, i5, i6, i7) =

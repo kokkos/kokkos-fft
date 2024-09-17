@@ -123,7 +123,8 @@ void transpose_impl(const ExecutionSpace& exec_space, InViewType& in,
   prep_transpose_view(in, out, _map);
 
   Kokkos::parallel_for(
-      range, KOKKOS_LAMBDA(int i0, int i1) { out(i1, i0) = in(i0, i1); });
+      "KokkosFFT::transpose", range,
+      KOKKOS_LAMBDA(int i0, int i1) { out(i1, i0) = in(i0, i1); });
 }
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
@@ -149,7 +150,7 @@ void transpose_impl(const ExecutionSpace& exec_space, InViewType& in,
 
   Kokkos::Array<int, 3> map = {_map[0], _map[1], _map[2]};
   Kokkos::parallel_for(
-      range, KOKKOS_LAMBDA(int i0, int i1, int i2) {
+      "KokkosFFT::transpose", range, KOKKOS_LAMBDA(int i0, int i1, int i2) {
         int _indices[rank] = {i0, i1, i2};
         int _i0            = _indices[map[0]];
         int _i1            = _indices[map[1]];
@@ -183,7 +184,8 @@ void transpose_impl(const ExecutionSpace& exec_space, InViewType& in,
 
   Kokkos::Array<int, rank> map = {_map[0], _map[1], _map[2], _map[3]};
   Kokkos::parallel_for(
-      range, KOKKOS_LAMBDA(int i0, int i1, int i2, int i3) {
+      "KokkosFFT::transpose", range,
+      KOKKOS_LAMBDA(int i0, int i1, int i2, int i3) {
         int _indices[rank] = {i0, i1, i2, i3};
         int _i0            = _indices[map[0]];
         int _i1            = _indices[map[1]];
@@ -219,7 +221,8 @@ void transpose_impl(const ExecutionSpace& exec_space, InViewType& in,
 
   Kokkos::Array<int, rank> map = {_map[0], _map[1], _map[2], _map[3], _map[4]};
   Kokkos::parallel_for(
-      range, KOKKOS_LAMBDA(int i0, int i1, int i2, int i3, int i4) {
+      "KokkosFFT::transpose", range,
+      KOKKOS_LAMBDA(int i0, int i1, int i2, int i3, int i4) {
         int _indices[rank] = {i0, i1, i2, i3, i4};
         int _i0            = _indices[map[0]];
         int _i1            = _indices[map[1]];
@@ -258,7 +261,8 @@ void transpose_impl(const ExecutionSpace& exec_space, InViewType& in,
   Kokkos::Array<int, rank> map = {_map[0], _map[1], _map[2],
                                   _map[3], _map[4], _map[5]};
   Kokkos::parallel_for(
-      range, KOKKOS_LAMBDA(int i0, int i1, int i2, int i3, int i4, int i5) {
+      "KokkosFFT::transpose", range,
+      KOKKOS_LAMBDA(int i0, int i1, int i2, int i3, int i4, int i5) {
         int _indices[rank] = {i0, i1, i2, i3, i4, i5};
         int _i0            = _indices[map[0]];
         int _i1            = _indices[map[1]];
@@ -298,7 +302,8 @@ void transpose_impl(const ExecutionSpace& exec_space, InViewType& in,
   Kokkos::Array<int, rank> map = {_map[0], _map[1], _map[2], _map[3],
                                   _map[4], _map[5], _map[6]};
   Kokkos::parallel_for(
-      range, KOKKOS_LAMBDA(int i0, int i1, int i2, int i3, int i4, int i5) {
+      "KokkosFFT::transpose", range,
+      KOKKOS_LAMBDA(int i0, int i1, int i2, int i3, int i4, int i5) {
         for (int i6 = 0; i6 < n6; i6++) {
           int _indices[rank] = {i0, i1, i2, i3, i4, i5, i6};
           int _i0            = _indices[map[0]];
@@ -344,7 +349,8 @@ void transpose_impl(const ExecutionSpace& exec_space, InViewType& in,
   Kokkos::Array<int, rank> map = {_map[0], _map[1], _map[2], _map[3],
                                   _map[4], _map[5], _map[6], _map[7]};
   Kokkos::parallel_for(
-      range, KOKKOS_LAMBDA(int i0, int i1, int i2, int i3, int i4, int i5) {
+      "KokkosFFT::transpose", range,
+      KOKKOS_LAMBDA(int i0, int i1, int i2, int i3, int i4, int i5) {
         for (int i6 = 0; i6 < n6; i6++) {
           for (int i7 = 0; i7 < n7; i7++) {
             int _indices[rank] = {i0, i1, i2, i3, i4, i5, i6, i7};

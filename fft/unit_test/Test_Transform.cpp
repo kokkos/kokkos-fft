@@ -31,6 +31,7 @@ void fft1(ViewType& in, ViewType& out) {
   std::size_t L = in.size();
 
   Kokkos::parallel_for(
+      "KokkosFFT::Test::fft1",
       Kokkos::TeamPolicy<execution_space>(L, Kokkos::AUTO),
       KOKKOS_LAMBDA(
           const Kokkos::TeamPolicy<execution_space>::member_type& team_member) {
@@ -71,6 +72,7 @@ void ifft1(ViewType& in, ViewType& out) {
   std::size_t L = in.size();
 
   Kokkos::parallel_for(
+      "KokkosFFT::Test::ifft1",
       Kokkos::TeamPolicy<execution_space>(L, Kokkos::AUTO),
       KOKKOS_LAMBDA(
           const Kokkos::TeamPolicy<execution_space>::member_type& team_member) {
