@@ -142,6 +142,7 @@ install(
 install(
     DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/common/src/ ${CMAKE_CURRENT_SOURCE_DIR}/fft/src/
     DESTINATION ${INSTALL_INCLUDEDIR}
+    FILES_MATCHING PATTERN "*.hpp"
 )
 
 install(
