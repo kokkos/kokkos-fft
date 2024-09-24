@@ -487,3 +487,22 @@ TEST(ExtractExtents, 1Dto8D) {
   EXPECT_EQ(KokkosFFT::Impl::extract_extents(view7D), ref_extents7D);
   EXPECT_EQ(KokkosFFT::Impl::extract_extents(view8D), ref_extents8D);
 }
+
+TEST(IndexSequence, 3Dto5D) {
+  constexpr std::size_t DIM = 3;
+  constexpr int rank0 = 3, rank1 = 4, rank2 = 5;
+  constexpr auto default_axes0 =
+      KokkosFFT::Impl::index_sequence<int, DIM, -rank0>();
+  constexpr auto default_axes1 =
+      KokkosFFT::Impl::index_sequence<int, DIM, -rank1>();
+  constexpr auto default_axes2 =
+      KokkosFFT::Impl::index_sequence<int, DIM, -rank2>();
+
+  std::array<int, DIM> ref_axes0 = {-3, -2, -1};
+  std::array<int, DIM> ref_axes1 = {-4, -3, -2};
+  std::array<int, DIM> ref_axes2 = {-5, -4, -3};
+
+  EXPECT_EQ(default_axes0, ref_axes0);
+  EXPECT_EQ(default_axes1, ref_axes1);
+  EXPECT_EQ(default_axes2, ref_axes2);
+}

@@ -233,7 +233,7 @@ void fftshift(const ExecutionSpace& exec_space, ViewType& inout,
   } else {
     constexpr std::size_t rank = ViewType::rank();
     constexpr int start        = -static_cast<int>(rank);
-    axis_type<rank> _axes      = KokkosFFT::Impl::index_sequence<rank>(start);
+    auto _axes = KokkosFFT::Impl::index_sequence<int, rank, start>();
     KokkosFFT::Impl::fftshift_impl(exec_space, inout, _axes);
   }
 }
@@ -281,7 +281,7 @@ void ifftshift(const ExecutionSpace& exec_space, ViewType& inout,
   } else {
     constexpr std::size_t rank = ViewType::rank();
     constexpr int start        = -static_cast<int>(rank);
-    axis_type<rank> _axes      = KokkosFFT::Impl::index_sequence<rank>(start);
+    auto _axes = KokkosFFT::Impl::index_sequence<int, rank, start>();
     KokkosFFT::Impl::ifftshift_impl(exec_space, inout, _axes);
   }
 }
