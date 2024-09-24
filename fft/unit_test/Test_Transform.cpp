@@ -2322,8 +2322,8 @@ void test_fftn_2dfft_2dview() {
 
   using axes_type = KokkosFFT::axis_type<2>;
   axes_type axes  = {-2, -1};
-  KokkosFFT::fftn(execution_space(), x, out,
-                  axes);  // default: KokkosFFT::Normalization::backward
+  KokkosFFT::fftn(execution_space(), x,
+                  out);  // default: KokkosFFT::Normalization::backward
   KokkosFFT::fftn(execution_space(), x, out_b, axes,
                   KokkosFFT::Normalization::backward);
   KokkosFFT::fftn(execution_space(), x, out_o, axes,
@@ -2387,8 +2387,8 @@ void test_ifftn_2dfft_2dview() {
   KokkosFFT::ifft(execution_space(), out1, out2,
                   KokkosFFT::Normalization::backward, /*axis=*/0);
 
-  KokkosFFT::ifftn(execution_space(), x, out,
-                   axes);  // default: KokkosFFT::Normalization::backward
+  KokkosFFT::ifftn(execution_space(), x,
+                   out);  // default: KokkosFFT::Normalization::backward
   KokkosFFT::ifftn(execution_space(), x, out_b, axes,
                    KokkosFFT::Normalization::backward);
   KokkosFFT::ifftn(execution_space(), x, out_o, axes,
@@ -2452,8 +2452,8 @@ void test_rfftn_2dfft_2dview() {
                  KokkosFFT::Normalization::backward, /*axis=*/0);
 
   Kokkos::deep_copy(x, x_ref);
-  KokkosFFT::rfftn(execution_space(), x, out,
-                   axes);  // default: KokkosFFT::Normalization::backward
+  KokkosFFT::rfftn(execution_space(), x,
+                   out);  // default: KokkosFFT::Normalization::backward
 
   Kokkos::deep_copy(x, x_ref);
   KokkosFFT::rfftn(execution_space(), x, out_b, axes,
@@ -2531,8 +2531,8 @@ void test_irfftn_2dfft_2dview() {
                    KokkosFFT::Normalization::backward, /*axis=*/1);
 
   Kokkos::deep_copy(x, x_ref);
-  KokkosFFT::irfftn(execution_space(), x, out,
-                    axes);  // default: KokkosFFT::Normalization::backward
+  KokkosFFT::irfftn(execution_space(), x,
+                    out);  // default: KokkosFFT::Normalization::backward
 
   Kokkos::deep_copy(x, x_ref);
   KokkosFFT::irfftn(execution_space(), x, out_b, axes,
@@ -2698,8 +2698,8 @@ void test_fftn_3dfft_3dview(T atol = 1.0e-6) {
   KokkosFFT::fft(execution_space(), out2, out3,
                  KokkosFFT::Normalization::backward, /*axis=*/0);
 
-  KokkosFFT::fftn(execution_space(), x, out,
-                  axes);  // default: KokkosFFT::Normalization::backward
+  KokkosFFT::fftn(execution_space(), x,
+                  out);  // default: KokkosFFT::Normalization::backward
   KokkosFFT::fftn(execution_space(), x, out_b, axes,
                   KokkosFFT::Normalization::backward);
   KokkosFFT::fftn(execution_space(), x, out_o, axes,
@@ -2746,8 +2746,8 @@ void test_ifftn_3dfft_3dview() {
   KokkosFFT::ifft(execution_space(), out2, out3,
                   KokkosFFT::Normalization::backward, /*axis=*/0);
 
-  KokkosFFT::ifftn(execution_space(), x, out,
-                   axes);  // default: KokkosFFT::Normalization::backward
+  KokkosFFT::ifftn(execution_space(), x,
+                   out);  // default: KokkosFFT::Normalization::backward
   KokkosFFT::ifftn(execution_space(), x, out_b, axes,
                    KokkosFFT::Normalization::backward);
   KokkosFFT::ifftn(execution_space(), x, out_o, axes,
@@ -2796,8 +2796,8 @@ void test_rfftn_3dfft_3dview() {
                  KokkosFFT::Normalization::backward, /*axis=*/0);
 
   Kokkos::deep_copy(x, x_ref);
-  KokkosFFT::rfftn(execution_space(), x, out,
-                   axes);  // default: KokkosFFT::Normalization::backward
+  KokkosFFT::rfftn(execution_space(), x,
+                   out);  // default: KokkosFFT::Normalization::backward
 
   Kokkos::deep_copy(x, x_ref);
   KokkosFFT::rfftn(execution_space(), x, out_b, axes,
@@ -2853,8 +2853,8 @@ void test_irfftn_3dfft_3dview() {
                    KokkosFFT::Normalization::backward, /*axis=*/2);
 
   Kokkos::deep_copy(x, x_ref);
-  KokkosFFT::irfftn(execution_space(), x, out,
-                    axes);  // default: KokkosFFT::Normalization::backward
+  KokkosFFT::irfftn(execution_space(), x,
+                    out);  // default: KokkosFFT::Normalization::backward
 
   Kokkos::deep_copy(x, x_ref);
   KokkosFFT::irfftn(execution_space(), x, out_b, axes,
