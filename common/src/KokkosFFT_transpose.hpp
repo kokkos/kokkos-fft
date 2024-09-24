@@ -90,12 +90,19 @@ void prep_transpose_view(InViewType& in, OutViewType& out,
     }
   }
 
-  if (!is_out_view_ready) {
-    if constexpr (!OutViewType::memory_traits::is_unmanaged) {
-      KokkosFFT::Impl::create_view(out, "out", out_extents);
-    } else {
-      // try to reshape out if it currently has enough memory available
-      KokkosFFT::Impl::reshape_view(out, out_extents);
+  if constexpr (std::is_const_v<OutViewType>) {
+    KOKKOSFFT_THROW_IF(
+        !is_out_view_ready,
+        "prep_transpose_view: OutViewType is const, but does not "
+        "have the required extents");
+  } else {
+    if (!is_out_view_ready) {
+      if constexpr (!OutViewType::memory_traits::is_unmanaged) {
+        KokkosFFT::Impl::create_view(out, "out", out_extents);
+      } else {
+        // try to reshape out if it currently has enough memory available
+        KokkosFFT::Impl::reshape_view(out, out_extents);
+      }
     }
   }
 }

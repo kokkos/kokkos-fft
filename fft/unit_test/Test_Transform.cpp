@@ -1283,8 +1283,8 @@ void test_fft2_2dfft_2dview() {
       Kokkos::View<Kokkos::complex<T>**, LayoutType, execution_space>;
 
   ComplexView2DType x("x", n0, n1);
-  ComplexView2DType out("out", n0, n1), out1("out1", n0, n1),
-      out2("out2", n0, n1);
+  ComplexView2DType out("out", n0, n1);
+  const ComplexView2DType out1("out1", n0, n1), out2("out2", n0, n1);
   ComplexView2DType out_b("out_b", n0, n1), out_o("out_o", n0, n1),
       out_f("out_f", n0, n1);
 
