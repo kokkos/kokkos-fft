@@ -9,7 +9,7 @@
 #include <algorithm>
 #include "KokkosFFT_SYCL_types.hpp"
 #include "KokkosFFT_layouts.hpp"
-#include "KokkosFFT_asserts.hpp"
+#include "KokkosFFT_traits.hpp"
 
 namespace KokkosFFT {
 namespace Impl {

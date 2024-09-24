@@ -8,6 +8,7 @@
 #include <numeric>
 #include "KokkosFFT_HIP_types.hpp"
 #include "KokkosFFT_layouts.hpp"
+#include "KokkosFFT_traits.hpp"
 #include "KokkosFFT_asserts.hpp"
 
 namespace KokkosFFT {
