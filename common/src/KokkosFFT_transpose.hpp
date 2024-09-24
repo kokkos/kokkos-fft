@@ -91,9 +91,10 @@ void prep_transpose_view(InViewType& in, OutViewType& out,
   }
 
   if constexpr (std::is_const_v<OutViewType>) {
-    KOKKOSFFT_THROW_IF(!is_out_view_ready,
-                       "prep_transpose_view: OutViewType is const, but do not "
-                       "have the required extents");
+    KOKKOSFFT_THROW_IF(
+        !is_out_view_ready,
+        "prep_transpose_view: OutViewType is const, but does not "
+        "have the required extents");
   } else {
     if (!is_out_view_ready) {
       if constexpr (!OutViewType::memory_traits::is_unmanaged) {
