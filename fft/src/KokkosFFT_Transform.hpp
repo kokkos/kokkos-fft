@@ -70,7 +70,6 @@ void exec_impl(
 template <typename PlanType, typename InViewType, typename OutViewType>
 void fft_exec_impl(
     const PlanType& plan, const InViewType& in, OutViewType& out,
-    // KokkosFFT::Direction direction,
     KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward) {
   using ExecutionSpace = typename PlanType::execSpace;
   static_assert(
