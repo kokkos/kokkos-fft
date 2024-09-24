@@ -22,10 +22,14 @@ auto create_plan(const ExecutionSpace& exec_space,
                  std::unique_ptr<PlanType>& plan, const InViewType& in,
                  const OutViewType& out, BufferViewType&, InfoType&,
                  Direction /*direction*/, axis_type<1> axes, shape_type<1> s) {
-  static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::create_plan: InViewType is not a Kokkos::View.");
-  static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::create_plan: OutViewType is not a Kokkos::View.");
+  static_assert(
+      KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
+                                              OutViewType>,
+      "create_plan: InViewType and OutViewType must have the same base "
+      "floating point type (float/double), the same layout "
+      "(LayoutLeft/LayoutRight), "
+      "and the same rank. ExecutionSpace must be accessible to the data in "
+      "InViewType and OutViewType.");
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
 
@@ -60,10 +64,14 @@ auto create_plan(const ExecutionSpace& exec_space,
                  std::unique_ptr<PlanType>& plan, const InViewType& in,
                  const OutViewType& out, BufferViewType&, InfoType&,
                  Direction /*direction*/, axis_type<2> axes, shape_type<2> s) {
-  static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::create_plan: InViewType is not a Kokkos::View.");
-  static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::create_plan: OutViewType is not a Kokkos::View.");
+  static_assert(
+      KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
+                                              OutViewType>,
+      "create_plan: InViewType and OutViewType must have the same base "
+      "floating point type (float/double), the same layout "
+      "(LayoutLeft/LayoutRight), "
+      "and the same rank. ExecutionSpace must be accessible to the data in "
+      "InViewType and OutViewType.");
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
 
@@ -98,10 +106,14 @@ auto create_plan(const ExecutionSpace& exec_space,
                  std::unique_ptr<PlanType>& plan, const InViewType& in,
                  const OutViewType& out, BufferViewType&, InfoType&,
                  Direction /*direction*/, axis_type<3> axes, shape_type<3> s) {
-  static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::create_plan: InViewType is not a Kokkos::View.");
-  static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::create_plan: OutViewType is not a Kokkos::View.");
+  static_assert(
+      KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
+                                              OutViewType>,
+      "create_plan: InViewType and OutViewType must have the same base "
+      "floating point type (float/double), the same layout "
+      "(LayoutLeft/LayoutRight), "
+      "and the same rank. ExecutionSpace must be accessible to the data in "
+      "InViewType and OutViewType.");
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
 
@@ -139,17 +151,22 @@ auto create_plan(const ExecutionSpace& exec_space,
                  const OutViewType& out, BufferViewType&, InfoType&,
                  Direction /*direction*/, axis_type<fft_rank> axes,
                  shape_type<fft_rank> s) {
-  static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::create_plan: InViewType is not a Kokkos::View.");
-  static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::create_plan: OutViewType is not a Kokkos::View.");
-  using in_value_type  = typename InViewType::non_const_value_type;
-  using out_value_type = typename OutViewType::non_const_value_type;
+  static_assert(
+      KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
+                                              OutViewType>,
+      "create_plan: InViewType and OutViewType must have the same base "
+      "floating point type (float/double), the same layout "
+      "(LayoutLeft/LayoutRight), "
+      "and the same rank. ExecutionSpace must be accessible to the data in "
+      "InViewType and OutViewType.");
 
   static_assert(
       InViewType::rank() >= fft_rank,
       "KokkosFFT::create_plan: Rank of View must be larger than Rank of FFT.");
-  const int rank = fft_rank;
+
+  using in_value_type  = typename InViewType::non_const_value_type;
+  using out_value_type = typename OutViewType::non_const_value_type;
+  const int rank       = fft_rank;
   constexpr auto type =
       KokkosFFT::Impl::transform_type<ExecutionSpace, in_value_type,
                                       out_value_type>::type();
