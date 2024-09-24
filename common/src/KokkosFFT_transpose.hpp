@@ -20,8 +20,8 @@ auto get_map_axes(const ViewType& view, axis_type<DIM> axes) {
   // Convert the input axes to be in the range of [0, rank-1]
   axis_type<DIM> non_negative_axes = {};
   for (std::size_t i = 0; i < DIM; i++) {
-    int axis = KokkosFFT::Impl::convert_negative_axis(view, axes.at(i));
-    non_negative_axes[i] = axis;
+    non_negative_axes.at(i) =
+        KokkosFFT::Impl::convert_negative_axis(view, axes.at(i));
   }
 
   // how indices are map
@@ -64,7 +64,7 @@ auto get_map_axes(const ViewType& view, axis_type<DIM> axes) {
 
   // Construct inverse map
   for (int i = 0; i < rank; i++) {
-    array_map_inv[i] = get_index(array_map, i);
+    array_map_inv.at(i) = get_index(array_map, i);
   }
 
   return std::tuple<full_axis_type, full_axis_type>({array_map, array_map_inv});
