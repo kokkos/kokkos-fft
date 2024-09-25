@@ -134,19 +134,13 @@ std::size_t get_index(ContainerType& values, const ValueType& value) {
   return it - values.begin();
 }
 
-template <typename T, std::size_t... I>
-constexpr std::array<T, sizeof...(I)> make_sequence_array(
-    std::index_sequence<I...>) {
-  return std::array<T, sizeof...(I)>{{I...}};
-}
-
-template <typename IntType, std::size_t N, int start>
+template <typename IntType, std::size_t N, IntType start>
 constexpr std::array<IntType, N> index_sequence() {
   static_assert(std::is_integral_v<IntType> && std::is_signed_v<IntType>,
                 "index_sequence: IntType must be a signed integer type.");
   std::array<IntType, N> sequence{};
   for (std::size_t i = 0; i < N; ++i) {
-    sequence[i] = static_cast<IntType>(start) + static_cast<IntType>(i);
+    sequence[i] = start + static_cast<IntType>(i);
   }
   return sequence;
 }
