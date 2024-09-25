@@ -470,7 +470,7 @@ void irfft2(const ExecutionSpace& exec_space, const InViewType& in,
 /// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (complex)
 /// \param out [out] Ouput data (complex)
-/// \param axes [in] Axes over which FFT is performed
+/// \param axes [in] Axes over which FFT is performed (optional)
 /// \param norm [in] How the normalization is applied (optional)
 /// \param s [in] Shape of the transformed axis of the output (optional)
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
@@ -505,7 +505,7 @@ void fftn(
 /// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (complex)
 /// \param out [out] Ouput data (complex)
-/// \param axes [in] Axes over which FFT is performed
+/// \param axes [in] Axes over which FFT is performed (optional)
 /// \param norm [in] How the normalization is applied (optional)
 /// \param s [in] Shape of the transformed axis of the output (optional)
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
@@ -542,7 +542,7 @@ void ifftn(
 /// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (real)
 /// \param out [out] Ouput data (complex)
-/// \param axes [in] Axes over which FFT is performed
+/// \param axes [in] Axes over which FFT is performed (optional)
 /// \param norm [in] How the normalization is applied (optional)
 /// \param s [in] Shape of the transformed axis of the output (optional)
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
@@ -585,7 +585,7 @@ void rfftn(
 /// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (complex)
 /// \param out [out] Ouput data (real)
-/// \param axes [in] Axes over which FFT is performed
+/// \param axes [in] Axes over which FFT is performed (optional)
 /// \param norm [in] How the normalization is applied (optional)
 /// \param s [in] Shape of the transformed axis of the output (optional)
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
