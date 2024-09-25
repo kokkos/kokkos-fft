@@ -489,14 +489,25 @@ TEST(ExtractExtents, 1Dto8D) {
 }
 
 TEST(IndexSequence, 3Dto5D) {
+  using View3Dtype = Kokkos::View<double***, execution_space>;
+  using View4Dtype = Kokkos::View<double****, execution_space>;
+  using View5Dtype = Kokkos::View<double*****, execution_space>;
+
   constexpr std::size_t DIM = 3;
-  constexpr int rank0 = 3, rank1 = 4, rank2 = 5;
+  std::size_t n1 = 1, n2 = 1, n3 = 2, n4 = 3, n5 = 5;
+  View3Dtype view3D("view3D", n1, n2, n3);
+  View4Dtype view4D("view4D", n1, n2, n3, n4);
+  View5Dtype view5D("view5D", n1, n2, n3, n4, n5);
+  constexpr int start0 = -static_cast<int>(View3Dtype::rank());
+  constexpr int start1 = -static_cast<int>(View4Dtype::rank());
+  constexpr int start2 = -static_cast<int>(View5Dtype::rank());
+
   constexpr auto default_axes0 =
-      KokkosFFT::Impl::index_sequence<int, DIM, -rank0>();
+      KokkosFFT::Impl::index_sequence<int, DIM, start0>();
   constexpr auto default_axes1 =
-      KokkosFFT::Impl::index_sequence<int, DIM, -rank1>();
+      KokkosFFT::Impl::index_sequence<int, DIM, start1>();
   constexpr auto default_axes2 =
-      KokkosFFT::Impl::index_sequence<int, DIM, -rank2>();
+      KokkosFFT::Impl::index_sequence<int, DIM, start2>();
 
   std::array<int, DIM> ref_axes0 = {-3, -2, -1};
   std::array<int, DIM> ref_axes1 = {-4, -3, -2};
