@@ -2304,7 +2304,7 @@ void test_fftn_2dfft_2dview() {
 
   ComplexView2DType x("x", n0, n1);
   ComplexView2DType out("out", n0, n1), out1("out1", n0, n1),
-      out2("out2", n0, n1);
+      out2("out2", n0, n1), out_no_axes("out_no_axes", n0, n1);
   ComplexView2DType out_b("out_b", n0, n1), out_o("out_o", n0, n1),
       out_f("out_f", n0, n1);
 
@@ -2322,6 +2322,8 @@ void test_fftn_2dfft_2dview() {
 
   using axes_type = KokkosFFT::axis_type<2>;
   axes_type axes  = {-2, -1};
+  KokkosFFT::fftn(execution_space(), x,
+                  out_no_axes);  // default: KokkosFFT::Normalization::backward
   KokkosFFT::fftn(execution_space(), x, out,
                   axes);  // default: KokkosFFT::Normalization::backward
   KokkosFFT::fftn(execution_space(), x, out_b, axes,
@@ -2335,6 +2337,7 @@ void test_fftn_2dfft_2dview() {
   multiply(out_f, static_cast<T>(n0 * n1));
 
   EXPECT_TRUE(allclose(out, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(out_no_axes, out2, 1.e-5, 1.e-6));
   EXPECT_TRUE(allclose(out_b, out2, 1.e-5, 1.e-6));
   EXPECT_TRUE(allclose(out_o, out2, 1.e-5, 1.e-6));
   EXPECT_TRUE(allclose(out_f, out2, 1.e-5, 1.e-6));
@@ -2368,7 +2371,7 @@ void test_ifftn_2dfft_2dview() {
 
   ComplexView2DType x("x", n0, n1);
   ComplexView2DType out("out", n0, n1), out1("out1", n0, n1),
-      out2("out2", n0, n1);
+      out2("out2", n0, n1), out_no_axes("out_no_axes", n0, n1);
   ComplexView2DType out_b("out_b", n0, n1), out_o("out_o", n0, n1),
       out_f("out_f", n0, n1);
 
@@ -2387,6 +2390,8 @@ void test_ifftn_2dfft_2dview() {
   KokkosFFT::ifft(execution_space(), out1, out2,
                   KokkosFFT::Normalization::backward, /*axis=*/0);
 
+  KokkosFFT::ifftn(execution_space(), x,
+                   out_no_axes);  // default: KokkosFFT::Normalization::backward
   KokkosFFT::ifftn(execution_space(), x, out,
                    axes);  // default: KokkosFFT::Normalization::backward
   KokkosFFT::ifftn(execution_space(), x, out_b, axes,
@@ -2400,6 +2405,7 @@ void test_ifftn_2dfft_2dview() {
   multiply(out_f, 1.0 / static_cast<T>(n0 * n1));
 
   EXPECT_TRUE(allclose(out, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(out_no_axes, out2, 1.e-5, 1.e-6));
   EXPECT_TRUE(allclose(out_b, out2, 1.e-5, 1.e-6));
   EXPECT_TRUE(allclose(out_o, out2, 1.e-5, 1.e-6));
   EXPECT_TRUE(allclose(out_f, out2, 1.e-5, 1.e-6));
@@ -2434,7 +2440,7 @@ void test_rfftn_2dfft_2dview() {
 
   RealView2DType x("x", n0, n1), x_ref("x_ref", n0, n1);
   ComplexView2DType out("out", n0, n1 / 2 + 1), out1("out1", n0, n1 / 2 + 1),
-      out2("out2", n0, n1 / 2 + 1);
+      out2("out2", n0, n1 / 2 + 1), out_no_axes("out_no_axes", n0, n1 / 2 + 1);
   ComplexView2DType out_b("out_b", n0, n1 / 2 + 1),
       out_o("out_o", n0, n1 / 2 + 1), out_f("out_f", n0, n1 / 2 + 1);
 
@@ -2450,6 +2456,10 @@ void test_rfftn_2dfft_2dview() {
                   KokkosFFT::Normalization::backward, /*axis=*/1);
   KokkosFFT::fft(execution_space(), out1, out2,
                  KokkosFFT::Normalization::backward, /*axis=*/0);
+
+  Kokkos::deep_copy(x, x_ref);
+  KokkosFFT::rfftn(execution_space(), x,
+                   out_no_axes);  // default: KokkosFFT::Normalization::backward
 
   Kokkos::deep_copy(x, x_ref);
   KokkosFFT::rfftn(execution_space(), x, out,
@@ -2471,6 +2481,7 @@ void test_rfftn_2dfft_2dview() {
   multiply(out_f, static_cast<T>(n0 * n1));
 
   EXPECT_TRUE(allclose(out, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(out_no_axes, out2, 1.e-5, 1.e-6));
   EXPECT_TRUE(allclose(out_b, out2, 1.e-5, 1.e-6));
   EXPECT_TRUE(allclose(out_o, out2, 1.e-5, 1.e-6));
   EXPECT_TRUE(allclose(out_f, out2, 1.e-5, 1.e-6));
@@ -2514,7 +2525,7 @@ void test_irfftn_2dfft_2dview() {
   ComplexView2DType out1("out1", n0, n1 / 2 + 1);
   RealView2DType out2("out2", n0, n1), out("out", n0, n1);
   RealView2DType out_b("out_b", n0, n1), out_o("out_o", n0, n1),
-      out_f("out_f", n0, n1);
+      out_f("out_f", n0, n1), out_no_axes("out_no_axes", n0, n1);
 
   const Kokkos::complex<T> I(1.0, 1.0);
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
@@ -2529,6 +2540,11 @@ void test_irfftn_2dfft_2dview() {
                   KokkosFFT::Normalization::backward, /*axis=*/0);
   KokkosFFT::irfft(execution_space(), out1, out2,
                    KokkosFFT::Normalization::backward, /*axis=*/1);
+
+  Kokkos::deep_copy(x, x_ref);
+  KokkosFFT::irfftn(
+      execution_space(), x,
+      out_no_axes);  // default: KokkosFFT::Normalization::backward
 
   Kokkos::deep_copy(x, x_ref);
   KokkosFFT::irfftn(execution_space(), x, out,
@@ -2550,6 +2566,7 @@ void test_irfftn_2dfft_2dview() {
   multiply(out_f, 1.0 / static_cast<T>(n0 * n1));
 
   EXPECT_TRUE(allclose(out, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(out_no_axes, out2, 1.e-5, 1.e-6));
   EXPECT_TRUE(allclose(out_b, out2, 1.e-5, 1.e-6));
   EXPECT_TRUE(allclose(out_o, out2, 1.e-5, 1.e-6));
   EXPECT_TRUE(allclose(out_f, out2, 1.e-5, 1.e-6));
@@ -2678,7 +2695,7 @@ void test_fftn_3dfft_3dview(T atol = 1.0e-6) {
   ComplexView3DType out("out", n0, n1, n2), out1("out1", n0, n1, n2),
       out2("out2", n0, n1, n2), out3("out3", n0, n1, n2);
   ComplexView3DType out_b("out_b", n0, n1, n2), out_o("out_o", n0, n1, n2),
-      out_f("out_f", n0, n1, n2);
+      out_f("out_f", n0, n1, n2), out_no_axes("out_no_axes", n0, n1, n2);
 
   const Kokkos::complex<T> I(1.0, 1.0);
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
@@ -2698,6 +2715,8 @@ void test_fftn_3dfft_3dview(T atol = 1.0e-6) {
   KokkosFFT::fft(execution_space(), out2, out3,
                  KokkosFFT::Normalization::backward, /*axis=*/0);
 
+  KokkosFFT::fftn(execution_space(), x,
+                  out_no_axes);  // default: KokkosFFT::Normalization::backward
   KokkosFFT::fftn(execution_space(), x, out,
                   axes);  // default: KokkosFFT::Normalization::backward
   KokkosFFT::fftn(execution_space(), x, out_b, axes,
@@ -2711,6 +2730,7 @@ void test_fftn_3dfft_3dview(T atol = 1.0e-6) {
   multiply(out_f, static_cast<T>(n0 * n1 * n2));
 
   EXPECT_TRUE(allclose(out, out3, 1.e-5, atol));
+  EXPECT_TRUE(allclose(out_no_axes, out3, 1.e-5, atol));
   EXPECT_TRUE(allclose(out_b, out3, 1.e-5, atol));
   EXPECT_TRUE(allclose(out_o, out3, 1.e-5, atol));
   EXPECT_TRUE(allclose(out_f, out3, 1.e-5, atol));
@@ -2726,7 +2746,7 @@ void test_ifftn_3dfft_3dview() {
   ComplexView3DType out("out", n0, n1, n2), out1("out1", n0, n1, n2),
       out2("out2", n0, n1, n2), out3("out3", n0, n1, n2);
   ComplexView3DType out_b("out_b", n0, n1, n2), out_o("out_o", n0, n1, n2),
-      out_f("out_f", n0, n1, n2);
+      out_f("out_f", n0, n1, n2), out_no_axes("out_no_axes", n0, n1, n2);
 
   const Kokkos::complex<T> I(1.0, 1.0);
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
@@ -2746,6 +2766,8 @@ void test_ifftn_3dfft_3dview() {
   KokkosFFT::ifft(execution_space(), out2, out3,
                   KokkosFFT::Normalization::backward, /*axis=*/0);
 
+  KokkosFFT::ifftn(execution_space(), x,
+                   out_no_axes);  // default: KokkosFFT::Normalization::backward
   KokkosFFT::ifftn(execution_space(), x, out,
                    axes);  // default: KokkosFFT::Normalization::backward
   KokkosFFT::ifftn(execution_space(), x, out_b, axes,
@@ -2759,6 +2781,7 @@ void test_ifftn_3dfft_3dview() {
   multiply(out_f, 1.0 / static_cast<T>(n0 * n1 * n2));
 
   EXPECT_TRUE(allclose(out, out3, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(out_no_axes, out3, 1.e-5, 1.e-6));
   EXPECT_TRUE(allclose(out_b, out3, 1.e-5, 1.e-6));
   EXPECT_TRUE(allclose(out_o, out3, 1.e-5, 1.e-6));
   EXPECT_TRUE(allclose(out_f, out3, 1.e-5, 1.e-6));
@@ -2776,7 +2799,8 @@ void test_rfftn_3dfft_3dview() {
       out1("out1", n0, n1, n2 / 2 + 1), out2("out2", n0, n1, n2 / 2 + 1),
       out3("out3", n0, n1, n2 / 2 + 1);
   ComplexView3DType out_b("out_b", n0, n1, n2 / 2 + 1),
-      out_o("out_o", n0, n1, n2 / 2 + 1), out_f("out_f", n0, n1, n2 / 2 + 1);
+      out_o("out_o", n0, n1, n2 / 2 + 1), out_f("out_f", n0, n1, n2 / 2 + 1),
+      out_no_axes("out_no_axes", n0, n1, n2 / 2 + 1);
 
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
   Kokkos::fill_random(x, random_pool, 1);
@@ -2794,6 +2818,10 @@ void test_rfftn_3dfft_3dview() {
                  KokkosFFT::Normalization::backward, /*axis=*/1);
   KokkosFFT::fft(execution_space(), out2, out3,
                  KokkosFFT::Normalization::backward, /*axis=*/0);
+
+  Kokkos::deep_copy(x, x_ref);
+  KokkosFFT::rfftn(execution_space(), x,
+                   out_no_axes);  // default: KokkosFFT::Normalization::backward
 
   Kokkos::deep_copy(x, x_ref);
   KokkosFFT::rfftn(execution_space(), x, out,
@@ -2815,6 +2843,7 @@ void test_rfftn_3dfft_3dview() {
   multiply(out_f, static_cast<T>(n0 * n1 * n2));
 
   EXPECT_TRUE(allclose(out, out3, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(out_no_axes, out3, 1.e-5, 1.e-6));
   EXPECT_TRUE(allclose(out_b, out3, 1.e-5, 1.e-6));
   EXPECT_TRUE(allclose(out_o, out3, 1.e-5, 1.e-6));
   EXPECT_TRUE(allclose(out_f, out3, 1.e-5, 1.e-6));
@@ -2833,7 +2862,7 @@ void test_irfftn_3dfft_3dview() {
       out2("out2", n0, n1, n2 / 2 + 1);
   RealView3DType out("out", n0, n1, n2), out3("out3", n0, n1, n2);
   RealView3DType out_b("out_b", n0, n1, n2), out_o("out_o", n0, n1, n2),
-      out_f("out_f", n0, n1, n2);
+      out_f("out_f", n0, n1, n2), out_no_axes("out_no_axes", n0, n1, n2);
 
   const Kokkos::complex<T> I(1.0, 1.0);
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
@@ -2851,6 +2880,11 @@ void test_irfftn_3dfft_3dview() {
                   KokkosFFT::Normalization::backward, /*axis=*/1);
   KokkosFFT::irfft(execution_space(), out2, out3,
                    KokkosFFT::Normalization::backward, /*axis=*/2);
+
+  Kokkos::deep_copy(x, x_ref);
+  KokkosFFT::irfftn(
+      execution_space(), x,
+      out_no_axes);  // default: KokkosFFT::Normalization::backward
 
   Kokkos::deep_copy(x, x_ref);
   KokkosFFT::irfftn(execution_space(), x, out,
@@ -2872,6 +2906,7 @@ void test_irfftn_3dfft_3dview() {
   multiply(out_f, 1.0 / static_cast<T>(n0 * n1 * n2));
 
   EXPECT_TRUE(allclose(out, out3, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(out_no_axes, out3, 1.e-5, 1.e-6));
   EXPECT_TRUE(allclose(out_b, out3, 1.e-5, 1.e-6));
   EXPECT_TRUE(allclose(out_o, out3, 1.e-5, 1.e-6));
   EXPECT_TRUE(allclose(out_f, out3, 1.e-5, 1.e-6));

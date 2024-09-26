@@ -470,15 +470,17 @@ void irfft2(const ExecutionSpace& exec_space, const InViewType& in,
 /// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (complex)
 /// \param out [out] Ouput data (complex)
-/// \param axes [in] Axes over which FFT is performed
+/// \param axes [in] Axes over which FFT is performed (optional)
 /// \param norm [in] How the normalization is applied (optional)
 /// \param s [in] Shape of the transformed axis of the output (optional)
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
-          std::size_t DIM = 1>
-void fftn(const ExecutionSpace& exec_space, const InViewType& in,
-          OutViewType& out, axis_type<DIM> axes,
-          KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
-          shape_type<DIM> s             = {0}) {
+          std::size_t DIM = InViewType::rank()>
+void fftn(
+    const ExecutionSpace& exec_space, const InViewType& in, OutViewType& out,
+    axis_type<DIM> axes =
+        KokkosFFT::Impl::index_sequence<int, DIM, -static_cast<int>(DIM)>(),
+    KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
+    shape_type<DIM> s             = {}) {
   static_assert(
       KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
                                               OutViewType>,
@@ -503,15 +505,17 @@ void fftn(const ExecutionSpace& exec_space, const InViewType& in,
 /// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (complex)
 /// \param out [out] Ouput data (complex)
-/// \param axes [in] Axes over which FFT is performed
+/// \param axes [in] Axes over which FFT is performed (optional)
 /// \param norm [in] How the normalization is applied (optional)
 /// \param s [in] Shape of the transformed axis of the output (optional)
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
-          std::size_t DIM = 1>
-void ifftn(const ExecutionSpace& exec_space, const InViewType& in,
-           OutViewType& out, axis_type<DIM> axes,
-           KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
-           shape_type<DIM> s             = {0}) {
+          std::size_t DIM = InViewType::rank()>
+void ifftn(
+    const ExecutionSpace& exec_space, const InViewType& in, OutViewType& out,
+    axis_type<DIM> axes =
+        KokkosFFT::Impl::index_sequence<int, DIM, -static_cast<int>(DIM)>(),
+    KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
+    shape_type<DIM> s             = {}) {
   static_assert(
       KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
                                               OutViewType>,
@@ -538,15 +542,17 @@ void ifftn(const ExecutionSpace& exec_space, const InViewType& in,
 /// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (real)
 /// \param out [out] Ouput data (complex)
-/// \param axes [in] Axes over which FFT is performed
+/// \param axes [in] Axes over which FFT is performed (optional)
 /// \param norm [in] How the normalization is applied (optional)
 /// \param s [in] Shape of the transformed axis of the output (optional)
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
-          std::size_t DIM = 1>
-void rfftn(const ExecutionSpace& exec_space, const InViewType& in,
-           OutViewType& out, axis_type<DIM> axes,
-           KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
-           shape_type<DIM> s             = {0}) {
+          std::size_t DIM = InViewType::rank()>
+void rfftn(
+    const ExecutionSpace& exec_space, const InViewType& in, OutViewType& out,
+    axis_type<DIM> axes =
+        KokkosFFT::Impl::index_sequence<int, DIM, -static_cast<int>(DIM)>(),
+    KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
+    shape_type<DIM> s             = {}) {
   static_assert(
       KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
                                               OutViewType>,
@@ -579,15 +585,17 @@ void rfftn(const ExecutionSpace& exec_space, const InViewType& in,
 /// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (complex)
 /// \param out [out] Ouput data (real)
-/// \param axes [in] Axes over which FFT is performed
+/// \param axes [in] Axes over which FFT is performed (optional)
 /// \param norm [in] How the normalization is applied (optional)
 /// \param s [in] Shape of the transformed axis of the output (optional)
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
-          std::size_t DIM = 1>
-void irfftn(const ExecutionSpace& exec_space, const InViewType& in,
-            OutViewType& out, axis_type<DIM> axes,
-            KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
-            shape_type<DIM> s             = {0}) {
+          std::size_t DIM = InViewType::rank()>
+void irfftn(
+    const ExecutionSpace& exec_space, const InViewType& in, OutViewType& out,
+    axis_type<DIM> axes =
+        KokkosFFT::Impl::index_sequence<int, DIM, -static_cast<int>(DIM)>(),
+    KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
+    shape_type<DIM> s             = {}) {
   static_assert(
       KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
                                               OutViewType>,
