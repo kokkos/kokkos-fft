@@ -39,17 +39,22 @@ auto create_plan(const ExecutionSpace& exec_space,
                  const OutViewType& out, BufferViewType&, InfoType&,
                  [[maybe_unused]] Direction direction, axis_type<fft_rank> axes,
                  shape_type<fft_rank> s) {
-  static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::create_plan: InViewType is not a Kokkos::View.");
-  static_assert(Kokkos::is_view<InViewType>::value,
-                "KokkosFFT::create_plan: OutViewType is not a Kokkos::View.");
-  using in_value_type  = typename InViewType::non_const_value_type;
-  using out_value_type = typename OutViewType::non_const_value_type;
+  static_assert(
+      KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
+                                              OutViewType>,
+      "create_plan: InViewType and OutViewType must have the same base "
+      "floating point type (float/double), the same layout "
+      "(LayoutLeft/LayoutRight), "
+      "and the same rank. ExecutionSpace must be accessible to the data in "
+      "InViewType and OutViewType.");
 
   static_assert(
       InViewType::rank() >= fft_rank,
       "KokkosFFT::create_plan: Rank of View must be larger than Rank of FFT.");
-  const int rank = fft_rank;
+
+  using in_value_type  = typename InViewType::non_const_value_type;
+  using out_value_type = typename OutViewType::non_const_value_type;
+  const int rank       = fft_rank;
 
   init_threads<ExecutionSpace,
                KokkosFFT::Impl::base_floating_point_type<in_value_type>>(
