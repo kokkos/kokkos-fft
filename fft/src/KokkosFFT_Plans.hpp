@@ -153,7 +153,8 @@ class Plan {
   /// \param out [in] Ouput data
   /// \param direction [in] Direction of FFT (forward/backward)
   /// \param axis [in] Axis over which FFT is performed
-  /// \param n [in] Length of the transformed axis of the output (optional)
+  /// \param n [in] Length of the transformed axis of the output (default,
+  /// nullopt)
   //
   explicit Plan(const ExecutionSpace& exec_space, InViewType& in,
                 OutViewType& out, KokkosFFT::Direction direction, int axis,
@@ -211,11 +212,11 @@ class Plan {
   /// \param out [in] Ouput data
   /// \param direction [in] Direction of FFT (forward/backward)
   /// \param axes [in] Axes over which FFT is performed
-  /// \param s [in] Shape of the transformed axis of the output (optional)
+  /// \param s [in] Shape of the transformed axis of the output (default, {})
   //
   explicit Plan(const ExecutionSpace& exec_space, InViewType& in,
                 OutViewType& out, KokkosFFT::Direction direction,
-                axis_type<DIM> axes, shape_type<DIM> s = {0})
+                axis_type<DIM> axes, shape_type<DIM> s = {})
       : m_exec_space(exec_space), m_axes(axes), m_direction(direction) {
     static_assert(KokkosFFT::Impl::is_AllowedSpace_v<ExecutionSpace>,
                   "Plan::Plan: ExecutionSpace is not allowed ");
