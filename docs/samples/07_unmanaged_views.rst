@@ -4,8 +4,8 @@
 
 .. _07_unmanaged_views:
 
-Reuse FFT plan
-==============
+Using Unmanaged Views
+=====================
 
 KokkosFFT
 ---------
