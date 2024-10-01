@@ -81,36 +81,41 @@ void fft_exec_impl(
       "same rank. ExecutionSpace must be accessible to the data in InViewType "
       "and OutViewType.");
 
-  plan.template good<InViewType, OutViewType>(in, out);
+  // Do not proceed if conditions are not satisfied.
+  // This is to avoid useless static assertions.
+  if constexpr (KokkosFFT::Impl::are_operatable_views_v<
+                    ExecutionSpace, InViewType, OutViewType>) {
+    plan.template good<InViewType, OutViewType>(in, out);
 
-  const auto exec_space = plan.exec_space();
-  using ManagableInViewType =
-      typename KokkosFFT::Impl::managable_view_type<InViewType>::type;
-  using ManagableOutViewType =
-      typename KokkosFFT::Impl::managable_view_type<OutViewType>::type;
-  ManagableInViewType _in_s;
-  InViewType _in;
-  if (plan.is_crop_or_pad_needed()) {
-    auto new_shape = plan.shape();
-    KokkosFFT::Impl::crop_or_pad(exec_space, in, _in_s, new_shape);
-    _in = _in_s;
-  } else {
-    _in = in;
-  }
+    const auto exec_space = plan.exec_space();
+    using ManagableInViewType =
+        typename KokkosFFT::Impl::managable_view_type<InViewType>::type;
+    using ManagableOutViewType =
+        typename KokkosFFT::Impl::managable_view_type<OutViewType>::type;
+    ManagableInViewType _in_s;
+    InViewType _in;
+    if (plan.is_crop_or_pad_needed()) {
+      auto new_shape = plan.shape();
+      KokkosFFT::Impl::crop_or_pad(exec_space, in, _in_s, new_shape);
+      _in = _in_s;
+    } else {
+      _in = in;
+    }
 
-  if (plan.is_transpose_needed()) {
-    ManagableInViewType in_T;
-    ManagableOutViewType out_T;
+    if (plan.is_transpose_needed()) {
+      ManagableInViewType in_T;
+      ManagableOutViewType out_T;
 
-    KokkosFFT::Impl::transpose(exec_space, _in, in_T, plan.map());
-    KokkosFFT::Impl::transpose(exec_space, out, out_T, plan.map());
+      KokkosFFT::Impl::transpose(exec_space, _in, in_T, plan.map());
+      KokkosFFT::Impl::transpose(exec_space, out, out_T, plan.map());
 
-    KokkosFFT::Impl::exec_impl(plan, in_T, out_T, norm);
+      KokkosFFT::Impl::exec_impl(plan, in_T, out_T, norm);
 
-    KokkosFFT::Impl::transpose(exec_space, out_T, out, plan.map_inv());
+      KokkosFFT::Impl::transpose(exec_space, out_T, out, plan.map_inv());
 
-  } else {
-    KokkosFFT::Impl::exec_impl(plan, _in, out, norm);
+    } else {
+      KokkosFFT::Impl::exec_impl(plan, _in, out, norm);
+    }
   }
 }
 
@@ -140,11 +145,19 @@ void fft(const ExecutionSpace& exec_space, const InViewType& in,
       "and OutViewType.");
   static_assert(InViewType::rank() >= 1,
                 "fft: View rank must be larger than or equal to 1");
-  KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axis_type<1>({axis})),
-                     "axes are invalid for in/out views");
-  KokkosFFT::Impl::Plan plan(exec_space, in, out, KokkosFFT::Direction::forward,
-                             axis, n);
-  KokkosFFT::Impl::fft_exec_impl(plan, in, out, norm);
+
+  // Do not proceed if conditions are not satisfied.
+  // This is to avoid useless static assertions.
+  if constexpr (KokkosFFT::Impl::are_operatable_views_v<
+                    ExecutionSpace, InViewType, OutViewType> &&
+                InViewType::rank() >= 1) {
+    KOKKOSFFT_THROW_IF(
+        !KokkosFFT::Impl::are_valid_axes(in, axis_type<1>({axis})),
+        "axes are invalid for in/out views");
+    KokkosFFT::Impl::Plan plan(exec_space, in, out,
+                               KokkosFFT::Direction::forward, axis, n);
+    KokkosFFT::Impl::fft_exec_impl(plan, in, out, norm);
+  }
 }
 
 /// \brief One dimensional FFT in backward direction
@@ -169,11 +182,19 @@ void ifft(const ExecutionSpace& exec_space, const InViewType& in,
       "and OutViewType.");
   static_assert(InViewType::rank() >= 1,
                 "ifft: View rank must be larger than or equal to 1");
-  KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axis_type<1>({axis})),
-                     "axes are invalid for in/out views");
-  KokkosFFT::Impl::Plan plan(exec_space, in, out,
-                             KokkosFFT::Direction::backward, axis, n);
-  KokkosFFT::Impl::fft_exec_impl(plan, in, out, norm);
+
+  // Do not proceed if conditions are not satisfied.
+  // This is to avoid useless static assertions.
+  if constexpr (KokkosFFT::Impl::are_operatable_views_v<
+                    ExecutionSpace, InViewType, OutViewType> &&
+                InViewType::rank() >= 1) {
+    KOKKOSFFT_THROW_IF(
+        !KokkosFFT::Impl::are_valid_axes(in, axis_type<1>({axis})),
+        "axes are invalid for in/out views");
+    KokkosFFT::Impl::Plan plan(exec_space, in, out,
+                               KokkosFFT::Direction::backward, axis, n);
+    KokkosFFT::Impl::fft_exec_impl(plan, in, out, norm);
+  }
 }
 
 /// \brief One dimensional FFT for real input
@@ -206,9 +227,19 @@ void rfft(const ExecutionSpace& exec_space, const InViewType& in,
                 "rfft: InViewType must be real");
   static_assert(KokkosFFT::Impl::is_complex_v<out_value_type>,
                 "rfft: OutViewType must be complex");
-  KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axis_type<1>({axis})),
-                     "axes are invalid for in/out views");
-  fft(exec_space, in, out, norm, axis, n);
+
+  // Do not proceed if conditions are not satisfied.
+  // This is to avoid useless static assertions.
+  if constexpr (KokkosFFT::Impl::are_operatable_views_v<
+                    ExecutionSpace, InViewType, OutViewType> &&
+                InViewType::rank() >= 1 &&
+                KokkosFFT::Impl::is_real_v<in_value_type> &&
+                KokkosFFT::Impl::is_complex_v<out_value_type>) {
+    KOKKOSFFT_THROW_IF(
+        !KokkosFFT::Impl::are_valid_axes(in, axis_type<1>({axis})),
+        "axes are invalid for in/out views");
+    fft(exec_space, in, out, norm, axis, n);
+  }
 }
 
 /// \brief Inverse of rfft
@@ -242,9 +273,19 @@ void irfft(const ExecutionSpace& exec_space, const InViewType& in,
                 "irfft: InViewType must be complex");
   static_assert(KokkosFFT::Impl::is_real_v<out_value_type>,
                 "irfft: OutViewType must be real");
-  KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axis_type<1>({axis})),
-                     "axes are invalid for in/out views");
-  ifft(exec_space, in, out, norm, axis, n);
+
+  // Do not proceed if conditions are not satisfied.
+  // This is to avoid useless static assertions.
+  if constexpr (KokkosFFT::Impl::are_operatable_views_v<
+                    ExecutionSpace, InViewType, OutViewType> &&
+                InViewType::rank() >= 1 &&
+                KokkosFFT::Impl::is_complex_v<in_value_type> &&
+                KokkosFFT::Impl::is_real_v<out_value_type>) {
+    KOKKOSFFT_THROW_IF(
+        !KokkosFFT::Impl::are_valid_axes(in, axis_type<1>({axis})),
+        "axes are invalid for in/out views");
+    ifft(exec_space, in, out, norm, axis, n);
+  }
 }
 
 /// \brief One dimensional FFT of a signal that has Hermitian symmetry
@@ -279,15 +320,25 @@ void hfft(const ExecutionSpace& exec_space, const InViewType& in,
                 "hfft: InViewType must be complex");
   static_assert(KokkosFFT::Impl::is_real_v<out_value_type>,
                 "hfft: OutViewType must be real");
-  KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axis_type<1>({axis})),
-                     "axes are invalid for in/out views");
-  auto new_norm = KokkosFFT::Impl::swap_direction(norm);
-  // using ComplexViewType = typename
-  // KokkosFFT::Impl::complex_view_type<ExecutionSpace, InViewType>::type;
-  // ComplexViewType in_conj;
-  InViewType in_conj;
-  KokkosFFT::Impl::conjugate(exec_space, in, in_conj);
-  irfft(exec_space, in_conj, out, new_norm, axis, n);
+
+  // Do not proceed if conditions are not satisfied.
+  // This is to avoid useless static assertions.
+  if constexpr (KokkosFFT::Impl::are_operatable_views_v<
+                    ExecutionSpace, InViewType, OutViewType> &&
+                InViewType::rank() >= 1 &&
+                KokkosFFT::Impl::is_complex_v<in_value_type> &&
+                KokkosFFT::Impl::is_real_v<out_value_type>) {
+    KOKKOSFFT_THROW_IF(
+        !KokkosFFT::Impl::are_valid_axes(in, axis_type<1>({axis})),
+        "axes are invalid for in/out views");
+    auto new_norm = KokkosFFT::Impl::swap_direction(norm);
+    // using ComplexViewType = typename
+    // KokkosFFT::Impl::complex_view_type<ExecutionSpace, InViewType>::type;
+    // ComplexViewType in_conj;
+    InViewType in_conj;
+    KokkosFFT::Impl::conjugate(exec_space, in, in_conj);
+    irfft(exec_space, in_conj, out, new_norm, axis, n);
+  }
 }
 
 /// \brief Inverse of hfft
@@ -320,13 +371,23 @@ void ihfft(const ExecutionSpace& exec_space, const InViewType& in,
                 "ihfft: InViewType must be real");
   static_assert(KokkosFFT::Impl::is_complex_v<out_value_type>,
                 "ihfft: OutViewType must be complex");
-  KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axis_type<1>({axis})),
-                     "axes are invalid for in/out views");
-  auto new_norm = KokkosFFT::Impl::swap_direction(norm);
-  OutViewType out_conj;
-  rfft(exec_space, in, out, new_norm, axis, n);
-  KokkosFFT::Impl::conjugate(exec_space, out, out_conj);
-  out = out_conj;
+
+  // Do not proceed if conditions are not satisfied.
+  // This is to avoid useless static assertions.
+  if constexpr (KokkosFFT::Impl::are_operatable_views_v<
+                    ExecutionSpace, InViewType, OutViewType> &&
+                InViewType::rank() >= 1 &&
+                KokkosFFT::Impl::is_real_v<in_value_type> &&
+                KokkosFFT::Impl::is_complex_v<out_value_type>) {
+    KOKKOSFFT_THROW_IF(
+        !KokkosFFT::Impl::are_valid_axes(in, axis_type<1>({axis})),
+        "axes are invalid for in/out views");
+    auto new_norm = KokkosFFT::Impl::swap_direction(norm);
+    OutViewType out_conj;
+    rfft(exec_space, in, out, new_norm, axis, n);
+    KokkosFFT::Impl::conjugate(exec_space, out, out_conj);
+    out = out_conj;
+  }
 }
 
 // 2D FFT
@@ -353,11 +414,18 @@ void fft2(const ExecutionSpace& exec_space, const InViewType& in,
       "and OutViewType.");
   static_assert(InViewType::rank() >= 2,
                 "fft2: View rank must be larger than or equal to 2");
-  KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axes),
-                     "axes are invalid for in/out views");
-  KokkosFFT::Impl::Plan plan(exec_space, in, out, KokkosFFT::Direction::forward,
-                             axes, s);
-  KokkosFFT::Impl::fft_exec_impl(plan, in, out, norm);
+
+  // Do not proceed if conditions are not satisfied.
+  // This is to avoid useless static assertions.
+  if constexpr (KokkosFFT::Impl::are_operatable_views_v<
+                    ExecutionSpace, InViewType, OutViewType> &&
+                InViewType::rank() >= 2) {
+    KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axes),
+                       "axes are invalid for in/out views");
+    KokkosFFT::Impl::Plan plan(exec_space, in, out,
+                               KokkosFFT::Direction::forward, axes, s);
+    KokkosFFT::Impl::fft_exec_impl(plan, in, out, norm);
+  }
 }
 
 /// \brief Two dimensional FFT in backward direction
@@ -383,11 +451,18 @@ void ifft2(const ExecutionSpace& exec_space, const InViewType& in,
       "and OutViewType.");
   static_assert(InViewType::rank() >= 2,
                 "ifft2: View rank must be larger than or equal to 2");
-  KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axes),
-                     "axes are invalid for in/out views");
-  KokkosFFT::Impl::Plan plan(exec_space, in, out,
-                             KokkosFFT::Direction::backward, axes, s);
-  KokkosFFT::Impl::fft_exec_impl(plan, in, out, norm);
+
+  // Do not proceed if conditions are not satisfied.
+  // This is to avoid useless static assertions.
+  if constexpr (KokkosFFT::Impl::are_operatable_views_v<
+                    ExecutionSpace, InViewType, OutViewType> &&
+                InViewType::rank() >= 2) {
+    KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axes),
+                       "axes are invalid for in/out views");
+    KokkosFFT::Impl::Plan plan(exec_space, in, out,
+                               KokkosFFT::Direction::backward, axes, s);
+    KokkosFFT::Impl::fft_exec_impl(plan, in, out, norm);
+  }
 }
 
 /// \brief Two dimensional FFT for real input
@@ -421,9 +496,18 @@ void rfft2(const ExecutionSpace& exec_space, const InViewType& in,
                 "rfft2: InViewType must be real");
   static_assert(KokkosFFT::Impl::is_complex_v<out_value_type>,
                 "rfft2: OutViewType must be complex");
-  KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axes),
-                     "axes are invalid for in/out views");
-  fft2(exec_space, in, out, norm, axes, s);
+
+  // Do not proceed if conditions are not satisfied.
+  // This is to avoid useless static assertions.
+  if constexpr (KokkosFFT::Impl::are_operatable_views_v<
+                    ExecutionSpace, InViewType, OutViewType> &&
+                InViewType::rank() >= 2 &&
+                KokkosFFT::Impl::is_real_v<in_value_type> &&
+                KokkosFFT::Impl::is_complex_v<out_value_type>) {
+    KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axes),
+                       "axes are invalid for in/out views");
+    fft2(exec_space, in, out, norm, axes, s);
+  }
 }
 
 /// \brief Inverse of rfft2 with a given plan
@@ -457,9 +541,18 @@ void irfft2(const ExecutionSpace& exec_space, const InViewType& in,
                 "irfft2: InViewType must be complex");
   static_assert(KokkosFFT::Impl::is_real_v<out_value_type>,
                 "irfft2: OutViewType must be real");
-  KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axes),
-                     "axes are invalid for in/out views");
-  ifft2(exec_space, in, out, norm, axes, s);
+
+  // Do not proceed if conditions are not satisfied.
+  // This is to avoid useless static assertions.
+  if constexpr (KokkosFFT::Impl::are_operatable_views_v<
+                    ExecutionSpace, InViewType, OutViewType> &&
+                InViewType::rank() >= 2 &&
+                KokkosFFT::Impl::is_complex_v<in_value_type> &&
+                KokkosFFT::Impl::is_real_v<out_value_type>) {
+    KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axes),
+                       "axes are invalid for in/out views");
+    ifft2(exec_space, in, out, norm, axes, s);
+  }
 }
 
 // ND FFT
@@ -497,11 +590,19 @@ void fftn(
   static_assert(
       InViewType::rank() >= DIM,
       "fftn: View rank must be larger than or equal to the Rank of FFT axes");
-  KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axes),
-                     "axes are invalid for in/out views");
-  KokkosFFT::Impl::Plan plan(exec_space, in, out, KokkosFFT::Direction::forward,
-                             axes, s);
-  KokkosFFT::Impl::fft_exec_impl(plan, in, out, norm);
+
+  // Do not proceed if conditions are not satisfied.
+  // This is to avoid useless static assertions.
+  if constexpr (KokkosFFT::Impl::are_operatable_views_v<
+                    ExecutionSpace, InViewType, OutViewType> &&
+                DIM >= 1 && DIM <= KokkosFFT::MAX_FFT_DIM &&
+                InViewType::rank() >= DIM) {
+    KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axes),
+                       "axes are invalid for in/out views");
+    KokkosFFT::Impl::Plan plan(exec_space, in, out,
+                               KokkosFFT::Direction::forward, axes, s);
+    KokkosFFT::Impl::fft_exec_impl(plan, in, out, norm);
+  }
 }
 
 /// \brief N-dimensional FFT in backward direction with a given plan
@@ -539,11 +640,19 @@ void ifftn(
   static_assert(
       InViewType::rank() >= DIM,
       "ifftn: View rank must be larger than or equal to the Rank of FFT axes");
-  KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axes),
-                     "axes are invalid for in/out views");
-  KokkosFFT::Impl::Plan plan(exec_space, in, out,
-                             KokkosFFT::Direction::backward, axes, s);
-  KokkosFFT::Impl::fft_exec_impl(plan, in, out, norm);
+
+  // Do not proceed if conditions are not satisfied.
+  // This is to avoid useless static assertions.
+  if constexpr (KokkosFFT::Impl::are_operatable_views_v<
+                    ExecutionSpace, InViewType, OutViewType> &&
+                DIM >= 1 && DIM <= KokkosFFT::MAX_FFT_DIM &&
+                InViewType::rank() >= DIM) {
+    KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axes),
+                       "axes are invalid for in/out views");
+    KokkosFFT::Impl::Plan plan(exec_space, in, out,
+                               KokkosFFT::Direction::backward, axes, s);
+    KokkosFFT::Impl::fft_exec_impl(plan, in, out, norm);
+  }
 }
 
 /// \brief N-dimensional FFT for real input
@@ -589,9 +698,19 @@ void rfftn(
                 "rfftn: InViewType must be real");
   static_assert(KokkosFFT::Impl::is_complex_v<out_value_type>,
                 "rfftn: OutViewType must be complex");
-  KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axes),
-                     "axes are invalid for in/out views");
-  fftn(exec_space, in, out, axes, norm, s);
+
+  // Do not proceed if conditions are not satisfied.
+  // This is to avoid useless static assertions.
+  if constexpr (KokkosFFT::Impl::are_operatable_views_v<
+                    ExecutionSpace, InViewType, OutViewType> &&
+                DIM >= 1 && DIM <= KokkosFFT::MAX_FFT_DIM &&
+                InViewType::rank() >= DIM &&
+                KokkosFFT::Impl::is_real_v<in_value_type> &&
+                KokkosFFT::Impl::is_complex_v<out_value_type>) {
+    KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axes),
+                       "axes are invalid for in/out views");
+    fftn(exec_space, in, out, axes, norm, s);
+  }
 }
 
 /// \brief Inverse of rfftn
@@ -637,9 +756,18 @@ void irfftn(
                 "irfftn: InViewType must be complex");
   static_assert(KokkosFFT::Impl::is_real_v<out_value_type>,
                 "irfftn: OutViewType must be real");
-  KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axes),
-                     "axes are invalid for in/out views");
-  ifftn(exec_space, in, out, axes, norm, s);
+  // Do not proceed if conditions are not satisfied.
+  // This is to avoid useless static assertions.
+  if constexpr (KokkosFFT::Impl::are_operatable_views_v<
+                    ExecutionSpace, InViewType, OutViewType> &&
+                DIM >= 1 && DIM <= KokkosFFT::MAX_FFT_DIM &&
+                InViewType::rank() >= DIM &&
+                KokkosFFT::Impl::is_complex_v<in_value_type> &&
+                KokkosFFT::Impl::is_real_v<out_value_type>) {
+    KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axes),
+                       "axes are invalid for in/out views");
+    ifftn(exec_space, in, out, axes, norm, s);
+  }
 }
 
 }  // namespace KokkosFFT
