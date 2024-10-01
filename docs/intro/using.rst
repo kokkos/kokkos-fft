@@ -154,13 +154,13 @@ The following listing shows examples of axes parameters with negative or positiv
    View2D<Kokkos::complex<double> > x2_hat("x2_hat", n0/2+1, n1);
    View3D<Kokkos::complex<double> > x3_hat("x3_hat", n0, n1/2+1, n2);
 
-   // Follwoing codes are all equivalent to np.fft(np.rfft(axis=0), axis=1)
+   // Following codes are all equivalent to np.fft(np.rfft(axis=0), axis=1)
    KokkosFFT::rfft2(execution_space(), x2, x2_hat, /*axes=*/{-1, -2});
    KokkosFFT::rfft2(execution_space(), x2, x2_hat, /*axes=*/{-1, 0});
    KokkosFFT::rfft2(execution_space(), x2, x2_hat, /*axes=*/{1, -2});
    KokkosFFT::rfft2(execution_space(), x2, x2_hat, /*axes=*/{1, 0});
 
-   // Follwoing codes are all equivalent to np.fft(np.rfft(axis=1), axis=2)
+   // Following codes are all equivalent to np.fft(np.rfft(axis=1), axis=2)
    KokkosFFT::rfft2(execution_space(), x3, x3_hat, /*axes=*/{-1, -2});
    KokkosFFT::rfft2(execution_space(), x3, x3_hat, /*axes=*/{-1, 1});
    KokkosFFT::rfft2(execution_space(), x3, x3_hat, /*axes=*/{2, -2});
