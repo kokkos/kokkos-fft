@@ -472,8 +472,13 @@ void irfft2(const ExecutionSpace& exec_space, const InViewType& in,
 /// \param axes [in] Axes over which FFT is performed (optional)
 /// \param norm [in] How the normalization is applied (optional)
 /// \param s [in] Shape of the transformed axis of the output (optional)
+#if defined(DOXY)
+template <typename ExecutionSpace, typename InViewType, typename OutViewType,
+          std::size_t DIM = 1>
+#else
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           std::size_t DIM = InViewType::rank()>
+#endif
 void fftn(
     const ExecutionSpace& exec_space, const InViewType& in, OutViewType& out,
     axis_type<DIM> axes =
