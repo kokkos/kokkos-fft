@@ -469,11 +469,16 @@ void irfft2(const ExecutionSpace& exec_space, const InViewType& in,
 /// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (complex)
 /// \param out [out] Ouput data (complex)
-/// \param axes [in] Axes over which FFT is performed (optional)
+/// \param axes [in] Axes over which FFT is performed (default, all axes)
 /// \param norm [in] How the normalization is applied (optional)
 /// \param s [in] Shape of the transformed axis of the output (optional)
+#if defined(DOXY)
+template <typename ExecutionSpace, typename InViewType, typename OutViewType,
+          std::size_t DIM>
+#else
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           std::size_t DIM = InViewType::rank()>
+#endif
 void fftn(
     const ExecutionSpace& exec_space, const InViewType& in, OutViewType& out,
     axis_type<DIM> axes =
@@ -504,11 +509,16 @@ void fftn(
 /// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (complex)
 /// \param out [out] Ouput data (complex)
-/// \param axes [in] Axes over which FFT is performed (optional)
+/// \param axes [in] Axes over which FFT is performed (default, all axes)
 /// \param norm [in] How the normalization is applied (optional)
 /// \param s [in] Shape of the transformed axis of the output (optional)
+#if defined(DOXY)
+template <typename ExecutionSpace, typename InViewType, typename OutViewType,
+          std::size_t DIM>
+#else
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           std::size_t DIM = InViewType::rank()>
+#endif
 void ifftn(
     const ExecutionSpace& exec_space, const InViewType& in, OutViewType& out,
     axis_type<DIM> axes =
@@ -541,11 +551,16 @@ void ifftn(
 /// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (real)
 /// \param out [out] Ouput data (complex)
-/// \param axes [in] Axes over which FFT is performed (optional)
+/// \param axes [in] Axes over which FFT is performed (default, all axes)
 /// \param norm [in] How the normalization is applied (optional)
 /// \param s [in] Shape of the transformed axis of the output (optional)
+#if defined(DOXY)
+template <typename ExecutionSpace, typename InViewType, typename OutViewType,
+          std::size_t DIM>
+#else
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           std::size_t DIM = InViewType::rank()>
+#endif
 void rfftn(
     const ExecutionSpace& exec_space, const InViewType& in, OutViewType& out,
     axis_type<DIM> axes =
@@ -584,11 +599,16 @@ void rfftn(
 /// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (complex)
 /// \param out [out] Ouput data (real)
-/// \param axes [in] Axes over which FFT is performed (optional)
+/// \param axes [in] Axes over which FFT is performed (default, all axes)
 /// \param norm [in] How the normalization is applied (optional)
 /// \param s [in] Shape of the transformed axis of the output (optional)
+#if defined(DOXY)
+template <typename ExecutionSpace, typename InViewType, typename OutViewType,
+          std::size_t DIM>
+#else
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           std::size_t DIM = InViewType::rank()>
+#endif
 void irfftn(
     const ExecutionSpace& exec_space, const InViewType& in, OutViewType& out,
     axis_type<DIM> axes =
