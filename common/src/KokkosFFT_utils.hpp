@@ -75,8 +75,9 @@ bool is_out_of_range_value_included(const ContainerType& values, IntType max) {
   static_assert(std::is_same_v<value_type, IntType>,
                 "is_out_of_range_value_included: Container value type must "
                 "match IntType");
-  const auto [vmin, vmax] = std::minmax_element(values.begin(), values.end());
+  const auto vmax = std::max_element(values.begin(), values.end());
   if constexpr (std::is_signed_v<value_type>) {
+    const auto vmin = std::min_element(values.begin(), values.end());
     KOKKOSFFT_THROW_IF(
         *vmin < 0,
         "is_out_of_range_value_included: values must be non-negative");
