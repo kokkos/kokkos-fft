@@ -9,7 +9,6 @@ add_executable(unit-tests-kokkos-fft-core
 )
 
 target_compile_features(unit-tests-kokkos-fft-core PUBLIC cxx_std_17)
-target_compile_options(unit-tests-kokkos-fft-core PUBLIC -std=c++17)
 
 target_link_libraries(unit-tests-kokkos-fft-core PUBLIC KokkosFFT::fft GTest::gtest)
 
