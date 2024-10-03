@@ -17,6 +17,12 @@
 namespace KokkosFFT {
 namespace Impl {
 
+template <typename ScalarType1, typename ScalarType2>
+bool are_aliasing(const ScalarType1* ptr1, const ScalarType2* ptr2) {
+  return (reinterpret_cast<const void*>(ptr1) ==
+          reinterpret_cast<const void*>(ptr2));
+}
+
 template <typename ViewType>
 auto convert_negative_axis(ViewType, int _axis = -1) {
   static_assert(Kokkos::is_view_v<ViewType>,
