@@ -338,6 +338,8 @@ void test_is_out_of_range_value_included() {
       v, static_cast<IntType>(2)));
   EXPECT_TRUE(KokkosFFT::Impl::is_out_of_range_value_included(
       v, static_cast<IntType>(3)));
+  EXPECT_TRUE(KokkosFFT::Impl::is_out_of_range_value_included(
+      v, static_cast<IntType>(4)));
   EXPECT_FALSE(KokkosFFT::Impl::is_out_of_range_value_included(
       v, static_cast<IntType>(5)));
   EXPECT_FALSE(KokkosFFT::Impl::is_out_of_range_value_included(
@@ -347,6 +349,8 @@ void test_is_out_of_range_value_included() {
       v2, static_cast<IntType>(2)));
   EXPECT_TRUE(KokkosFFT::Impl::is_out_of_range_value_included(
       v2, static_cast<IntType>(3)));
+  EXPECT_TRUE(KokkosFFT::Impl::is_out_of_range_value_included(
+      v2, static_cast<IntType>(4)));
   EXPECT_FALSE(KokkosFFT::Impl::is_out_of_range_value_included(
       v2, static_cast<IntType>(5)));
   EXPECT_FALSE(KokkosFFT::Impl::is_out_of_range_value_included(
