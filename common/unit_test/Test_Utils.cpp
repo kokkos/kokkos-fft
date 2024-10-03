@@ -332,16 +332,40 @@ void test_has_duplicate_values() {
 template <typename ContainerType>
 void test_is_out_of_range_value_included() {
   using IntType   = KokkosFFT::Impl::base_container_value_type<ContainerType>;
-  ContainerType v = {0, 1, 2, 3, 4};
+  ContainerType v = {0, 1, 2, 3, 4}, v2 = {0, 4, 1};
 
   EXPECT_TRUE(KokkosFFT::Impl::is_out_of_range_value_included(
       v, static_cast<IntType>(2)));
   EXPECT_TRUE(KokkosFFT::Impl::is_out_of_range_value_included(
       v, static_cast<IntType>(3)));
+  EXPECT_TRUE(KokkosFFT::Impl::is_out_of_range_value_included(
+      v, static_cast<IntType>(4)));
   EXPECT_FALSE(KokkosFFT::Impl::is_out_of_range_value_included(
       v, static_cast<IntType>(5)));
   EXPECT_FALSE(KokkosFFT::Impl::is_out_of_range_value_included(
       v, static_cast<IntType>(6)));
+
+  EXPECT_TRUE(KokkosFFT::Impl::is_out_of_range_value_included(
+      v2, static_cast<IntType>(2)));
+  EXPECT_TRUE(KokkosFFT::Impl::is_out_of_range_value_included(
+      v2, static_cast<IntType>(3)));
+  EXPECT_TRUE(KokkosFFT::Impl::is_out_of_range_value_included(
+      v2, static_cast<IntType>(4)));
+  EXPECT_FALSE(KokkosFFT::Impl::is_out_of_range_value_included(
+      v2, static_cast<IntType>(5)));
+  EXPECT_FALSE(KokkosFFT::Impl::is_out_of_range_value_included(
+      v2, static_cast<IntType>(6)));
+
+  if constexpr (std::is_signed_v<IntType>) {
+    // Since non-negative value is included, it should be invalid
+    ContainerType v3 = {0, 1, -1};
+    EXPECT_THROW(
+        {
+          KokkosFFT::Impl::is_out_of_range_value_included(
+              v3, static_cast<IntType>(2));
+        },
+        std::runtime_error);
+  }
 }
 
 template <typename IntType>

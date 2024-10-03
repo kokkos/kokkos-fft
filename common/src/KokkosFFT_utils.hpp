@@ -75,11 +75,14 @@ bool is_out_of_range_value_included(const ContainerType& values, IntType max) {
   static_assert(std::is_same_v<value_type, IntType>,
                 "is_out_of_range_value_included: Container value type must "
                 "match IntType");
-  bool is_included = false;
-  for (auto value : values) {
-    is_included = value >= max;
+  if constexpr (std::is_signed_v<value_type>) {
+    KOKKOSFFT_THROW_IF(
+        std::any_of(values.begin(), values.end(),
+                    [](value_type value) { return value < 0; }),
+        "is_out_of_range_value_included: values must be non-negative");
   }
-  return is_included;
+  return std::any_of(values.begin(), values.end(),
+                     [max](value_type value) { return value >= max; });
 }
 
 template <
