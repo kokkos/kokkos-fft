@@ -151,7 +151,7 @@ namespace KokkosFFT {
 ///
 /// \param exec_space [in] Kokkos execution space
 /// \param n [in] Window length
-/// \param d [in] Sample spacing
+/// \param d [in] Sample spacing (default, 1)
 ///
 /// \return Sampling frequency
 template <typename ExecutionSpace, typename RealType>
@@ -186,7 +186,7 @@ auto fftfreq(const ExecutionSpace&, const std::size_t n,
 ///
 /// \param exec_space [in] Kokkos execution space
 /// \param n [in] Window length
-/// \param d [in] Sample spacing
+/// \param d [in] Sample spacing (default, 1)
 ///
 /// \return Sampling frequency starting from zero
 template <typename ExecutionSpace, typename RealType>
@@ -215,7 +215,8 @@ auto rfftfreq(const ExecutionSpace&, const std::size_t n,
 ///
 /// \param exec_space [in] Kokkos execution space
 /// \param inout [in,out] Spectrum
-/// \param axes [in] Axes over which to shift, optional
+/// \param axes [in] Axes over which to shift (default: nullopt, shifting over
+/// all axes)
 template <typename ExecutionSpace, typename ViewType>
 void fftshift(const ExecutionSpace& exec_space, ViewType& inout,
               std::optional<int> axes = std::nullopt) {
@@ -264,7 +265,8 @@ void fftshift(const ExecutionSpace& exec_space, ViewType& inout,
 ///
 /// \param exec_space [in] Kokkos execution space
 /// \param inout [in,out] Spectrum
-/// \param axes [in] Axes over which to shift, optional
+/// \param axes [in] Axes over which to shift (default: nullopt, shifting over
+/// all axes)
 template <typename ExecutionSpace, typename ViewType>
 void ifftshift(const ExecutionSpace& exec_space, ViewType& inout,
                std::optional<int> axes = std::nullopt) {
