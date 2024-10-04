@@ -173,5 +173,6 @@ The following listing shows examples of axes parameters with negative or positiv
 
 .. note::
 
-   If you rely on negative axes, the corresponding positve axes are different depending on the rank of Views.
+   If you rely on negative axes, you can specify last axes no matter what the rank of Views is.
+   However, the corresponding positive axes to last axes are different depending on the rank of Views.
    Thus, it is recommended to use negative axes for simplicity.
