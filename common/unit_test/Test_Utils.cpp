@@ -12,7 +12,7 @@ using test_types = ::testing::Types<Kokkos::LayoutLeft, Kokkos::LayoutRight>;
 using base_int_types = ::testing::Types<int, std::size_t>;
 
 // value type combinations that are tested
-using paired_value_types = ::testing::Types<
+using paired_scalar_types = ::testing::Types<
     std::pair<float, float>, std::pair<float, Kokkos::complex<float>>,
     std::pair<Kokkos::complex<float>, Kokkos::complex<float>>,
     std::pair<double, double>, std::pair<double, Kokkos::complex<double>>,
@@ -38,7 +38,7 @@ struct ContainerTypes : public ::testing::Test {
 };
 
 template <typename T>
-struct PairedValueTypes : public ::testing::Test {
+struct PairedScalarTypes : public ::testing::Test {
   using value_type1 = typename T::first_type;
   using value_type2 = typename T::second_type;
 };
@@ -46,7 +46,7 @@ struct PairedValueTypes : public ::testing::Test {
 TYPED_TEST_SUITE(ConvertNegativeAxis, test_types);
 TYPED_TEST_SUITE(ConvertNegativeShift, test_types);
 TYPED_TEST_SUITE(ContainerTypes, base_int_types);
-TYPED_TEST_SUITE(PairedValueTypes, paired_value_types);
+TYPED_TEST_SUITE(PairedScalarTypes, paired_scalar_types);
 
 // Tests for convert_negative_axes over ND views
 template <typename LayoutType>
@@ -582,7 +582,7 @@ void test_are_pointers_aliasing() {
   EXPECT_FALSE(KokkosFFT::Impl::are_aliasing(view1.data(), view2.data()));
 }
 
-TYPED_TEST(PairedValueTypes, are_pointers_aliasing) {
+TYPED_TEST(PairedScalarTypes, are_pointers_aliasing) {
   using value_type1 = typename TestFixture::value_type1;
   using value_type2 = typename TestFixture::value_type2;
   test_are_pointers_aliasing<value_type1, value_type2>();
