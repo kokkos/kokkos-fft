@@ -136,7 +136,8 @@ Axes parameters
 
 As well as ``numpy.fft``, you can specify negative axes to perform FFT over chosen axes, which is not common in C++.
 Actually for FFT APIs, default axes are set as ``{-DIM, -(DIM-1), ...}`` where ``DIM`` is the rank of the FFT dimensions,
-corresponding to the FFTs over last ``DIM`` axes. For example, ``KokkosFFT::fft2(execution_space(), in, out)`` is equivalent to ``KokkosFFT::fft2(execution_space(), in, out, axis_type<2>({-2, -1}))``.
+corresponding to the FFTs over last ``DIM`` axes. If we consider that default View layout is C layout (row-major or ``Kokkos::LayoutRight``), 
+this default value results in FFTs performed over the contiguous directions. For example, ``KokkosFFT::fft2(execution_space(), in, out)`` is equivalent to ``KokkosFFT::fft2(execution_space(), in, out, axis_type<2>({-2, -1}))``.
 Negative axes are counted from the last axis, which is the same as ``numpy.fft``.
 For example, ``-1`` means the last axis, ``-2`` means the second last axis, and so on.
 Negative axes ``-1`` and ``-2`` respectively correspond to ``rank-1`` and ``rank-2``, where the ``rank`` is the rank of the Views.
@@ -154,13 +155,17 @@ The following listing shows examples of axes parameters with negative or positiv
    View2D<Kokkos::complex<double> > x2_hat("x2_hat", n0/2+1, n1);
    View3D<Kokkos::complex<double> > x3_hat("x3_hat", n0, n1/2+1, n2);
 
-   // Following codes are all equivalent to np.fft(np.rfft(axis=0), axis=1)
+   // Following codes are all equivalent to np.fft(np.rfft(x2, axis=0), axis=1)
+   // negative axes are converted as follows:
+   // -2 -> 0 (= Rank(2) - 2), -1 -> 1 (= Rank(2) - 1)
    KokkosFFT::rfft2(execution_space(), x2, x2_hat, /*axes=*/{-1, -2});
    KokkosFFT::rfft2(execution_space(), x2, x2_hat, /*axes=*/{-1, 0});
    KokkosFFT::rfft2(execution_space(), x2, x2_hat, /*axes=*/{1, -2});
    KokkosFFT::rfft2(execution_space(), x2, x2_hat, /*axes=*/{1, 0});
 
-   // Following codes are all equivalent to np.fft(np.rfft(axis=1), axis=2)
+   // Following codes are all equivalent to np.fft(np.rfft(x3, axis=1), axis=2)
+   // negative axes are converted as follows:
+   // -2 -> 1 (= Rank(3) - 2), -1 -> 2 (= Rank(3) - 1)
    KokkosFFT::rfft2(execution_space(), x3, x3_hat, /*axes=*/{-1, -2});
    KokkosFFT::rfft2(execution_space(), x3, x3_hat, /*axes=*/{-1, 1});
    KokkosFFT::rfft2(execution_space(), x3, x3_hat, /*axes=*/{2, -2});
