@@ -137,7 +137,7 @@ Axes parameters
 As well as ``numpy.fft``, you can specify negative axes to perform FFT over chosen axes, which is not common in C++.
 Actually for FFT APIs, default axes are set as ``{-DIM, -(DIM-1), ...}`` where ``DIM`` is the rank of the FFT dimensions,
 corresponding to the FFTs over last ``DIM`` axes. If we consider that default View layout is C layout (row-major or ``Kokkos::LayoutRight``), 
-this default value results in FFTs performed over the contiguous directions. For example, ``KokkosFFT::fft2(execution_space(), in, out)`` is equivalent to ``KokkosFFT::fft2(execution_space(), in, out, axis_type<2>({-2, -1}))``.
+this default axes parameter results in FFTs performed over the contiguous dimensions. For example, ``KokkosFFT::fft2(execution_space(), in, out)`` is equivalent to ``KokkosFFT::fft2(execution_space(), in, out, axis_type<2>({-2, -1}))``.
 Negative axes are counted from the last axis, which is the same as ``numpy.fft``.
 For example, ``-1`` means the last axis, ``-2`` means the second last axis, and so on.
 Negative axes ``-1`` and ``-2`` respectively correspond to ``rank-1`` and ``rank-2``, where the ``rank`` is the rank of the Views.
