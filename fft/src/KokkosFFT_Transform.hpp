@@ -63,6 +63,22 @@ void exec_impl(
   auto const exec_space = plan.exec_space();
   auto const direction  = direction_type<ExecutionSpace>(plan.direction());
   KokkosFFT::Impl::exec_plan(plan.plan(), idata, odata, direction, plan.info());
+
+  if constexpr (is_complex_v<in_value_type> && is_real_v<out_value_type>) {
+    auto const is_in_place = plan.is_in_place();
+    if (is_in_place) {
+      // For the in-place Complex to Real transform, the output must be reshaped
+      // to fit the original size (in.size() * 2) for correct normalization
+      using OutUViewType =
+          Kokkos::View<out_value_type*, ExecutionSpace,
+                       Kokkos::MemoryTraits<Kokkos::Unmanaged>>;
+      OutUViewType out_tmp(out.data(), in.size() * 2);
+      KokkosFFT::Impl::normalize(exec_space, out_tmp, plan.direction(), norm,
+                                 plan.fft_size());
+      return;
+    }
+  }
+
   KokkosFFT::Impl::normalize(exec_space, out, plan.direction(), norm,
                              plan.fft_size());
 }
