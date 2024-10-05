@@ -123,7 +123,7 @@ class Plan {
   bool m_is_crop_or_pad_needed = false;
 
   //! in-place transform or not
-  bool m_is_in_place = false;
+  bool m_is_inplace = false;
 
   //! axes for fft
   axis_type<DIM> m_axes;
@@ -204,16 +204,16 @@ class Plan {
     m_shape = KokkosFFT::Impl::get_modified_shape(in, out, s, m_axes);
     m_is_crop_or_pad_needed =
         KokkosFFT::Impl::is_crop_or_pad_needed(in, m_shape);
-    m_is_in_place = KokkosFFT::Impl::are_aliasing(in.data(), out.data());
-    KOKKOSFFT_THROW_IF(m_is_in_place && m_is_transpose_needed,
+    m_is_inplace = KokkosFFT::Impl::are_aliasing(in.data(), out.data());
+    KOKKOSFFT_THROW_IF(m_is_inplace && m_is_transpose_needed,
                        "In-place transform is not supported with transpose. "
                        "Please use out-of-place transform.");
-    KOKKOSFFT_THROW_IF(m_is_in_place && m_is_crop_or_pad_needed,
+    KOKKOSFFT_THROW_IF(m_is_inplace && m_is_crop_or_pad_needed,
                        "In-place transform is not supported with reshape. "
                        "Please use out-of-place transform.");
     m_fft_size = KokkosFFT::Impl::create_plan(exec_space, m_plan, in, out,
                                               m_buffer, m_info, direction,
-                                              m_axes, s, m_is_in_place);
+                                              m_axes, s, m_is_inplace);
   }
 
   /// \brief Constructor for multidimensional FFT
@@ -267,16 +267,16 @@ class Plan {
     m_shape = KokkosFFT::Impl::get_modified_shape(in, out, s, m_axes);
     m_is_crop_or_pad_needed =
         KokkosFFT::Impl::is_crop_or_pad_needed(in, m_shape);
-    m_is_in_place = KokkosFFT::Impl::are_aliasing(in.data(), out.data());
-    KOKKOSFFT_THROW_IF(m_is_in_place && m_is_transpose_needed,
+    m_is_inplace = KokkosFFT::Impl::are_aliasing(in.data(), out.data());
+    KOKKOSFFT_THROW_IF(m_is_inplace && m_is_transpose_needed,
                        "In-place transform is not supported with transpose. "
                        "Please use out-of-place transform.");
-    KOKKOSFFT_THROW_IF(m_is_in_place && m_is_crop_or_pad_needed,
+    KOKKOSFFT_THROW_IF(m_is_inplace && m_is_crop_or_pad_needed,
                        "In-place transform is not supported with reshape. "
                        "Please use out-of-place transform.");
     m_fft_size =
         KokkosFFT::Impl::create_plan(exec_space, m_plan, in, out, m_buffer,
-                                     m_info, direction, axes, s, m_is_in_place);
+                                     m_info, direction, axes, s, m_is_inplace);
   }
 
   ~Plan() {
@@ -333,7 +333,7 @@ class Plan {
   KokkosFFT::Direction direction() const { return m_direction; }
   bool is_transpose_needed() const { return m_is_transpose_needed; }
   bool is_crop_or_pad_needed() const { return m_is_crop_or_pad_needed; }
-  bool is_in_place() const { return m_is_in_place; }
+  bool is_inplace() const { return m_is_inplace; }
   extents_type shape() const { return m_shape; }
   map_type map() const { return m_map; }
   map_type map_inv() const { return m_map_inv; }
