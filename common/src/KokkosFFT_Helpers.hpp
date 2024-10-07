@@ -59,8 +59,8 @@ void roll(const ExecutionSpace& exec_space, ViewType& inout, axis_type<1> shift,
         Kokkos::RangePolicy<ExecutionSpace, Kokkos::IndexType<int>>(exec_space,
                                                                     0, len),
         KOKKOS_LAMBDA(int i) {
-          if (i + shift1 < n0) {
-            tmp(i + shift1) = inout(i);
+          if (i + shift0 < n0) {
+            tmp(i + shift0) = inout(i);
           }
           if (i + shift1 < n0) {
             tmp(i) = inout(i + shift1);
