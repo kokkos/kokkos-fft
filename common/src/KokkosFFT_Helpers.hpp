@@ -43,7 +43,7 @@ void roll(const ExecutionSpace& exec_space, ViewType& inout, axis_type<1> shift,
           axis_type<1>) {
   // Last parameter is ignored but present for keeping the interface consistent
   static_assert(ViewType::rank() == 1, "roll: Rank of View must be 1.");
-  int n0 = inout.extent(0);
+  int n0 = inout.extent_int(0);
 
   ViewType tmp("tmp", n0);
   int len = (n0 - 1) / 2 + 1;
@@ -76,7 +76,7 @@ void roll(const ExecutionSpace& exec_space, ViewType& inout, axis_type<2> shift,
           axis_type<DIM1> axes) {
   constexpr int DIM0 = 2;
   static_assert(ViewType::rank() == DIM0, "roll: Rank of View must be 2.");
-  int n0 = inout.extent(0), n1 = inout.extent(1);
+  int n0 = inout.extent_int(0), n1 = inout.extent_int(1);
 
   ViewType tmp("tmp", n0, n1);
   [[maybe_unused]] int len0 = (n0 - 1) / 2 + 1;
