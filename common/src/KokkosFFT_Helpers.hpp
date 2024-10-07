@@ -43,10 +43,10 @@ void roll(const ExecutionSpace& exec_space, ViewType& inout, axis_type<1> shift,
           axis_type<1>) {
   // Last parameter is ignored but present for keeping the interface consistent
   static_assert(ViewType::rank() == 1, "roll: Rank of View must be 1.");
-  std::size_t n0 = inout.extent(0);
+  int n0 = inout.extent(0);
 
   ViewType tmp("tmp", n0);
-  std::size_t len = (n0 - 1) / 2 + 1;
+  int len = (n0 - 1) / 2 + 1;
 
   auto [_shift0, _shift1, _shift2] =
       KokkosFFT::Impl::convert_negative_shift(inout, shift.at(0), 0);
@@ -56,10 +56,12 @@ void roll(const ExecutionSpace& exec_space, ViewType& inout, axis_type<1> shift,
   if (shift2 == 0) {
     Kokkos::parallel_for(
         "KokkosFFT::roll",
-        Kokkos::RangePolicy<ExecutionSpace, Kokkos::IndexType<std::size_t>>(
-            exec_space, 0, len),
-        KOKKOS_LAMBDA(std::size_t i) {
-          tmp(i + shift0) = inout(i);
+        Kokkos::RangePolicy<ExecutionSpace, Kokkos::IndexType<int>>(exec_space,
+                                                                    0, len),
+        KOKKOS_LAMBDA(int i) {
+          if (i + shift1 < n0) {
+            tmp(i + shift1) = inout(i);
+          }
           if (i + shift1 < n0) {
             tmp(i) = inout(i + shift1);
           }
