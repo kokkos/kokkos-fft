@@ -9,7 +9,7 @@ set(KOKKOSFFT_TOP_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 # Set project
 project(
     KokkosFFT
-    VERSION 0.1.0
+    VERSION 0.2.1
     LANGUAGES CXX
 )
 
