@@ -332,7 +332,7 @@ void ihfft(const ExecutionSpace& exec_space, const InViewType& in,
   OutViewType out_conj;
   rfft(exec_space, in, out, new_norm, axis, n);
   KokkosFFT::Impl::conjugate(exec_space, out, out_conj);
-  out = out_conj;
+  Kokkos::deep_copy(exec_space, out, out_conj);
 }
 
 // 2D FFT
