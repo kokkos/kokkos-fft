@@ -15,7 +15,7 @@ int main(int argc, char* argv[]) {
   Kokkos::initialize(argc, argv);
   {
     constexpr int n0 = 128, n1 = 128;
-    const Kokkos::complex<double> I(1.0, 1.0);
+    const Kokkos::complex<double> z(1.0, 1.0);
 
     // 2D C2C FFT (Forward and Backward)
     View2D<Kokkos::complex<double> > xc2c("xc2c", n0, n1);
@@ -24,7 +24,7 @@ int main(int argc, char* argv[]) {
 
     Kokkos::Random_XorShift64_Pool<> random_pool(12345);
     execution_space exec;
-    Kokkos::fill_random(exec, xc2c, random_pool, I);
+    Kokkos::fill_random(exec, xc2c, random_pool, z);
     exec.fence();
 
     KokkosFFT::fft2(exec, xc2c, xc2c_hat);
@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
     // 2D C2R FFT
     View2D<Kokkos::complex<double> > xc2r("xr2c_hat", n0, n1 / 2 + 1);
     View2D<double> xc2r_hat("xc2r", n0, n1);
-    Kokkos::fill_random(exec, xc2r, random_pool, I);
+    Kokkos::fill_random(exec, xc2r, random_pool, z);
     exec.fence();
 
     KokkosFFT::irfft2(exec, xc2r, xc2r_hat);
