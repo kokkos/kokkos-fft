@@ -136,9 +136,9 @@ void test_fft1_identity(T atol = 1.0e-12) {
     ComplexView1DType out("out", i), outr("outr", i / 2 + 1);
     RealView1DType ar("ar", i), _ar("_ar", i), ar_ref("ar_ref", i);
 
-    const Kokkos::complex<T> I(1.0, 1.0);
+    const Kokkos::complex<T> z(1.0, 1.0);
     Kokkos::Random_XorShift64_Pool<> random_pool(/*seed=*/12345);
-    Kokkos::fill_random(a, random_pool, I);
+    Kokkos::fill_random(a, random_pool, z);
     Kokkos::fill_random(ar, random_pool, 1.0);
     Kokkos::deep_copy(a_ref, a);
     Kokkos::deep_copy(ar_ref, ar);
@@ -168,9 +168,9 @@ void test_fft1_identity_reuse_plan(T atol = 1.0e-12) {
     ComplexView1DType out("out", i), outr("outr", i / 2 + 1);
     RealView1DType ar("ar", i), _ar("_ar", i), ar_ref("ar_ref", i);
 
-    const Kokkos::complex<T> I(1.0, 1.0);
+    const Kokkos::complex<T> z(1.0, 1.0);
     Kokkos::Random_XorShift64_Pool<> random_pool(/*seed=*/12345);
-    Kokkos::fill_random(a, random_pool, I);
+    Kokkos::fill_random(a, random_pool, z);
     Kokkos::fill_random(ar, random_pool, 1.0);
     Kokkos::deep_copy(a_ref, a);
     Kokkos::deep_copy(ar_ref, ar);
@@ -202,9 +202,9 @@ void test_fft1_identity_reuse_plan(T atol = 1.0e-12) {
   ComplexView1DType out("out", maxlen), outr("outr", maxlen / 2 + 1);
   RealView1DType ar("ar", maxlen), _ar("_ar", maxlen), ar_ref("ar_ref", maxlen);
 
-  const Kokkos::complex<T> I(1.0, 1.0);
+  const Kokkos::complex<T> z(1.0, 1.0);
   Kokkos::Random_XorShift64_Pool<> random_pool(/*seed=*/12345);
-  Kokkos::fill_random(a, random_pool, I);
+  Kokkos::fill_random(a, random_pool, z);
   Kokkos::fill_random(ar, random_pool, 1.0);
   Kokkos::deep_copy(a_ref, a);
   Kokkos::deep_copy(ar_ref, ar);
@@ -293,9 +293,9 @@ void test_fft1_1dfft_1dview() {
   ComplexView1DType out_b("out_b", len), out_o("out_o", len),
       out_f("out_f", len);
 
-  const Kokkos::complex<T> I(1.0, 1.0);
+  const Kokkos::complex<T> z(1.0, 1.0);
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-  Kokkos::fill_random(x, random_pool, I);
+  Kokkos::fill_random(x, random_pool, z);
 
   Kokkos::fence();
 
@@ -327,9 +327,9 @@ void test_fft1_1difft_1dview() {
   ComplexView1DType out_b("out_b", len), out_o("out_o", len),
       out_f("out_f", len);
 
-  const Kokkos::complex<T> I(1.0, 1.0);
+  const Kokkos::complex<T> z(1.0, 1.0);
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-  Kokkos::fill_random(x, random_pool, I);
+  Kokkos::fill_random(x, random_pool, z);
 
   Kokkos::fence();
 
@@ -365,9 +365,9 @@ void test_fft1_1dhfft_1dview() {
   RealView1DType out("out", len);
   RealView1DType out_b("out_b", len), out_o("out_o", len), out_f("out_f", len);
 
-  const Kokkos::complex<T> I(1.0, 1.0);
+  const Kokkos::complex<T> z(1.0, 1.0);
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-  Kokkos::fill_random(x_herm, random_pool, I);
+  Kokkos::fill_random(x_herm, random_pool, z);
 
   auto h_x      = Kokkos::create_mirror_view(x);
   auto h_x_herm = Kokkos::create_mirror_view(x_herm);
@@ -434,9 +434,9 @@ void test_fft1_1dihfft_1dview() {
   ComplexView1DType out2("out2", len_herm), out2_b("out2_b", len_herm),
       out2_o("out2_o", len_herm), out2_f("out2_f", len_herm);
 
-  const Kokkos::complex<T> I(1.0, 1.0);
+  const Kokkos::complex<T> z(1.0, 1.0);
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-  Kokkos::fill_random(x_herm, random_pool, I);
+  Kokkos::fill_random(x_herm, random_pool, z);
 
   auto h_x_herm = Kokkos::create_mirror_view(x_herm);
   Kokkos::deep_copy(h_x_herm, x_herm);
@@ -489,10 +489,10 @@ void test_fft1_shape(T atol = 1.0e-12) {
   RealView1DType xr("xr", n), xr_ref("xr_ref", n);
   ComplexView1DType x("x", n / 2 + 1), x_ref("x_ref", n / 2 + 1);
 
-  const Kokkos::complex<T> I(1.0, 1.0);
+  const Kokkos::complex<T> z(1.0, 1.0);
   Kokkos::Random_XorShift64_Pool<> random_pool(/*seed=*/12345);
   Kokkos::fill_random(xr, random_pool, 1.0);
-  Kokkos::fill_random(x, random_pool, I);
+  Kokkos::fill_random(x, random_pool, z);
 
   // Since HIP FFT destructs the input data, we need to keep the input data in
   // different place
@@ -578,9 +578,9 @@ void test_fft1_1dfft_2dview(T atol = 1.e-12) {
   ComplexView2DType outr_axis0("outr_axis0", n0 / 2 + 1, n1),
       outr_axis1("outr_axis1", n0, n1 / 2 + 1);
 
-  const Kokkos::complex<T> I(1.0, 1.0);
+  const Kokkos::complex<T> z(1.0, 1.0);
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-  Kokkos::fill_random(x, random_pool, I);
+  Kokkos::fill_random(x, random_pool, z);
   Kokkos::fill_random(xr, random_pool, 1);
 
   // Since HIP FFT destructs the input data, we need to keep the input data in
@@ -667,9 +667,9 @@ void test_fft1_1dfft_3dview(T atol = 1.e-12) {
       outr_axis1("outr_axis1", n0, n1 / 2 + 1, n2),
       outr_axis2("outr_axis2", n0, n1, n2 / 2 + 1);
 
-  const Kokkos::complex<T> I(1.0, 1.0);
+  const Kokkos::complex<T> z(1.0, 1.0);
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-  Kokkos::fill_random(x, random_pool, I);
+  Kokkos::fill_random(x, random_pool, z);
   Kokkos::fill_random(xr, random_pool, 1);
 
   // Since HIP FFT destructs the input data, we need to keep the input data in
@@ -796,9 +796,9 @@ void test_fft1_1dfft_4dview(T atol = 1.e-12) {
       outr_axis2("outr_axis2", n0, n1, n2 / 2 + 1, n3),
       outr_axis3("outr_axis3", n0, n1, n2, n3 / 2 + 1);
 
-  const Kokkos::complex<T> I(1.0, 1.0);
+  const Kokkos::complex<T> z(1.0, 1.0);
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-  Kokkos::fill_random(x, random_pool, I);
+  Kokkos::fill_random(x, random_pool, z);
   Kokkos::fill_random(xr, random_pool, 1);
 
   // Since HIP FFT destructs the input data, we need to keep the input data in
@@ -959,9 +959,9 @@ void test_fft1_1dfft_5dview(T atol = 1.e-12) {
           _xr("_xr", _n0, _n1, _n2, _n3, _n4), ref_xr;
       ComplexView5DType outr("outr", _m0, _m1, _m2, _m3, _m4);
 
-      const Kokkos::complex<T> I(1.0, 1.0);
+      const Kokkos::complex<T> z(1.0, 1.0);
       Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-      Kokkos::fill_random(x, random_pool, I);
+      Kokkos::fill_random(x, random_pool, z);
       Kokkos::fill_random(xr, random_pool, 1);
 
       KokkosFFT::Impl::crop_or_pad(execution_space(), x, ref_x, shape);
@@ -1014,9 +1014,9 @@ void test_fft1_1dfft_6dview(T atol = 1.e-12) {
           _xr("_xr", _n0, _n1, _n2, _n3, _n4, _n5), ref_xr;
       ComplexView6DType outr("outr", _m0, _m1, _m2, _m3, _m4, _m5);
 
-      const Kokkos::complex<T> I(1.0, 1.0);
+      const Kokkos::complex<T> z(1.0, 1.0);
       Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-      Kokkos::fill_random(x, random_pool, I);
+      Kokkos::fill_random(x, random_pool, z);
       Kokkos::fill_random(xr, random_pool, 1);
 
       KokkosFFT::Impl::crop_or_pad(execution_space(), x, ref_x, shape);
@@ -1069,9 +1069,9 @@ void test_fft1_1dfft_7dview(T atol = 1.e-12) {
           _xr("_xr", _n0, _n1, _n2, _n3, _n4, _n5, _n6), ref_xr;
       ComplexView7DType outr("outr", _m0, _m1, _m2, _m3, _m4, _m5, _m6);
 
-      const Kokkos::complex<T> I(1.0, 1.0);
+      const Kokkos::complex<T> z(1.0, 1.0);
       Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-      Kokkos::fill_random(x, random_pool, I);
+      Kokkos::fill_random(x, random_pool, z);
       Kokkos::fill_random(xr, random_pool, 1);
 
       KokkosFFT::Impl::crop_or_pad(execution_space(), x, ref_x, shape);
@@ -1124,9 +1124,9 @@ void test_fft1_1dfft_8dview(T atol = 1.e-12) {
           _xr("_xr", _n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7), ref_xr;
       ComplexView8DType outr("outr", _m0, _m1, _m2, _m3, _m4, _m5, _m6, _m7);
 
-      const Kokkos::complex<T> I(1.0, 1.0);
+      const Kokkos::complex<T> z(1.0, 1.0);
       Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-      Kokkos::fill_random(x, random_pool, I);
+      Kokkos::fill_random(x, random_pool, z);
       Kokkos::fill_random(xr, random_pool, 1);
 
       KokkosFFT::Impl::crop_or_pad(execution_space(), x, ref_x, shape);
@@ -1288,9 +1288,9 @@ void test_fft2_2dfft_2dview() {
   ComplexView2DType out_b("out_b", n0, n1), out_o("out_o", n0, n1),
       out_f("out_f", n0, n1);
 
-  const Kokkos::complex<T> I(1.0, 1.0);
+  const Kokkos::complex<T> z(1.0, 1.0);
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-  Kokkos::fill_random(x, random_pool, I);
+  Kokkos::fill_random(x, random_pool, z);
 
   Kokkos::fence();
 
@@ -1391,9 +1391,9 @@ void test_fft2_2difft_2dview() {
   ComplexView2DType out_b("out_b", n0, n1), out_o("out_o", n0, n1),
       out_f("out_f", n0, n1);
 
-  const Kokkos::complex<T> I(1.0, 1.0);
+  const Kokkos::complex<T> z(1.0, 1.0);
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-  Kokkos::fill_random(x, random_pool, I);
+  Kokkos::fill_random(x, random_pool, z);
 
   Kokkos::fence();
 
@@ -1572,9 +1572,9 @@ void test_fft2_2dirfft_2dview() {
   RealView2DType out_b("out_b", n0, n1), out_o("out_o", n0, n1),
       out_f("out_f", n0, n1);
 
-  const Kokkos::complex<T> I(1.0, 1.0);
+  const Kokkos::complex<T> z(1.0, 1.0);
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-  Kokkos::fill_random(x, random_pool, I);
+  Kokkos::fill_random(x, random_pool, z);
   Kokkos::deep_copy(x_ref, x);
 
   // np.irfft2 is identical to np.irfft(np.ifft(x, axis=0), axis=1)
@@ -1648,10 +1648,10 @@ void test_fft2_2dfft_2dview_shape(T atol = 1.0e-12) {
   RealView2DType xr("xr", n0, n1), xr_ref("xr_ref", n0, n1);
   ComplexView2DType x("x", n0, n1 / 2 + 1), x_ref("x_ref", n0, n1 / 2 + 1);
 
-  const Kokkos::complex<T> I(1.0, 1.0);
+  const Kokkos::complex<T> z(1.0, 1.0);
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
   Kokkos::fill_random(xr, random_pool, 1.0);
-  Kokkos::fill_random(x, random_pool, I);
+  Kokkos::fill_random(x, random_pool, z);
   Kokkos::deep_copy(xr_ref, xr);
   Kokkos::deep_copy(x_ref, x);
 
@@ -1768,9 +1768,9 @@ void test_fft2_2dfft_3dview(T atol = 1.e-12) {
               ref_xr;
           ComplexView3DType outr("outr", _m0, _m1, _m2);
 
-          const Kokkos::complex<T> I(1.0, 1.0);
+          const Kokkos::complex<T> z(1.0, 1.0);
           Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-          Kokkos::fill_random(x, random_pool, I);
+          Kokkos::fill_random(x, random_pool, z);
           Kokkos::fill_random(xr, random_pool, 1);
 
           KokkosFFT::Impl::crop_or_pad(execution_space(), x, ref_x, shape);
@@ -1847,9 +1847,9 @@ void test_fft2_2dfft_4dview(T atol = 1.e-12) {
               _xr("_xr", _n0, _n1, _n2, _n3), ref_xr;
           ComplexView4DType outr("outr", _m0, _m1, _m2, _m3);
 
-          const Kokkos::complex<T> I(1.0, 1.0);
+          const Kokkos::complex<T> z(1.0, 1.0);
           Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-          Kokkos::fill_random(x, random_pool, I);
+          Kokkos::fill_random(x, random_pool, z);
           Kokkos::fill_random(xr, random_pool, 1);
 
           KokkosFFT::Impl::crop_or_pad(execution_space(), x, ref_x, shape);
@@ -1926,9 +1926,9 @@ void test_fft2_2dfft_5dview(T atol = 1.e-12) {
               _xr("_xr", _n0, _n1, _n2, _n3, _n4), ref_xr;
           ComplexView5DType outr("outr", _m0, _m1, _m2, _m3, _m4);
 
-          const Kokkos::complex<T> I(1.0, 1.0);
+          const Kokkos::complex<T> z(1.0, 1.0);
           Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-          Kokkos::fill_random(x, random_pool, I);
+          Kokkos::fill_random(x, random_pool, z);
           Kokkos::fill_random(xr, random_pool, 1);
 
           KokkosFFT::Impl::crop_or_pad(execution_space(), x, ref_x, shape);
@@ -2005,9 +2005,9 @@ void test_fft2_2dfft_6dview(T atol = 1.e-12) {
               _xr("_xr", _n0, _n1, _n2, _n3, _n4, _n5), ref_xr;
           ComplexView6DType outr("outr", _m0, _m1, _m2, _m3, _m4, _m5);
 
-          const Kokkos::complex<T> I(1.0, 1.0);
+          const Kokkos::complex<T> z(1.0, 1.0);
           Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-          Kokkos::fill_random(x, random_pool, I);
+          Kokkos::fill_random(x, random_pool, z);
           Kokkos::fill_random(xr, random_pool, 1);
 
           KokkosFFT::Impl::crop_or_pad(execution_space(), x, ref_x, shape);
@@ -2085,9 +2085,9 @@ void test_fft2_2dfft_7dview(T atol = 1.e-12) {
 
           ComplexView7DType outr("outr", _m0, _m1, _m2, _m3, _m4, _m5, _m6);
 
-          const Kokkos::complex<T> I(1.0, 1.0);
+          const Kokkos::complex<T> z(1.0, 1.0);
           Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-          Kokkos::fill_random(x, random_pool, I);
+          Kokkos::fill_random(x, random_pool, z);
           Kokkos::fill_random(xr, random_pool, 1);
 
           KokkosFFT::Impl::crop_or_pad(execution_space(), x, ref_x, shape);
@@ -2166,9 +2166,9 @@ void test_fft2_2dfft_8dview(T atol = 1.e-12) {
           ComplexView8DType outr("outr", _m0, _m1, _m2, _m3, _m4, _m5, _m6,
                                  _m7);
 
-          const Kokkos::complex<T> I(1.0, 1.0);
+          const Kokkos::complex<T> z(1.0, 1.0);
           Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-          Kokkos::fill_random(x, random_pool, I);
+          Kokkos::fill_random(x, random_pool, z);
           Kokkos::fill_random(xr, random_pool, 1);
 
           KokkosFFT::Impl::crop_or_pad(execution_space(), x, ref_x, shape);
@@ -2308,9 +2308,9 @@ void test_fftn_2dfft_2dview() {
   ComplexView2DType out_b("out_b", n0, n1), out_o("out_o", n0, n1),
       out_f("out_f", n0, n1);
 
-  const Kokkos::complex<T> I(1.0, 1.0);
+  const Kokkos::complex<T> z(1.0, 1.0);
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-  Kokkos::fill_random(x, random_pool, I);
+  Kokkos::fill_random(x, random_pool, z);
 
   Kokkos::fence();
 
@@ -2375,9 +2375,9 @@ void test_ifftn_2dfft_2dview() {
   ComplexView2DType out_b("out_b", n0, n1), out_o("out_o", n0, n1),
       out_f("out_f", n0, n1);
 
-  const Kokkos::complex<T> I(1.0, 1.0);
+  const Kokkos::complex<T> z(1.0, 1.0);
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-  Kokkos::fill_random(x, random_pool, I);
+  Kokkos::fill_random(x, random_pool, z);
 
   Kokkos::fence();
 
@@ -2527,9 +2527,9 @@ void test_irfftn_2dfft_2dview() {
   RealView2DType out_b("out_b", n0, n1), out_o("out_o", n0, n1),
       out_f("out_f", n0, n1), out_no_axes("out_no_axes", n0, n1);
 
-  const Kokkos::complex<T> I(1.0, 1.0);
+  const Kokkos::complex<T> z(1.0, 1.0);
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-  Kokkos::fill_random(x, random_pool, I);
+  Kokkos::fill_random(x, random_pool, z);
   Kokkos::deep_copy(x_ref, x);
 
   // np.irfftn for 2D array is identical to np.irfft(np.ifft(x, axis=0), axis=1)
@@ -2608,10 +2608,10 @@ void test_fftn_2dfft_2dview_shape(T atol = 1.0e-12) {
   RealView2DType xr("xr", n0, n1), xr_ref("xr_ref", n0, n1);
   ComplexView2DType x("x", n0, n1 / 2 + 1), x_ref("x_ref", n0, n1 / 2 + 1);
 
-  const Kokkos::complex<T> I(1.0, 1.0);
+  const Kokkos::complex<T> z(1.0, 1.0);
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
   Kokkos::fill_random(xr, random_pool, 1.0);
-  Kokkos::fill_random(x, random_pool, I);
+  Kokkos::fill_random(x, random_pool, z);
   Kokkos::deep_copy(xr_ref, xr);
   Kokkos::deep_copy(x_ref, x);
 
@@ -2697,9 +2697,9 @@ void test_fftn_3dfft_3dview(T atol = 1.0e-6) {
   ComplexView3DType out_b("out_b", n0, n1, n2), out_o("out_o", n0, n1, n2),
       out_f("out_f", n0, n1, n2), out_no_axes("out_no_axes", n0, n1, n2);
 
-  const Kokkos::complex<T> I(1.0, 1.0);
+  const Kokkos::complex<T> z(1.0, 1.0);
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-  Kokkos::fill_random(x, random_pool, I);
+  Kokkos::fill_random(x, random_pool, z);
 
   Kokkos::fence();
 
@@ -2748,9 +2748,9 @@ void test_ifftn_3dfft_3dview() {
   ComplexView3DType out_b("out_b", n0, n1, n2), out_o("out_o", n0, n1, n2),
       out_f("out_f", n0, n1, n2), out_no_axes("out_no_axes", n0, n1, n2);
 
-  const Kokkos::complex<T> I(1.0, 1.0);
+  const Kokkos::complex<T> z(1.0, 1.0);
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-  Kokkos::fill_random(x, random_pool, I);
+  Kokkos::fill_random(x, random_pool, z);
 
   Kokkos::fence();
 
@@ -2864,9 +2864,9 @@ void test_irfftn_3dfft_3dview() {
   RealView3DType out_b("out_b", n0, n1, n2), out_o("out_o", n0, n1, n2),
       out_f("out_f", n0, n1, n2), out_no_axes("out_no_axes", n0, n1, n2);
 
-  const Kokkos::complex<T> I(1.0, 1.0);
+  const Kokkos::complex<T> z(1.0, 1.0);
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-  Kokkos::fill_random(x, random_pool, I);
+  Kokkos::fill_random(x, random_pool, z);
   Kokkos::deep_copy(x_ref, x);
 
   // np.irfftn for 3D array is identical to np.irfft(np.ifft(np.ifft(x, axis=0),
@@ -2923,10 +2923,10 @@ void test_fftn_3dfft_3dview_shape(T atol = 1.0e-12) {
   ComplexView3DType x("x", n0, n1, n2 / 2 + 1),
       x_ref("x_ref", n0, n1, n2 / 2 + 1);
 
-  const Kokkos::complex<T> I(1.0, 1.0);
+  const Kokkos::complex<T> z(1.0, 1.0);
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
   Kokkos::fill_random(xr, random_pool, 1.0);
-  Kokkos::fill_random(x, random_pool, I);
+  Kokkos::fill_random(x, random_pool, z);
   Kokkos::deep_copy(xr_ref, xr);
   Kokkos::deep_copy(x_ref, x);
 
@@ -3037,9 +3037,9 @@ void test_fftn_3dfft_4dview(T atol = 1.e-12) {
             ref_xr("ref_xr", n0, n1, n2, n3), _xr("_xr", n0, n1, n2, n3);
         ComplexView4DType outr("outr", _n0, _n1, _n2, _n3);
 
-        const Kokkos::complex<T> I(1.0, 1.0);
+        const Kokkos::complex<T> z(1.0, 1.0);
         Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-        Kokkos::fill_random(x, random_pool, I);
+        Kokkos::fill_random(x, random_pool, z);
         Kokkos::fill_random(xr, random_pool, 1);
 
         Kokkos::deep_copy(ref_x, x);
@@ -3114,9 +3114,9 @@ void test_fftn_3dfft_5dview(T atol = 1.e-12) {
         ref_xr("ref_xr", n0, n1, n2, n3, n4), _xr("_xr", n0, n1, n2, n3, n4);
     ComplexView5DType outr("outr", _n0, _n1, _n2, _n3, _n4);
 
-    const Kokkos::complex<T> I(1.0, 1.0);
+    const Kokkos::complex<T> z(1.0, 1.0);
     Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-    Kokkos::fill_random(x, random_pool, I);
+    Kokkos::fill_random(x, random_pool, z);
     Kokkos::fill_random(xr, random_pool, 1);
 
     Kokkos::deep_copy(ref_x, x);
@@ -3191,9 +3191,9 @@ void test_fftn_3dfft_6dview(T atol = 1.e-12) {
         _xr("_xr", n0, n1, n2, n3, n4, n5);
     ComplexView6DType outr("outr", _n0, _n1, _n2, _n3, _n4, _n5);
 
-    const Kokkos::complex<T> I(1.0, 1.0);
+    const Kokkos::complex<T> z(1.0, 1.0);
     Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-    Kokkos::fill_random(x, random_pool, I);
+    Kokkos::fill_random(x, random_pool, z);
     Kokkos::fill_random(xr, random_pool, 1);
 
     Kokkos::deep_copy(ref_x, x);
@@ -3268,9 +3268,9 @@ void test_fftn_3dfft_7dview(T atol = 1.e-12) {
         _xr("_xr", n0, n1, n2, n3, n4, n5, n6);
     ComplexView7DType outr("outr", _n0, _n1, _n2, _n3, _n4, _n5, _n6);
 
-    const Kokkos::complex<T> I(1.0, 1.0);
+    const Kokkos::complex<T> z(1.0, 1.0);
     Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-    Kokkos::fill_random(x, random_pool, I);
+    Kokkos::fill_random(x, random_pool, z);
     Kokkos::fill_random(xr, random_pool, 1);
 
     Kokkos::deep_copy(ref_x, x);
@@ -3345,9 +3345,9 @@ void test_fftn_3dfft_8dview(T atol = 1.e-12) {
         _xr("_xr", n0, n1, n2, n3, n4, n5, n6, n7);
     ComplexView8DType outr("outr", _n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7);
 
-    const Kokkos::complex<T> I(1.0, 1.0);
+    const Kokkos::complex<T> z(1.0, 1.0);
     Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-    Kokkos::fill_random(x, random_pool, I);
+    Kokkos::fill_random(x, random_pool, z);
     Kokkos::fill_random(xr, random_pool, 1);
 
     Kokkos::deep_copy(ref_x, x);
