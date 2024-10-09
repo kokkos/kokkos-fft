@@ -46,7 +46,6 @@
 #endif
 
 namespace KokkosFFT {
-namespace Impl {
 /// \brief A class that manages a FFT plan of backend FFT library.
 ///
 /// This class is used to manage the FFT plan of backend FFT library.
@@ -261,8 +260,8 @@ class Plan {
   }
 
   ~Plan() {
-    destroy_plan_and_info<ExecutionSpace, fft_plan_type, fft_info_type>(m_plan,
-                                                                        m_info);
+    KokkosFFT::Impl::destroy_plan_and_info<ExecutionSpace, fft_plan_type,
+                                           fft_info_type>(m_plan, m_info);
   }
 
   Plan()            = delete;
@@ -318,7 +317,6 @@ class Plan {
   map_type map() const { return m_map; }
   map_type map_inv() const { return m_map_inv; }
 };
-}  // namespace Impl
 }  // namespace KokkosFFT
 
 #endif
