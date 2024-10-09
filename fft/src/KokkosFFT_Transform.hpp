@@ -67,15 +67,19 @@ void exec_impl(
                              plan.fft_size());
 }
 
+}  // namespace Impl
+}  // namespace KokkosFFT
+
+namespace KokkosFFT {
 template <typename PlanType, typename InViewType, typename OutViewType>
-void fft_exec_impl(
+void execute(
     const PlanType& plan, const InViewType& in, OutViewType& out,
     KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward) {
   using ExecutionSpace = typename PlanType::execSpace;
   static_assert(
       KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
                                               OutViewType>,
-      "fft_exec_impl: InViewType and OutViewType must have the same base "
+      "execute: InViewType and OutViewType must have the same base "
       "floating point "
       "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
       "same rank. ExecutionSpace must be accessible to the data in InViewType "
@@ -119,10 +123,6 @@ void fft_exec_impl(
   }
 }
 
-}  // namespace Impl
-}  // namespace KokkosFFT
-
-namespace KokkosFFT {
 /// \brief One dimensional FFT in forward direction
 ///
 /// \param exec_space [in] Kokkos execution space
@@ -148,9 +148,9 @@ void fft(const ExecutionSpace& exec_space, const InViewType& in,
                 "fft: View rank must be larger than or equal to 1");
   KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axis_type<1>({axis})),
                      "axes are invalid for in/out views");
-  KokkosFFT::Impl::Plan plan(exec_space, in, out, KokkosFFT::Direction::forward,
-                             axis, n);
-  KokkosFFT::Impl::fft_exec_impl(plan, in, out, norm);
+  KokkosFFT::Plan plan(exec_space, in, out, KokkosFFT::Direction::forward, axis,
+                       n);
+  KokkosFFT::execute(plan, in, out, norm);
 }
 
 /// \brief One dimensional FFT in backward direction
@@ -178,9 +178,9 @@ void ifft(const ExecutionSpace& exec_space, const InViewType& in,
                 "ifft: View rank must be larger than or equal to 1");
   KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axis_type<1>({axis})),
                      "axes are invalid for in/out views");
-  KokkosFFT::Impl::Plan plan(exec_space, in, out,
-                             KokkosFFT::Direction::backward, axis, n);
-  KokkosFFT::Impl::fft_exec_impl(plan, in, out, norm);
+  KokkosFFT::Plan plan(exec_space, in, out, KokkosFFT::Direction::backward,
+                       axis, n);
+  KokkosFFT::execute(plan, in, out, norm);
 }
 
 /// \brief One dimensional FFT for real input
@@ -366,9 +366,9 @@ void fft2(const ExecutionSpace& exec_space, const InViewType& in,
                 "fft2: View rank must be larger than or equal to 2");
   KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axes),
                      "axes are invalid for in/out views");
-  KokkosFFT::Impl::Plan plan(exec_space, in, out, KokkosFFT::Direction::forward,
-                             axes, s);
-  KokkosFFT::Impl::fft_exec_impl(plan, in, out, norm);
+  KokkosFFT::Plan plan(exec_space, in, out, KokkosFFT::Direction::forward, axes,
+                       s);
+  KokkosFFT::execute(plan, in, out, norm);
 }
 
 /// \brief Two dimensional FFT in backward direction
@@ -396,9 +396,9 @@ void ifft2(const ExecutionSpace& exec_space, const InViewType& in,
                 "ifft2: View rank must be larger than or equal to 2");
   KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axes),
                      "axes are invalid for in/out views");
-  KokkosFFT::Impl::Plan plan(exec_space, in, out,
-                             KokkosFFT::Direction::backward, axes, s);
-  KokkosFFT::Impl::fft_exec_impl(plan, in, out, norm);
+  KokkosFFT::Plan plan(exec_space, in, out, KokkosFFT::Direction::backward,
+                       axes, s);
+  KokkosFFT::execute(plan, in, out, norm);
 }
 
 /// \brief Two dimensional FFT for real input
@@ -511,9 +511,9 @@ void fftn(
       "fftn: View rank must be larger than or equal to the Rank of FFT axes");
   KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axes),
                      "axes are invalid for in/out views");
-  KokkosFFT::Impl::Plan plan(exec_space, in, out, KokkosFFT::Direction::forward,
-                             axes, s);
-  KokkosFFT::Impl::fft_exec_impl(plan, in, out, norm);
+  KokkosFFT::Plan plan(exec_space, in, out, KokkosFFT::Direction::forward, axes,
+                       s);
+  KokkosFFT::execute(plan, in, out, norm);
 }
 
 /// \brief N-dimensional FFT in backward direction with a given plan
@@ -554,9 +554,9 @@ void ifftn(
       "ifftn: View rank must be larger than or equal to the Rank of FFT axes");
   KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axes),
                      "axes are invalid for in/out views");
-  KokkosFFT::Impl::Plan plan(exec_space, in, out,
-                             KokkosFFT::Direction::backward, axes, s);
-  KokkosFFT::Impl::fft_exec_impl(plan, in, out, norm);
+  KokkosFFT::Plan plan(exec_space, in, out, KokkosFFT::Direction::backward,
+                       axes, s);
+  KokkosFFT::execute(plan, in, out, norm);
 }
 
 /// \brief N-dimensional FFT for real input

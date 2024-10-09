@@ -27,31 +27,31 @@ int main(int argc, char* argv[]) {
     Kokkos::fill_random(exec, xc2c, random_pool, z);
 
     int axis = -1;
-    KokkosFFT::Impl::Plan fft_plan(exec, xc2c, xc2c_hat,
-                                   KokkosFFT::Direction::forward, axis);
-    KokkosFFT::Impl::fft_exec_impl(fft_plan, xc2c, xc2c_hat);
+    KokkosFFT::Plan fft_plan(exec, xc2c, xc2c_hat,
+                             KokkosFFT::Direction::forward, axis);
+    KokkosFFT::execute(fft_plan, xc2c, xc2c_hat);
 
-    KokkosFFT::Impl::Plan ifft_plan(exec, xc2c_hat, xc2c_inv,
-                                    KokkosFFT::Direction::backward, axis);
-    KokkosFFT::Impl::fft_exec_impl(ifft_plan, xc2c_hat, xc2c_inv);
+    KokkosFFT::Plan ifft_plan(exec, xc2c_hat, xc2c_inv,
+                              KokkosFFT::Direction::backward, axis);
+    KokkosFFT::execute(ifft_plan, xc2c_hat, xc2c_inv);
 
     // 1D R2C FFT
     View1D<double> xr2c("xr2c", n0);
     View1D<Kokkos::complex<double> > xr2c_hat("xr2c_hat", n0 / 2 + 1);
     Kokkos::fill_random(exec, xr2c, random_pool, 1);
 
-    KokkosFFT::Impl::Plan rfft_plan(exec, xr2c, xr2c_hat,
-                                    KokkosFFT::Direction::forward, axis);
-    KokkosFFT::Impl::fft_exec_impl(rfft_plan, xr2c, xr2c_hat);
+    KokkosFFT::Plan rfft_plan(exec, xr2c, xr2c_hat,
+                              KokkosFFT::Direction::forward, axis);
+    KokkosFFT::execute(rfft_plan, xr2c, xr2c_hat);
 
     // 1D C2R FFT
     View1D<Kokkos::complex<double> > xc2r("xc2r_hat", n0 / 2 + 1);
     View1D<double> xc2r_hat("xc2r", n0);
     Kokkos::fill_random(exec, xc2r, random_pool, z);
 
-    KokkosFFT::Impl::Plan irfft_plan(exec, xc2r, xc2r_hat,
-                                     KokkosFFT::Direction::backward, axis);
-    KokkosFFT::Impl::fft_exec_impl(irfft_plan, xc2r, xc2r_hat);
+    KokkosFFT::Plan irfft_plan(exec, xc2r, xc2r_hat,
+                               KokkosFFT::Direction::backward, axis);
+    KokkosFFT::execute(irfft_plan, xc2r, xc2r_hat);
     exec.fence();
   }
   Kokkos::finalize();
