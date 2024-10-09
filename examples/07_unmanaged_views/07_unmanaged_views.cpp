@@ -56,7 +56,6 @@ int main(int argc, char* argv[]) {
     Kokkos::Random_XorShift64_Pool<> random_pool(12345);
     execution_space exec;
     Kokkos::fill_random(exec, xc2c, random_pool, z);
-    exec.fence();
 
     KokkosFFT::fftn(exec, xc2c, xc2c_hat, axis_type<3>{-3, -2, -1},
                     KokkosFFT::Normalization::backward, shape);
