@@ -5,4 +5,4 @@
 KokkosFFT::ifft2
 ----------------
 
-.. doxygenfunction:: KokkosFFT::ifft2(const ExecutionSpace& exec_space, const InViewType& in, OutViewType& out, KokkosFFT::Normalization, axis_type<2> axes, shape_type<2> s)
+.. doxygenfunction:: KokkosFFT::ifft2(const ExecutionSpace& exec_space, const InViewType& in, const OutViewType& out, KokkosFFT::Normalization, axis_type<2> axes, shape_type<2> s)

@@ -129,7 +129,7 @@ namespace KokkosFFT {
 /// nullopt)
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
 void fft(const ExecutionSpace& exec_space, const InViewType& in,
-         OutViewType& out,
+         const OutViewType& out,
          KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
          int axis = -1, std::optional<std::size_t> n = std::nullopt) {
   static_assert(
@@ -159,7 +159,7 @@ void fft(const ExecutionSpace& exec_space, const InViewType& in,
 /// nullopt)
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
 void ifft(const ExecutionSpace& exec_space, const InViewType& in,
-          OutViewType& out,
+          const OutViewType& out,
           KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
           int axis = -1, std::optional<std::size_t> n = std::nullopt) {
   static_assert(
@@ -189,7 +189,7 @@ void ifft(const ExecutionSpace& exec_space, const InViewType& in,
 /// nullopt)
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
 void rfft(const ExecutionSpace& exec_space, const InViewType& in,
-          OutViewType& out,
+          const OutViewType& out,
           KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
           int axis = -1, std::optional<std::size_t> n = std::nullopt) {
   static_assert(
@@ -225,7 +225,7 @@ void rfft(const ExecutionSpace& exec_space, const InViewType& in,
 /// nullopt)
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
 void irfft(const ExecutionSpace& exec_space, const InViewType& in,
-           OutViewType& out,
+           const OutViewType& out,
            KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
            int axis = -1, std::optional<std::size_t> n = std::nullopt) {
   static_assert(
@@ -262,7 +262,7 @@ void irfft(const ExecutionSpace& exec_space, const InViewType& in,
 /// nullopt)
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
 void hfft(const ExecutionSpace& exec_space, const InViewType& in,
-          OutViewType& out,
+          const OutViewType& out,
           KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
           int axis = -1, std::optional<std::size_t> n = std::nullopt) {
   static_assert(
@@ -306,7 +306,7 @@ void hfft(const ExecutionSpace& exec_space, const InViewType& in,
 /// nullopt)
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
 void ihfft(const ExecutionSpace& exec_space, const InViewType& in,
-           OutViewType& out,
+           const OutViewType& out,
            KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
            int axis = -1, std::optional<std::size_t> n = std::nullopt) {
   static_assert(
@@ -347,7 +347,7 @@ void ihfft(const ExecutionSpace& exec_space, const InViewType& in,
 /// \param s [in] Shape of the transformed axis of the output (default, {})
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
 void fft2(const ExecutionSpace& exec_space, const InViewType& in,
-          OutViewType& out,
+          const OutViewType& out,
           KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
           axis_type<2> axes = {-2, -1}, shape_type<2> s = {}) {
   static_assert(
@@ -376,7 +376,7 @@ void fft2(const ExecutionSpace& exec_space, const InViewType& in,
 /// \param s [in] Shape of the transformed axis of the output (default, {})
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
 void ifft2(const ExecutionSpace& exec_space, const InViewType& in,
-           OutViewType& out,
+           const OutViewType& out,
            KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
            axis_type<2> axes = {-2, -1}, shape_type<2> s = {}) {
   static_assert(
@@ -406,7 +406,7 @@ void ifft2(const ExecutionSpace& exec_space, const InViewType& in,
 /// \param s [in] Shape of the transformed axis of the output (default, {})
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
 void rfft2(const ExecutionSpace& exec_space, const InViewType& in,
-           OutViewType& out,
+           const OutViewType& out,
            KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
            axis_type<2> axes = {-2, -1}, shape_type<2> s = {}) {
   static_assert(
@@ -442,7 +442,7 @@ void rfft2(const ExecutionSpace& exec_space, const InViewType& in,
 /// \param s [in] Shape of the transformed axis of the output (default, {})
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
 void irfft2(const ExecutionSpace& exec_space, const InViewType& in,
-            OutViewType& out,
+            const OutViewType& out,
             KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
             axis_type<2> axes = {-2, -1}, shape_type<2> s = {}) {
   static_assert(
@@ -486,7 +486,8 @@ template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           std::size_t DIM = InViewType::rank()>
 #endif
 void fftn(
-    const ExecutionSpace& exec_space, const InViewType& in, OutViewType& out,
+    const ExecutionSpace& exec_space, const InViewType& in,
+    const OutViewType& out,
     axis_type<DIM> axes =
         KokkosFFT::Impl::index_sequence<int, DIM, -static_cast<int>(DIM)>(),
     KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
@@ -526,7 +527,8 @@ template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           std::size_t DIM = InViewType::rank()>
 #endif
 void ifftn(
-    const ExecutionSpace& exec_space, const InViewType& in, OutViewType& out,
+    const ExecutionSpace& exec_space, const InViewType& in,
+    const OutViewType& out,
     axis_type<DIM> axes =
         KokkosFFT::Impl::index_sequence<int, DIM, -static_cast<int>(DIM)>(),
     KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
@@ -568,7 +570,8 @@ template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           std::size_t DIM = InViewType::rank()>
 #endif
 void rfftn(
-    const ExecutionSpace& exec_space, const InViewType& in, OutViewType& out,
+    const ExecutionSpace& exec_space, const InViewType& in,
+    const OutViewType& out,
     axis_type<DIM> axes =
         KokkosFFT::Impl::index_sequence<int, DIM, -static_cast<int>(DIM)>(),
     KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
@@ -616,7 +619,8 @@ template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           std::size_t DIM = InViewType::rank()>
 #endif
 void irfftn(
-    const ExecutionSpace& exec_space, const InViewType& in, OutViewType& out,
+    const ExecutionSpace& exec_space, const InViewType& in,
+    const OutViewType& out,
     axis_type<DIM> axes =
         KokkosFFT::Impl::index_sequence<int, DIM, -static_cast<int>(DIM)>(),
     KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
