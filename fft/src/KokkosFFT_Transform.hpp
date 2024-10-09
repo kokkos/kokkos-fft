@@ -85,9 +85,9 @@ void fft_exec_impl(
 
   const auto exec_space = plan.exec_space();
   using ManagableInViewType =
-      typename KokkosFFT::Impl::managable_view_type<InViewType>::type;
+      typename KokkosFFT::Impl::manageable_view_type<InViewType>::type;
   using ManagableOutViewType =
-      typename KokkosFFT::Impl::managable_view_type<OutViewType>::type;
+      typename KokkosFFT::Impl::manageable_view_type<OutViewType>::type;
   ManagableInViewType _in_s;
   InViewType _in;
   if (plan.is_crop_or_pad_needed()) {

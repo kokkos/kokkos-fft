@@ -17,9 +17,9 @@ void test_managed_prep_transpose_view() {
                 "input and output have different ranks");
 
   using InManagedViewType =
-      typename KokkosFFT::Impl::managable_view_type<InViewType>::type;
+      typename KokkosFFT::Impl::manageable_view_type<InViewType>::type;
   using OutManagedViewType =
-      typename KokkosFFT::Impl::managable_view_type<OutViewType>::type;
+      typename KokkosFFT::Impl::manageable_view_type<OutViewType>::type;
   static_assert(!InManagedViewType::memory_traits::is_unmanaged,
                 "Unable to get managed input view type");
   static_assert(!OutManagedViewType::memory_traits::is_unmanaged,
@@ -75,9 +75,9 @@ void test_unmanaged_prep_transpose_view() {
                 "input and output have different ranks");
 
   using InManagedViewType =
-      typename KokkosFFT::Impl::managable_view_type<InViewType>::type;
+      typename KokkosFFT::Impl::manageable_view_type<InViewType>::type;
   using OutManagedViewType =
-      typename KokkosFFT::Impl::managable_view_type<OutViewType>::type;
+      typename KokkosFFT::Impl::manageable_view_type<OutViewType>::type;
   static_assert(!InManagedViewType::memory_traits::is_unmanaged,
                 "Unable to get managed input view type");
   static_assert(!OutManagedViewType::memory_traits::is_unmanaged,
