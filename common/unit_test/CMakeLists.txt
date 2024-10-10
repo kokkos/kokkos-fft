@@ -11,7 +11,6 @@ add_executable(unit-tests-kokkos-fft-common
     Test_Layouts.cpp
     Test_Padding.cpp
     Test_Helpers.cpp
-    Test_prep_transpose_view.cpp
 )
 
 target_compile_features(unit-tests-kokkos-fft-common PUBLIC cxx_std_17)

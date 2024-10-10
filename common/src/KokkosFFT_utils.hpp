@@ -204,136 +204,15 @@ auto extract_extents(const ViewType& view) {
   return extents;
 }
 
-template <typename ViewType, typename Label>
-void create_view(ViewType& out, const Label& label,
-                 const std::array<int, 1>& extents) {
-  out = ViewType(label, extents[0]);
-}
-
-template <typename ViewType, typename Label>
-void create_view(ViewType& out, const Label& label,
-                 const std::array<int, 2>& extents) {
-  out = ViewType(label, extents[0], extents[1]);
-}
-
-template <typename ViewType, typename Label>
-void create_view(ViewType& out, const Label& label,
-                 const std::array<int, 3>& extents) {
-  out = ViewType(label, extents[0], extents[1], extents[2]);
-}
-
-template <typename ViewType, typename Label>
-void create_view(ViewType& out, const Label& label,
-                 const std::array<int, 4>& extents) {
-  out = ViewType(label, extents[0], extents[1], extents[2], extents[3]);
-}
-
-template <typename ViewType, typename Label>
-void create_view(ViewType& out, const Label& label,
-                 const std::array<int, 5>& extents) {
-  out = ViewType(label, extents[0], extents[1], extents[2], extents[3],
-                 extents[4]);
-}
-
-template <typename ViewType, typename Label>
-void create_view(ViewType& out, const Label& label,
-                 const std::array<int, 6>& extents) {
-  out = ViewType(label, extents[0], extents[1], extents[2], extents[3],
-                 extents[4], extents[5]);
-}
-
-template <typename ViewType, typename Label>
-void create_view(ViewType& out, const Label& label,
-                 const std::array<int, 7>& extents) {
-  out = ViewType(label, extents[0], extents[1], extents[2], extents[3],
-                 extents[4], extents[5], extents[6]);
-}
-
-template <typename ViewType, typename Label>
-void create_view(ViewType& out, const Label& label,
-                 const std::array<int, 8>& extents) {
-  out = ViewType(label, extents[0], extents[1], extents[2], extents[3],
-                 extents[4], extents[5], extents[6], extents[7]);
-}
-
-template <typename ViewType>
-void reshape_view(ViewType& out, const std::array<int, 1>& extents) {
-  KOKKOSFFT_THROW_IF(ViewType::required_allocation_size(out.layout()) <
-                         ViewType::required_allocation_size(extents[0]),
-                     "reshape_view: insufficient memory");
-  out = ViewType(out.data(), extents[0]);
-}
-
-template <typename ViewType>
-void reshape_view(ViewType& out, const std::array<int, 2>& extents) {
-  KOKKOSFFT_THROW_IF(
-      ViewType::required_allocation_size(out.layout()) <
-          ViewType::required_allocation_size(extents[0], extents[1]),
-      "reshape_view: insufficient memory");
-  out = ViewType(out.data(), extents[0], extents[1]);
-}
-
-template <typename ViewType>
-void reshape_view(ViewType& out, const std::array<int, 3>& extents) {
-  KOKKOSFFT_THROW_IF(ViewType::required_allocation_size(out.layout()) <
-                         ViewType::required_allocation_size(
-                             extents[0], extents[1], extents[2]),
-                     "reshape_view: insufficient memory");
-  out = ViewType(out.data(), extents[0], extents[1], extents[2]);
-}
-
-template <typename ViewType>
-void reshape_view(ViewType& out, const std::array<int, 4>& extents) {
-  KOKKOSFFT_THROW_IF(ViewType::required_allocation_size(out.layout()) <
-                         ViewType::required_allocation_size(
-                             extents[0], extents[1], extents[2], extents[3]),
-                     "reshape_view: insufficient memory");
-
-  out = ViewType(out.data(), extents[0], extents[1], extents[2], extents[3]);
-}
-
-template <typename ViewType>
-void reshape_view(ViewType& out, const std::array<int, 5>& extents) {
-  KOKKOSFFT_THROW_IF(
-      ViewType::required_allocation_size(out.layout()) <
-          ViewType::required_allocation_size(extents[0], extents[1], extents[2],
-                                             extents[3], extents[4]),
-      "reshape_view: insufficient memory");
-  out = ViewType(out.data(), extents[0], extents[1], extents[2], extents[3],
-                 extents[4]);
-}
-
-template <typename ViewType>
-void reshape_view(ViewType& out, const std::array<int, 6>& extents) {
-  KOKKOSFFT_THROW_IF(ViewType::required_allocation_size(out.layout()) <
-                         ViewType::required_allocation_size(
-                             extents[0], extents[1], extents[2], extents[3],
-                             extents[4], extents[5]),
-                     "reshape_view: insufficient memory");
-  out = ViewType(out.data(), extents[0], extents[1], extents[2], extents[3],
-                 extents[4], extents[5]);
-}
-
-template <typename ViewType>
-void reshape_view(ViewType& out, const std::array<int, 7>& extents) {
-  KOKKOSFFT_THROW_IF(ViewType::required_allocation_size(out.layout()) <
-                         ViewType::required_allocation_size(
-                             extents[0], extents[1], extents[2], extents[3],
-                             extents[4], extents[5], extents[6]),
-                     "reshape_view: insufficient memory");
-  out = ViewType(out.data(), extents[0], extents[1], extents[2], extents[3],
-                 extents[4], extents[5], extents[6]);
-}
-
-template <typename ViewType>
-void reshape_view(ViewType& out, const std::array<int, 8>& extents) {
-  KOKKOSFFT_THROW_IF(ViewType::required_allocation_size(out.layout()) <
-                         ViewType::required_allocation_size(
-                             extents[0], extents[1], extents[2], extents[3],
-                             extents[4], extents[5], extents[6], extents[7]),
-                     "reshape_view: insufficient memory");
-  out = ViewType(out.data(), extents[0], extents[1], extents[2], extents[3],
-                 extents[4], extents[5], extents[6], extents[7]);
+template <typename Layout, std::size_t N>
+Layout create_layout(const std::array<int, N>& extents) {
+  static_assert(std::is_same_v<Layout, Kokkos::LayoutLeft> ||
+                    std::is_same_v<Layout, Kokkos::LayoutRight>,
+                "create_layout: Layout must be either Kokkos::LayoutLeft or "
+                "Kokkos::LayoutRight.");
+  Layout layout;
+  std::copy_n(extents.begin(), N, layout.dimension);
+  return layout;
 }
 
 }  // namespace Impl

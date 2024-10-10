@@ -99,8 +99,13 @@ void fft_exec_impl(
   }
 
   if (plan.is_transpose_needed()) {
-    ManagableInViewType in_T;
-    ManagableOutViewType out_T;
+    using LayoutType = typename ManagableInViewType::array_layout;
+    ManagableInViewType const in_T(
+        "in_T",
+        create_layout<LayoutType>(compute_transpose_extents(_in, plan.map())));
+    ManagableOutViewType const out_T(
+        "out_T",
+        create_layout<LayoutType>(compute_transpose_extents(out, plan.map())));
 
     KokkosFFT::Impl::transpose(exec_space, _in, in_T, plan.map());
     KokkosFFT::Impl::transpose(exec_space, out, out_T, plan.map());
