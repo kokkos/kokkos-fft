@@ -244,9 +244,7 @@ using base_container_value_type = typename base_container_value<T>::value_type;
 template <typename T>
 struct manageable_view_type {
   using type = Kokkos::View<typename T::data_type, typename T::array_layout,
-                            typename T::memory_space,
-                            Kokkos::MemoryTraits<T::memory_traits::impl_value &
-                                                 ~unsigned(Kokkos::Unmanaged)>>;
+                            typename T::memory_space>;
 };
 
 /// \brief Helper to define a complex 1D View type from a real/complex 1D View
