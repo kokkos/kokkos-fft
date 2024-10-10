@@ -82,7 +82,7 @@ axis_type<ViewType::rank()> compute_transpose_extents(
                 "compute_transpose_extents: ViewType must be a Kokkos::View.");
   constexpr std::size_t rank = ViewType::rank();
 
-  std::array<int, rank> out_extents;
+  axis_type<rank> out_extents;
   for (std::size_t i = 0; i < rank; ++i) {
     out_extents.at(i) = view.extent(map.at(i));
   }
