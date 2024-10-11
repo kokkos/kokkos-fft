@@ -240,13 +240,12 @@ struct base_container_value<Kokkos::Array<ValueType, N>> {
 template <typename T>
 using base_container_value_type = typename base_container_value<T>::value_type;
 
-/// \brief Helper to define a manageable View type from the original view type
+/// \brief Helper to define a managed View type from a managed or unmanaged
+/// View type
 template <typename T>
 struct manageable_view_type {
   using type = Kokkos::View<typename T::data_type, typename T::array_layout,
-                            typename T::memory_space,
-                            Kokkos::MemoryTraits<T::memory_traits::impl_value &
-                                                 ~unsigned(Kokkos::Unmanaged)>>;
+                            typename T::memory_space>;
 };
 
 /// \brief Helper to define a complex 1D View type from a real/complex 1D View
