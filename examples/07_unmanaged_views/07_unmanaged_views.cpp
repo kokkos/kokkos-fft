@@ -14,6 +14,10 @@ using View1D = Kokkos::View<T*, execution_space>;
 template <typename T>
 using View3D = Kokkos::View<T***, execution_space>;
 
+template <typename T>
+using UView3D = Kokkos::View<T***, execution_space,
+                             Kokkos::MemoryTraits<Kokkos::Unmanaged>>;
+
 template <std::size_t DIM>
 using axis_type = KokkosFFT::axis_type<DIM>;
 template <std::size_t DIM>
@@ -36,16 +40,16 @@ int main(int argc, char* argv[]) {
 
     // combined storage buffer for xc2c and xc2c_inv
     View1D<Kokkos::complex<double>> storage(
-        "storage",
-        (View3D<Kokkos::complex<double>>::required_allocation_size(n0, n1, n2) +
-         sizeof(Kokkos::complex<double>)) /
-            sizeof(Kokkos::complex<double>) * 2);
-    View3D<Kokkos::complex<double>> xc2c(storage.data(), n0, n1, n2);
+        "storage", (UView3D<Kokkos::complex<double>>::required_allocation_size(
+                        n0, n1, n2) +
+                    sizeof(Kokkos::complex<double>)) /
+                       sizeof(Kokkos::complex<double>) * 2);
+    UView3D<Kokkos::complex<double>> xc2c(storage.data(), n0, n1, n2);
     View3D<Kokkos::complex<double>> xc2c_hat("xc2c_hat", n0, n1, n2);
-    View3D<Kokkos::complex<double>> xc2c_inv(
+    UView3D<Kokkos::complex<double>> xc2c_inv(
         storage.data() +
-            (View3D<Kokkos::complex<double>>::required_allocation_size(n0, n1,
-                                                                       n2) +
+            (UView3D<Kokkos::complex<double>>::required_allocation_size(n0, n1,
+                                                                        n2) +
              sizeof(Kokkos::complex<double>)) /
                 sizeof(Kokkos::complex<double>),
         n0, n1, n2);
