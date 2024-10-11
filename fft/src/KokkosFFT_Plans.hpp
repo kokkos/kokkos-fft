@@ -15,34 +15,45 @@
 #include "KokkosFFT_default_types.hpp"
 #include "KokkosFFT_traits.hpp"
 #include "KokkosFFT_transpose.hpp"
+#include "KokkosFFT_normalization.hpp"
 #include "KokkosFFT_padding.hpp"
 #include "KokkosFFT_utils.hpp"
 
 #if defined(KOKKOS_ENABLE_CUDA)
 #include "KokkosFFT_Cuda_plans.hpp"
+#include "KokkosFFT_Cuda_transform.hpp"
 #ifdef ENABLE_HOST_AND_DEVICE
 #include "KokkosFFT_Host_plans.hpp"
+#include "KokkosFFT_Host_transform.hpp"
 #endif
 #elif defined(KOKKOS_ENABLE_HIP)
 #if defined(KOKKOSFFT_ENABLE_TPL_ROCFFT)
 #include "KokkosFFT_ROCM_plans.hpp"
+#include "KokkosFFT_ROCM_transform.hpp"
 #else
 #include "KokkosFFT_HIP_plans.hpp"
+#include "KokkosFFT_HIP_transform.hpp"
 #endif
 #ifdef ENABLE_HOST_AND_DEVICE
 #include "KokkosFFT_Host_plans.hpp"
+#include "KokkosFFT_Host_transform.hpp"
 #endif
 #elif defined(KOKKOS_ENABLE_SYCL)
 #include "KokkosFFT_SYCL_plans.hpp"
+#include "KokkosFFT_SYCL_transform.hpp"
 #ifdef ENABLE_HOST_AND_DEVICE
 #include "KokkosFFT_Host_plans.hpp"
+#include "KokkosFFT_Host_transform.hpp"
 #endif
 #elif defined(KOKKOS_ENABLE_OPENMP)
 #include "KokkosFFT_Host_plans.hpp"
+#include "KokkosFFT_Host_transform.hpp"
 #elif defined(KOKKOS_ENABLE_THREADS)
 #include "KokkosFFT_Host_plans.hpp"
+#include "KokkosFFT_Host_transform.hpp"
 #else
 #include "KokkosFFT_Host_plans.hpp"
+#include "KokkosFFT_Host_transform.hpp"
 #endif
 
 namespace KokkosFFT {
@@ -134,12 +145,6 @@ class Plan {
   //! extents of input/output views
   extents_type m_in_extents, m_out_extents;
   ///@}
-
-  //! @{
-  //! Internal buffers used for transpose
-  nonConstInViewType m_in_T;
-  nonConstOutViewType m_out_T;
-  //! @}
 
   //! Internal work buffer (for rocfft)
   BufferViewType m_buffer;
@@ -270,6 +275,81 @@ class Plan {
   Plan& operator=(Plan&&) = delete;
   Plan(Plan&&)            = delete;
 
+  /// \brief Execute FFT on input and output Views with normalization
+  ///
+  /// \param in [in] Input data
+  /// \param out [out] Ouput data
+  template <typename InViewType2, typename OutViewType2>
+  void execute(
+      const InViewType2& in, const OutViewType2& out,
+      KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward) {
+    static_assert(
+        KokkosFFT::Impl::are_operatable_views_v<execSpace, InViewType,
+                                                OutViewType>,
+        "Plan::execute: InViewType and OutViewType must have the same base "
+        "floating point "
+        "type (float/double), the same layout (LayoutLeft/LayoutRight), and "
+        "the "
+        "same rank. ExecutionSpace must be accessible to the data in "
+        "InViewType "
+        "and OutViewType.");
+
+    // sanity check that the plan is consistent with the input/output views
+    good(in, out);
+
+    using ManagableInViewType =
+        typename KokkosFFT::Impl::manageable_view_type<InViewType2>::type;
+    using ManagableOutViewType =
+        typename KokkosFFT::Impl::manageable_view_type<OutViewType2>::type;
+    ManagableInViewType in_s;
+    InViewType2 in_tmp;
+    if (m_is_crop_or_pad_needed) {
+      KokkosFFT::Impl::crop_or_pad(m_exec_space, in, in_s, m_shape);
+      in_tmp = in_s;
+    } else {
+      in_tmp = in;
+    }
+
+    if (m_is_transpose_needed) {
+      using LayoutType = typename ManagableInViewType::array_layout;
+      ManagableInViewType const in_T(
+          "in_T",
+          KokkosFFT::Impl::create_layout<LayoutType>(
+              KokkosFFT::Impl::compute_transpose_extents(in_tmp, m_map)));
+      ManagableOutViewType const out_T(
+          "out_T", KokkosFFT::Impl::create_layout<LayoutType>(
+                       KokkosFFT::Impl::compute_transpose_extents(out, m_map)));
+
+      KokkosFFT::Impl::transpose(m_exec_space, in_tmp, in_T, m_map);
+      KokkosFFT::Impl::transpose(m_exec_space, out, out_T, m_map);
+
+      execute_fft(in_T, out_T, norm);
+
+      KokkosFFT::Impl::transpose(m_exec_space, out_T, out, m_map_inv);
+    } else {
+      execute_fft(in_tmp, out, norm);
+    }
+  }
+
+ private:
+  template <typename InViewType2, typename OutViewType2>
+  void execute_fft(const InViewType2& in, OutViewType2& out,
+                   KokkosFFT::Normalization norm) {
+    using in_value_type  = typename InViewType2::non_const_value_type;
+    using out_value_type = typename OutViewType2::non_const_value_type;
+
+    auto* idata = reinterpret_cast<typename KokkosFFT::Impl::fft_data_type<
+        execSpace, in_value_type>::type*>(in.data());
+    auto* odata = reinterpret_cast<typename KokkosFFT::Impl::fft_data_type<
+        execSpace, out_value_type>::type*>(out.data());
+
+    auto const direction =
+        KokkosFFT::Impl::direction_type<execSpace>(m_direction);
+    KokkosFFT::Impl::exec_plan(*m_plan, idata, odata, direction, m_info);
+    KokkosFFT::Impl::normalize(m_exec_space, out, m_direction, norm,
+                               m_fft_size);
+  }
+
   /// \brief Sanity check of the plan used to call FFT interface with
   ///        pre-defined FFT plan. This raises an error if there is an
   ///        incosistency between FFT function and plan
@@ -298,24 +378,6 @@ class Plan {
         out_extents != m_out_extents,
         "extents of output View for plan and execution are not identical.");
   }
-
-  /// \brief Return the execution space
-  execSpace const& exec_space() const noexcept { return m_exec_space; }
-
-  /// \brief Return the FFT plan
-  fft_plan_type& plan() const { return *m_plan; }
-
-  /// \brief Return the FFT info
-  fft_info_type const& info() const { return m_info; }
-
-  /// \brief Return the FFT size
-  fft_size_type fft_size() const { return m_fft_size; }
-  KokkosFFT::Direction direction() const { return m_direction; }
-  bool is_transpose_needed() const { return m_is_transpose_needed; }
-  bool is_crop_or_pad_needed() const { return m_is_crop_or_pad_needed; }
-  extents_type shape() const { return m_shape; }
-  map_type map() const { return m_map; }
-  map_type map_inv() const { return m_map_inv; }
 };
 }  // namespace KokkosFFT
 

@@ -6,123 +6,12 @@
 #define KOKKOSFFT_TRANSFORM_HPP
 
 #include <Kokkos_Core.hpp>
-#include "KokkosFFT_default_types.hpp"
 #include "KokkosFFT_traits.hpp"
-#include "KokkosFFT_utils.hpp"
 #include "KokkosFFT_normalization.hpp"
-#include "KokkosFFT_transpose.hpp"
-#include "KokkosFFT_padding.hpp"
+#include "KokkosFFT_utils.hpp"
 #include "KokkosFFT_Plans.hpp"
 
-#if defined(KOKKOS_ENABLE_CUDA)
-#include "KokkosFFT_Cuda_transform.hpp"
-#ifdef ENABLE_HOST_AND_DEVICE
-#include "KokkosFFT_Host_transform.hpp"
-#endif
-#elif defined(KOKKOS_ENABLE_HIP)
-#if defined(KOKKOSFFT_ENABLE_TPL_ROCFFT)
-#include "KokkosFFT_ROCM_transform.hpp"
-#else
-#include "KokkosFFT_HIP_transform.hpp"
-#endif
-#ifdef ENABLE_HOST_AND_DEVICE
-#include "KokkosFFT_Host_transform.hpp"
-#endif
-#elif defined(KOKKOS_ENABLE_SYCL)
-#include "KokkosFFT_SYCL_transform.hpp"
-#ifdef ENABLE_HOST_AND_DEVICE
-#include "KokkosFFT_Host_transform.hpp"
-#endif
-#elif defined(KOKKOS_ENABLE_OPENMP)
-#include "KokkosFFT_Host_transform.hpp"
-#elif defined(KOKKOS_ENABLE_THREADS)
-#include "KokkosFFT_Host_transform.hpp"
-#else
-#include "KokkosFFT_Host_transform.hpp"
-#endif
-
-#include <type_traits>
-
-// General Transform Interface
 namespace KokkosFFT {
-namespace Impl {
-
-template <typename PlanType, typename InViewType, typename OutViewType>
-void exec_impl(
-    const PlanType& plan, const InViewType& in, OutViewType& out,
-    KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward) {
-  using in_value_type  = typename InViewType::non_const_value_type;
-  using out_value_type = typename OutViewType::non_const_value_type;
-  using ExecutionSpace = typename PlanType::execSpace;
-
-  auto* idata = reinterpret_cast<typename KokkosFFT::Impl::fft_data_type<
-      ExecutionSpace, in_value_type>::type*>(in.data());
-  auto* odata = reinterpret_cast<typename KokkosFFT::Impl::fft_data_type<
-      ExecutionSpace, out_value_type>::type*>(out.data());
-
-  auto const exec_space = plan.exec_space();
-  auto const direction  = direction_type<ExecutionSpace>(plan.direction());
-  KokkosFFT::Impl::exec_plan(plan.plan(), idata, odata, direction, plan.info());
-  KokkosFFT::Impl::normalize(exec_space, out, plan.direction(), norm,
-                             plan.fft_size());
-}
-
-}  // namespace Impl
-}  // namespace KokkosFFT
-
-namespace KokkosFFT {
-template <typename PlanType, typename InViewType, typename OutViewType>
-void execute(
-    const PlanType& plan, const InViewType& in, OutViewType& out,
-    KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward) {
-  using ExecutionSpace = typename PlanType::execSpace;
-  static_assert(
-      KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                              OutViewType>,
-      "execute: InViewType and OutViewType must have the same base "
-      "floating point "
-      "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
-      "same rank. ExecutionSpace must be accessible to the data in InViewType "
-      "and OutViewType.");
-
-  plan.template good<InViewType, OutViewType>(in, out);
-
-  const auto exec_space = plan.exec_space();
-  using ManagableInViewType =
-      typename KokkosFFT::Impl::manageable_view_type<InViewType>::type;
-  using ManagableOutViewType =
-      typename KokkosFFT::Impl::manageable_view_type<OutViewType>::type;
-  ManagableInViewType _in_s;
-  InViewType _in;
-  if (plan.is_crop_or_pad_needed()) {
-    auto new_shape = plan.shape();
-    KokkosFFT::Impl::crop_or_pad(exec_space, in, _in_s, new_shape);
-    _in = _in_s;
-  } else {
-    _in = in;
-  }
-
-  if (plan.is_transpose_needed()) {
-    using LayoutType = typename ManagableInViewType::array_layout;
-    ManagableInViewType const in_T(
-        "in_T",
-        create_layout<LayoutType>(compute_transpose_extents(_in, plan.map())));
-    ManagableOutViewType const out_T(
-        "out_T",
-        create_layout<LayoutType>(compute_transpose_extents(out, plan.map())));
-
-    KokkosFFT::Impl::transpose(exec_space, _in, in_T, plan.map());
-    KokkosFFT::Impl::transpose(exec_space, out, out_T, plan.map());
-
-    KokkosFFT::Impl::exec_impl(plan, in_T, out_T, norm);
-
-    KokkosFFT::Impl::transpose(exec_space, out_T, out, plan.map_inv());
-
-  } else {
-    KokkosFFT::Impl::exec_impl(plan, _in, out, norm);
-  }
-}
-
 /// \brief One dimensional FFT in forward direction
 ///
 /// \param exec_space [in] Kokkos execution space
@@ -150,7 +39,7 @@ void fft(const ExecutionSpace& exec_space, const InViewType& in,
                      "axes are invalid for in/out views");
   KokkosFFT::Plan plan(exec_space, in, out, KokkosFFT::Direction::forward, axis,
                        n);
-  KokkosFFT::execute(plan, in, out, norm);
+  plan.execute(in, out, norm);
 }
 
 /// \brief One dimensional FFT in backward direction
@@ -180,7 +69,7 @@ void ifft(const ExecutionSpace& exec_space, const InViewType& in,
                      "axes are invalid for in/out views");
   KokkosFFT::Plan plan(exec_space, in, out, KokkosFFT::Direction::backward,
                        axis, n);
-  KokkosFFT::execute(plan, in, out, norm);
+  plan.execute(in, out, norm);
 }
 
 /// \brief One dimensional FFT for real input
@@ -368,7 +257,7 @@ void fft2(const ExecutionSpace& exec_space, const InViewType& in,
                      "axes are invalid for in/out views");
   KokkosFFT::Plan plan(exec_space, in, out, KokkosFFT::Direction::forward, axes,
                        s);
-  KokkosFFT::execute(plan, in, out, norm);
+  plan.execute(in, out, norm);
 }
 
 /// \brief Two dimensional FFT in backward direction
@@ -398,7 +287,7 @@ void ifft2(const ExecutionSpace& exec_space, const InViewType& in,
                      "axes are invalid for in/out views");
   KokkosFFT::Plan plan(exec_space, in, out, KokkosFFT::Direction::backward,
                        axes, s);
-  KokkosFFT::execute(plan, in, out, norm);
+  plan.execute(in, out, norm);
 }
 
 /// \brief Two dimensional FFT for real input
@@ -513,7 +402,7 @@ void fftn(
                      "axes are invalid for in/out views");
   KokkosFFT::Plan plan(exec_space, in, out, KokkosFFT::Direction::forward, axes,
                        s);
-  KokkosFFT::execute(plan, in, out, norm);
+  plan.execute(in, out, norm);
 }
 
 /// \brief N-dimensional FFT in backward direction with a given plan
@@ -556,7 +445,7 @@ void ifftn(
                      "axes are invalid for in/out views");
   KokkosFFT::Plan plan(exec_space, in, out, KokkosFFT::Direction::backward,
                        axes, s);
-  KokkosFFT::execute(plan, in, out, norm);
+  plan.execute(in, out, norm);
 }
 
 /// \brief N-dimensional FFT for real input

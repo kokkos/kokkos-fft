@@ -29,11 +29,11 @@ int main(int argc, char* argv[]) {
     int axis = -1;
     KokkosFFT::Plan fft_plan(exec, xc2c, xc2c_hat,
                              KokkosFFT::Direction::forward, axis);
-    KokkosFFT::execute(fft_plan, xc2c, xc2c_hat);
+    fft_plan.execute(xc2c, xc2c_hat);
 
     KokkosFFT::Plan ifft_plan(exec, xc2c_hat, xc2c_inv,
                               KokkosFFT::Direction::backward, axis);
-    KokkosFFT::execute(ifft_plan, xc2c_hat, xc2c_inv);
+    ifft_plan.execute(xc2c_hat, xc2c_inv);
 
     // 1D R2C FFT
     View1D<double> xr2c("xr2c", n0);
@@ -42,7 +42,7 @@ int main(int argc, char* argv[]) {
 
     KokkosFFT::Plan rfft_plan(exec, xr2c, xr2c_hat,
                               KokkosFFT::Direction::forward, axis);
-    KokkosFFT::execute(rfft_plan, xr2c, xr2c_hat);
+    rfft_plan.execute(xr2c, xr2c_hat);
 
     // 1D C2R FFT
     View1D<Kokkos::complex<double> > xc2r("xc2r_hat", n0 / 2 + 1);
@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
 
     KokkosFFT::Plan irfft_plan(exec, xc2r, xc2r_hat,
                                KokkosFFT::Direction::backward, axis);
-    KokkosFFT::execute(irfft_plan, xc2r, xc2r_hat);
+    irfft_plan.execute(xc2r, xc2r_hat);
     exec.fence();
   }
   Kokkos::finalize();
