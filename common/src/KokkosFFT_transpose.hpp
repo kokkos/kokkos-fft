@@ -132,7 +132,7 @@ void transpose_impl(const ExecutionSpace& exec_space, const InViewType& in,
       tile_type{{4, 4, 4}}  // [TO DO] Choose optimal tile sizes for each device
   );
 
-  Kokkos::Array<int, 3> map = {_map[0], _map[1], _map[2]};
+  Kokkos::Array<int, rank> map = to_array(_map);
   Kokkos::parallel_for(
       "KokkosFFT::transpose", range, KOKKOS_LAMBDA(int i0, int i1, int i2) {
         int _indices[rank] = {i0, i1, i2};
@@ -164,7 +164,7 @@ void transpose_impl(const ExecutionSpace& exec_space, const InViewType& in,
                    // [TO DO] Choose optimal tile sizes for each device
   );
 
-  Kokkos::Array<int, rank> map = {_map[0], _map[1], _map[2], _map[3]};
+  Kokkos::Array<int, rank> map = to_array(_map);
   Kokkos::parallel_for(
       "KokkosFFT::transpose", range,
       KOKKOS_LAMBDA(int i0, int i1, int i2, int i3) {
@@ -199,7 +199,7 @@ void transpose_impl(const ExecutionSpace& exec_space, const InViewType& in,
                    // [TO DO] Choose optimal tile sizes for each device
   );
 
-  Kokkos::Array<int, rank> map = {_map[0], _map[1], _map[2], _map[3], _map[4]};
+  Kokkos::Array<int, rank> map = to_array(_map);
   Kokkos::parallel_for(
       "KokkosFFT::transpose", range,
       KOKKOS_LAMBDA(int i0, int i1, int i2, int i3, int i4) {
@@ -236,8 +236,7 @@ void transpose_impl(const ExecutionSpace& exec_space, const InViewType& in,
                    // [TO DO] Choose optimal tile sizes for each device
   );
 
-  Kokkos::Array<int, rank> map = {_map[0], _map[1], _map[2],
-                                  _map[3], _map[4], _map[5]};
+  Kokkos::Array<int, rank> map = to_array(_map);
   Kokkos::parallel_for(
       "KokkosFFT::transpose", range,
       KOKKOS_LAMBDA(int i0, int i1, int i2, int i3, int i4, int i5) {
@@ -275,8 +274,7 @@ void transpose_impl(const ExecutionSpace& exec_space, const InViewType& in,
                    // [TO DO] Choose optimal tile sizes for each device
   );
 
-  Kokkos::Array<int, rank> map = {_map[0], _map[1], _map[2], _map[3],
-                                  _map[4], _map[5], _map[6]};
+  Kokkos::Array<int, rank> map = to_array(_map);
   Kokkos::parallel_for(
       "KokkosFFT::transpose", range,
       KOKKOS_LAMBDA(int i0, int i1, int i2, int i3, int i4, int i5) {
@@ -320,8 +318,7 @@ void transpose_impl(const ExecutionSpace& exec_space, const InViewType& in,
                    // [TO DO] Choose optimal tile sizes for each device
   );
 
-  Kokkos::Array<int, rank> map = {_map[0], _map[1], _map[2], _map[3],
-                                  _map[4], _map[5], _map[6], _map[7]};
+  Kokkos::Array<int, rank> map = to_array(_map);
   Kokkos::parallel_for(
       "KokkosFFT::transpose", range,
       KOKKOS_LAMBDA(int i0, int i1, int i2, int i3, int i4, int i5) {

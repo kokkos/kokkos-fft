@@ -215,6 +215,26 @@ Layout create_layout(const std::array<int, N>& extents) {
   return layout;
 }
 
+template <class T, size_t N, size_t... Is>
+constexpr Kokkos::Array<T, N> to_array_lvalue_helper(
+    std::array<T, N>& a, std::index_sequence<Is...>) {
+  return {{a[Is]...}};
+}
+template <class T, size_t N, size_t... Is>
+constexpr Kokkos::Array<T, N> to_array_rvalue_helper(
+    std::array<T, N>&& a, std::index_sequence<Is...>) {
+  return {{std::move(a[Is])...}};
+}
+
+template <class T, size_t N, size_t... Is>
+constexpr Kokkos::Array<T, N> to_array(std::array<T, N>& a) {
+  return to_array_lvalue_helper(a, std::make_index_sequence<N>());
+}
+template <class T, size_t N, size_t... Is>
+constexpr Kokkos::Array<T, N> to_array(std::array<T, N>&& a) {
+  return to_array_rvalue_helper(std::move(a), std::make_index_sequence<N>());
+}
+
 }  // namespace Impl
 }  // namespace KokkosFFT
 

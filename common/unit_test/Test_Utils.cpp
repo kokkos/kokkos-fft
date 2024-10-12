@@ -541,3 +541,16 @@ TEST(IndexSequence, 3Dto5D) {
   EXPECT_EQ(default_axes1, ref_axes1);
   EXPECT_EQ(default_axes2, ref_axes2);
 }
+
+TEST(ToArray, lvalue) {
+  std::array<int, 3> arr{1, 2, 3};
+  ASSERT_EQ(KokkosFFT::Impl::to_array(arr), (Kokkos::Array{1, 2, 3}));
+}
+
+TEST(ToArray, rvalue) {
+  ASSERT_EQ(KokkosFFT::Impl::to_array(std::array{1, 2}), (Kokkos::Array{1, 2}));
+  // [TO DO] Need to update Kokkos version for compile time test
+  // GTEST_SKIP() << "Skipping ToArray::rvalue compile time test";
+  // static_assert(KokkosFFT::Impl::to_array(std::array{1, 2}) ==
+  // Kokkos::Array{1, 2});
+}
