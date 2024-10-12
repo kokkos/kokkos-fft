@@ -97,12 +97,6 @@ class Plan {
   //! The type of map for transpose
   using map_type = axis_type<InViewType::rank()>;
 
-  //! The non-const View type of input view
-  using nonConstInViewType = std::remove_cv_t<InViewType>;
-
-  //! The non-const View type of output view
-  using nonConstOutViewType = std::remove_cv_t<OutViewType>;
-
   //! Naive 1D View for work buffer
   using BufferViewType =
       Kokkos::View<Kokkos::complex<float_type>*, layout_type, execSpace>;
@@ -160,9 +154,9 @@ class Plan {
   /// \param n [in] Length of the transformed axis of the output (default,
   /// nullopt)
   //
-  explicit Plan(const ExecutionSpace& exec_space, InViewType& in,
-                OutViewType& out, KokkosFFT::Direction direction, int axis,
-                std::optional<std::size_t> n = std::nullopt)
+  explicit Plan(const ExecutionSpace& exec_space, const InViewType& in,
+                const OutViewType& out, KokkosFFT::Direction direction,
+                int axis, std::optional<std::size_t> n = std::nullopt)
       : m_exec_space(exec_space), m_axes({axis}), m_direction(direction) {
     static_assert(KokkosFFT::Impl::is_AllowedSpace_v<ExecutionSpace>,
                   "Plan::Plan: ExecutionSpace is not allowed ");
@@ -218,8 +212,8 @@ class Plan {
   /// \param axes [in] Axes over which FFT is performed
   /// \param s [in] Shape of the transformed axis of the output (default, {})
   //
-  explicit Plan(const ExecutionSpace& exec_space, InViewType& in,
-                OutViewType& out, KokkosFFT::Direction direction,
+  explicit Plan(const ExecutionSpace& exec_space, const InViewType& in,
+                const OutViewType& out, KokkosFFT::Direction direction,
                 axis_type<DIM> axes, shape_type<DIM> s = {})
       : m_exec_space(exec_space), m_axes(axes), m_direction(direction) {
     static_assert(KokkosFFT::Impl::is_AllowedSpace_v<ExecutionSpace>,
@@ -279,10 +273,9 @@ class Plan {
   ///
   /// \param in [in] Input data
   /// \param out [out] Ouput data
-  template <typename InViewType2, typename OutViewType2>
-  void execute(
-      const InViewType2& in, const OutViewType2& out,
-      KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward) {
+  void execute(const InViewType& in, const OutViewType& out,
+               KokkosFFT::Normalization norm =
+                   KokkosFFT::Normalization::backward) const {
     static_assert(
         KokkosFFT::Impl::are_operatable_views_v<execSpace, InViewType,
                                                 OutViewType>,
@@ -298,11 +291,11 @@ class Plan {
     good(in, out);
 
     using ManagableInViewType =
-        typename KokkosFFT::Impl::manageable_view_type<InViewType2>::type;
+        typename KokkosFFT::Impl::manageable_view_type<InViewType>::type;
     using ManagableOutViewType =
-        typename KokkosFFT::Impl::manageable_view_type<OutViewType2>::type;
+        typename KokkosFFT::Impl::manageable_view_type<OutViewType>::type;
     ManagableInViewType in_s;
-    InViewType2 in_tmp;
+    InViewType in_tmp;
     if (m_is_crop_or_pad_needed) {
       KokkosFFT::Impl::crop_or_pad(m_exec_space, in, in_s, m_shape);
       in_tmp = in_s;
@@ -332,11 +325,10 @@ class Plan {
   }
 
  private:
-  template <typename InViewType2, typename OutViewType2>
-  void execute_fft(const InViewType2& in, OutViewType2& out,
-                   KokkosFFT::Normalization norm) {
-    using in_value_type  = typename InViewType2::non_const_value_type;
-    using out_value_type = typename OutViewType2::non_const_value_type;
+  void execute_fft(const InViewType& in, const OutViewType& out,
+                   KokkosFFT::Normalization norm) const {
+    using in_value_type  = typename InViewType::non_const_value_type;
+    using out_value_type = typename OutViewType::non_const_value_type;
 
     auto* idata = reinterpret_cast<typename KokkosFFT::Impl::fft_data_type<
         execSpace, in_value_type>::type*>(in.data());
@@ -356,17 +348,7 @@ class Plan {
   ///
   /// \param in [in] Input data
   /// \param out [in] Ouput data
-  template <typename InViewType2, typename OutViewType2>
-  void good(const InViewType2& in, const OutViewType2& out) const {
-    using nonConstInViewType2  = std::remove_cv_t<InViewType2>;
-    using nonConstOutViewType2 = std::remove_cv_t<OutViewType2>;
-    static_assert(std::is_same_v<nonConstInViewType2, nonConstInViewType>,
-                  "Plan::good: InViewType for plan and execution "
-                  "are not identical.");
-    static_assert(std::is_same_v<nonConstOutViewType2, nonConstOutViewType>,
-                  "Plan::good: OutViewType for plan and "
-                  "execution are not identical.");
-
+  void good(const InViewType& in, const OutViewType& out) const {
     auto in_extents  = KokkosFFT::Impl::extract_extents(in);
     auto out_extents = KokkosFFT::Impl::extract_extents(out);
 
