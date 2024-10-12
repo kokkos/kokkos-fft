@@ -217,7 +217,7 @@ Layout create_layout(const std::array<int, N>& extents) {
 
 template <class T, size_t N, size_t... Is>
 constexpr Kokkos::Array<T, N> to_array_lvalue_helper(
-    std::array<T, N>& a, std::index_sequence<Is...>) {
+    const std::array<T, N>& a, std::index_sequence<Is...>) {
   return {{a[Is]...}};
 }
 template <class T, size_t N, size_t... Is>
@@ -227,7 +227,7 @@ constexpr Kokkos::Array<T, N> to_array_rvalue_helper(
 }
 
 template <class T, size_t N, size_t... Is>
-constexpr Kokkos::Array<T, N> to_array(std::array<T, N>& a) {
+constexpr Kokkos::Array<T, N> to_array(const std::array<T, N>& a) {
   return to_array_lvalue_helper(a, std::make_index_sequence<N>());
 }
 template <class T, size_t N, size_t... Is>
