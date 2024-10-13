@@ -21,7 +21,7 @@ void normalize_impl(const ExecutionSpace& exec_space, ViewType& inout,
       "KokkosFFT::normalize",
       Kokkos::RangePolicy<ExecutionSpace, Kokkos::IndexType<std::size_t>>(
           exec_space, 0, size),
-      KOKKOS_LAMBDA(const int& i) { data[i] *= coef; });
+      KOKKOS_LAMBDA(std::size_t i) { data[i] *= coef; });
 }
 
 template <typename ViewType>
