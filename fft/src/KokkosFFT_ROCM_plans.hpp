@@ -16,8 +16,7 @@ namespace KokkosFFT {
 namespace Impl {
 // Helper to get input and output array type and direction from transform type
 template <typename TransformType>
-auto get_in_out_array_type(TransformType type,
-                           [[maybe_unused]] Direction direction) {
+auto get_in_out_array_type(TransformType type, Direction direction) {
   rocfft_array_type in_array_type, out_array_type;
   rocfft_transform_type fft_direction;
 
