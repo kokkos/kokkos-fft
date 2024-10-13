@@ -226,11 +226,11 @@ constexpr Kokkos::Array<T, N> to_array_rvalue_helper(
   return {{std::move(a[Is])...}};
 }
 
-template <class T, size_t N, size_t... Is>
+template <class T, size_t N>
 constexpr Kokkos::Array<T, N> to_array(const std::array<T, N>& a) {
   return to_array_lvalue_helper(a, std::make_index_sequence<N>());
 }
-template <class T, size_t N, size_t... Is>
+template <class T, size_t N>
 constexpr Kokkos::Array<T, N> to_array(std::array<T, N>&& a) {
   return to_array_rvalue_helper(std::move(a), std::make_index_sequence<N>());
 }
