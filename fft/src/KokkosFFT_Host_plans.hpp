@@ -37,7 +37,7 @@ template <typename ExecutionSpace, typename PlanType, typename InViewType,
 auto create_plan(const ExecutionSpace& exec_space,
                  std::unique_ptr<PlanType>& plan, const InViewType& in,
                  const OutViewType& out, BufferViewType&, InfoType&,
-                 [[maybe_unused]] Direction direction, axis_type<fft_rank> axes,
+                 Direction direction, axis_type<fft_rank> axes,
                  shape_type<fft_rank> s) {
   static_assert(
       KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,

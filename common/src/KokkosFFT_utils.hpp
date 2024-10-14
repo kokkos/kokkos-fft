@@ -34,9 +34,9 @@ template <typename ViewType>
 auto convert_negative_shift(const ViewType& view, int _shift, int _axis) {
   static_assert(Kokkos::is_view_v<ViewType>,
                 "convert_negative_shift: ViewType must be a Kokkos::View.");
-  int axis                    = convert_negative_axis(view, _axis);
-  int extent                  = view.extent(axis);
-  [[maybe_unused]] int shift0 = 0, shift1 = 0, shift2 = extent / 2;
+  int axis   = convert_negative_axis(view, _axis);
+  int extent = view.extent(axis);
+  int shift0 = 0, shift1 = 0, shift2 = extent / 2;
 
   if (_shift < 0) {
     shift0 = -_shift + extent % 2;  // add 1 for odd case
@@ -48,7 +48,7 @@ auto convert_negative_shift(const ViewType& view, int _shift, int _axis) {
     shift2 = 0;
   }
 
-  return std::tuple<int, int, int>({shift0, shift1, shift2});
+  return std::tuple<int, int, int>(shift0, shift1, shift2);
 }
 
 template <typename ContainerType, typename ValueType>

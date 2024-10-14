@@ -30,10 +30,8 @@ auto get_extents(const InViewType& in, const OutViewType& out,
                      "input axes are not valid for the view");
 
   constexpr std::size_t rank = InViewType::rank;
-  [[maybe_unused]] int inner_most_axis =
-      std::is_same_v<array_layout_type, typename Kokkos::LayoutLeft>
-          ? 0
-          : (rank - 1);
+  int inner_most_axis =
+      std::is_same_v<array_layout_type, Kokkos::LayoutLeft> ? 0 : (rank - 1);
 
   // index map after transpose over axis
   auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(in, axes);
@@ -97,10 +95,10 @@ auto get_extents(const InViewType& in, const OutViewType& out,
                                        1, std::multiplies<>());
   int fft_size = std::accumulate(fft_extents.begin(), fft_extents.end(), 1,
                                  std::multiplies<>());
-  [[maybe_unused]] int howmany = total_fft_size / fft_size;
+  int howmany  = total_fft_size / fft_size;
 
   return std::tuple<std::vector<int>, std::vector<int>, std::vector<int>, int>(
-      {in_extents, out_extents, fft_extents, howmany});
+      in_extents, out_extents, fft_extents, howmany);
 }
 }  // namespace Impl
 };  // namespace KokkosFFT
