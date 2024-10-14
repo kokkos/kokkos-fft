@@ -98,7 +98,7 @@ auto get_extents(const InViewType& in, const OutViewType& out,
   int howmany  = total_fft_size / fft_size;
 
   return std::tuple<std::vector<int>, std::vector<int>, std::vector<int>, int>(
-      {in_extents, out_extents, fft_extents, howmany});
+      in_extents, out_extents, fft_extents, howmany);
 }
 }  // namespace Impl
 };  // namespace KokkosFFT

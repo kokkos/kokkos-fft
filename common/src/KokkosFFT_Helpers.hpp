@@ -88,10 +88,9 @@ void roll(const ExecutionSpace& exec_space, ViewType& inout, axis_type<2> shift,
   using tile_type  = typename range_type::tile_type;
   using point_type = typename range_type::point_type;
 
-  range_type range(
-      exec_space, point_type{{0, 0}}, point_type{{len0, len1}},
-      tile_type{{4, 4}}  // [TO DO] Choose optimal tile sizes for each device
-  );
+  // [TO DO] Choose optimal tile sizes for each device
+  range_type range(exec_space, point_type{0, 0}, point_type{len0, len1},
+                   tile_type{4, 4});
 
   axis_type<2> shift0 = {0}, shift1 = {0}, shift2 = {n0 / 2, n1 / 2};
   for (int i = 0; static_cast<std::size_t>(i) < DIM1; i++) {

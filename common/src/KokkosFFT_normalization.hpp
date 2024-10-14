@@ -56,7 +56,7 @@ auto get_coefficients(ViewType, Direction direction,
     default:  // No normalization
       break;
   };
-  return std::tuple<value_type, bool>({coef, to_normalize});
+  return std::tuple<value_type, bool>(coef, to_normalize);
 }
 
 template <typename ExecutionSpace, typename ViewType>

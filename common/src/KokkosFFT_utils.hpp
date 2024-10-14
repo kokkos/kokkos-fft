@@ -48,7 +48,7 @@ auto convert_negative_shift(const ViewType& view, int _shift, int _axis) {
     shift2 = 0;
   }
 
-  return std::tuple<int, int, int>({shift0, shift1, shift2});
+  return std::tuple<int, int, int>(shift0, shift1, shift2);
 }
 
 template <typename ContainerType, typename ValueType>
