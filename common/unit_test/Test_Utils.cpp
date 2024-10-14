@@ -544,12 +544,19 @@ TEST(IndexSequence, 3Dto5D) {
 
 TEST(ToArray, lvalue) {
   std::array<int, 3> arr{1, 2, 3};
-  ASSERT_EQ(KokkosFFT::Impl::to_array(arr), (Kokkos::Array<int, 3>{1, 2, 3}));
+  Kokkos::Array<int, 3> ref_arr{1, 2, 3};
+  auto kokkos_arr = KokkosFFT::Impl::to_array(arr);
+  for (std::size_t i = 0; i < arr.size(); ++i) {
+    ASSERT_EQ(kokkos_arr[i], ref_arr[i]);
+  }
 }
 
 TEST(ToArray, rvalue) {
-  ASSERT_EQ(KokkosFFT::Impl::to_array(std::array{1, 2}),
-            (Kokkos::Array<int, 2>{1, 2}));
+  Kokkos::Array<int, 3> ref_arr{1, 2, 3};
+  auto kokkos_arr = KokkosFFT::Impl::to_array(std::array{1, 2, 3});
+  for (std::size_t i = 0; i < ref_arr.size(); ++i) {
+    ASSERT_EQ(kokkos_arr[i], ref_arr[i]);
+  }
   // [TO DO] Need to update Kokkos version for compile time test
   // GTEST_SKIP() << "Skipping ToArray::rvalue compile time test";
   // static_assert(KokkosFFT::Impl::to_array(std::array{1, 2}) ==
