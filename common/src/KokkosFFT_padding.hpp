@@ -103,7 +103,7 @@ void crop_or_pad_impl(const ExecutionSpace& exec_space, const InViewType& in,
       "KokkosFFT::crop_or_pad",
       Kokkos::RangePolicy<ExecutionSpace, Kokkos::IndexType<std::size_t>>(
           exec_space, 0, n0),
-      KOKKOS_LAMBDA(int i0) { out(i0) = in(i0); });
+      KOKKOS_LAMBDA(std::size_t i0) { out(i0) = in(i0); });
 }
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
