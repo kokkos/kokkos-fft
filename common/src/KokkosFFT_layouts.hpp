@@ -30,8 +30,10 @@ auto get_extents(const InViewType& in, const OutViewType& out,
                      "input axes are not valid for the view");
 
   constexpr std::size_t rank = InViewType::rank;
-  int inner_most_axis =
-      std::is_same_v<array_layout_type, Kokkos::LayoutLeft> ? 0 : (rank - 1);
+  [[maybe_unused]] int inner_most_axis =
+      std::is_same_v<array_layout_type, typename Kokkos::LayoutLeft>
+          ? 0
+          : (rank - 1);
 
   // index map after transpose over axis
   auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(in, axes);
@@ -61,7 +63,7 @@ auto get_extents(const InViewType& in, const OutViewType& out,
   static_assert(!(is_real_v<in_value_type> && is_real_v<out_value_type>),
                 "get_extents: real to real transform is not supported");
 
-  if (is_real_v<in_value_type>) {
+  if constexpr (is_real_v<in_value_type>) {
     // Then R2C
     KOKKOSFFT_THROW_IF(
         _out_extents.at(inner_most_axis) !=
@@ -70,7 +72,7 @@ auto get_extents(const InViewType& in, const OutViewType& out,
         "'input extent'/2 + 1");
   }
 
-  if (is_real_v<out_value_type>) {
+  if constexpr (is_real_v<out_value_type>) {
     // Then C2R
     KOKKOSFFT_THROW_IF(
         _in_extents.at(inner_most_axis) !=
@@ -79,7 +81,7 @@ auto get_extents(const InViewType& in, const OutViewType& out,
         "'output extent' / 2 + 1");
   }
 
-  if (std::is_same_v<array_layout_type, Kokkos::LayoutLeft>) {
+  if constexpr (std::is_same_v<array_layout_type, Kokkos::LayoutLeft>) {
     std::reverse(_in_extents.begin(), _in_extents.end());
     std::reverse(_out_extents.begin(), _out_extents.end());
     std::reverse(_fft_extents.begin(), _fft_extents.end());
