@@ -543,7 +543,7 @@ TEST(IndexSequence, 3Dto5D) {
 }
 
 TEST(ToArray, lvalue) {
-  std::array<int, 3> arr{1, 2, 3};
+  std::array arr{1, 2, 3};
   ASSERT_EQ(KokkosFFT::Impl::to_array(arr), (Kokkos::Array{1, 2, 3}));
 }
 
