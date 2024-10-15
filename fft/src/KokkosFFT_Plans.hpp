@@ -67,7 +67,7 @@ namespace KokkosFFT {
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           std::size_t DIM = 1>
 class Plan {
- public:
+ private:
   //! The type of Kokkos execution pace
   using execSpace = ExecutionSpace;
 
@@ -273,6 +273,7 @@ class Plan {
   ///
   /// \param in [in] Input data
   /// \param out [out] Ouput data
+  /// \param norm [in] How the normalization is applied (default, backward)
   void execute(const InViewType& in, const OutViewType& out,
                KokkosFFT::Normalization norm =
                    KokkosFFT::Normalization::backward) const {
@@ -327,9 +328,6 @@ class Plan {
  private:
   void execute_fft(const InViewType& in, const OutViewType& out,
                    KokkosFFT::Normalization norm) const {
-    using in_value_type  = typename InViewType::non_const_value_type;
-    using out_value_type = typename OutViewType::non_const_value_type;
-
     auto* idata = reinterpret_cast<typename KokkosFFT::Impl::fft_data_type<
         execSpace, in_value_type>::type*>(in.data());
     auto* odata = reinterpret_cast<typename KokkosFFT::Impl::fft_data_type<
