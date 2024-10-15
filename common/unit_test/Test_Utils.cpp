@@ -541,3 +541,12 @@ TEST(IndexSequence, 3Dto5D) {
   EXPECT_EQ(default_axes1, ref_axes1);
   EXPECT_EQ(default_axes2, ref_axes2);
 }
+
+TEST(ToArray, lvalue) {
+  std::array arr{1, 2, 3};
+  ASSERT_EQ(KokkosFFT::Impl::to_array(arr), (Kokkos::Array{1, 2, 3}));
+}
+
+TEST(ToArray, rvalue) {
+  ASSERT_EQ(KokkosFFT::Impl::to_array(std::array{1, 2}), (Kokkos::Array{1, 2}));
+}
