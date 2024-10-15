@@ -548,7 +548,5 @@ TEST(ToArray, lvalue) {
 }
 
 TEST(ToArray, rvalue) {
-  GTEST_SKIP() << "Skipping ToArray::rvalue compile time test";
-  static_assert(KokkosFFT::Impl::to_array(std::array{1, 2}) ==
-                Kokkos::Array{1, 2});
+  ASSERT_EQ(KokkosFFT::Impl::to_array(std::array{1, 2}), (Kokkos::Array{1, 2}));
 }
