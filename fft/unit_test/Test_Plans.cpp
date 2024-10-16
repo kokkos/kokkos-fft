@@ -85,7 +85,7 @@ void test_plan_constructible() {
   using ComplexView1DType =
       Kokkos::View<Kokkos::complex<ValueType>*, ExecutionSpace>;
   using PlanType =
-      KokkosFFT::Impl::Plan<ExecutionSpace, RealView1DType, ComplexView1DType>;
+      KokkosFFT::Plan<ExecutionSpace, RealView1DType, ComplexView1DType>;
 
 #if !defined(ENABLE_HOST_AND_DEVICE) &&                           \
     (defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) || \
@@ -132,59 +132,59 @@ void test_plan_1dfft_1dview() {
   ComplexView1DType x_cin("x_cin", n), x_cout("x_cout", n);
 
   // R2C plan
-  KokkosFFT::Impl::Plan plan_r2c_axis_0(execution_space(), x, x_c,
-                                        KokkosFFT::Direction::forward,
-                                        /*axis=*/0);
-  KokkosFFT::Impl::Plan plan_r2c_axes_0(execution_space(), x, x_c,
-                                        KokkosFFT::Direction::forward,
-                                        /*axes=*/axes_type<1>({0}));
+  KokkosFFT::Plan plan_r2c_axis_0(execution_space(), x, x_c,
+                                  KokkosFFT::Direction::forward,
+                                  /*axis=*/0);
+  KokkosFFT::Plan plan_r2c_axes_0(execution_space(), x, x_c,
+                                  KokkosFFT::Direction::forward,
+                                  /*axes=*/axes_type<1>({0}));
 
   // C2R plan
-  KokkosFFT::Impl::Plan plan_c2r_axis0(execution_space(), x_c, x,
-                                       KokkosFFT::Direction::backward,
-                                       /*axis=*/0);
-  KokkosFFT::Impl::Plan plan_c2r_axes0(execution_space(), x_c, x,
-                                       KokkosFFT::Direction::backward,
-                                       /*axes=*/axes_type<1>({0}));
+  KokkosFFT::Plan plan_c2r_axis0(execution_space(), x_c, x,
+                                 KokkosFFT::Direction::backward,
+                                 /*axis=*/0);
+  KokkosFFT::Plan plan_c2r_axes0(execution_space(), x_c, x,
+                                 KokkosFFT::Direction::backward,
+                                 /*axes=*/axes_type<1>({0}));
 
   // C2C plan
-  KokkosFFT::Impl::Plan plan_c2c_f_axis0(execution_space(), x_cin, x_cout,
-                                         KokkosFFT::Direction::forward,
-                                         /*axis=*/0);
-  KokkosFFT::Impl::Plan plan_c2c_f_axes0(execution_space(), x_cin, x_cout,
-                                         KokkosFFT::Direction::backward,
-                                         /*axes=*/axes_type<1>({0}));
+  KokkosFFT::Plan plan_c2c_f_axis0(execution_space(), x_cin, x_cout,
+                                   KokkosFFT::Direction::forward,
+                                   /*axis=*/0);
+  KokkosFFT::Plan plan_c2c_f_axes0(execution_space(), x_cin, x_cout,
+                                   KokkosFFT::Direction::backward,
+                                   /*axes=*/axes_type<1>({0}));
 
   // Check if errors are correctly raised aginst wrong dirction
   // Input Real, Output Complex -> must be forward plan
   EXPECT_THROW(
       {
-        KokkosFFT::Impl::Plan wrong_plan_r2c_axis0(
-            execution_space(), x, x_c, KokkosFFT::Direction::backward,
-            /*axis=*/0);
+        KokkosFFT::Plan wrong_plan_r2c_axis0(execution_space(), x, x_c,
+                                             KokkosFFT::Direction::backward,
+                                             /*axis=*/0);
       },
       std::runtime_error);
   EXPECT_THROW(
       {
-        KokkosFFT::Impl::Plan wrong_plan_r2c_axes0(
-            execution_space(), x, x_c, KokkosFFT::Direction::backward,
-            /*axes=*/axes_type<1>({0}));
+        KokkosFFT::Plan wrong_plan_r2c_axes0(execution_space(), x, x_c,
+                                             KokkosFFT::Direction::backward,
+                                             /*axes=*/axes_type<1>({0}));
       },
       std::runtime_error);
 
   // Input Complex, Output Real -> must be backward plan
   EXPECT_THROW(
       {
-        KokkosFFT::Impl::Plan wrong_plan_c2r_axis0(
-            execution_space(), x_c, x, KokkosFFT::Direction::forward,
-            /*axis=*/0);
+        KokkosFFT::Plan wrong_plan_c2r_axis0(execution_space(), x_c, x,
+                                             KokkosFFT::Direction::forward,
+                                             /*axis=*/0);
       },
       std::runtime_error);
   EXPECT_THROW(
       {
-        KokkosFFT::Impl::Plan wrong_plan_c2r_axes0(
-            execution_space(), x_c, x, KokkosFFT::Direction::forward,
-            /*axes=*/axes_type<1>({0}));
+        KokkosFFT::Plan wrong_plan_c2r_axes0(execution_space(), x_c, x,
+                                             KokkosFFT::Direction::forward,
+                                             /*axes=*/axes_type<1>({0}));
       },
       std::runtime_error);
 }
@@ -201,54 +201,54 @@ void test_plan_1dfft_2dview() {
   ComplexView2DType x_cin("x_cin", n0, n1), x_cout("x_cout", n0, n1);
 
   // R2C plan
-  KokkosFFT::Impl::Plan plan_r2c_axis_0(execution_space(), x, x_c_axis_0,
-                                        KokkosFFT::Direction::forward,
-                                        /*axis=*/0);
-  KokkosFFT::Impl::Plan plan_r2c_axis_1(execution_space(), x, x_c_axis_1,
-                                        KokkosFFT::Direction::forward,
-                                        /*axis=*/1);
-  KokkosFFT::Impl::Plan plan_r2c_axis_minus1(execution_space(), x, x_c_axis_1,
-                                             KokkosFFT::Direction::forward,
-                                             /*axis=*/-1);
+  KokkosFFT::Plan plan_r2c_axis_0(execution_space(), x, x_c_axis_0,
+                                  KokkosFFT::Direction::forward,
+                                  /*axis=*/0);
+  KokkosFFT::Plan plan_r2c_axis_1(execution_space(), x, x_c_axis_1,
+                                  KokkosFFT::Direction::forward,
+                                  /*axis=*/1);
+  KokkosFFT::Plan plan_r2c_axis_minus1(execution_space(), x, x_c_axis_1,
+                                       KokkosFFT::Direction::forward,
+                                       /*axis=*/-1);
 
   // C2R plan
-  KokkosFFT::Impl::Plan plan_c2r_axis_0(execution_space(), x_c_axis_0, x,
-                                        KokkosFFT::Direction::backward,
-                                        /*axis=*/0);
-  KokkosFFT::Impl::Plan plan_c2r_axis_1(execution_space(), x_c_axis_1, x,
-                                        KokkosFFT::Direction::backward,
-                                        /*axis=*/1);
-  KokkosFFT::Impl::Plan plan_c2r_axis_minus1(execution_space(), x_c_axis_1, x,
-                                             KokkosFFT::Direction::backward,
-                                             /*axis=*/-1);
+  KokkosFFT::Plan plan_c2r_axis_0(execution_space(), x_c_axis_0, x,
+                                  KokkosFFT::Direction::backward,
+                                  /*axis=*/0);
+  KokkosFFT::Plan plan_c2r_axis_1(execution_space(), x_c_axis_1, x,
+                                  KokkosFFT::Direction::backward,
+                                  /*axis=*/1);
+  KokkosFFT::Plan plan_c2r_axis_minus1(execution_space(), x_c_axis_1, x,
+                                       KokkosFFT::Direction::backward,
+                                       /*axis=*/-1);
 
   // C2C plan
-  KokkosFFT::Impl::Plan plan_c2c_f_axis_0(execution_space(), x_cin, x_cout,
-                                          KokkosFFT::Direction::forward,
-                                          /*axis=*/0);
-  KokkosFFT::Impl::Plan plan_c2c_f_axis_1(execution_space(), x_cin, x_cout,
-                                          KokkosFFT::Direction::forward,
-                                          /*axis=*/1);
+  KokkosFFT::Plan plan_c2c_f_axis_0(execution_space(), x_cin, x_cout,
+                                    KokkosFFT::Direction::forward,
+                                    /*axis=*/0);
+  KokkosFFT::Plan plan_c2c_f_axis_1(execution_space(), x_cin, x_cout,
+                                    KokkosFFT::Direction::forward,
+                                    /*axis=*/1);
 
   // Check if errors are correctly raised aginst wrong dirction
   // Input Real, Output Complex -> must be forward plan
   EXPECT_THROW(
       {
-        KokkosFFT::Impl::Plan wrong_plan_r2c_axis_0(
-            execution_space(), x, x_c_axis_0, KokkosFFT::Direction::backward,
-            /*axis=*/0);
+        KokkosFFT::Plan wrong_plan_r2c_axis_0(execution_space(), x, x_c_axis_0,
+                                              KokkosFFT::Direction::backward,
+                                              /*axis=*/0);
       },
       std::runtime_error);
   EXPECT_THROW(
       {
-        KokkosFFT::Impl::Plan wrong_plan_r2c_axis_1(
-            execution_space(), x, x_c_axis_1, KokkosFFT::Direction::backward,
-            /*axis=*/1);
+        KokkosFFT::Plan wrong_plan_r2c_axis_1(execution_space(), x, x_c_axis_1,
+                                              KokkosFFT::Direction::backward,
+                                              /*axis=*/1);
       },
       std::runtime_error);
   EXPECT_THROW(
       {
-        KokkosFFT::Impl::Plan wrong_plan_r2c_axis_minus1(
+        KokkosFFT::Plan wrong_plan_r2c_axis_minus1(
             execution_space(), x, x_c_axis_1, KokkosFFT::Direction::backward,
             /*axis=*/-1);
       },
@@ -257,21 +257,21 @@ void test_plan_1dfft_2dview() {
   // Input Complex, Output Real -> must be backward plan
   EXPECT_THROW(
       {
-        KokkosFFT::Impl::Plan wrong_plan_c2r_axis_0(
-            execution_space(), x_c_axis_0, x, KokkosFFT::Direction::forward,
-            /*axis=*/0);
+        KokkosFFT::Plan wrong_plan_c2r_axis_0(execution_space(), x_c_axis_0, x,
+                                              KokkosFFT::Direction::forward,
+                                              /*axis=*/0);
       },
       std::runtime_error);
   EXPECT_THROW(
       {
-        KokkosFFT::Impl::Plan wrong_plan_c2r_axis_1(
-            execution_space(), x_c_axis_1, x, KokkosFFT::Direction::forward,
-            /*axis=*/1);
+        KokkosFFT::Plan wrong_plan_c2r_axis_1(execution_space(), x_c_axis_1, x,
+                                              KokkosFFT::Direction::forward,
+                                              /*axis=*/1);
       },
       std::runtime_error);
   EXPECT_THROW(
       {
-        KokkosFFT::Impl::Plan wrong_plan_c2r_axis_minus1(
+        KokkosFFT::Plan wrong_plan_c2r_axis_minus1(
             execution_space(), x_c_axis_1, x, KokkosFFT::Direction::forward,
             /*axis=*/-1);
       },
@@ -292,93 +292,93 @@ void test_plan_1dfft_3dview() {
   ComplexView3DType x_cin("x_cin", n0, n1, n2), x_cout("x_cout", n0, n1, n2);
 
   // R2C plan
-  KokkosFFT::Impl::Plan plan_r2c_axis_0(execution_space(), x, x_c_axis_0,
-                                        KokkosFFT::Direction::forward,
-                                        /*axis=*/0);
-  KokkosFFT::Impl::Plan plan_r2c_axis_1(execution_space(), x, x_c_axis_1,
-                                        KokkosFFT::Direction::forward,
-                                        /*axis=*/1);
-  KokkosFFT::Impl::Plan plan_r2c_axis_2(execution_space(), x, x_c_axis_2,
-                                        KokkosFFT::Direction::forward,
-                                        /*axis=*/2);
+  KokkosFFT::Plan plan_r2c_axis_0(execution_space(), x, x_c_axis_0,
+                                  KokkosFFT::Direction::forward,
+                                  /*axis=*/0);
+  KokkosFFT::Plan plan_r2c_axis_1(execution_space(), x, x_c_axis_1,
+                                  KokkosFFT::Direction::forward,
+                                  /*axis=*/1);
+  KokkosFFT::Plan plan_r2c_axis_2(execution_space(), x, x_c_axis_2,
+                                  KokkosFFT::Direction::forward,
+                                  /*axis=*/2);
 
   // C2R plan
-  KokkosFFT::Impl::Plan plan_c2r_axis_0(execution_space(), x_c_axis_0, x,
-                                        KokkosFFT::Direction::backward,
-                                        /*axis=*/0);
-  KokkosFFT::Impl::Plan plan_c2r_axis_1(execution_space(), x_c_axis_1, x,
-                                        KokkosFFT::Direction::backward,
-                                        /*axis=*/1);
-  KokkosFFT::Impl::Plan plan_c2r_axis_2(execution_space(), x_c_axis_2, x,
-                                        KokkosFFT::Direction::backward,
-                                        /*axis=*/2);
+  KokkosFFT::Plan plan_c2r_axis_0(execution_space(), x_c_axis_0, x,
+                                  KokkosFFT::Direction::backward,
+                                  /*axis=*/0);
+  KokkosFFT::Plan plan_c2r_axis_1(execution_space(), x_c_axis_1, x,
+                                  KokkosFFT::Direction::backward,
+                                  /*axis=*/1);
+  KokkosFFT::Plan plan_c2r_axis_2(execution_space(), x_c_axis_2, x,
+                                  KokkosFFT::Direction::backward,
+                                  /*axis=*/2);
 
   // C2C plan
-  KokkosFFT::Impl::Plan plan_c2c_f_axis_0(execution_space(), x_cin, x_cout,
-                                          KokkosFFT::Direction::forward,
-                                          /*axis=*/0);
-  KokkosFFT::Impl::Plan plan_c2c_f_axis_1(execution_space(), x_cin, x_cout,
-                                          KokkosFFT::Direction::forward,
-                                          /*axis=*/1);
-  KokkosFFT::Impl::Plan plan_c2c_f_axis_2(execution_space(), x_cin, x_cout,
-                                          KokkosFFT::Direction::forward,
-                                          /*axis=*/2);
-  KokkosFFT::Impl::Plan plan_c2c_b_axis_0(execution_space(), x_cin, x_cout,
-                                          KokkosFFT::Direction::backward,
-                                          /*axis=*/0);
-  KokkosFFT::Impl::Plan plan_c2c_b_axis_1(execution_space(), x_cin, x_cout,
-                                          KokkosFFT::Direction::backward,
-                                          /*axis=*/1);
-  KokkosFFT::Impl::Plan plan_c2c_b_axis_2(execution_space(), x_cin, x_cout,
-                                          KokkosFFT::Direction::backward,
-                                          /*axis=*/2);
+  KokkosFFT::Plan plan_c2c_f_axis_0(execution_space(), x_cin, x_cout,
+                                    KokkosFFT::Direction::forward,
+                                    /*axis=*/0);
+  KokkosFFT::Plan plan_c2c_f_axis_1(execution_space(), x_cin, x_cout,
+                                    KokkosFFT::Direction::forward,
+                                    /*axis=*/1);
+  KokkosFFT::Plan plan_c2c_f_axis_2(execution_space(), x_cin, x_cout,
+                                    KokkosFFT::Direction::forward,
+                                    /*axis=*/2);
+  KokkosFFT::Plan plan_c2c_b_axis_0(execution_space(), x_cin, x_cout,
+                                    KokkosFFT::Direction::backward,
+                                    /*axis=*/0);
+  KokkosFFT::Plan plan_c2c_b_axis_1(execution_space(), x_cin, x_cout,
+                                    KokkosFFT::Direction::backward,
+                                    /*axis=*/1);
+  KokkosFFT::Plan plan_c2c_b_axis_2(execution_space(), x_cin, x_cout,
+                                    KokkosFFT::Direction::backward,
+                                    /*axis=*/2);
 
   // Check if errors are correctly raised aginst wrong dirction
   // Input Real, Output Complex -> must be forward plan
   EXPECT_THROW(
       {
-        KokkosFFT::Impl::Plan wrong_plan_r2c_axis_0(
-            execution_space(), x, x_c_axis_0, KokkosFFT::Direction::backward,
-            /*axis=*/0);
+        KokkosFFT::Plan wrong_plan_r2c_axis_0(execution_space(), x, x_c_axis_0,
+                                              KokkosFFT::Direction::backward,
+                                              /*axis=*/0);
       },
       std::runtime_error);
   EXPECT_THROW(
       {
-        KokkosFFT::Impl::Plan wrong_plan_r2c_axis_1(
-            execution_space(), x, x_c_axis_1, KokkosFFT::Direction::backward,
-            /*axis=*/1);
+        KokkosFFT::Plan wrong_plan_r2c_axis_1(execution_space(), x, x_c_axis_1,
+                                              KokkosFFT::Direction::backward,
+                                              /*axis=*/1);
       },
       std::runtime_error);
 
   EXPECT_THROW(
       {
-        KokkosFFT::Impl::Plan wrong_plan_r2c_axis_2(
-            execution_space(), x, x_c_axis_2, KokkosFFT::Direction::backward,
-            /*axis=*/2);
+        KokkosFFT::Plan wrong_plan_r2c_axis_2(execution_space(), x, x_c_axis_2,
+                                              KokkosFFT::Direction::backward,
+                                              /*axis=*/2);
       },
       std::runtime_error);
 
   // Input Complex, Output Real -> must be backward plan
   EXPECT_THROW(
       {
-        KokkosFFT::Impl::Plan wrong_plan_c2r_axis_0(
-            execution_space(), x_c_axis_0, x, KokkosFFT::Direction::forward,
-            /*axis=*/0);
+        KokkosFFT::Plan wrong_plan_c2r_axis_0(execution_space(), x_c_axis_0, x,
+                                              KokkosFFT::Direction::forward,
+                                              /*axis=*/0);
       },
       std::runtime_error);
   EXPECT_THROW(
       {
-        KokkosFFT::Impl::Plan wrong_plan_c2r_axis_1(
-            execution_space(), x_c_axis_1, x, KokkosFFT::Direction::forward,
-            /*axis=*/1);
+        KokkosFFT::Plan wrong_plan_c2r_axis_1(execution_space(), x_c_axis_1, x,
+                                              KokkosFFT::Direction::forward,
+                                              /*axis=*/1);
       },
       std::runtime_error);
 
   EXPECT_THROW(
       {
-        KokkosFFT::Impl::Plan wrong_plan_c2r_axis_2(
-            execution_space(), x_c_axis_2, x, KokkosFFT::Direction::forward,
-            /*axis=*/2);
+        KokkosFFT::Plan wrong_plan_c2r_axis_2(execution_space(), x_c_axis_2, x,
+                                              KokkosFFT::Direction::forward,
+                                              /*axis=*/2);
       },
       std::runtime_error);
 }
@@ -420,41 +420,41 @@ void test_plan_2dfft_2dview() {
   ComplexView2DType x_cin("x_cin", n0, n1), x_cout("x_cout", n0, n1);
 
   // R2C plan
-  KokkosFFT::Impl::Plan plan_r2c_axes_0_1(execution_space(), x, x_c_axis_1,
-                                          KokkosFFT::Direction::forward,
-                                          /*axes=*/axes_type<2>({0, 1}));
-  KokkosFFT::Impl::Plan plan_r2c_axes_1_0(execution_space(), x, x_c_axis_0,
-                                          KokkosFFT::Direction::forward,
-                                          /*axes=*/axes_type<2>({1, 0}));
+  KokkosFFT::Plan plan_r2c_axes_0_1(execution_space(), x, x_c_axis_1,
+                                    KokkosFFT::Direction::forward,
+                                    /*axes=*/axes_type<2>({0, 1}));
+  KokkosFFT::Plan plan_r2c_axes_1_0(execution_space(), x, x_c_axis_0,
+                                    KokkosFFT::Direction::forward,
+                                    /*axes=*/axes_type<2>({1, 0}));
 
   // C2R plan
-  KokkosFFT::Impl::Plan plan_c2r_axes_0_1(execution_space(), x_c_axis_1, x,
-                                          KokkosFFT::Direction::backward,
-                                          /*axes=*/axes_type<2>({0, 1}));
-  KokkosFFT::Impl::Plan plan_c2r_axes_1_0(execution_space(), x_c_axis_0, x,
-                                          KokkosFFT::Direction::backward,
-                                          /*axes=*/axes_type<2>({1, 0}));
+  KokkosFFT::Plan plan_c2r_axes_0_1(execution_space(), x_c_axis_1, x,
+                                    KokkosFFT::Direction::backward,
+                                    /*axes=*/axes_type<2>({0, 1}));
+  KokkosFFT::Plan plan_c2r_axes_1_0(execution_space(), x_c_axis_0, x,
+                                    KokkosFFT::Direction::backward,
+                                    /*axes=*/axes_type<2>({1, 0}));
 
   // C2C plan
-  KokkosFFT::Impl::Plan plan_c2c_f_axes_0_1(execution_space(), x_cin, x_cout,
-                                            KokkosFFT::Direction::forward,
-                                            /*axes=*/axes_type<2>({0, 1}));
-  KokkosFFT::Impl::Plan plan_c2c_f_axes_1_0(execution_space(), x_cin, x_cout,
-                                            KokkosFFT::Direction::forward,
-                                            /*axes=*/axes_type<2>({1, 0}));
+  KokkosFFT::Plan plan_c2c_f_axes_0_1(execution_space(), x_cin, x_cout,
+                                      KokkosFFT::Direction::forward,
+                                      /*axes=*/axes_type<2>({0, 1}));
+  KokkosFFT::Plan plan_c2c_f_axes_1_0(execution_space(), x_cin, x_cout,
+                                      KokkosFFT::Direction::forward,
+                                      /*axes=*/axes_type<2>({1, 0}));
 
   // Check if errors are correctly raised aginst wrong dirction
   // Input Real, Output Complex -> must be forward plan
   EXPECT_THROW(
       {
-        KokkosFFT::Impl::Plan wrong_plan_r2c_axes_0_1(
+        KokkosFFT::Plan wrong_plan_r2c_axes_0_1(
             execution_space(), x, x_c_axis_1, KokkosFFT::Direction::backward,
             /*axes=*/axes_type<2>({0, 1}));
       },
       std::runtime_error);
   EXPECT_THROW(
       {
-        KokkosFFT::Impl::Plan wrong_plan_r2c_axes_1_0(
+        KokkosFFT::Plan wrong_plan_r2c_axes_1_0(
             execution_space(), x, x_c_axis_0, KokkosFFT::Direction::backward,
             /*axes=*/axes_type<2>({1, 0}));
       },
@@ -463,14 +463,14 @@ void test_plan_2dfft_2dview() {
   // Input Complex, Output Real -> must be backward plan
   EXPECT_THROW(
       {
-        KokkosFFT::Impl::Plan wrong_plan_c2r_axes_0_1(
+        KokkosFFT::Plan wrong_plan_c2r_axes_0_1(
             execution_space(), x_c_axis_1, x, KokkosFFT::Direction::forward,
             /*axes=*/axes_type<2>({0, 1}));
       },
       std::runtime_error);
   EXPECT_THROW(
       {
-        KokkosFFT::Impl::Plan wrong_plan_c2r_axes_1_0(
+        KokkosFFT::Plan wrong_plan_c2r_axes_1_0(
             execution_space(), x_c_axis_0, x, KokkosFFT::Direction::forward,
             /*axes=*/axes_type<2>({1, 0}));
       },
@@ -491,105 +491,105 @@ void test_plan_2dfft_3dview() {
   ComplexView3DType x_cin("x_cin", n0, n1, n2), x_cout("x_cout", n0, n1, n2);
 
   // R2C plan
-  KokkosFFT::Impl::Plan plan_r2c_axes_0_1(execution_space(), x, x_c_axis_1,
-                                          KokkosFFT::Direction::forward,
-                                          /*axes=*/axes_type<2>({0, 1}));
-  KokkosFFT::Impl::Plan plan_r2c_axes_0_2(execution_space(), x, x_c_axis_2,
-                                          KokkosFFT::Direction::forward,
-                                          /*axes=*/axes_type<2>({0, 2}));
-  KokkosFFT::Impl::Plan plan_r2c_axes_1_0(execution_space(), x, x_c_axis_0,
-                                          KokkosFFT::Direction::forward,
-                                          /*axes=*/axes_type<2>({1, 0}));
-  KokkosFFT::Impl::Plan plan_r2c_axes_1_2(execution_space(), x, x_c_axis_2,
-                                          KokkosFFT::Direction::forward,
-                                          /*axes=*/axes_type<2>({1, 2}));
-  KokkosFFT::Impl::Plan plan_r2c_axes_2_0(execution_space(), x, x_c_axis_0,
-                                          KokkosFFT::Direction::forward,
-                                          /*axes=*/axes_type<2>({2, 0}));
-  KokkosFFT::Impl::Plan plan_r2c_axes_2_1(execution_space(), x, x_c_axis_1,
-                                          KokkosFFT::Direction::forward,
-                                          /*axes=*/axes_type<2>({2, 1}));
+  KokkosFFT::Plan plan_r2c_axes_0_1(execution_space(), x, x_c_axis_1,
+                                    KokkosFFT::Direction::forward,
+                                    /*axes=*/axes_type<2>({0, 1}));
+  KokkosFFT::Plan plan_r2c_axes_0_2(execution_space(), x, x_c_axis_2,
+                                    KokkosFFT::Direction::forward,
+                                    /*axes=*/axes_type<2>({0, 2}));
+  KokkosFFT::Plan plan_r2c_axes_1_0(execution_space(), x, x_c_axis_0,
+                                    KokkosFFT::Direction::forward,
+                                    /*axes=*/axes_type<2>({1, 0}));
+  KokkosFFT::Plan plan_r2c_axes_1_2(execution_space(), x, x_c_axis_2,
+                                    KokkosFFT::Direction::forward,
+                                    /*axes=*/axes_type<2>({1, 2}));
+  KokkosFFT::Plan plan_r2c_axes_2_0(execution_space(), x, x_c_axis_0,
+                                    KokkosFFT::Direction::forward,
+                                    /*axes=*/axes_type<2>({2, 0}));
+  KokkosFFT::Plan plan_r2c_axes_2_1(execution_space(), x, x_c_axis_1,
+                                    KokkosFFT::Direction::forward,
+                                    /*axes=*/axes_type<2>({2, 1}));
 
   // C2R plan
-  KokkosFFT::Impl::Plan plan_c2r_axes_0_1(execution_space(), x_c_axis_1, x,
-                                          KokkosFFT::Direction::backward,
-                                          /*axes=*/axes_type<2>({0, 1}));
-  KokkosFFT::Impl::Plan plan_c2r_axes_0_2(execution_space(), x_c_axis_2, x,
-                                          KokkosFFT::Direction::backward,
-                                          /*axes=*/axes_type<2>({0, 2}));
-  KokkosFFT::Impl::Plan plan_c2r_axes_1_0(execution_space(), x_c_axis_0, x,
-                                          KokkosFFT::Direction::backward,
-                                          /*axes=*/axes_type<2>({1, 0}));
-  KokkosFFT::Impl::Plan plan_c2r_axes_1_2(execution_space(), x_c_axis_2, x,
-                                          KokkosFFT::Direction::backward,
-                                          /*axes=*/axes_type<2>({1, 2}));
-  KokkosFFT::Impl::Plan plan_c2r_axes_2_0(execution_space(), x_c_axis_0, x,
-                                          KokkosFFT::Direction::backward,
-                                          /*axes=*/axes_type<2>({2, 0}));
-  KokkosFFT::Impl::Plan plan_c2r_axes_2_1(execution_space(), x_c_axis_1, x,
-                                          KokkosFFT::Direction::backward,
-                                          /*axes=*/axes_type<2>({2, 1}));
+  KokkosFFT::Plan plan_c2r_axes_0_1(execution_space(), x_c_axis_1, x,
+                                    KokkosFFT::Direction::backward,
+                                    /*axes=*/axes_type<2>({0, 1}));
+  KokkosFFT::Plan plan_c2r_axes_0_2(execution_space(), x_c_axis_2, x,
+                                    KokkosFFT::Direction::backward,
+                                    /*axes=*/axes_type<2>({0, 2}));
+  KokkosFFT::Plan plan_c2r_axes_1_0(execution_space(), x_c_axis_0, x,
+                                    KokkosFFT::Direction::backward,
+                                    /*axes=*/axes_type<2>({1, 0}));
+  KokkosFFT::Plan plan_c2r_axes_1_2(execution_space(), x_c_axis_2, x,
+                                    KokkosFFT::Direction::backward,
+                                    /*axes=*/axes_type<2>({1, 2}));
+  KokkosFFT::Plan plan_c2r_axes_2_0(execution_space(), x_c_axis_0, x,
+                                    KokkosFFT::Direction::backward,
+                                    /*axes=*/axes_type<2>({2, 0}));
+  KokkosFFT::Plan plan_c2r_axes_2_1(execution_space(), x_c_axis_1, x,
+                                    KokkosFFT::Direction::backward,
+                                    /*axes=*/axes_type<2>({2, 1}));
 
   // C2C plan
-  KokkosFFT::Impl::Plan plan_c2c_f_axes_0_1(execution_space(), x_cin, x_cout,
-                                            KokkosFFT::Direction::forward,
-                                            /*axes=*/axes_type<2>({0, 1}));
-  KokkosFFT::Impl::Plan plan_c2c_f_axes_0_2(execution_space(), x_cin, x_cout,
-                                            KokkosFFT::Direction::forward,
-                                            /*axes=*/axes_type<2>({0, 2}));
-  KokkosFFT::Impl::Plan plan_c2c_f_axes_1_0(execution_space(), x_cin, x_cout,
-                                            KokkosFFT::Direction::forward,
-                                            /*axes=*/axes_type<2>({1, 0}));
-  KokkosFFT::Impl::Plan plan_c2c_f_axes_1_2(execution_space(), x_cin, x_cout,
-                                            KokkosFFT::Direction::forward,
-                                            /*axes=*/axes_type<2>({1, 2}));
-  KokkosFFT::Impl::Plan plan_c2c_f_axes_2_0(execution_space(), x_cin, x_cout,
-                                            KokkosFFT::Direction::forward,
-                                            /*axes=*/axes_type<2>({2, 0}));
-  KokkosFFT::Impl::Plan plan_c2c_f_axes_2_1(execution_space(), x_cin, x_cout,
-                                            KokkosFFT::Direction::forward,
-                                            /*axes=*/axes_type<2>({2, 1}));
+  KokkosFFT::Plan plan_c2c_f_axes_0_1(execution_space(), x_cin, x_cout,
+                                      KokkosFFT::Direction::forward,
+                                      /*axes=*/axes_type<2>({0, 1}));
+  KokkosFFT::Plan plan_c2c_f_axes_0_2(execution_space(), x_cin, x_cout,
+                                      KokkosFFT::Direction::forward,
+                                      /*axes=*/axes_type<2>({0, 2}));
+  KokkosFFT::Plan plan_c2c_f_axes_1_0(execution_space(), x_cin, x_cout,
+                                      KokkosFFT::Direction::forward,
+                                      /*axes=*/axes_type<2>({1, 0}));
+  KokkosFFT::Plan plan_c2c_f_axes_1_2(execution_space(), x_cin, x_cout,
+                                      KokkosFFT::Direction::forward,
+                                      /*axes=*/axes_type<2>({1, 2}));
+  KokkosFFT::Plan plan_c2c_f_axes_2_0(execution_space(), x_cin, x_cout,
+                                      KokkosFFT::Direction::forward,
+                                      /*axes=*/axes_type<2>({2, 0}));
+  KokkosFFT::Plan plan_c2c_f_axes_2_1(execution_space(), x_cin, x_cout,
+                                      KokkosFFT::Direction::forward,
+                                      /*axes=*/axes_type<2>({2, 1}));
 
   // Check if errors are correctly raised aginst wrong dirction
   // Input Real, Output Complex -> must be forward plan
   EXPECT_THROW(
       {
-        KokkosFFT::Impl::Plan wrong_plan_r2c_axes_0_1(
+        KokkosFFT::Plan wrong_plan_r2c_axes_0_1(
             execution_space(), x, x_c_axis_1, KokkosFFT::Direction::backward,
             /*axes=*/axes_type<2>({0, 1}));
       },
       std::runtime_error);
   EXPECT_THROW(
       {
-        KokkosFFT::Impl::Plan wrong_plan_r2c_axes_0_2(
+        KokkosFFT::Plan wrong_plan_r2c_axes_0_2(
             execution_space(), x, x_c_axis_2, KokkosFFT::Direction::backward,
             /*axes=*/axes_type<2>({0, 2}));
       },
       std::runtime_error);
   EXPECT_THROW(
       {
-        KokkosFFT::Impl::Plan wrong_plan_r2c_axes_1_0(
+        KokkosFFT::Plan wrong_plan_r2c_axes_1_0(
             execution_space(), x, x_c_axis_0, KokkosFFT::Direction::backward,
             /*axes=*/axes_type<2>({1, 0}));
       },
       std::runtime_error);
   EXPECT_THROW(
       {
-        KokkosFFT::Impl::Plan wrong_plan_r2c_axes_1_2(
+        KokkosFFT::Plan wrong_plan_r2c_axes_1_2(
             execution_space(), x, x_c_axis_2, KokkosFFT::Direction::backward,
             /*axes=*/axes_type<2>({1, 2}));
       },
       std::runtime_error);
   EXPECT_THROW(
       {
-        KokkosFFT::Impl::Plan wrong_plan_r2c_axes_2_0(
+        KokkosFFT::Plan wrong_plan_r2c_axes_2_0(
             execution_space(), x, x_c_axis_0, KokkosFFT::Direction::backward,
             /*axes=*/axes_type<2>({2, 0}));
       },
       std::runtime_error);
   EXPECT_THROW(
       {
-        KokkosFFT::Impl::Plan wrong_plan_r2c_axes_2_1(
+        KokkosFFT::Plan wrong_plan_r2c_axes_2_1(
             execution_space(), x, x_c_axis_1, KokkosFFT::Direction::backward,
             /*axes=*/axes_type<2>({2, 1}));
       },
@@ -598,42 +598,42 @@ void test_plan_2dfft_3dview() {
   // Input Complex, Output Real -> must be backward plan
   EXPECT_THROW(
       {
-        KokkosFFT::Impl::Plan wrong_plan_c2r_axes_0_1(
+        KokkosFFT::Plan wrong_plan_c2r_axes_0_1(
             execution_space(), x_c_axis_1, x, KokkosFFT::Direction::forward,
             /*axes=*/axes_type<2>({0, 1}));
       },
       std::runtime_error);
   EXPECT_THROW(
       {
-        KokkosFFT::Impl::Plan wrong_plan_c2r_axes_0_2(
+        KokkosFFT::Plan wrong_plan_c2r_axes_0_2(
             execution_space(), x_c_axis_2, x, KokkosFFT::Direction::forward,
             /*axes=*/axes_type<2>({0, 2}));
       },
       std::runtime_error);
   EXPECT_THROW(
       {
-        KokkosFFT::Impl::Plan wrong_plan_c2r_axes_1_0(
+        KokkosFFT::Plan wrong_plan_c2r_axes_1_0(
             execution_space(), x_c_axis_0, x, KokkosFFT::Direction::forward,
             /*axes=*/axes_type<2>({1, 0}));
       },
       std::runtime_error);
   EXPECT_THROW(
       {
-        KokkosFFT::Impl::Plan wrong_plan_c2r_axes_1_2(
+        KokkosFFT::Plan wrong_plan_c2r_axes_1_2(
             execution_space(), x_c_axis_2, x, KokkosFFT::Direction::forward,
             /*axes=*/axes_type<2>({1, 2}));
       },
       std::runtime_error);
   EXPECT_THROW(
       {
-        KokkosFFT::Impl::Plan wrong_plan_c2r_axes_2_0(
+        KokkosFFT::Plan wrong_plan_c2r_axes_2_0(
             execution_space(), x_c_axis_0, x, KokkosFFT::Direction::forward,
             /*axes=*/axes_type<2>({2, 0}));
       },
       std::runtime_error);
   EXPECT_THROW(
       {
-        KokkosFFT::Impl::Plan wrong_plan_c2r_axes_2_1(
+        KokkosFFT::Plan wrong_plan_c2r_axes_2_1(
             execution_space(), x_c_axis_1, x, KokkosFFT::Direction::forward,
             /*axes=*/axes_type<2>({2, 1}));
       },
@@ -671,105 +671,105 @@ void test_plan_3dfft_3dview() {
   ComplexView3DType x_cin("x_cin", n0, n1, n2), x_cout("x_cout", n0, n1, n2);
 
   // R2C plan
-  KokkosFFT::Impl::Plan plan_r2c_axes_0_1_2(execution_space(), x, x_c_axis_2,
-                                            KokkosFFT::Direction::forward,
-                                            /*axes=*/axes_type<3>({0, 1, 2}));
-  KokkosFFT::Impl::Plan plan_r2c_axes_0_2_1(execution_space(), x, x_c_axis_1,
-                                            KokkosFFT::Direction::forward,
-                                            /*axes=*/axes_type<3>({0, 2, 1}));
-  KokkosFFT::Impl::Plan plan_r2c_axes_1_0_2(execution_space(), x, x_c_axis_2,
-                                            KokkosFFT::Direction::forward,
-                                            /*axes=*/axes_type<3>({1, 0, 2}));
-  KokkosFFT::Impl::Plan plan_r2c_axes_1_2_0(execution_space(), x, x_c_axis_0,
-                                            KokkosFFT::Direction::forward,
-                                            /*axes=*/axes_type<3>({1, 2, 0}));
-  KokkosFFT::Impl::Plan plan_r2c_axes_2_0_1(execution_space(), x, x_c_axis_1,
-                                            KokkosFFT::Direction::forward,
-                                            /*axes=*/axes_type<3>({2, 0, 1}));
-  KokkosFFT::Impl::Plan plan_r2c_axes_2_1_0(execution_space(), x, x_c_axis_0,
-                                            KokkosFFT::Direction::forward,
-                                            /*axes=*/axes_type<3>({2, 1, 0}));
+  KokkosFFT::Plan plan_r2c_axes_0_1_2(execution_space(), x, x_c_axis_2,
+                                      KokkosFFT::Direction::forward,
+                                      /*axes=*/axes_type<3>({0, 1, 2}));
+  KokkosFFT::Plan plan_r2c_axes_0_2_1(execution_space(), x, x_c_axis_1,
+                                      KokkosFFT::Direction::forward,
+                                      /*axes=*/axes_type<3>({0, 2, 1}));
+  KokkosFFT::Plan plan_r2c_axes_1_0_2(execution_space(), x, x_c_axis_2,
+                                      KokkosFFT::Direction::forward,
+                                      /*axes=*/axes_type<3>({1, 0, 2}));
+  KokkosFFT::Plan plan_r2c_axes_1_2_0(execution_space(), x, x_c_axis_0,
+                                      KokkosFFT::Direction::forward,
+                                      /*axes=*/axes_type<3>({1, 2, 0}));
+  KokkosFFT::Plan plan_r2c_axes_2_0_1(execution_space(), x, x_c_axis_1,
+                                      KokkosFFT::Direction::forward,
+                                      /*axes=*/axes_type<3>({2, 0, 1}));
+  KokkosFFT::Plan plan_r2c_axes_2_1_0(execution_space(), x, x_c_axis_0,
+                                      KokkosFFT::Direction::forward,
+                                      /*axes=*/axes_type<3>({2, 1, 0}));
 
   // C2R plan
-  KokkosFFT::Impl::Plan plan_c2r_axes_0_1_2(execution_space(), x_c_axis_2, x,
-                                            KokkosFFT::Direction::backward,
-                                            /*axes=*/axes_type<3>({0, 1, 2}));
-  KokkosFFT::Impl::Plan plan_c2r_axes_0_2_1(execution_space(), x_c_axis_1, x,
-                                            KokkosFFT::Direction::backward,
-                                            /*axes=*/axes_type<3>({0, 2, 1}));
-  KokkosFFT::Impl::Plan plan_c2r_axes_1_0_2(execution_space(), x_c_axis_2, x,
-                                            KokkosFFT::Direction::backward,
-                                            /*axes=*/axes_type<3>({1, 0, 2}));
-  KokkosFFT::Impl::Plan plan_c2r_axes_1_2_0(execution_space(), x_c_axis_0, x,
-                                            KokkosFFT::Direction::backward,
-                                            /*axes=*/axes_type<3>({1, 2, 0}));
-  KokkosFFT::Impl::Plan plan_c2r_axes_2_0_1(execution_space(), x_c_axis_1, x,
-                                            KokkosFFT::Direction::backward,
-                                            /*axes=*/axes_type<3>({2, 0, 1}));
-  KokkosFFT::Impl::Plan plan_c2r_axes_2_1_0(execution_space(), x_c_axis_0, x,
-                                            KokkosFFT::Direction::backward,
-                                            /*axes=*/axes_type<3>({2, 1, 0}));
+  KokkosFFT::Plan plan_c2r_axes_0_1_2(execution_space(), x_c_axis_2, x,
+                                      KokkosFFT::Direction::backward,
+                                      /*axes=*/axes_type<3>({0, 1, 2}));
+  KokkosFFT::Plan plan_c2r_axes_0_2_1(execution_space(), x_c_axis_1, x,
+                                      KokkosFFT::Direction::backward,
+                                      /*axes=*/axes_type<3>({0, 2, 1}));
+  KokkosFFT::Plan plan_c2r_axes_1_0_2(execution_space(), x_c_axis_2, x,
+                                      KokkosFFT::Direction::backward,
+                                      /*axes=*/axes_type<3>({1, 0, 2}));
+  KokkosFFT::Plan plan_c2r_axes_1_2_0(execution_space(), x_c_axis_0, x,
+                                      KokkosFFT::Direction::backward,
+                                      /*axes=*/axes_type<3>({1, 2, 0}));
+  KokkosFFT::Plan plan_c2r_axes_2_0_1(execution_space(), x_c_axis_1, x,
+                                      KokkosFFT::Direction::backward,
+                                      /*axes=*/axes_type<3>({2, 0, 1}));
+  KokkosFFT::Plan plan_c2r_axes_2_1_0(execution_space(), x_c_axis_0, x,
+                                      KokkosFFT::Direction::backward,
+                                      /*axes=*/axes_type<3>({2, 1, 0}));
 
   // C2C plan
-  KokkosFFT::Impl::Plan plan_c2c_f_axes_0_1_2(execution_space(), x_cin, x_cout,
-                                              KokkosFFT::Direction::forward,
-                                              /*axes=*/axes_type<3>({0, 1, 2}));
-  KokkosFFT::Impl::Plan plan_c2c_f_axes_0_2_1(execution_space(), x_cin, x_cout,
-                                              KokkosFFT::Direction::forward,
-                                              /*axes=*/axes_type<3>({0, 2, 1}));
-  KokkosFFT::Impl::Plan plan_c2c_f_axes_1_0_2(execution_space(), x_cin, x_cout,
-                                              KokkosFFT::Direction::forward,
-                                              /*axes=*/axes_type<3>({1, 0, 2}));
-  KokkosFFT::Impl::Plan plan_c2c_f_axes_1_2_0(execution_space(), x_cin, x_cout,
-                                              KokkosFFT::Direction::forward,
-                                              /*axes=*/axes_type<3>({1, 2, 0}));
-  KokkosFFT::Impl::Plan plan_c2c_f_axes_2_0_1(execution_space(), x_cin, x_cout,
-                                              KokkosFFT::Direction::forward,
-                                              /*axes=*/axes_type<3>({2, 0, 1}));
-  KokkosFFT::Impl::Plan plan_c2c_f_axes_2_1_0(execution_space(), x_cin, x_cout,
-                                              KokkosFFT::Direction::forward,
-                                              /*axes=*/axes_type<3>({2, 1, 0}));
+  KokkosFFT::Plan plan_c2c_f_axes_0_1_2(execution_space(), x_cin, x_cout,
+                                        KokkosFFT::Direction::forward,
+                                        /*axes=*/axes_type<3>({0, 1, 2}));
+  KokkosFFT::Plan plan_c2c_f_axes_0_2_1(execution_space(), x_cin, x_cout,
+                                        KokkosFFT::Direction::forward,
+                                        /*axes=*/axes_type<3>({0, 2, 1}));
+  KokkosFFT::Plan plan_c2c_f_axes_1_0_2(execution_space(), x_cin, x_cout,
+                                        KokkosFFT::Direction::forward,
+                                        /*axes=*/axes_type<3>({1, 0, 2}));
+  KokkosFFT::Plan plan_c2c_f_axes_1_2_0(execution_space(), x_cin, x_cout,
+                                        KokkosFFT::Direction::forward,
+                                        /*axes=*/axes_type<3>({1, 2, 0}));
+  KokkosFFT::Plan plan_c2c_f_axes_2_0_1(execution_space(), x_cin, x_cout,
+                                        KokkosFFT::Direction::forward,
+                                        /*axes=*/axes_type<3>({2, 0, 1}));
+  KokkosFFT::Plan plan_c2c_f_axes_2_1_0(execution_space(), x_cin, x_cout,
+                                        KokkosFFT::Direction::forward,
+                                        /*axes=*/axes_type<3>({2, 1, 0}));
 
   // Check if errors are correctly raised aginst wrong dirction
   // Input Real, Output Complex -> must be forward plan
   EXPECT_THROW(
       {
-        KokkosFFT::Impl::Plan wrong_plan_r2c_axes_0_1_2(
+        KokkosFFT::Plan wrong_plan_r2c_axes_0_1_2(
             execution_space(), x, x_c_axis_2, KokkosFFT::Direction::backward,
             /*axes=*/axes_type<3>({0, 1, 2}));
       },
       std::runtime_error);
   EXPECT_THROW(
       {
-        KokkosFFT::Impl::Plan wrong_plan_r2c_axes_0_2_1(
+        KokkosFFT::Plan wrong_plan_r2c_axes_0_2_1(
             execution_space(), x, x_c_axis_1, KokkosFFT::Direction::backward,
             /*axes=*/axes_type<3>({0, 2, 1}));
       },
       std::runtime_error);
   EXPECT_THROW(
       {
-        KokkosFFT::Impl::Plan wrong_plan_r2c_axes_1_0_2(
+        KokkosFFT::Plan wrong_plan_r2c_axes_1_0_2(
             execution_space(), x, x_c_axis_2, KokkosFFT::Direction::backward,
             /*axes=*/axes_type<3>({1, 0, 2}));
       },
       std::runtime_error);
   EXPECT_THROW(
       {
-        KokkosFFT::Impl::Plan wrong_plan_r2c_axes_1_2_0(
+        KokkosFFT::Plan wrong_plan_r2c_axes_1_2_0(
             execution_space(), x, x_c_axis_0, KokkosFFT::Direction::backward,
             /*axes=*/axes_type<3>({1, 2, 0}));
       },
       std::runtime_error);
   EXPECT_THROW(
       {
-        KokkosFFT::Impl::Plan wrong_plan_r2c_axes_2_0_1(
+        KokkosFFT::Plan wrong_plan_r2c_axes_2_0_1(
             execution_space(), x, x_c_axis_1, KokkosFFT::Direction::backward,
             /*axes=*/axes_type<3>({2, 0, 1}));
       },
       std::runtime_error);
   EXPECT_THROW(
       {
-        KokkosFFT::Impl::Plan wrong_plan_r2c_axes_2_1_0(
+        KokkosFFT::Plan wrong_plan_r2c_axes_2_1_0(
             execution_space(), x, x_c_axis_0, KokkosFFT::Direction::backward,
             /*axes=*/axes_type<3>({2, 1, 0}));
       },
@@ -778,42 +778,42 @@ void test_plan_3dfft_3dview() {
   // Input Complex, Output Real -> must be backward plan
   EXPECT_THROW(
       {
-        KokkosFFT::Impl::Plan wrong_plan_c2r_axes_0_1_2(
+        KokkosFFT::Plan wrong_plan_c2r_axes_0_1_2(
             execution_space(), x_c_axis_2, x, KokkosFFT::Direction::forward,
             /*axes=*/axes_type<3>({0, 1, 2}));
       },
       std::runtime_error);
   EXPECT_THROW(
       {
-        KokkosFFT::Impl::Plan wrong_plan_c2r_axes_0_2_1(
+        KokkosFFT::Plan wrong_plan_c2r_axes_0_2_1(
             execution_space(), x_c_axis_1, x, KokkosFFT::Direction::forward,
             /*axes=*/axes_type<3>({0, 2, 1}));
       },
       std::runtime_error);
   EXPECT_THROW(
       {
-        KokkosFFT::Impl::Plan wrong_plan_c2r_axes_1_0_2(
+        KokkosFFT::Plan wrong_plan_c2r_axes_1_0_2(
             execution_space(), x_c_axis_2, x, KokkosFFT::Direction::forward,
             /*axes=*/axes_type<3>({1, 0, 2}));
       },
       std::runtime_error);
   EXPECT_THROW(
       {
-        KokkosFFT::Impl::Plan wrong_plan_c2r_axes_1_2_0(
+        KokkosFFT::Plan wrong_plan_c2r_axes_1_2_0(
             execution_space(), x_c_axis_0, x, KokkosFFT::Direction::forward,
             /*axes=*/axes_type<3>({1, 2, 0}));
       },
       std::runtime_error);
   EXPECT_THROW(
       {
-        KokkosFFT::Impl::Plan wrong_plan_c2r_axes_2_0_1(
+        KokkosFFT::Plan wrong_plan_c2r_axes_2_0_1(
             execution_space(), x_c_axis_1, x, KokkosFFT::Direction::forward,
             /*axes=*/axes_type<3>({2, 0, 1}));
       },
       std::runtime_error);
   EXPECT_THROW(
       {
-        KokkosFFT::Impl::Plan wrong_plan_c2r_axes_2_1_0(
+        KokkosFFT::Plan wrong_plan_c2r_axes_2_1_0(
             execution_space(), x_c_axis_0, x, KokkosFFT::Direction::forward,
             /*axes=*/axes_type<3>({2, 1, 0}));
       },
