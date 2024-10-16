@@ -123,7 +123,7 @@ Reuse FFT plan
 --------------
 
 Apart from the basic APIs, Kokkos-fft offers the capability to create a FFT plan wrapping the FFT plans of backend libraries.
-We can reuse the FFT plan created once to perform FFTs multiple times on different data.
+We can reuse the FFT plan created once to perform FFTs multiple times on different data given that they have the same properties.
 In some backend, FFT plan creation leads to some overhead, wherein we need this functionality.
 (see :doc:`minimum working example<../samples/06_1DFFT_reuse_plans>`)
 
