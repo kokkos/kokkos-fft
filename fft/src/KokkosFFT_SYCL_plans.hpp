@@ -54,7 +54,7 @@ auto create_plan(const ExecutionSpace& exec_space,
                  std::unique_ptr<PlanType>& plan, const InViewType& in,
                  const OutViewType& out, BufferViewType&, InfoType&,
                  Direction /*direction*/, axis_type<fft_rank> axes,
-                 shape_type<fft_rank> s, bool is_in_place) {
+                 shape_type<fft_rank> s, bool is_inplace) {
   static_assert(
       KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
                                               OutViewType>,
@@ -69,7 +69,7 @@ auto create_plan(const ExecutionSpace& exec_space,
       "KokkosFFT::create_plan: Rank of View must be larger than Rank of FFT.");
 
   auto [in_extents, out_extents, fft_extents, howmany] =
-      KokkosFFT::Impl::get_extents(in, out, axes, s, is_in_place);
+      KokkosFFT::Impl::get_extents(in, out, axes, s, is_inplace);
   int idist    = std::accumulate(in_extents.begin(), in_extents.end(), 1,
                                  std::multiplies<>());
   int odist    = std::accumulate(out_extents.begin(), out_extents.end(), 1,
@@ -99,7 +99,7 @@ auto create_plan(const ExecutionSpace& exec_space,
                   static_cast<std::int64_t>(howmany));
 
   // Data layout in conjugate-even domain
-  int placement = is_in_place ? DFTI_INPLACE : DFTI_NOT_INPLACE;
+  int placement = is_inplace ? DFTI_INPLACE : DFTI_NOT_INPLACE;
   plan->set_value(oneapi::mkl::dft::config_param::PLACEMENT, placement);
   plan->set_value(oneapi::mkl::dft::config_param::CONJUGATE_EVEN_STORAGE,
                   DFTI_COMPLEX_COMPLEX);

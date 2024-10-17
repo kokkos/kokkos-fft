@@ -75,7 +75,7 @@ void test_fft1_identity(T atol = 1.0e-12) {
 }
 
 template <typename T, typename LayoutType>
-void test_fft1_identity_in_place(T atol = 1.0e-12) {
+void test_fft1_identity_inplace(T atol = 1.0e-12) {
   const int maxlen      = 32;
   using RealView1DType  = Kokkos::View<T*, LayoutType, execution_space>;
   using RealUView1DType = Kokkos::View<T*, LayoutType, execution_space,
@@ -1118,12 +1118,12 @@ TYPED_TEST(FFT1D, Identity_1DView) {
 }
 
 // Identity tests on 1D Views for in-place transform
-TYPED_TEST(FFT1D, Identity_1DView_in_place) {
+TYPED_TEST(FFT1D, Identity_1DView_inplace) {
   using float_type  = typename TestFixture::float_type;
   using layout_type = typename TestFixture::layout_type;
 
   float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
-  test_fft1_identity_in_place<float_type, layout_type>(atol);
+  test_fft1_identity_inplace<float_type, layout_type>(atol);
 }
 
 // Identity tests on 1D Views with plan reuse
@@ -1671,7 +1671,7 @@ void test_fft2_2dfft_2dview_shape(T atol = 1.0e-12) {
 }
 
 template <typename T, typename LayoutType>
-void test_fft2_2dfft_2dview_in_place(T atol = 1.0e-12) {
+void test_fft2_2dfft_2dview_inplace([[maybe_unused]] T atol = 1.0e-12) {
   const int n0 = 4, n1 = 6;
   using RealView2DType  = Kokkos::View<T**, LayoutType, execution_space>;
   using RealUView2DType = Kokkos::View<T**, LayoutType, execution_space,
@@ -2276,11 +2276,11 @@ TYPED_TEST(FFT2D, 2DFFT_2DView_shape) {
 }
 
 // fft2 on 2D Views with in-place transform
-TYPED_TEST(FFT2D, 2DFFT_2DView_in_place) {
+TYPED_TEST(FFT2D, 2DFFT_2DView_inplace) {
   using float_type  = typename TestFixture::float_type;
   using layout_type = typename TestFixture::layout_type;
 
-  test_fft2_2dfft_2dview_in_place<float_type, layout_type>();
+  test_fft2_2dfft_2dview_inplace<float_type, layout_type>();
 }
 
 // batced fft2 on 3D Views
