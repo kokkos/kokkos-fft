@@ -126,6 +126,9 @@ class Plan {
   //! whether crop or pad is needed or not
   bool m_is_crop_or_pad_needed = false;
 
+  //! in-place transform or not
+  bool m_is_in_place = false;
+
   //! axes for fft
   axis_type<DIM> m_axes;
 
@@ -199,8 +202,16 @@ class Plan {
     m_shape = KokkosFFT::Impl::get_modified_shape(in, out, s, m_axes);
     m_is_crop_or_pad_needed =
         KokkosFFT::Impl::is_crop_or_pad_needed(in, m_shape);
-    m_fft_size = KokkosFFT::Impl::create_plan(
-        exec_space, m_plan, in, out, m_buffer, m_info, direction, m_axes, s);
+    m_is_in_place = KokkosFFT::Impl::are_aliasing(in.data(), out.data());
+    KOKKOSFFT_THROW_IF(m_is_in_place && m_is_transpose_needed,
+                       "In-place transform is not supported with transpose. "
+                       "Please use out-of-place transform.");
+    KOKKOSFFT_THROW_IF(m_is_in_place && m_is_crop_or_pad_needed,
+                       "In-place transform is not supported with reshape. "
+                       "Please use out-of-place transform.");
+    m_fft_size = KokkosFFT::Impl::create_plan(exec_space, m_plan, in, out,
+                                              m_buffer, m_info, direction,
+                                              m_axes, s, m_is_in_place);
   }
 
   /// \brief Constructor for multidimensional FFT
@@ -236,15 +247,15 @@ class Plan {
     KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, m_axes),
                        "axes are invalid for in/out views");
     if constexpr (KokkosFFT::Impl::is_real_v<in_value_type>) {
-      KOKKOSFFT_THROW_IF(
-          m_direction != KokkosFFT::Direction::forward,
-          "real to complex transform is constructed with backward direction.");
+      KOKKOSFFT_THROW_IF(m_direction != KokkosFFT::Direction::forward,
+                         "real to complex transform is constructed "
+                         "with backward direction.");
     }
 
     if constexpr (KokkosFFT::Impl::is_real_v<out_value_type>) {
-      KOKKOSFFT_THROW_IF(
-          m_direction != KokkosFFT::Direction::backward,
-          "complex to real transform is constructed with forward direction.");
+      KOKKOSFFT_THROW_IF(m_direction != KokkosFFT::Direction::backward,
+                         "complex to real transform is constructed "
+                         "with forward direction.");
     }
 
     m_in_extents               = KokkosFFT::Impl::extract_extents(in);
@@ -254,8 +265,16 @@ class Plan {
     m_shape = KokkosFFT::Impl::get_modified_shape(in, out, s, m_axes);
     m_is_crop_or_pad_needed =
         KokkosFFT::Impl::is_crop_or_pad_needed(in, m_shape);
-    m_fft_size = KokkosFFT::Impl::create_plan(
-        exec_space, m_plan, in, out, m_buffer, m_info, direction, axes, s);
+    m_is_in_place = KokkosFFT::Impl::are_aliasing(in.data(), out.data());
+    KOKKOSFFT_THROW_IF(m_is_in_place && m_is_transpose_needed,
+                       "In-place transform is not supported with transpose. "
+                       "Please use out-of-place transform.");
+    KOKKOSFFT_THROW_IF(m_is_in_place && m_is_crop_or_pad_needed,
+                       "In-place transform is not supported with reshape. "
+                       "Please use out-of-place transform.");
+    m_fft_size =
+        KokkosFFT::Impl::create_plan(exec_space, m_plan, in, out, m_buffer,
+                                     m_info, direction, axes, s, m_is_in_place);
   }
 
   ~Plan() {
@@ -350,13 +369,13 @@ class Plan {
     auto in_extents  = KokkosFFT::Impl::extract_extents(in);
     auto out_extents = KokkosFFT::Impl::extract_extents(out);
 
-    KOKKOSFFT_THROW_IF(
-        in_extents != m_in_extents,
-        "extents of input View for plan and execution are not identical.");
+    KOKKOSFFT_THROW_IF(in_extents != m_in_extents,
+                       "extents of input View for plan and "
+                       "execution are not identical.");
 
-    KOKKOSFFT_THROW_IF(
-        out_extents != m_out_extents,
-        "extents of output View for plan and execution are not identical.");
+    KOKKOSFFT_THROW_IF(out_extents != m_out_extents,
+                       "extents of output View for plan and "
+                       "execution are not identical.");
   }
 };
 }  // namespace KokkosFFT
