@@ -22,7 +22,8 @@ template <typename ExecutionSpace, typename PlanType, typename InViewType,
 auto create_plan(const ExecutionSpace& exec_space,
                  std::unique_ptr<PlanType>& plan, const InViewType& in,
                  const OutViewType& out, BufferViewType&, InfoType&,
-                 Direction /*direction*/, axis_type<1> axes, shape_type<1> s) {
+                 Direction /*direction*/, axis_type<1> axes, shape_type<1> s,
+                 bool is_in_place) {
   static_assert(
       KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
                                               OutViewType>,
@@ -44,7 +45,7 @@ auto create_plan(const ExecutionSpace& exec_space,
   auto type = KokkosFFT::Impl::transform_type<ExecutionSpace, in_value_type,
                                               out_value_type>::type();
   auto [in_extents, out_extents, fft_extents, howmany] =
-      KokkosFFT::Impl::get_extents(in, out, axes, s);
+      KokkosFFT::Impl::get_extents(in, out, axes, s, is_in_place);
   const int nx = fft_extents.at(0);
   int fft_size = std::accumulate(fft_extents.begin(), fft_extents.end(), 1,
                                  std::multiplies<>());
@@ -64,7 +65,8 @@ template <typename ExecutionSpace, typename PlanType, typename InViewType,
 auto create_plan(const ExecutionSpace& exec_space,
                  std::unique_ptr<PlanType>& plan, const InViewType& in,
                  const OutViewType& out, BufferViewType&, InfoType&,
-                 Direction /*direction*/, axis_type<2> axes, shape_type<2> s) {
+                 Direction /*direction*/, axis_type<2> axes, shape_type<2> s,
+                 bool is_in_place) {
   static_assert(
       KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
                                               OutViewType>,
@@ -86,7 +88,7 @@ auto create_plan(const ExecutionSpace& exec_space,
   auto type = KokkosFFT::Impl::transform_type<ExecutionSpace, in_value_type,
                                               out_value_type>::type();
   [[maybe_unused]] auto [in_extents, out_extents, fft_extents, howmany] =
-      KokkosFFT::Impl::get_extents(in, out, axes, s);
+      KokkosFFT::Impl::get_extents(in, out, axes, s, is_in_place);
   const int nx = fft_extents.at(0), ny = fft_extents.at(1);
   int fft_size = std::accumulate(fft_extents.begin(), fft_extents.end(), 1,
                                  std::multiplies<>());
@@ -106,7 +108,8 @@ template <typename ExecutionSpace, typename PlanType, typename InViewType,
 auto create_plan(const ExecutionSpace& exec_space,
                  std::unique_ptr<PlanType>& plan, const InViewType& in,
                  const OutViewType& out, BufferViewType&, InfoType&,
-                 Direction /*direction*/, axis_type<3> axes, shape_type<3> s) {
+                 Direction /*direction*/, axis_type<3> axes, shape_type<3> s,
+                 bool is_in_place) {
   static_assert(
       KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
                                               OutViewType>,
@@ -128,7 +131,7 @@ auto create_plan(const ExecutionSpace& exec_space,
   auto type = KokkosFFT::Impl::transform_type<ExecutionSpace, in_value_type,
                                               out_value_type>::type();
   [[maybe_unused]] auto [in_extents, out_extents, fft_extents, howmany] =
-      KokkosFFT::Impl::get_extents(in, out, axes, s);
+      KokkosFFT::Impl::get_extents(in, out, axes, s, is_in_place);
 
   const int nx = fft_extents.at(0), ny = fft_extents.at(1),
             nz = fft_extents.at(2);
@@ -151,7 +154,7 @@ auto create_plan(const ExecutionSpace& exec_space,
                  std::unique_ptr<PlanType>& plan, const InViewType& in,
                  const OutViewType& out, BufferViewType&, InfoType&,
                  Direction /*direction*/, axis_type<fft_rank> axes,
-                 shape_type<fft_rank> s) {
+                 shape_type<fft_rank> s, bool is_in_place) {
   static_assert(
       KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
                                               OutViewType>,
@@ -172,7 +175,7 @@ auto create_plan(const ExecutionSpace& exec_space,
       KokkosFFT::Impl::transform_type<ExecutionSpace, in_value_type,
                                       out_value_type>::type();
   auto [in_extents, out_extents, fft_extents, howmany] =
-      KokkosFFT::Impl::get_extents(in, out, axes, s);
+      KokkosFFT::Impl::get_extents(in, out, axes, s, is_in_place);
   int idist    = std::accumulate(in_extents.begin(), in_extents.end(), 1,
                                  std::multiplies<>());
   int odist    = std::accumulate(out_extents.begin(), out_extents.end(), 1,
