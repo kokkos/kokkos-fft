@@ -10,6 +10,7 @@
 #include "KokkosFFT_SYCL_types.hpp"
 #include "KokkosFFT_layouts.hpp"
 #include "KokkosFFT_traits.hpp"
+#include "KokkosFFT_utils.hpp"
 
 namespace KokkosFFT {
 namespace Impl {
@@ -98,7 +99,10 @@ auto create_plan(const ExecutionSpace& exec_space,
                   static_cast<std::int64_t>(howmany));
 
   // Data layout in conjugate-even domain
-  plan->set_value(oneapi::mkl::dft::config_param::PLACEMENT, DFTI_NOT_INPLACE);
+  int placement = KokkosFFT::Impl::are_aliasing(in.data(), out.data())
+                      ? DFTI_INPLACE
+                      : DFTI_NOT_INPLACE;
+  plan->set_value(oneapi::mkl::dft::config_param::PLACEMENT, placement);
   plan->set_value(oneapi::mkl::dft::config_param::CONJUGATE_EVEN_STORAGE,
                   DFTI_COMPLEX_COMPLEX);
 

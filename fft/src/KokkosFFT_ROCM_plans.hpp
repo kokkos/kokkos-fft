@@ -11,6 +11,7 @@
 #include "KokkosFFT_layouts.hpp"
 #include "KokkosFFT_traits.hpp"
 #include "KokkosFFT_asserts.hpp"
+#include "KokkosFFT_utils.hpp"
 
 namespace KokkosFFT {
 namespace Impl {
@@ -152,7 +153,10 @@ auto create_plan(const ExecutionSpace& exec_space,
                      "rocfft_plan_description_set_data_layout failed");
 
   // Out-of-place transform
-  const rocfft_result_placement place = rocfft_placement_notinplace;
+  const rocfft_result_placement place =
+      KokkosFFT::Impl::are_aliasing(in.data(), out.data())
+          ? rocfft_placement_inplace
+          : rocfft_placement_notinplace;
 
   // Create a plan
   plan   = std::make_unique<PlanType>();
