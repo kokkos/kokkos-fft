@@ -21,7 +21,8 @@ namespace Impl {
 */
 template <typename InViewType, typename OutViewType, std::size_t DIM = 1>
 auto get_extents(const InViewType& in, const OutViewType& out,
-                 axis_type<DIM> axes, shape_type<DIM> shape = {0}) {
+                 axis_type<DIM> axes, shape_type<DIM> shape = {},
+                 bool is_inplace = false) {
   using in_value_type     = typename InViewType::non_const_value_type;
   using out_value_type    = typename OutViewType::non_const_value_type;
   using array_layout_type = typename InViewType::array_layout;
@@ -65,20 +66,28 @@ auto get_extents(const InViewType& in, const OutViewType& out,
 
   if constexpr (is_real_v<in_value_type>) {
     // Then R2C
-    KOKKOSFFT_THROW_IF(
-        _out_extents.at(inner_most_axis) !=
-            _in_extents.at(inner_most_axis) / 2 + 1,
-        "For R2C, the 'output extent' of transform must be equal to "
-        "'input extent'/2 + 1");
+    if (is_inplace) {
+      _in_extents.at(inner_most_axis) = _out_extents.at(inner_most_axis) * 2;
+    } else {
+      KOKKOSFFT_THROW_IF(
+          _out_extents.at(inner_most_axis) !=
+              _in_extents.at(inner_most_axis) / 2 + 1,
+          "For R2C, the 'output extent' of transform must be equal to "
+          "'input extent'/2 + 1");
+    }
   }
 
   if constexpr (is_real_v<out_value_type>) {
     // Then C2R
-    KOKKOSFFT_THROW_IF(
-        _in_extents.at(inner_most_axis) !=
-            _out_extents.at(inner_most_axis) / 2 + 1,
-        "For C2R, the 'input extent' of transform must be equal to "
-        "'output extent' / 2 + 1");
+    if (is_inplace) {
+      _out_extents.at(inner_most_axis) = _in_extents.at(inner_most_axis) * 2;
+    } else {
+      KOKKOSFFT_THROW_IF(
+          _in_extents.at(inner_most_axis) !=
+              _out_extents.at(inner_most_axis) / 2 + 1,
+          "For C2R, the 'input extent' of transform must be equal to "
+          "'output extent' / 2 + 1");
+    }
   }
 
   if constexpr (std::is_same_v<array_layout_type, Kokkos::LayoutLeft>) {
