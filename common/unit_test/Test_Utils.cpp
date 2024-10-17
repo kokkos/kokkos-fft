@@ -563,6 +563,7 @@ TEST(ToArray, lvalue) {
 
 TEST(ToArray, rvalue) {
   ASSERT_EQ(KokkosFFT::Impl::to_array(std::array{1, 2}), (Kokkos::Array{1, 2}));
+}
 
 template <typename ValueType1, typename ValueType2>
 void test_are_pointers_aliasing() {
