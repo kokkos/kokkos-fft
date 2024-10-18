@@ -1695,18 +1695,20 @@ void test_fft2_2dfft_2dview_inplace([[maybe_unused]] T atol = 1.0e-12) {
   // Unmanged views for in-place transforms
   RealUView2DType xr(reinterpret_cast<T*>(xr_hat.data()), n0, n1),
       inv_xr_hat(reinterpret_cast<T*>(xr_hat.data()), n0, n1);
-  RealUView2DType xr_unpadded(reinterpret_cast<T*>(xr_hat.data()), n0,
-                              (n1 / 2 + 1) * 2);
+  RealUView2DType xr_padded(reinterpret_cast<T*>(xr_hat.data()), n0,
+                            (n1 / 2 + 1) * 2),
+      inv_xr_hat_padded(reinterpret_cast<T*>(xr_hat.data()), n0,
+                        (n1 / 2 + 1) * 2);
 
-  // Initialize xr_hat through xr_unpadded
-  auto sub_xr_unpadded = Kokkos::subview(xr_unpadded, Kokkos::ALL(),
-                                         Kokkos::pair<int, int>(0, n1));
+  // Initialize xr_hat through xr_padded
+  auto sub_xr_padded =
+      Kokkos::subview(xr_padded, Kokkos::ALL(), Kokkos::pair<int, int>(0, n1));
 
   const Kokkos::complex<T> z(1.0, 1.0);
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
   Kokkos::fill_random(xr_ref, random_pool, 1.0);
   Kokkos::fill_random(x, random_pool, z);
-  Kokkos::deep_copy(sub_xr_unpadded, xr_ref);
+  Kokkos::deep_copy(sub_xr_padded, xr_ref);
   Kokkos::deep_copy(x_ref, x);
 
   using axes_type = KokkosFFT::axis_type<2>;
@@ -1753,8 +1755,6 @@ void test_fft2_2dfft_2dview_inplace([[maybe_unused]] T atol = 1.0e-12) {
     KokkosFFT::irfft2(execution_space(), xr_hat_ref, inv_xr_hat_ref,
                       KokkosFFT::Normalization::backward, axes);
 
-    RealUView2DType inv_xr_hat_padded(reinterpret_cast<T*>(xr_hat.data()), n0,
-                                      (n1 / 2 + 1) * 2);
     auto sub_inv_xr_hat_padded = Kokkos::subview(
         inv_xr_hat_padded, Kokkos::ALL(), Kokkos::pair<int, int>(0, n1));
     Kokkos::deep_copy(inv_xr_hat_unpadded, sub_inv_xr_hat_padded);
