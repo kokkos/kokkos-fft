@@ -355,6 +355,22 @@ class Plan {
     auto const direction =
         KokkosFFT::Impl::direction_type<execSpace>(m_direction);
     KokkosFFT::Impl::exec_plan(*m_plan, idata, odata, direction, m_info);
+
+    if constexpr (KokkosFFT::Impl::is_complex_v<in_value_type> &&
+                  KokkosFFT::Impl::is_real_v<out_value_type>) {
+      if (m_is_inplace) {
+        // For the in-place Complex to Real transform, the output must be
+        // reshaped to fit the original size (in.size() * 2) for correct
+        // normalization
+        using UnmanagedOutViewType =
+            Kokkos::View<out_value_type*, execSpace,
+                         Kokkos::MemoryTraits<Kokkos::Unmanaged>>;
+        UnmanagedOutViewType out_tmp(out.data(), in.size() * 2);
+        KokkosFFT::Impl::normalize(m_exec_space, out_tmp, m_direction, norm,
+                                   m_fft_size);
+        return;
+      }
+    }
     KokkosFFT::Impl::normalize(m_exec_space, out, m_direction, norm,
                                m_fft_size);
   }
