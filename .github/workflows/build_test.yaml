@@ -215,8 +215,7 @@ jobs:
         if: ${{ matrix.target.name == 'native' }}
 
       - name: Save artifacts
-        # use v3 as more recent versions cannot run on Ruche
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: tests_${{ matrix.backend.name }}
           path: tests_${{ matrix.backend.name }}.tar
@@ -332,8 +331,7 @@ jobs:
 
     steps:
       - name: Get artifacts
-        # use v3 as more recent versions cannot run on Ruche
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: tests_${{ matrix.backend.name }}
 
