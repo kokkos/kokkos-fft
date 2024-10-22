@@ -341,14 +341,15 @@ jobs:
       - name: Pull Singularity image
         # pulling the image in advance seems necessary as sometimes invoking `singularity run` on the image URL fails because it cannot find ghcr.io
         run: |
-          run-cpu \
+          run \
             -m "singularity/3.8.3/gcc-11.2.0" \
             singularity pull oras://ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_singularity_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }}
         if: ${{ matrix.backend.name == 'cuda' }}
 
       - name: Run CUDA tests within Slurm job and Singularity image
         run: |
-          run-gpu \
+          run \
+            -g a100 \
             -m "singularity/3.8.3/gcc-11.2.0" \
             singularity run --nv --bind $PWD/build:/work/build -H /work/build base_${{ matrix.backend.image }}_singularity_${{ needs.check_docker_files.outputs.image_suffix }}_${{ needs.check_docker_files.outputs.image_tag }}.sif \
             ctest --output-on-failure
