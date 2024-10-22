@@ -215,8 +215,7 @@ jobs:
         if: ${{ matrix.target.name == 'native' }}
 
       - name: Save artifacts
-        # use v3 as more recent versions cannot run on Ruche
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: tests_${{ matrix.backend.name }}
           path: tests_${{ matrix.backend.name }}.tar
@@ -332,8 +331,7 @@ jobs:
 
     steps:
       - name: Get artifacts
-        # use v3 as more recent versions cannot run on Ruche
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: tests_${{ matrix.backend.name }}
 
@@ -342,14 +340,18 @@ jobs:
 
       - name: Pull Singularity image
         # pulling the image in advance seems necessary as sometimes invoking `singularity run` on the image URL fails because it cannot find ghcr.io
-        run: singularity pull oras://ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_singularity_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }}
+        run: |
+          run-cpu \
+            -m "singularity/3.8.3/gcc-11.2.0" \
+            singularity pull oras://ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_singularity_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }}
         if: ${{ matrix.backend.name == 'cuda' }}
 
       - name: Run CUDA tests within Slurm job and Singularity image
         run: |
-          srun --nodes=1 --time=01:00:00 -p gpua100 --gres=gpu:1 \
-          singularity run --nv --bind $PWD/build:/work/build -H /work/build base_${{ matrix.backend.image }}_singularity_${{ needs.check_docker_files.outputs.image_suffix }}_${{ needs.check_docker_files.outputs.image_tag }}.sif \
-          ctest --output-on-failure
+          run-gpu \
+            -m "singularity/3.8.3/gcc-11.2.0" \
+            singularity run --nv --bind $PWD/build:/work/build -H /work/build base_${{ matrix.backend.image }}_singularity_${{ needs.check_docker_files.outputs.image_suffix }}_${{ needs.check_docker_files.outputs.image_tag }}.sif \
+            ctest --output-on-failure
         if: ${{ matrix.backend.name == 'cuda' }}
 
       - name: Run OpenMP/Threads/Serial tests within Docker image
