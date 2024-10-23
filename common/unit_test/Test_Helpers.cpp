@@ -150,9 +150,9 @@ void test_get_shift(int direction) {
   KokkosFFT::axis_type<2> shift1_axis1_odd_ref  = {0, direction * n2 / 2};
   KokkosFFT::axis_type<2> shift1_axis1_even_ref = {0, direction * n2 / 2};
   KokkosFFT::axis_type<2> shift2_odd_ref        = {direction * n_odd / 2,
-                                            direction * n2 / 2};
+                                                   direction * n2 / 2};
   KokkosFFT::axis_type<2> shift2_even_ref       = {direction * n_even / 2,
-                                             direction * n2 / 2};
+                                                   direction * n2 / 2};
 
   auto shift1_odd = KokkosFFT::Impl::get_shift(
       x1_odd, KokkosFFT::axis_type<1>({0}), direction);
@@ -266,7 +266,7 @@ void test_fftshift1D_2DView(int n0) {
 
   if (n0 % 2 == 0) {
     _x_ref  = {0,   1,   2,   3,   4,   5,   6,  7,  8,  9,  10, 11, 12, 13, 14,
-              -15, -14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1};
+               -15, -14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1};
     _y0_ref = {
         5,  6,  7,  8,  9,  0,  1,  2,  3,  4,  -15, -14, -13, -12, -11,
         10, 11, 12, 13, 14, -5, -4, -3, -2, -1, -10, -9,  -8,  -7,  -6,
@@ -276,7 +276,7 @@ void test_fftshift1D_2DView(int n0) {
                10,  11, 12, 13, 14, -15, -14, -13, -12, -11};
   } else {
     _x_ref  = {0,   1,   2,   3,   4,  5,  6,  7,  8,  9,  10, 11, 12, 13,
-              -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1};
+               -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1};
     _y0_ref = {5,  6,  7,  8,  0,  1,  2,  3,  4,  -13, -12, -11, -10, 9,
                10, 11, 12, 13, -4, -3, -2, -1, -9, -8,  -7,  -6,  -5};
     _y1_ref = {-9, -8, -7, -6, -5, -4, -3, -2, -1, 0,   1,   2,   3,  4,
@@ -388,4 +388,3 @@ TEST_P(FFTShiftParamTests, 2DShift2DView) {
 
 INSTANTIATE_TEST_SUITE_P(FFTShift, FFTShiftParamTests,
                          ::testing::Values(9, 10));
-                         
