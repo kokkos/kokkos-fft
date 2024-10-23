@@ -263,11 +263,11 @@ class Plan {
                                            fft_info_type>(m_plan, m_info);
   }
 
-  Plan()            = delete;
-  Plan(const Plan&) = delete;
+  Plan()                       = delete;
+  Plan(const Plan&)            = delete;
   Plan& operator=(const Plan&) = delete;
-  Plan& operator=(Plan&&) = delete;
-  Plan(Plan&&)            = delete;
+  Plan& operator=(Plan&&)      = delete;
+  Plan(Plan&&)                 = delete;
 
   /// \brief Execute FFT on input and output Views with normalization
   ///
