@@ -23,12 +23,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: DoozyX/clang-format-lint-action@v0.13
+    - uses: DoozyX/clang-format-lint-action@v0.18
       with:
-        source: 'common/ fft/ examples/'
+        source: 'common/ fft/ examples/ install_test/'
         exclude: ''
         extensions: 'hpp,cpp'
-        clangFormatVersion: 12
+        clangFormatVersion: 17
 
   # check if Docker images should be recreated
   check_docker_files:
