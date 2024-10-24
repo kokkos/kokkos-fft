@@ -19,8 +19,7 @@ namespace Impl {
 
 template <typename ScalarType1, typename ScalarType2>
 bool are_aliasing(const ScalarType1* ptr1, const ScalarType2* ptr2) {
-  return (reinterpret_cast<const void*>(ptr1) ==
-          reinterpret_cast<const void*>(ptr2));
+  return (static_cast<const void*>(ptr1) == static_cast<const void*>(ptr2));
 }
 
 template <typename ViewType>
