@@ -567,8 +567,8 @@ TEST(ToArray, rvalue) {
 
 template <typename ValueType1, typename ValueType2>
 void test_are_pointers_aliasing() {
-  using View1  = Kokkos::View<ValueType1*, execution_space>;
-  using View2  = Kokkos::View<ValueType2*, execution_space>;
+  using View1 = Kokkos::View<ValueType1*, execution_space>;
+  using View2 = Kokkos::View<ValueType2*, execution_space>;
 
   const int n1 = 10;
   // sizeof ValeuType2 is larger or equal to ValueType1

@@ -362,7 +362,8 @@ class Plan {
         // For the in-place Complex to Real transform, the output must be
         // reshaped to fit the original size (in.size() * 2) for correct
         // normalization
-        Kokkos::View<out_value_type*, execSpace> out_tmp(out.data(), in.size() * 2);
+        Kokkos::View<out_value_type*, execSpace> out_tmp(out.data(),
+                                                         in.size() * 2);
         KokkosFFT::Impl::normalize(m_exec_space, out_tmp, m_direction, norm,
                                    m_fft_size);
         return;
