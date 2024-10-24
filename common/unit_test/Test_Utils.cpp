@@ -569,15 +569,13 @@ template <typename ValueType1, typename ValueType2>
 void test_are_pointers_aliasing() {
   using View1  = Kokkos::View<ValueType1*, execution_space>;
   using View2  = Kokkos::View<ValueType2*, execution_space>;
-  using UView2 = Kokkos::View<ValueType2*, execution_space,
-                              Kokkos::MemoryTraits<Kokkos::Unmanaged>>;
 
   const int n1 = 10;
   // sizeof ValeuType2 is larger or equal to ValueType1
   const int n2 = sizeof(ValueType1) == sizeof(ValueType2) ? n1 : n1 / 2 + 1;
   View1 view1("view1", n1);
   View2 view2("view2", n1);
-  UView2 uview2(reinterpret_cast<ValueType2*>(view1.data()), n2);
+  View2 uview2(reinterpret_cast<ValueType2*>(view1.data()), n2);
 
   EXPECT_TRUE(KokkosFFT::Impl::are_aliasing(view1.data(), uview2.data()));
   EXPECT_FALSE(KokkosFFT::Impl::are_aliasing(view1.data(), view2.data()));

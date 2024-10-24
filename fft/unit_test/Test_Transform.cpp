@@ -76,23 +76,18 @@ void test_fft1_identity(T atol = 1.0e-12) {
 
 template <typename T, typename LayoutType>
 void test_fft1_identity_inplace(T atol = 1.0e-12) {
-  const int maxlen      = 32;
-  using RealView1DType  = Kokkos::View<T*, LayoutType, execution_space>;
-  using RealUView1DType = Kokkos::View<T*, LayoutType, execution_space,
-                                       Kokkos::MemoryTraits<Kokkos::Unmanaged>>;
+  const int maxlen     = 32;
+  using RealView1DType = Kokkos::View<T*, LayoutType, execution_space>;
   using ComplexView1DType =
       Kokkos::View<Kokkos::complex<T>*, LayoutType, execution_space>;
-  using ComplexUView1DType =
-      Kokkos::View<Kokkos::complex<T>*, LayoutType, execution_space,
-                   Kokkos::MemoryTraits<Kokkos::Unmanaged>>;
 
   for (int i = 1; i < maxlen; i++) {
     ComplexView1DType a("a", i), a_ref("a_ref", i);
-    ComplexUView1DType a_hat(a.data(), i), inv_a_hat(a.data(), i);
+    ComplexView1DType a_hat(a.data(), i), inv_a_hat(a.data(), i);
 
     // Used for Real transforms
     ComplexView1DType ar_hat("ar_hat", i / 2 + 1);
-    RealUView1DType ar(reinterpret_cast<T*>(ar_hat.data()), i),
+    RealView1DType ar(reinterpret_cast<T*>(ar_hat.data()), i),
         inv_ar_hat(reinterpret_cast<T*>(ar_hat.data()), i);
     RealView1DType ar_ref("ar_ref", i);
 
@@ -1675,17 +1670,12 @@ void test_fft2_2dfft_2dview_shape(T atol = 1.0e-12) {
 template <typename T, typename LayoutType>
 void test_fft2_2dfft_2dview_inplace([[maybe_unused]] T atol = 1.0e-12) {
   const int n0 = 4, n1 = 6;
-  using RealView2DType  = Kokkos::View<T**, LayoutType, execution_space>;
-  using RealUView2DType = Kokkos::View<T**, LayoutType, execution_space,
-                                       Kokkos::MemoryTraits<Kokkos::Unmanaged>>;
+  using RealView2DType = Kokkos::View<T**, LayoutType, execution_space>;
   using ComplexView2DType =
       Kokkos::View<Kokkos::complex<T>**, LayoutType, execution_space>;
-  using ComplexUView2DType =
-      Kokkos::View<Kokkos::complex<T>**, LayoutType, execution_space,
-                   Kokkos::MemoryTraits<Kokkos::Unmanaged>>;
 
   ComplexView2DType x("x", n0, n1), x_ref("x_ref", n0, n1);
-  ComplexUView2DType x_hat(x.data(), n0, n1), inv_x_hat(x.data(), n0, n1);
+  ComplexView2DType x_hat(x.data(), n0, n1), inv_x_hat(x.data(), n0, n1);
 
   // Used for real transforms
   ComplexView2DType xr_hat("xr_hat", n0, n1 / 2 + 1),
@@ -1695,16 +1685,16 @@ void test_fft2_2dfft_2dview_inplace([[maybe_unused]] T atol = 1.0e-12) {
       inv_xr_hat_ref("inv_xr_hat_ref", n0, n1);
 
   // Unmanged views for in-place transforms
-  RealUView2DType xr(reinterpret_cast<T*>(xr_hat.data()), n0, n1),
+  RealView2DType xr(reinterpret_cast<T*>(xr_hat.data()), n0, n1),
       inv_xr_hat(reinterpret_cast<T*>(xr_hat.data()), n0, n1);
-  RealUView2DType xr_padded(reinterpret_cast<T*>(xr_hat.data()), n0,
-                            (n1 / 2 + 1) * 2),
+  RealView2DType xr_padded(reinterpret_cast<T*>(xr_hat.data()), n0,
+                           (n1 / 2 + 1) * 2),
       inv_xr_hat_padded(reinterpret_cast<T*>(xr_hat.data()), n0,
                         (n1 / 2 + 1) * 2);
 
   // Initialize xr_hat through xr_padded
   auto sub_xr_padded =
-      Kokkos::subview(xr_padded, Kokkos::ALL(), Kokkos::pair<int, int>(0, n1));
+      Kokkos::subview(xr_padded, Kokkos::ALL, Kokkos::pair<int, int>(0, n1));
 
   const Kokkos::complex<T> z(1.0, 1.0);
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
@@ -1736,6 +1726,8 @@ void test_fft2_2dfft_2dview_inplace([[maybe_unused]] T atol = 1.0e-12) {
                     KokkosFFT::Normalization::backward, axes);
     KokkosFFT::ifft2(execution_space(), x_hat, inv_x_hat,
                      KokkosFFT::Normalization::backward, axes);
+
+    Kokkos::fence();
     EXPECT_TRUE(allclose(inv_x_hat, x_ref, 1.e-5, atol));
 
     // In-place transforms
@@ -1745,6 +1737,8 @@ void test_fft2_2dfft_2dview_inplace([[maybe_unused]] T atol = 1.0e-12) {
     // Out-of-place transforms (reference)
     KokkosFFT::rfft2(execution_space(), xr_ref, xr_hat_ref,
                      KokkosFFT::Normalization::backward, axes);
+
+    Kokkos::fence();
     EXPECT_TRUE(allclose(xr_hat, xr_hat_ref, 1.e-5, atol));
 
     // In-place transforms
@@ -1757,8 +1751,9 @@ void test_fft2_2dfft_2dview_inplace([[maybe_unused]] T atol = 1.0e-12) {
     KokkosFFT::irfft2(execution_space(), xr_hat_ref, inv_xr_hat_ref,
                       KokkosFFT::Normalization::backward, axes);
 
-    auto sub_inv_xr_hat_padded = Kokkos::subview(
-        inv_xr_hat_padded, Kokkos::ALL(), Kokkos::pair<int, int>(0, n1));
+    Kokkos::fence();
+    auto sub_inv_xr_hat_padded = Kokkos::subview(inv_xr_hat_padded, Kokkos::ALL,
+                                                 Kokkos::pair<int, int>(0, n1));
     Kokkos::deep_copy(inv_xr_hat_unpadded, sub_inv_xr_hat_padded);
 
     EXPECT_TRUE(allclose(inv_xr_hat_unpadded, inv_xr_hat_ref, 1.e-5, atol));
