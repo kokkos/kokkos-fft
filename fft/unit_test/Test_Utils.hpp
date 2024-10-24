@@ -81,10 +81,12 @@ template <typename ViewType>
 void fft1(ViewType& in, ViewType& out) {
   using value_type      = typename ViewType::non_const_value_type;
   using real_value_type = KokkosFFT::Impl::base_floating_point_type<value_type>;
+  using Kokkos::numbers::pi_v;
 
   static_assert(KokkosFFT::Impl::is_complex_v<value_type>,
                 "fft1: ViewType must be complex");
 
+  constexpr auto pi = pi_v<real_value_type>;
   const value_type I(0.0, 1.0);
   std::size_t L = in.size();
 
@@ -99,8 +101,7 @@ void fft1(ViewType& in, ViewType& out) {
         Kokkos::parallel_reduce(
             Kokkos::TeamThreadRange(team_member, L),
             [&](const int i, value_type& lsum) {
-              auto phase = -2 * I * Kokkos::numbers::pi *
-                           static_cast<real_value_type>(i) /
+              auto phase = -2 * I * pi * static_cast<real_value_type>(i) /
                            static_cast<real_value_type>(L);
 
               auto tmp_in = in(i);
@@ -128,10 +129,12 @@ template <typename ViewType>
 void ifft1(ViewType& in, ViewType& out) {
   using value_type      = typename ViewType::non_const_value_type;
   using real_value_type = KokkosFFT::Impl::base_floating_point_type<value_type>;
+  using Kokkos::numbers::pi_v;
 
   static_assert(KokkosFFT::Impl::is_complex_v<value_type>,
                 "ifft1: ViewType must be complex");
 
+  constexpr auto pi = pi_v<real_value_type>;
   const value_type I(0.0, 1.0);
   std::size_t L = in.size();
 
@@ -146,8 +149,7 @@ void ifft1(ViewType& in, ViewType& out) {
         Kokkos::parallel_reduce(
             Kokkos::TeamThreadRange(team_member, L),
             [&](const int i, value_type& lsum) {
-              auto phase = 2 * I * Kokkos::numbers::pi *
-                           static_cast<real_value_type>(i) /
+              auto phase = 2 * I * pi * static_cast<real_value_type>(i) /
                            static_cast<real_value_type>(L);
 
               auto tmp_in = in(i);
