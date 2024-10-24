@@ -11,6 +11,13 @@ using test_types = ::testing::Types<Kokkos::LayoutLeft, Kokkos::LayoutRight>;
 // Int like types
 using base_int_types = ::testing::Types<int, std::size_t>;
 
+// value type combinations that are tested
+using paired_scalar_types = ::testing::Types<
+    std::pair<float, float>, std::pair<float, Kokkos::complex<float>>,
+    std::pair<Kokkos::complex<float>, Kokkos::complex<float>>,
+    std::pair<double, double>, std::pair<double, Kokkos::complex<double>>,
+    std::pair<Kokkos::complex<double>, Kokkos::complex<double>>>;
+
 // Basically the same fixtures, used for labeling tests
 template <typename T>
 struct ConvertNegativeAxis : public ::testing::Test {
@@ -30,9 +37,16 @@ struct ContainerTypes : public ::testing::Test {
   using array_type                  = std::array<T, rank>;
 };
 
+template <typename T>
+struct PairedScalarTypes : public ::testing::Test {
+  using value_type1 = typename T::first_type;
+  using value_type2 = typename T::second_type;
+};
+
 TYPED_TEST_SUITE(ConvertNegativeAxis, test_types);
 TYPED_TEST_SUITE(ConvertNegativeShift, test_types);
 TYPED_TEST_SUITE(ContainerTypes, base_int_types);
+TYPED_TEST_SUITE(PairedScalarTypes, paired_scalar_types);
 
 // Tests for convert_negative_axes over ND views
 template <typename LayoutType>
@@ -549,4 +563,26 @@ TEST(ToArray, lvalue) {
 
 TEST(ToArray, rvalue) {
   ASSERT_EQ(KokkosFFT::Impl::to_array(std::array{1, 2}), (Kokkos::Array{1, 2}));
+}
+
+template <typename ValueType1, typename ValueType2>
+void test_are_pointers_aliasing() {
+  using View1 = Kokkos::View<ValueType1*, execution_space>;
+  using View2 = Kokkos::View<ValueType2*, execution_space>;
+
+  const int n1 = 10;
+  // sizeof ValeuType2 is larger or equal to ValueType1
+  const int n2 = sizeof(ValueType1) == sizeof(ValueType2) ? n1 : n1 / 2 + 1;
+  View1 view1("view1", n1);
+  View2 view2("view2", n1);
+  View2 uview2(reinterpret_cast<ValueType2*>(view1.data()), n2);
+
+  EXPECT_TRUE(KokkosFFT::Impl::are_aliasing(view1.data(), uview2.data()));
+  EXPECT_FALSE(KokkosFFT::Impl::are_aliasing(view1.data(), view2.data()));
+}
+
+TYPED_TEST(PairedScalarTypes, are_pointers_aliasing) {
+  using value_type1 = typename TestFixture::value_type1;
+  using value_type2 = typename TestFixture::value_type2;
+  test_are_pointers_aliasing<value_type1, value_type2>();
 }

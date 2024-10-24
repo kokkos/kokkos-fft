@@ -13,92 +13,10 @@
 template <std::size_t DIM>
 using shape_type = KokkosFFT::shape_type<DIM>;
 
-/// Kokkos equivalent of fft1 with numpy
-/// def fft1(x):
-///    L = len(x)
-///    phase = -2j * np.pi * (np.arange(L) / L)
-///    phase = np.arange(L).reshape(-1, 1) * phase
-///    return np.sum(x*np.exp(phase), axis=1)
-template <typename ViewType>
-void fft1(ViewType& in, ViewType& out) {
-  using value_type      = typename ViewType::non_const_value_type;
-  using real_value_type = KokkosFFT::Impl::base_floating_point_type<value_type>;
-
-  static_assert(KokkosFFT::Impl::is_complex_v<value_type>,
-                "fft1: ViewType must be complex");
-
-  const value_type I(0.0, 1.0);
-  std::size_t L = in.size();
-
-  Kokkos::parallel_for(
-      "KokkosFFT::Test::fft1",
-      Kokkos::TeamPolicy<execution_space>(L, Kokkos::AUTO),
-      KOKKOS_LAMBDA(
-          const Kokkos::TeamPolicy<execution_space>::member_type& team_member) {
-        const int j = team_member.league_rank();
-
-        value_type sum = 0;
-        Kokkos::parallel_reduce(
-            Kokkos::TeamThreadRange(team_member, L),
-            [&](const int i, value_type& lsum) {
-              auto phase = -2 * I * M_PI * static_cast<real_value_type>(i) /
-                           static_cast<real_value_type>(L);
-
-              auto tmp_in = in(i);
-              lsum +=
-                  tmp_in * Kokkos::exp(static_cast<real_value_type>(j) * phase);
-            },
-            sum);
-
-        out(j) = sum;
-      });
-}
-
-/// Kokkos equivalent of ifft1 with numpy
-/// def ifft1(x):
-///    L = len(x)
-///    phase = 2j * np.pi * (np.arange(L) / L)
-///    phase = np.arange(L).reshape(-1, 1) * phase
-///    return np.sum(x*np.exp(phase), axis=1)
-template <typename ViewType>
-void ifft1(ViewType& in, ViewType& out) {
-  using value_type      = typename ViewType::non_const_value_type;
-  using real_value_type = KokkosFFT::Impl::base_floating_point_type<value_type>;
-
-  static_assert(KokkosFFT::Impl::is_complex_v<value_type>,
-                "ifft1: ViewType must be complex");
-
-  const value_type I(0.0, 1.0);
-  std::size_t L = in.size();
-
-  Kokkos::parallel_for(
-      "KokkosFFT::Test::ifft1",
-      Kokkos::TeamPolicy<execution_space>(L, Kokkos::AUTO),
-      KOKKOS_LAMBDA(
-          const Kokkos::TeamPolicy<execution_space>::member_type& team_member) {
-        const int j = team_member.league_rank();
-
-        value_type sum = 0;
-        Kokkos::parallel_reduce(
-            Kokkos::TeamThreadRange(team_member, L),
-            [&](const int i, value_type& lsum) {
-              auto phase = 2 * I * M_PI * static_cast<real_value_type>(i) /
-                           static_cast<real_value_type>(L);
-
-              auto tmp_in = in(i);
-              lsum +=
-                  tmp_in * Kokkos::exp(static_cast<real_value_type>(j) * phase);
-            },
-            sum);
-
-        out(j) = sum;
-      });
-}
-
 using test_types = ::testing::Types<std::pair<float, Kokkos::LayoutLeft>,
                                     std::pair<float, Kokkos::LayoutRight>,
                                     std::pair<double, Kokkos::LayoutLeft>,
-                                    std::pair<double, Kokkos::LayoutRight> >;
+                                    std::pair<double, Kokkos::LayoutRight>>;
 
 // Basically the same fixtures, used for labeling tests
 template <typename T>
@@ -153,6 +71,46 @@ void test_fft1_identity(T atol = 1.0e-12) {
 
     EXPECT_TRUE(allclose(_a, a_ref, 1.e-5, atol));
     EXPECT_TRUE(allclose(_ar, ar_ref, 1.e-5, atol));
+  }
+}
+
+template <typename T, typename LayoutType>
+void test_fft1_identity_inplace(T atol = 1.0e-12) {
+  const int maxlen     = 32;
+  using RealView1DType = Kokkos::View<T*, LayoutType, execution_space>;
+  using ComplexView1DType =
+      Kokkos::View<Kokkos::complex<T>*, LayoutType, execution_space>;
+
+  for (int i = 1; i < maxlen; i++) {
+    ComplexView1DType a("a", i), a_ref("a_ref", i);
+    ComplexView1DType a_hat(a.data(), i), inv_a_hat(a.data(), i);
+
+    // Used for Real transforms
+    ComplexView1DType ar_hat("ar_hat", i / 2 + 1);
+    RealView1DType ar(reinterpret_cast<T*>(ar_hat.data()), i),
+        inv_ar_hat(reinterpret_cast<T*>(ar_hat.data()), i);
+    RealView1DType ar_ref("ar_ref", i);
+
+    const Kokkos::complex<T> z(1.0, 1.0);
+    Kokkos::Random_XorShift64_Pool<> random_pool(/*seed=*/12345);
+    Kokkos::fill_random(a, random_pool, z);
+    Kokkos::fill_random(ar, random_pool, 1.0);
+
+    Kokkos::deep_copy(a_ref, a);
+    Kokkos::deep_copy(ar_ref, ar);
+
+    Kokkos::fence();
+
+    KokkosFFT::fft(execution_space(), a, a_hat);
+    KokkosFFT::ifft(execution_space(), a_hat, inv_a_hat);
+
+    KokkosFFT::rfft(execution_space(), ar, ar_hat);
+    KokkosFFT::irfft(execution_space(), ar_hat, inv_ar_hat);
+
+    Kokkos::fence();
+
+    EXPECT_TRUE(allclose(inv_a_hat, a_ref, 1.e-5, atol));
+    EXPECT_TRUE(allclose(inv_ar_hat, ar_ref, 1.e-5, atol));
   }
 }
 
@@ -1156,6 +1114,15 @@ TYPED_TEST(FFT1D, Identity_1DView) {
   test_fft1_identity<float_type, layout_type>(atol);
 }
 
+// Identity tests on 1D Views for in-place transform
+TYPED_TEST(FFT1D, Identity_1DView_inplace) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
+  test_fft1_identity_inplace<float_type, layout_type>(atol);
+}
+
 // Identity tests on 1D Views with plan reuse
 TYPED_TEST(FFT1D, Identity_1DView_reuse_plans) {
   using float_type  = typename TestFixture::float_type;
@@ -1701,6 +1668,99 @@ void test_fft2_2dfft_2dview_shape(T atol = 1.0e-12) {
 }
 
 template <typename T, typename LayoutType>
+void test_fft2_2dfft_2dview_inplace([[maybe_unused]] T atol = 1.0e-12) {
+  const int n0 = 4, n1 = 6;
+  using RealView2DType = Kokkos::View<T**, LayoutType, execution_space>;
+  using ComplexView2DType =
+      Kokkos::View<Kokkos::complex<T>**, LayoutType, execution_space>;
+
+  ComplexView2DType x("x", n0, n1), x_ref("x_ref", n0, n1);
+  ComplexView2DType x_hat(x.data(), n0, n1), inv_x_hat(x.data(), n0, n1);
+
+  // Used for real transforms
+  ComplexView2DType xr_hat("xr_hat", n0, n1 / 2 + 1),
+      xr_hat_ref("xr_hat_ref", n0, n1 / 2 + 1);
+  RealView2DType xr_ref("xr_ref", n0, n1),
+      inv_xr_hat_unpadded("inv_xr_hat_unpadded", n0, n1),
+      inv_xr_hat_ref("inv_xr_hat_ref", n0, n1);
+
+  // Unmanged views for in-place transforms
+  RealView2DType xr(reinterpret_cast<T*>(xr_hat.data()), n0, n1),
+      inv_xr_hat(reinterpret_cast<T*>(xr_hat.data()), n0, n1);
+  RealView2DType xr_padded(reinterpret_cast<T*>(xr_hat.data()), n0,
+                           (n1 / 2 + 1) * 2),
+      inv_xr_hat_padded(reinterpret_cast<T*>(xr_hat.data()), n0,
+                        (n1 / 2 + 1) * 2);
+
+  // Initialize xr_hat through xr_padded
+  auto sub_xr_padded =
+      Kokkos::subview(xr_padded, Kokkos::ALL, Kokkos::pair<int, int>(0, n1));
+
+  const Kokkos::complex<T> z(1.0, 1.0);
+  Kokkos::Random_XorShift64_Pool<> random_pool(12345);
+  Kokkos::fill_random(xr_ref, random_pool, 1.0);
+  Kokkos::fill_random(x, random_pool, z);
+  Kokkos::deep_copy(sub_xr_padded, xr_ref);
+  Kokkos::deep_copy(x_ref, x);
+
+  using axes_type = KokkosFFT::axis_type<2>;
+  axes_type axes  = {-2, -1};
+
+  if constexpr (std::is_same_v<LayoutType, Kokkos::LayoutLeft>) {
+    // in-place transforms are not supported if transpose is needed
+    EXPECT_THROW(KokkosFFT::fft2(execution_space(), x, x_hat,
+                                 KokkosFFT::Normalization::backward, axes),
+                 std::runtime_error);
+    EXPECT_THROW(KokkosFFT::ifft2(execution_space(), x_hat, inv_x_hat,
+                                  KokkosFFT::Normalization::backward, axes),
+                 std::runtime_error);
+    EXPECT_THROW(KokkosFFT::rfft2(execution_space(), xr, xr_hat,
+                                  KokkosFFT::Normalization::backward, axes),
+                 std::runtime_error);
+    EXPECT_THROW(KokkosFFT::irfft2(execution_space(), xr_hat, inv_xr_hat,
+                                   KokkosFFT::Normalization::backward, axes),
+                 std::runtime_error);
+  } else {
+    // Identity tests for complex transforms
+    KokkosFFT::fft2(execution_space(), x, x_hat,
+                    KokkosFFT::Normalization::backward, axes);
+    KokkosFFT::ifft2(execution_space(), x_hat, inv_x_hat,
+                     KokkosFFT::Normalization::backward, axes);
+
+    Kokkos::fence();
+    EXPECT_TRUE(allclose(inv_x_hat, x_ref, 1.e-5, atol));
+
+    // In-place transforms
+    KokkosFFT::rfft2(execution_space(), xr, xr_hat,
+                     KokkosFFT::Normalization::backward, axes);
+
+    // Out-of-place transforms (reference)
+    KokkosFFT::rfft2(execution_space(), xr_ref, xr_hat_ref,
+                     KokkosFFT::Normalization::backward, axes);
+
+    Kokkos::fence();
+    EXPECT_TRUE(allclose(xr_hat, xr_hat_ref, 1.e-5, atol));
+
+    // In-place transforms
+    Kokkos::fill_random(xr_hat, random_pool, z);
+    Kokkos::deep_copy(xr_hat_ref, xr_hat);
+    KokkosFFT::irfft2(execution_space(), xr_hat, inv_xr_hat,
+                      KokkosFFT::Normalization::backward, axes);
+
+    // Out-of-place transforms (reference)
+    KokkosFFT::irfft2(execution_space(), xr_hat_ref, inv_xr_hat_ref,
+                      KokkosFFT::Normalization::backward, axes);
+
+    Kokkos::fence();
+    auto sub_inv_xr_hat_padded = Kokkos::subview(inv_xr_hat_padded, Kokkos::ALL,
+                                                 Kokkos::pair<int, int>(0, n1));
+    Kokkos::deep_copy(inv_xr_hat_unpadded, sub_inv_xr_hat_padded);
+
+    EXPECT_TRUE(allclose(inv_xr_hat_unpadded, inv_xr_hat_ref, 1.e-5, atol));
+  }
+}
+
+template <typename T, typename LayoutType>
 void test_fft2_2dfft_3dview(T atol = 1.e-12) {
   const int n0 = 10, n1 = 6, n2 = 8;
   using RealView3DType = Kokkos::View<T***, LayoutType, execution_space>;
@@ -2215,6 +2275,14 @@ TYPED_TEST(FFT2D, 2DFFT_2DView_shape) {
   using layout_type = typename TestFixture::layout_type;
 
   test_fft2_2dfft_2dview_shape<float_type, layout_type>();
+}
+
+// fft2 on 2D Views with in-place transform
+TYPED_TEST(FFT2D, 2DFFT_2DView_inplace) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  test_fft2_2dfft_2dview_inplace<float_type, layout_type>();
 }
 
 // batced fft2 on 3D Views

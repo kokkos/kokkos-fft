@@ -11,6 +11,7 @@
 #include "KokkosFFT_layouts.hpp"
 #include "KokkosFFT_traits.hpp"
 #include "KokkosFFT_asserts.hpp"
+#include "KokkosFFT_utils.hpp"
 
 namespace KokkosFFT {
 namespace Impl {
@@ -91,7 +92,8 @@ auto create_plan(const ExecutionSpace& exec_space,
                  std::unique_ptr<PlanType>& plan, const InViewType& in,
                  const OutViewType& out, BufferViewType& buffer,
                  InfoType& execution_info, Direction direction,
-                 axis_type<fft_rank> axes, shape_type<fft_rank> s) {
+                 axis_type<fft_rank> axes, shape_type<fft_rank> s,
+                 bool is_inplace) {
   static_assert(
       KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
                                               OutViewType>,
@@ -111,7 +113,7 @@ auto create_plan(const ExecutionSpace& exec_space,
       KokkosFFT::Impl::transform_type<ExecutionSpace, in_value_type,
                                       out_value_type>::type();
   auto [in_extents, out_extents, fft_extents, howmany] =
-      KokkosFFT::Impl::get_extents(in, out, axes, s);
+      KokkosFFT::Impl::get_extents(in, out, axes, s, is_inplace);
   int idist    = std::accumulate(in_extents.begin(), in_extents.end(), 1,
                                  std::multiplies<>());
   int odist    = std::accumulate(out_extents.begin(), out_extents.end(), 1,
@@ -152,7 +154,8 @@ auto create_plan(const ExecutionSpace& exec_space,
                      "rocfft_plan_description_set_data_layout failed");
 
   // Out-of-place transform
-  const rocfft_result_placement place = rocfft_placement_notinplace;
+  const rocfft_result_placement place =
+      is_inplace ? rocfft_placement_inplace : rocfft_placement_notinplace;
 
   // Create a plan
   plan   = std::make_unique<PlanType>();
