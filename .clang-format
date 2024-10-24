@@ -8,3 +8,4 @@ AlignConsecutiveAssignments: true
 AllowShortCaseLabelsOnASingleLine: true
 AllowShortIfStatementsOnASingleLine: true
 CommentPragmas: ' SPDX-'
+InsertNewlineAtEOF: true
