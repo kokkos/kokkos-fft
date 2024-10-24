@@ -99,7 +99,8 @@ void fft1(ViewType& in, ViewType& out) {
         Kokkos::parallel_reduce(
             Kokkos::TeamThreadRange(team_member, L),
             [&](const int i, value_type& lsum) {
-              auto phase = -2 * I * M_PI * static_cast<real_value_type>(i) /
+              auto phase = -2 * I * Kokkos::numbers::pi *
+                           static_cast<real_value_type>(i) /
                            static_cast<real_value_type>(L);
 
               auto tmp_in = in(i);
@@ -145,7 +146,8 @@ void ifft1(ViewType& in, ViewType& out) {
         Kokkos::parallel_reduce(
             Kokkos::TeamThreadRange(team_member, L),
             [&](const int i, value_type& lsum) {
-              auto phase = 2 * I * M_PI * static_cast<real_value_type>(i) /
+              auto phase = 2 * I * Kokkos::numbers::pi *
+                           static_cast<real_value_type>(i) /
                            static_cast<real_value_type>(L);
 
               auto tmp_in = in(i);
