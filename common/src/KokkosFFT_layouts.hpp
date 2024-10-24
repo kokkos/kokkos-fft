@@ -45,20 +45,20 @@ auto get_extents(const InViewType& in, const OutViewType& out,
 
   // Get extents for the inner most axes in LayoutRight
   // If we allow the FFT on the layoutLeft, this part should be modified
-  std::vector<int> _in_extents, _out_extents, _fft_extents;
+  std::vector<int> in_extents_full, out_extents_full, fft_extents_full;
   for (std::size_t i = 0; i < rank; i++) {
-    auto _idx       = map.at(i);
-    auto in_extent  = modified_in_shape.at(_idx);
-    auto out_extent = out.extent(_idx);
-    _in_extents.push_back(in_extent);
-    _out_extents.push_back(out_extent);
+    auto idx        = map.at(i);
+    auto in_extent  = modified_in_shape.at(idx);
+    auto out_extent = out.extent(idx);
+    in_extents_full.push_back(in_extent);
+    out_extents_full.push_back(out_extent);
 
     // The extent for transform is always equal to the extent
     // of the extent of real type (R2C or C2R)
     // For C2C, the in and out extents are the same.
     // In the end, we can just use the largest extent among in and out extents.
     auto fft_extent = std::max(in_extent, out_extent);
-    _fft_extents.push_back(fft_extent);
+    fft_extents_full.push_back(fft_extent);
   }
 
   static_assert(!(is_real_v<in_value_type> && is_real_v<out_value_type>),
@@ -67,11 +67,12 @@ auto get_extents(const InViewType& in, const OutViewType& out,
   if constexpr (is_real_v<in_value_type>) {
     // Then R2C
     if (is_inplace) {
-      _in_extents.at(inner_most_axis) = _out_extents.at(inner_most_axis) * 2;
+      in_extents_full.at(inner_most_axis) =
+          out_extents_full.at(inner_most_axis) * 2;
     } else {
       KOKKOSFFT_THROW_IF(
-          _out_extents.at(inner_most_axis) !=
-              _in_extents.at(inner_most_axis) / 2 + 1,
+          out_extents_full.at(inner_most_axis) !=
+              in_extents_full.at(inner_most_axis) / 2 + 1,
           "For R2C, the 'output extent' of transform must be equal to "
           "'input extent'/2 + 1");
     }
@@ -80,30 +81,34 @@ auto get_extents(const InViewType& in, const OutViewType& out,
   if constexpr (is_real_v<out_value_type>) {
     // Then C2R
     if (is_inplace) {
-      _out_extents.at(inner_most_axis) = _in_extents.at(inner_most_axis) * 2;
+      out_extents_full.at(inner_most_axis) =
+          in_extents_full.at(inner_most_axis) * 2;
     } else {
       KOKKOSFFT_THROW_IF(
-          _in_extents.at(inner_most_axis) !=
-              _out_extents.at(inner_most_axis) / 2 + 1,
+          in_extents_full.at(inner_most_axis) !=
+              out_extents_full.at(inner_most_axis) / 2 + 1,
           "For C2R, the 'input extent' of transform must be equal to "
           "'output extent' / 2 + 1");
     }
   }
 
   if constexpr (std::is_same_v<array_layout_type, Kokkos::LayoutLeft>) {
-    std::reverse(_in_extents.begin(), _in_extents.end());
-    std::reverse(_out_extents.begin(), _out_extents.end());
-    std::reverse(_fft_extents.begin(), _fft_extents.end());
+    std::reverse(in_extents_full.begin(), in_extents_full.end());
+    std::reverse(out_extents_full.begin(), out_extents_full.end());
+    std::reverse(fft_extents_full.begin(), fft_extents_full.end());
   }
 
   // Define subvectors starting from last - DIM
   // Dimensions relevant to FFTs
-  std::vector<int> in_extents(_in_extents.end() - DIM, _in_extents.end());
-  std::vector<int> out_extents(_out_extents.end() - DIM, _out_extents.end());
-  std::vector<int> fft_extents(_fft_extents.end() - DIM, _fft_extents.end());
+  std::vector<int> in_extents(in_extents_full.end() - DIM,
+                              in_extents_full.end());
+  std::vector<int> out_extents(out_extents_full.end() - DIM,
+                               out_extents_full.end());
+  std::vector<int> fft_extents(fft_extents_full.end() - DIM,
+                               fft_extents_full.end());
 
-  int total_fft_size = std::accumulate(_fft_extents.begin(), _fft_extents.end(),
-                                       1, std::multiplies<>());
+  int total_fft_size = std::accumulate(
+      fft_extents_full.begin(), fft_extents_full.end(), 1, std::multiplies<>());
   int fft_size = std::accumulate(fft_extents.begin(), fft_extents.end(), 1,
                                  std::multiplies<>());
   int howmany  = total_fft_size / fft_size;

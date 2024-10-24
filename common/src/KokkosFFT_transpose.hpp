@@ -135,12 +135,12 @@ void transpose_impl(const ExecutionSpace& exec_space, const InViewType& in,
   Kokkos::Array<int, rank> map = to_array(_map);
   Kokkos::parallel_for(
       "KokkosFFT::transpose", range, KOKKOS_LAMBDA(int i0, int i1, int i2) {
-        int _indices[rank] = {i0, i1, i2};
-        int _i0            = _indices[map[0]];
-        int _i1            = _indices[map[1]];
-        int _i2            = _indices[map[2]];
+        int dst_indices[rank] = {i0, i1, i2};
+        int dst_i0            = dst_indices[map[0]];
+        int dst_i1            = dst_indices[map[1]];
+        int dst_i2            = dst_indices[map[2]];
 
-        out(_i0, _i1, _i2) = in(i0, i1, i2);
+        out(dst_i0, dst_i1, dst_i2) = in(i0, i1, i2);
       });
 }
 
@@ -168,13 +168,13 @@ void transpose_impl(const ExecutionSpace& exec_space, const InViewType& in,
   Kokkos::parallel_for(
       "KokkosFFT::transpose", range,
       KOKKOS_LAMBDA(int i0, int i1, int i2, int i3) {
-        int _indices[rank] = {i0, i1, i2, i3};
-        int _i0            = _indices[map[0]];
-        int _i1            = _indices[map[1]];
-        int _i2            = _indices[map[2]];
-        int _i3            = _indices[map[3]];
+        int dst_indices[rank] = {i0, i1, i2, i3};
+        int dst_i0            = dst_indices[map[0]];
+        int dst_i1            = dst_indices[map[1]];
+        int dst_i2            = dst_indices[map[2]];
+        int dst_i3            = dst_indices[map[3]];
 
-        out(_i0, _i1, _i2, _i3) = in(i0, i1, i2, i3);
+        out(dst_i0, dst_i1, dst_i2, dst_i3) = in(i0, i1, i2, i3);
       });
 }
 
@@ -203,14 +203,14 @@ void transpose_impl(const ExecutionSpace& exec_space, const InViewType& in,
   Kokkos::parallel_for(
       "KokkosFFT::transpose", range,
       KOKKOS_LAMBDA(int i0, int i1, int i2, int i3, int i4) {
-        int _indices[rank] = {i0, i1, i2, i3, i4};
-        int _i0            = _indices[map[0]];
-        int _i1            = _indices[map[1]];
-        int _i2            = _indices[map[2]];
-        int _i3            = _indices[map[3]];
-        int _i4            = _indices[map[4]];
+        int dst_indices[rank] = {i0, i1, i2, i3, i4};
+        int dst_i0            = dst_indices[map[0]];
+        int dst_i1            = dst_indices[map[1]];
+        int dst_i2            = dst_indices[map[2]];
+        int dst_i3            = dst_indices[map[3]];
+        int dst_i4            = dst_indices[map[4]];
 
-        out(_i0, _i1, _i2, _i3, _i4) = in(i0, i1, i2, i3, i4);
+        out(dst_i0, dst_i1, dst_i2, dst_i3, dst_i4) = in(i0, i1, i2, i3, i4);
       });
 }
 
@@ -240,15 +240,16 @@ void transpose_impl(const ExecutionSpace& exec_space, const InViewType& in,
   Kokkos::parallel_for(
       "KokkosFFT::transpose", range,
       KOKKOS_LAMBDA(int i0, int i1, int i2, int i3, int i4, int i5) {
-        int _indices[rank] = {i0, i1, i2, i3, i4, i5};
-        int _i0            = _indices[map[0]];
-        int _i1            = _indices[map[1]];
-        int _i2            = _indices[map[2]];
-        int _i3            = _indices[map[3]];
-        int _i4            = _indices[map[4]];
-        int _i5            = _indices[map[5]];
+        int dst_indices[rank] = {i0, i1, i2, i3, i4, i5};
+        int dst_i0            = dst_indices[map[0]];
+        int dst_i1            = dst_indices[map[1]];
+        int dst_i2            = dst_indices[map[2]];
+        int dst_i3            = dst_indices[map[3]];
+        int dst_i4            = dst_indices[map[4]];
+        int dst_i5            = dst_indices[map[5]];
 
-        out(_i0, _i1, _i2, _i3, _i4, _i5) = in(i0, i1, i2, i3, i4, i5);
+        out(dst_i0, dst_i1, dst_i2, dst_i3, dst_i4, dst_i5) =
+            in(i0, i1, i2, i3, i4, i5);
       });
 }
 
@@ -279,16 +280,16 @@ void transpose_impl(const ExecutionSpace& exec_space, const InViewType& in,
       "KokkosFFT::transpose", range,
       KOKKOS_LAMBDA(int i0, int i1, int i2, int i3, int i4, int i5) {
         for (int i6 = 0; i6 < n6; i6++) {
-          int _indices[rank] = {i0, i1, i2, i3, i4, i5, i6};
-          int _i0            = _indices[map[0]];
-          int _i1            = _indices[map[1]];
-          int _i2            = _indices[map[2]];
-          int _i3            = _indices[map[3]];
-          int _i4            = _indices[map[4]];
-          int _i5            = _indices[map[5]];
-          int _i6            = _indices[map[6]];
+          int dst_indices[rank] = {i0, i1, i2, i3, i4, i5, i6};
+          int dst_i0            = dst_indices[map[0]];
+          int dst_i1            = dst_indices[map[1]];
+          int dst_i2            = dst_indices[map[2]];
+          int dst_i3            = dst_indices[map[3]];
+          int dst_i4            = dst_indices[map[4]];
+          int dst_i5            = dst_indices[map[5]];
+          int dst_i6            = dst_indices[map[6]];
 
-          out(_i0, _i1, _i2, _i3, _i4, _i5, _i6) =
+          out(dst_i0, dst_i1, dst_i2, dst_i3, dst_i4, dst_i5, dst_i6) =
               in(i0, i1, i2, i3, i4, i5, i6);
         }
       });
@@ -324,42 +325,50 @@ void transpose_impl(const ExecutionSpace& exec_space, const InViewType& in,
       KOKKOS_LAMBDA(int i0, int i1, int i2, int i3, int i4, int i5) {
         for (int i6 = 0; i6 < n6; i6++) {
           for (int i7 = 0; i7 < n7; i7++) {
-            int _indices[rank] = {i0, i1, i2, i3, i4, i5, i6, i7};
-            int _i0            = _indices[map[0]];
-            int _i1            = _indices[map[1]];
-            int _i2            = _indices[map[2]];
-            int _i3            = _indices[map[3]];
-            int _i4            = _indices[map[4]];
-            int _i5            = _indices[map[5]];
-            int _i6            = _indices[map[6]];
-            int _i7            = _indices[map[7]];
+            int dst_indices[rank] = {i0, i1, i2, i3, i4, i5, i6, i7};
+            int dst_i0            = dst_indices[map[0]];
+            int dst_i1            = dst_indices[map[1]];
+            int dst_i2            = dst_indices[map[2]];
+            int dst_i3            = dst_indices[map[3]];
+            int dst_i4            = dst_indices[map[4]];
+            int dst_i5            = dst_indices[map[5]];
+            int dst_i6            = dst_indices[map[6]];
+            int dst_i7            = dst_indices[map[7]];
 
-            out(_i0, _i1, _i2, _i3, _i4, _i5, _i6, _i7) =
-                in(i0, i1, i2, i3, i4, i5, i6, i7);
+            out(dst_i0, dst_i1, dst_i2, dst_i3, dst_i4, dst_i5, dst_i6,
+                dst_i7) = in(i0, i1, i2, i3, i4, i5, i6, i7);
           }
         }
       });
 }
 
-/* Make the axis direction to the inner most direction
-   axis should be the range in [-(rank-1), rank-1], where
-   negative number is interpreted as rank + axis.
-   E.g. axis = -1 for rank 3 matrix is interpreted as axis = 2
-
- * E.g.
-        Layout Left
-        A (3, 4, 2) and axis = 1 -> A' (4, 3, 2)
-        B (2, 4, 3, 5) and axis = 2 -> B' (3, 2, 4, 5)
-        C (8, 6, 3) and axis = 0 -> C' (8, 6, 3)
-        D (7, 5) and axis = -1 -> D' (5, 7)
-
-        Layout Right
-        A (3, 4, 2) and axis = 1 -> A' (3, 2, 4)
-        B (2, 4, 3, 5) and axis = 2 -> B' (2, 4, 5, 3)
-        C (8, 6, 3) and axis = 0 -> C' (6, 3, 8)
-        D (5, 7) and axis = -1 -> D' (5, 7)
- *
-*/
+/// \brief Make the axis direction to the inner most direction
+/// axis should be the range in [-(rank-1), rank-1], where
+/// negative number is interpreted as rank + axis.
+/// E.g. axis = -1 for rank 3 matrix is interpreted as axis = 2
+///
+/// E.g.
+///      Layout Left
+///      A (3, 4, 2) and axis = 1 -> A' (4, 3, 2)
+///      B (2, 4, 3, 5) and axis = 2 -> B' (3, 2, 4, 5)
+///      C (8, 6, 3) and axis = 0 -> C' (8, 6, 3)
+///      D (7, 5) and axis = -1 -> D' (5, 7)
+///
+///      Layout Right
+///      A (3, 4, 2) and axis = 1 -> A' (3, 2, 4)
+///      B (2, 4, 3, 5) and axis = 2 -> B' (2, 4, 5, 3)
+///      C (8, 6, 3) and axis = 0 -> C' (6, 3, 8)
+///      D (5, 7) and axis = -1 -> D' (5, 7)
+///
+/// \tparam ExecutionSpace Kokkos execution space type
+/// \tparam InViewType The input view type
+/// \tparam OutViewType The output view type
+/// \tparam DIM         The dimensionality of the map
+///
+/// \param exec_space execution space instance
+/// \param in         The input view
+/// \param out        The output view
+/// \param map        The axis map for transpose
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           std::size_t DIM = 1>
 void transpose(const ExecutionSpace& exec_space, const InViewType& in,

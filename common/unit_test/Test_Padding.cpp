@@ -77,8 +77,8 @@ void test_reshape1D_2DView() {
   for (int axis0 = 0; axis0 < DIM; axis0++) {
     shape_type<2> in_shape = default_shape;
     in_shape.at(axis0)     = get_c2r_shape(x_out.extent(axis0), is_C2R);
-    auto [_n0, _n1]        = in_shape;
-    View2D<Kokkos::complex<double>> x_in("x_in", _n0, _n1);
+    auto [s0, s1]          = in_shape;
+    View2D<Kokkos::complex<double>> x_in("x_in", s0, s1);
     for (int i0 = -1; i0 <= 1; i0++) {
       shape_type<2> ref_shape = default_shape;
       auto n_new              = x_in.extent(axis0) + i0;
@@ -104,8 +104,8 @@ void test_reshape1D_3DView() {
   for (int axis0 = 0; axis0 < DIM; axis0++) {
     shape_type<3> in_shape = default_shape;
     in_shape.at(axis0)     = get_c2r_shape(x_out.extent(axis0), is_C2R);
-    auto [_n0, _n1, _n2]   = in_shape;
-    View3D<Kokkos::complex<double>> x_in("x_in", _n0, _n1, _n2);
+    auto [s0, s1, s2]      = in_shape;
+    View3D<Kokkos::complex<double>> x_in("x_in", s0, s1, s2);
     for (int i0 = -1; i0 <= 1; i0++) {
       shape_type<3> ref_shape = default_shape;
       auto n_new              = x_in.extent(axis0) + i0;
@@ -128,10 +128,10 @@ void test_reshape1D_4DView() {
   constexpr int DIM = 4;
   shape_type<4> default_shape({n0, n1, n2, n3});
   for (int axis0 = 0; axis0 < DIM; axis0++) {
-    shape_type<4> in_shape    = default_shape;
-    in_shape.at(axis0)        = get_c2r_shape(x_out.extent(axis0), is_C2R);
-    auto [_n0, _n1, _n2, _n3] = in_shape;
-    View4D<Kokkos::complex<double>> x_in("x_in", _n0, _n1, _n2, _n3);
+    shape_type<4> in_shape = default_shape;
+    in_shape.at(axis0)     = get_c2r_shape(x_out.extent(axis0), is_C2R);
+    auto [s0, s1, s2, s3]  = in_shape;
+    View4D<Kokkos::complex<double>> x_in("x_in", s0, s1, s2, s3);
     for (int i0 = -1; i0 <= 1; i0++) {
       shape_type<4> ref_shape = default_shape;
       auto n_new              = x_in.extent(axis0) + i0;
@@ -155,10 +155,10 @@ void test_reshape1D_5DView() {
   shape_type<5> default_shape({n0, n1, n2, n3, n4});
 
   for (int axis0 = 0; axis0 < DIM; axis0++) {
-    shape_type<5> in_shape         = default_shape;
-    in_shape.at(axis0)             = get_c2r_shape(x_out.extent(axis0), is_C2R);
-    auto [_n0, _n1, _n2, _n3, _n4] = in_shape;
-    View5D<Kokkos::complex<double>> x_in("x_in", _n0, _n1, _n2, _n3, _n4);
+    shape_type<5> in_shape    = default_shape;
+    in_shape.at(axis0)        = get_c2r_shape(x_out.extent(axis0), is_C2R);
+    auto [s0, s1, s2, s3, s4] = in_shape;
+    View5D<Kokkos::complex<double>> x_in("x_in", s0, s1, s2, s3, s4);
     for (int i0 = -1; i0 <= 1; i0++) {
       shape_type<5> ref_shape = default_shape;
       auto n_new              = x_in.extent(axis0) + i0;
@@ -181,10 +181,10 @@ void test_reshape1D_6DView() {
   constexpr int DIM = 6;
   shape_type<6> default_shape({n0, n1, n2, n3, n4, n5});
   for (int axis0 = 0; axis0 < DIM; axis0++) {
-    shape_type<6> in_shape = default_shape;
-    in_shape.at(axis0)     = get_c2r_shape(x_out.extent(axis0), is_C2R);
-    auto [_n0, _n1, _n2, _n3, _n4, _n5] = in_shape;
-    View6D<Kokkos::complex<double>> x_in("x_in", _n0, _n1, _n2, _n3, _n4, _n5);
+    shape_type<6> in_shape        = default_shape;
+    in_shape.at(axis0)            = get_c2r_shape(x_out.extent(axis0), is_C2R);
+    auto [s0, s1, s2, s3, s4, s5] = in_shape;
+    View6D<Kokkos::complex<double>> x_in("x_in", s0, s1, s2, s3, s4, s5);
     for (int i0 = -1; i0 <= 1; i0++) {
       shape_type<6> ref_shape = default_shape;
       auto n_new              = x_in.extent(axis0) + i0;
@@ -209,9 +209,8 @@ void test_reshape1D_7DView() {
   for (int axis0 = 0; axis0 < DIM; axis0++) {
     shape_type<7> in_shape = default_shape;
     in_shape.at(axis0)     = get_c2r_shape(x_out.extent(axis0), is_C2R);
-    auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6] = in_shape;
-    View7D<Kokkos::complex<double>> x_in("x_in", _n0, _n1, _n2, _n3, _n4, _n5,
-                                         _n6);
+    auto [s0, s1, s2, s3, s4, s5, s6] = in_shape;
+    View7D<Kokkos::complex<double>> x_in("x_in", s0, s1, s2, s3, s4, s5, s6);
     for (int i0 = -1; i0 <= 1; i0++) {
       shape_type<7> ref_shape = default_shape;
       auto n_new              = x_in.extent(axis0) + i0;
@@ -236,9 +235,9 @@ void test_reshape1D_8DView() {
   for (int axis0 = 0; axis0 < DIM; axis0++) {
     shape_type<8> in_shape = default_shape;
     in_shape.at(axis0)     = get_c2r_shape(x_out.extent(axis0), is_C2R);
-    auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7] = in_shape;
-    View8D<Kokkos::complex<double>> x_in("x_in", _n0, _n1, _n2, _n3, _n4, _n5,
-                                         _n6, _n7);
+    auto [s0, s1, s2, s3, s4, s5, s6, s7] = in_shape;
+    View8D<Kokkos::complex<double>> x_in("x_in", s0, s1, s2, s3, s4, s5, s6,
+                                         s7);
     for (int i0 = -1; i0 <= 1; i0++) {
       shape_type<8> ref_shape = default_shape;
       auto n_new              = x_in.extent(axis0) + i0;
@@ -306,8 +305,8 @@ void test_reshape2D_2DView() {
       axes_type<2> axes({axis0, axis1});
       shape_type<2> in_shape = default_shape;
       in_shape.at(axis1)     = get_c2r_shape(x_out.extent(axis1), is_C2R);
-      auto [_n0, _n1]        = in_shape;
-      View2D<Kokkos::complex<double>> x_in("x_in", _n0, _n1);
+      auto [s0, s1]          = in_shape;
+      View2D<Kokkos::complex<double>> x_in("x_in", s0, s1);
       for (int i0 = -1; i0 <= 1; i0++) {
         for (int i1 = -1; i1 <= 1; i1++) {
           shape_type<2> ref_shape = default_shape;
@@ -341,8 +340,8 @@ void test_reshape2D_3DView() {
       axes_type<2> axes({axis0, axis1});
       shape_type<3> in_shape = default_shape;
       in_shape.at(axis1)     = get_c2r_shape(x_out.extent(axis1), is_C2R);
-      auto [_n0, _n1, _n2]   = in_shape;
-      View3D<Kokkos::complex<double>> x_in("x_in", _n0, _n1, _n2);
+      auto [s0, s1, s2]      = in_shape;
+      View3D<Kokkos::complex<double>> x_in("x_in", s0, s1, s2);
       for (int i0 = -1; i0 <= 1; i0++) {
         for (int i1 = -1; i1 <= 1; i1++) {
           shape_type<3> ref_shape = default_shape;
@@ -374,10 +373,10 @@ void test_reshape2D_4DView() {
     for (int axis1 = 0; axis1 < DIM; axis1++) {
       if (axis0 == axis1) continue;
       axes_type<2> axes({axis0, axis1});
-      shape_type<4> in_shape    = default_shape;
-      in_shape.at(axis1)        = get_c2r_shape(x_out.extent(axis1), is_C2R);
-      auto [_n0, _n1, _n2, _n3] = in_shape;
-      View4D<Kokkos::complex<double>> x_in("x_in", _n0, _n1, _n2, _n3);
+      shape_type<4> in_shape = default_shape;
+      in_shape.at(axis1)     = get_c2r_shape(x_out.extent(axis1), is_C2R);
+      auto [s0, s1, s2, s3]  = in_shape;
+      View4D<Kokkos::complex<double>> x_in("x_in", s0, s1, s2, s3);
       for (int i0 = -1; i0 <= 1; i0++) {
         for (int i1 = -1; i1 <= 1; i1++) {
           shape_type<4> ref_shape = default_shape;
@@ -409,10 +408,10 @@ void test_reshape2D_5DView() {
     for (int axis1 = 0; axis1 < DIM; axis1++) {
       if (axis0 == axis1) continue;
       axes_type<2> axes({axis0, axis1});
-      shape_type<5> in_shape = default_shape;
-      in_shape.at(axis1)     = get_c2r_shape(x_out.extent(axis1), is_C2R);
-      auto [_n0, _n1, _n2, _n3, _n4] = in_shape;
-      View5D<Kokkos::complex<double>> x_in("x_in", _n0, _n1, _n2, _n3, _n4);
+      shape_type<5> in_shape    = default_shape;
+      in_shape.at(axis1)        = get_c2r_shape(x_out.extent(axis1), is_C2R);
+      auto [s0, s1, s2, s3, s4] = in_shape;
+      View5D<Kokkos::complex<double>> x_in("x_in", s0, s1, s2, s3, s4);
       for (int i0 = -1; i0 <= 1; i0++) {
         for (int i1 = -1; i1 <= 1; i1++) {
           shape_type<5> ref_shape = default_shape;
@@ -446,9 +445,8 @@ void test_reshape2D_6DView() {
       axes_type<2> axes({axis0, axis1});
       shape_type<6> in_shape = default_shape;
       in_shape.at(axis1)     = get_c2r_shape(x_out.extent(axis1), is_C2R);
-      auto [_n0, _n1, _n2, _n3, _n4, _n5] = in_shape;
-      View6D<Kokkos::complex<double>> x_in("x_in", _n0, _n1, _n2, _n3, _n4,
-                                           _n5);
+      auto [s0, s1, s2, s3, s4, s5] = in_shape;
+      View6D<Kokkos::complex<double>> x_in("x_in", s0, s1, s2, s3, s4, s5);
       for (int i0 = -1; i0 <= 1; i0++) {
         for (int i1 = -1; i1 <= 1; i1++) {
           shape_type<6> ref_shape = default_shape;
@@ -482,9 +480,8 @@ void test_reshape2D_7DView() {
       axes_type<2> axes({axis0, axis1});
       shape_type<7> in_shape = default_shape;
       in_shape.at(axis1)     = get_c2r_shape(x_out.extent(axis1), is_C2R);
-      auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6] = in_shape;
-      View7D<Kokkos::complex<double>> x_in("x_in", _n0, _n1, _n2, _n3, _n4, _n5,
-                                           _n6);
+      auto [s0, s1, s2, s3, s4, s5, s6] = in_shape;
+      View7D<Kokkos::complex<double>> x_in("x_in", s0, s1, s2, s3, s4, s5, s6);
       for (int i0 = -1; i0 <= 1; i0++) {
         for (int i1 = -1; i1 <= 1; i1++) {
           shape_type<7> ref_shape = default_shape;
@@ -518,9 +515,9 @@ void test_reshape2D_8DView() {
       axes_type<2> axes({axis0, axis1});
       shape_type<8> in_shape = default_shape;
       in_shape.at(axis1)     = get_c2r_shape(x_out.extent(axis1), is_C2R);
-      auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7] = in_shape;
-      View8D<Kokkos::complex<double>> x_in("x_in", _n0, _n1, _n2, _n3, _n4, _n5,
-                                           _n6, _n7);
+      auto [s0, s1, s2, s3, s4, s5, s6, s7] = in_shape;
+      View8D<Kokkos::complex<double>> x_in("x_in", s0, s1, s2, s3, s4, s5, s6,
+                                           s7);
       for (int i0 = -1; i0 <= 1; i0++) {
         for (int i1 = -1; i1 <= 1; i1++) {
           shape_type<8> ref_shape = default_shape;
@@ -591,8 +588,8 @@ void test_reshape3D_3DView() {
         axes_type<3> axes({axis0, axis1, axis2});
         shape_type<3> in_shape = default_shape;
         in_shape.at(axis2)     = get_c2r_shape(x_out.extent(axis2), is_C2R);
-        auto [_n0, _n1, _n2]   = in_shape;
-        View3D<Kokkos::complex<double>> x_in("x_in", _n0, _n1, _n2);
+        auto [s0, s1, s2]      = in_shape;
+        View3D<Kokkos::complex<double>> x_in("x_in", s0, s1, s2);
         for (int i0 = -1; i0 <= 1; i0++) {
           for (int i1 = -1; i1 <= 1; i1++) {
             for (int i2 = -1; i2 <= 1; i2++) {
@@ -632,10 +629,10 @@ void test_reshape3D_4DView() {
       for (int axis2 = 0; axis2 < DIM; axis2++) {
         if (axis0 == axis1 || axis0 == axis2 || axis1 == axis2) continue;
         axes_type<3> axes({axis0, axis1, axis2});
-        shape_type<4> in_shape    = default_shape;
-        in_shape.at(axis2)        = get_c2r_shape(x_out.extent(axis2), is_C2R);
-        auto [_n0, _n1, _n2, _n3] = in_shape;
-        View4D<Kokkos::complex<double>> x_in("x_in", _n0, _n1, _n2, _n3);
+        shape_type<4> in_shape = default_shape;
+        in_shape.at(axis2)     = get_c2r_shape(x_out.extent(axis2), is_C2R);
+        auto [s0, s1, s2, s3]  = in_shape;
+        View4D<Kokkos::complex<double>> x_in("x_in", s0, s1, s2, s3);
         for (int i0 = -1; i0 <= 1; i0++) {
           for (int i1 = -1; i1 <= 1; i1++) {
             for (int i2 = -1; i2 <= 1; i2++) {
@@ -674,10 +671,10 @@ void test_reshape3D_5DView() {
       for (int axis2 = 0; axis2 < DIM; axis2++) {
         if (axis0 == axis1 || axis0 == axis2 || axis1 == axis2) continue;
         axes_type<3> axes({axis0, axis1, axis2});
-        shape_type<5> in_shape = default_shape;
-        in_shape.at(axis2)     = get_c2r_shape(x_out.extent(axis2), is_C2R);
-        auto [_n0, _n1, _n2, _n3, _n4] = in_shape;
-        View5D<Kokkos::complex<double>> x_in("x_in", _n0, _n1, _n2, _n3, _n4);
+        shape_type<5> in_shape    = default_shape;
+        in_shape.at(axis2)        = get_c2r_shape(x_out.extent(axis2), is_C2R);
+        auto [s0, s1, s2, s3, s4] = in_shape;
+        View5D<Kokkos::complex<double>> x_in("x_in", s0, s1, s2, s3, s4);
         for (int i0 = -1; i0 <= 1; i0++) {
           for (int i1 = -1; i1 <= 1; i1++) {
             for (int i2 = -1; i2 <= 1; i2++) {
@@ -718,9 +715,8 @@ void test_reshape3D_6DView() {
         axes_type<3> axes({axis0, axis1, axis2});
         shape_type<6> in_shape = default_shape;
         in_shape.at(axis2)     = get_c2r_shape(x_out.extent(axis2), is_C2R);
-        auto [_n0, _n1, _n2, _n3, _n4, _n5] = in_shape;
-        View6D<Kokkos::complex<double>> x_in("x_in", _n0, _n1, _n2, _n3, _n4,
-                                             _n5);
+        auto [s0, s1, s2, s3, s4, s5] = in_shape;
+        View6D<Kokkos::complex<double>> x_in("x_in", s0, s1, s2, s3, s4, s5);
         for (int i0 = -1; i0 <= 1; i0++) {
           for (int i1 = -1; i1 <= 1; i1++) {
             for (int i2 = -1; i2 <= 1; i2++) {
@@ -761,9 +757,9 @@ void test_reshape3D_7DView() {
         axes_type<3> axes({axis0, axis1, axis2});
         shape_type<7> in_shape = default_shape;
         in_shape.at(axis2)     = get_c2r_shape(x_out.extent(axis2), is_C2R);
-        auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6] = in_shape;
-        View7D<Kokkos::complex<double>> x_in("x_in", _n0, _n1, _n2, _n3, _n4,
-                                             _n5, _n6);
+        auto [s0, s1, s2, s3, s4, s5, s6] = in_shape;
+        View7D<Kokkos::complex<double>> x_in("x_in", s0, s1, s2, s3, s4, s5,
+                                             s6);
         for (int i0 = -1; i0 <= 1; i0++) {
           for (int i1 = -1; i1 <= 1; i1++) {
             for (int i2 = -1; i2 <= 1; i2++) {
@@ -803,9 +799,9 @@ void test_reshape3D_8DView() {
         axes_type<3> axes({axis0, axis1, axis2});
         shape_type<8> in_shape = default_shape;
         in_shape.at(axis2)     = get_c2r_shape(x_out.extent(axis2), is_C2R);
-        auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7] = in_shape;
-        View8D<Kokkos::complex<double>> x_in("x_in", _n0, _n1, _n2, _n3, _n4,
-                                             _n5, _n6, _n7);
+        auto [s0, s1, s2, s3, s4, s5, s6, s7] = in_shape;
+        View8D<Kokkos::complex<double>> x_in("x_in", s0, s1, s2, s3, s4, s5, s6,
+                                             s7);
         for (int i0 = -1; i0 <= 1; i0++) {
           for (int i1 = -1; i1 <= 1; i1++) {
             for (int i2 = -1; i2 <= 1; i2++) {
@@ -917,7 +913,7 @@ TEST(CropOrPad1D, 1DView) {
   const int len = 30, len_pad = 32, len_crop = 28;
 
   View1D<double> x("x", len);
-  View1D<double> _x, _x_pad, _x_crop;
+  View1D<double> x_out, x_out_pad, x_out_crop;
   View1D<double> ref_x("ref_x", len), ref_x_pad("ref_x_pad", len_pad),
       ref_x_crop("ref_x_crop", len_crop);
 
@@ -936,15 +932,15 @@ TEST(CropOrPad1D, 1DView) {
   auto sub_x  = Kokkos::subview(x, range1);
   Kokkos::deep_copy(ref_x_crop, sub_x);
 
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, _x, shape_type<1>{len});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, _x_pad,
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out, shape_type<1>{len});
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_pad,
                                shape_type<1>{len_pad});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, _x_crop,
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_crop,
                                shape_type<1>{len_crop});
 
-  EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(_x_pad, ref_x_pad, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(_x_crop, ref_x_crop, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(x_out, ref_x, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(x_out_pad, ref_x_pad, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(x_out_crop, ref_x_crop, 1.e-5, 1.e-12));
 }
 
 TEST(CropOrPad1D, 2DView) {
@@ -952,12 +948,13 @@ TEST(CropOrPad1D, 2DView) {
   const int n1 = 5, n1_pad = 7, n1_crop = 3;
 
   View2D<double> x("x", n0, n1);
-  View2D<double> _x, _x_pad_axis0, _x_pad_axis1, _x_crop_axis0, _x_crop_axis1;
+  View2D<double> x_out, x_out_pad_axis0, x_out_pad_axis1, x_out_crop_axis0,
+      x_out_crop_axis1;
   View2D<double> ref_x("ref_x", n0, n1),
       ref_x_pad_axis0("ref_x_pad_axis0", n0_pad, n1),
       ref_x_crop_axis0("ref_x_crop_axis0", n0_crop, n1);
   View2D<double> ref_x_pad_axis1("ref_x_pad_axis1", n0, n1_pad),
-      ref_x_crop_axis1("ref_x_cro_axis1", n0, n1_crop);
+      ref_x_crop_axis1("ref_x_crop_axis1", n0, n1_crop);
 
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
   Kokkos::fill_random(x, random_pool, 1.0);
@@ -1005,22 +1002,23 @@ TEST(CropOrPad1D, 2DView) {
   Kokkos::deep_copy(ref_x_pad_axis1, h_ref_x_pad_axis1);
   Kokkos::deep_copy(ref_x_crop_axis1, h_ref_x_crop_axis1);
 
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, _x, shape_type<2>{n0, n1});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, _x_pad_axis0,
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out,
+                               shape_type<2>{n0, n1});
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_pad_axis0,
                                shape_type<2>{n0_pad, n1});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, _x_crop_axis0,
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_crop_axis0,
                                shape_type<2>{n0_crop, n1});
 
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, _x_pad_axis1,
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_pad_axis1,
                                shape_type<2>{n0, n1_pad});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, _x_crop_axis1,
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_crop_axis1,
                                shape_type<2>{n0, n1_crop});
 
-  EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(_x_pad_axis0, ref_x_pad_axis0, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(_x_crop_axis0, ref_x_crop_axis0, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(_x_pad_axis1, ref_x_pad_axis1, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(_x_crop_axis1, ref_x_crop_axis1, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(x_out, ref_x, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(x_out_pad_axis0, ref_x_pad_axis0, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(x_out_crop_axis0, ref_x_crop_axis0, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(x_out_pad_axis1, ref_x_pad_axis1, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(x_out_crop_axis1, ref_x_crop_axis1, 1.e-5, 1.e-12));
 }
 
 TEST(CropOrPad1D, 3DView) {
@@ -1029,8 +1027,8 @@ TEST(CropOrPad1D, 3DView) {
   const int n2 = 8, n2_pad = 10, n2_crop = 6;
 
   View3D<double> x("x", n0, n1, n2);
-  View3D<double> _x, _x_pad_axis0, _x_crop_axis0, _x_pad_axis1, _x_crop_axis1,
-      _x_pad_axis2, _x_crop_axis2;
+  View3D<double> x_out, x_out_pad_axis0, x_out_crop_axis0, x_out_pad_axis1,
+      x_out_crop_axis1, x_out_pad_axis2, x_out_crop_axis2;
   View3D<double> ref_x("ref_x", n0, n1, n2),
       ref_x_pad_axis0("ref_x_pad_axis0", n0_pad, n1, n2),
       ref_x_crop_axis0("ref_x_crop_axis0", n0_crop, n1, n2);
@@ -1111,30 +1109,30 @@ TEST(CropOrPad1D, 3DView) {
   Kokkos::deep_copy(ref_x_pad_axis2, h_ref_x_pad_axis2);
   Kokkos::deep_copy(ref_x_crop_axis2, h_ref_x_crop_axis2);
 
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, _x,
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out,
                                shape_type<3>{n0, n1, n2});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, _x_pad_axis0,
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_pad_axis0,
                                shape_type<3>{n0_pad, n1, n2});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, _x_crop_axis0,
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_crop_axis0,
                                shape_type<3>{n0_crop, n1, n2});
 
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, _x_pad_axis1,
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_pad_axis1,
                                shape_type<3>{n0, n1_pad, n2});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, _x_crop_axis1,
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_crop_axis1,
                                shape_type<3>{n0, n1_crop, n2});
 
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, _x_pad_axis2,
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_pad_axis2,
                                shape_type<3>{n0, n1, n2_pad});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, _x_crop_axis2,
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_crop_axis2,
                                shape_type<3>{n0, n1, n2_crop});
 
-  EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(_x_pad_axis0, ref_x_pad_axis0, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(_x_crop_axis0, ref_x_crop_axis0, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(_x_pad_axis1, ref_x_pad_axis1, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(_x_crop_axis1, ref_x_crop_axis1, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(_x_pad_axis2, ref_x_pad_axis2, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(_x_crop_axis2, ref_x_crop_axis2, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(x_out, ref_x, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(x_out_pad_axis0, ref_x_pad_axis0, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(x_out_crop_axis0, ref_x_crop_axis0, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(x_out_pad_axis1, ref_x_pad_axis1, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(x_out_crop_axis1, ref_x_crop_axis1, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(x_out_pad_axis2, ref_x_pad_axis2, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(x_out_crop_axis2, ref_x_crop_axis2, 1.e-5, 1.e-12));
 }
 
 TEST(CropOrPad2D, 2DView) {
@@ -1142,8 +1140,8 @@ TEST(CropOrPad2D, 2DView) {
   const int n1 = 5, n1_pad = 7, n1_crop = 3;
 
   View2D<double> x("x", n0, n1);
-  View2D<double> _x, _x_0_1p, _x_0_1c, _x_0p_1, _x_0p_1p, _x_0p_1c, _x_0c_1,
-      _x_0c_1p, _x_0c_1c;
+  View2D<double> x_out, x_out_0_1p, x_out_0_1c, x_out_0p_1, x_out_0p_1p,
+      x_out_0p_1c, x_out_0c_1, x_out_0c_1p, x_out_0c_1c;
   View2D<double> ref_x("ref_x", n0, n1), ref_x_0_1p("ref_x_0_1p", n0, n1_pad),
       ref_x_0_1c("ref_x_0_1c", n0, n1_crop);
   View2D<double> ref_x_0p_1("ref_x_0p_1", n0_pad, n1),
@@ -1217,33 +1215,34 @@ TEST(CropOrPad2D, 2DView) {
   Kokkos::deep_copy(ref_x_0c_1p, h_ref_x_0c_1p);
   Kokkos::deep_copy(ref_x_0c_1c, h_ref_x_0c_1c);
 
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, _x, shape_type<2>{n0, n1});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, _x_0_1p,
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out,
+                               shape_type<2>{n0, n1});
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0_1p,
                                shape_type<2>{n0, n1_pad});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, _x_0_1c,
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0_1c,
                                shape_type<2>{n0, n1_crop});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, _x_0p_1,
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0p_1,
                                shape_type<2>{n0_pad, n1});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, _x_0p_1p,
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0p_1p,
                                shape_type<2>{n0_pad, n1_pad});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, _x_0p_1c,
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0p_1c,
                                shape_type<2>{n0_pad, n1_crop});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, _x_0c_1,
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0c_1,
                                shape_type<2>{n0_crop, n1});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, _x_0c_1p,
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0c_1p,
                                shape_type<2>{n0_crop, n1_pad});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, _x_0c_1c,
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0c_1c,
                                shape_type<2>{n0_crop, n1_crop});
 
-  EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(_x_0_1p, ref_x_0_1p, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(_x_0_1c, ref_x_0_1c, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(_x_0p_1, ref_x_0p_1, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(_x_0p_1p, ref_x_0p_1p, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(_x_0p_1c, ref_x_0p_1c, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(_x_0c_1, ref_x_0c_1, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(_x_0c_1p, ref_x_0c_1p, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(_x_0c_1c, ref_x_0c_1c, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(x_out, ref_x, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(x_out_0_1p, ref_x_0_1p, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(x_out_0_1c, ref_x_0_1c, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(x_out_0p_1, ref_x_0p_1, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(x_out_0p_1p, ref_x_0p_1p, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(x_out_0p_1c, ref_x_0p_1c, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(x_out_0c_1, ref_x_0c_1, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(x_out_0c_1p, ref_x_0c_1p, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(x_out_0c_1c, ref_x_0c_1c, 1.e-5, 1.e-12));
 }
 
 TEST(CropOrPad2D, 3DView) {
@@ -1252,8 +1251,8 @@ TEST(CropOrPad2D, 3DView) {
   const int n2 = 8;
 
   View3D<double> x("x", n0, n1, n2);
-  View3D<double> _x, _x_0_1p, _x_0_1c, _x_0p_1, _x_0p_1p, _x_0p_1c, _x_0c_1,
-      _x_0c_1p, _x_0c_1c;
+  View3D<double> x_out, x_out_0_1p, x_out_0_1c, x_out_0p_1, x_out_0p_1p,
+      x_out_0p_1c, x_out_0c_1, x_out_0c_1p, x_out_0c_1c;
   View3D<double> ref_x("ref_x", n0, n1, n2),
       ref_x_0_1p("ref_x_0_1p", n0, n1_pad, n2),
       ref_x_0_1c("ref_x_0_1c", n0, n1_crop, n2);
@@ -1330,34 +1329,34 @@ TEST(CropOrPad2D, 3DView) {
   Kokkos::deep_copy(ref_x_0c_1p, h_ref_x_0c_1p);
   Kokkos::deep_copy(ref_x_0c_1c, h_ref_x_0c_1c);
 
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, _x,
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out,
                                shape_type<3>{n0, n1, n2});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, _x_0_1p,
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0_1p,
                                shape_type<3>{n0, n1_pad, n2});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, _x_0_1c,
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0_1c,
                                shape_type<3>{n0, n1_crop, n2});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, _x_0p_1,
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0p_1,
                                shape_type<3>{n0_pad, n1, n2});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, _x_0p_1p,
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0p_1p,
                                shape_type<3>{n0_pad, n1_pad, n2});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, _x_0p_1c,
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0p_1c,
                                shape_type<3>{n0_pad, n1_crop, n2});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, _x_0c_1,
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0c_1,
                                shape_type<3>{n0_crop, n1, n2});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, _x_0c_1p,
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0c_1p,
                                shape_type<3>{n0_crop, n1_pad, n2});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, _x_0c_1c,
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0c_1c,
                                shape_type<3>{n0_crop, n1_crop, n2});
 
-  EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(_x_0_1p, ref_x_0_1p, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(_x_0_1c, ref_x_0_1c, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(_x_0p_1, ref_x_0p_1, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(_x_0p_1p, ref_x_0p_1p, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(_x_0p_1c, ref_x_0p_1c, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(_x_0c_1, ref_x_0c_1, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(_x_0c_1p, ref_x_0c_1p, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(_x_0c_1c, ref_x_0c_1c, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(x_out, ref_x, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(x_out_0_1p, ref_x_0_1p, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(x_out_0_1c, ref_x_0_1c, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(x_out_0p_1, ref_x_0p_1, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(x_out_0p_1p, ref_x_0p_1p, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(x_out_0p_1c, ref_x_0p_1c, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(x_out_0c_1, ref_x_0c_1, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(x_out_0c_1p, ref_x_0c_1p, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(x_out_0c_1c, ref_x_0c_1c, 1.e-5, 1.e-12));
 }
 
 TEST(CropOrPad3D, 3DView) {
@@ -1377,7 +1376,7 @@ TEST(CropOrPad3D, 3DView) {
         std::size_t n2_new      = static_cast<std::size_t>(n2 + d2);
         shape_type<3> shape_new = {n0_new, n1_new, n2_new};
 
-        View3D<double> _x;
+        View3D<double> x_out;
         View3D<double> ref_x("ref_x", n0_new, n1_new, n2_new);
 
         auto h_ref_x = Kokkos::create_mirror_view(ref_x);
@@ -1394,8 +1393,8 @@ TEST(CropOrPad3D, 3DView) {
         }
 
         Kokkos::deep_copy(ref_x, h_ref_x);
-        KokkosFFT::Impl::crop_or_pad(execution_space(), x, _x, shape_new);
-        EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, 1.e-12));
+        KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out, shape_new);
+        EXPECT_TRUE(allclose(x_out, ref_x, 1.e-5, 1.e-12));
       }
     }
   }
@@ -1423,7 +1422,7 @@ TEST(CropOrPad4D, 4DView) {
         std::size_t n3_new      = static_cast<std::size_t>(n3 + d3);
         shape_type<4> shape_new = {n0_new, n1_new, n2_new, n3_new};
 
-        View4D<double> _x;
+        View4D<double> x_out;
         View4D<double> ref_x("ref_x", n0_new, n1_new, n2_new, n3_new);
 
         auto h_ref_x = Kokkos::create_mirror_view(ref_x);
@@ -1444,8 +1443,8 @@ TEST(CropOrPad4D, 4DView) {
         }
 
         Kokkos::deep_copy(ref_x, h_ref_x);
-        KokkosFFT::Impl::crop_or_pad(execution_space(), x, _x, shape_new);
-        EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, 1.e-12));
+        KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out, shape_new);
+        EXPECT_TRUE(allclose(x_out, ref_x, 1.e-5, 1.e-12));
       }
     }
   }
@@ -1475,7 +1474,7 @@ TEST(CropOrPad5D, 5DView) {
         std::size_t n4_new      = static_cast<std::size_t>(n4 + d4);
         shape_type<5> shape_new = {n0_new, n1_new, n2_new, n3_new, n4_new};
 
-        View5D<double> _x;
+        View5D<double> x_out;
         View5D<double> ref_x("ref_x", n0_new, n1_new, n2_new, n3_new, n4_new);
 
         auto h_ref_x = Kokkos::create_mirror_view(ref_x);
@@ -1498,8 +1497,8 @@ TEST(CropOrPad5D, 5DView) {
         }
 
         Kokkos::deep_copy(ref_x, h_ref_x);
-        KokkosFFT::Impl::crop_or_pad(execution_space(), x, _x, shape_new);
-        EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, 1.e-12));
+        KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out, shape_new);
+        EXPECT_TRUE(allclose(x_out, ref_x, 1.e-5, 1.e-12));
       }
     }
   }
@@ -1532,7 +1531,7 @@ TEST(CropOrPad6D, 6DView) {
         shape_type<6> shape_new = {n0_new, n1_new, n2_new,
                                    n3_new, n4_new, n5_new};
 
-        View6D<double> _x;
+        View6D<double> x_out;
         View6D<double> ref_x("ref_x", n0_new, n1_new, n2_new, n3_new, n4_new,
                              n5_new);
 
@@ -1560,8 +1559,8 @@ TEST(CropOrPad6D, 6DView) {
         }
 
         Kokkos::deep_copy(ref_x, h_ref_x);
-        KokkosFFT::Impl::crop_or_pad(execution_space(), x, _x, shape_new);
-        EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, 1.e-12));
+        KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out, shape_new);
+        EXPECT_TRUE(allclose(x_out, ref_x, 1.e-5, 1.e-12));
       }
     }
   }
@@ -1596,7 +1595,7 @@ TEST(CropOrPad7D, 7DView) {
         shape_type<7> shape_new = {n0_new, n1_new, n2_new, n3_new,
                                    n4_new, n5_new, n6_new};
 
-        View7D<double> _x;
+        View7D<double> x_out;
         View7D<double> ref_x("ref_x", n0_new, n1_new, n2_new, n3_new, n4_new,
                              n5_new, n6_new);
 
@@ -1627,8 +1626,8 @@ TEST(CropOrPad7D, 7DView) {
         }
 
         Kokkos::deep_copy(ref_x, h_ref_x);
-        KokkosFFT::Impl::crop_or_pad(execution_space(), x, _x, shape_new);
-        EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, 1.e-12));
+        KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out, shape_new);
+        EXPECT_TRUE(allclose(x_out, ref_x, 1.e-5, 1.e-12));
       }
     }
   }
@@ -1665,7 +1664,7 @@ TEST(CropOrPad8D, 8DView) {
         shape_type<8> shape_new = {n0_new, n1_new, n2_new, n3_new,
                                    n4_new, n5_new, n6_new, n7_new};
 
-        View8D<double> _x;
+        View8D<double> x_out;
         View8D<double> ref_x("ref_x", n0_new, n1_new, n2_new, n3_new, n4_new,
                              n5_new, n6_new, n7_new);
 
@@ -1699,8 +1698,8 @@ TEST(CropOrPad8D, 8DView) {
         }
 
         Kokkos::deep_copy(ref_x, h_ref_x);
-        KokkosFFT::Impl::crop_or_pad(execution_space(), x, _x, shape_new);
-        EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, 1.e-12));
+        KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out, shape_new);
+        EXPECT_TRUE(allclose(x_out, ref_x, 1.e-5, 1.e-12));
       }
     }
   }
