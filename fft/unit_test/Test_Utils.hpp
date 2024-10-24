@@ -78,15 +78,14 @@ void display(ViewType& a) {
 /// \param in [in]: Input rank 1 view
 /// \param out [out]: Output rank 1 view
 template <typename ViewType>
-void fft1(ViewType& in, ViewType& out) {
+void fft1(const ViewType& in, const ViewType& out) {
   using value_type      = typename ViewType::non_const_value_type;
   using real_value_type = KokkosFFT::Impl::base_floating_point_type<value_type>;
-  using Kokkos::numbers::pi_v;
 
   static_assert(KokkosFFT::Impl::is_complex_v<value_type>,
                 "fft1: ViewType must be complex");
 
-  constexpr auto pi = pi_v<double>;
+  constexpr auto pi = Kokkos::numbers::pi_v<double>;
   const value_type I(0.0, 1.0);
   std::size_t L = in.size();
 
@@ -126,15 +125,14 @@ void fft1(ViewType& in, ViewType& out) {
 /// \param in [in]: Input rank 1 view
 /// \param out [out]: Output rank 1 view
 template <typename ViewType>
-void ifft1(ViewType& in, ViewType& out) {
+void ifft1(const ViewType& in, const ViewType& out) {
   using value_type      = typename ViewType::non_const_value_type;
   using real_value_type = KokkosFFT::Impl::base_floating_point_type<value_type>;
-  using Kokkos::numbers::pi_v;
 
   static_assert(KokkosFFT::Impl::is_complex_v<value_type>,
                 "ifft1: ViewType must be complex");
 
-  constexpr auto pi = pi_v<double>;
+  constexpr auto pi = Kokkos::numbers::pi_v<double>;
   const value_type I(0.0, 1.0);
   std::size_t L = in.size();
 
