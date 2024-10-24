@@ -91,9 +91,9 @@ void test_fft1_identity_inplace(T atol = 1.0e-12) {
         inv_ar_hat(reinterpret_cast<T*>(ar_hat.data()), i);
     RealView1DType ar_ref("ar_ref", i);
 
-    const Kokkos::complex<T> I(1.0, 1.0);
+    const Kokkos::complex<T> z(1.0, 1.0);
     Kokkos::Random_XorShift64_Pool<> random_pool(/*seed=*/12345);
-    Kokkos::fill_random(a, random_pool, I);
+    Kokkos::fill_random(a, random_pool, z);
     Kokkos::fill_random(ar, random_pool, 1.0);
 
     Kokkos::deep_copy(a_ref, a);
