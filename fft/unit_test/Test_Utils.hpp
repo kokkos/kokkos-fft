@@ -86,7 +86,7 @@ void fft1(ViewType& in, ViewType& out) {
   static_assert(KokkosFFT::Impl::is_complex_v<value_type>,
                 "fft1: ViewType must be complex");
 
-  constexpr auto pi = pi_v<real_value_type>;
+  constexpr auto pi = pi_v<double>;
   const value_type I(0.0, 1.0);
   std::size_t L = in.size();
 
@@ -134,7 +134,7 @@ void ifft1(ViewType& in, ViewType& out) {
   static_assert(KokkosFFT::Impl::is_complex_v<value_type>,
                 "ifft1: ViewType must be complex");
 
-  constexpr auto pi = pi_v<real_value_type>;
+  constexpr auto pi = pi_v<double>;
   const value_type I(0.0, 1.0);
   std::size_t L = in.size();
 
