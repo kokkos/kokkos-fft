@@ -112,6 +112,8 @@ void test_fft1_identity_inplace(T atol = 1.0e-12) {
     KokkosFFT::rfft(execution_space(), ar, ar_hat);
     KokkosFFT::irfft(execution_space(), ar_hat, inv_ar_hat);
 
+    Kokkos::fence();
+
     EXPECT_TRUE(allclose(inv_a_hat, a_ref, 1.e-5, atol));
     EXPECT_TRUE(allclose(inv_ar_hat, ar_ref, 1.e-5, atol));
   }
