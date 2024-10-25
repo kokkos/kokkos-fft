@@ -94,10 +94,10 @@ auto is_crop_or_pad_needed(const ViewType& view,
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
 void crop_or_pad_impl(const ExecutionSpace& exec_space, const InViewType& in,
                       OutViewType& out, shape_type<1> s) {
-  auto _n0 = s.at(0);
-  out      = OutViewType("out", _n0);
+  auto s0 = s.at(0);
+  out     = OutViewType("out", s0);
 
-  auto n0 = std::min(_n0, in.extent(0));
+  auto n0 = std::min(s0, in.extent(0));
 
   Kokkos::parallel_for(
       "KokkosFFT::crop_or_pad",
@@ -111,11 +111,11 @@ void crop_or_pad_impl(const ExecutionSpace& exec_space, const InViewType& in,
                       OutViewType& out, shape_type<2> s) {
   constexpr std::size_t DIM = 2;
 
-  auto [_n0, _n1] = s;
-  out             = OutViewType("out", _n0, _n1);
+  auto [s0, s1] = s;
+  out           = OutViewType("out", s0, s1);
 
-  int n0 = std::min(_n0, in.extent(0));
-  int n1 = std::min(_n1, in.extent(1));
+  int n0 = std::min(s0, in.extent(0));
+  int n1 = std::min(s1, in.extent(1));
 
   using range_type = Kokkos::MDRangePolicy<
       ExecutionSpace,
@@ -138,12 +138,12 @@ void crop_or_pad_impl(const ExecutionSpace& exec_space, const InViewType& in,
                       OutViewType& out, shape_type<3> s) {
   constexpr std::size_t DIM = 3;
 
-  auto [_n0, _n1, _n2] = s;
-  out                  = OutViewType("out", _n0, _n1, _n2);
+  auto [s0, s1, s2] = s;
+  out               = OutViewType("out", s0, s1, s2);
 
-  int n0 = std::min(_n0, in.extent(0));
-  int n1 = std::min(_n1, in.extent(1));
-  int n2 = std::min(_n2, in.extent(2));
+  int n0 = std::min(s0, in.extent(0));
+  int n1 = std::min(s1, in.extent(1));
+  int n2 = std::min(s2, in.extent(2));
 
   using range_type = Kokkos::MDRangePolicy<
       ExecutionSpace,
@@ -167,13 +167,13 @@ void crop_or_pad_impl(const ExecutionSpace& exec_space, const InViewType& in,
                       OutViewType& out, shape_type<4> s) {
   constexpr std::size_t DIM = 4;
 
-  auto [_n0, _n1, _n2, _n3] = s;
-  out                       = OutViewType("out", _n0, _n1, _n2, _n3);
+  auto [s0, s1, s2, s3] = s;
+  out                   = OutViewType("out", s0, s1, s2, s3);
 
-  int n0 = std::min(_n0, in.extent(0));
-  int n1 = std::min(_n1, in.extent(1));
-  int n2 = std::min(_n2, in.extent(2));
-  int n3 = std::min(_n3, in.extent(3));
+  int n0 = std::min(s0, in.extent(0));
+  int n1 = std::min(s1, in.extent(1));
+  int n2 = std::min(s2, in.extent(2));
+  int n3 = std::min(s3, in.extent(3));
 
   using range_type = Kokkos::MDRangePolicy<
       ExecutionSpace,
@@ -198,14 +198,14 @@ void crop_or_pad_impl(const ExecutionSpace& exec_space, const InViewType& in,
                       OutViewType& out, shape_type<5> s) {
   constexpr std::size_t DIM = 5;
 
-  auto [_n0, _n1, _n2, _n3, _n4] = s;
-  out                            = OutViewType("out", _n0, _n1, _n2, _n3, _n4);
+  auto [s0, s1, s2, s3, s4] = s;
+  out                       = OutViewType("out", s0, s1, s2, s3, s4);
 
-  int n0 = std::min(_n0, in.extent(0));
-  int n1 = std::min(_n1, in.extent(1));
-  int n2 = std::min(_n2, in.extent(2));
-  int n3 = std::min(_n3, in.extent(3));
-  int n4 = std::min(_n4, in.extent(4));
+  int n0 = std::min(s0, in.extent(0));
+  int n1 = std::min(s1, in.extent(1));
+  int n2 = std::min(s2, in.extent(2));
+  int n3 = std::min(s3, in.extent(3));
+  int n4 = std::min(s4, in.extent(4));
 
   using range_type = Kokkos::MDRangePolicy<
       ExecutionSpace,
@@ -230,15 +230,15 @@ void crop_or_pad_impl(const ExecutionSpace& exec_space, const InViewType& in,
                       OutViewType& out, shape_type<6> s) {
   constexpr std::size_t DIM = 6;
 
-  auto [_n0, _n1, _n2, _n3, _n4, _n5] = s;
-  out = OutViewType("out", _n0, _n1, _n2, _n3, _n4, _n5);
+  auto [s0, s1, s2, s3, s4, s5] = s;
+  out                           = OutViewType("out", s0, s1, s2, s3, s4, s5);
 
-  int n0 = std::min(_n0, in.extent(0));
-  int n1 = std::min(_n1, in.extent(1));
-  int n2 = std::min(_n2, in.extent(2));
-  int n3 = std::min(_n3, in.extent(3));
-  int n4 = std::min(_n4, in.extent(4));
-  int n5 = std::min(_n5, in.extent(5));
+  int n0 = std::min(s0, in.extent(0));
+  int n1 = std::min(s1, in.extent(1));
+  int n2 = std::min(s2, in.extent(2));
+  int n3 = std::min(s3, in.extent(3));
+  int n4 = std::min(s4, in.extent(4));
+  int n5 = std::min(s5, in.extent(5));
 
   using range_type = Kokkos::MDRangePolicy<
       ExecutionSpace,
@@ -264,16 +264,16 @@ void crop_or_pad_impl(const ExecutionSpace& exec_space, const InViewType& in,
                       OutViewType& out, shape_type<7> s) {
   constexpr std::size_t DIM = 6;
 
-  auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6] = s;
-  out = OutViewType("out", _n0, _n1, _n2, _n3, _n4, _n5, _n6);
+  auto [s0, s1, s2, s3, s4, s5, s6] = s;
+  out = OutViewType("out", s0, s1, s2, s3, s4, s5, s6);
 
-  int n0 = std::min(_n0, in.extent(0));
-  int n1 = std::min(_n1, in.extent(1));
-  int n2 = std::min(_n2, in.extent(2));
-  int n3 = std::min(_n3, in.extent(3));
-  int n4 = std::min(_n4, in.extent(4));
-  int n5 = std::min(_n5, in.extent(5));
-  int n6 = std::min(_n6, in.extent(6));
+  int n0 = std::min(s0, in.extent(0));
+  int n1 = std::min(s1, in.extent(1));
+  int n2 = std::min(s2, in.extent(2));
+  int n3 = std::min(s3, in.extent(3));
+  int n4 = std::min(s4, in.extent(4));
+  int n5 = std::min(s5, in.extent(5));
+  int n6 = std::min(s6, in.extent(6));
 
   using range_type = Kokkos::MDRangePolicy<
       ExecutionSpace,
@@ -301,17 +301,17 @@ void crop_or_pad_impl(const ExecutionSpace& exec_space, const InViewType& in,
                       OutViewType& out, shape_type<8> s) {
   constexpr std::size_t DIM = 6;
 
-  auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7] = s;
-  out = OutViewType("out", _n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7);
+  auto [s0, s1, s2, s3, s4, s5, s6, s7] = s;
+  out = OutViewType("out", s0, s1, s2, s3, s4, s5, s6, s7);
 
-  int n0 = std::min(_n0, in.extent(0));
-  int n1 = std::min(_n1, in.extent(1));
-  int n2 = std::min(_n2, in.extent(2));
-  int n3 = std::min(_n3, in.extent(3));
-  int n4 = std::min(_n4, in.extent(4));
-  int n5 = std::min(_n5, in.extent(5));
-  int n6 = std::min(_n6, in.extent(6));
-  int n7 = std::min(_n7, in.extent(7));
+  int n0 = std::min(s0, in.extent(0));
+  int n1 = std::min(s1, in.extent(1));
+  int n2 = std::min(s2, in.extent(2));
+  int n3 = std::min(s3, in.extent(3));
+  int n4 = std::min(s4, in.extent(4));
+  int n5 = std::min(s5, in.extent(5));
+  int n6 = std::min(s6, in.extent(6));
+  int n7 = std::min(s7, in.extent(7));
 
   using range_type = Kokkos::MDRangePolicy<
       ExecutionSpace,

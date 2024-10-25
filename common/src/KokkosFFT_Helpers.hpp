@@ -13,26 +13,26 @@
 namespace KokkosFFT {
 namespace Impl {
 template <typename ViewType, std::size_t DIM = 1>
-auto get_shift(const ViewType& inout, axis_type<DIM> _axes, int direction = 1) {
+auto get_shift(const ViewType& inout, axis_type<DIM> axes, int direction = 1) {
   // Convert the input axes to be in the range of [0, rank-1]
-  std::vector<int> axes;
+  std::vector<int> non_negative_axes;
   for (std::size_t i = 0; i < DIM; i++) {
-    int axis = KokkosFFT::Impl::convert_negative_axis(inout, _axes.at(i));
-    axes.push_back(axis);
+    int axis = KokkosFFT::Impl::convert_negative_axis(inout, axes.at(i));
+    non_negative_axes.push_back(axis);
   }
 
   // Assert if the elements are overlapped
   constexpr int rank = ViewType::rank();
-  KOKKOSFFT_THROW_IF(KokkosFFT::Impl::has_duplicate_values(axes),
+  KOKKOSFFT_THROW_IF(KokkosFFT::Impl::has_duplicate_values(non_negative_axes),
                      "Axes overlap");
   KOKKOSFFT_THROW_IF(
-      KokkosFFT::Impl::is_out_of_range_value_included(axes, rank),
+      KokkosFFT::Impl::is_out_of_range_value_included(non_negative_axes, rank),
       "Axes include an out-of-range index."
       "Axes must be in the range of [-rank, rank-1].");
 
   axis_type<rank> shift = {0};
   for (int i = 0; i < static_cast<int>(DIM); i++) {
-    int axis       = axes.at(i);
+    int axis       = non_negative_axes.at(i);
     shift.at(axis) = inout.extent(axis) / 2 * direction;
   }
   return shift;
@@ -48,9 +48,9 @@ void roll(const ExecutionSpace& exec_space, ViewType& inout, axis_type<1> shift,
   ViewType tmp("tmp", n0);
   int len = (n0 - 1) / 2 + 1;
 
-  auto [_shift0, _shift1, _shift2] =
+  auto [s0, s1, s2] =
       KokkosFFT::Impl::convert_negative_shift(inout, shift.at(0), 0);
-  int shift0 = _shift0, shift1 = _shift1, shift2 = _shift2;
+  int shift0 = s0, shift1 = s1, shift2 = s2;
 
   // shift2 == 0 means shift
   if (shift2 == 0) {
@@ -96,11 +96,11 @@ void roll(const ExecutionSpace& exec_space, ViewType& inout, axis_type<2> shift,
   for (int i = 0; static_cast<std::size_t>(i) < DIM1; i++) {
     int axis = axes.at(i);
 
-    auto [_shift0, _shift1, _shift2] =
+    auto [s0, s1, s2] =
         KokkosFFT::Impl::convert_negative_shift(inout, shift.at(axis), axis);
-    shift0.at(axis) = _shift0;
-    shift1.at(axis) = _shift1;
-    shift2.at(axis) = _shift2;
+    shift0.at(axis) = s0;
+    shift1.at(axis) = s1;
+    shift2.at(axis) = s2;
   }
 
   int shift_00 = shift0.at(0), shift_10 = shift0.at(1);
@@ -230,13 +230,13 @@ void fftshift(const ExecutionSpace& exec_space, ViewType& inout,
                 "fftshift: View rank must be larger than or equal to 1");
 
   if (axes) {
-    axis_type<1> _axes{axes.value()};
-    KokkosFFT::Impl::fftshift_impl(exec_space, inout, _axes);
+    axis_type<1> tmp_axes{axes.value()};
+    KokkosFFT::Impl::fftshift_impl(exec_space, inout, tmp_axes);
   } else {
     constexpr std::size_t rank = ViewType::rank();
     constexpr int start        = -static_cast<int>(rank);
-    auto _axes = KokkosFFT::Impl::index_sequence<int, rank, start>();
-    KokkosFFT::Impl::fftshift_impl(exec_space, inout, _axes);
+    auto tmp_axes = KokkosFFT::Impl::index_sequence<int, rank, start>();
+    KokkosFFT::Impl::fftshift_impl(exec_space, inout, tmp_axes);
   }
 }
 
@@ -279,13 +279,13 @@ void ifftshift(const ExecutionSpace& exec_space, ViewType& inout,
   static_assert(ViewType::rank() >= 1,
                 "ifftshift: View rank must be larger than or equal to 1");
   if (axes) {
-    axis_type<1> _axes{axes.value()};
-    KokkosFFT::Impl::ifftshift_impl(exec_space, inout, _axes);
+    axis_type<1> tmp_axes{axes.value()};
+    KokkosFFT::Impl::ifftshift_impl(exec_space, inout, tmp_axes);
   } else {
     constexpr std::size_t rank = ViewType::rank();
     constexpr int start        = -static_cast<int>(rank);
-    auto _axes = KokkosFFT::Impl::index_sequence<int, rank, start>();
-    KokkosFFT::Impl::ifftshift_impl(exec_space, inout, _axes);
+    auto tmp_axes = KokkosFFT::Impl::index_sequence<int, rank, start>();
+    KokkosFFT::Impl::ifftshift_impl(exec_space, inout, tmp_axes);
   }
 }
 

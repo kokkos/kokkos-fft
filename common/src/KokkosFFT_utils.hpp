@@ -23,33 +23,33 @@ bool are_aliasing(const ScalarType1* ptr1, const ScalarType2* ptr2) {
 }
 
 template <typename ViewType>
-auto convert_negative_axis(ViewType, int _axis = -1) {
+auto convert_negative_axis(ViewType, int axis = -1) {
   static_assert(Kokkos::is_view_v<ViewType>,
                 "convert_negative_axis: ViewType must be a Kokkos::View.");
   int rank = static_cast<int>(ViewType::rank());
 
-  KOKKOSFFT_THROW_IF(_axis < -rank || _axis >= rank,
+  KOKKOSFFT_THROW_IF(axis < -rank || axis >= rank,
                      "Axis must be in [-rank, rank-1]");
 
-  int axis = _axis < 0 ? rank + _axis : _axis;
-  return axis;
+  int non_negative_axis = axis < 0 ? rank + axis : axis;
+  return non_negative_axis;
 }
 
 template <typename ViewType>
-auto convert_negative_shift(const ViewType& view, int _shift, int _axis) {
+auto convert_negative_shift(const ViewType& view, int shift, int axis) {
   static_assert(Kokkos::is_view_v<ViewType>,
                 "convert_negative_shift: ViewType must be a Kokkos::View.");
-  int axis   = convert_negative_axis(view, _axis);
-  int extent = view.extent(axis);
+  int non_negative_axis = convert_negative_axis(view, axis);
+  int extent            = view.extent(non_negative_axis);
   int shift0 = 0, shift1 = 0, shift2 = extent / 2;
 
-  if (_shift < 0) {
-    shift0 = -_shift + extent % 2;  // add 1 for odd case
-    shift1 = -_shift;
+  if (shift < 0) {
+    shift0 = -shift + extent % 2;  // add 1 for odd case
+    shift1 = -shift;
     shift2 = 0;
-  } else if (_shift > 0) {
-    shift0 = _shift;
-    shift1 = _shift + extent % 2;  // add 1 for odd case
+  } else if (shift > 0) {
+    shift0 = shift;
+    shift1 = shift + extent % 2;  // add 1 for odd case
     shift2 = 0;
   }
 
