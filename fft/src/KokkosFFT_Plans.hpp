@@ -191,8 +191,8 @@ class Plan {
 
     shape_type<1> s = {0};
     if (n) {
-      std::size_t _n = n.value();
-      s              = shape_type<1>({_n});
+      std::size_t n_tmp = n.value();
+      s                 = shape_type<1>({n_tmp});
     }
 
     m_in_extents               = KokkosFFT::Impl::extract_extents(in);
