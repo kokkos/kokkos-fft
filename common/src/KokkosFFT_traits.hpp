@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: (C) The Kokkos-FFT development team, see COPYRIGHT.md file
+// SPDX-FileCopyrightText: (C) The kokkos-fft development team, see COPYRIGHT.md file
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
@@ -35,7 +35,7 @@ struct is_real<
     : std::true_type {};
 
 /// \brief Helper to check if a type is an acceptable real type (float/double)
-/// for Kokkos-FFT
+/// for kokkos-fft
 template <typename T>
 inline constexpr bool is_real_v = is_real<T>::value;
 
@@ -49,7 +49,7 @@ struct is_complex<
     : std::true_type {};
 
 /// \brief Helper to check if a type is an acceptable complex type
-/// (Kokkos::complex<float>/Kokkos::complex<double>) for Kokkos-FFT
+/// (Kokkos::complex<float>/Kokkos::complex<double>) for kokkos-fft
 template <typename T>
 inline constexpr bool is_complex_v = is_complex<T>::value;
 
@@ -69,7 +69,7 @@ struct is_admissible_value_type<
     : std::true_type {};
 
 /// \brief Helper to check if a type is an acceptable value type
-/// (float/double/Kokkos::complex<float>/Kokkos::complex<double>) for Kokkos-FFT
+/// (float/double/Kokkos::complex<float>/Kokkos::complex<double>) for kokkos-fft
 /// When applied to Kokkos::View, then check if a value type is an acceptable
 /// real/complex type.
 template <typename T>
@@ -89,7 +89,7 @@ struct is_layout_left_or_right<
     : std::true_type {};
 
 /// \brief Helper to check if a View layout is an acceptable layout type
-/// (Kokkos::LayoutLeft/Kokkos::LayoutRight) for Kokkos-FFT
+/// (Kokkos::LayoutLeft/Kokkos::LayoutRight) for kokkos-fft
 template <typename ViewType>
 inline constexpr bool is_layout_left_or_right_v =
     is_layout_left_or_right<ViewType>::value;
@@ -104,7 +104,7 @@ struct is_admissible_view<
                                is_admissible_value_type_v<ViewType>>>
     : std::true_type {};
 
-/// \brief Helper to check if a View is an acceptable for Kokkos-FFT. Values and
+/// \brief Helper to check if a View is an acceptable for kokkos-fft. Values and
 /// layout are checked
 template <typename ViewType>
 inline constexpr bool is_admissible_view_v =
@@ -123,7 +123,7 @@ struct is_operatable_view<
             ExecutionSpace, typename ViewType::memory_space>::accessible>>
     : std::true_type {};
 
-/// \brief Helper to check if a View is an acceptable View for Kokkos-FFT and
+/// \brief Helper to check if a View is an acceptable View for kokkos-fft and
 /// memory space is accessible from the ExecutionSpace
 template <typename ExecutionSpace, typename ViewType>
 inline constexpr bool is_operatable_view_v =
@@ -206,7 +206,7 @@ struct are_operatable_views<
         have_same_layout_v<InViewType, OutViewType> &&
         have_same_rank_v<InViewType, OutViewType>>> : std::true_type {};
 
-/// \brief Helper to check if Views are acceptable View for Kokkos-FFT and
+/// \brief Helper to check if Views are acceptable View for kokkos-fft and
 /// memory space are accessible from the ExecutionSpace.
 /// In addition, precisions, layout and rank are checked to be identical.
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
