@@ -37,15 +37,15 @@ void test_fft_freq(T atol = 1.0e-12) {
   auto h_x_odd_ref  = Kokkos::create_mirror_view(x_odd_ref);
   auto h_x_even_ref = Kokkos::create_mirror_view(x_even_ref);
 
-  std::vector<int> _x_odd_ref  = {0, 1, 2, 3, 4, -4, -3, -2, -1};
-  std::vector<int> _x_even_ref = {0, 1, 2, 3, 4, -5, -4, -3, -2, -1};
+  std::vector<int> tmp_x_odd_ref  = {0, 1, 2, 3, 4, -4, -3, -2, -1};
+  std::vector<int> tmp_x_even_ref = {0, 1, 2, 3, 4, -5, -4, -3, -2, -1};
 
-  for (std::size_t i = 0; i < _x_odd_ref.size(); i++) {
-    h_x_odd_ref(i) = static_cast<T>(_x_odd_ref.at(i));
+  for (std::size_t i = 0; i < tmp_x_odd_ref.size(); i++) {
+    h_x_odd_ref(i) = static_cast<T>(tmp_x_odd_ref.at(i));
   }
 
-  for (std::size_t i = 0; i < _x_even_ref.size(); i++) {
-    h_x_even_ref(i) = static_cast<T>(_x_even_ref.at(i));
+  for (std::size_t i = 0; i < tmp_x_even_ref.size(); i++) {
+    h_x_even_ref(i) = static_cast<T>(tmp_x_even_ref.at(i));
   }
 
   Kokkos::deep_copy(x_odd_ref, h_x_odd_ref);
@@ -82,15 +82,15 @@ void test_rfft_freq(T atol = 1.0e-12) {
   auto h_x_odd_ref  = Kokkos::create_mirror_view(x_odd_ref);
   auto h_x_even_ref = Kokkos::create_mirror_view(x_even_ref);
 
-  std::vector<int> _x_odd_ref  = {0, 1, 2, 3, 4};
-  std::vector<int> _x_even_ref = {0, 1, 2, 3, 4, 5};
+  std::vector<int> tmp_x_odd_ref  = {0, 1, 2, 3, 4};
+  std::vector<int> tmp_x_even_ref = {0, 1, 2, 3, 4, 5};
 
-  for (std::size_t i = 0; i < _x_odd_ref.size(); i++) {
-    h_x_odd_ref(i) = static_cast<T>(_x_odd_ref.at(i));
+  for (std::size_t i = 0; i < tmp_x_odd_ref.size(); i++) {
+    h_x_odd_ref(i) = static_cast<T>(tmp_x_odd_ref.at(i));
   }
 
-  for (std::size_t i = 0; i < _x_even_ref.size(); i++) {
-    h_x_even_ref(i) = static_cast<T>(_x_even_ref.at(i));
+  for (std::size_t i = 0; i < tmp_x_even_ref.size(); i++) {
+    h_x_even_ref(i) = static_cast<T>(tmp_x_even_ref.at(i));
   }
 
   Kokkos::deep_copy(x_odd_ref, h_x_odd_ref);
@@ -218,20 +218,20 @@ void test_fftshift1D_1DView(int n0) {
   auto h_x_ref = Kokkos::create_mirror_view(x_ref);
   auto h_y_ref = Kokkos::create_mirror_view(y_ref);
 
-  std::vector<int> _x_ref;
-  std::vector<int> _y_ref;
+  std::vector<int> tmp_x_ref;
+  std::vector<int> tmp_y_ref;
 
   if (n0 % 2 == 0) {
-    _x_ref = {0, 1, 2, 3, 4, -5, -4, -3, -2, -1};
-    _y_ref = {-5, -4, -3, -2, -1, 0, 1, 2, 3, 4};
+    tmp_x_ref = {0, 1, 2, 3, 4, -5, -4, -3, -2, -1};
+    tmp_y_ref = {-5, -4, -3, -2, -1, 0, 1, 2, 3, 4};
   } else {
-    _x_ref = {0, 1, 2, 3, 4, -4, -3, -2, -1};
-    _y_ref = {-4, -3, -2, -1, 0, 1, 2, 3, 4};
+    tmp_x_ref = {0, 1, 2, 3, 4, -4, -3, -2, -1};
+    tmp_y_ref = {-4, -3, -2, -1, 0, 1, 2, 3, 4};
   }
 
   for (int i = 0; i < n0; i++) {
-    h_x_ref(i) = static_cast<double>(_x_ref.at(i));
-    h_y_ref(i) = static_cast<double>(_y_ref.at(i));
+    h_x_ref(i) = static_cast<double>(tmp_x_ref.at(i));
+    h_y_ref(i) = static_cast<double>(tmp_y_ref.at(i));
   }
 
   Kokkos::deep_copy(x_ref, h_x_ref);
@@ -261,34 +261,35 @@ void test_fftshift1D_2DView(int n0) {
   auto h_y_axis0_ref = Kokkos::create_mirror_view(y_axis0_ref);
   auto h_y_axis1_ref = Kokkos::create_mirror_view(y_axis1_ref);
 
-  std::vector<int> _x_ref;
-  std::vector<int> _y0_ref, _y1_ref;
+  std::vector<int> tmp_x_ref;
+  std::vector<int> tmp_y0_ref, tmp_y1_ref;
 
   if (n0 % 2 == 0) {
-    _x_ref  = {0,   1,   2,   3,   4,   5,   6,  7,  8,  9,  10, 11, 12, 13, 14,
-               -15, -14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1};
-    _y0_ref = {
+    tmp_x_ref  = {0,   1,  2,  3,  4,  5,   6,   7,   8,   9,
+                  10,  11, 12, 13, 14, -15, -14, -13, -12, -11,
+                  -10, -9, -8, -7, -6, -5,  -4,  -3,  -2,  -1};
+    tmp_y0_ref = {
         5,  6,  7,  8,  9,  0,  1,  2,  3,  4,  -15, -14, -13, -12, -11,
         10, 11, 12, 13, 14, -5, -4, -3, -2, -1, -10, -9,  -8,  -7,  -6,
     };
-    _y1_ref = {-10, -9, -8, -7, -6, -5,  -4,  -3,  -2,  -1,
-               0,   1,  2,  3,  4,  5,   6,   7,   8,   9,
-               10,  11, 12, 13, 14, -15, -14, -13, -12, -11};
+    tmp_y1_ref = {-10, -9, -8, -7, -6, -5,  -4,  -3,  -2,  -1,
+                  0,   1,  2,  3,  4,  5,   6,   7,   8,   9,
+                  10,  11, 12, 13, 14, -15, -14, -13, -12, -11};
   } else {
-    _x_ref  = {0,   1,   2,   3,   4,  5,  6,  7,  8,  9,  10, 11, 12, 13,
-               -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1};
-    _y0_ref = {5,  6,  7,  8,  0,  1,  2,  3,  4,  -13, -12, -11, -10, 9,
-               10, 11, 12, 13, -4, -3, -2, -1, -9, -8,  -7,  -6,  -5};
-    _y1_ref = {-9, -8, -7, -6, -5, -4, -3, -2, -1, 0,   1,   2,   3,  4,
-               5,  6,  7,  8,  9,  10, 11, 12, 13, -13, -12, -11, -10};
+    tmp_x_ref  = {0,   1,   2,   3,   4,  5,  6,  7,  8,  9,  10, 11, 12, 13,
+                  -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1};
+    tmp_y0_ref = {5,  6,  7,  8,  0,  1,  2,  3,  4,  -13, -12, -11, -10, 9,
+                  10, 11, 12, 13, -4, -3, -2, -1, -9, -8,  -7,  -6,  -5};
+    tmp_y1_ref = {-9, -8, -7, -6, -5, -4, -3, -2, -1, 0,   1,   2,   3,  4,
+                  5,  6,  7,  8,  9,  10, 11, 12, 13, -13, -12, -11, -10};
   }
 
   for (int i1 = 0; i1 < n1; i1++) {
     for (int i0 = 0; i0 < n0; i0++) {
       std::size_t i         = i0 + i1 * n0;
-      h_x_ref(i0, i1)       = static_cast<double>(_x_ref.at(i));
-      h_y_axis0_ref(i0, i1) = static_cast<double>(_y0_ref.at(i));
-      h_y_axis1_ref(i0, i1) = static_cast<double>(_y1_ref.at(i));
+      h_x_ref(i0, i1)       = static_cast<double>(tmp_x_ref.at(i));
+      h_y_axis0_ref(i0, i1) = static_cast<double>(tmp_y0_ref.at(i));
+      h_y_axis1_ref(i0, i1) = static_cast<double>(tmp_y1_ref.at(i));
     }
   }
 
@@ -325,26 +326,28 @@ void test_fftshift2D_2DView(int n0) {
   auto h_x_ref = Kokkos::create_mirror_view(x_ref);
   auto h_y_ref = Kokkos::create_mirror_view(y_ref);
 
-  std::vector<int> _x_ref;
-  std::vector<int> _y_ref;
+  std::vector<int> tmp_x_ref;
+  std::vector<int> tmp_y_ref;
 
   if (n0 % 2 == 0) {
-    _x_ref = {0,   1,   2,   3,   4,   5,   6,  7,  8,  9,  10, 11, 12, 13, 14,
-              -15, -14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1};
-    _y_ref = {-5, -4, -3, -2, -1, -10, -9,  -8,  -7,  -6,  5,  6,  7,  8,  9,
-              0,  1,  2,  3,  4,  -15, -14, -13, -12, -11, 10, 11, 12, 13, 14};
+    tmp_x_ref = {0,   1,  2,  3,  4,  5,   6,   7,   8,   9,
+                 10,  11, 12, 13, 14, -15, -14, -13, -12, -11,
+                 -10, -9, -8, -7, -6, -5,  -4,  -3,  -2,  -1};
+    tmp_y_ref = {-5,  -4,  -3,  -2,  -1,  -10, -9, -8, -7, -6,
+                 5,   6,   7,   8,   9,   0,   1,  2,  3,  4,
+                 -15, -14, -13, -12, -11, 10,  11, 12, 13, 14};
   } else {
-    _x_ref = {0,   1,   2,   3,   4,  5,  6,  7,  8,  9,  10, 11, 12, 13,
-              -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1};
-    _y_ref = {-4, -3, -2, -1, -9,  -8,  -7,  -6,  -5, 5,  6,  7,  8, 0,
-              1,  2,  3,  4,  -13, -12, -11, -10, 9,  10, 11, 12, 13};
+    tmp_x_ref = {0,   1,   2,   3,   4,  5,  6,  7,  8,  9,  10, 11, 12, 13,
+                 -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1};
+    tmp_y_ref = {-4, -3, -2, -1, -9,  -8,  -7,  -6,  -5, 5,  6,  7,  8, 0,
+                 1,  2,  3,  4,  -13, -12, -11, -10, 9,  10, 11, 12, 13};
   }
 
   for (int i1 = 0; i1 < n1; i1++) {
     for (int i0 = 0; i0 < n0; i0++) {
       std::size_t i   = i0 + i1 * n0;
-      h_x_ref(i0, i1) = static_cast<double>(_x_ref.at(i));
-      h_y_ref(i0, i1) = static_cast<double>(_y_ref.at(i));
+      h_x_ref(i0, i1) = static_cast<double>(tmp_x_ref.at(i));
+      h_y_ref(i0, i1) = static_cast<double>(tmp_y_ref.at(i));
     }
   }
 

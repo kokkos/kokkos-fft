@@ -49,24 +49,20 @@ template <typename ExecutionSpace, typename T1, typename T2>
 struct transform_type<ExecutionSpace, T1, Kokkos::complex<T2>> {
   static_assert(std::is_same_v<T1, T2>,
                 "T1 and T2 should have the same precision");
-  using _TransformType = TransformType<ExecutionSpace>;
-
-  static constexpr _TransformType m_type = std::is_same_v<T1, float>
-                                               ? FFTWTransformType::R2C
-                                               : FFTWTransformType::D2Z;
-  static constexpr _TransformType type() { return m_type; };
+  static constexpr FFTWTransformType m_type = std::is_same_v<T1, float>
+                                                  ? FFTWTransformType::R2C
+                                                  : FFTWTransformType::D2Z;
+  static constexpr FFTWTransformType type() { return m_type; };
 };
 
 template <typename ExecutionSpace, typename T1, typename T2>
 struct transform_type<ExecutionSpace, Kokkos::complex<T1>, T2> {
   static_assert(std::is_same_v<T1, T2>,
                 "T1 and T2 should have the same precision");
-  using _TransformType = TransformType<ExecutionSpace>;
-
-  static constexpr _TransformType m_type = std::is_same_v<T2, float>
-                                               ? FFTWTransformType::C2R
-                                               : FFTWTransformType::Z2D;
-  static constexpr _TransformType type() { return m_type; };
+  static constexpr FFTWTransformType m_type = std::is_same_v<T2, float>
+                                                  ? FFTWTransformType::C2R
+                                                  : FFTWTransformType::Z2D;
+  static constexpr FFTWTransformType type() { return m_type; };
 };
 
 template <typename ExecutionSpace, typename T1, typename T2>
@@ -74,12 +70,10 @@ struct transform_type<ExecutionSpace, Kokkos::complex<T1>,
                       Kokkos::complex<T2>> {
   static_assert(std::is_same_v<T1, T2>,
                 "T1 and T2 should have the same precision");
-  using _TransformType = TransformType<ExecutionSpace>;
-
-  static constexpr _TransformType m_type = std::is_same_v<T1, float>
-                                               ? FFTWTransformType::C2C
-                                               : FFTWTransformType::Z2Z;
-  static constexpr _TransformType type() { return m_type; };
+  static constexpr FFTWTransformType m_type = std::is_same_v<T1, float>
+                                                  ? FFTWTransformType::C2C
+                                                  : FFTWTransformType::Z2Z;
+  static constexpr FFTWTransformType type() { return m_type; };
 };
 
 #ifdef ENABLE_HOST_AND_DEVICE
@@ -112,14 +106,14 @@ using FFTInfoType =
 
 template <typename ExecutionSpace>
 auto direction_type(Direction direction) {
-  static constexpr FFTDirectionType _FORWARD =
+  static constexpr FFTDirectionType FORWARD =
       std::is_same_v<ExecutionSpace, Kokkos::HIP> ? ROCFFT_FORWARD
                                                   : FFTW_FORWARD;
 
-  static constexpr FFTDirectionType _BACKWARD =
+  static constexpr FFTDirectionType BACKWARD =
       std::is_same_v<ExecutionSpace, Kokkos::HIP> ? ROCFFT_BACKWARD
                                                   : FFTW_BACKWARD;
-  return direction == Direction::forward ? _FORWARD : _BACKWARD;
+  return direction == Direction::forward ? FORWARD : BACKWARD;
 }
 #else
 template <typename ExecutionSpace>

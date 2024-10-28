@@ -50,9 +50,13 @@ void test_fft1_identity(T atol = 1.0e-12) {
       Kokkos::View<Kokkos::complex<T>*, LayoutType, execution_space>;
 
   for (int i = 1; i < maxlen; i++) {
-    ComplexView1DType a("a", i), _a("_a", i), a_ref("a_ref", i);
-    ComplexView1DType out("out", i), outr("outr", i / 2 + 1);
-    RealView1DType ar("ar", i), _ar("_ar", i), ar_ref("ar_ref", i);
+    ComplexView1DType a("a", i), a_ref("a_ref", i);
+    ComplexView1DType a_hat("a_hat", i), inv_a_hat("inv_a_hat", i);
+
+    // Used for Real transforms
+    RealView1DType ar("ar", i), inv_ar_hat("inv_ar_hat", i),
+        ar_ref("ar_ref", i);
+    ComplexView1DType ar_hat("ar_hat", i / 2 + 1);
 
     const Kokkos::complex<T> z(1.0, 1.0);
     Kokkos::Random_XorShift64_Pool<> random_pool(/*seed=*/12345);
@@ -63,14 +67,14 @@ void test_fft1_identity(T atol = 1.0e-12) {
 
     Kokkos::fence();
 
-    KokkosFFT::fft(execution_space(), a, out);
-    KokkosFFT::ifft(execution_space(), out, _a);
+    KokkosFFT::fft(execution_space(), a, a_hat);
+    KokkosFFT::ifft(execution_space(), a_hat, inv_a_hat);
 
-    KokkosFFT::rfft(execution_space(), ar, outr);
-    KokkosFFT::irfft(execution_space(), outr, _ar);
+    KokkosFFT::rfft(execution_space(), ar, ar_hat);
+    KokkosFFT::irfft(execution_space(), ar_hat, inv_ar_hat);
 
-    EXPECT_TRUE(allclose(_a, a_ref, 1.e-5, atol));
-    EXPECT_TRUE(allclose(_ar, ar_ref, 1.e-5, atol));
+    EXPECT_TRUE(allclose(inv_a_hat, a_ref, 1.e-5, atol));
+    EXPECT_TRUE(allclose(inv_ar_hat, ar_ref, 1.e-5, atol));
   }
 }
 
@@ -122,9 +126,13 @@ void test_fft1_identity_reuse_plan(T atol = 1.0e-12) {
       Kokkos::View<Kokkos::complex<T>*, LayoutType, execution_space>;
 
   for (int i = 1; i < maxlen; i++) {
-    ComplexView1DType a("a", i), _a("_a", i), a_ref("a_ref", i);
-    ComplexView1DType out("out", i), outr("outr", i / 2 + 1);
-    RealView1DType ar("ar", i), _ar("_ar", i), ar_ref("ar_ref", i);
+    ComplexView1DType a("a", i), a_ref("a_ref", i);
+    ComplexView1DType a_hat("a_hat", i), inv_a_hat("inv_a_hat", i);
+
+    // Used for Real transforms
+    RealView1DType ar("ar", i), inv_ar_hat("inv_ar_hat", i),
+        ar_ref("ar_ref", i);
+    ComplexView1DType ar_hat("ar_hat", i / 2 + 1);
 
     const Kokkos::complex<T> z(1.0, 1.0);
     Kokkos::Random_XorShift64_Pool<> random_pool(/*seed=*/12345);
@@ -136,29 +144,33 @@ void test_fft1_identity_reuse_plan(T atol = 1.0e-12) {
     Kokkos::fence();
 
     int axis = -1;
-    KokkosFFT::Plan fft_plan(execution_space(), a, out,
+    KokkosFFT::Plan fft_plan(execution_space(), a, a_hat,
                              KokkosFFT::Direction::forward, axis);
-    fft_plan.execute(a, out);
+    fft_plan.execute(a, a_hat);
 
-    KokkosFFT::Plan ifft_plan(execution_space(), out, _a,
+    KokkosFFT::Plan ifft_plan(execution_space(), a_hat, inv_a_hat,
                               KokkosFFT::Direction::backward, axis);
-    ifft_plan.execute(out, _a);
+    ifft_plan.execute(a_hat, inv_a_hat);
 
-    KokkosFFT::Plan rfft_plan(execution_space(), ar, outr,
+    KokkosFFT::Plan rfft_plan(execution_space(), ar, ar_hat,
                               KokkosFFT::Direction::forward, axis);
-    rfft_plan.execute(ar, outr);
+    rfft_plan.execute(ar, ar_hat);
 
-    KokkosFFT::Plan irfft_plan(execution_space(), outr, _ar,
+    KokkosFFT::Plan irfft_plan(execution_space(), ar_hat, inv_ar_hat,
                                KokkosFFT::Direction::backward, axis);
-    irfft_plan.execute(outr, _ar);
+    irfft_plan.execute(ar_hat, inv_ar_hat);
 
-    EXPECT_TRUE(allclose(_a, a_ref, 1.e-5, atol));
-    EXPECT_TRUE(allclose(_ar, ar_ref, 1.e-5, atol));
+    EXPECT_TRUE(allclose(inv_a_hat, a_ref, 1.e-5, atol));
+    EXPECT_TRUE(allclose(inv_ar_hat, ar_ref, 1.e-5, atol));
   }
 
-  ComplexView1DType a("a", maxlen), _a("_a", maxlen), a_ref("a_ref", maxlen);
-  ComplexView1DType out("out", maxlen), outr("outr", maxlen / 2 + 1);
-  RealView1DType ar("ar", maxlen), _ar("_ar", maxlen), ar_ref("ar_ref", maxlen);
+  ComplexView1DType a("a", maxlen), a_ref("a_ref", maxlen);
+  ComplexView1DType a_hat("a_hat", maxlen), inv_a_hat("inv_a_hat", maxlen);
+
+  // Used for Real transforms
+  RealView1DType ar("ar", maxlen), inv_ar_hat("inv_ar_hat", maxlen),
+      ar_ref("ar_ref", maxlen);
+  ComplexView1DType ar_hat("ar_hat", maxlen / 2 + 1);
 
   const Kokkos::complex<T> z(1.0, 1.0);
   Kokkos::Random_XorShift64_Pool<> random_pool(/*seed=*/12345);
@@ -171,68 +183,70 @@ void test_fft1_identity_reuse_plan(T atol = 1.0e-12) {
 
   // Create correct plans
   int axis = -1;
-  KokkosFFT::Plan fft_plan(execution_space(), a, out,
+  KokkosFFT::Plan fft_plan(execution_space(), a, a_hat,
                            KokkosFFT::Direction::forward, axis);
 
-  KokkosFFT::Plan ifft_plan(execution_space(), out, _a,
+  KokkosFFT::Plan ifft_plan(execution_space(), a_hat, inv_a_hat,
                             KokkosFFT::Direction::backward, axis);
 
-  KokkosFFT::Plan rfft_plan(execution_space(), ar, outr,
+  KokkosFFT::Plan rfft_plan(execution_space(), ar, ar_hat,
                             KokkosFFT::Direction::forward, axis);
 
-  KokkosFFT::Plan irfft_plan(execution_space(), outr, _ar,
+  KokkosFFT::Plan irfft_plan(execution_space(), ar_hat, inv_ar_hat,
                              KokkosFFT::Direction::backward, axis);
 
   // Check if errors are correctly raised aginst wrong extents
   const int maxlen_wrong = 32 * 2;
-  ComplexView1DType a_wrong("a", maxlen_wrong), _a_wrong("_a", maxlen_wrong);
-  ComplexView1DType out_wrong("out", maxlen_wrong),
-      outr_wrong("outr", maxlen_wrong / 2 + 1);
-  RealView1DType ar_wrong("ar", maxlen_wrong), _ar_wrong("_ar", maxlen_wrong);
+  ComplexView1DType a_wrong("a_wrong", maxlen_wrong),
+      inv_a_hat_wrong("inv_a_hat_wrong", maxlen_wrong);
+  ComplexView1DType a_hat_wrong("a_hat_wrong", maxlen_wrong),
+      ar_hat_wrong("ar_hat_wrong", maxlen_wrong / 2 + 1);
+  RealView1DType ar_wrong("ar_wrong", maxlen_wrong),
+      inv_ar_hat_wrong("inv_ar_hat_wrong", maxlen_wrong);
 
   // fft
   // With incorrect input shape
   EXPECT_THROW(
-      fft_plan.execute(a_wrong, out, KokkosFFT::Normalization::backward),
+      fft_plan.execute(a_wrong, a_hat, KokkosFFT::Normalization::backward),
       std::runtime_error);
 
   // With incorrect output shape
   EXPECT_THROW(
-      fft_plan.execute(a, out_wrong, KokkosFFT::Normalization::backward),
+      fft_plan.execute(a, a_hat_wrong, KokkosFFT::Normalization::backward),
       std::runtime_error);
 
   // ifft
   // With incorrect input shape
-  EXPECT_THROW(
-      ifft_plan.execute(out_wrong, _a, KokkosFFT::Normalization::backward),
-      std::runtime_error);
+  EXPECT_THROW(ifft_plan.execute(a_hat_wrong, inv_a_hat,
+                                 KokkosFFT::Normalization::backward),
+               std::runtime_error);
 
   // With incorrect output shape
-  EXPECT_THROW(
-      ifft_plan.execute(out, _a_wrong, KokkosFFT::Normalization::backward),
-      std::runtime_error);
+  EXPECT_THROW(ifft_plan.execute(a_hat, inv_a_hat_wrong,
+                                 KokkosFFT::Normalization::backward),
+               std::runtime_error);
 
   // rfft
   // With incorrect input shape
   EXPECT_THROW(
-      rfft_plan.execute(ar_wrong, outr, KokkosFFT::Normalization::backward),
+      rfft_plan.execute(ar_wrong, ar_hat, KokkosFFT::Normalization::backward),
       std::runtime_error);
 
   // With incorrect output shape
   EXPECT_THROW(
-      rfft_plan.execute(ar, out_wrong, KokkosFFT::Normalization::backward),
+      rfft_plan.execute(ar, ar_hat_wrong, KokkosFFT::Normalization::backward),
       std::runtime_error);
 
   // irfft
   // With incorrect input shape
-  EXPECT_THROW(
-      irfft_plan.execute(outr_wrong, _ar, KokkosFFT::Normalization::backward),
-      std::runtime_error);
+  EXPECT_THROW(irfft_plan.execute(ar_hat_wrong, inv_ar_hat,
+                                  KokkosFFT::Normalization::backward),
+               std::runtime_error);
 
   // With incorrect output shape
-  EXPECT_THROW(
-      irfft_plan.execute(outr, _ar_wrong, KokkosFFT::Normalization::backward),
-      std::runtime_error);
+  EXPECT_THROW(irfft_plan.execute(ar_hat, inv_ar_hat_wrong,
+                                  KokkosFFT::Normalization::backward),
+               std::runtime_error);
 }
 
 template <typename T, typename LayoutType>
@@ -903,13 +917,13 @@ void test_fft1_1dfft_5dview(T atol = 1.e-12) {
       const std::size_t n_new        = shape.at(axis) + i0;
       shape.at(axis)                 = n_new;
       shape_c2r.at(axis)             = n_new / 2 + 1;
-      auto [_n0, _n1, _n2, _n3, _n4] = shape;
-      auto [_m0, _m1, _m2, _m3, _m4] = shape_c2r;
-      ComplexView5DType _x("_x", _n0, _n1, _n2, _n3, _n4),
-          out("out", _n0, _n1, _n2, _n3, _n4), ref_x;
-      RealView5DType xr("xr", _n0, _n1, _n2, _n3, _n4),
-          _xr("_xr", _n0, _n1, _n2, _n3, _n4), ref_xr;
-      ComplexView5DType outr("outr", _m0, _m1, _m2, _m3, _m4);
+      auto [s0, s1, s2, s3, s4]      = shape;
+      auto [sr0, sr1, sr2, sr3, sr4] = shape_c2r;
+      ComplexView5DType inv_x_hat("inv_x_hat", s0, s1, s2, s3, s4),
+          x_hat("x_hat", s0, s1, s2, s3, s4), ref_x;
+      RealView5DType xr("xr", s0, s1, s2, s3, s4),
+          inv_xr_hat("inv_xr_hat", s0, s1, s2, s3, s4), ref_xr;
+      ComplexView5DType xr_hat("xr_hat", sr0, sr1, sr2, sr3, sr4);
 
       const Kokkos::complex<T> z(1.0, 1.0);
       Kokkos::Random_XorShift64_Pool<> random_pool(12345);
@@ -923,19 +937,19 @@ void test_fft1_1dfft_5dview(T atol = 1.e-12) {
 
       // Along one axis
       // Simple identity tests
-      KokkosFFT::fft(execution_space(), x, out,
+      KokkosFFT::fft(execution_space(), x, x_hat,
                      KokkosFFT::Normalization::backward, axis, n_new);
-      KokkosFFT::ifft(execution_space(), out, _x,
+      KokkosFFT::ifft(execution_space(), x_hat, inv_x_hat,
                       KokkosFFT::Normalization::backward, axis, n_new);
-      EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, atol));
+      EXPECT_TRUE(allclose(inv_x_hat, ref_x, 1.e-5, atol));
 
       // Simple identity tests for r2c and c2r transforms
-      KokkosFFT::rfft(execution_space(), xr, outr,
+      KokkosFFT::rfft(execution_space(), xr, xr_hat,
                       KokkosFFT::Normalization::backward, axis, n_new);
-      KokkosFFT::irfft(execution_space(), outr, _xr,
+      KokkosFFT::irfft(execution_space(), xr_hat, inv_xr_hat,
                        KokkosFFT::Normalization::backward, axis, n_new);
 
-      EXPECT_TRUE(allclose(_xr, ref_xr, 1.e-5, atol));
+      EXPECT_TRUE(allclose(inv_xr_hat, ref_xr, 1.e-5, atol));
     }
   }
 }
@@ -958,13 +972,13 @@ void test_fft1_1dfft_6dview(T atol = 1.e-12) {
       const std::size_t n_new             = shape.at(axis) + i0;
       shape.at(axis)                      = n_new;
       shape_c2r.at(axis)                  = n_new / 2 + 1;
-      auto [_n0, _n1, _n2, _n3, _n4, _n5] = shape;
-      auto [_m0, _m1, _m2, _m3, _m4, _m5] = shape_c2r;
-      ComplexView6DType _x("_x", _n0, _n1, _n2, _n3, _n4, _n5),
-          out("out", _n0, _n1, _n2, _n3, _n4, _n5), ref_x;
-      RealView6DType xr("xr", _n0, _n1, _n2, _n3, _n4, _n5),
-          _xr("_xr", _n0, _n1, _n2, _n3, _n4, _n5), ref_xr;
-      ComplexView6DType outr("outr", _m0, _m1, _m2, _m3, _m4, _m5);
+      auto [s0, s1, s2, s3, s4, s5]       = shape;
+      auto [sr0, sr1, sr2, sr3, sr4, sr5] = shape_c2r;
+      ComplexView6DType inv_x_hat("inv_x_hat", s0, s1, s2, s3, s4, s5),
+          x_hat("x_hat", s0, s1, s2, s3, s4, s5), ref_x;
+      RealView6DType xr("xr", s0, s1, s2, s3, s4, s5),
+          inv_xr_hat("inv_xr_hat", s0, s1, s2, s3, s4, s5), ref_xr;
+      ComplexView6DType xr_hat("xr_hat", sr0, sr1, sr2, sr3, sr4, sr5);
 
       const Kokkos::complex<T> z(1.0, 1.0);
       Kokkos::Random_XorShift64_Pool<> random_pool(12345);
@@ -978,19 +992,19 @@ void test_fft1_1dfft_6dview(T atol = 1.e-12) {
 
       // Along one axis
       // Simple identity tests
-      KokkosFFT::fft(execution_space(), x, out,
+      KokkosFFT::fft(execution_space(), x, x_hat,
                      KokkosFFT::Normalization::backward, axis, n_new);
-      KokkosFFT::ifft(execution_space(), out, _x,
+      KokkosFFT::ifft(execution_space(), x_hat, inv_x_hat,
                       KokkosFFT::Normalization::backward, axis, n_new);
-      EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, atol));
+      EXPECT_TRUE(allclose(inv_x_hat, ref_x, 1.e-5, atol));
 
       // Simple identity tests for r2c and c2r transforms
-      KokkosFFT::rfft(execution_space(), xr, outr,
+      KokkosFFT::rfft(execution_space(), xr, xr_hat,
                       KokkosFFT::Normalization::backward, axis, n_new);
-      KokkosFFT::irfft(execution_space(), outr, _xr,
+      KokkosFFT::irfft(execution_space(), xr_hat, inv_xr_hat,
                        KokkosFFT::Normalization::backward, axis, n_new);
 
-      EXPECT_TRUE(allclose(_xr, ref_xr, 1.e-5, atol));
+      EXPECT_TRUE(allclose(inv_xr_hat, ref_xr, 1.e-5, atol));
     }
   }
 }
@@ -1013,13 +1027,13 @@ void test_fft1_1dfft_7dview(T atol = 1.e-12) {
       const std::size_t n_new                  = shape.at(axis) + i0;
       shape.at(axis)                           = n_new;
       shape_c2r.at(axis)                       = n_new / 2 + 1;
-      auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6] = shape;
-      auto [_m0, _m1, _m2, _m3, _m4, _m5, _m6] = shape_c2r;
-      ComplexView7DType _x("_x", _n0, _n1, _n2, _n3, _n4, _n5, _n6),
-          out("out", _n0, _n1, _n2, _n3, _n4, _n5, _n6), ref_x;
-      RealView7DType xr("xr", _n0, _n1, _n2, _n3, _n4, _n5, _n6),
-          _xr("_xr", _n0, _n1, _n2, _n3, _n4, _n5, _n6), ref_xr;
-      ComplexView7DType outr("outr", _m0, _m1, _m2, _m3, _m4, _m5, _m6);
+      auto [s0, s1, s2, s3, s4, s5, s6]        = shape;
+      auto [sr0, sr1, sr2, sr3, sr4, sr5, sr6] = shape_c2r;
+      ComplexView7DType inv_x_hat("inv_x_hat", s0, s1, s2, s3, s4, s5, s6),
+          x_hat("x_hat", s0, s1, s2, s3, s4, s5, s6), ref_x;
+      RealView7DType xr("xr", s0, s1, s2, s3, s4, s5, s6),
+          inv_xr_hat("inv_xr_hat", s0, s1, s2, s3, s4, s5, s6), ref_xr;
+      ComplexView7DType xr_hat("xr_hat", sr0, sr1, sr2, sr3, sr4, sr5, sr6);
 
       const Kokkos::complex<T> z(1.0, 1.0);
       Kokkos::Random_XorShift64_Pool<> random_pool(12345);
@@ -1033,19 +1047,19 @@ void test_fft1_1dfft_7dview(T atol = 1.e-12) {
 
       // Along one axis
       // Simple identity tests
-      KokkosFFT::fft(execution_space(), x, out,
+      KokkosFFT::fft(execution_space(), x, x_hat,
                      KokkosFFT::Normalization::backward, axis, n_new);
-      KokkosFFT::ifft(execution_space(), out, _x,
+      KokkosFFT::ifft(execution_space(), x_hat, inv_x_hat,
                       KokkosFFT::Normalization::backward, axis, n_new);
-      EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, atol));
+      EXPECT_TRUE(allclose(inv_x_hat, ref_x, 1.e-5, atol));
 
       // Simple identity tests for r2c and c2r transforms
-      KokkosFFT::rfft(execution_space(), xr, outr,
+      KokkosFFT::rfft(execution_space(), xr, xr_hat,
                       KokkosFFT::Normalization::backward, axis, n_new);
-      KokkosFFT::irfft(execution_space(), outr, _xr,
+      KokkosFFT::irfft(execution_space(), xr_hat, inv_xr_hat,
                        KokkosFFT::Normalization::backward, axis, n_new);
 
-      EXPECT_TRUE(allclose(_xr, ref_xr, 1.e-5, atol));
+      EXPECT_TRUE(allclose(inv_xr_hat, ref_xr, 1.e-5, atol));
     }
   }
 }
@@ -1068,13 +1082,14 @@ void test_fft1_1dfft_8dview(T atol = 1.e-12) {
       const std::size_t n_new                       = shape.at(axis) + i0;
       shape.at(axis)                                = n_new;
       shape_c2r.at(axis)                            = n_new / 2 + 1;
-      auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7] = shape;
-      auto [_m0, _m1, _m2, _m3, _m4, _m5, _m6, _m7] = shape_c2r;
-      ComplexView8DType _x("_x", _n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7),
-          out("out", _n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7), ref_x;
-      RealView8DType xr("xr", _n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7),
-          _xr("_xr", _n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7), ref_xr;
-      ComplexView8DType outr("outr", _m0, _m1, _m2, _m3, _m4, _m5, _m6, _m7);
+      auto [s0, s1, s2, s3, s4, s5, s6, s7]         = shape;
+      auto [sr0, sr1, sr2, sr3, sr4, sr5, sr6, sr7] = shape_c2r;
+      ComplexView8DType inv_x_hat("inv_x_hat", s0, s1, s2, s3, s4, s5, s6, s7),
+          x_hat("x_hat", s0, s1, s2, s3, s4, s5, s6, s7), ref_x;
+      RealView8DType xr("xr", s0, s1, s2, s3, s4, s5, s6, s7),
+          inv_xr_hat("inv_xr_hat", s0, s1, s2, s3, s4, s5, s6, s7), ref_xr;
+      ComplexView8DType xr_hat("xr_hat", sr0, sr1, sr2, sr3, sr4, sr5, sr6,
+                               sr7);
 
       const Kokkos::complex<T> z(1.0, 1.0);
       Kokkos::Random_XorShift64_Pool<> random_pool(12345);
@@ -1088,19 +1103,19 @@ void test_fft1_1dfft_8dview(T atol = 1.e-12) {
 
       // Along one axis
       // Simple identity tests
-      KokkosFFT::fft(execution_space(), x, out,
+      KokkosFFT::fft(execution_space(), x, x_hat,
                      KokkosFFT::Normalization::backward, axis, n_new);
-      KokkosFFT::ifft(execution_space(), out, _x,
+      KokkosFFT::ifft(execution_space(), x_hat, inv_x_hat,
                       KokkosFFT::Normalization::backward, axis, n_new);
-      EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, atol));
+      EXPECT_TRUE(allclose(inv_x_hat, ref_x, 1.e-5, atol));
 
       // Simple identity tests for r2c and c2r transforms
-      KokkosFFT::rfft(execution_space(), xr, outr,
+      KokkosFFT::rfft(execution_space(), xr, xr_hat,
                       KokkosFFT::Normalization::backward, axis, n_new);
-      KokkosFFT::irfft(execution_space(), outr, _xr,
+      KokkosFFT::irfft(execution_space(), xr_hat, inv_xr_hat,
                        KokkosFFT::Normalization::backward, axis, n_new);
 
-      EXPECT_TRUE(allclose(_xr, ref_xr, 1.e-5, atol));
+      EXPECT_TRUE(allclose(inv_xr_hat, ref_xr, 1.e-5, atol));
     }
   }
 }
@@ -1795,14 +1810,14 @@ void test_fft2_2dfft_3dview(T atol = 1.e-12) {
           shape_c2r.at(axis0) = n0_new;
           shape_c2r.at(axis1) = n1_new / 2 + 1;
 
-          auto [_n0, _n1, _n2] = shape;
-          auto [_m0, _m1, _m2] = shape_c2r;
+          auto [s0, s1, s2]    = shape;
+          auto [sr0, sr1, sr2] = shape_c2r;
 
-          ComplexView3DType _x("_x", _n0, _n1, _n2), out("out", _n0, _n1, _n2),
-              ref_x;
-          RealView3DType xr("xr", _n0, _n1, _n2), _xr("_xr", _n0, _n1, _n2),
-              ref_xr;
-          ComplexView3DType outr("outr", _m0, _m1, _m2);
+          ComplexView3DType inv_x_hat("inv_x_hat", s0, s1, s2),
+              x_hat("x_hat", s0, s1, s2), ref_x;
+          RealView3DType xr("xr", s0, s1, s2),
+              inv_xr_hat("inv_xr_hat", s0, s1, s2), ref_xr;
+          ComplexView3DType xr_hat("xr_hat", sr0, sr1, sr2);
 
           const Kokkos::complex<T> z(1.0, 1.0);
           Kokkos::Random_XorShift64_Pool<> random_pool(12345);
@@ -1816,23 +1831,23 @@ void test_fft2_2dfft_3dview(T atol = 1.e-12) {
 
           // Along one axis
           // Simple identity tests
-          KokkosFFT::fft2(execution_space(), x, out,
+          KokkosFFT::fft2(execution_space(), x, x_hat,
                           KokkosFFT::Normalization::backward, axes, new_shape);
 
-          KokkosFFT::ifft2(execution_space(), out, _x,
+          KokkosFFT::ifft2(execution_space(), x_hat, inv_x_hat,
                            KokkosFFT::Normalization::backward, axes, new_shape);
 
-          EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, atol));
+          EXPECT_TRUE(allclose(inv_x_hat, ref_x, 1.e-5, atol));
 
           // Simple identity tests for r2c and c2r transforms
-          KokkosFFT::rfft2(execution_space(), xr, outr,
+          KokkosFFT::rfft2(execution_space(), xr, xr_hat,
                            KokkosFFT::Normalization::backward, axes, new_shape);
 
-          KokkosFFT::irfft2(execution_space(), outr, _xr,
+          KokkosFFT::irfft2(execution_space(), xr_hat, inv_xr_hat,
                             KokkosFFT::Normalization::backward, axes,
                             new_shape);
 
-          EXPECT_TRUE(allclose(_xr, ref_xr, 1.e-5, atol));
+          EXPECT_TRUE(allclose(inv_xr_hat, ref_xr, 1.e-5, atol));
         }
       }
     }
@@ -1874,14 +1889,14 @@ void test_fft2_2dfft_4dview(T atol = 1.e-12) {
           shape_c2r.at(axis0) = n0_new;
           shape_c2r.at(axis1) = n1_new / 2 + 1;
 
-          auto [_n0, _n1, _n2, _n3] = shape;
-          auto [_m0, _m1, _m2, _m3] = shape_c2r;
+          auto [s0, s1, s2, s3]     = shape;
+          auto [sr0, sr1, sr2, sr3] = shape_c2r;
 
-          ComplexView4DType _x("_x", _n0, _n1, _n2, _n3),
-              out("out", _n0, _n1, _n2, _n3), ref_x;
-          RealView4DType xr("xr", _n0, _n1, _n2, _n3),
-              _xr("_xr", _n0, _n1, _n2, _n3), ref_xr;
-          ComplexView4DType outr("outr", _m0, _m1, _m2, _m3);
+          ComplexView4DType inv_x_hat("inv_x_hat", s0, s1, s2, s3),
+              x_hat("x_hat", s0, s1, s2, s3), ref_x;
+          RealView4DType xr("xr", s0, s1, s2, s3),
+              inv_xr_hat("inv_xr_hat", s0, s1, s2, s3), ref_xr;
+          ComplexView4DType xr_hat("xr_hat", sr0, sr1, sr2, sr3);
 
           const Kokkos::complex<T> z(1.0, 1.0);
           Kokkos::Random_XorShift64_Pool<> random_pool(12345);
@@ -1895,23 +1910,23 @@ void test_fft2_2dfft_4dview(T atol = 1.e-12) {
 
           // Along one axis
           // Simple identity tests
-          KokkosFFT::fft2(execution_space(), x, out,
+          KokkosFFT::fft2(execution_space(), x, x_hat,
                           KokkosFFT::Normalization::backward, axes, new_shape);
 
-          KokkosFFT::ifft2(execution_space(), out, _x,
+          KokkosFFT::ifft2(execution_space(), x_hat, inv_x_hat,
                            KokkosFFT::Normalization::backward, axes, new_shape);
 
-          EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, atol));
+          EXPECT_TRUE(allclose(inv_x_hat, ref_x, 1.e-5, atol));
 
           // Simple identity tests for r2c and c2r transforms
-          KokkosFFT::rfft2(execution_space(), xr, outr,
+          KokkosFFT::rfft2(execution_space(), xr, xr_hat,
                            KokkosFFT::Normalization::backward, axes, new_shape);
 
-          KokkosFFT::irfft2(execution_space(), outr, _xr,
+          KokkosFFT::irfft2(execution_space(), xr_hat, inv_xr_hat,
                             KokkosFFT::Normalization::backward, axes,
                             new_shape);
 
-          EXPECT_TRUE(allclose(_xr, ref_xr, 1.e-5, atol));
+          EXPECT_TRUE(allclose(inv_xr_hat, ref_xr, 1.e-5, atol));
         }
       }
     }
@@ -1953,14 +1968,14 @@ void test_fft2_2dfft_5dview(T atol = 1.e-12) {
           shape_c2r.at(axis0) = n0_new;
           shape_c2r.at(axis1) = n1_new / 2 + 1;
 
-          auto [_n0, _n1, _n2, _n3, _n4] = shape;
-          auto [_m0, _m1, _m2, _m3, _m4] = shape_c2r;
+          auto [s0, s1, s2, s3, s4]      = shape;
+          auto [sr0, sr1, sr2, sr3, sr4] = shape_c2r;
 
-          ComplexView5DType _x("_x", _n0, _n1, _n2, _n3, _n4),
-              out("out", _n0, _n1, _n2, _n3, _n4), ref_x;
-          RealView5DType xr("xr", _n0, _n1, _n2, _n3, _n4),
-              _xr("_xr", _n0, _n1, _n2, _n3, _n4), ref_xr;
-          ComplexView5DType outr("outr", _m0, _m1, _m2, _m3, _m4);
+          ComplexView5DType inv_x_hat("inv_x_hat", s0, s1, s2, s3, s4),
+              x_hat("x_hat", s0, s1, s2, s3, s4), ref_x;
+          RealView5DType xr("xr", s0, s1, s2, s3, s4),
+              inv_xr_hat("inv_xr_hat", s0, s1, s2, s3, s4), ref_xr;
+          ComplexView5DType xr_hat("xr_hat", sr0, sr1, sr2, sr3, sr4);
 
           const Kokkos::complex<T> z(1.0, 1.0);
           Kokkos::Random_XorShift64_Pool<> random_pool(12345);
@@ -1974,23 +1989,23 @@ void test_fft2_2dfft_5dview(T atol = 1.e-12) {
 
           // Along one axis
           // Simple identity tests
-          KokkosFFT::fft2(execution_space(), x, out,
+          KokkosFFT::fft2(execution_space(), x, x_hat,
                           KokkosFFT::Normalization::backward, axes, new_shape);
 
-          KokkosFFT::ifft2(execution_space(), out, _x,
+          KokkosFFT::ifft2(execution_space(), x_hat, inv_x_hat,
                            KokkosFFT::Normalization::backward, axes, new_shape);
 
-          EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, atol));
+          EXPECT_TRUE(allclose(inv_x_hat, ref_x, 1.e-5, atol));
 
           // Simple identity tests for r2c and c2r transforms
-          KokkosFFT::rfft2(execution_space(), xr, outr,
+          KokkosFFT::rfft2(execution_space(), xr, xr_hat,
                            KokkosFFT::Normalization::backward, axes, new_shape);
 
-          KokkosFFT::irfft2(execution_space(), outr, _xr,
+          KokkosFFT::irfft2(execution_space(), xr_hat, inv_xr_hat,
                             KokkosFFT::Normalization::backward, axes,
                             new_shape);
 
-          EXPECT_TRUE(allclose(_xr, ref_xr, 1.e-5, atol));
+          EXPECT_TRUE(allclose(inv_xr_hat, ref_xr, 1.e-5, atol));
         }
       }
     }
@@ -2032,14 +2047,14 @@ void test_fft2_2dfft_6dview(T atol = 1.e-12) {
           shape_c2r.at(axis0) = n0_new;
           shape_c2r.at(axis1) = n1_new / 2 + 1;
 
-          auto [_n0, _n1, _n2, _n3, _n4, _n5] = shape;
-          auto [_m0, _m1, _m2, _m3, _m4, _m5] = shape_c2r;
+          auto [s0, s1, s2, s3, s4, s5]       = shape;
+          auto [sr0, sr1, sr2, sr3, sr4, sr5] = shape_c2r;
 
-          ComplexView6DType _x("_x", _n0, _n1, _n2, _n3, _n4, _n5),
-              out("out", _n0, _n1, _n2, _n3, _n4, _n5), ref_x;
-          RealView6DType xr("xr", _n0, _n1, _n2, _n3, _n4, _n5),
-              _xr("_xr", _n0, _n1, _n2, _n3, _n4, _n5), ref_xr;
-          ComplexView6DType outr("outr", _m0, _m1, _m2, _m3, _m4, _m5);
+          ComplexView6DType inv_x_hat("inv_x_hat", s0, s1, s2, s3, s4, s5),
+              x_hat("x_hat", s0, s1, s2, s3, s4, s5), ref_x;
+          RealView6DType xr("xr", s0, s1, s2, s3, s4, s5),
+              inv_xr_hat("inv_xr_hat", s0, s1, s2, s3, s4, s5), ref_xr;
+          ComplexView6DType xr_hat("xr_hat", sr0, sr1, sr2, sr3, sr4, sr5);
 
           const Kokkos::complex<T> z(1.0, 1.0);
           Kokkos::Random_XorShift64_Pool<> random_pool(12345);
@@ -2053,23 +2068,23 @@ void test_fft2_2dfft_6dview(T atol = 1.e-12) {
 
           // Along one axis
           // Simple identity tests
-          KokkosFFT::fft2(execution_space(), x, out,
+          KokkosFFT::fft2(execution_space(), x, x_hat,
                           KokkosFFT::Normalization::backward, axes, new_shape);
 
-          KokkosFFT::ifft2(execution_space(), out, _x,
+          KokkosFFT::ifft2(execution_space(), x_hat, inv_x_hat,
                            KokkosFFT::Normalization::backward, axes, new_shape);
 
-          EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, atol));
+          EXPECT_TRUE(allclose(inv_x_hat, ref_x, 1.e-5, atol));
 
           // Simple identity tests for r2c and c2r transforms
-          KokkosFFT::rfft2(execution_space(), xr, outr,
+          KokkosFFT::rfft2(execution_space(), xr, xr_hat,
                            KokkosFFT::Normalization::backward, axes, new_shape);
 
-          KokkosFFT::irfft2(execution_space(), outr, _xr,
+          KokkosFFT::irfft2(execution_space(), xr_hat, inv_xr_hat,
                             KokkosFFT::Normalization::backward, axes,
                             new_shape);
 
-          EXPECT_TRUE(allclose(_xr, ref_xr, 1.e-5, atol));
+          EXPECT_TRUE(allclose(inv_xr_hat, ref_xr, 1.e-5, atol));
         }
       }
     }
@@ -2110,16 +2125,16 @@ void test_fft2_2dfft_7dview(T atol = 1.e-12) {
           shape_c2r.at(axis0) = n0_new;
           shape_c2r.at(axis1) = n1_new / 2 + 1;
 
-          auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6] = shape;
-          auto [_m0, _m1, _m2, _m3, _m4, _m5, _m6] = shape_c2r;
+          auto [s0, s1, s2, s3, s4, s5, s6]        = shape;
+          auto [sr0, sr1, sr2, sr3, sr4, sr5, sr6] = shape_c2r;
 
-          ComplexView7DType _x("_x", _n0, _n1, _n2, _n3, _n4, _n5, _n6),
-              out("out", _n0, _n1, _n2, _n3, _n4, _n5, _n6), ref_x;
+          ComplexView7DType inv_x_hat("inv_x_hat", s0, s1, s2, s3, s4, s5, s6),
+              x_hat("x_hat", s0, s1, s2, s3, s4, s5, s6), ref_x;
 
-          RealView7DType xr("xr", _n0, _n1, _n2, _n3, _n4, _n5, _n6),
-              _xr("_xr", _n0, _n1, _n2, _n3, _n4, _n5, _n6), ref_xr;
+          RealView7DType xr("xr", s0, s1, s2, s3, s4, s5, s6),
+              inv_xr_hat("inv_xr_hat", s0, s1, s2, s3, s4, s5, s6), ref_xr;
 
-          ComplexView7DType outr("outr", _m0, _m1, _m2, _m3, _m4, _m5, _m6);
+          ComplexView7DType xr_hat("xr_hat", sr0, sr1, sr2, sr3, sr4, sr5, sr6);
 
           const Kokkos::complex<T> z(1.0, 1.0);
           Kokkos::Random_XorShift64_Pool<> random_pool(12345);
@@ -2133,23 +2148,23 @@ void test_fft2_2dfft_7dview(T atol = 1.e-12) {
 
           // Along one axis
           // Simple identity tests
-          KokkosFFT::fft2(execution_space(), x, out,
+          KokkosFFT::fft2(execution_space(), x, x_hat,
                           KokkosFFT::Normalization::backward, axes, new_shape);
 
-          KokkosFFT::ifft2(execution_space(), out, _x,
+          KokkosFFT::ifft2(execution_space(), x_hat, inv_x_hat,
                            KokkosFFT::Normalization::backward, axes, new_shape);
 
-          EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, atol));
+          EXPECT_TRUE(allclose(inv_x_hat, ref_x, 1.e-5, atol));
 
           // Simple identity tests for r2c and c2r transforms
-          KokkosFFT::rfft2(execution_space(), xr, outr,
+          KokkosFFT::rfft2(execution_space(), xr, xr_hat,
                            KokkosFFT::Normalization::backward, axes, new_shape);
 
-          KokkosFFT::irfft2(execution_space(), outr, _xr,
+          KokkosFFT::irfft2(execution_space(), xr_hat, inv_xr_hat,
                             KokkosFFT::Normalization::backward, axes,
                             new_shape);
 
-          EXPECT_TRUE(allclose(_xr, ref_xr, 1.e-5, atol));
+          EXPECT_TRUE(allclose(inv_xr_hat, ref_xr, 1.e-5, atol));
         }
       }
     }
@@ -2190,17 +2205,18 @@ void test_fft2_2dfft_8dview(T atol = 1.e-12) {
           shape_c2r.at(axis0) = n0_new;
           shape_c2r.at(axis1) = n1_new / 2 + 1;
 
-          auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7] = shape;
-          auto [_m0, _m1, _m2, _m3, _m4, _m5, _m6, _m7] = shape_c2r;
+          auto [s0, s1, s2, s3, s4, s5, s6, s7]         = shape;
+          auto [sr0, sr1, sr2, sr3, sr4, sr5, sr6, sr7] = shape_c2r;
 
-          ComplexView8DType _x("_x", _n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7),
-              out("out", _n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7), ref_x;
+          ComplexView8DType inv_x_hat("inv_x_hat", s0, s1, s2, s3, s4, s5, s6,
+                                      s7),
+              x_hat("x_hat", s0, s1, s2, s3, s4, s5, s6, s7), ref_x;
 
-          RealView8DType xr("xr", _n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7),
-              _xr("_xr", _n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7), ref_xr;
+          RealView8DType xr("xr", s0, s1, s2, s3, s4, s5, s6, s7),
+              inv_xr_hat("inv_xr_hat", s0, s1, s2, s3, s4, s5, s6, s7), ref_xr;
 
-          ComplexView8DType outr("outr", _m0, _m1, _m2, _m3, _m4, _m5, _m6,
-                                 _m7);
+          ComplexView8DType xr_hat("xr_hat", sr0, sr1, sr2, sr3, sr4, sr5, sr6,
+                                   sr7);
 
           const Kokkos::complex<T> z(1.0, 1.0);
           Kokkos::Random_XorShift64_Pool<> random_pool(12345);
@@ -2214,23 +2230,23 @@ void test_fft2_2dfft_8dview(T atol = 1.e-12) {
 
           // Along one axis
           // Simple identity tests
-          KokkosFFT::fft2(execution_space(), x, out,
+          KokkosFFT::fft2(execution_space(), x, x_hat,
                           KokkosFFT::Normalization::backward, axes, new_shape);
 
-          KokkosFFT::ifft2(execution_space(), out, _x,
+          KokkosFFT::ifft2(execution_space(), x_hat, inv_x_hat,
                            KokkosFFT::Normalization::backward, axes, new_shape);
 
-          EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, atol));
+          EXPECT_TRUE(allclose(inv_x_hat, ref_x, 1.e-5, atol));
 
           // Simple identity tests for r2c and c2r transforms
-          KokkosFFT::rfft2(execution_space(), xr, outr,
+          KokkosFFT::rfft2(execution_space(), xr, xr_hat,
                            KokkosFFT::Normalization::backward, axes, new_shape);
 
-          KokkosFFT::irfft2(execution_space(), outr, _xr,
+          KokkosFFT::irfft2(execution_space(), xr_hat, inv_xr_hat,
                             KokkosFFT::Normalization::backward, axes,
                             new_shape);
 
-          EXPECT_TRUE(allclose(_xr, ref_xr, 1.e-5, atol));
+          EXPECT_TRUE(allclose(inv_xr_hat, ref_xr, 1.e-5, atol));
         }
       }
     }
@@ -3061,13 +3077,14 @@ void test_fftn_3dfft_4dview(T atol = 1.e-12) {
         std::array<int, DIM> shape_c2r = shape;
         shape_c2r.at(axis2)            = shape_c2r.at(axis2) / 2 + 1;
 
-        auto [_n0, _n1, _n2, _n3] = shape_c2r;
+        auto [sr0, sr1, sr2, sr3] = shape_c2r;
 
-        ComplexView4DType _x("_x", n0, n1, n2, n3), out("out", n0, n1, n2, n3),
-            ref_out("ref_out", n0, n1, n2, n3);
+        ComplexView4DType inv_x_hat("inv_x_hat", n0, n1, n2, n3),
+            x_hat("x_hat", n0, n1, n2, n3);
         RealView4DType xr("xr", n0, n1, n2, n3),
-            ref_xr("ref_xr", n0, n1, n2, n3), _xr("_xr", n0, n1, n2, n3);
-        ComplexView4DType outr("outr", _n0, _n1, _n2, _n3);
+            ref_xr("ref_xr", n0, n1, n2, n3),
+            inv_xr_hat("inv_xr_hat", n0, n1, n2, n3);
+        ComplexView4DType xr_hat("xr_hat", sr0, sr1, sr2, sr3);
 
         const Kokkos::complex<T> z(1.0, 1.0);
         Kokkos::Random_XorShift64_Pool<> random_pool(12345);
@@ -3081,22 +3098,22 @@ void test_fftn_3dfft_4dview(T atol = 1.e-12) {
 
         // Along one axis
         // Simple identity tests
-        KokkosFFT::fftn(execution_space(), x, out, axes,
+        KokkosFFT::fftn(execution_space(), x, x_hat, axes,
                         KokkosFFT::Normalization::backward);
 
-        KokkosFFT::ifftn(execution_space(), out, _x, axes,
+        KokkosFFT::ifftn(execution_space(), x_hat, inv_x_hat, axes,
                          KokkosFFT::Normalization::backward);
 
-        EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, atol));
+        EXPECT_TRUE(allclose(inv_x_hat, ref_x, 1.e-5, atol));
 
         // Simple identity tests for r2c and c2r transforms
-        KokkosFFT::rfftn(execution_space(), xr, outr, axes,
+        KokkosFFT::rfftn(execution_space(), xr, xr_hat, axes,
                          KokkosFFT::Normalization::backward);
 
-        KokkosFFT::irfftn(execution_space(), outr, _xr, axes,
+        KokkosFFT::irfftn(execution_space(), xr_hat, inv_xr_hat, axes,
                           KokkosFFT::Normalization::backward);
 
-        EXPECT_TRUE(allclose(_xr, ref_xr, 1.e-5, atol));
+        EXPECT_TRUE(allclose(inv_xr_hat, ref_xr, 1.e-5, atol));
       }
     }
   }
@@ -3139,12 +3156,13 @@ void test_fftn_3dfft_5dview(T atol = 1.e-12) {
     std::array<int, DIM> shape_c2r = shape;
     shape_c2r.at(last_axis)        = shape_c2r.at(last_axis) / 2 + 1;
 
-    auto [_n0, _n1, _n2, _n3, _n4] = shape_c2r;
-    ComplexView5DType _x("_x", n0, n1, n2, n3, n4),
-        out("out", n0, n1, n2, n3, n4), ref_out("ref_out", n0, n1, n2, n3, n4);
+    auto [sr0, sr1, sr2, sr3, sr4] = shape_c2r;
+    ComplexView5DType inv_x_hat("inv_x_hat", n0, n1, n2, n3, n4),
+        x_hat("x_hat", n0, n1, n2, n3, n4);
     RealView5DType xr("xr", n0, n1, n2, n3, n4),
-        ref_xr("ref_xr", n0, n1, n2, n3, n4), _xr("_xr", n0, n1, n2, n3, n4);
-    ComplexView5DType outr("outr", _n0, _n1, _n2, _n3, _n4);
+        ref_xr("ref_xr", n0, n1, n2, n3, n4),
+        inv_xr_hat("inv_xr_hat", n0, n1, n2, n3, n4);
+    ComplexView5DType xr_hat("xr_hat", sr0, sr1, sr2, sr3, sr4);
 
     const Kokkos::complex<T> z(1.0, 1.0);
     Kokkos::Random_XorShift64_Pool<> random_pool(12345);
@@ -3158,22 +3176,22 @@ void test_fftn_3dfft_5dview(T atol = 1.e-12) {
 
     // Along one axis
     // Simple identity tests
-    KokkosFFT::fftn(execution_space(), x, out, tested_axes,
+    KokkosFFT::fftn(execution_space(), x, x_hat, tested_axes,
                     KokkosFFT::Normalization::backward);
 
-    KokkosFFT::ifftn(execution_space(), out, _x, tested_axes,
+    KokkosFFT::ifftn(execution_space(), x_hat, inv_x_hat, tested_axes,
                      KokkosFFT::Normalization::backward);
 
-    EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, atol));
+    EXPECT_TRUE(allclose(inv_x_hat, ref_x, 1.e-5, atol));
 
     // Simple identity tests for r2c and c2r transforms
-    KokkosFFT::rfftn(execution_space(), xr, outr, tested_axes,
+    KokkosFFT::rfftn(execution_space(), xr, xr_hat, tested_axes,
                      KokkosFFT::Normalization::backward);
 
-    KokkosFFT::irfftn(execution_space(), outr, _xr, tested_axes,
+    KokkosFFT::irfftn(execution_space(), xr_hat, inv_xr_hat, tested_axes,
                       KokkosFFT::Normalization::backward);
 
-    EXPECT_TRUE(allclose(_xr, ref_xr, 1.e-5, atol));
+    EXPECT_TRUE(allclose(inv_xr_hat, ref_xr, 1.e-5, atol));
   }
 }
 
@@ -3214,14 +3232,13 @@ void test_fftn_3dfft_6dview(T atol = 1.e-12) {
     std::array<int, DIM> shape_c2r = shape;
     shape_c2r.at(last_axis)        = shape_c2r.at(last_axis) / 2 + 1;
 
-    auto [_n0, _n1, _n2, _n3, _n4, _n5] = shape_c2r;
-    ComplexView6DType _x("_x", n0, n1, n2, n3, n4, n5),
-        out("out", n0, n1, n2, n3, n4, n5),
-        ref_out("ref_out", n0, n1, n2, n3, n4, n5);
+    auto [sr0, sr1, sr2, sr3, sr4, sr5] = shape_c2r;
+    ComplexView6DType inv_x_hat("inv_x_hat", n0, n1, n2, n3, n4, n5),
+        x_hat("x_hat", n0, n1, n2, n3, n4, n5);
     RealView6DType xr("xr", n0, n1, n2, n3, n4, n5),
         ref_xr("ref_xr", n0, n1, n2, n3, n4, n5),
-        _xr("_xr", n0, n1, n2, n3, n4, n5);
-    ComplexView6DType outr("outr", _n0, _n1, _n2, _n3, _n4, _n5);
+        inv_xr_hat("inv_xr_hat", n0, n1, n2, n3, n4, n5);
+    ComplexView6DType xr_hat("xr_hat", sr0, sr1, sr2, sr3, sr4, sr5);
 
     const Kokkos::complex<T> z(1.0, 1.0);
     Kokkos::Random_XorShift64_Pool<> random_pool(12345);
@@ -3235,22 +3252,22 @@ void test_fftn_3dfft_6dview(T atol = 1.e-12) {
 
     // Along one axis
     // Simple identity tests
-    KokkosFFT::fftn(execution_space(), x, out, tested_axes,
+    KokkosFFT::fftn(execution_space(), x, x_hat, tested_axes,
                     KokkosFFT::Normalization::backward);
 
-    KokkosFFT::ifftn(execution_space(), out, _x, tested_axes,
+    KokkosFFT::ifftn(execution_space(), x_hat, inv_x_hat, tested_axes,
                      KokkosFFT::Normalization::backward);
 
-    EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, atol));
+    EXPECT_TRUE(allclose(inv_x_hat, ref_x, 1.e-5, atol));
 
     // Simple identity tests for r2c and c2r transforms
-    KokkosFFT::rfftn(execution_space(), xr, outr, tested_axes,
+    KokkosFFT::rfftn(execution_space(), xr, xr_hat, tested_axes,
                      KokkosFFT::Normalization::backward);
 
-    KokkosFFT::irfftn(execution_space(), outr, _xr, tested_axes,
+    KokkosFFT::irfftn(execution_space(), xr_hat, inv_xr_hat, tested_axes,
                       KokkosFFT::Normalization::backward);
 
-    EXPECT_TRUE(allclose(_xr, ref_xr, 1.e-5, atol));
+    EXPECT_TRUE(allclose(inv_xr_hat, ref_xr, 1.e-5, atol));
   }
 }
 
@@ -3291,14 +3308,13 @@ void test_fftn_3dfft_7dview(T atol = 1.e-12) {
     std::array<int, DIM> shape_c2r = shape;
     shape_c2r.at(last_axis)        = shape_c2r.at(last_axis) / 2 + 1;
 
-    auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6] = shape_c2r;
-    ComplexView7DType _x("_x", n0, n1, n2, n3, n4, n5, n6),
-        out("out", n0, n1, n2, n3, n4, n5, n6),
-        ref_out("ref_out", n0, n1, n2, n3, n4, n5, n6);
+    auto [sr0, sr1, sr2, sr3, sr4, sr5, sr6] = shape_c2r;
+    ComplexView7DType inv_x_hat("inv_x_hat", n0, n1, n2, n3, n4, n5, n6),
+        x_hat("x_hat", n0, n1, n2, n3, n4, n5, n6);
     RealView7DType xr("xr", n0, n1, n2, n3, n4, n5, n6),
         ref_xr("ref_xr", n0, n1, n2, n3, n4, n5, n6),
-        _xr("_xr", n0, n1, n2, n3, n4, n5, n6);
-    ComplexView7DType outr("outr", _n0, _n1, _n2, _n3, _n4, _n5, _n6);
+        inv_xr_hat("inv_xr_hat", n0, n1, n2, n3, n4, n5, n6);
+    ComplexView7DType xr_hat("xr_hat", sr0, sr1, sr2, sr3, sr4, sr5, sr6);
 
     const Kokkos::complex<T> z(1.0, 1.0);
     Kokkos::Random_XorShift64_Pool<> random_pool(12345);
@@ -3312,22 +3328,22 @@ void test_fftn_3dfft_7dview(T atol = 1.e-12) {
 
     // Along one axis
     // Simple identity tests
-    KokkosFFT::fftn(execution_space(), x, out, tested_axes,
+    KokkosFFT::fftn(execution_space(), x, x_hat, tested_axes,
                     KokkosFFT::Normalization::backward);
 
-    KokkosFFT::ifftn(execution_space(), out, _x, tested_axes,
+    KokkosFFT::ifftn(execution_space(), x_hat, inv_x_hat, tested_axes,
                      KokkosFFT::Normalization::backward);
 
-    EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, atol));
+    EXPECT_TRUE(allclose(inv_x_hat, ref_x, 1.e-5, atol));
 
     // Simple identity tests for r2c and c2r transforms
-    KokkosFFT::rfftn(execution_space(), xr, outr, tested_axes,
+    KokkosFFT::rfftn(execution_space(), xr, xr_hat, tested_axes,
                      KokkosFFT::Normalization::backward);
 
-    KokkosFFT::irfftn(execution_space(), outr, _xr, tested_axes,
+    KokkosFFT::irfftn(execution_space(), xr_hat, inv_xr_hat, tested_axes,
                       KokkosFFT::Normalization::backward);
 
-    EXPECT_TRUE(allclose(_xr, ref_xr, 1.e-5, atol));
+    EXPECT_TRUE(allclose(inv_xr_hat, ref_xr, 1.e-5, atol));
   }
 }
 
@@ -3368,14 +3384,13 @@ void test_fftn_3dfft_8dview(T atol = 1.e-12) {
     std::array<int, DIM> shape_c2r = shape;
     shape_c2r.at(last_axis)        = shape_c2r.at(last_axis) / 2 + 1;
 
-    auto [_n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7] = shape_c2r;
-    ComplexView8DType _x("_x", n0, n1, n2, n3, n4, n5, n6, n7),
-        out("out", n0, n1, n2, n3, n4, n5, n6, n7),
-        ref_out("ref_out", n0, n1, n2, n3, n4, n5, n6, n7);
+    auto [sr0, sr1, sr2, sr3, sr4, sr5, sr6, sr7] = shape_c2r;
+    ComplexView8DType inv_x_hat("inv_x_hat", n0, n1, n2, n3, n4, n5, n6, n7),
+        x_hat("x_hat", n0, n1, n2, n3, n4, n5, n6, n7);
     RealView8DType xr("xr", n0, n1, n2, n3, n4, n5, n6, n7),
         ref_xr("ref_xr", n0, n1, n2, n3, n4, n5, n6, n7),
-        _xr("_xr", n0, n1, n2, n3, n4, n5, n6, n7);
-    ComplexView8DType outr("outr", _n0, _n1, _n2, _n3, _n4, _n5, _n6, _n7);
+        inv_xr_hat("inv_xr_hat", n0, n1, n2, n3, n4, n5, n6, n7);
+    ComplexView8DType xr_hat("xr_hat", sr0, sr1, sr2, sr3, sr4, sr5, sr6, sr7);
 
     const Kokkos::complex<T> z(1.0, 1.0);
     Kokkos::Random_XorShift64_Pool<> random_pool(12345);
@@ -3389,22 +3404,22 @@ void test_fftn_3dfft_8dview(T atol = 1.e-12) {
 
     // Along one axis
     // Simple identity tests
-    KokkosFFT::fftn(execution_space(), x, out, tested_axes,
+    KokkosFFT::fftn(execution_space(), x, x_hat, tested_axes,
                     KokkosFFT::Normalization::backward);
 
-    KokkosFFT::ifftn(execution_space(), out, _x, tested_axes,
+    KokkosFFT::ifftn(execution_space(), x_hat, inv_x_hat, tested_axes,
                      KokkosFFT::Normalization::backward);
 
-    EXPECT_TRUE(allclose(_x, ref_x, 1.e-5, atol));
+    EXPECT_TRUE(allclose(inv_x_hat, ref_x, 1.e-5, atol));
 
     // Simple identity tests for r2c and c2r transforms
-    KokkosFFT::rfftn(execution_space(), xr, outr, tested_axes,
+    KokkosFFT::rfftn(execution_space(), xr, xr_hat, tested_axes,
                      KokkosFFT::Normalization::backward);
 
-    KokkosFFT::irfftn(execution_space(), outr, _xr, tested_axes,
+    KokkosFFT::irfftn(execution_space(), xr_hat, inv_xr_hat, tested_axes,
                       KokkosFFT::Normalization::backward);
 
-    EXPECT_TRUE(allclose(_xr, ref_xr, 1.e-5, atol));
+    EXPECT_TRUE(allclose(inv_xr_hat, ref_xr, 1.e-5, atol));
   }
 }
 

@@ -78,23 +78,23 @@ auto create_plan(const ExecutionSpace& exec_space,
                                  std::multiplies<>());
 
   // Create plan
-  auto in_strides   = compute_strides<int, std::int64_t>(in_extents);
-  auto out_strides  = compute_strides<int, std::int64_t>(out_extents);
-  auto _fft_extents = convert_int_type<int, std::int64_t>(fft_extents);
+  auto in_strides        = compute_strides<int, std::int64_t>(in_extents);
+  auto out_strides       = compute_strides<int, std::int64_t>(out_extents);
+  auto int64_fft_extents = convert_int_type<int, std::int64_t>(fft_extents);
 
   // In oneMKL, the distance is always defined based on R2C transform
-  std::int64_t _idist = static_cast<std::int64_t>(std::max(idist, odist));
-  std::int64_t _odist = static_cast<std::int64_t>(std::min(idist, odist));
+  std::int64_t max_idist = static_cast<std::int64_t>(std::max(idist, odist));
+  std::int64_t max_odist = static_cast<std::int64_t>(std::min(idist, odist));
 
-  plan = std::make_unique<PlanType>(_fft_extents);
+  plan = std::make_unique<PlanType>(int64_fft_extents);
   plan->set_value(oneapi::mkl::dft::config_param::INPUT_STRIDES,
                   in_strides.data());
   plan->set_value(oneapi::mkl::dft::config_param::OUTPUT_STRIDES,
                   out_strides.data());
 
   // Configuration for batched plan
-  plan->set_value(oneapi::mkl::dft::config_param::FWD_DISTANCE, _idist);
-  plan->set_value(oneapi::mkl::dft::config_param::BWD_DISTANCE, _odist);
+  plan->set_value(oneapi::mkl::dft::config_param::FWD_DISTANCE, max_idist);
+  plan->set_value(oneapi::mkl::dft::config_param::BWD_DISTANCE, max_odist);
   plan->set_value(oneapi::mkl::dft::config_param::NUMBER_OF_TRANSFORMS,
                   static_cast<std::int64_t>(howmany));
 

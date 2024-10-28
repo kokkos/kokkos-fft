@@ -76,15 +76,15 @@ template <typename ExecutionSpace, typename T1, typename T2>
 struct transform_type<ExecutionSpace, T1, Kokkos::complex<T2>> {
   static_assert(std::is_same_v<T1, T2>,
                 "T1 and T2 should have the same precision");
-  using _TransformType = TransformType<ExecutionSpace>;
+  using TransformTypeOnExecSpace = TransformType<ExecutionSpace>;
 
-  static constexpr _TransformType m_cuda_type =
+  static constexpr TransformTypeOnExecSpace m_cuda_type =
       std::is_same_v<T1, float> ? CUFFT_R2C : CUFFT_D2Z;
-  static constexpr _TransformType m_cpu_type = std::is_same_v<T1, float>
-                                                   ? FFTWTransformType::R2C
-                                                   : FFTWTransformType::D2Z;
+  static constexpr TransformTypeOnExecSpace m_cpu_type =
+      std::is_same_v<T1, float> ? FFTWTransformType::R2C
+                                : FFTWTransformType::D2Z;
 
-  static constexpr _TransformType type() {
+  static constexpr TransformTypeOnExecSpace type() {
     if constexpr (std::is_same_v<ExecutionSpace, Kokkos::Cuda>) {
       return m_cuda_type;
     } else {
@@ -97,15 +97,15 @@ template <typename ExecutionSpace, typename T1, typename T2>
 struct transform_type<ExecutionSpace, Kokkos::complex<T1>, T2> {
   static_assert(std::is_same_v<T1, T2>,
                 "T1 and T2 should have the same precision");
-  using _TransformType = TransformType<ExecutionSpace>;
+  using TransformTypeOnExecSpace = TransformType<ExecutionSpace>;
 
-  static constexpr _TransformType m_cuda_type =
+  static constexpr TransformTypeOnExecSpace m_cuda_type =
       std::is_same_v<T1, float> ? CUFFT_C2R : CUFFT_Z2D;
-  static constexpr _TransformType m_cpu_type = std::is_same_v<T1, float>
-                                                   ? FFTWTransformType::C2R
-                                                   : FFTWTransformType::Z2D;
+  static constexpr TransformTypeOnExecSpace m_cpu_type =
+      std::is_same_v<T1, float> ? FFTWTransformType::C2R
+                                : FFTWTransformType::Z2D;
 
-  static constexpr _TransformType type() {
+  static constexpr TransformTypeOnExecSpace type() {
     if constexpr (std::is_same_v<ExecutionSpace, Kokkos::Cuda>) {
       return m_cuda_type;
     } else {
@@ -119,15 +119,15 @@ struct transform_type<ExecutionSpace, Kokkos::complex<T1>,
                       Kokkos::complex<T2>> {
   static_assert(std::is_same_v<T1, T2>,
                 "T1 and T2 should have the same precision");
-  using _TransformType = TransformType<ExecutionSpace>;
+  using TransformTypeOnExecSpace = TransformType<ExecutionSpace>;
 
-  static constexpr _TransformType m_cuda_type =
+  static constexpr TransformTypeOnExecSpace m_cuda_type =
       std::is_same_v<T1, float> ? CUFFT_C2C : CUFFT_Z2Z;
-  static constexpr _TransformType m_cpu_type = std::is_same_v<T1, float>
-                                                   ? FFTWTransformType::C2C
-                                                   : FFTWTransformType::Z2Z;
+  static constexpr TransformTypeOnExecSpace m_cpu_type =
+      std::is_same_v<T1, float> ? FFTWTransformType::C2C
+                                : FFTWTransformType::Z2Z;
 
-  static constexpr _TransformType type() {
+  static constexpr TransformTypeOnExecSpace type() {
     if constexpr (std::is_same_v<ExecutionSpace, Kokkos::Cuda>) {
       return m_cuda_type;
     } else {
@@ -138,13 +138,13 @@ struct transform_type<ExecutionSpace, Kokkos::complex<T1>,
 
 template <typename ExecutionSpace>
 auto direction_type(Direction direction) {
-  static constexpr FFTDirectionType _FORWARD =
+  static constexpr FFTDirectionType FORWARD =
       std::is_same_v<ExecutionSpace, Kokkos::Cuda> ? CUFFT_FORWARD
                                                    : FFTW_FORWARD;
-  static constexpr FFTDirectionType _BACKWARD =
+  static constexpr FFTDirectionType BACKWARD =
       std::is_same_v<ExecutionSpace, Kokkos::Cuda> ? CUFFT_INVERSE
                                                    : FFTW_BACKWARD;
-  return direction == Direction::forward ? _FORWARD : _BACKWARD;
+  return direction == Direction::forward ? FORWARD : BACKWARD;
 }
 #else
 template <typename ExecutionSpace>
@@ -173,20 +173,18 @@ template <typename ExecutionSpace, typename T1, typename T2>
 struct transform_type<ExecutionSpace, T1, Kokkos::complex<T2>> {
   static_assert(std::is_same_v<T1, T2>,
                 "T1 and T2 should have the same precision");
-  using _TransformType = TransformType<ExecutionSpace>;
-  static constexpr _TransformType m_type =
+  static constexpr cufftType m_type =
       std::is_same_v<T1, float> ? CUFFT_R2C : CUFFT_D2Z;
-  static constexpr _TransformType type() { return m_type; };
+  static constexpr cufftType type() { return m_type; };
 };
 
 template <typename ExecutionSpace, typename T1, typename T2>
 struct transform_type<ExecutionSpace, Kokkos::complex<T1>, T2> {
   static_assert(std::is_same_v<T1, T2>,
                 "T1 and T2 should have the same precision");
-  using _TransformType = TransformType<ExecutionSpace>;
-  static constexpr _TransformType m_type =
+  static constexpr cufftType m_type =
       std::is_same_v<T2, float> ? CUFFT_C2R : CUFFT_Z2D;
-  static constexpr _TransformType type() { return m_type; };
+  static constexpr cufftType type() { return m_type; };
 };
 
 template <typename ExecutionSpace, typename T1, typename T2>
@@ -194,10 +192,9 @@ struct transform_type<ExecutionSpace, Kokkos::complex<T1>,
                       Kokkos::complex<T2>> {
   static_assert(std::is_same_v<T1, T2>,
                 "T1 and T2 should have the same precision");
-  using _TransformType = TransformType<ExecutionSpace>;
-  static constexpr _TransformType m_type =
+  static constexpr cufftType m_type =
       std::is_same_v<T1, float> ? CUFFT_C2C : CUFFT_Z2Z;
-  static constexpr _TransformType type() { return m_type; };
+  static constexpr cufftType type() { return m_type; };
 };
 
 template <typename ExecutionSpace>

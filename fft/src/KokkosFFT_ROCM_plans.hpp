@@ -125,7 +125,7 @@ auto create_plan(const ExecutionSpace& exec_space,
   // Create plan
   auto in_strides  = compute_strides<int, std::size_t>(in_extents);
   auto out_strides = compute_strides<int, std::size_t>(out_extents);
-  auto _fft_extents =
+  auto reversed_fft_extents =
       convert_int_type_and_reverse<int, std::size_t>(fft_extents);
 
   // Create the description
@@ -160,10 +160,10 @@ auto create_plan(const ExecutionSpace& exec_space,
   // Create a plan
   plan   = std::make_unique<PlanType>();
   status = rocfft_plan_create(&(*plan), place, fft_direction, precision,
-                              _fft_extents.size(),  // Dimension
-                              _fft_extents.data(),  // Lengths
-                              howmany,              // Number of transforms
-                              description           // Description
+                              reversed_fft_extents.size(),  // Dimension
+                              reversed_fft_extents.data(),  // Lengths
+                              howmany,     // Number of transforms
+                              description  // Description
   );
   KOKKOSFFT_THROW_IF(status != rocfft_status_success,
                      "rocfft_plan_create failed");
