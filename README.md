@@ -1,5 +1,5 @@
 <!--
-SPDX-FileCopyrightText: (C) The Kokkos-FFT development team, see COPYRIGHT.md file
+SPDX-FileCopyrightText: (C) The kokkos-fft development team, see COPYRIGHT.md file
 
 SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 -->
@@ -12,10 +12,10 @@ SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 > [!WARNING]
 > EXPERIMENTAL FFT interfaces for Kokkos C++ Performance Portability Programming EcoSystem
 
-Kokkos-fft implements local interfaces between [Kokkos](https://github.com/kokkos/kokkos) and de facto standard FFT libraries, including [fftw](http://www.fftw.org), [cufft](https://developer.nvidia.com/cufft), [hipfft](https://github.com/ROCm/hipFFT) ([rocfft](https://github.com/ROCm/rocFFT)), and [oneMKL](https://spec.oneapi.io/versions/latest/elements/oneMKL/source/index.html). "Local" means not using MPI, or running within a single MPI process without knowing about MPI. We are inclined to implement the [numpy.fft](https://numpy.org/doc/stable/reference/routines.fft.html)-like interfaces adapted for [Kokkos](https://github.com/kokkos/kokkos).
+kokkos-fft implements local interfaces between [Kokkos](https://github.com/kokkos/kokkos) and de facto standard FFT libraries, including [fftw](http://www.fftw.org), [cufft](https://developer.nvidia.com/cufft), [hipfft](https://github.com/ROCm/hipFFT) ([rocfft](https://github.com/ROCm/rocFFT)), and [oneMKL](https://spec.oneapi.io/versions/latest/elements/oneMKL/source/index.html). "Local" means not using MPI, or running within a single MPI process without knowing about MPI. We are inclined to implement the [numpy.fft](https://numpy.org/doc/stable/reference/routines.fft.html)-like interfaces adapted for [Kokkos](https://github.com/kokkos/kokkos).
 A key concept is that **"As easy as numpy, as fast as vendor libraries"**. Accordingly, our API follows the API by [numpy.fft](https://numpy.org/doc/stable/reference/routines.fft.html) with minor differences. A fft library dedicated to Kokkos Device backend (e.g. [cufft](https://developer.nvidia.com/cufft) for CUDA backend) is automatically used. If something is wrong with runtime values (say `View` extents), it will raise runtime errors (C++ `std::runtime_error`). See [documentations](https://kokkosfft.readthedocs.io/) for more information.
 
-Here is an example for 1D real to complex transform with `rfft` in Kokkos-fft.
+Here is an example for 1D real to complex transform with `rfft` in kokkos-fft.
 ```C++
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Complex.hpp>
@@ -43,7 +43,7 @@ x = np.random.rand(4)
 x_hat = np.fft.rfft(x)
 ```
 
-There are two major differences: [`execution_space`](https://kokkos.org/kokkos-core-wiki/API/core/execution_spaces.html) argument and output value (`x_hat`) is an argument of API (not returned value from API). As imagined, Kokkos-fft only accepts [Kokkos Views](https://kokkos.org/kokkos-core-wiki/API/core/View.html) as input data. The accessibilities of Views from `execution_space` are statically checked (compilation errors if not accessible).
+There are two major differences: [`execution_space`](https://kokkos.org/kokkos-core-wiki/API/core/execution_spaces.html) argument and output value (`x_hat`) is an argument of API (not returned value from API). As imagined, kokkos-fft only accepts [Kokkos Views](https://kokkos.org/kokkos-core-wiki/API/core/View.html) as input data. The accessibilities of Views from `execution_space` are statically checked (compilation errors if not accessible).
 
 Depending on a View dimension, it automatically uses the batched plans as follows
 ```C++
@@ -79,14 +79,14 @@ In this example, the 1D batched `rfft` over 2D View along `axis -1` is executed.
 ## Disclaimer
 **KokkosFFT is under development and subject to change without warning. The authors do not guarantee that this code runs correctly in all the environments.**
 
-## Using KokkosFFT
-For the moment, there are two ways to use Kokkos-fft: including as a subdirectory in CMake project or installing as a library. First of all, you need to clone this repo.
+## Using kokkos-fft
+For the moment, there are two ways to use kokkos-fft: including as a subdirectory in CMake project or installing as a library. First of all, you need to clone this repo.
 ```bash
 git clone --recursive https://github.com/kokkos/kokkos-fft.git
 ```
 
 ### Prerequisites
-To use Kokkos-fft, we need the followings:
+To use kokkos-fft, we need the followings:
 * `CMake 3.22+`
 * `Kokkos 4.4+`
 * `gcc 8.3.0+` (CPUs)
@@ -95,9 +95,9 @@ To use Kokkos-fft, we need the followings:
 * `rocm 5.3.0+` (AMD GPUs)
 
 ### CMake
-Since Kokkos-fft is a header-only library, it is enough to simply add as a subdirectory. It is assumed that kokkos and Kokkos-fft are placed under `<project_directory>/tpls`.
+Since kokkos-fft is a header-only library, it is enough to simply add as a subdirectory. It is assumed that kokkos and kokkos-fft are placed under `<project_directory>/tpls`.
 
-Here is an example to use Kokkos-fft in the following CMake project.
+Here is an example to use kokkos-fft in the following CMake project.
 ```
 ---/
  |
@@ -136,4 +136,4 @@ This way, all the functionalities are executed on A100 GPUs. For installation, d
 [![License](https://img.shields.io/badge/License-Apache--2.0_WITH_LLVM--exception-blue)](https://spdx.org/licenses/LLVM-exception.html)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Kokkos-FFT is distributed under either the MIT license, or at your option, the Apache-2.0 licence with LLVM exception.
+kokkos-fft is distributed under either the MIT license, or at your option, the Apache-2.0 licence with LLVM exception.
