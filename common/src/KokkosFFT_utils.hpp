@@ -210,14 +210,15 @@ auto extract_extents(const ViewType& view) {
 }
 
 template <typename IntType, typename InViewType, typename OutViewType>
-std::array<IntType, InViewType::rank> shrank_extents(const InViewType& in, const OutViewType& out) {
-  static_assert(KokkosFFT::Impl::have_same_rank_v<InViewType, OutViewType>,
-                "shrank_extents: InViewType and OutViewType must have the same rank.");
+std::array<IntType, InViewType::rank> shrank_extents(const InViewType& in,
+                                                     const OutViewType& out) {
   static_assert(
-      std::is_integral_v<IntType>,
-      "shrank_extents: IntType must be an integral type");
+      KokkosFFT::Impl::have_same_rank_v<InViewType, OutViewType>,
+      "shrank_extents: InViewType and OutViewType must have the same rank.");
+  static_assert(std::is_integral_v<IntType>,
+                "shrank_extents: IntType must be an integral type");
   constexpr std::size_t rank = InViewType::rank();
-  using extents_type = std::array<IntType, rank>;
+  using extents_type         = std::array<IntType, rank>;
 
   extents_type extents;
   for (std::size_t i = 0; i < rank; i++) {
@@ -229,9 +230,8 @@ std::array<IntType, InViewType::rank> shrank_extents(const InViewType& in, const
 template <typename Layout, typename ContainerType>
 Layout create_layout(const ContainerType& extents) {
   using IntType = KokkosFFT::Impl::base_container_value_type<ContainerType>;
-  static_assert(
-      std::is_integral_v<IntType>,
-      "create_layout: IntType must be an integral type");
+  static_assert(std::is_integral_v<IntType>,
+                "create_layout: IntType must be an integral type");
   static_assert(std::is_same_v<Layout, Kokkos::LayoutLeft> ||
                     std::is_same_v<Layout, Kokkos::LayoutRight>,
                 "create_layout: Layout must be either Kokkos::LayoutLeft or "
