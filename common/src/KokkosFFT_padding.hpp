@@ -92,26 +92,25 @@ auto is_crop_or_pad_needed(const ViewType& view,
 }
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
-          typename SlicerType, std::size_t... I>
-void deepcopy_on_subviews(const ExecutionSpace& exec_space,
-                          const InViewType& in, const OutViewType& out,
-                          const SlicerType& slicers,
-                          std::index_sequence<I...>) {
-  auto sub_in  = Kokkos::subview(in, std::get<I>(slicers)...);
-  auto sub_out = Kokkos::subview(out, std::get<I>(slicers)...);
+          std::size_t... Is>
+void crop_or_pad_impl(const ExecutionSpace& exec_space, const InViewType& in,
+                      const OutViewType& out, std::index_sequence<Is...>) {
+  constexpr std::size_t rank = InViewType::rank();
+  using extents_type         = std::array<std::size_t, rank>;
+
+  extents_type extents;
+  for (std::size_t i = 0; i < rank; i++) {
+    extents.at(i) = std::min(in.extent(i), out.extent(i));
+  }
+
+  auto sub_in = Kokkos::subview(
+      in, std::make_pair(std::size_t(0), std::get<Is>(extents))...);
+  auto sub_out = Kokkos::subview(
+      out, std::make_pair(std::size_t(0), std::get<Is>(extents))...);
   Kokkos::deep_copy(exec_space, sub_out, sub_in);
 }
 
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void crop_or_pad_impl(const ExecutionSpace& exec_space, const InViewType& in,
-                      const OutViewType& out) {
-  auto slices = KokkosFFT::Impl::shrank_slicers(in, out);
-  deepcopy_on_subviews(exec_space, in, out, slices,
-                       std::make_index_sequence<InViewType::rank()>{});
-}
-
-template <typename ExecutionSpace, typename InViewType, typename OutViewType,
-          std::size_t DIM = 1>
 void crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
                  const OutViewType& out) {
   static_assert(
@@ -122,7 +121,8 @@ void crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
       "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
       "same rank. ExecutionSpace must be accessible to the data in InViewType "
       "and OutViewType.");
-  crop_or_pad_impl(exec_space, in, out);
+  crop_or_pad_impl(exec_space, in, out,
+                   std::make_index_sequence<InViewType::rank()>{});
 }
 }  // namespace Impl
 }  // namespace KokkosFFT
