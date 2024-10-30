@@ -5,7 +5,6 @@
 #include <gtest/gtest.h>
 #include "KokkosFFT_utils.hpp"
 #include "Test_Types.hpp"
-#include "Test_Utils.hpp"
 
 using test_types = ::testing::Types<Kokkos::LayoutLeft, Kokkos::LayoutRight>;
 
