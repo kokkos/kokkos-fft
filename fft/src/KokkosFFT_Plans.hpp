@@ -314,10 +314,13 @@ class Plan {
         typename KokkosFFT::Impl::manageable_view_type<InViewType>::type;
     using ManagableOutViewType =
         typename KokkosFFT::Impl::manageable_view_type<OutViewType>::type;
-    ManagableInViewType in_s;
+
     InViewType in_tmp;
     if (m_is_crop_or_pad_needed) {
-      KokkosFFT::Impl::crop_or_pad(m_exec_space, in, in_s, m_shape);
+      using LayoutType = typename ManagableInViewType::array_layout;
+      ManagableInViewType const in_s(
+          "in_s", KokkosFFT::Impl::create_layout<LayoutType>(m_shape));
+      KokkosFFT::Impl::crop_or_pad(m_exec_space, in, in_s);
       in_tmp = in_s;
     } else {
       in_tmp = in;
