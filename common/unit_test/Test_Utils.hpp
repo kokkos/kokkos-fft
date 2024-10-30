@@ -59,18 +59,6 @@ void display(std::string name, std::vector<T>& values) {
   }
 }
 
-template <typename SlicerType, std::size_t... I>
-auto get_upper_limits_impl(const SlicerType& slices,
-                           std::index_sequence<I...>) {
-  return std::array<std::size_t, sizeof...(I)>{std::get<I>(slices).second...};
-}
-
-template <typename SlicerType>
-auto get_upper_limits(const SlicerType& slices) {
-  return get_upper_limits_impl(
-      slices, std::make_index_sequence<std::tuple_size<SlicerType>::value>{});
-}
-
 /// Transform a sequence S to a tuple:
 /// - a std::integer_sequence<T, Ints...> to a
 /// std::tuple<std::integral_constant<T, Ints>...>

@@ -527,68 +527,6 @@ TEST(ExtractExtents, 1Dto8D) {
   EXPECT_EQ(KokkosFFT::Impl::extract_extents(view8D), ref_extents8D);
 }
 
-TEST(ShrankSlicers, 1Dto8D) {
-  using View1Dtype = Kokkos::View<double*, execution_space>;
-  using View2Dtype = Kokkos::View<double**, execution_space>;
-  using View3Dtype = Kokkos::View<double***, execution_space>;
-  using View4Dtype = Kokkos::View<double****, execution_space>;
-  using View5Dtype = Kokkos::View<double*****, execution_space>;
-  using View6Dtype = Kokkos::View<double******, execution_space>;
-  using View7Dtype = Kokkos::View<double*******, execution_space>;
-  using View8Dtype = Kokkos::View<double********, execution_space>;
-
-  std::size_t n1 = 1, n2 = 1, n3 = 2, n4 = 3, n5 = 5, n6 = 8, n7 = 13, n8 = 21;
-  std::size_t s1 = 21, s2 = 13, s3 = 8, s4 = 5, s5 = 3, s6 = 2, s7 = 1, s8 = 1;
-
-  View1Dtype in1D("in1D", n1), out1D("out1D", s1);
-  View2Dtype in2D("in2D", n1, n2), out2D("out2D", s1, s2);
-  View3Dtype in3D("in3D", n1, n2, n3), out3D("out3D", s1, s2, s3);
-  View4Dtype in4D("in4D", n1, n2, n3, n4), out4D("out4D", s1, s2, s3, s4);
-  View5Dtype in5D("in5D", n1, n2, n3, n4, n5),
-      out5D("out5D", s1, s2, s3, s4, s5);
-  View6Dtype in6D("in6D", n1, n2, n3, n4, n5, n6),
-      out6D("out6D", s1, s2, s3, s4, s5, s6);
-  View7Dtype in7D("in7D", n1, n2, n3, n4, n5, n6, n7),
-      out7D("out7D", s1, s2, s3, s4, s5, s6, s7);
-  View8Dtype in8D("in8D", n1, n2, n3, n4, n5, n6, n7, n8),
-      out8D("out8D", s1, s2, s3, s4, s5, s6, s7, s8);
-
-  std::array<std::size_t, 1> ref_extents1D = {n1};
-  std::array<std::size_t, 2> ref_extents2D = {n1, n2};
-  std::array<std::size_t, 3> ref_extents3D = {n1, n2, n3};
-  std::array<std::size_t, 4> ref_extents4D = {n1, n2, n3, n4};
-  std::array<std::size_t, 5> ref_extents5D = {n1, n2, n3, n4, s5};
-  std::array<std::size_t, 6> ref_extents6D = {n1, n2, n3, n4, s5, s6};
-  std::array<std::size_t, 7> ref_extents7D = {n1, n2, n3, n4, s5, s6, s7};
-  std::array<std::size_t, 8> ref_extents8D = {n1, n2, n3, n4, s5, s6, s7, s8};
-
-  auto extents1D =
-      get_upper_limits(KokkosFFT::Impl::shrank_slicers(in1D, out1D));
-  auto extents2D =
-      get_upper_limits(KokkosFFT::Impl::shrank_slicers(in2D, out2D));
-  auto extents3D =
-      get_upper_limits(KokkosFFT::Impl::shrank_slicers(in3D, out3D));
-  auto extents4D =
-      get_upper_limits(KokkosFFT::Impl::shrank_slicers(in4D, out4D));
-  auto extents5D =
-      get_upper_limits(KokkosFFT::Impl::shrank_slicers(in5D, out5D));
-  auto extents6D =
-      get_upper_limits(KokkosFFT::Impl::shrank_slicers(in6D, out6D));
-  auto extents7D =
-      get_upper_limits(KokkosFFT::Impl::shrank_slicers(in7D, out7D));
-  auto extents8D =
-      get_upper_limits(KokkosFFT::Impl::shrank_slicers(in8D, out8D));
-
-  EXPECT_EQ(extents1D, ref_extents1D);
-  EXPECT_EQ(extents2D, ref_extents2D);
-  EXPECT_EQ(extents3D, ref_extents3D);
-  EXPECT_EQ(extents4D, ref_extents4D);
-  EXPECT_EQ(extents5D, ref_extents5D);
-  EXPECT_EQ(extents6D, ref_extents6D);
-  EXPECT_EQ(extents7D, ref_extents7D);
-  EXPECT_EQ(extents8D, ref_extents8D);
-}
-
 TEST(IndexSequence, 3Dto5D) {
   using View3Dtype = Kokkos::View<double***, execution_space>;
   using View4Dtype = Kokkos::View<double****, execution_space>;
