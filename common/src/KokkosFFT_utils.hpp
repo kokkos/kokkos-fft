@@ -210,8 +210,7 @@ auto extract_extents(const ViewType& view) {
 }
 
 template <typename InViewType, typename OutViewType>
-auto shrank_slicers(const InViewType& in,
-                    const OutViewType& out) {
+auto shrank_slicers(const InViewType& in, const OutViewType& out) {
   static_assert(
       KokkosFFT::Impl::have_same_rank_v<InViewType, OutViewType>,
       "shrank_slicers: InViewType and OutViewType must have the same rank.");
@@ -222,20 +221,19 @@ auto shrank_slicers(const InViewType& in,
   for (std::size_t i = 0; i < rank; i++) {
     extents.at(i) = std::min(in.extent(i), out.extent(i));
   }
-  
-  
+
   if constexpr (rank == 1) {
-    using slicers_type = std::tuple<Kokkos::pair<std::size_t, std::size_t>>;
+    using slicers_type   = std::tuple<Kokkos::pair<std::size_t, std::size_t>>;
     slicers_type slicers = {Kokkos::make_pair(0, extents.at(0))};
     return slicers;
   } else if constexpr (rank == 2) {
-    using slicers_type = std::tuple<Kokkos::pair<std::size_t, std::size_t>,
+    using slicers_type   = std::tuple<Kokkos::pair<std::size_t, std::size_t>,
                                     Kokkos::pair<std::size_t, std::size_t>>;
     slicers_type slicers = {Kokkos::make_pair(0, extents.at(0)),
                             Kokkos::make_pair(0, extents.at(1))};
     return slicers;
   } else if constexpr (rank == 3) {
-    using slicers_type = std::tuple<Kokkos::pair<std::size_t, std::size_t>,
+    using slicers_type   = std::tuple<Kokkos::pair<std::size_t, std::size_t>,
                                     Kokkos::pair<std::size_t, std::size_t>,
                                     Kokkos::pair<std::size_t, std::size_t>>;
     slicers_type slicers = {Kokkos::make_pair(0, extents.at(0)),
@@ -243,7 +241,7 @@ auto shrank_slicers(const InViewType& in,
                             Kokkos::make_pair(0, extents.at(2))};
     return slicers;
   } else if constexpr (rank == 4) {
-    using slicers_type = std::tuple<Kokkos::pair<std::size_t, std::size_t>,
+    using slicers_type   = std::tuple<Kokkos::pair<std::size_t, std::size_t>,
                                     Kokkos::pair<std::size_t, std::size_t>,
                                     Kokkos::pair<std::size_t, std::size_t>,
                                     Kokkos::pair<std::size_t, std::size_t>>;
@@ -253,7 +251,7 @@ auto shrank_slicers(const InViewType& in,
                             Kokkos::make_pair(0, extents.at(3))};
     return slicers;
   } else if constexpr (rank == 5) {
-    using slicers_type = std::tuple<Kokkos::pair<std::size_t, std::size_t>,
+    using slicers_type   = std::tuple<Kokkos::pair<std::size_t, std::size_t>,
                                     Kokkos::pair<std::size_t, std::size_t>,
                                     Kokkos::pair<std::size_t, std::size_t>,
                                     Kokkos::pair<std::size_t, std::size_t>,
@@ -265,7 +263,7 @@ auto shrank_slicers(const InViewType& in,
                             Kokkos::make_pair(0, extents.at(4))};
     return slicers;
   } else if constexpr (rank == 6) {
-    using slicers_type = std::tuple<Kokkos::pair<std::size_t, std::size_t>,
+    using slicers_type   = std::tuple<Kokkos::pair<std::size_t, std::size_t>,
                                     Kokkos::pair<std::size_t, std::size_t>,
                                     Kokkos::pair<std::size_t, std::size_t>,
                                     Kokkos::pair<std::size_t, std::size_t>,
@@ -279,7 +277,7 @@ auto shrank_slicers(const InViewType& in,
                             Kokkos::make_pair(0, extents.at(5))};
     return slicers;
   } else if constexpr (rank == 7) {
-    using slicers_type = std::tuple<Kokkos::pair<std::size_t, std::size_t>,
+    using slicers_type   = std::tuple<Kokkos::pair<std::size_t, std::size_t>,
                                     Kokkos::pair<std::size_t, std::size_t>,
                                     Kokkos::pair<std::size_t, std::size_t>,
                                     Kokkos::pair<std::size_t, std::size_t>,
@@ -295,7 +293,7 @@ auto shrank_slicers(const InViewType& in,
                             Kokkos::make_pair(0, extents.at(6))};
     return slicers;
   } else {
-    using slicers_type = std::tuple<Kokkos::pair<std::size_t, std::size_t>,
+    using slicers_type   = std::tuple<Kokkos::pair<std::size_t, std::size_t>,
                                     Kokkos::pair<std::size_t, std::size_t>,
                                     Kokkos::pair<std::size_t, std::size_t>,
                                     Kokkos::pair<std::size_t, std::size_t>,
