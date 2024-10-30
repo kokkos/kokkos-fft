@@ -315,14 +315,14 @@ class Plan {
     using ManagableOutViewType =
         typename KokkosFFT::Impl::manageable_view_type<OutViewType>::type;
 
-    // FIXME in_tmp should be in InViewType,
-    // We will merge crop_or_pad and transpose, and remove the need for in_tmp
-    // InViewType in_tmp;
-    ManagableInViewType in_tmp;
+    ManagableInViewType in_s;
+    InViewType in_tmp;
     if (m_is_crop_or_pad_needed) {
       using LayoutType = typename ManagableInViewType::array_layout;
-      ManagableInViewType const in_s(
+      in_s             = ManagableInViewType(
           "in_s", KokkosFFT::Impl::create_layout<LayoutType>(m_shape));
+      // ManagableInViewType const in_s(
+      //     "in_s", KokkosFFT::Impl::create_layout<LayoutType>(m_shape));
       KokkosFFT::Impl::crop_or_pad(m_exec_space, in, in_s);
       in_tmp = in_s;
     } else {
