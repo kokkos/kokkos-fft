@@ -913,7 +913,8 @@ TEST(CropOrPad1D, 1DView) {
   const int len = 30, len_pad = 32, len_crop = 28;
 
   View1D<double> x("x", len);
-  View1D<double> x_out, x_out_pad, x_out_crop;
+  View1D<double> x_out("x_out", len), x_out_pad("x_out_pad", len_pad),
+      x_out_crop("x_out_crop", len_crop);
   View1D<double> ref_x("ref_x", len), ref_x_pad("ref_x_pad", len_pad),
       ref_x_crop("ref_x_crop", len_crop);
 
@@ -932,11 +933,9 @@ TEST(CropOrPad1D, 1DView) {
   auto sub_x  = Kokkos::subview(x, range1);
   Kokkos::deep_copy(ref_x_crop, sub_x);
 
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out, shape_type<1>{len});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_pad,
-                               shape_type<1>{len_pad});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_crop,
-                               shape_type<1>{len_crop});
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out);
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_pad);
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_crop);
 
   EXPECT_TRUE(allclose(x_out, ref_x, 1.e-5, 1.e-12));
   EXPECT_TRUE(allclose(x_out_pad, ref_x_pad, 1.e-5, 1.e-12));
@@ -948,8 +947,11 @@ TEST(CropOrPad1D, 2DView) {
   const int n1 = 5, n1_pad = 7, n1_crop = 3;
 
   View2D<double> x("x", n0, n1);
-  View2D<double> x_out, x_out_pad_axis0, x_out_pad_axis1, x_out_crop_axis0,
-      x_out_crop_axis1;
+  View2D<double> x_out("x_out", n0, n1),
+      x_out_pad_axis0("x_out_pad_axis0", n0_pad, n1),
+      x_out_pad_axis1("x_out_pad_axis1", n0, n1_pad),
+      x_out_crop_axis0("x_out_crop_axis0", n0_crop, n1),
+      x_out_crop_axis1("x_out_crop_axis1", n0, n1_crop);
   View2D<double> ref_x("ref_x", n0, n1),
       ref_x_pad_axis0("ref_x_pad_axis0", n0_pad, n1),
       ref_x_crop_axis0("ref_x_crop_axis0", n0_crop, n1);
@@ -1002,17 +1004,12 @@ TEST(CropOrPad1D, 2DView) {
   Kokkos::deep_copy(ref_x_pad_axis1, h_ref_x_pad_axis1);
   Kokkos::deep_copy(ref_x_crop_axis1, h_ref_x_crop_axis1);
 
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out,
-                               shape_type<2>{n0, n1});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_pad_axis0,
-                               shape_type<2>{n0_pad, n1});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_crop_axis0,
-                               shape_type<2>{n0_crop, n1});
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out);
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_pad_axis0);
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_crop_axis0);
 
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_pad_axis1,
-                               shape_type<2>{n0, n1_pad});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_crop_axis1,
-                               shape_type<2>{n0, n1_crop});
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_pad_axis1);
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_crop_axis1);
 
   EXPECT_TRUE(allclose(x_out, ref_x, 1.e-5, 1.e-12));
   EXPECT_TRUE(allclose(x_out_pad_axis0, ref_x_pad_axis0, 1.e-5, 1.e-12));
@@ -1027,8 +1024,13 @@ TEST(CropOrPad1D, 3DView) {
   const int n2 = 8, n2_pad = 10, n2_crop = 6;
 
   View3D<double> x("x", n0, n1, n2);
-  View3D<double> x_out, x_out_pad_axis0, x_out_crop_axis0, x_out_pad_axis1,
-      x_out_crop_axis1, x_out_pad_axis2, x_out_crop_axis2;
+  View3D<double> x_out("x_out", n0, n1, n2),
+      x_out_pad_axis0("x_out_pad_axis0", n0_pad, n1, n2),
+      x_out_crop_axis0("x_out_crop_axis0", n0_crop, n1, n2),
+      x_out_pad_axis1("x_out_pad_axis1", n0, n1_pad, n2),
+      x_out_crop_axis1("x_out_crop_axis1", n0, n1_crop, n2),
+      x_out_pad_axis2("x_out_pad_axis2", n0, n1, n2_pad),
+      x_out_crop_axis2("x_out_crop_axis2", n0, n1, n2_crop);
   View3D<double> ref_x("ref_x", n0, n1, n2),
       ref_x_pad_axis0("ref_x_pad_axis0", n0_pad, n1, n2),
       ref_x_crop_axis0("ref_x_crop_axis0", n0_crop, n1, n2);
@@ -1109,22 +1111,15 @@ TEST(CropOrPad1D, 3DView) {
   Kokkos::deep_copy(ref_x_pad_axis2, h_ref_x_pad_axis2);
   Kokkos::deep_copy(ref_x_crop_axis2, h_ref_x_crop_axis2);
 
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out,
-                               shape_type<3>{n0, n1, n2});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_pad_axis0,
-                               shape_type<3>{n0_pad, n1, n2});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_crop_axis0,
-                               shape_type<3>{n0_crop, n1, n2});
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out);
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_pad_axis0);
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_crop_axis0);
 
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_pad_axis1,
-                               shape_type<3>{n0, n1_pad, n2});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_crop_axis1,
-                               shape_type<3>{n0, n1_crop, n2});
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_pad_axis1);
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_crop_axis1);
 
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_pad_axis2,
-                               shape_type<3>{n0, n1, n2_pad});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_crop_axis2,
-                               shape_type<3>{n0, n1, n2_crop});
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_pad_axis2);
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_crop_axis2);
 
   EXPECT_TRUE(allclose(x_out, ref_x, 1.e-5, 1.e-12));
   EXPECT_TRUE(allclose(x_out_pad_axis0, ref_x_pad_axis0, 1.e-5, 1.e-12));
@@ -1140,8 +1135,14 @@ TEST(CropOrPad2D, 2DView) {
   const int n1 = 5, n1_pad = 7, n1_crop = 3;
 
   View2D<double> x("x", n0, n1);
-  View2D<double> x_out, x_out_0_1p, x_out_0_1c, x_out_0p_1, x_out_0p_1p,
-      x_out_0p_1c, x_out_0c_1, x_out_0c_1p, x_out_0c_1c;
+  View2D<double> x_out("x_out", n0, n1), x_out_0_1p("x_out_0_1p", n0, n1_pad),
+      x_out_0_1c("x_out_0_1c", n0, n1_crop),
+      x_out_0p_1("x_out_0p_1", n0_pad, n1),
+      x_out_0p_1p("x_out_0p_1p", n0_pad, n1_pad),
+      x_out_0p_1c("x_out_0p_1c", n0_pad, n1_crop),
+      x_out_0c_1("x_out_0c_1", n0_crop, n1),
+      x_out_0c_1p("x_out_0c_1p", n0_crop, n1_pad),
+      x_out_0c_1c("x_out_0c_1c", n0_crop, n1_crop);
   View2D<double> ref_x("ref_x", n0, n1), ref_x_0_1p("ref_x_0_1p", n0, n1_pad),
       ref_x_0_1c("ref_x_0_1c", n0, n1_crop);
   View2D<double> ref_x_0p_1("ref_x_0p_1", n0_pad, n1),
@@ -1215,24 +1216,15 @@ TEST(CropOrPad2D, 2DView) {
   Kokkos::deep_copy(ref_x_0c_1p, h_ref_x_0c_1p);
   Kokkos::deep_copy(ref_x_0c_1c, h_ref_x_0c_1c);
 
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out,
-                               shape_type<2>{n0, n1});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0_1p,
-                               shape_type<2>{n0, n1_pad});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0_1c,
-                               shape_type<2>{n0, n1_crop});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0p_1,
-                               shape_type<2>{n0_pad, n1});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0p_1p,
-                               shape_type<2>{n0_pad, n1_pad});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0p_1c,
-                               shape_type<2>{n0_pad, n1_crop});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0c_1,
-                               shape_type<2>{n0_crop, n1});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0c_1p,
-                               shape_type<2>{n0_crop, n1_pad});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0c_1c,
-                               shape_type<2>{n0_crop, n1_crop});
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out);
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0_1p);
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0_1c);
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0p_1);
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0p_1p);
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0p_1c);
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0c_1);
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0c_1p);
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0c_1c);
 
   EXPECT_TRUE(allclose(x_out, ref_x, 1.e-5, 1.e-12));
   EXPECT_TRUE(allclose(x_out_0_1p, ref_x_0_1p, 1.e-5, 1.e-12));
@@ -1251,8 +1243,15 @@ TEST(CropOrPad2D, 3DView) {
   const int n2 = 8;
 
   View3D<double> x("x", n0, n1, n2);
-  View3D<double> x_out, x_out_0_1p, x_out_0_1c, x_out_0p_1, x_out_0p_1p,
-      x_out_0p_1c, x_out_0c_1, x_out_0c_1p, x_out_0c_1c;
+  View3D<double> x_out("x_out", n0, n1, n2),
+      x_out_0_1p("x_out_0_1p", n0, n1_pad, n2),
+      x_out_0_1c("x_out_0_1c", n0, n1_crop, n2),
+      x_out_0p_1("x_out_0p_1", n0_pad, n1, n2),
+      x_out_0p_1p("x_out_0p_1p", n0_pad, n1_pad, n2),
+      x_out_0p_1c("x_out_0p_1c", n0_pad, n1_crop, n2),
+      x_out_0c_1("x_out_0c_1", n0_crop, n1, n2),
+      x_out_0c_1p("x_out_0c_1p", n0_crop, n1_pad, n2),
+      x_out_0c_1c("x_out_0c_1c", n0_crop, n1_crop, n2);
   View3D<double> ref_x("ref_x", n0, n1, n2),
       ref_x_0_1p("ref_x_0_1p", n0, n1_pad, n2),
       ref_x_0_1c("ref_x_0_1c", n0, n1_crop, n2);
@@ -1329,24 +1328,15 @@ TEST(CropOrPad2D, 3DView) {
   Kokkos::deep_copy(ref_x_0c_1p, h_ref_x_0c_1p);
   Kokkos::deep_copy(ref_x_0c_1c, h_ref_x_0c_1c);
 
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out,
-                               shape_type<3>{n0, n1, n2});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0_1p,
-                               shape_type<3>{n0, n1_pad, n2});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0_1c,
-                               shape_type<3>{n0, n1_crop, n2});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0p_1,
-                               shape_type<3>{n0_pad, n1, n2});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0p_1p,
-                               shape_type<3>{n0_pad, n1_pad, n2});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0p_1c,
-                               shape_type<3>{n0_pad, n1_crop, n2});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0c_1,
-                               shape_type<3>{n0_crop, n1, n2});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0c_1p,
-                               shape_type<3>{n0_crop, n1_pad, n2});
-  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0c_1c,
-                               shape_type<3>{n0_crop, n1_crop, n2});
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out);
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0_1p);
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0_1c);
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0p_1);
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0p_1p);
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0p_1c);
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0c_1);
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0c_1p);
+  KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0c_1c);
 
   EXPECT_TRUE(allclose(x_out, ref_x, 1.e-5, 1.e-12));
   EXPECT_TRUE(allclose(x_out_0_1p, ref_x_0_1p, 1.e-5, 1.e-12));
@@ -1371,12 +1361,11 @@ TEST(CropOrPad3D, 3DView) {
   for (int d0 = -1; d0 <= 1; d0++) {
     for (int d1 = -1; d1 <= 1; d1++) {
       for (int d2 = -1; d2 <= 1; d2++) {
-        std::size_t n0_new      = static_cast<std::size_t>(n0 + d0);
-        std::size_t n1_new      = static_cast<std::size_t>(n1 + d1);
-        std::size_t n2_new      = static_cast<std::size_t>(n2 + d2);
-        shape_type<3> shape_new = {n0_new, n1_new, n2_new};
+        std::size_t n0_new = static_cast<std::size_t>(n0 + d0);
+        std::size_t n1_new = static_cast<std::size_t>(n1 + d1);
+        std::size_t n2_new = static_cast<std::size_t>(n2 + d2);
 
-        View3D<double> x_out;
+        View3D<double> x_out("x_out", n0_new, n1_new, n2_new);
         View3D<double> ref_x("ref_x", n0_new, n1_new, n2_new);
 
         auto h_ref_x = Kokkos::create_mirror_view(ref_x);
@@ -1393,7 +1382,7 @@ TEST(CropOrPad3D, 3DView) {
         }
 
         Kokkos::deep_copy(ref_x, h_ref_x);
-        KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out, shape_new);
+        KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out);
         EXPECT_TRUE(allclose(x_out, ref_x, 1.e-5, 1.e-12));
       }
     }
@@ -1415,14 +1404,13 @@ TEST(CropOrPad4D, 4DView) {
   for (int d0 = -1; d0 <= 1; d0++) {
     for (int d1 = -1; d1 <= 1; d1++) {
       for (int d2 = -1; d2 <= 1; d2++) {
-        int d3                  = rand_dist(rand_engine);
-        std::size_t n0_new      = static_cast<std::size_t>(n0 + d0);
-        std::size_t n1_new      = static_cast<std::size_t>(n1 + d1);
-        std::size_t n2_new      = static_cast<std::size_t>(n2 + d2);
-        std::size_t n3_new      = static_cast<std::size_t>(n3 + d3);
-        shape_type<4> shape_new = {n0_new, n1_new, n2_new, n3_new};
+        int d3             = rand_dist(rand_engine);
+        std::size_t n0_new = static_cast<std::size_t>(n0 + d0);
+        std::size_t n1_new = static_cast<std::size_t>(n1 + d1);
+        std::size_t n2_new = static_cast<std::size_t>(n2 + d2);
+        std::size_t n3_new = static_cast<std::size_t>(n3 + d3);
 
-        View4D<double> x_out;
+        View4D<double> x_out("x_out", n0_new, n1_new, n2_new, n3_new);
         View4D<double> ref_x("ref_x", n0_new, n1_new, n2_new, n3_new);
 
         auto h_ref_x = Kokkos::create_mirror_view(ref_x);
@@ -1443,7 +1431,7 @@ TEST(CropOrPad4D, 4DView) {
         }
 
         Kokkos::deep_copy(ref_x, h_ref_x);
-        KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out, shape_new);
+        KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out);
         EXPECT_TRUE(allclose(x_out, ref_x, 1.e-5, 1.e-12));
       }
     }
@@ -1465,16 +1453,15 @@ TEST(CropOrPad5D, 5DView) {
   for (int d0 = -1; d0 <= 1; d0++) {
     for (int d1 = -1; d1 <= 1; d1++) {
       for (int d2 = -1; d2 <= 1; d2++) {
-        int d3                  = rand_dist(rand_engine);
-        int d4                  = rand_dist(rand_engine);
-        std::size_t n0_new      = static_cast<std::size_t>(n0 + d0);
-        std::size_t n1_new      = static_cast<std::size_t>(n1 + d1);
-        std::size_t n2_new      = static_cast<std::size_t>(n2 + d2);
-        std::size_t n3_new      = static_cast<std::size_t>(n3 + d3);
-        std::size_t n4_new      = static_cast<std::size_t>(n4 + d4);
-        shape_type<5> shape_new = {n0_new, n1_new, n2_new, n3_new, n4_new};
+        int d3             = rand_dist(rand_engine);
+        int d4             = rand_dist(rand_engine);
+        std::size_t n0_new = static_cast<std::size_t>(n0 + d0);
+        std::size_t n1_new = static_cast<std::size_t>(n1 + d1);
+        std::size_t n2_new = static_cast<std::size_t>(n2 + d2);
+        std::size_t n3_new = static_cast<std::size_t>(n3 + d3);
+        std::size_t n4_new = static_cast<std::size_t>(n4 + d4);
 
-        View5D<double> x_out;
+        View5D<double> x_out("x_out", n0_new, n1_new, n2_new, n3_new, n4_new);
         View5D<double> ref_x("ref_x", n0_new, n1_new, n2_new, n3_new, n4_new);
 
         auto h_ref_x = Kokkos::create_mirror_view(ref_x);
@@ -1497,7 +1484,7 @@ TEST(CropOrPad5D, 5DView) {
         }
 
         Kokkos::deep_copy(ref_x, h_ref_x);
-        KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out, shape_new);
+        KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out);
         EXPECT_TRUE(allclose(x_out, ref_x, 1.e-5, 1.e-12));
       }
     }
@@ -1519,19 +1506,18 @@ TEST(CropOrPad6D, 6DView) {
   for (int d0 = -1; d0 <= 1; d0++) {
     for (int d1 = -1; d1 <= 1; d1++) {
       for (int d2 = -1; d2 <= 1; d2++) {
-        int d3                  = rand_dist(rand_engine);
-        int d4                  = rand_dist(rand_engine);
-        int d5                  = rand_dist(rand_engine);
-        std::size_t n0_new      = static_cast<std::size_t>(n0 + d0);
-        std::size_t n1_new      = static_cast<std::size_t>(n1 + d1);
-        std::size_t n2_new      = static_cast<std::size_t>(n2 + d2);
-        std::size_t n3_new      = static_cast<std::size_t>(n3 + d3);
-        std::size_t n4_new      = static_cast<std::size_t>(n4 + d4);
-        std::size_t n5_new      = static_cast<std::size_t>(n5 + d5);
-        shape_type<6> shape_new = {n0_new, n1_new, n2_new,
-                                   n3_new, n4_new, n5_new};
+        int d3             = rand_dist(rand_engine);
+        int d4             = rand_dist(rand_engine);
+        int d5             = rand_dist(rand_engine);
+        std::size_t n0_new = static_cast<std::size_t>(n0 + d0);
+        std::size_t n1_new = static_cast<std::size_t>(n1 + d1);
+        std::size_t n2_new = static_cast<std::size_t>(n2 + d2);
+        std::size_t n3_new = static_cast<std::size_t>(n3 + d3);
+        std::size_t n4_new = static_cast<std::size_t>(n4 + d4);
+        std::size_t n5_new = static_cast<std::size_t>(n5 + d5);
 
-        View6D<double> x_out;
+        View6D<double> x_out("x_out", n0_new, n1_new, n2_new, n3_new, n4_new,
+                             n5_new);
         View6D<double> ref_x("ref_x", n0_new, n1_new, n2_new, n3_new, n4_new,
                              n5_new);
 
@@ -1559,7 +1545,7 @@ TEST(CropOrPad6D, 6DView) {
         }
 
         Kokkos::deep_copy(ref_x, h_ref_x);
-        KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out, shape_new);
+        KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out);
         EXPECT_TRUE(allclose(x_out, ref_x, 1.e-5, 1.e-12));
       }
     }
@@ -1581,21 +1567,20 @@ TEST(CropOrPad7D, 7DView) {
   for (int d0 = -1; d0 <= 1; d0++) {
     for (int d1 = -1; d1 <= 1; d1++) {
       for (int d2 = -1; d2 <= 1; d2++) {
-        int d3                  = rand_dist(rand_engine);
-        int d4                  = rand_dist(rand_engine);
-        int d5                  = rand_dist(rand_engine);
-        int d6                  = rand_dist(rand_engine);
-        std::size_t n0_new      = static_cast<std::size_t>(n0 + d0);
-        std::size_t n1_new      = static_cast<std::size_t>(n1 + d1);
-        std::size_t n2_new      = static_cast<std::size_t>(n2 + d2);
-        std::size_t n3_new      = static_cast<std::size_t>(n3 + d3);
-        std::size_t n4_new      = static_cast<std::size_t>(n4 + d4);
-        std::size_t n5_new      = static_cast<std::size_t>(n5 + d5);
-        std::size_t n6_new      = static_cast<std::size_t>(n6 + d6);
-        shape_type<7> shape_new = {n0_new, n1_new, n2_new, n3_new,
-                                   n4_new, n5_new, n6_new};
+        int d3             = rand_dist(rand_engine);
+        int d4             = rand_dist(rand_engine);
+        int d5             = rand_dist(rand_engine);
+        int d6             = rand_dist(rand_engine);
+        std::size_t n0_new = static_cast<std::size_t>(n0 + d0);
+        std::size_t n1_new = static_cast<std::size_t>(n1 + d1);
+        std::size_t n2_new = static_cast<std::size_t>(n2 + d2);
+        std::size_t n3_new = static_cast<std::size_t>(n3 + d3);
+        std::size_t n4_new = static_cast<std::size_t>(n4 + d4);
+        std::size_t n5_new = static_cast<std::size_t>(n5 + d5);
+        std::size_t n6_new = static_cast<std::size_t>(n6 + d6);
 
-        View7D<double> x_out;
+        View7D<double> x_out("x_out", n0_new, n1_new, n2_new, n3_new, n4_new,
+                             n5_new, n6_new);
         View7D<double> ref_x("ref_x", n0_new, n1_new, n2_new, n3_new, n4_new,
                              n5_new, n6_new);
 
@@ -1626,7 +1611,7 @@ TEST(CropOrPad7D, 7DView) {
         }
 
         Kokkos::deep_copy(ref_x, h_ref_x);
-        KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out, shape_new);
+        KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out);
         EXPECT_TRUE(allclose(x_out, ref_x, 1.e-5, 1.e-12));
       }
     }
@@ -1648,23 +1633,22 @@ TEST(CropOrPad8D, 8DView) {
   for (int d0 = -1; d0 <= 1; d0++) {
     for (int d1 = -1; d1 <= 1; d1++) {
       for (int d2 = -1; d2 <= 1; d2++) {
-        int d3                  = rand_dist(rand_engine);
-        int d4                  = rand_dist(rand_engine);
-        int d5                  = rand_dist(rand_engine);
-        int d6                  = rand_dist(rand_engine);
-        int d7                  = rand_dist(rand_engine);
-        std::size_t n0_new      = static_cast<std::size_t>(n0 + d0);
-        std::size_t n1_new      = static_cast<std::size_t>(n1 + d1);
-        std::size_t n2_new      = static_cast<std::size_t>(n2 + d2);
-        std::size_t n3_new      = static_cast<std::size_t>(n3 + d3);
-        std::size_t n4_new      = static_cast<std::size_t>(n4 + d4);
-        std::size_t n5_new      = static_cast<std::size_t>(n5 + d5);
-        std::size_t n6_new      = static_cast<std::size_t>(n6 + d6);
-        std::size_t n7_new      = static_cast<std::size_t>(n7 + d7);
-        shape_type<8> shape_new = {n0_new, n1_new, n2_new, n3_new,
-                                   n4_new, n5_new, n6_new, n7_new};
+        int d3             = rand_dist(rand_engine);
+        int d4             = rand_dist(rand_engine);
+        int d5             = rand_dist(rand_engine);
+        int d6             = rand_dist(rand_engine);
+        int d7             = rand_dist(rand_engine);
+        std::size_t n0_new = static_cast<std::size_t>(n0 + d0);
+        std::size_t n1_new = static_cast<std::size_t>(n1 + d1);
+        std::size_t n2_new = static_cast<std::size_t>(n2 + d2);
+        std::size_t n3_new = static_cast<std::size_t>(n3 + d3);
+        std::size_t n4_new = static_cast<std::size_t>(n4 + d4);
+        std::size_t n5_new = static_cast<std::size_t>(n5 + d5);
+        std::size_t n6_new = static_cast<std::size_t>(n6 + d6);
+        std::size_t n7_new = static_cast<std::size_t>(n7 + d7);
 
-        View8D<double> x_out;
+        View8D<double> x_out("x_out", n0_new, n1_new, n2_new, n3_new, n4_new,
+                             n5_new, n6_new, n7_new);
         View8D<double> ref_x("ref_x", n0_new, n1_new, n2_new, n3_new, n4_new,
                              n5_new, n6_new, n7_new);
 
@@ -1698,7 +1682,7 @@ TEST(CropOrPad8D, 8DView) {
         }
 
         Kokkos::deep_copy(ref_x, h_ref_x);
-        KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out, shape_new);
+        KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out);
         EXPECT_TRUE(allclose(x_out, ref_x, 1.e-5, 1.e-12));
       }
     }
