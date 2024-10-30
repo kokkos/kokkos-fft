@@ -5,6 +5,7 @@
 #include <gtest/gtest.h>
 #include "KokkosFFT_utils.hpp"
 #include "Test_Types.hpp"
+#include "Test_Utils.hpp"
 
 using test_types = ::testing::Types<Kokkos::LayoutLeft, Kokkos::LayoutRight>;
 
@@ -526,7 +527,7 @@ TEST(ExtractExtents, 1Dto8D) {
   EXPECT_EQ(KokkosFFT::Impl::extract_extents(view8D), ref_extents8D);
 }
 
-TEST(ShrankExtents, 1Dto8D) {
+TEST(ShrankSlicers, 1Dto8D) {
   using View1Dtype = Kokkos::View<double*, execution_space>;
   using View2Dtype = Kokkos::View<double**, execution_space>;
   using View3Dtype = Kokkos::View<double***, execution_space>;
@@ -561,22 +562,31 @@ TEST(ShrankExtents, 1Dto8D) {
   std::array<std::size_t, 7> ref_extents7D = {n1, n2, n3, n4, s5, s6, s7};
   std::array<std::size_t, 8> ref_extents8D = {n1, n2, n3, n4, s5, s6, s7, s8};
 
-  EXPECT_EQ(KokkosFFT::Impl::shrank_extents<std::size_t>(in1D, out1D),
-            ref_extents1D);
-  EXPECT_EQ(KokkosFFT::Impl::shrank_extents<std::size_t>(in2D, out2D),
-            ref_extents2D);
-  EXPECT_EQ(KokkosFFT::Impl::shrank_extents<std::size_t>(in3D, out3D),
-            ref_extents3D);
-  EXPECT_EQ(KokkosFFT::Impl::shrank_extents<std::size_t>(in4D, out4D),
-            ref_extents4D);
-  EXPECT_EQ(KokkosFFT::Impl::shrank_extents<std::size_t>(in5D, out5D),
-            ref_extents5D);
-  EXPECT_EQ(KokkosFFT::Impl::shrank_extents<std::size_t>(in6D, out6D),
-            ref_extents6D);
-  EXPECT_EQ(KokkosFFT::Impl::shrank_extents<std::size_t>(in7D, out7D),
-            ref_extents7D);
-  EXPECT_EQ(KokkosFFT::Impl::shrank_extents<std::size_t>(in8D, out8D),
-            ref_extents8D);
+  auto extents1D =
+      get_upper_limits(KokkosFFT::Impl::shrank_slicers(in1D, out1D));
+  auto extents2D =
+      get_upper_limits(KokkosFFT::Impl::shrank_slicers(in2D, out2D));
+  auto extents3D =
+      get_upper_limits(KokkosFFT::Impl::shrank_slicers(in3D, out3D));
+  auto extents4D =
+      get_upper_limits(KokkosFFT::Impl::shrank_slicers(in4D, out4D));
+  auto extents5D =
+      get_upper_limits(KokkosFFT::Impl::shrank_slicers(in5D, out5D));
+  auto extents6D =
+      get_upper_limits(KokkosFFT::Impl::shrank_slicers(in6D, out6D));
+  auto extents7D =
+      get_upper_limits(KokkosFFT::Impl::shrank_slicers(in7D, out7D));
+  auto extents8D =
+      get_upper_limits(KokkosFFT::Impl::shrank_slicers(in8D, out8D));
+
+  EXPECT_EQ(extents1D, ref_extents1D);
+  EXPECT_EQ(extents2D, ref_extents2D);
+  EXPECT_EQ(extents3D, ref_extents3D);
+  EXPECT_EQ(extents4D, ref_extents4D);
+  EXPECT_EQ(extents5D, ref_extents5D);
+  EXPECT_EQ(extents6D, ref_extents6D);
+  EXPECT_EQ(extents7D, ref_extents7D);
+  EXPECT_EQ(extents8D, ref_extents8D);
 }
 
 TEST(IndexSequence, 3Dto5D) {
