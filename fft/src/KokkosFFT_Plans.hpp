@@ -321,8 +321,6 @@ class Plan {
       using LayoutType = typename ManagableInViewType::array_layout;
       in_s             = ManagableInViewType(
           "in_s", KokkosFFT::Impl::create_layout<LayoutType>(m_shape));
-      // ManagableInViewType const in_s(
-      //     "in_s", KokkosFFT::Impl::create_layout<LayoutType>(m_shape));
       KokkosFFT::Impl::crop_or_pad(m_exec_space, in, in_s);
       in_tmp = in_s;
     } else {
