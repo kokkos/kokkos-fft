@@ -920,9 +920,11 @@ void test_fft1_1dfft_5dview(T atol = 1.e-12) {
       auto [s0, s1, s2, s3, s4]      = shape;
       auto [sr0, sr1, sr2, sr3, sr4] = shape_c2r;
       ComplexView5DType inv_x_hat("inv_x_hat", s0, s1, s2, s3, s4),
-          x_hat("x_hat", s0, s1, s2, s3, s4), ref_x;
+          x_hat("x_hat", s0, s1, s2, s3, s4),
+          ref_x("ref_x", s0, s1, s2, s3, s4);
       RealView5DType xr("xr", s0, s1, s2, s3, s4),
-          inv_xr_hat("inv_xr_hat", s0, s1, s2, s3, s4), ref_xr;
+          inv_xr_hat("inv_xr_hat", s0, s1, s2, s3, s4),
+          ref_xr("ref_xr", s0, s1, s2, s3, s4);
       ComplexView5DType xr_hat("xr_hat", sr0, sr1, sr2, sr3, sr4);
 
       const Kokkos::complex<T> z(1.0, 1.0);
@@ -930,8 +932,8 @@ void test_fft1_1dfft_5dview(T atol = 1.e-12) {
       Kokkos::fill_random(x, random_pool, z);
       Kokkos::fill_random(xr, random_pool, 1);
 
-      KokkosFFT::Impl::crop_or_pad(execution_space(), x, ref_x, shape);
-      KokkosFFT::Impl::crop_or_pad(execution_space(), xr, ref_xr, shape);
+      KokkosFFT::Impl::crop_or_pad(execution_space(), x, ref_x);
+      KokkosFFT::Impl::crop_or_pad(execution_space(), xr, ref_xr);
 
       Kokkos::fence();
 
@@ -975,9 +977,11 @@ void test_fft1_1dfft_6dview(T atol = 1.e-12) {
       auto [s0, s1, s2, s3, s4, s5]       = shape;
       auto [sr0, sr1, sr2, sr3, sr4, sr5] = shape_c2r;
       ComplexView6DType inv_x_hat("inv_x_hat", s0, s1, s2, s3, s4, s5),
-          x_hat("x_hat", s0, s1, s2, s3, s4, s5), ref_x;
+          x_hat("x_hat", s0, s1, s2, s3, s4, s5),
+          ref_x("ref_x", s0, s1, s2, s3, s4, s5);
       RealView6DType xr("xr", s0, s1, s2, s3, s4, s5),
-          inv_xr_hat("inv_xr_hat", s0, s1, s2, s3, s4, s5), ref_xr;
+          inv_xr_hat("inv_xr_hat", s0, s1, s2, s3, s4, s5),
+          ref_xr("ref_xr", s0, s1, s2, s3, s4, s5);
       ComplexView6DType xr_hat("xr_hat", sr0, sr1, sr2, sr3, sr4, sr5);
 
       const Kokkos::complex<T> z(1.0, 1.0);
@@ -985,8 +989,8 @@ void test_fft1_1dfft_6dview(T atol = 1.e-12) {
       Kokkos::fill_random(x, random_pool, z);
       Kokkos::fill_random(xr, random_pool, 1);
 
-      KokkosFFT::Impl::crop_or_pad(execution_space(), x, ref_x, shape);
-      KokkosFFT::Impl::crop_or_pad(execution_space(), xr, ref_xr, shape);
+      KokkosFFT::Impl::crop_or_pad(execution_space(), x, ref_x);
+      KokkosFFT::Impl::crop_or_pad(execution_space(), xr, ref_xr);
 
       Kokkos::fence();
 
@@ -1030,9 +1034,11 @@ void test_fft1_1dfft_7dview(T atol = 1.e-12) {
       auto [s0, s1, s2, s3, s4, s5, s6]        = shape;
       auto [sr0, sr1, sr2, sr3, sr4, sr5, sr6] = shape_c2r;
       ComplexView7DType inv_x_hat("inv_x_hat", s0, s1, s2, s3, s4, s5, s6),
-          x_hat("x_hat", s0, s1, s2, s3, s4, s5, s6), ref_x;
+          x_hat("x_hat", s0, s1, s2, s3, s4, s5, s6),
+          ref_x("ref_x", s0, s1, s2, s3, s4, s5, s6);
       RealView7DType xr("xr", s0, s1, s2, s3, s4, s5, s6),
-          inv_xr_hat("inv_xr_hat", s0, s1, s2, s3, s4, s5, s6), ref_xr;
+          inv_xr_hat("inv_xr_hat", s0, s1, s2, s3, s4, s5, s6),
+          ref_xr("ref_xr", s0, s1, s2, s3, s4, s5, s6);
       ComplexView7DType xr_hat("xr_hat", sr0, sr1, sr2, sr3, sr4, sr5, sr6);
 
       const Kokkos::complex<T> z(1.0, 1.0);
@@ -1040,8 +1046,8 @@ void test_fft1_1dfft_7dview(T atol = 1.e-12) {
       Kokkos::fill_random(x, random_pool, z);
       Kokkos::fill_random(xr, random_pool, 1);
 
-      KokkosFFT::Impl::crop_or_pad(execution_space(), x, ref_x, shape);
-      KokkosFFT::Impl::crop_or_pad(execution_space(), xr, ref_xr, shape);
+      KokkosFFT::Impl::crop_or_pad(execution_space(), x, ref_x);
+      KokkosFFT::Impl::crop_or_pad(execution_space(), xr, ref_xr);
 
       Kokkos::fence();
 
@@ -1085,9 +1091,11 @@ void test_fft1_1dfft_8dview(T atol = 1.e-12) {
       auto [s0, s1, s2, s3, s4, s5, s6, s7]         = shape;
       auto [sr0, sr1, sr2, sr3, sr4, sr5, sr6, sr7] = shape_c2r;
       ComplexView8DType inv_x_hat("inv_x_hat", s0, s1, s2, s3, s4, s5, s6, s7),
-          x_hat("x_hat", s0, s1, s2, s3, s4, s5, s6, s7), ref_x;
+          x_hat("x_hat", s0, s1, s2, s3, s4, s5, s6, s7),
+          ref_x("ref_x", s0, s1, s2, s3, s4, s5, s6, s7);
       RealView8DType xr("xr", s0, s1, s2, s3, s4, s5, s6, s7),
-          inv_xr_hat("inv_xr_hat", s0, s1, s2, s3, s4, s5, s6, s7), ref_xr;
+          inv_xr_hat("inv_xr_hat", s0, s1, s2, s3, s4, s5, s6, s7),
+          ref_xr("ref_xr", s0, s1, s2, s3, s4, s5, s6, s7);
       ComplexView8DType xr_hat("xr_hat", sr0, sr1, sr2, sr3, sr4, sr5, sr6,
                                sr7);
 
@@ -1096,8 +1104,8 @@ void test_fft1_1dfft_8dview(T atol = 1.e-12) {
       Kokkos::fill_random(x, random_pool, z);
       Kokkos::fill_random(xr, random_pool, 1);
 
-      KokkosFFT::Impl::crop_or_pad(execution_space(), x, ref_x, shape);
-      KokkosFFT::Impl::crop_or_pad(execution_space(), xr, ref_xr, shape);
+      KokkosFFT::Impl::crop_or_pad(execution_space(), x, ref_x);
+      KokkosFFT::Impl::crop_or_pad(execution_space(), xr, ref_xr);
 
       Kokkos::fence();
 
@@ -1814,9 +1822,10 @@ void test_fft2_2dfft_3dview(T atol = 1.e-12) {
           auto [sr0, sr1, sr2] = shape_c2r;
 
           ComplexView3DType inv_x_hat("inv_x_hat", s0, s1, s2),
-              x_hat("x_hat", s0, s1, s2), ref_x;
+              x_hat("x_hat", s0, s1, s2), ref_x("ref_x", s0, s1, s2);
           RealView3DType xr("xr", s0, s1, s2),
-              inv_xr_hat("inv_xr_hat", s0, s1, s2), ref_xr;
+              inv_xr_hat("inv_xr_hat", s0, s1, s2),
+              ref_xr("ref_xr", s0, s1, s2);
           ComplexView3DType xr_hat("xr_hat", sr0, sr1, sr2);
 
           const Kokkos::complex<T> z(1.0, 1.0);
@@ -1824,8 +1833,8 @@ void test_fft2_2dfft_3dview(T atol = 1.e-12) {
           Kokkos::fill_random(x, random_pool, z);
           Kokkos::fill_random(xr, random_pool, 1);
 
-          KokkosFFT::Impl::crop_or_pad(execution_space(), x, ref_x, shape);
-          KokkosFFT::Impl::crop_or_pad(execution_space(), xr, ref_xr, shape);
+          KokkosFFT::Impl::crop_or_pad(execution_space(), x, ref_x);
+          KokkosFFT::Impl::crop_or_pad(execution_space(), xr, ref_xr);
 
           Kokkos::fence();
 
@@ -1893,9 +1902,10 @@ void test_fft2_2dfft_4dview(T atol = 1.e-12) {
           auto [sr0, sr1, sr2, sr3] = shape_c2r;
 
           ComplexView4DType inv_x_hat("inv_x_hat", s0, s1, s2, s3),
-              x_hat("x_hat", s0, s1, s2, s3), ref_x;
+              x_hat("x_hat", s0, s1, s2, s3), ref_x("ref_x", s0, s1, s2, s3);
           RealView4DType xr("xr", s0, s1, s2, s3),
-              inv_xr_hat("inv_xr_hat", s0, s1, s2, s3), ref_xr;
+              inv_xr_hat("inv_xr_hat", s0, s1, s2, s3),
+              ref_xr("ref_xr", s0, s1, s2, s3);
           ComplexView4DType xr_hat("xr_hat", sr0, sr1, sr2, sr3);
 
           const Kokkos::complex<T> z(1.0, 1.0);
@@ -1903,8 +1913,8 @@ void test_fft2_2dfft_4dview(T atol = 1.e-12) {
           Kokkos::fill_random(x, random_pool, z);
           Kokkos::fill_random(xr, random_pool, 1);
 
-          KokkosFFT::Impl::crop_or_pad(execution_space(), x, ref_x, shape);
-          KokkosFFT::Impl::crop_or_pad(execution_space(), xr, ref_xr, shape);
+          KokkosFFT::Impl::crop_or_pad(execution_space(), x, ref_x);
+          KokkosFFT::Impl::crop_or_pad(execution_space(), xr, ref_xr);
 
           Kokkos::fence();
 
@@ -1972,9 +1982,11 @@ void test_fft2_2dfft_5dview(T atol = 1.e-12) {
           auto [sr0, sr1, sr2, sr3, sr4] = shape_c2r;
 
           ComplexView5DType inv_x_hat("inv_x_hat", s0, s1, s2, s3, s4),
-              x_hat("x_hat", s0, s1, s2, s3, s4), ref_x;
+              x_hat("x_hat", s0, s1, s2, s3, s4),
+              ref_x("ref_x", s0, s1, s2, s3, s4);
           RealView5DType xr("xr", s0, s1, s2, s3, s4),
-              inv_xr_hat("inv_xr_hat", s0, s1, s2, s3, s4), ref_xr;
+              inv_xr_hat("inv_xr_hat", s0, s1, s2, s3, s4),
+              ref_xr("ref_xr", s0, s1, s2, s3, s4);
           ComplexView5DType xr_hat("xr_hat", sr0, sr1, sr2, sr3, sr4);
 
           const Kokkos::complex<T> z(1.0, 1.0);
@@ -1982,8 +1994,8 @@ void test_fft2_2dfft_5dview(T atol = 1.e-12) {
           Kokkos::fill_random(x, random_pool, z);
           Kokkos::fill_random(xr, random_pool, 1);
 
-          KokkosFFT::Impl::crop_or_pad(execution_space(), x, ref_x, shape);
-          KokkosFFT::Impl::crop_or_pad(execution_space(), xr, ref_xr, shape);
+          KokkosFFT::Impl::crop_or_pad(execution_space(), x, ref_x);
+          KokkosFFT::Impl::crop_or_pad(execution_space(), xr, ref_xr);
 
           Kokkos::fence();
 
@@ -2051,9 +2063,11 @@ void test_fft2_2dfft_6dview(T atol = 1.e-12) {
           auto [sr0, sr1, sr2, sr3, sr4, sr5] = shape_c2r;
 
           ComplexView6DType inv_x_hat("inv_x_hat", s0, s1, s2, s3, s4, s5),
-              x_hat("x_hat", s0, s1, s2, s3, s4, s5), ref_x;
+              x_hat("x_hat", s0, s1, s2, s3, s4, s5),
+              ref_x("ref_x", s0, s1, s2, s3, s4, s5);
           RealView6DType xr("xr", s0, s1, s2, s3, s4, s5),
-              inv_xr_hat("inv_xr_hat", s0, s1, s2, s3, s4, s5), ref_xr;
+              inv_xr_hat("inv_xr_hat", s0, s1, s2, s3, s4, s5),
+              ref_xr("ref_xr", s0, s1, s2, s3, s4, s5);
           ComplexView6DType xr_hat("xr_hat", sr0, sr1, sr2, sr3, sr4, sr5);
 
           const Kokkos::complex<T> z(1.0, 1.0);
@@ -2061,8 +2075,8 @@ void test_fft2_2dfft_6dview(T atol = 1.e-12) {
           Kokkos::fill_random(x, random_pool, z);
           Kokkos::fill_random(xr, random_pool, 1);
 
-          KokkosFFT::Impl::crop_or_pad(execution_space(), x, ref_x, shape);
-          KokkosFFT::Impl::crop_or_pad(execution_space(), xr, ref_xr, shape);
+          KokkosFFT::Impl::crop_or_pad(execution_space(), x, ref_x);
+          KokkosFFT::Impl::crop_or_pad(execution_space(), xr, ref_xr);
 
           Kokkos::fence();
 
@@ -2129,10 +2143,12 @@ void test_fft2_2dfft_7dview(T atol = 1.e-12) {
           auto [sr0, sr1, sr2, sr3, sr4, sr5, sr6] = shape_c2r;
 
           ComplexView7DType inv_x_hat("inv_x_hat", s0, s1, s2, s3, s4, s5, s6),
-              x_hat("x_hat", s0, s1, s2, s3, s4, s5, s6), ref_x;
+              x_hat("x_hat", s0, s1, s2, s3, s4, s5, s6),
+              ref_x("ref_x", s0, s1, s2, s3, s4, s5, s6);
 
           RealView7DType xr("xr", s0, s1, s2, s3, s4, s5, s6),
-              inv_xr_hat("inv_xr_hat", s0, s1, s2, s3, s4, s5, s6), ref_xr;
+              inv_xr_hat("inv_xr_hat", s0, s1, s2, s3, s4, s5, s6),
+              ref_xr("ref_xr", s0, s1, s2, s3, s4, s5, s6);
 
           ComplexView7DType xr_hat("xr_hat", sr0, sr1, sr2, sr3, sr4, sr5, sr6);
 
@@ -2141,8 +2157,8 @@ void test_fft2_2dfft_7dview(T atol = 1.e-12) {
           Kokkos::fill_random(x, random_pool, z);
           Kokkos::fill_random(xr, random_pool, 1);
 
-          KokkosFFT::Impl::crop_or_pad(execution_space(), x, ref_x, shape);
-          KokkosFFT::Impl::crop_or_pad(execution_space(), xr, ref_xr, shape);
+          KokkosFFT::Impl::crop_or_pad(execution_space(), x, ref_x);
+          KokkosFFT::Impl::crop_or_pad(execution_space(), xr, ref_xr);
 
           Kokkos::fence();
 
@@ -2210,10 +2226,12 @@ void test_fft2_2dfft_8dview(T atol = 1.e-12) {
 
           ComplexView8DType inv_x_hat("inv_x_hat", s0, s1, s2, s3, s4, s5, s6,
                                       s7),
-              x_hat("x_hat", s0, s1, s2, s3, s4, s5, s6, s7), ref_x;
+              x_hat("x_hat", s0, s1, s2, s3, s4, s5, s6, s7),
+              ref_x("ref_x", s0, s1, s2, s3, s4, s5, s6, s7);
 
           RealView8DType xr("xr", s0, s1, s2, s3, s4, s5, s6, s7),
-              inv_xr_hat("inv_xr_hat", s0, s1, s2, s3, s4, s5, s6, s7), ref_xr;
+              inv_xr_hat("inv_xr_hat", s0, s1, s2, s3, s4, s5, s6, s7),
+              ref_xr("ref_xr", s0, s1, s2, s3, s4, s5, s6, s7);
 
           ComplexView8DType xr_hat("xr_hat", sr0, sr1, sr2, sr3, sr4, sr5, sr6,
                                    sr7);
@@ -2223,8 +2241,8 @@ void test_fft2_2dfft_8dview(T atol = 1.e-12) {
           Kokkos::fill_random(x, random_pool, z);
           Kokkos::fill_random(xr, random_pool, 1);
 
-          KokkosFFT::Impl::crop_or_pad(execution_space(), x, ref_x, shape);
-          KokkosFFT::Impl::crop_or_pad(execution_space(), xr, ref_xr, shape);
+          KokkosFFT::Impl::crop_or_pad(execution_space(), x, ref_x);
+          KokkosFFT::Impl::crop_or_pad(execution_space(), xr, ref_xr);
 
           Kokkos::fence();
 

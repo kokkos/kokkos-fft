@@ -91,256 +91,28 @@ auto is_crop_or_pad_needed(const ViewType& view,
   return not_same;
 }
 
-template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void crop_or_pad_impl(const ExecutionSpace& exec_space, const InViewType& in,
-                      OutViewType& out, shape_type<1> s) {
-  auto s0 = s.at(0);
-  out     = OutViewType("out", s0);
-
-  auto n0 = std::min(s0, in.extent(0));
-
-  Kokkos::parallel_for(
-      "KokkosFFT::crop_or_pad",
-      Kokkos::RangePolicy<ExecutionSpace, Kokkos::IndexType<std::size_t>>(
-          exec_space, 0, n0),
-      KOKKOS_LAMBDA(std::size_t i0) { out(i0) = in(i0); });
-}
-
-template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void crop_or_pad_impl(const ExecutionSpace& exec_space, const InViewType& in,
-                      OutViewType& out, shape_type<2> s) {
-  constexpr std::size_t DIM = 2;
-
-  auto [s0, s1] = s;
-  out           = OutViewType("out", s0, s1);
-
-  int n0 = std::min(s0, in.extent(0));
-  int n1 = std::min(s1, in.extent(1));
-
-  using range_type = Kokkos::MDRangePolicy<
-      ExecutionSpace,
-      Kokkos::Rank<DIM, Kokkos::Iterate::Default, Kokkos::Iterate::Default>>;
-  using tile_type  = typename range_type::tile_type;
-  using point_type = typename range_type::point_type;
-
-  range_type range(
-      exec_space, point_type{{0, 0}}, point_type{{n0, n1}}, tile_type{{4, 4}}
-      // [TO DO] Choose optimal tile sizes for each device
-  );
-
-  Kokkos::parallel_for(
-      "KokkosFFT::crop_or_pad", range,
-      KOKKOS_LAMBDA(int i0, int i1) { out(i0, i1) = in(i0, i1); });
-}
-
-template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void crop_or_pad_impl(const ExecutionSpace& exec_space, const InViewType& in,
-                      OutViewType& out, shape_type<3> s) {
-  constexpr std::size_t DIM = 3;
-
-  auto [s0, s1, s2] = s;
-  out               = OutViewType("out", s0, s1, s2);
-
-  int n0 = std::min(s0, in.extent(0));
-  int n1 = std::min(s1, in.extent(1));
-  int n2 = std::min(s2, in.extent(2));
-
-  using range_type = Kokkos::MDRangePolicy<
-      ExecutionSpace,
-      Kokkos::Rank<DIM, Kokkos::Iterate::Default, Kokkos::Iterate::Default>>;
-  using tile_type  = typename range_type::tile_type;
-  using point_type = typename range_type::point_type;
-
-  range_type range(
-      exec_space, point_type{{0, 0, 0}}, point_type{{n0, n1, n2}},
-      tile_type{{4, 4, 4}}  // [TO DO] Choose optimal tile sizes for each device
-  );
-
-  Kokkos::parallel_for(
-      "KokkosFFT::crop_or_pad", range, KOKKOS_LAMBDA(int i0, int i1, int i2) {
-        out(i0, i1, i2) = in(i0, i1, i2);
-      });
-}
-
-template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void crop_or_pad_impl(const ExecutionSpace& exec_space, const InViewType& in,
-                      OutViewType& out, shape_type<4> s) {
-  constexpr std::size_t DIM = 4;
-
-  auto [s0, s1, s2, s3] = s;
-  out                   = OutViewType("out", s0, s1, s2, s3);
-
-  int n0 = std::min(s0, in.extent(0));
-  int n1 = std::min(s1, in.extent(1));
-  int n2 = std::min(s2, in.extent(2));
-  int n3 = std::min(s3, in.extent(3));
-
-  using range_type = Kokkos::MDRangePolicy<
-      ExecutionSpace,
-      Kokkos::Rank<DIM, Kokkos::Iterate::Default, Kokkos::Iterate::Default>>;
-  using tile_type  = typename range_type::tile_type;
-  using point_type = typename range_type::point_type;
-
-  range_type range(exec_space, point_type{{0, 0, 0, 0}},
-                   point_type{{n0, n1, n2, n3}}, tile_type{{4, 4, 4, 4}}
-                   // [TO DO] Choose optimal tile sizes for each device
-  );
-
-  Kokkos::parallel_for(
-      "KokkosFFT::crop_or_pad", range,
-      KOKKOS_LAMBDA(int i0, int i1, int i2, int i3) {
-        out(i0, i1, i2, i3) = in(i0, i1, i2, i3);
-      });
-}
-
-template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void crop_or_pad_impl(const ExecutionSpace& exec_space, const InViewType& in,
-                      OutViewType& out, shape_type<5> s) {
-  constexpr std::size_t DIM = 5;
-
-  auto [s0, s1, s2, s3, s4] = s;
-  out                       = OutViewType("out", s0, s1, s2, s3, s4);
-
-  int n0 = std::min(s0, in.extent(0));
-  int n1 = std::min(s1, in.extent(1));
-  int n2 = std::min(s2, in.extent(2));
-  int n3 = std::min(s3, in.extent(3));
-  int n4 = std::min(s4, in.extent(4));
-
-  using range_type = Kokkos::MDRangePolicy<
-      ExecutionSpace,
-      Kokkos::Rank<DIM, Kokkos::Iterate::Default, Kokkos::Iterate::Default>>;
-  using tile_type  = typename range_type::tile_type;
-  using point_type = typename range_type::point_type;
-
-  range_type range(exec_space, point_type{{0, 0, 0, 0, 0}},
-                   point_type{{n0, n1, n2, n3, n4}}, tile_type{{4, 4, 4, 4, 1}}
-                   // [TO DO] Choose optimal tile sizes for each device
-  );
-
-  Kokkos::parallel_for(
-      "KokkosFFT::crop_or_pad", range,
-      KOKKOS_LAMBDA(int i0, int i1, int i2, int i3, int i4) {
-        out(i0, i1, i2, i3, i4) = in(i0, i1, i2, i3, i4);
-      });
-}
-
-template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void crop_or_pad_impl(const ExecutionSpace& exec_space, const InViewType& in,
-                      OutViewType& out, shape_type<6> s) {
-  constexpr std::size_t DIM = 6;
-
-  auto [s0, s1, s2, s3, s4, s5] = s;
-  out                           = OutViewType("out", s0, s1, s2, s3, s4, s5);
-
-  int n0 = std::min(s0, in.extent(0));
-  int n1 = std::min(s1, in.extent(1));
-  int n2 = std::min(s2, in.extent(2));
-  int n3 = std::min(s3, in.extent(3));
-  int n4 = std::min(s4, in.extent(4));
-  int n5 = std::min(s5, in.extent(5));
-
-  using range_type = Kokkos::MDRangePolicy<
-      ExecutionSpace,
-      Kokkos::Rank<DIM, Kokkos::Iterate::Default, Kokkos::Iterate::Default>>;
-  using tile_type  = typename range_type::tile_type;
-  using point_type = typename range_type::point_type;
-
-  range_type range(exec_space, point_type{{0, 0, 0, 0, 0, 0}},
-                   point_type{{n0, n1, n2, n3, n4, n5}},
-                   tile_type{{4, 4, 4, 4, 1, 1}}
-                   // [TO DO] Choose optimal tile sizes for each device
-  );
-
-  Kokkos::parallel_for(
-      "KokkosFFT::crop_or_pad", range,
-      KOKKOS_LAMBDA(int i0, int i1, int i2, int i3, int i4, int i5) {
-        out(i0, i1, i2, i3, i4, i5) = in(i0, i1, i2, i3, i4, i5);
-      });
-}
-
-template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void crop_or_pad_impl(const ExecutionSpace& exec_space, const InViewType& in,
-                      OutViewType& out, shape_type<7> s) {
-  constexpr std::size_t DIM = 6;
-
-  auto [s0, s1, s2, s3, s4, s5, s6] = s;
-  out = OutViewType("out", s0, s1, s2, s3, s4, s5, s6);
-
-  int n0 = std::min(s0, in.extent(0));
-  int n1 = std::min(s1, in.extent(1));
-  int n2 = std::min(s2, in.extent(2));
-  int n3 = std::min(s3, in.extent(3));
-  int n4 = std::min(s4, in.extent(4));
-  int n5 = std::min(s5, in.extent(5));
-  int n6 = std::min(s6, in.extent(6));
-
-  using range_type = Kokkos::MDRangePolicy<
-      ExecutionSpace,
-      Kokkos::Rank<DIM, Kokkos::Iterate::Default, Kokkos::Iterate::Default>>;
-  using tile_type  = typename range_type::tile_type;
-  using point_type = typename range_type::point_type;
-
-  range_type range(exec_space, point_type{{0, 0, 0, 0, 0, 0}},
-                   point_type{{n0, n1, n2, n3, n4, n5}},
-                   tile_type{{4, 4, 4, 4, 1, 1}}
-                   // [TO DO] Choose optimal tile sizes for each device
-  );
-
-  Kokkos::parallel_for(
-      "KokkosFFT::crop_or_pad", range,
-      KOKKOS_LAMBDA(int i0, int i1, int i2, int i3, int i4, int i5) {
-        for (int i6 = 0; i6 < n6; i6++) {
-          out(i0, i1, i2, i3, i4, i5, i6) = in(i0, i1, i2, i3, i4, i5, i6);
-        }
-      });
-}
-
-template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void crop_or_pad_impl(const ExecutionSpace& exec_space, const InViewType& in,
-                      OutViewType& out, shape_type<8> s) {
-  constexpr std::size_t DIM = 6;
-
-  auto [s0, s1, s2, s3, s4, s5, s6, s7] = s;
-  out = OutViewType("out", s0, s1, s2, s3, s4, s5, s6, s7);
-
-  int n0 = std::min(s0, in.extent(0));
-  int n1 = std::min(s1, in.extent(1));
-  int n2 = std::min(s2, in.extent(2));
-  int n3 = std::min(s3, in.extent(3));
-  int n4 = std::min(s4, in.extent(4));
-  int n5 = std::min(s5, in.extent(5));
-  int n6 = std::min(s6, in.extent(6));
-  int n7 = std::min(s7, in.extent(7));
-
-  using range_type = Kokkos::MDRangePolicy<
-      ExecutionSpace,
-      Kokkos::Rank<DIM, Kokkos::Iterate::Default, Kokkos::Iterate::Default>>;
-  using tile_type  = typename range_type::tile_type;
-  using point_type = typename range_type::point_type;
-
-  range_type range(exec_space, point_type{{0, 0, 0, 0, 0, 0}},
-                   point_type{{n0, n1, n2, n3, n4, n5}},
-                   tile_type{{4, 4, 4, 4, 1, 1}}
-                   // [TO DO] Choose optimal tile sizes for each device
-  );
-
-  Kokkos::parallel_for(
-      "KokkosFFT::crop_or_pad", range,
-      KOKKOS_LAMBDA(int i0, int i1, int i2, int i3, int i4, int i5) {
-        for (int i6 = 0; i6 < n6; i6++) {
-          for (int i7 = 0; i7 < n7; i7++) {
-            out(i0, i1, i2, i3, i4, i5, i6, i7) =
-                in(i0, i1, i2, i3, i4, i5, i6, i7);
-          }
-        }
-      });
-}
-
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
-          std::size_t DIM = 1>
+          std::size_t... Is>
+void crop_or_pad_impl(const ExecutionSpace& exec_space, const InViewType& in,
+                      const OutViewType& out, std::index_sequence<Is...>) {
+  constexpr std::size_t rank = InViewType::rank();
+  using extents_type         = std::array<std::size_t, rank>;
+
+  extents_type extents;
+  for (std::size_t i = 0; i < rank; i++) {
+    extents.at(i) = std::min(in.extent(i), out.extent(i));
+  }
+
+  auto sub_in = Kokkos::subview(
+      in, std::make_pair(std::size_t(0), std::get<Is>(extents))...);
+  auto sub_out = Kokkos::subview(
+      out, std::make_pair(std::size_t(0), std::get<Is>(extents))...);
+  Kokkos::deep_copy(exec_space, sub_out, sub_in);
+}
+
+template <typename ExecutionSpace, typename InViewType, typename OutViewType>
 void crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
-                 OutViewType& out, shape_type<DIM> s) {
+                 const OutViewType& out) {
   static_assert(
       KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
                                               OutViewType>,
@@ -349,7 +121,8 @@ void crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
       "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
       "same rank. ExecutionSpace must be accessible to the data in InViewType "
       "and OutViewType.");
-  crop_or_pad_impl(exec_space, in, out, s);
+  crop_or_pad_impl(exec_space, in, out,
+                   std::make_index_sequence<InViewType::rank()>{});
 }
 }  // namespace Impl
 }  // namespace KokkosFFT
