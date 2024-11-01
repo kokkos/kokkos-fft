@@ -310,16 +310,16 @@ class Plan {
     // sanity check that the plan is consistent with the input/output views
     good(in, out);
 
-    using ManagableInViewType =
+    using ManageableInViewType =
         typename KokkosFFT::Impl::manageable_view_type<InViewType>::type;
-    using ManagableOutViewType =
+    using ManageableOutViewType =
         typename KokkosFFT::Impl::manageable_view_type<OutViewType>::type;
 
-    ManagableInViewType in_s;
+    ManageableInViewType in_s;
     InViewType in_tmp;
     if (m_is_crop_or_pad_needed) {
-      using LayoutType = typename ManagableInViewType::array_layout;
-      in_s             = ManagableInViewType(
+      using LayoutType = typename ManageableInViewType::array_layout;
+      in_s             = ManageableInViewType(
           "in_s", KokkosFFT::Impl::create_layout<LayoutType>(m_shape));
       KokkosFFT::Impl::crop_or_pad(m_exec_space, in, in_s);
       in_tmp = in_s;
@@ -328,12 +328,12 @@ class Plan {
     }
 
     if (m_is_transpose_needed) {
-      using LayoutType = typename ManagableInViewType::array_layout;
-      ManagableInViewType const in_T(
+      using LayoutType = typename ManageableInViewType::array_layout;
+      ManageableInViewType const in_T(
           "in_T",
           KokkosFFT::Impl::create_layout<LayoutType>(
               KokkosFFT::Impl::compute_transpose_extents(in_tmp, m_map)));
-      ManagableOutViewType const out_T(
+      ManageableOutViewType const out_T(
           "out_T", KokkosFFT::Impl::create_layout<LayoutType>(
                        KokkosFFT::Impl::compute_transpose_extents(out, m_map)));
 
