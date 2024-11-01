@@ -16,9 +16,6 @@
 
 namespace KokkosFFT {
 namespace Impl {
-/* Input and output extents exposed to the fft library
-   i.e extents are converted into Layout Right
-*/
 /// \brief Compute input, output and fft extents required for FFT
 /// libraries based on the input view, output view, axes and shape.
 /// Extents are converted into Layout Right
