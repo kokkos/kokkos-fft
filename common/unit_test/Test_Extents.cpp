@@ -5,7 +5,7 @@
 #include <gtest/gtest.h>
 #include <Kokkos_Random.hpp>
 #include <vector>
-#include "KokkosFFT_layouts.hpp"
+#include "KokkosFFT_Extents.hpp"
 #include "Test_Types.hpp"
 #include "Test_Utils.hpp"
 
@@ -13,21 +13,21 @@ using test_types = ::testing::Types<Kokkos::LayoutLeft, Kokkos::LayoutRight>;
 
 // Basically the same fixtures, used for labeling tests
 template <typename T>
-struct Layouts1D : public ::testing::Test {
+struct Extents1D : public ::testing::Test {
   using layout_type = T;
 };
 
 template <typename T>
-struct Layouts2D : public ::testing::Test {
+struct Extents2D : public ::testing::Test {
   using layout_type = T;
 };
 
-TYPED_TEST_SUITE(Layouts1D, test_types);
-TYPED_TEST_SUITE(Layouts2D, test_types);
+TYPED_TEST_SUITE(Extents1D, test_types);
+TYPED_TEST_SUITE(Extents2D, test_types);
 
 // Tests for 1D FFT
 template <typename LayoutType>
-void test_layouts_1d() {
+void test_extents_1d() {
   const int n0         = 6;
   using axes_type      = KokkosFFT::axis_type<1>;
   using RealView1Dtype = Kokkos::View<double*, LayoutType, execution_space>;
@@ -90,7 +90,7 @@ void test_layouts_1d() {
 }
 
 template <typename LayoutType>
-void test_layouts_1d_batched_FFT_2d() {
+void test_extents_1d_batched_FFT_2d() {
   const int n0 = 6, n1 = 10;
   using axes_type      = KokkosFFT::axis_type<1>;
   using RealView2Dtype = Kokkos::View<double**, LayoutType, execution_space>;
@@ -179,7 +179,7 @@ void test_layouts_1d_batched_FFT_2d() {
 }
 
 template <typename LayoutType>
-void test_layouts_1d_batched_FFT_3d() {
+void test_extents_1d_batched_FFT_3d() {
   const int n0 = 6, n1 = 10, n2 = 8;
   using axes_type      = KokkosFFT::axis_type<1>;
   using RealView3Dtype = Kokkos::View<double***, LayoutType, execution_space>;
@@ -308,27 +308,27 @@ void test_layouts_1d_batched_FFT_3d() {
   EXPECT_EQ(howmany_c2c_axis2, ref_howmany_r2c_axis2);
 }
 
-TYPED_TEST(Layouts1D, 1DFFT_1DView) {
+TYPED_TEST(Extents1D, 1DFFT_1DView) {
   using layout_type = typename TestFixture::layout_type;
 
-  test_layouts_1d<layout_type>();
+  test_extents_1d<layout_type>();
 }
 
-TYPED_TEST(Layouts1D, 1DFFT_batched_2DView) {
+TYPED_TEST(Extents1D, 1DFFT_batched_2DView) {
   using layout_type = typename TestFixture::layout_type;
 
-  test_layouts_1d_batched_FFT_2d<layout_type>();
+  test_extents_1d_batched_FFT_2d<layout_type>();
 }
 
-TYPED_TEST(Layouts1D, 1DFFT_batched_3DView) {
+TYPED_TEST(Extents1D, 1DFFT_batched_3DView) {
   using layout_type = typename TestFixture::layout_type;
 
-  test_layouts_1d_batched_FFT_3d<layout_type>();
+  test_extents_1d_batched_FFT_3d<layout_type>();
 }
 
 // Tests for 2D FFT
 template <typename LayoutType>
-void test_layouts_2d() {
+void test_extents_2d() {
   const int n0 = 6, n1 = 10;
   using axes_type      = KokkosFFT::axis_type<2>;
   using RealView2Dtype = Kokkos::View<double**, LayoutType, execution_space>;
@@ -432,7 +432,7 @@ void test_layouts_2d() {
 }
 
 template <typename LayoutType>
-void test_layouts_2d_batched_FFT_3d() {
+void test_extents_2d_batched_FFT_3d() {
   const int n0 = 6, n1 = 10, n2 = 8;
   using axes_type      = KokkosFFT::axis_type<2>;
   using RealView3Dtype = Kokkos::View<double***, LayoutType, execution_space>;
@@ -711,14 +711,14 @@ void test_layouts_2d_batched_FFT_3d() {
   EXPECT_EQ(howmany_c2c_axis_21, ref_howmany_r2c_axis_21);
 }
 
-TYPED_TEST(Layouts2D, 2DFFT_2DView) {
+TYPED_TEST(Extents2D, 2DFFT_2DView) {
   using layout_type = typename TestFixture::layout_type;
 
-  test_layouts_2d<layout_type>();
+  test_extents_2d<layout_type>();
 }
 
-TYPED_TEST(Layouts2D, 2DFFT_3DView) {
+TYPED_TEST(Extents2D, 2DFFT_3DView) {
   using layout_type = typename TestFixture::layout_type;
 
-  test_layouts_2d_batched_FFT_3d<layout_type>();
+  test_extents_2d_batched_FFT_3d<layout_type>();
 }

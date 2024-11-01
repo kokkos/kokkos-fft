@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
-#ifndef KOKKOSFFT_LAYOUTS_HPP
-#define KOKKOSFFT_LAYOUTS_HPP
+#ifndef KOKKOSFFT_EXTENTS_HPP
+#define KOKKOSFFT_EXTENTS_HPP
 
 #include <vector>
 #include <tuple>
@@ -19,6 +19,20 @@ namespace Impl {
 /* Input and output extents exposed to the fft library
    i.e extents are converted into Layout Right
 */
+/// \brief Compute input, output and fft extents required for FFT
+/// libraries based on the input view, output view, axes and shape.
+/// Extents are converted into Layout Right
+///
+/// \tparam InViewType The input view type
+/// \tparam OutViewType The output view type
+/// \tparam DIM         The dimensionality of the axes
+///
+/// \param in [in] Input view
+/// \param out [in] Output view
+/// \param axes [in] Axes over which the FFT operations are performed.
+/// \param shape [in] The new shape of the input view. If the shape is zero,
+/// no modifications are made.
+/// \param is_inplace [in] Whether the FFT is inplace or not
 template <typename InViewType, typename OutViewType, std::size_t DIM = 1>
 auto get_extents(const InViewType& in, const OutViewType& out,
                  axis_type<DIM> axes, shape_type<DIM> shape = {},

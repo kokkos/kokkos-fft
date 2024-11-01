@@ -7,7 +7,7 @@
 
 #include <numeric>
 #include "KokkosFFT_default_types.hpp"
-#include "KokkosFFT_layouts.hpp"
+#include "KokkosFFT_Extents.hpp"
 #include "KokkosFFT_traits.hpp"
 
 namespace KokkosFFT {
