@@ -18,7 +18,7 @@ jobs:
 
     steps:
       - name: Cleanup old images
-        uses: SmartsquareGmbH/delete-old-packages@v0.7.0
+        uses: SmartsquareGmbH/delete-old-packages@v0.8
         with:
           organization: kokkos
           type: container
