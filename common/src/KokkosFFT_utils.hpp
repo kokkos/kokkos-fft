@@ -218,7 +218,6 @@ Layout create_layout(const std::array<IntType, N>& extents) {
                 "create_layout: Layout must be either Kokkos::LayoutLeft or "
                 "Kokkos::LayoutRight.");
   Layout layout;
-  // const std::size_t N = extents.size();
   std::copy_n(extents.begin(), N, layout.dimension);
   return layout;
 }
