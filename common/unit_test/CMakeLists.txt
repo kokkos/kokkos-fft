@@ -8,7 +8,7 @@ add_executable(unit-tests-kokkos-fft-common
     Test_Traits.cpp
     Test_Normalization.cpp
     Test_Transpose.cpp
-    Test_Layouts.cpp
+    Test_Extents.cpp
     Test_Padding.cpp
     Test_Helpers.cpp
 )
