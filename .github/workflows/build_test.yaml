@@ -342,7 +342,7 @@ jobs:
         run: |
           run \
             -m "singularity/3.8.3/gcc-11.2.0" \
-            echo ${{ secrets.GITHUB_TOKEN }} | singularity remote login -u ${{ github.actor }} --password-stdin oras://ghcr.io
+            bash -c "echo ${{ secrets.GITHUB_TOKEN }} | singularity remote login -u ${{ github.actor }} --password-stdin oras://ghcr.io"
         if: ${{ matrix.backend.name == 'cuda' }}
 
       - name: Pull Singularity image
