@@ -12,11 +12,6 @@ using execution_space = Kokkos::DefaultExecutionSpace;
 template <typename T>
 using RightView2D = Kokkos::View<T **, Kokkos::LayoutRight, execution_space>;
 
-template <std::size_t DIM>
-using axis_type = KokkosFFT::axis_type<DIM>;
-template <std::size_t DIM>
-using shape_type = KokkosFFT::shape_type<DIM>;
-
 int main(int argc, char *argv[]) {
   Kokkos::initialize(argc, argv);
   {
