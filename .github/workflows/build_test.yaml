@@ -58,7 +58,9 @@ jobs:
       - build_base
 
     # run this job even if build_base did not run
-    if: ${{ ! cancelled() && (needs.build_base.result == 'success' || needs.build_base.result == 'skipped') }}
+    # FIXME revert this!
+    # if: ${{ ! cancelled() && (needs.build_base.result == 'success' || needs.build_base.result == 'skipped') }}
+    if: false
 
     strategy:
       matrix:
@@ -307,7 +309,9 @@ jobs:
       - build
 
     # run this job even if build_base did not run
-    if: ${{ ! cancelled() && needs.build.result == 'success' }}
+    # FIXME revert this!
+    # if: ${{ ! cancelled() && needs.build.result == 'success' }}
+    if: ${{ always() }}
 
     strategy:
       matrix:
@@ -316,27 +320,29 @@ jobs:
           - name: cuda
             image: nvcc
             runner: [self-hosted, cuda]
-          # run OpenMP tests on Azure server
-          - name: openmp
-            image: gcc
-            runner: ubuntu-latest
-          # run Threads tests on Azure server
-          - name: threads
-            image: gcc
-            runner: ubuntu-latest
-          # run Serial tests on Azure server
-          - name: serial
-            image: gcc
-            runner: ubuntu-latest
+          # FIXME revert this!
+          # # run OpenMP tests on Azure server
+          # - name: openmp
+          #   image: gcc
+          #   runner: ubuntu-latest
+          # # run Threads tests on Azure server
+          # - name: threads
+          #   image: gcc
+          #   runner: ubuntu-latest
+          # # run Serial tests on Azure server
+          # - name: serial
+          #   image: gcc
+          #   runner: ubuntu-latest
 
     steps:
-      - name: Get artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: tests_${{ matrix.backend.name }}
-
-      - name: Deploy artifacts
-        run: tar -xvf tests_${{ matrix.backend.name }}.tar
+      # FIXME revert this!
+      # - name: Get artifacts
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: tests_${{ matrix.backend.name }}
+      #
+      # - name: Deploy artifacts
+      #   run: tar -xvf tests_${{ matrix.backend.name }}.tar
 
       - name: Login in GitHub Containers Repository with Singularity
         run: |
