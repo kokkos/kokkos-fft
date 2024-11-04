@@ -349,6 +349,14 @@ jobs:
             "echo ${{ secrets.GITHUB_TOKEN }} | singularity remote login -u ${{ github.actor }} --password-stdin oras://ghcr.io"
         if: ${{ matrix.backend.use_singularity }}
 
+      - name: Login in GitHub Containers Repository with Docker
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+        if: ${{ ! matrix.backend.use_singularity }}
+
       - name: Pull Singularity image
         # pulling the image in advance seems necessary as sometimes invoking `singularity run` on the image URL fails because it cannot find ghcr.io
         run: |
