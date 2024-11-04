@@ -312,22 +312,26 @@ jobs:
     strategy:
       matrix:
         backend:
-          # run CUDA tests on Ruche supercomputer
+          # run CUDA tests on Ruche supercomputer with Singularity
           - name: cuda
             image: nvcc
             runner: [self-hosted, cuda]
+            use_singularity: true
           # run OpenMP tests on Azure server
           - name: openmp
             image: gcc
             runner: ubuntu-latest
+            use_singularity: false
           # run Threads tests on Azure server
           - name: threads
             image: gcc
             runner: ubuntu-latest
+            use_singularity: false
           # run Serial tests on Azure server
           - name: serial
             image: gcc
             runner: ubuntu-latest
+            use_singularity: false
 
     steps:
       - name: Get artifacts
@@ -338,13 +342,28 @@ jobs:
       - name: Deploy artifacts
         run: tar -xvf tests_${{ matrix.backend.name }}.tar
 
+      - name: Login in GitHub Containers Repository with Singularity
+        run: |
+          run \
+            -m "singularity/3.8.3/gcc-11.2.0" \
+            "echo ${{ secrets.GITHUB_TOKEN }} | singularity remote login -u ${{ github.actor }} --password-stdin oras://ghcr.io"
+        if: ${{ matrix.backend.use_singularity }}
+
+      - name: Login in GitHub Containers Repository with Docker
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+        if: ${{ ! matrix.backend.use_singularity }}
+
       - name: Pull Singularity image
         # pulling the image in advance seems necessary as sometimes invoking `singularity run` on the image URL fails because it cannot find ghcr.io
         run: |
           run \
             -m "singularity/3.8.3/gcc-11.2.0" \
             singularity pull oras://ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_singularity_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }}
-        if: ${{ matrix.backend.name == 'cuda' }}
+        if: ${{ matrix.backend.use_singularity }}
 
       - name: Run CUDA tests within Slurm job and Singularity image
         run: |
@@ -353,10 +372,10 @@ jobs:
             -m "singularity/3.8.3/gcc-11.2.0" \
             singularity run --nv --bind $PWD/build:/work/build -H /work/build base_${{ matrix.backend.image }}_singularity_${{ needs.check_docker_files.outputs.image_suffix }}_${{ needs.check_docker_files.outputs.image_tag }}.sif \
             ctest --output-on-failure
-        if: ${{ matrix.backend.name == 'cuda' }}
+        if: ${{ matrix.backend.use_singularity }}
 
       - name: Run OpenMP/Threads/Serial tests within Docker image
         run: |
           docker run -v $PWD/build:/work/build -w /work/build ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }} \
           ctest --output-on-failure
-        if: ${{ matrix.backend.name == 'openmp' || matrix.backend.name == 'threads' || matrix.backend.name == 'serial' }}
+        if: ${{ ! matrix.backend.use_singularity }}

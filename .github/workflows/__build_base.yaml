@@ -64,7 +64,11 @@ jobs:
           sudo apt-get install ./singularity-ce_${{ env.SINGULARITY_VERSION }}-jammy_amd64.deb
 
       - name: Login in GitHub Containers Repository with Docker
-        run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Login in GitHub Containers Repository with Singularity
         run: echo ${{ secrets.GITHUB_TOKEN }} | singularity remote login -u ${{ github.actor }} --password-stdin oras://ghcr.io
