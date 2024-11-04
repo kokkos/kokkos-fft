@@ -14,7 +14,7 @@ using View1D = Kokkos::View<T*, execution_space>;
 int main(int argc, char* argv[]) {
   Kokkos::initialize(argc, argv);
   {
-    constexpr int n0 = 128;
+    const int n0 = 128;
     const Kokkos::complex<double> z(1.0, 1.0);
 
     // 1D C2C FFT (Forward and Backward)
