@@ -26,7 +26,7 @@ using shape_type = KokkosFFT::shape_type<DIM>;
 int main(int argc, char* argv[]) {
   Kokkos::initialize(argc, argv);
   {
-    constexpr int n0 = 128, n1 = 128, n2 = 16;
+    const int n0 = 128, n1 = 128, n2 = 16;
     const Kokkos::complex<double> z(1.0, 1.0);
 
     shape_type<3> shape;
