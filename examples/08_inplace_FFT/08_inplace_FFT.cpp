@@ -20,34 +20,26 @@ using shape_type = KokkosFFT::shape_type<DIM>;
 int main(int argc, char *argv[]) {
   Kokkos::initialize(argc, argv);
   {
-    constexpr int n0 = 128, n1 = 128;
+    const int n0 = 128, n1 = 128;
     const Kokkos::complex<double> z(1.0, 1.0);
-
-    shape_type<2> shape;
-    shape[0] = n0;
-    shape[1] = n1;
 
     // Forward and backward complex to complex transform
     // Define a 2D complex view to handle data
     RightView2D<Kokkos::complex<double>> xc2c("xc2c", n0, n1);
-
-    // Create an unmanaged view on the same data
-    RightView2D<Kokkos::complex<double>> xc2c_hat(xc2c.data(), n0, n1),
-        xc2c_inv(xc2c.data(), n0, n1);
 
     // Fill the input view with random data
     Kokkos::Random_XorShift64_Pool<> random_pool(12345);
     execution_space exec;
     Kokkos::fill_random(exec, xc2c, random_pool, z);
 
-    KokkosFFT::fft2(exec, xc2c, xc2c_hat);
-    KokkosFFT::ifft2(exec, xc2c_hat, xc2c_inv);
+    KokkosFFT::fft2(exec, xc2c, xc2c);
+    KokkosFFT::ifft2(exec, xc2c, xc2c);
 
     // Real to complex transform
     // Define a 2D complex view to handle data
     RightView2D<Kokkos::complex<double>> xr2c_hat("xr2c", n0, n1 / 2 + 1);
 
-    // Create an unmanaged view on the same data with the FFT shape,
+    // Create unmanaged views on the same data with the FFT shape,
     // that is (n0, n1) -> (n0, n1/2+1) R2C transform
     // The shape is incorrect from the view point of casting to real
     // For casting, the shape should be (n0, (n0/2+1) * 2)
@@ -80,7 +72,7 @@ int main(int argc, char *argv[]) {
     // [Important] You must use xc2r_hat to define the FFT shape correctly
     KokkosFFT::irfft2(exec, xc2r, xc2r_hat);
 
-    Kokkos::fence();
+    exec.fence();
   }
   Kokkos::finalize();
 
