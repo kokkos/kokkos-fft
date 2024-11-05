@@ -75,6 +75,22 @@ auto get_extents(const InViewType& in, const OutViewType& out,
   static_assert(!(is_real_v<in_value_type> && is_real_v<out_value_type>),
                 "get_extents: real to real transform is not supported");
 
+  for (std::size_t i = 0; i < rank; i++) {
+    // The requirement for inner_most_axis is different for transform type
+    if (static_cast<int>(i) == inner_most_axis) continue;
+    KOKKOSFFT_THROW_IF(in_extents_full.at(i) != out_extents_full.at(i),
+                       "input and output extents must be the same except for "
+                       "the transform axis");
+  }
+
+  if constexpr (is_complex_v<in_value_type> && is_complex_v<out_value_type>) {
+    // Then C2C
+    KOKKOSFFT_THROW_IF(
+        in_extents_full.at(inner_most_axis) !=
+            out_extents_full.at(inner_most_axis),
+        "input and output extents must be the same for C2C transform");
+  }
+
   if constexpr (is_real_v<in_value_type>) {
     // Then R2C
     if (is_inplace) {
