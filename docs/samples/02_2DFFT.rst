@@ -7,8 +7,8 @@
 Two dimensional FFT
 ===================
 
-KokkosFFT
----------
+kokkos-fft
+----------
 
 .. literalinclude:: ../../examples/02_2DFFT/02_2DFFT.cpp
    :language: C++

@@ -9,7 +9,7 @@ Examples
 
 There are some `examples
 <https://github.com/kokkos/kokkos-fft/tree/main/examples>`_ in the
-Kokkos-fft repository. Most of the examples include Kokkos and numpy implementations.
+kokkos-fft repository. Most of the examples include Kokkos and numpy implementations.
 For example, `01_1DFFT
 <https://github.com/kokkos/kokkos-fft/tree/main/examples/01_1DFFT>`_ includes,
 
@@ -19,7 +19,7 @@ For example, `01_1DFFT
      |
      └──01_1DFFT/
         |--CMakeLists.txt
-        |--01_1DFFT.cpp (Kokkos-fft version)
+        |--01_1DFFT.cpp (kokkos-fft version)
         └──numpy_1DFFT.py (numpy version)
 
 Please find the examples from following links.
@@ -34,3 +34,4 @@ Please find the examples from following links.
    samples/05_1DFFT_HOST_DEVICE.rst
    samples/06_1DFFT_reuse_plans.rst
    samples/07_unmanaged_views.rst
+   samples/08_inplace_FFT.rst

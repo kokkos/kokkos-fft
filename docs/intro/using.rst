@@ -4,17 +4,17 @@
 
 .. _using:
 
-Using Kokkos-fft
+Using kokkos-fft
 ================
 
-This section describes how to use Kokkos-fft in practice. 
+This section describes how to use kokkos-fft in practice. 
 We also explain some tips to use it efficiently.
 
 Brief introduction
 ------------------
 
-Most of the numpy.fft APIs (``numpy.fft.<function_name>``) are available in Kokkos-fft (``KokkosFFT::<function_name>``) on the Kokkos device.
-In fact, these are the only APIs available in Kokkos-fft (see :doc:`API reference<../api_reference>` for detail). Kokkos-fft support 1D to 3D FFT over chosen axes.
+Most of the numpy.fft APIs (``numpy.fft.<function_name>``) are available in kokkos-fft (``KokkosFFT::<function_name>``) on the Kokkos device.
+In fact, these are the only APIs available in kokkos-fft (see :doc:`API reference<../api_reference>` for detail). kokkos-fft support 1D to 3D FFT over chosen axes.
 Inside FFT APIs, we first create a FFT plan for a backend FFT library based on the Views and chosen axes.
 Then, we execute the FFT using the created plan on the given Views. Then, we may perform normalization based on the users' choice. 
 Finally, we destroy the plan. Depending on the View Layout and chosen axes, we may need transpose operations to make data contiguous.
@@ -40,7 +40,7 @@ The following listing shows good and bad examples of Real FFTs.
 .. code-block:: C++
 
    template <typename T> using View2D = Kokkos::View<T**, Kokkos::LayoutLeft, execution_space>;
-   constexpr int n0 = 4, n1 = 8;
+   const int n0 = 4, n1 = 8;
 
    View2D<double> x("x", n0, n1);
    View2D<Kokkos::complex<double> > x_hat_good("x_hat_good", n0, n1/2+1);
@@ -98,7 +98,7 @@ Memory consmpution
 ------------------
 
 In order to support FFT over arbitral axes, 
-Kokkos-fft performs transpose operations internally and apply FFT on contiguous data.
+kokkos-fft performs transpose operations internally and apply FFT on contiguous data.
 For size ``n`` input, this requires internal buffers of size ``2n`` in addition to the buffers used by FFT library. 
 Performance overhead from transpose may be not critical but memory consumptions are problematic. 
 If memory consumption matters, it is recommended to make data contiguous so that transpose is not performed. 
@@ -107,7 +107,7 @@ The following listing shows examples with and without transpose operation.
 .. code-block:: C++
 
    template <typename T> using View2D = Kokkos::View<T**, Kokkos::LayoutLeft, execution_space>;
-   constexpr int n0 = 4, n1 = 8;
+   const int n0 = 4, n1 = 8;
 
    View2D<double> x("x", n0, n1);
    View2D<Kokkos::complex<double> > x_hat_good("x_hat_good", n0/2+1, n1);
@@ -122,10 +122,34 @@ The following listing shows examples with and without transpose operation.
 Reuse FFT plan
 --------------
 
-Apart from the basic APIs, Kokkos-fft offers the capability to create a FFT plan wrapping the FFT plans of backend libraries.
+Apart from the basic APIs, kokkos-fft offers the capability to create a FFT plan wrapping the FFT plans of backend libraries.
 We can reuse the FFT plan created once to perform FFTs multiple times on different data given that they have the same properties.
 In some backend, FFT plan creation leads to some overhead, wherein we need this functionality.
 (see :doc:`minimum working example<../samples/06_1DFFT_reuse_plans>`)
+The following listing shows an example to reuse the FFT plan.
+
+.. code-block:: C++
+
+   template <typename T> using View2D = Kokkos::View<T**, Kokkos::LayoutLeft, execution_space>;
+   const int n0 = 4, n1 = 8, n2 = 5, n3 = 10;
+
+   View2D<Kokkos::complex<double> > x("x", n0, n1), x_hat("x_hat", n0, n1);
+   View2D<Kokkos::complex<double> > y("y", n0, n1), y_hat("y_hat", n0, n1);
+   View2D<Kokkos::complex<double> > z("z", n2, n3), z_hat("z_hat", n2, n3);
+
+   // Create a plan for 1D FFT
+   int axis = -1;
+   KokkosFFT::Plan fft_plan(execution_space(), x, x_hat,
+                            KokkosFFT::Direction::forward, axis);
+   
+   // Perform FFTs using fft_plan
+   fft_plan.execute(x, x_hat);
+
+   // [OK] Reuse the plan for different data
+   fft_plan.execute(y, y_hat);
+
+   // [NG, Run time error] Inconsistent extents
+   fft_plan.execute(z, z_hat);
 
 .. note::
 
@@ -148,7 +172,7 @@ The following listing shows examples of axes parameters with negative or positiv
 
    template <typename T> using View2D = Kokkos::View<T**, Kokkos::LayoutLeft, execution_space>;
    template <typename T> using View3D = Kokkos::View<T***, Kokkos::LayoutLeft, execution_space>;
-   constexpr int n0 = 4, n1 = 8, n2 = 5;
+   const int n0 = 4, n1 = 8, n2 = 5;
 
    View2D<double> x2("x2", n0, n1);
    View3D<double> x3("x3", n0, n1, n2);
@@ -176,3 +200,66 @@ The following listing shows examples of axes parameters with negative or positiv
    If you rely on negative axes, you can specify last axes no matter what the rank of Views is.
    However, the corresponding positive axes to last axes are different depending on the rank of Views.
    Thus, it is recommended to use negative axes for simplicity.
+
+Inplace transform
+-----------------
+
+Inplace transform is supported in kokkos-fft in case transpose or reshape is not needed. 
+For standard FFTs, we can just use the same input and output Views. For real FFTs, we need to use a single complex View and make 
+an unmanaged View which is an alias to the complex View. In addition, we need to pay attention to the extents of a real View,
+which should define the shape of the transform, not the reinterpreted shape of the complex View. (see :doc:`minimum working example<../samples/08_inplace_FFT>`)
+The following listing shows examples of inplace transforms. 
+
+.. code-block:: C++
+
+   template <typename T> using View2D = Kokkos::View<T**, Kokkos::LayoutRight, execution_space>;
+   const int n0 = 4, n1 = 8;
+   View2D<Kokkos::complex<double>> xc2c("xc2c", n0, n1);
+
+   execution_space exec;
+
+   // For standard inplace FFTs, we just reuse the same views
+   KokkosFFT::fft2(exec, xc2c, xc2c);
+   KokkosFFT::ifft2(exec, xc2c, xc2c);
+
+   // Real to complex transform
+   // Define a 2D complex view to handle data
+   View2D<Kokkos::complex<double>> xr2c_hat("xr2c", n0, n1 / 2 + 1);
+
+   // Create unmanaged views on the same data with the FFT shape,
+   // that is (n0, n1) -> (n0, n1/2+1) R2C transform
+   // The shape is incorrect from the view point of casting to real
+   // For casting, the shape should be (n0, (n0/2+1) * 2)
+   View2D<double> xr2c(reinterpret_cast<double *>(xr2c_hat.data()), n0, n1);
+
+   // Perform the real to complex transform
+   // [Important] You must use xr2c to define the FFT shape correctly
+   KokkosFFT::rfft2(exec, xr2c, xr2c_hat);
+
+   // Complex to real transform
+   // Define a 2D complex view to handle data
+   View2D<Kokkos::complex<double>> xc2r("xc2r", n0, n1 / 2 + 1);
+
+   // Create an unmanaged view on the same data with the FFT shape
+   View2D<double> xc2r_hat(reinterpret_cast<double *>(xc2r.data()), n0, n1);
+
+   // Create a plan
+   using axes_type = KokkosFFT::axis_type<2>;
+   axes_type axes  = {-2, -1};
+   KokkosFFT::Plan irfft2_plan(execution_space(), xc2r, xc2r_hat,
+                               KokkosFFT::Direction::backward, axes);
+   
+   // Perform the complex to real transform
+   // [Important] You must use xc2r_hat to define the FFT shape correctly
+   irfft2_plan.execute(xc2r, xc2r_hat);
+
+   View2D<double> xc2r_hat_out("xc2r_hat_out", n0, n1);
+
+   // [NG, Runtime error] Inplace plan can only be reused for inplace transform
+   irfft2_plan.execute(xc2r, xc2r_hat_out);
+
+.. note::
+
+   You can reuse a plan for inplace transform. However, you cannot reuse a plan
+   for inplace transform for out-of-place transform and vice versa.
+   

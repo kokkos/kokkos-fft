@@ -7,8 +7,8 @@
 One-dimensional batched FFT
 ===========================
 
-KokkosFFT
----------
+kokkos-fft
+----------
 
 .. literalinclude:: ../../examples/04_batchedFFT/04_batchedFFT.cpp
    :language: C++
