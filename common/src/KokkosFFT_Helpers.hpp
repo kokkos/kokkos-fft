@@ -40,7 +40,7 @@ auto get_shift(const ViewType& inout, axis_type<DIM> axes, int direction = 1) {
 
 template <typename ExecutionSpace, typename ViewType>
 void roll(const ExecutionSpace& exec_space, const ViewType& inout,
-          axis_type<1> shift, axis_type<1>) {
+          axis_type<1> shift, axis_type<1> /* axes */) {
   // Last parameter is ignored but present for keeping the interface consistent
   static_assert(ViewType::rank() == 1, "roll: Rank of View must be 1.");
   int n0 = inout.extent_int(0);
