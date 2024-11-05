@@ -33,7 +33,7 @@ namespace Impl {
 template <typename InViewType, typename OutViewType, std::size_t DIM = 1>
 auto get_extents(const InViewType& in, const OutViewType& out,
                  axis_type<DIM> axes, shape_type<DIM> shape = {},
-                 bool is_inplace = false) {
+                 [[maybe_unused]] bool is_inplace = false) {
   using in_value_type     = typename InViewType::non_const_value_type;
   using out_value_type    = typename OutViewType::non_const_value_type;
   using array_layout_type = typename InViewType::array_layout;
