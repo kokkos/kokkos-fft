@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: (C) The kokkos-fft development team, see COPYRIGHT.md file
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
+
 import argparse
 import pathlib
 import time
@@ -230,4 +234,3 @@ if __name__ == '__main__':
     seconds = time.time() - start
     
     print(f'Elapsed time: {seconds} [s]')
-    
