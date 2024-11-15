@@ -2,7 +2,7 @@
 ..
 .. SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
-.. _ 08_inplace_FFT:
+.. _08_inplace_FFT:
 
 Inplace transforms
 ==================

@@ -35,3 +35,4 @@ Please find the examples from following links.
    samples/06_1DFFT_reuse_plans.rst
    samples/07_unmanaged_views.rst
    samples/08_inplace_FFT.rst
+   

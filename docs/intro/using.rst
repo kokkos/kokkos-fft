@@ -262,4 +262,3 @@ The following listing shows examples of inplace transforms.
 
    You can reuse a plan for inplace transform. However, you cannot reuse a plan
    for inplace transform for out-of-place transform and vice versa.
-   
