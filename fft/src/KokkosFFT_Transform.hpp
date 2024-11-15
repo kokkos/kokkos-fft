@@ -326,7 +326,7 @@ void rfft2(const ExecutionSpace& exec_space, const InViewType& in,
   fft2(exec_space, in, out, norm, axes, s);
 }
 
-/// \brief Inverse of rfft2 with a given plan
+/// \brief Inverse of rfft2
 ///
 /// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (complex)
@@ -364,7 +364,7 @@ void irfft2(const ExecutionSpace& exec_space, const InViewType& in,
 
 // ND FFT
 
-/// \brief N-dimensional FFT in forward direction with a given plan
+/// \brief N-dimensional FFT in forward direction
 ///
 /// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (complex)
@@ -405,7 +405,7 @@ void fftn(
   plan.execute(in, out, norm);
 }
 
-/// \brief N-dimensional FFT in backward direction with a given plan
+/// \brief Inverse of fftn
 ///
 /// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (complex)

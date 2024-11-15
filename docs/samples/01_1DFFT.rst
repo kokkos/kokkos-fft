@@ -7,8 +7,8 @@
 One dimensional FFT
 ===================
 
-KokkosFFT
----------
+kokkos-fft
+----------
 
 .. literalinclude:: ../../examples/01_1DFFT/01_1DFFT.cpp
    :language: C++

@@ -2,10 +2,10 @@
 ..
 .. SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
-Kokkos-fft documentation
+kokkos-fft documentation
 =======================================
 
-Kokkos-fft implements local interfaces between `Kokkos <https://kokkos.org>`_ 
+kokkos-fft implements local interfaces between `Kokkos <https://kokkos.org>`_ 
 and de facto standard FFT libraries, 
 including `fftw <http://www.fftw.org>`_,
 `cufft <https://developer.nvidia.com/cufft>`_,
@@ -15,9 +15,9 @@ We are inclined to implement the `numpy.fft <https://numpy.org/doc/stable/refere
 A key concept is that *"As easy as numpy, as fast as vendor libraries"*. Accordingly, our API follows the API by ``numpy.fft`` with minor differences. 
 A FFT library dedicated to Kokkos Device backend (e.g. cufft for CUDA backend) is automatically used. 
 
-Kokkos-fft is open source and available on `GitHub <https://github.com/kokkos/kokkos-fft>`_.
+kokkos-fft is open source and available on `GitHub <https://github.com/kokkos/kokkos-fft>`_.
 
-Here is an example for 1D real to complex transform with ``rfft`` in Kokkos-fft.
+Here is an example for 1D real to complex transform with ``rfft`` in kokkos-fft.
 
 .. code-block:: C++
 

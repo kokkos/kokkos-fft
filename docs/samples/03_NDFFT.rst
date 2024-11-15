@@ -7,8 +7,8 @@
 N-dimensional FFT
 =================
 
-KokkosFFT
----------
+kokkos-fft
+----------
 
 .. literalinclude:: ../../examples/03_NDFFT/03_NDFFT.cpp
    :language: C++

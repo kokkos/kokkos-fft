@@ -4,18 +4,18 @@
 
 .. _building:
 
-Building Kokkos-fft
+Building kokkos-fft
 ===================
 
-This section describes how to build Kokkos-fft with some advanced options.
-In order to build Kokkos-fft, we use ``CMake`` with following compilers. 
+This section describes how to build kokkos-fft with some advanced options.
+In order to build kokkos-fft, we use ``CMake`` with following compilers. 
 Kokkos and backend FFT libraries are also necessary.
-Available CMake options for Kokkos-fft are listed. 
+Available CMake options for kokkos-fft are listed. 
 
 Compiler versions
 -----------------
 
-Kokkos-fft relies on quite basic functionalities of Kokkos, and thus it is supposed to work with compilers used for `Kokkos <https://kokkos.org/kokkos-core-wiki/requirements.html>`_.
+kokkos-fft relies on quite basic functionalities of Kokkos, and thus it is supposed to work with compilers used for `Kokkos <https://kokkos.org/kokkos-core-wiki/requirements.html>`_.
 However, we have not tested all the listed compilers there and thus recommend the following compilers which we use frequently for testing.
 
 * ``gcc 8.3.0+`` - CPUs
@@ -23,10 +23,10 @@ However, we have not tested all the listed compilers there and thus recommend th
 * ``nvcc 11.0.0+`` - NVIDIA GPUs
 * ``rocm 5.3.0+`` - AMD GPUs
 
-Install Kokkos-fft as a library
+Install kokkos-fft as a library
 -------------------------------
 
-Let's assume Kokkos is installed under ``<path/to/kokkos>`` with ``OpenMP`` backend. We build and install Kokkos-fft under ``<path/to/kokkos-fft>``.
+Let's assume Kokkos is installed under ``<path/to/kokkos>`` with ``OpenMP`` backend. We build and install kokkos-fft under ``<path/to/kokkos-fft>``.
 
 .. code-block:: bash
 
@@ -39,7 +39,7 @@ Let's assume Kokkos is installed under ``<path/to/kokkos>`` with ``OpenMP`` back
     cmake --build build_KokkosFFT -j 8
     cmake --install build_KokkosFFT
 
-Here is an example to use Kokkos-fft in the following CMake project.
+Here is an example to use kokkos-fft in the following CMake project.
 
 .. code-block:: bash
 
@@ -74,9 +74,9 @@ The code can be built as
 CMake options
 -------------
 
-We rely on CMake to build Kokkos-fft, more specifically ``CMake 3.22+``. Here is the list of CMake options. 
+We rely on CMake to build kokkos-fft, more specifically ``CMake 3.22+``. Here is the list of CMake options. 
 For FFTs on Kokkos device only, we do not need to add extra compile options but for Kokkos ones.
-In order to use Kokkos-fft from both host and device, it is necessary to add ``KokkosFFT_ENABLE_HOST_AND_DEVICE=ON``.
+In order to use kokkos-fft from both host and device, it is necessary to add ``KokkosFFT_ENABLE_HOST_AND_DEVICE=ON``.
 This option may be useful, for example FFT is used for initialization at host. 
 However, to enable this option, we need a pre-installed ``fftw`` for FFT on host, so it is disabled in default
 (see :doc:`minimum working example<../samples/05_1DFFT_HOST_DEVICE>`).
@@ -95,13 +95,13 @@ However, to enable this option, we need a pre-installed ``fftw`` for FFT on host
      - Build internal Kokkos instead of relying on external one.
      - OFF
    * - ``KokkosFFT_ENABLE_EXAMPLES``
-     - Build Kokkos-fft examples
+     - Build kokkos-fft examples
      - OFF
    * - ``KokkosFFT_ENABLE_TESTS``
-     - Build Kokkos-fft tests
+     - Build kokkos-fft tests
      - OFF
    * - ``KokkosFFT_ENABLE_BENCHMARK``
-     - Build benchmarks for Kokkos-fft
+     - Build benchmarks for kokkos-fft
      - OFF
    * - ``KokkosFFT_ENABLE_ROCFFT``
      - Use `rocfft <https://github.com/ROCm/rocFFT>`_ for HIP backend
@@ -110,7 +110,7 @@ However, to enable this option, we need a pre-installed ``fftw`` for FFT on host
 Kokkos backends
 ---------------
 
-Kokkos-fft requires ``Kokkos 4.2+``. For the moment, we support following backends for CPUs and GPUs.
+kokkos-fft requires ``Kokkos 4.4+``. For the moment, we support following backends for CPUs and GPUs.
 A FFT library dedicated to Kokkos Device backend (e.g. cufft for CUDA backend) is automatically used. 
 If CMake fails to find a backend FFT library, see :doc:`How to find fft libraries?<../finding_libraries>`.
 We may support experimental backends like ``OPENMPTARGET`` in the future.

@@ -7,8 +7,8 @@
 FFT on host and device
 ======================
 
-KokkosFFT
----------
+kokkos-fft
+----------
 
 .. literalinclude:: ../../examples/05_1DFFT_HOST_DEVICE/05_1DFFT_HOST_DEVICE.cpp
    :language: C++

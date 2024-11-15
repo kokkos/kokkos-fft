@@ -2,13 +2,13 @@
 ..
 .. SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
-.. _07_unmanaged_views:
+.. _08_inplace_FFT:
 
-Using Unmanaged Views
-=====================
+Inplace transforms
+==================
 
 kokkos-fft
 ----------
 
-.. literalinclude:: ../../examples/07_unmanaged_views/07_unmanaged_views.cpp
+.. literalinclude:: ../../examples/08_inplace_FFT/08_inplace_FFT.cpp
    :language: C++

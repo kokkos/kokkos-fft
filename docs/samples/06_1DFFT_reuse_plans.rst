@@ -7,8 +7,8 @@
 Reuse FFT plan
 ==============
 
-KokkosFFT
----------
+kokkos-fft
+----------
 
 .. literalinclude:: ../../examples/06_1DFFT_reuse_plans/06_1DFFT_reuse_plans.cpp
    :language: C++
