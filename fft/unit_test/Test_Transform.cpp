@@ -103,8 +103,6 @@ void test_fft1_identity_inplace(T atol = 1.0e-12) {
     Kokkos::deep_copy(a_ref, a);
     Kokkos::deep_copy(ar_ref, ar);
 
-    Kokkos::fence();
-
     KokkosFFT::fft(execution_space(), a, a_hat);
     KokkosFFT::ifft(execution_space(), a_hat, inv_a_hat);
 
@@ -119,8 +117,6 @@ void test_fft1_identity_inplace(T atol = 1.0e-12) {
     // Create a plan for inplace transform
     Kokkos::deep_copy(a_ref, a);
     Kokkos::deep_copy(ar_ref, ar);
-
-    Kokkos::fence();
 
     int axis = -1;
     KokkosFFT::Plan fft_plan(execution_space(), a, a_hat,
