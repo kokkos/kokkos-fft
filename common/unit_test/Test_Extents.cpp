@@ -176,6 +176,14 @@ void test_extents_1d_batched_FFT_2d() {
   EXPECT_TRUE(fft_extents_c2c_axis1 == ref_fft_extents_r2c_axis1);
   EXPECT_TRUE(out_extents_c2c_axis1 == ref_in_extents_r2c_axis1);
   EXPECT_EQ(howmany_c2c_axis1, ref_howmany_r2c_axis1);
+
+  // Check if errors are correctly raised aginst invalid extents
+  ComplexView2Dtype xcout2_wrong("xcout2_wrong", n0 + 3, n1);
+  for (int i = 0; i < 2; i++) {
+    EXPECT_THROW(
+        { KokkosFFT::Impl::get_extents(xcin2, xcout2_wrong, axes_type({i})); },
+        std::runtime_error);
+  }
 }
 
 template <typename LayoutType>
@@ -306,6 +314,14 @@ void test_extents_1d_batched_FFT_3d() {
   EXPECT_TRUE(fft_extents_c2c_axis2 == ref_fft_extents_r2c_axis2);
   EXPECT_TRUE(out_extents_c2c_axis2 == ref_in_extents_r2c_axis2);
   EXPECT_EQ(howmany_c2c_axis2, ref_howmany_r2c_axis2);
+
+  // Check if errors are correctly raised aginst invalid extents
+  ComplexView3Dtype xcout3_wrong("xcout3_wrong", n0 + 3, n1, n2);
+  for (int i = 0; i < 3; i++) {
+    EXPECT_THROW(
+        { KokkosFFT::Impl::get_extents(xcin3, xcout3_wrong, axes_type({i})); },
+        std::runtime_error);
+  }
 }
 
 TYPED_TEST(Extents1D, 1DFFT_1DView) {
@@ -429,6 +445,20 @@ void test_extents_2d() {
 
   EXPECT_EQ(howmany_c2c_axis01, 1);
   EXPECT_EQ(howmany_c2c_axis10, 1);
+
+  // Check if errors are correctly raised aginst invalid extents
+  ComplexView2Dtype xcout2_wrong("xcout2_wrong", n0 + 3, n1);
+  for (int axis0 = 0; axis0 < 2; axis0++) {
+    for (int axis1 = 0; axis1 < 2; axis1++) {
+      if (axis0 == axis1) continue;
+      EXPECT_THROW(
+          {
+            KokkosFFT::Impl::get_extents(xcin2, xcout2_wrong,
+                                         axes_type({axis0, axis1}));
+          },
+          std::runtime_error);
+    }
+  }
 }
 
 template <typename LayoutType>
@@ -709,6 +739,19 @@ void test_extents_2d_batched_FFT_3d() {
   EXPECT_TRUE(fft_extents_c2c_axis_21 == ref_fft_extents_r2c_axis_21);
   EXPECT_TRUE(out_extents_c2c_axis_21 == ref_in_extents_r2c_axis_21);
   EXPECT_EQ(howmany_c2c_axis_21, ref_howmany_r2c_axis_21);
+
+  ComplexView3Dtype xcout3_wrong("xcout3_wrong", n0 + 3, n1, n2 + 2);
+  for (int axis0 = 0; axis0 < 3; axis0++) {
+    for (int axis1 = 0; axis1 < 3; axis1++) {
+      if (axis0 == axis1) continue;
+      EXPECT_THROW(
+          {
+            KokkosFFT::Impl::get_extents(xcin3, xcout3_wrong,
+                                         axes_type({axis0, axis1}));
+          },
+          std::runtime_error);
+    }
+  }
 }
 
 TYPED_TEST(Extents2D, 2DFFT_2DView) {

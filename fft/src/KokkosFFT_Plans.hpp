@@ -394,6 +394,11 @@ class Plan {
     KOKKOSFFT_THROW_IF(out_extents != m_out_extents,
                        "extents of output View for plan and "
                        "execution are not identical.");
+
+    bool is_inplace = KokkosFFT::Impl::are_aliasing(in.data(), out.data());
+    KOKKOSFFT_THROW_IF(is_inplace != m_is_inplace,
+                       "If the plan is in-place, the input and output Views "
+                       "must be identical.");
   }
 };
 }  // namespace KokkosFFT
