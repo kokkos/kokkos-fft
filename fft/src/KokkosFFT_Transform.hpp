@@ -6,6 +6,7 @@
 #define KOKKOSFFT_TRANSFORM_HPP
 
 #include <Kokkos_Core.hpp>
+#include <Kokkos_Profiling_ScopedRegion.hpp>
 #include "KokkosFFT_traits.hpp"
 #include "KokkosFFT_normalization.hpp"
 #include "KokkosFFT_utils.hpp"

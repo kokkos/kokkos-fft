@@ -6,6 +6,7 @@
 #define KOKKOSFFT_HOST_TRANSFORM_HPP
 
 #include <fftw3.h>
+#include <Kokkos_Profiling_ScopedRegion.hpp>
 
 namespace KokkosFFT {
 namespace Impl {

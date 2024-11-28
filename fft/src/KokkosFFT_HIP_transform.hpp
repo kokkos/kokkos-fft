@@ -6,6 +6,7 @@
 #define KOKKOSFFT_HIP_TRANSFORM_HPP
 
 #include <hipfft/hipfft.h>
+#include <Kokkos_Profiling_ScopedRegion.hpp>
 #include "KokkosFFT_asserts.hpp"
 
 namespace KokkosFFT {

@@ -6,6 +6,7 @@
 #define KOKKOSFFT_CUDA_TRANSFORM_HPP
 
 #include <cufft.h>
+#include <Kokkos_Profiling_ScopedRegion.hpp>
 #include "KokkosFFT_asserts.hpp"
 
 namespace KokkosFFT {

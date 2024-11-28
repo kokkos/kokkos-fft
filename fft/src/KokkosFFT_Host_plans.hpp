@@ -6,6 +6,7 @@
 #define KOKKOSFFT_HOST_PLANS_HPP
 
 #include <numeric>
+#include <Kokkos_Profiling_ScopedRegion.hpp>
 #include "KokkosFFT_default_types.hpp"
 #include "KokkosFFT_Extents.hpp"
 #include "KokkosFFT_traits.hpp"

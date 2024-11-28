@@ -7,6 +7,7 @@
 
 #include <complex>
 #include <rocfft/rocfft.h>
+#include <Kokkos_Profiling_ScopedRegion.hpp>
 #include "KokkosFFT_asserts.hpp"
 
 namespace KokkosFFT {

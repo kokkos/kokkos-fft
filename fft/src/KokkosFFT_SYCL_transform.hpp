@@ -5,8 +5,9 @@
 #ifndef KOKKOSFFT_SYCL_TRANSFORM_HPP
 #define KOKKOSFFT_SYCL_TRANSFORM_HPP
 
-#include <oneapi/mkl/dfti.hpp>
 #include <complex>
+#include <oneapi/mkl/dfti.hpp>
+#include <Kokkos_Profiling_ScopedRegion.hpp>
 
 namespace KokkosFFT {
 namespace Impl {
