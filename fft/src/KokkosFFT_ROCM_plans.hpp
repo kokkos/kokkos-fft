@@ -110,7 +110,7 @@ auto create_plan(const ExecutionSpace& exec_space,
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
 
-  Kokkos::Profiling::pushRegion("KokkosFFT::create_plan[TPL_rocfft]");
+  Kokkos::Profiling::ScopedRegion region("KokkosFFT::create_plan[TPL_rocfft]");
 
   constexpr auto type =
       KokkosFFT::Impl::transform_type<ExecutionSpace, in_value_type,
@@ -201,8 +201,6 @@ auto create_plan(const ExecutionSpace& exec_space,
   KOKKOSFFT_THROW_IF(status != rocfft_status_success,
                      "rocfft_plan_description_destroy failed");
 
-  Kokkos::Profiling::popRegion();
-
   return fft_size;
 }
 
@@ -211,12 +209,10 @@ template <typename ExecutionSpace, typename PlanType, typename InfoType,
                            std::nullptr_t> = nullptr>
 void destroy_plan_and_info(std::unique_ptr<PlanType>& plan,
                            InfoType& execution_info) {
-  Kokkos::Profiling::pushRegion("KokkosFFT::create_plan[TPL_rocfft]");
+  Kokkos::Profiling::ScopedRegion region("KokkosFFT::destroy_plan[TPL_rocfft]");
 
   rocfft_execution_info_destroy(execution_info);
   rocfft_plan_destroy(*plan);
-
-  Kokkos::Profiling::popRegion();
 }
 }  // namespace Impl
 }  // namespace KokkosFFT
