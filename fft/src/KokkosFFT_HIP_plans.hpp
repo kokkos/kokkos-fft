@@ -35,6 +35,8 @@ auto create_plan(const ExecutionSpace& exec_space,
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
 
+  Kokkos::Profiling::pushRegion("KokkosFFT::create_plan[TPL_hipfft]");
+
   plan                   = std::make_unique<PlanType>();
   hipfftResult hipfft_rt = hipfftCreate(&(*plan));
   KOKKOSFFT_THROW_IF(hipfft_rt != HIPFFT_SUCCESS, "hipfftCreate failed");
@@ -52,6 +54,8 @@ auto create_plan(const ExecutionSpace& exec_space,
 
   hipfft_rt = hipfftPlan1d(&(*plan), nx, type, howmany);
   KOKKOSFFT_THROW_IF(hipfft_rt != HIPFFT_SUCCESS, "hipfftPlan1d failed");
+
+  Kokkos::Profiling::popRegion();
 
   return fft_size;
 }
@@ -78,6 +82,8 @@ auto create_plan(const ExecutionSpace& exec_space,
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
 
+  Kokkos::Profiling::pushRegion("KokkosFFT::create_plan[TPL_hipfft]");
+
   plan                   = std::make_unique<PlanType>();
   hipfftResult hipfft_rt = hipfftCreate(&(*plan));
   KOKKOSFFT_THROW_IF(hipfft_rt != HIPFFT_SUCCESS, "hipfftCreate failed");
@@ -95,6 +101,8 @@ auto create_plan(const ExecutionSpace& exec_space,
 
   hipfft_rt = hipfftPlan2d(&(*plan), nx, ny, type);
   KOKKOSFFT_THROW_IF(hipfft_rt != HIPFFT_SUCCESS, "hipfftPlan2d failed");
+
+  Kokkos::Profiling::popRegion();
 
   return fft_size;
 }
@@ -121,6 +129,8 @@ auto create_plan(const ExecutionSpace& exec_space,
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
 
+  Kokkos::Profiling::pushRegion("KokkosFFT::create_plan[TPL_hipfft]");
+
   plan                   = std::make_unique<PlanType>();
   hipfftResult hipfft_rt = hipfftCreate(&(*plan));
   KOKKOSFFT_THROW_IF(hipfft_rt != HIPFFT_SUCCESS, "hipfftCreate failed");
@@ -140,6 +150,8 @@ auto create_plan(const ExecutionSpace& exec_space,
 
   hipfft_rt = hipfftPlan3d(&(*plan), nx, ny, nz, type);
   KOKKOSFFT_THROW_IF(hipfft_rt != HIPFFT_SUCCESS, "hipfftPlan3d failed");
+
+  Kokkos::Profiling::popRegion();
 
   return fft_size;
 }
@@ -170,7 +182,9 @@ auto create_plan(const ExecutionSpace& exec_space,
 
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
-  const int rank       = fft_rank;
+
+  Kokkos::Profiling::pushRegion("KokkosFFT::create_plan[TPL_hipfft]");
+  const int rank = fft_rank;
   constexpr auto type =
       KokkosFFT::Impl::transform_type<ExecutionSpace, in_value_type,
                                       out_value_type>::type();
@@ -198,6 +212,7 @@ auto create_plan(const ExecutionSpace& exec_space,
                              out_extents.data(), ostride, odist, type, howmany);
 
   KOKKOSFFT_THROW_IF(hipfft_rt != HIPFFT_SUCCESS, "hipfftPlanMany failed");
+  Kokkos::Profiling::popRegion();
 
   return fft_size;
 }
@@ -206,7 +221,9 @@ template <typename ExecutionSpace, typename PlanType, typename InfoType,
           std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
                            std::nullptr_t> = nullptr>
 void destroy_plan_and_info(std::unique_ptr<PlanType>& plan, InfoType&) {
+  Kokkos::Profiling::pushRegion("KokkosFFT::destroy_plan[TPL_hipfft]");
   hipfftDestroy(*plan);
+  Kokkos::Profiling::popRegion();
 }
 }  // namespace Impl
 }  // namespace KokkosFFT
