@@ -6,6 +6,7 @@
 #define KOKKOSFFT_HOST_PLANS_HPP
 
 #include <numeric>
+#include <Kokkos_Profiling_ScopedRegion.hpp>
 #include "KokkosFFT_default_types.hpp"
 #include "KokkosFFT_Extents.hpp"
 #include "KokkosFFT_traits.hpp"
@@ -54,8 +55,10 @@ auto create_plan(const ExecutionSpace& exec_space,
 
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
-  const int rank       = fft_rank;
 
+  Kokkos::Profiling::ScopedRegion region("KokkosFFT::create_plan[TPL_fftw]");
+
+  const int rank = fft_rank;
   init_threads<ExecutionSpace,
                KokkosFFT::Impl::base_floating_point_type<in_value_type>>(
       exec_space);
@@ -116,6 +119,7 @@ template <typename ExecutionSpace, typename PlanType, typename InfoType,
           std::enable_if_t<is_AnyHostSpace_v<ExecutionSpace>, std::nullptr_t> =
               nullptr>
 void destroy_plan_and_info(std::unique_ptr<PlanType>& plan, InfoType&) {
+  Kokkos::Profiling::ScopedRegion region("KokkosFFT::destroy_plan[TPL_fftw]");
   if constexpr (std::is_same_v<PlanType, fftwf_plan>) {
     fftwf_destroy_plan(*plan);
   } else {

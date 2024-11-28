@@ -7,6 +7,7 @@
 
 #include <numeric>
 #include <algorithm>
+#include <Kokkos_Profiling_ScopedRegion.hpp>
 #include "KokkosFFT_SYCL_types.hpp"
 #include "KokkosFFT_Extents.hpp"
 #include "KokkosFFT_traits.hpp"
@@ -68,6 +69,8 @@ auto create_plan(const ExecutionSpace& exec_space,
       InViewType::rank() >= fft_rank,
       "KokkosFFT::create_plan: Rank of View must be larger than Rank of FFT.");
 
+  Kokkos::Profiling::ScopedRegion region("KokkosFFT::create_plan[TPL_oneMKL]");
+
   auto [in_extents, out_extents, fft_extents, howmany] =
       KokkosFFT::Impl::get_extents(in, out, axes, s, is_inplace);
   int idist    = std::accumulate(in_extents.begin(), in_extents.end(), 1,
@@ -116,6 +119,7 @@ template <
                      std::nullptr_t> = nullptr>
 void destroy_plan_and_info(std::unique_ptr<PlanType>&, InfoType&) {
   // In oneMKL, plans are destroybed by destructor
+  Kokkos::Profiling::ScopedRegion region("KokkosFFT::destroy_plan[TPL_oneMKL]");
 }
 }  // namespace Impl
 }  // namespace KokkosFFT

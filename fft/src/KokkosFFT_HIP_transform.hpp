@@ -6,6 +6,7 @@
 #define KOKKOSFFT_HIP_TRANSFORM_HPP
 
 #include <hipfft/hipfft.h>
+#include <Kokkos_Profiling_ScopedRegion.hpp>
 #include "KokkosFFT_asserts.hpp"
 
 namespace KokkosFFT {
@@ -13,6 +14,7 @@ namespace Impl {
 template <typename... Args>
 inline void exec_plan(hipfftHandle& plan, hipfftReal* idata,
                       hipfftComplex* odata, int /*direction*/, Args...) {
+  Kokkos::Profiling::ScopedRegion region("KokkosFFT::exec_plan[TPL_cufft]");
   hipfftResult hipfft_rt = hipfftExecR2C(plan, idata, odata);
   KOKKOSFFT_THROW_IF(hipfft_rt != HIPFFT_SUCCESS, "hipfftExecR2C failed");
 }
@@ -20,6 +22,7 @@ inline void exec_plan(hipfftHandle& plan, hipfftReal* idata,
 template <typename... Args>
 inline void exec_plan(hipfftHandle& plan, hipfftDoubleReal* idata,
                       hipfftDoubleComplex* odata, int /*direction*/, Args...) {
+  Kokkos::Profiling::ScopedRegion region("KokkosFFT::exec_plan[TPL_hipfft]");
   hipfftResult hipfft_rt = hipfftExecD2Z(plan, idata, odata);
   KOKKOSFFT_THROW_IF(hipfft_rt != HIPFFT_SUCCESS, "hipfftExecD2Z failed");
 }
@@ -27,6 +30,7 @@ inline void exec_plan(hipfftHandle& plan, hipfftDoubleReal* idata,
 template <typename... Args>
 inline void exec_plan(hipfftHandle& plan, hipfftComplex* idata,
                       hipfftReal* odata, int /*direction*/, Args...) {
+  Kokkos::Profiling::ScopedRegion region("KokkosFFT::exec_plan[TPL_hipfft]");
   hipfftResult hipfft_rt = hipfftExecC2R(plan, idata, odata);
   KOKKOSFFT_THROW_IF(hipfft_rt != HIPFFT_SUCCESS, "hipfftExecC2R failed");
 }
@@ -34,6 +38,7 @@ inline void exec_plan(hipfftHandle& plan, hipfftComplex* idata,
 template <typename... Args>
 inline void exec_plan(hipfftHandle& plan, hipfftDoubleComplex* idata,
                       hipfftDoubleReal* odata, int /*direction*/, Args...) {
+  Kokkos::Profiling::ScopedRegion region("KokkosFFT::exec_plan[TPL_hipfft]");
   hipfftResult hipfft_rt = hipfftExecZ2D(plan, idata, odata);
   KOKKOSFFT_THROW_IF(hipfft_rt != HIPFFT_SUCCESS, "hipfftExecZ2D failed");
 }
@@ -41,6 +46,7 @@ inline void exec_plan(hipfftHandle& plan, hipfftDoubleComplex* idata,
 template <typename... Args>
 inline void exec_plan(hipfftHandle& plan, hipfftComplex* idata,
                       hipfftComplex* odata, int direction, Args...) {
+  Kokkos::Profiling::ScopedRegion region("KokkosFFT::exec_plan[TPL_hipfft]");
   hipfftResult hipfft_rt = hipfftExecC2C(plan, idata, odata, direction);
   KOKKOSFFT_THROW_IF(hipfft_rt != HIPFFT_SUCCESS, "hipfftExecC2C failed");
 }
@@ -48,6 +54,7 @@ inline void exec_plan(hipfftHandle& plan, hipfftComplex* idata,
 template <typename... Args>
 inline void exec_plan(hipfftHandle& plan, hipfftDoubleComplex* idata,
                       hipfftDoubleComplex* odata, int direction, Args...) {
+  Kokkos::Profiling::ScopedRegion region("KokkosFFT::exec_plan[TPL_hipfft]");
   hipfftResult hipfft_rt = hipfftExecZ2Z(plan, idata, odata, direction);
   KOKKOSFFT_THROW_IF(hipfft_rt != HIPFFT_SUCCESS, "hipfftExecZ2Z failed");
 }

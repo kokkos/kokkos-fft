@@ -6,6 +6,7 @@
 #define KOKKOSFFT_HIP_PLANS_HPP
 
 #include <numeric>
+#include <Kokkos_Profiling_ScopedRegion.hpp>
 #include "KokkosFFT_HIP_types.hpp"
 #include "KokkosFFT_Extents.hpp"
 #include "KokkosFFT_traits.hpp"
@@ -34,6 +35,8 @@ auto create_plan(const ExecutionSpace& exec_space,
       "InViewType and OutViewType.");
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
+
+  Kokkos::Profiling::ScopedRegion region("KokkosFFT::create_plan[TPL_hipfft]");
 
   plan                   = std::make_unique<PlanType>();
   hipfftResult hipfft_rt = hipfftCreate(&(*plan));
@@ -78,6 +81,8 @@ auto create_plan(const ExecutionSpace& exec_space,
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
 
+  Kokkos::Profiling::ScopedRegion region("KokkosFFT::create_plan[TPL_hipfft]");
+
   plan                   = std::make_unique<PlanType>();
   hipfftResult hipfft_rt = hipfftCreate(&(*plan));
   KOKKOSFFT_THROW_IF(hipfft_rt != HIPFFT_SUCCESS, "hipfftCreate failed");
@@ -120,6 +125,8 @@ auto create_plan(const ExecutionSpace& exec_space,
       "InViewType and OutViewType.");
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
+
+  Kokkos::Profiling::ScopedRegion region("KokkosFFT::create_plan[TPL_hipfft]");
 
   plan                   = std::make_unique<PlanType>();
   hipfftResult hipfft_rt = hipfftCreate(&(*plan));
@@ -170,7 +177,10 @@ auto create_plan(const ExecutionSpace& exec_space,
 
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
-  const int rank       = fft_rank;
+
+  Kokkos::Profiling::ScopedRegion region("KokkosFFT::create_plan[TPL_hipfft]");
+
+  const int rank = fft_rank;
   constexpr auto type =
       KokkosFFT::Impl::transform_type<ExecutionSpace, in_value_type,
                                       out_value_type>::type();
@@ -206,6 +216,7 @@ template <typename ExecutionSpace, typename PlanType, typename InfoType,
           std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
                            std::nullptr_t> = nullptr>
 void destroy_plan_and_info(std::unique_ptr<PlanType>& plan, InfoType&) {
+  Kokkos::Profiling::ScopedRegion region("KokkosFFT::destroy_plan[TPL_hipfft]");
   hipfftDestroy(*plan);
 }
 }  // namespace Impl

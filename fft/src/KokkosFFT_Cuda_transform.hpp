@@ -6,6 +6,7 @@
 #define KOKKOSFFT_CUDA_TRANSFORM_HPP
 
 #include <cufft.h>
+#include <Kokkos_Profiling_ScopedRegion.hpp>
 #include "KokkosFFT_asserts.hpp"
 
 namespace KokkosFFT {
@@ -13,6 +14,7 @@ namespace Impl {
 template <typename... Args>
 inline void exec_plan(cufftHandle& plan, cufftReal* idata, cufftComplex* odata,
                       int /*direction*/, Args...) {
+  Kokkos::Profiling::ScopedRegion region("KokkosFFT::exec_plan[TPL_cufft]");
   cufftResult cufft_rt = cufftExecR2C(plan, idata, odata);
   KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftExecR2C failed");
 }
@@ -20,6 +22,7 @@ inline void exec_plan(cufftHandle& plan, cufftReal* idata, cufftComplex* odata,
 template <typename... Args>
 inline void exec_plan(cufftHandle& plan, cufftDoubleReal* idata,
                       cufftDoubleComplex* odata, int /*direction*/, Args...) {
+  Kokkos::Profiling::ScopedRegion region("KokkosFFT::exec_plan[TPL_cufft]");
   cufftResult cufft_rt = cufftExecD2Z(plan, idata, odata);
   KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftExecD2Z failed");
 }
@@ -27,6 +30,7 @@ inline void exec_plan(cufftHandle& plan, cufftDoubleReal* idata,
 template <typename... Args>
 inline void exec_plan(cufftHandle& plan, cufftComplex* idata, cufftReal* odata,
                       int /*direction*/, Args...) {
+  Kokkos::Profiling::ScopedRegion region("KokkosFFT::exec_plan[TPL_cufft]");
   cufftResult cufft_rt = cufftExecC2R(plan, idata, odata);
   KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftExecC2R failed");
 }
@@ -34,6 +38,7 @@ inline void exec_plan(cufftHandle& plan, cufftComplex* idata, cufftReal* odata,
 template <typename... Args>
 inline void exec_plan(cufftHandle& plan, cufftDoubleComplex* idata,
                       cufftDoubleReal* odata, int /*direction*/, Args...) {
+  Kokkos::Profiling::ScopedRegion region("KokkosFFT::exec_plan[TPL_cufft]");
   cufftResult cufft_rt = cufftExecZ2D(plan, idata, odata);
   KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftExecZ2D failed");
 }
@@ -41,6 +46,7 @@ inline void exec_plan(cufftHandle& plan, cufftDoubleComplex* idata,
 template <typename... Args>
 inline void exec_plan(cufftHandle& plan, cufftComplex* idata,
                       cufftComplex* odata, int direction, Args...) {
+  Kokkos::Profiling::ScopedRegion region("KokkosFFT::exec_plan[TPL_cufft]");
   cufftResult cufft_rt = cufftExecC2C(plan, idata, odata, direction);
   KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftExecC2C failed");
 }
@@ -48,6 +54,7 @@ inline void exec_plan(cufftHandle& plan, cufftComplex* idata,
 template <typename... Args>
 inline void exec_plan(cufftHandle& plan, cufftDoubleComplex* idata,
                       cufftDoubleComplex* odata, int direction, Args...) {
+  Kokkos::Profiling::ScopedRegion region("KokkosFFT::exec_plan[TPL_cufft]");
   cufftResult cufft_rt = cufftExecZ2Z(plan, idata, odata, direction);
   KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftExecZ2Z failed");
 }
