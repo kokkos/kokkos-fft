@@ -151,7 +151,7 @@ class Plan {
   ///
   /// \param exec_space [in] Kokkos execution device
   /// \param in [in] Input data
-  /// \param out [in] Ouput data
+  /// \param out [in] Output data
   /// \param direction [in] Direction of FFT (forward/backward)
   /// \param axis [in] Axis over which FFT is performed
   /// \param n [in] Length of the transformed axis of the output (default,
@@ -218,7 +218,7 @@ class Plan {
   ///
   /// \param exec_space [in] Kokkos execution space for this plan
   /// \param in [in] Input data
-  /// \param out [in] Ouput data
+  /// \param out [in] Output data
   /// \param direction [in] Direction of FFT (forward/backward)
   /// \param axes [in] Axes over which FFT is performed
   /// \param s [in] Shape of the transformed axis of the output (default, {})
@@ -291,7 +291,7 @@ class Plan {
   /// \brief Execute FFT on input and output Views with normalization
   ///
   /// \param in [in] Input data
-  /// \param out [out] Ouput data
+  /// \param out [out] Output data
   /// \param norm [in] How the normalization is applied (default, backward)
   void execute(const InViewType& in, const OutViewType& out,
                KokkosFFT::Normalization norm =
@@ -379,10 +379,10 @@ class Plan {
 
   /// \brief Sanity check of the plan used to call FFT interface with
   ///        pre-defined FFT plan. This raises an error if there is an
-  ///        incosistency between FFT function and plan
+  ///        inconsistency between FFT function and plan
   ///
   /// \param in [in] Input data
-  /// \param out [in] Ouput data
+  /// \param out [in] Output data
   void good(const InViewType& in, const OutViewType& out) const {
     auto in_extents  = KokkosFFT::Impl::extract_extents(in);
     auto out_extents = KokkosFFT::Impl::extract_extents(out);

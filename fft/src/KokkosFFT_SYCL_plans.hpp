@@ -115,7 +115,7 @@ template <
     std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::Experimental::SYCL>,
                      std::nullptr_t> = nullptr>
 void destroy_plan_and_info(std::unique_ptr<PlanType>&, InfoType&) {
-  // In oneMKL, plans are destroybed by destructor
+  // In oneMKL, plans are destroyed by destructor
 }
 }  // namespace Impl
 }  // namespace KokkosFFT
