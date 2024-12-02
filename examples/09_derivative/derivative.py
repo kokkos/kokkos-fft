@@ -103,4 +103,3 @@ if __name__ == '__main__':
     nx, ny, nz = 128, 128, 128
     seconds = compute_derivative(nx, ny, nz)
     print(f"2D derivative with FFT took {seconds} [s]")
-    

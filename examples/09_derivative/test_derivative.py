@@ -59,4 +59,3 @@ def test_analytical_solution(n: int) -> None:
 def test_derivative(n: int) -> None:
     # The following function fails if it is not correct
     _ = compute_derivative(n, n, n)
-    
