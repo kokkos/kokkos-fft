@@ -230,7 +230,7 @@ void test_fft1_identity_reuse_plan(T atol = 1.0e-12) {
   KokkosFFT::Plan irfft_plan(execution_space(), ar_hat, inv_ar_hat,
                              KokkosFFT::Direction::backward, axis);
 
-  // Check if errors are correctly raised aginst wrong extents
+  // Check if errors are correctly raised against wrong extents
   const int maxlen_wrong = 32 * 2;
   ComplexView1DType a_wrong("a_wrong", maxlen_wrong),
       inv_a_hat_wrong("inv_a_hat_wrong", maxlen_wrong);
@@ -591,7 +591,7 @@ void test_fft1_1dfft_2dview(T atol = 1.e-12) {
 
   Kokkos::fence();
 
-  // Along axis 0 (transpose neeed)
+  // Along axis 0 (transpose needed)
   // Perform batched 1D (along 0th axis) FFT sequentially
   for (int i1 = 0; i1 < n1; i1++) {
     auto sub_x   = Kokkos::subview(x, Kokkos::ALL, i1);
@@ -680,7 +680,7 @@ void test_fft1_1dfft_3dview(T atol = 1.e-12) {
 
   Kokkos::fence();
 
-  // Along axis 0 (transpose neeed)
+  // Along axis 0 (transpose needed)
   // Perform batched 1D (along 0th axis) FFT sequentially
   for (int i2 = 0; i2 < n2; i2++) {
     for (int i1 = 0; i1 < n1; i1++) {
@@ -710,7 +710,7 @@ void test_fft1_1dfft_3dview(T atol = 1.e-12) {
   Kokkos::deep_copy(x, ref_x);
   Kokkos::deep_copy(xr, ref_xr);
 
-  // Along axis 1 (transpose neeed)
+  // Along axis 1 (transpose needed)
   // Perform batched 1D (along 1st axis) FFT sequentially
   for (int i2 = 0; i2 < n2; i2++) {
     for (int i0 = 0; i0 < n0; i0++) {
@@ -809,7 +809,7 @@ void test_fft1_1dfft_4dview(T atol = 1.e-12) {
 
   Kokkos::fence();
 
-  // Along axis 0 (transpose neeed)
+  // Along axis 0 (transpose needed)
   // Perform batched 1D (along 0th axis) FFT sequentially
   for (int i3 = 0; i3 < n3; i3++) {
     for (int i2 = 0; i2 < n2; i2++) {
@@ -841,7 +841,7 @@ void test_fft1_1dfft_4dview(T atol = 1.e-12) {
   Kokkos::deep_copy(x, ref_x);
   Kokkos::deep_copy(xr, ref_xr);
 
-  // Along axis 1 (transpose neeed)
+  // Along axis 1 (transpose needed)
   // Perform batched 1D (along 1st axis) FFT sequentially
   for (int i3 = 0; i3 < n3; i3++) {
     for (int i2 = 0; i2 < n2; i2++) {
@@ -1231,7 +1231,7 @@ TYPED_TEST(FFT1D, FFT_1DView_shape) {
   test_fft1_shape<float_type, layout_type>(atol);
 }
 
-// batced fft1 on 2D Views
+// batched fft1 on 2D Views
 TYPED_TEST(FFT1D, FFT_batched_2DView) {
   using float_type  = typename TestFixture::float_type;
   using layout_type = typename TestFixture::layout_type;
@@ -1240,7 +1240,7 @@ TYPED_TEST(FFT1D, FFT_batched_2DView) {
   test_fft1_1dfft_2dview<float_type, layout_type>(atol);
 }
 
-// batced fft1 on 3D Views
+// batched fft1 on 3D Views
 TYPED_TEST(FFT1D, FFT_batched_3DView) {
   using float_type  = typename TestFixture::float_type;
   using layout_type = typename TestFixture::layout_type;
@@ -1249,7 +1249,7 @@ TYPED_TEST(FFT1D, FFT_batched_3DView) {
   test_fft1_1dfft_3dview<float_type, layout_type>(atol);
 }
 
-// batced fft1 on 4D Views
+// batched fft1 on 4D Views
 TYPED_TEST(FFT1D, FFT_batched_4DView) {
   using float_type  = typename TestFixture::float_type;
   using layout_type = typename TestFixture::layout_type;
@@ -1258,7 +1258,7 @@ TYPED_TEST(FFT1D, FFT_batched_4DView) {
   test_fft1_1dfft_4dview<float_type, layout_type>(atol);
 }
 
-// batced fft1 on 5D Views
+// batched fft1 on 5D Views
 TYPED_TEST(FFT1D, FFT_batched_5DView) {
   using float_type  = typename TestFixture::float_type;
   using layout_type = typename TestFixture::layout_type;
@@ -1267,7 +1267,7 @@ TYPED_TEST(FFT1D, FFT_batched_5DView) {
   test_fft1_1dfft_5dview<float_type, layout_type>(atol);
 }
 
-// batced fft1 on 6D Views
+// batched fft1 on 6D Views
 TYPED_TEST(FFT1D, FFT_batched_6DView) {
   using float_type  = typename TestFixture::float_type;
   using layout_type = typename TestFixture::layout_type;
@@ -1276,7 +1276,7 @@ TYPED_TEST(FFT1D, FFT_batched_6DView) {
   test_fft1_1dfft_6dview<float_type, layout_type>(atol);
 }
 
-// batced fft1 on 7D Views
+// batched fft1 on 7D Views
 TYPED_TEST(FFT1D, FFT_batched_7DView) {
   using float_type  = typename TestFixture::float_type;
   using layout_type = typename TestFixture::layout_type;
@@ -1285,7 +1285,7 @@ TYPED_TEST(FFT1D, FFT_batched_7DView) {
   test_fft1_1dfft_7dview<float_type, layout_type>(atol);
 }
 
-// batced fft1 on 8D Views
+// batched fft1 on 8D Views
 TYPED_TEST(FFT1D, FFT_batched_8DView) {
   using float_type  = typename TestFixture::float_type;
   using layout_type = typename TestFixture::layout_type;
@@ -2354,7 +2354,7 @@ TYPED_TEST(FFT2D, 2DFFT_2DView_inplace) {
   test_fft2_2dfft_2dview_inplace<float_type, layout_type>();
 }
 
-// batced fft2 on 3D Views
+// batched fft2 on 3D Views
 TYPED_TEST(FFT2D, FFT_batched_3DView) {
   using float_type  = typename TestFixture::float_type;
   using layout_type = typename TestFixture::layout_type;
@@ -2363,7 +2363,7 @@ TYPED_TEST(FFT2D, FFT_batched_3DView) {
   test_fft2_2dfft_3dview<float_type, layout_type>(atol);
 }
 
-// batced fft2 on 4D Views
+// batched fft2 on 4D Views
 TYPED_TEST(FFT2D, FFT_batched_4DView) {
   using float_type  = typename TestFixture::float_type;
   using layout_type = typename TestFixture::layout_type;
@@ -2372,7 +2372,7 @@ TYPED_TEST(FFT2D, FFT_batched_4DView) {
   test_fft2_2dfft_4dview<float_type, layout_type>(atol);
 }
 
-// batced fft2 on 5D Views
+// batched fft2 on 5D Views
 TYPED_TEST(FFT2D, FFT_batched_5DView) {
   using float_type  = typename TestFixture::float_type;
   using layout_type = typename TestFixture::layout_type;
@@ -2381,7 +2381,7 @@ TYPED_TEST(FFT2D, FFT_batched_5DView) {
   test_fft2_2dfft_5dview<float_type, layout_type>(atol);
 }
 
-// batced fft2 on 6D Views
+// batched fft2 on 6D Views
 TYPED_TEST(FFT2D, FFT_batched_6DView) {
   using float_type  = typename TestFixture::float_type;
   using layout_type = typename TestFixture::layout_type;
@@ -2390,7 +2390,7 @@ TYPED_TEST(FFT2D, FFT_batched_6DView) {
   test_fft2_2dfft_6dview<float_type, layout_type>(atol);
 }
 
-// batced fft2 on 7D Views
+// batched fft2 on 7D Views
 TYPED_TEST(FFT2D, FFT_batched_7DView) {
   using float_type  = typename TestFixture::float_type;
   using layout_type = typename TestFixture::layout_type;
@@ -2399,7 +2399,7 @@ TYPED_TEST(FFT2D, FFT_batched_7DView) {
   test_fft2_2dfft_7dview<float_type, layout_type>(atol);
 }
 
-// batced fft2 on 8D Views
+// batched fft2 on 8D Views
 TYPED_TEST(FFT2D, FFT_batched_8DView) {
   using float_type  = typename TestFixture::float_type;
   using layout_type = typename TestFixture::layout_type;
@@ -3045,7 +3045,7 @@ void test_fftn_3dfft_3dview_shape(T atol = 1.0e-12) {
       for (auto&& shape2 : shapes2) {
         shape_type<3> new_shape = {shape0, shape1, shape2};
 
-        // Real to comple
+        // Real to complex
         ComplexView3DType outr("outr", shape0, shape1, shape2 / 2 + 1),
             outr_b("outr_b", shape0, shape1, shape2 / 2 + 1),
             outr_o("outr_o", shape0, shape1, shape2 / 2 + 1),

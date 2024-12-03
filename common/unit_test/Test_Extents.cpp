@@ -52,7 +52,7 @@ void test_extents_1d() {
   EXPECT_TRUE(fft_extents_r2c == ref_fft_extents_r2c);
   EXPECT_EQ(howmany_r2c, 1);
 
-  // Check if errors are correctly raised aginst invalid extents
+  // Check if errors are correctly raised against invalid extents
   EXPECT_THROW({ KokkosFFT::Impl::get_extents(xr, xcout, axes_type({0})); },
                std::runtime_error);
 
@@ -70,7 +70,7 @@ void test_extents_1d() {
   EXPECT_TRUE(fft_extents_c2r == ref_fft_extents_c2r);
   EXPECT_EQ(howmany_c2r, 1);
 
-  // Check if errors are correctly raised aginst invalid extents
+  // Check if errors are correctly raised against invalid extents
   EXPECT_THROW({ KokkosFFT::Impl::get_extents(xcin, xr, axes_type({0})); },
                std::runtime_error);
 
@@ -119,7 +119,7 @@ void test_extents_1d_batched_FFT_2d() {
   EXPECT_TRUE(out_extents_r2c_axis0 == ref_out_extents_r2c_axis0);
   EXPECT_EQ(howmany_r2c_axis0, ref_howmany_r2c_axis0);
 
-  // Check if errors are correctly raised aginst invalid extents
+  // Check if errors are correctly raised against invalid extents
   EXPECT_THROW({ KokkosFFT::Impl::get_extents(xr2, xcout2, axes_type({0})); },
                std::runtime_error);
 
@@ -131,7 +131,7 @@ void test_extents_1d_batched_FFT_2d() {
   EXPECT_TRUE(out_extents_r2c_axis1 == ref_out_extents_r2c_axis1);
   EXPECT_EQ(howmany_r2c_axis1, ref_howmany_r2c_axis1);
 
-  // Check if errors are correctly raised aginst invalid extents
+  // Check if errors are correctly raised against invalid extents
   EXPECT_THROW({ KokkosFFT::Impl::get_extents(xr2, xcout2, axes_type({1})); },
                std::runtime_error);
 
@@ -144,7 +144,7 @@ void test_extents_1d_batched_FFT_2d() {
   EXPECT_TRUE(out_extents_c2r_axis0 == ref_in_extents_r2c_axis0);
   EXPECT_EQ(howmany_c2r_axis0, ref_howmany_r2c_axis0);
 
-  // Check if errors are correctly raised aginst invalid extents
+  // Check if errors are correctly raised against invalid extents
   EXPECT_THROW({ KokkosFFT::Impl::get_extents(xcin2, xr2, axes_type({0})); },
                std::runtime_error);
 
@@ -156,7 +156,7 @@ void test_extents_1d_batched_FFT_2d() {
   EXPECT_TRUE(out_extents_c2r_axis1 == ref_in_extents_r2c_axis1);
   EXPECT_EQ(howmany_c2r_axis1, ref_howmany_r2c_axis1);
 
-  // Check if errors are correctly raised aginst invalid extents
+  // Check if errors are correctly raised against invalid extents
   EXPECT_THROW({ KokkosFFT::Impl::get_extents(xcin2, xr2, axes_type({1})); },
                std::runtime_error);
 
@@ -177,7 +177,7 @@ void test_extents_1d_batched_FFT_2d() {
   EXPECT_TRUE(out_extents_c2c_axis1 == ref_in_extents_r2c_axis1);
   EXPECT_EQ(howmany_c2c_axis1, ref_howmany_r2c_axis1);
 
-  // Check if errors are correctly raised aginst invalid extents
+  // Check if errors are correctly raised against invalid extents
   ComplexView2Dtype xcout2_wrong("xcout2_wrong", n0 + 3, n1);
   for (int i = 0; i < 2; i++) {
     EXPECT_THROW(
@@ -225,7 +225,7 @@ void test_extents_1d_batched_FFT_3d() {
   EXPECT_TRUE(out_extents_r2c_axis0 == ref_out_extents_r2c_axis0);
   EXPECT_EQ(howmany_r2c_axis0, ref_howmany_r2c_axis0);
 
-  // Check if errors are correctly raised aginst invalid extents
+  // Check if errors are correctly raised against invalid extents
   EXPECT_THROW({ KokkosFFT::Impl::get_extents(xr3, xcout3, axes_type({0})); },
                std::runtime_error);
 
@@ -237,7 +237,7 @@ void test_extents_1d_batched_FFT_3d() {
   EXPECT_TRUE(out_extents_r2c_axis1 == ref_out_extents_r2c_axis1);
   EXPECT_EQ(howmany_r2c_axis1, ref_howmany_r2c_axis1);
 
-  // Check if errors are correctly raised aginst invalid extents
+  // Check if errors are correctly raised against invalid extents
   EXPECT_THROW({ KokkosFFT::Impl::get_extents(xr3, xcout3, axes_type({1})); },
                std::runtime_error);
 
@@ -249,7 +249,7 @@ void test_extents_1d_batched_FFT_3d() {
   EXPECT_TRUE(out_extents_r2c_axis2 == ref_out_extents_r2c_axis2);
   EXPECT_EQ(howmany_r2c_axis2, ref_howmany_r2c_axis2);
 
-  // Check if errors are correctly raised aginst invalid extents
+  // Check if errors are correctly raised against invalid extents
   EXPECT_THROW({ KokkosFFT::Impl::get_extents(xr3, xcout3, axes_type({2})); },
                std::runtime_error);
 
@@ -262,7 +262,7 @@ void test_extents_1d_batched_FFT_3d() {
   EXPECT_TRUE(out_extents_c2r_axis0 == ref_in_extents_r2c_axis0);
   EXPECT_EQ(howmany_c2r_axis0, ref_howmany_r2c_axis0);
 
-  // Check if errors are correctly raised aginst invalid extents
+  // Check if errors are correctly raised against invalid extents
   EXPECT_THROW({ KokkosFFT::Impl::get_extents(xcin3, xr3, axes_type({0})); },
                std::runtime_error);
 
@@ -274,7 +274,7 @@ void test_extents_1d_batched_FFT_3d() {
   EXPECT_TRUE(out_extents_c2r_axis1 == ref_in_extents_r2c_axis1);
   EXPECT_EQ(howmany_c2r_axis1, ref_howmany_r2c_axis1);
 
-  // Check if errors are correctly raised aginst invalid extents
+  // Check if errors are correctly raised against invalid extents
   EXPECT_THROW({ KokkosFFT::Impl::get_extents(xcin3, xr3, axes_type({1})); },
                std::runtime_error);
 
@@ -286,7 +286,7 @@ void test_extents_1d_batched_FFT_3d() {
   EXPECT_TRUE(out_extents_c2r_axis2 == ref_in_extents_r2c_axis2);
   EXPECT_EQ(howmany_c2r_axis2, ref_howmany_r2c_axis2);
 
-  // Check if errors are correctly raised aginst invalid extents
+  // Check if errors are correctly raised against invalid extents
   EXPECT_THROW({ KokkosFFT::Impl::get_extents(xcin3, xr3, axes_type({2})); },
                std::runtime_error);
 
@@ -315,7 +315,7 @@ void test_extents_1d_batched_FFT_3d() {
   EXPECT_TRUE(out_extents_c2c_axis2 == ref_in_extents_r2c_axis2);
   EXPECT_EQ(howmany_c2c_axis2, ref_howmany_r2c_axis2);
 
-  // Check if errors are correctly raised aginst invalid extents
+  // Check if errors are correctly raised against invalid extents
   ComplexView3Dtype xcout3_wrong("xcout3_wrong", n0 + 3, n1, n2);
   for (int i = 0; i < 3; i++) {
     EXPECT_THROW(
@@ -382,7 +382,7 @@ void test_extents_2d() {
   EXPECT_EQ(howmany_r2c_axis01, 1);
   EXPECT_EQ(howmany_r2c_axis10, 1);
 
-  // Check if errors are correctly raised aginst invalid extents
+  // Check if errors are correctly raised against invalid extents
   EXPECT_THROW(
       {
         KokkosFFT::Impl::get_extents(xr2, xcout2, axes_type({0, 1}));
@@ -414,7 +414,7 @@ void test_extents_2d() {
   EXPECT_EQ(howmany_c2r_axis01, 1);
   EXPECT_EQ(howmany_c2r_axis10, 1);
 
-  // Check if errors are correctly raised aginst invalid extents
+  // Check if errors are correctly raised against invalid extents
   EXPECT_THROW(
       {
         KokkosFFT::Impl::get_extents(xcin2, xr2, axes_type({0, 1}));
@@ -446,7 +446,7 @@ void test_extents_2d() {
   EXPECT_EQ(howmany_c2c_axis01, 1);
   EXPECT_EQ(howmany_c2c_axis10, 1);
 
-  // Check if errors are correctly raised aginst invalid extents
+  // Check if errors are correctly raised against invalid extents
   ComplexView2Dtype xcout2_wrong("xcout2_wrong", n0 + 3, n1);
   for (int axis0 = 0; axis0 < 2; axis0++) {
     for (int axis1 = 0; axis1 < 2; axis1++) {
@@ -518,7 +518,7 @@ void test_extents_2d_batched_FFT_3d() {
   EXPECT_TRUE(out_extents_r2c_axis_01 == ref_out_extents_r2c_axis_01);
   EXPECT_EQ(howmany_r2c_axis_01, ref_howmany_r2c_axis_01);
 
-  // Check if errors are correctly raised aginst invalid extents
+  // Check if errors are correctly raised against invalid extents
   EXPECT_THROW(
       {
         KokkosFFT::Impl::get_extents(xr3, xcout3, axes_type({0, 1}));
@@ -533,7 +533,7 @@ void test_extents_2d_batched_FFT_3d() {
   EXPECT_TRUE(out_extents_r2c_axis_02 == ref_out_extents_r2c_axis_02);
   EXPECT_EQ(howmany_r2c_axis_02, ref_howmany_r2c_axis_02);
 
-  // Check if errors are correctly raised aginst invalid extents
+  // Check if errors are correctly raised against invalid extents
   EXPECT_THROW(
       {
         KokkosFFT::Impl::get_extents(xr3, xcout3, axes_type({0, 2}));
@@ -548,7 +548,7 @@ void test_extents_2d_batched_FFT_3d() {
   EXPECT_TRUE(out_extents_r2c_axis_10 == ref_out_extents_r2c_axis_10);
   EXPECT_EQ(howmany_r2c_axis_10, ref_howmany_r2c_axis_10);
 
-  // Check if errors are correctly raised aginst invalid extents
+  // Check if errors are correctly raised against invalid extents
   EXPECT_THROW(
       {
         KokkosFFT::Impl::get_extents(xr3, xcout3, axes_type({1, 0}));
@@ -563,7 +563,7 @@ void test_extents_2d_batched_FFT_3d() {
   EXPECT_TRUE(out_extents_r2c_axis_12 == ref_out_extents_r2c_axis_12);
   EXPECT_EQ(howmany_r2c_axis_12, ref_howmany_r2c_axis_12);
 
-  // Check if errors are correctly raised aginst invalid extents
+  // Check if errors are correctly raised against invalid extents
   EXPECT_THROW(
       {
         KokkosFFT::Impl::get_extents(xr3, xcout3, axes_type({1, 2}));
@@ -578,7 +578,7 @@ void test_extents_2d_batched_FFT_3d() {
   EXPECT_TRUE(out_extents_r2c_axis_20 == ref_out_extents_r2c_axis_20);
   EXPECT_EQ(howmany_r2c_axis_20, ref_howmany_r2c_axis_20);
 
-  // Check if errors are correctly raised aginst invalid extents
+  // Check if errors are correctly raised against invalid extents
   EXPECT_THROW(
       {
         KokkosFFT::Impl::get_extents(xr3, xcout3, axes_type({2, 0}));
@@ -593,7 +593,7 @@ void test_extents_2d_batched_FFT_3d() {
   EXPECT_TRUE(out_extents_r2c_axis_21 == ref_out_extents_r2c_axis_21);
   EXPECT_EQ(howmany_r2c_axis_21, ref_howmany_r2c_axis_21);
 
-  // Check if errors are correctly raised aginst invalid extents
+  // Check if errors are correctly raised against invalid extents
   EXPECT_THROW(
       {
         KokkosFFT::Impl::get_extents(xr3, xcout3, axes_type({2, 1}));
@@ -609,7 +609,7 @@ void test_extents_2d_batched_FFT_3d() {
   EXPECT_TRUE(out_extents_c2r_axis_01 == ref_in_extents_r2c_axis_01);
   EXPECT_EQ(howmany_c2r_axis_01, ref_howmany_r2c_axis_01);
 
-  // Check if errors are correctly raised aginst invalid extents
+  // Check if errors are correctly raised against invalid extents
   EXPECT_THROW(
       {
         KokkosFFT::Impl::get_extents(xcin3, xr3, axes_type({0, 1}));
@@ -624,7 +624,7 @@ void test_extents_2d_batched_FFT_3d() {
   EXPECT_TRUE(out_extents_c2r_axis_02 == ref_in_extents_r2c_axis_02);
   EXPECT_EQ(howmany_c2r_axis_02, ref_howmany_r2c_axis_02);
 
-  // Check if errors are correctly raised aginst invalid extents
+  // Check if errors are correctly raised against invalid extents
   EXPECT_THROW(
       {
         KokkosFFT::Impl::get_extents(xcin3, xr3, axes_type({0, 2}));
@@ -639,7 +639,7 @@ void test_extents_2d_batched_FFT_3d() {
   EXPECT_TRUE(out_extents_c2r_axis_10 == ref_in_extents_r2c_axis_10);
   EXPECT_EQ(howmany_c2r_axis_10, ref_howmany_r2c_axis_10);
 
-  // Check if errors are correctly raised aginst invalid extents
+  // Check if errors are correctly raised against invalid extents
   EXPECT_THROW(
       {
         KokkosFFT::Impl::get_extents(xcin3, xr3, axes_type({1, 0}));
@@ -654,7 +654,7 @@ void test_extents_2d_batched_FFT_3d() {
   EXPECT_TRUE(out_extents_c2r_axis_12 == ref_in_extents_r2c_axis_12);
   EXPECT_EQ(howmany_c2r_axis_12, ref_howmany_r2c_axis_12);
 
-  // Check if errors are correctly raised aginst invalid extents
+  // Check if errors are correctly raised against invalid extents
   EXPECT_THROW(
       {
         KokkosFFT::Impl::get_extents(xcin3, xr3, axes_type({1, 2}));
@@ -669,7 +669,7 @@ void test_extents_2d_batched_FFT_3d() {
   EXPECT_TRUE(out_extents_c2r_axis_20 == ref_in_extents_r2c_axis_20);
   EXPECT_EQ(howmany_c2r_axis_20, ref_howmany_r2c_axis_20);
 
-  // Check if errors are correctly raised aginst invalid extents
+  // Check if errors are correctly raised against invalid extents
   EXPECT_THROW(
       {
         KokkosFFT::Impl::get_extents(xcin3, xr3, axes_type({2, 0}));
@@ -684,7 +684,7 @@ void test_extents_2d_batched_FFT_3d() {
   EXPECT_TRUE(out_extents_c2r_axis_21 == ref_in_extents_r2c_axis_21);
   EXPECT_EQ(howmany_c2r_axis_21, ref_howmany_r2c_axis_21);
 
-  // Check if errors are correctly raised aginst invalid extents
+  // Check if errors are correctly raised against invalid extents
   EXPECT_THROW(
       {
         KokkosFFT::Impl::get_extents(xcin3, xr3, axes_type({2, 1}));
