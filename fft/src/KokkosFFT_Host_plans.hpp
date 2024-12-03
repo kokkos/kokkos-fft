@@ -39,9 +39,6 @@ auto create_plan(const ExecutionSpace& exec_space,
   using out_value_type = typename OutViewType::non_const_value_type;
   const int rank       = fft_rank;
 
-  constexpr auto type =
-      KokkosFFT::Impl::transform_type<ExecutionSpace, in_value_type,
-                                      out_value_type>::type();
   auto [in_extents, out_extents, fft_extents, howmany] =
       KokkosFFT::Impl::get_extents(in, out, axes, s, is_inplace);
   int idist    = std::accumulate(in_extents.begin(), in_extents.end(), 1,
