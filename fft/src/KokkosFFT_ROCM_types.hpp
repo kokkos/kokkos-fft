@@ -34,9 +34,9 @@ template <typename ExecutionSpace>
 using TransformType = FFTWTransformType;
 
 /// \brief A class that wraps rocfft for RAII
-template <typename ExecutionSpace, typename T1, typename T2>
+template <typename ExecutionSpace, typename T>
 struct ScopedRocfftPlanType {
-  using floating_point_type = KokkosFFT::Impl::base_floating_point_type<T1>;
+  using floating_point_type = KokkosFFT::Impl::base_floating_point_type<T>;
   rocfft_plan m_plan;
   rocfft_execution_info m_execution_info;
 
@@ -55,6 +55,9 @@ struct ScopedRocfftPlanType {
     if (m_is_plan_created) rocfft_plan_destroy(m_plan);
   }
 
+  void allocate_work_buffer(std::size_t workbuffersize) {
+    m_buffer = BufferViewType("work buffer", workbuffersize);
+  }
   rocfft_plan &plan() { return m_plan; }
   rocfft_execution_info &execution_info() { return m_execution_info; }
 };
@@ -114,7 +117,7 @@ struct FFTDataType {
 template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTPlanType {
   using fftw_plan_type   = ScopedFFTWPlanType<ExecutionSpace, T1, T2>;
-  using rocfft_plan_type = ScopedRocfftPlanType<ExecutionSpace, T1, T2>;
+  using rocfft_plan_type = ScopedRocfftPlanType<ExecutionSpace, T1>;
   using type = std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
                                   rocfft_plan_type, fftw_plan_type>;
 };
@@ -141,7 +144,7 @@ struct FFTDataType {
 
 template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTPlanType {
-  using type = ScopedRocfftPlanType<ExecutionSpace, T1, T2>;
+  using type = ScopedRocfftPlanType<ExecutionSpace, T1>;
 };
 
 template <typename ExecutionSpace>
