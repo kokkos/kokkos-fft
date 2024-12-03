@@ -192,8 +192,8 @@ auto create_plan(const ExecutionSpace& exec_space,
                      "rocfft_plan_get_work_buffer_size failed");
 
   if (workbuffersize > 0) {
-    plan->m_buffer = BufferViewType("work_buffer", workbuffersize);
-    status         = rocfft_execution_info_set_work_buffer(
+    plan->allocate_work_buffer(workbuffersize);
+    status = rocfft_execution_info_set_work_buffer(
         plan->execution_info(), (void*)plan->m_buffer.data(), workbuffersize);
     KOKKOSFFT_THROW_IF(status != rocfft_status_success,
                        "rocfft_execution_info_set_work_buffer failed");

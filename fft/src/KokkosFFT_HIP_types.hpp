@@ -24,7 +24,6 @@ namespace Impl {
 using FFTDirectionType = int;
 
 /// \brief A class that wraps hipfft for RAII
-template <typename ExecutionSpace, typename T1, typename T2>
 struct ScopedHIPfftPlanType {
   hipfftHandle m_plan;
 
@@ -129,7 +128,7 @@ struct transform_type<ExecutionSpace, Kokkos::complex<T1>,
 template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTPlanType {
   using fftw_plan_type   = ScopedFFTWPlanType<ExecutionSpace, T1, T2>;
-  using hipfft_plan_type = ScopedHIPfftPlanType<ExecutionSpace, T1, T2>;
+  using hipfft_plan_type = ScopedHIPfftPlanType;
   using type = std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
                                   hipfft_plan_type, fftw_plan_type>;
 };
@@ -192,7 +191,7 @@ struct transform_type<ExecutionSpace, Kokkos::complex<T1>,
 
 template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTPlanType {
-  using type = ScopedHIPfftPlanType<ExecutionSpace, T1, T2>;
+  using type = ScopedHIPfftPlanType;
 };
 
 template <typename ExecutionSpace>
