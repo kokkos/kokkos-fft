@@ -14,15 +14,14 @@ namespace KokkosFFT {
 namespace Impl {
 // batched transform, over ND Views
 template <typename ExecutionSpace, typename PlanType, typename InViewType,
-          typename OutViewType, typename BufferViewType, typename InfoType,
-          std::size_t fft_rank = 1,
+          typename OutViewType, std::size_t fft_rank = 1,
           std::enable_if_t<is_AnyHostSpace_v<ExecutionSpace>, std::nullptr_t> =
               nullptr>
 auto create_plan(const ExecutionSpace& exec_space,
                  std::unique_ptr<PlanType>& plan, const InViewType& in,
-                 const OutViewType& out, BufferViewType&, InfoType&,
-                 Direction direction, axis_type<fft_rank> axes,
-                 shape_type<fft_rank> s, bool is_inplace) {
+                 const OutViewType& out, Direction direction,
+                 axis_type<fft_rank> axes, shape_type<fft_rank> s,
+                 bool is_inplace) {
   static_assert(
       KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
                                               OutViewType>,
