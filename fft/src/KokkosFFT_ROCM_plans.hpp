@@ -84,16 +84,15 @@ auto compute_strides(const std::vector<InType>& extents)
 
 // batched transform, over ND Views
 template <typename ExecutionSpace, typename PlanType, typename InViewType,
-          typename OutViewType, typename BufferViewType, typename InfoType,
+          typename OutViewType, typename BufferViewType,
           std::size_t fft_rank             = 1,
           std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
                            std::nullptr_t> = nullptr>
 auto create_plan(const ExecutionSpace& exec_space,
                  std::unique_ptr<PlanType>& plan, const InViewType& in,
                  const OutViewType& out, BufferViewType& buffer,
-                 InfoType& execution_info, Direction direction,
-                 axis_type<fft_rank> axes, shape_type<fft_rank> s,
-                 bool is_inplace) {
+                 Direction direction, axis_type<fft_rank> axes,
+                 shape_type<fft_rank> s, bool is_inplace) {
   static_assert(
       KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
                                               OutViewType>,
@@ -129,8 +128,13 @@ auto create_plan(const ExecutionSpace& exec_space,
       convert_int_type_and_reverse<int, std::size_t>(fft_extents);
 
   // Create the description
-  rocfft_plan_description description;
-  rocfft_status status = rocfft_plan_description_create(&description);
+  std::unique_ptr<rocfft_plan_description,
+                  std::function<void(rocfft_plan_description*)>> const
+      description(new rocfft_plan_description,
+                  [](rocfft_plan_description* desc) {
+                    rocfft_plan_description_destroy(*desc);
+                  });
+  rocfft_status status = rocfft_plan_description_create(&(*description));
   KOKKOSFFT_THROW_IF(status != rocfft_status_success,
                      "rocfft_plan_description_create failed");
 
@@ -139,7 +143,7 @@ auto create_plan(const ExecutionSpace& exec_space,
   rocfft_precision precision = get_in_out_array_type<in_value_type>();
 
   status = rocfft_plan_description_set_data_layout(
-      description,         // description handle
+      *description,        // description handle
       in_array_type,       // input array type
       out_array_type,      // output array type
       nullptr,             // offsets to start of input data
@@ -159,56 +163,46 @@ auto create_plan(const ExecutionSpace& exec_space,
 
   // Create a plan
   plan   = std::make_unique<PlanType>();
-  status = rocfft_plan_create(&(*plan), place, fft_direction, precision,
+  status = rocfft_plan_create(&(plan->plan()), place, fft_direction, precision,
                               reversed_fft_extents.size(),  // Dimension
                               reversed_fft_extents.data(),  // Lengths
-                              howmany,     // Number of transforms
-                              description  // Description
+                              howmany,      // Number of transforms
+                              *description  // Description
   );
   KOKKOSFFT_THROW_IF(status != rocfft_status_success,
                      "rocfft_plan_create failed");
+  plan->m_is_plan_created = true;
 
   // Prepare workbuffer and set execution information
-  status = rocfft_execution_info_create(&execution_info);
+  status = rocfft_execution_info_create(&(plan->execution_info()));
   KOKKOSFFT_THROW_IF(status != rocfft_status_success,
                      "rocfft_execution_info_create failed");
+  plan->m_is_info_created = true;
 
   // set stream
   // NOTE: The stream must be of type hipStream_t.
   // It is an error to pass the address of a hipStream_t object.
   hipStream_t stream = exec_space.hip_stream();
-  status             = rocfft_execution_info_set_stream(execution_info, stream);
+  status = rocfft_execution_info_set_stream(plan->execution_info(), stream);
   KOKKOSFFT_THROW_IF(status != rocfft_status_success,
                      "rocfft_execution_info_set_stream failed");
 
   std::size_t workbuffersize = 0;
-  status = rocfft_plan_get_work_buffer_size(*plan, &workbuffersize);
+  status = rocfft_plan_get_work_buffer_size(plan->plan(), &workbuffersize);
   KOKKOSFFT_THROW_IF(status != rocfft_status_success,
                      "rocfft_plan_get_work_buffer_size failed");
 
   if (workbuffersize > 0) {
-    buffer = BufferViewType("work_buffer", workbuffersize);
-    status = rocfft_execution_info_set_work_buffer(
-        execution_info, (void*)buffer.data(), workbuffersize);
+    plan->m_buffer = BufferViewType("work_buffer", workbuffersize);
+    status         = rocfft_execution_info_set_work_buffer(
+        plan->execution_info(), (void*)plan->m_buffer.data(), workbuffersize);
     KOKKOSFFT_THROW_IF(status != rocfft_status_success,
                        "rocfft_execution_info_set_work_buffer failed");
   }
 
-  status = rocfft_plan_description_destroy(description);
-  KOKKOSFFT_THROW_IF(status != rocfft_status_success,
-                     "rocfft_plan_description_destroy failed");
-
   return fft_size;
 }
 
-template <typename ExecutionSpace, typename PlanType, typename InfoType,
-          std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
-                           std::nullptr_t> = nullptr>
-void destroy_plan_and_info(std::unique_ptr<PlanType>& plan,
-                           InfoType& execution_info) {
-  rocfft_execution_info_destroy(execution_info);
-  rocfft_plan_destroy(*plan);
-}
 }  // namespace Impl
 }  // namespace KokkosFFT
 
