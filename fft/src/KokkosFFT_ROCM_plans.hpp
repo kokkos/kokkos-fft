@@ -84,15 +84,14 @@ auto compute_strides(const std::vector<InType>& extents)
 
 // batched transform, over ND Views
 template <typename ExecutionSpace, typename PlanType, typename InViewType,
-          typename OutViewType, typename BufferViewType,
-          std::size_t fft_rank             = 1,
+          typename OutViewType, std::size_t fft_rank = 1,
           std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
                            std::nullptr_t> = nullptr>
 auto create_plan(const ExecutionSpace& exec_space,
                  std::unique_ptr<PlanType>& plan, const InViewType& in,
-                 const OutViewType& out, BufferViewType& buffer,
-                 Direction direction, axis_type<fft_rank> axes,
-                 shape_type<fft_rank> s, bool is_inplace) {
+                 const OutViewType& out, Direction direction,
+                 axis_type<fft_rank> axes, shape_type<fft_rank> s,
+                 bool is_inplace) {
   static_assert(
       KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
                                               OutViewType>,
