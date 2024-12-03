@@ -12,6 +12,10 @@
 #include "KokkosFFT_common_types.hpp"
 #include "KokkosFFT_utils.hpp"
 
+#if defined(ENABLE_HOST_AND_DEVICE)
+#include "KokkosFFT_FFTW_Types.hpp"
+#endif
+
 // Check the size of complex type
 // [TO DO] I guess this kind of test is already made by Kokkos itself
 static_assert(sizeof(std::complex<float>) == sizeof(Kokkos::complex<float>));
@@ -21,26 +25,15 @@ static_assert(sizeof(std::complex<double>) == sizeof(Kokkos::complex<double>));
 static_assert(alignof(std::complex<double>) <=
               alignof(Kokkos::complex<double>));
 
-#ifdef ENABLE_HOST_AND_DEVICE
-#include <fftw3.h>
-static_assert(sizeof(fftwf_complex) == sizeof(Kokkos::complex<float>));
-static_assert(alignof(fftwf_complex) <= alignof(Kokkos::complex<float>));
-
-static_assert(sizeof(fftw_complex) == sizeof(Kokkos::complex<double>));
-static_assert(alignof(fftw_complex) <= alignof(Kokkos::complex<double>));
-#endif
-
 namespace KokkosFFT {
 namespace Impl {
 using FFTDirectionType                      = int;
 constexpr FFTDirectionType MKL_FFT_FORWARD  = 1;
 constexpr FFTDirectionType MKL_FFT_BACKWARD = -1;
 
-// Unused
-template <typename ExecutionSpace>
-using FFTInfoType = int;
-
+#if !defined(ENABLE_HOST_AND_DEVICE)
 enum class FFTWTransformType { R2C, D2Z, C2R, Z2D, C2C, Z2Z };
+#endif
 
 template <typename ExecutionSpace>
 using TransformType = FFTWTransformType;
@@ -83,7 +76,7 @@ struct transform_type<ExecutionSpace, Kokkos::complex<T1>,
   static constexpr FFTWTransformType type() { return m_type; };
 };
 
-#ifdef ENABLE_HOST_AND_DEVICE
+#if defined(ENABLE_HOST_AND_DEVICE)
 
 template <typename ExecutionSpace>
 struct FFTDataType {
@@ -115,11 +108,7 @@ struct FFTPlanType<ExecutionSpace, T1, Kokkos::complex<T2>> {
   static constexpr oneapi::mkl::dft::domain dom =
       oneapi::mkl::dft::domain::REAL;
 
-  using fftwHandle = std::conditional_t<
-      std::is_same_v<KokkosFFT::Impl::base_floating_point_type<float_type>,
-                     float>,
-      fftwf_plan, fftw_plan>;
-
+  using fftwHandle   = ScopedFFTWPlanType<ExecutionSpace, T1, T2>;
   using onemklHandle = oneapi::mkl::dft::descriptor<prec, dom>;
   using type         = std::conditional_t<
       std::is_same_v<ExecutionSpace, Kokkos::Experimental::SYCL>, onemklHandle,
@@ -137,11 +126,7 @@ struct FFTPlanType<ExecutionSpace, Kokkos::complex<T1>, T2> {
   static constexpr oneapi::mkl::dft::domain dom =
       oneapi::mkl::dft::domain::REAL;
 
-  using fftwHandle = std::conditional_t<
-      std::is_same_v<KokkosFFT::Impl::base_floating_point_type<float_type>,
-                     float>,
-      fftwf_plan, fftw_plan>;
-
+  using fftwHandle   = ScopedFFTWPlanType<ExecutionSpace, T1, T2>;
   using onemklHandle = oneapi::mkl::dft::descriptor<prec, dom>;
   using type         = std::conditional_t<
       std::is_same_v<ExecutionSpace, Kokkos::Experimental::SYCL>, onemklHandle,
@@ -159,11 +144,7 @@ struct FFTPlanType<ExecutionSpace, Kokkos::complex<T1>, Kokkos::complex<T2>> {
   static constexpr oneapi::mkl::dft::domain dom =
       oneapi::mkl::dft::domain::COMPLEX;
 
-  using fftwHandle = std::conditional_t<
-      std::is_same_v<KokkosFFT::Impl::base_floating_point_type<float_type>,
-                     float>,
-      fftwf_plan, fftw_plan>;
-
+  using fftwHandle   = ScopedFFTWPlanType<ExecutionSpace, T1, T2>;
   using onemklHandle = oneapi::mkl::dft::descriptor<prec, dom>;
   using type         = std::conditional_t<
       std::is_same_v<ExecutionSpace, Kokkos::Experimental::SYCL>, onemklHandle,
