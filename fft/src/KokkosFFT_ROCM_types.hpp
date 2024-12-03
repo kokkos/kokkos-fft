@@ -8,6 +8,7 @@
 #include <complex>
 #include <rocfft/rocfft.h>
 #include "KokkosFFT_common_types.hpp"
+#include "KokkosFFT_traits.hpp"
 #if defined(ENABLE_HOST_AND_DEVICE)
 #include "KokkosFFT_FFTW_Types.hpp"
 #endif
