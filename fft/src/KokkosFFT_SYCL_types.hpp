@@ -108,7 +108,8 @@ struct FFTPlanType<ExecutionSpace, T1, Kokkos::complex<T2>> {
   static constexpr oneapi::mkl::dft::domain dom =
       oneapi::mkl::dft::domain::REAL;
 
-  using fftwHandle   = ScopedFFTWPlanType<ExecutionSpace, T1, T2>;
+  using fftwHandle =
+      ScopedFFTWPlanType<ExecutionSpace, T1, Kokkos::complex<T2>>;
   using onemklHandle = oneapi::mkl::dft::descriptor<prec, dom>;
   using type         = std::conditional_t<
       std::is_same_v<ExecutionSpace, Kokkos::Experimental::SYCL>, onemklHandle,
@@ -126,7 +127,8 @@ struct FFTPlanType<ExecutionSpace, Kokkos::complex<T1>, T2> {
   static constexpr oneapi::mkl::dft::domain dom =
       oneapi::mkl::dft::domain::REAL;
 
-  using fftwHandle   = ScopedFFTWPlanType<ExecutionSpace, T1, T2>;
+  using fftwHandle =
+      ScopedFFTWPlanType<ExecutionSpace, Kokkos::complex<T1>, T2>;
   using onemklHandle = oneapi::mkl::dft::descriptor<prec, dom>;
   using type         = std::conditional_t<
       std::is_same_v<ExecutionSpace, Kokkos::Experimental::SYCL>, onemklHandle,
@@ -144,7 +146,8 @@ struct FFTPlanType<ExecutionSpace, Kokkos::complex<T1>, Kokkos::complex<T2>> {
   static constexpr oneapi::mkl::dft::domain dom =
       oneapi::mkl::dft::domain::COMPLEX;
 
-  using fftwHandle   = ScopedFFTWPlanType<ExecutionSpace, T1, T2>;
+  using fftwHandle   = ScopedFFTWPlanType<ExecutionSpace, Kokkos::complex<T1>,
+                                        Kokkos::complex<T2>>;
   using onemklHandle = oneapi::mkl::dft::descriptor<prec, dom>;
   using type         = std::conditional_t<
       std::is_same_v<ExecutionSpace, Kokkos::Experimental::SYCL>, onemklHandle,
