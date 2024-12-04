@@ -58,10 +58,36 @@ auto create_plan(const ExecutionSpace& exec_space,
   [[maybe_unused]] auto sign =
       KokkosFFT::Impl::direction_type<ExecutionSpace>(direction);
 
-  plan = std::make_unique<PlanType>();
-  plan->create(exec_space, rank, fft_extents.data(), howmany, idata,
-               in_extents.data(), istride, idist, odata, out_extents.data(),
-               ostride, odist, sign, FFTW_ESTIMATE);
+  plan = std::make_unique<PlanType>(exec_space);
+  constexpr auto type =
+      KokkosFFT::Impl::transform_type<ExecutionSpace, in_value_type,
+                                      out_value_type>::type();
+  if constexpr (type == KokkosFFT::Impl::FFTWTransformType::R2C) {
+    plan->m_plan = fftwf_plan_many_dft_r2c(
+        rank, fft_extents.data(), howmany, idata, in_extents.data(), istride,
+        idist, odata, out_extents.data(), ostride, odist, FFTW_ESTIMATE);
+  } else if constexpr (type == KokkosFFT::Impl::FFTWTransformType::D2Z) {
+    plan->m_plan = fftw_plan_many_dft_r2c(
+        rank, fft_extents.data(), howmany, idata, in_extents.data(), istride,
+        idist, odata, out_extents.data(), ostride, odist, FFTW_ESTIMATE);
+  } else if constexpr (type == KokkosFFT::Impl::FFTWTransformType::C2R) {
+    plan->m_plan = fftwf_plan_many_dft_c2r(
+        rank, fft_extents.data(), howmany, idata, in_extents.data(), istride,
+        idist, odata, out_extents.data(), ostride, odist, FFTW_ESTIMATE);
+  } else if constexpr (type == KokkosFFT::Impl::FFTWTransformType::Z2D) {
+    plan->m_plan = fftw_plan_many_dft_c2r(
+        rank, fft_extents.data(), howmany, idata, in_extents.data(), istride,
+        idist, odata, out_extents.data(), ostride, odist, FFTW_ESTIMATE);
+  } else if constexpr (type == KokkosFFT::Impl::FFTWTransformType::C2C) {
+    plan->m_plan = fftwf_plan_many_dft(
+        rank, fft_extents.data(), howmany, idata, in_extents.data(), istride,
+        idist, odata, out_extents.data(), ostride, odist, sign, FFTW_ESTIMATE);
+  } else if constexpr (type == KokkosFFT::Impl::FFTWTransformType::Z2Z) {
+    plan->m_plan = fftw_plan_many_dft(
+        rank, fft_extents.data(), howmany, idata, in_extents.data(), istride,
+        idist, odata, out_extents.data(), ostride, odist, sign, FFTW_ESTIMATE);
+  }
+  plan->m_is_created;
 
   return fft_size;
 }

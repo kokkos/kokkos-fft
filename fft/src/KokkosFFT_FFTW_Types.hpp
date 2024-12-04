@@ -70,7 +70,10 @@ struct ScopedFFTWPlanType {
   plan_type m_plan;
   bool m_is_created = false;
 
-  ScopedFFTWPlanType() {}
+  ScopedFFTWPlanType() = delete;
+  ScopedFFTWPlanType(const ExecutionSpace &exec_space) {
+    init_threads<floating_point_type>(exec_space);
+  }
   ~ScopedFFTWPlanType() {
     cleanup_threads<floating_point_type>();
     if constexpr (std::is_same_v<floating_point_type, float>) {
@@ -80,43 +83,7 @@ struct ScopedFFTWPlanType {
     }
   }
 
-  plan_type &plan() { return m_plan; }
-
-  template <typename InScalarType, typename OutScalarType>
-  void create(const ExecutionSpace &exec_space, int rank, const int *n,
-              int howmany, InScalarType *in, const int *inembed, int istride,
-              int idist, OutScalarType *out, const int *onembed, int ostride,
-              int odist, [[maybe_unused]] int sign, unsigned flags) {
-    init_threads<floating_point_type>(exec_space);
-
-    constexpr auto type = fftw_transform_type<ExecutionSpace, T1, T2>::type();
-
-    if constexpr (type == KokkosFFT::Impl::FFTWTransformType::R2C) {
-      m_plan =
-          fftwf_plan_many_dft_r2c(rank, n, howmany, in, inembed, istride, idist,
-                                  out, onembed, ostride, odist, flags);
-    } else if constexpr (type == KokkosFFT::Impl::FFTWTransformType::D2Z) {
-      m_plan =
-          fftw_plan_many_dft_r2c(rank, n, howmany, in, inembed, istride, idist,
-                                 out, onembed, ostride, odist, flags);
-    } else if constexpr (type == KokkosFFT::Impl::FFTWTransformType::C2R) {
-      m_plan =
-          fftwf_plan_many_dft_c2r(rank, n, howmany, in, inembed, istride, idist,
-                                  out, onembed, ostride, odist, flags);
-    } else if constexpr (type == KokkosFFT::Impl::FFTWTransformType::Z2D) {
-      m_plan =
-          fftw_plan_many_dft_c2r(rank, n, howmany, in, inembed, istride, idist,
-                                 out, onembed, ostride, odist, flags);
-    } else if constexpr (type == KokkosFFT::Impl::FFTWTransformType::C2C) {
-      m_plan =
-          fftwf_plan_many_dft(rank, n, howmany, in, inembed, istride, idist,
-                              out, onembed, ostride, odist, sign, flags);
-    } else if constexpr (type == KokkosFFT::Impl::FFTWTransformType::Z2Z) {
-      m_plan = fftw_plan_many_dft(rank, n, howmany, in, inembed, istride, idist,
-                                  out, onembed, ostride, odist, sign, flags);
-    }
-    m_is_created = true;
-  }
+  const plan_type &plan() const { return m_plan; }
 
  private:
   template <typename T>
