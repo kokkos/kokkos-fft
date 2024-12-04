@@ -84,6 +84,7 @@ struct ScopedFFTWPlanType {
   }
 
   const plan_type &plan() const { return m_plan; }
+  void set_is_created() { m_is_created = true; }
 
  private:
   template <typename T>

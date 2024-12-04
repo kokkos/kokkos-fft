@@ -87,7 +87,7 @@ auto create_plan(const ExecutionSpace& exec_space,
         rank, fft_extents.data(), howmany, idata, in_extents.data(), istride,
         idist, odata, out_extents.data(), ostride, odist, sign, FFTW_ESTIMATE);
   }
-  plan->m_is_created;
+  plan->set_is_created();
 
   return fft_size;
 }
