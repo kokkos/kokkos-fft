@@ -63,6 +63,7 @@ struct fftw_transform_type<ExecutionSpace, Kokkos::complex<T1>,
 /// \brief A class that wraps fftw_plan and fftwf_plan for RAII
 template <typename ExecutionSpace, typename T1, typename T2>
 struct ScopedFFTWPlanType {
+ private:
   using floating_point_type = KokkosFFT::Impl::base_floating_point_type<T1>;
   using plan_type =
       std::conditional_t<std::is_same_v<floating_point_type, float>, fftwf_plan,
@@ -70,13 +71,13 @@ struct ScopedFFTWPlanType {
   plan_type m_plan;
   bool m_is_created = false;
 
+ public:
   ScopedFFTWPlanType() = delete;
   ScopedFFTWPlanType(const ExecutionSpace &exec_space) {
-    init_threads<floating_point_type>(exec_space);
+    init_threads(exec_space);
   }
   ~ScopedFFTWPlanType() {
-    cleanup_threads<floating_point_type>();
-    if constexpr (std::is_same_v<floating_point_type, float>) {
+    if constexpr (std::is_same_v<plan_type, fftwf_plan>) {
       if (m_is_created) fftwf_destroy_plan(m_plan);
     } else {
       if (m_is_created) fftw_destroy_plan(m_plan);
@@ -87,12 +88,11 @@ struct ScopedFFTWPlanType {
   void set_is_created() { m_is_created = true; }
 
  private:
-  template <typename T>
   void init_threads([[maybe_unused]] const ExecutionSpace &exec_space) {
 #if defined(KOKKOS_ENABLE_OPENMP) || defined(KOKKOS_ENABLE_THREADS)
     int nthreads = exec_space.concurrency();
 
-    if constexpr (std::is_same_v<T, float>) {
+    if constexpr (std::is_same_v<plan_type, fftwf_plan>) {
       fftwf_init_threads();
       fftwf_plan_with_nthreads(nthreads);
     } else {
@@ -102,10 +102,9 @@ struct ScopedFFTWPlanType {
 #endif
   }
 
-  template <typename T>
   void cleanup_threads() {
 #if defined(KOKKOS_ENABLE_OPENMP) || defined(KOKKOS_ENABLE_THREADS)
-    if constexpr (std::is_same_v<T, float>) {
+    if constexpr (std::is_same_v<plan_type, fftwf_plan>) {
       fftwf_cleanup_threads();
     } else {
       fftw_cleanup_threads();
