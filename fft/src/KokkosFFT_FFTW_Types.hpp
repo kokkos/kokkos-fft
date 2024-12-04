@@ -80,7 +80,7 @@ struct ScopedFFTWPlanType {
     }
   }
 
-  plan_type &plan() const { return m_plan; }
+  plan_type &plan() { return m_plan; }
 
   template <typename InScalarType, typename OutScalarType>
   void create(const ExecutionSpace &exec_space, int rank, const int *n,
