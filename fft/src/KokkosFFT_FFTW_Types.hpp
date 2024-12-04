@@ -73,10 +73,42 @@ struct ScopedFFTWPlanType {
 
  public:
   ScopedFFTWPlanType() = delete;
-  ScopedFFTWPlanType(const ExecutionSpace &exec_space) {
+  template <typename InScalarType, typename OutScalarType>
+  ScopedFFTWPlanType(const ExecutionSpace &exec_space, int rank, const int *n,
+                     int howmany, InScalarType *in, const int *inembed,
+                     int istride, int idist, OutScalarType *out,
+                     const int *onembed, int ostride, int odist,
+                     [[maybe_unused]] int sign, unsigned flags) {
     init_threads(exec_space);
+    constexpr auto type = fftw_transform_type<ExecutionSpace, T1, T2>::type();
+    if constexpr (type == KokkosFFT::Impl::FFTWTransformType::R2C) {
+      m_plan =
+          fftwf_plan_many_dft_r2c(rank, n, howmany, in, inembed, istride, idist,
+                                  out, onembed, ostride, odist, flags);
+    } else if constexpr (type == KokkosFFT::Impl::FFTWTransformType::D2Z) {
+      m_plan =
+          fftw_plan_many_dft_r2c(rank, n, howmany, in, inembed, istride, idist,
+                                 out, onembed, ostride, odist, flags);
+    } else if constexpr (type == KokkosFFT::Impl::FFTWTransformType::C2R) {
+      m_plan =
+          fftwf_plan_many_dft_c2r(rank, n, howmany, in, inembed, istride, idist,
+                                  out, onembed, ostride, odist, flags);
+    } else if constexpr (type == KokkosFFT::Impl::FFTWTransformType::Z2D) {
+      m_plan =
+          fftw_plan_many_dft_c2r(rank, n, howmany, in, inembed, istride, idist,
+                                 out, onembed, ostride, odist, flags);
+    } else if constexpr (type == KokkosFFT::Impl::FFTWTransformType::C2C) {
+      m_plan =
+          fftwf_plan_many_dft(rank, n, howmany, in, inembed, istride, idist,
+                              out, onembed, ostride, odist, sign, flags);
+    } else if constexpr (type == KokkosFFT::Impl::FFTWTransformType::Z2Z) {
+      m_plan = fftw_plan_many_dft(rank, n, howmany, in, inembed, istride, idist,
+                                  out, onembed, ostride, odist, sign, flags);
+    }
+    m_is_created = true;
   }
   ~ScopedFFTWPlanType() {
+    cleanup_threads();
     if constexpr (std::is_same_v<plan_type, fftwf_plan>) {
       if (m_is_created) fftwf_destroy_plan(m_plan);
     } else {
@@ -85,7 +117,6 @@ struct ScopedFFTWPlanType {
   }
 
   const plan_type &plan() const { return m_plan; }
-  void set_is_created() { m_is_created = true; }
 
  private:
   void init_threads([[maybe_unused]] const ExecutionSpace &exec_space) {

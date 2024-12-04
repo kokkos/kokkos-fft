@@ -40,7 +40,7 @@ void exec_plan(ScopedPlanType& scoped_plan, fftwf_complex* idata,
 }
 
 template <typename ScopedPlanType>
-void exec_plan(ScopedPlanType scoped_plan, fftw_complex* idata,
+void exec_plan(ScopedPlanType& scoped_plan, fftw_complex* idata,
                fftw_complex* odata, int /*direction*/) {
   fftw_execute_dft(scoped_plan.plan(), idata, odata);
 }
