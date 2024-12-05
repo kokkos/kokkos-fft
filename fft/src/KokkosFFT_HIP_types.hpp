@@ -31,7 +31,7 @@ struct ScopedHIPfftPlanType {
   ScopedHIPfftPlanType() { hipfftCreate(&m_plan); }
   ~ScopedHIPfftPlanType() { hipfftDestroy(m_plan); }
 
-  ScopedHIPfftPlanType &plan() { return m_plan; }
+  hipfftHandle &plan() { return m_plan; }
 };
 
 #if defined(ENABLE_HOST_AND_DEVICE)
