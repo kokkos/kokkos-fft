@@ -6,7 +6,9 @@
 #define KOKKOSFFT_CUDA_TYPES_HPP
 
 #include <cufft.h>
+#include <Kokkos_Abort.hpp>
 #include "KokkosFFT_common_types.hpp"
+#include "KokkosFFT_asserts.hpp"
 
 #if defined(ENABLE_HOST_AND_DEVICE)
 #include "KokkosFFT_FFTW_Types.hpp"
@@ -25,10 +27,18 @@ using FFTDirectionType = int;
 
 /// \brief A class that wraps cufft for RAII
 struct ScopedCufftPlanType {
+ private:
   cufftHandle m_plan;
 
-  ScopedCufftPlanType() { cufftCreate(&m_plan); }
-  ~ScopedCufftPlanType() { cufftDestroy(m_plan); }
+ public:
+  ScopedCufftPlanType() {
+    cufftResult cufft_rt = cufftCreate(&m_plan);
+    KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftCreate failed");
+  }
+  ~ScopedCufftPlanType() {
+    cufftResult cufft_rt = cufftDestroy(m_plan);
+    if (cufft_rt != CUFFT_SUCCESS) Kokkos::abort("cufftDestroy failed");
+  }
 
   cufftHandle &plan() { return m_plan; }
 };

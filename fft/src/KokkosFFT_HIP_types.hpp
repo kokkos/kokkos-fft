@@ -6,7 +6,9 @@
 #define KOKKOSFFT_HIP_TYPES_HPP
 
 #include <hipfft/hipfft.h>
+#include <Kokkos_Abort.hpp>
 #include "KokkosFFT_common_types.hpp"
+#include "KokkosFFT_asserts.hpp"
 
 #if defined(ENABLE_HOST_AND_DEVICE)
 #include "KokkosFFT_FFTW_Types.hpp"
@@ -25,10 +27,18 @@ using FFTDirectionType = int;
 
 /// \brief A class that wraps hipfft for RAII
 struct ScopedHIPfftPlanType {
+ private:
   hipfftHandle m_plan;
 
-  ScopedHIPfftPlanType() { hipfftCreate(&m_plan); }
-  ~ScopedHIPfftPlanType() { hipfftDestroy(m_plan); }
+ public:
+  ScopedHIPfftPlanType() {
+    hipfftResult hipfft_rt = hipfftCreate(&m_plan);
+    KOKKOSFFT_THROW_IF(hipfft_rt != HIPFFT_SUCCESS, "hipfftCreate failed");
+  }
+  ~ScopedHIPfftPlanType() {
+    hipfftResult hipfft_rt = hipfftDestroy(m_plan);
+    if (hipfft_rt != HIPFFT_SUCCESS) Kokkos::abort("hipfftDestroy failed");
+  }
 
   hipfftHandle &plan() { return m_plan; }
 };

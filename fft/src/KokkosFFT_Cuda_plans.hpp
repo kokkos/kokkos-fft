@@ -189,8 +189,7 @@ auto create_plan(const ExecutionSpace& exec_space,
 
   // For the moment, considering the contiguous layout only
   int istride = 1, ostride = 1;
-
-  plan                 = std::make_unique<PlanType>();
+  plan = std::make_unique<PlanType>();
 
   cudaStream_t stream  = exec_space.cuda_stream();
   cufftResult cufft_rt = cufftSetStream((*plan).plan(), stream);
