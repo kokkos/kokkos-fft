@@ -97,7 +97,7 @@ jobs:
           tool-cache: true
           large-packages: false
 
-      - name: Checkout built branch
+      - name: Checkout
         uses: actions/checkout@v4
         with:
           submodules: recursive
@@ -141,7 +141,6 @@ jobs:
             -DCMAKE_CXX_STANDARD=${{ matrix.backend.cmake_flags.cxx_standard }} \
             -DKokkosFFT_ENABLE_EXAMPLES=ON \
             -DKokkosFFT_ENABLE_TESTS=ON \
-            ${{ matrix.backend.cmake_flags.kokkos }} \
             ${{ matrix.backend.cmake_flags.kokkos_fft }}
 
       - name: Build
