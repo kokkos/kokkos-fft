@@ -26,21 +26,62 @@ namespace Impl {
 using FFTDirectionType = int;
 
 /// \brief A class that wraps hipfft for RAII
-struct ScopedHIPfftPlanType {
+template <typename ExecutionSpace>
+struct ScopedHIPfftPlan {
  private:
   hipfftHandle m_plan;
 
  public:
-  ScopedHIPfftPlanType() {
-    hipfftResult hipfft_rt = hipfftCreate(&m_plan);
-    KOKKOSFFT_THROW_IF(hipfft_rt != HIPFFT_SUCCESS, "hipfftCreate failed");
+  ScopedHIPfftPlan(const ExecutionSpace &exec_space, int nx, hipfftType type,
+                   int batch) {
+    hipfftResult hipfft_rt = hipfftPlan1d(&m_plan, nx, type, batch);
+    KOKKOSFFT_THROW_IF(hipfft_rt != HIPFFT_SUCCESS, "hipfftPlan1d failed");
+    set_stream(exec_space);
   }
-  ~ScopedHIPfftPlanType() {
+
+  ScopedHIPfftPlan(const ExecutionSpace &exec_space, int nx, int ny,
+                   hipfftType type) {
+    hipfftResult hipfft_rt = hipfftPlan2d(&m_plan, nx, ny, type);
+    KOKKOSFFT_THROW_IF(hipfft_rt != HIPFFT_SUCCESS, "hipfftPlan2d failed");
+    set_stream(exec_space);
+  }
+
+  ScopedHIPfftPlan(const ExecutionSpace &exec_space, int nx, int ny, int nz,
+                   hipfftType type) {
+    hipfftResult hipfft_rt = hipfftPlan3d(&m_plan, nx, ny, nz, type);
+    KOKKOSFFT_THROW_IF(hipfft_rt != HIPFFT_SUCCESS, "hipfftPlan3d failed");
+    set_stream(exec_space);
+  }
+
+  ScopedHIPfftPlan(const ExecutionSpace &exec_space, int rank, int *n,
+                   int *inembed, int istride, int idist, int *onembed,
+                   int ostride, int odist, hipfftType type, int batch) {
+    hipfftResult hipfft_rt =
+        hipfftPlanMany(&m_plan, rank, n, inembed, istride, idist, onembed,
+                       ostride, odist, type, batch);
+    KOKKOSFFT_THROW_IF(hipfft_rt != HIPFFT_SUCCESS, "hipfftPlanMany failed");
+    set_stream(exec_space);
+  }
+
+  ~ScopedHIPfftPlan() noexcept {
     hipfftResult hipfft_rt = hipfftDestroy(m_plan);
     if (hipfft_rt != HIPFFT_SUCCESS) Kokkos::abort("hipfftDestroy failed");
   }
 
+  ScopedHIPfftPlan()                                    = delete;
+  ScopedHIPfftPlan(const ScopedHIPfftPlan &)            = delete;
+  ScopedHIPfftPlan &operator=(const ScopedHIPfftPlan &) = delete;
+  ScopedHIPfftPlan &operator=(ScopedHIPfftPlan &&)      = delete;
+  ScopedHIPfftPlan(ScopedHIPfftPlan &&)                 = delete;
+
   hipfftHandle &plan() { return m_plan; }
+
+ private:
+  void set_stream(const ExecutionSpace &exec_space) {
+    hipStream_t stream     = exec_space.hip_stream();
+    hipfftResult hipfft_rt = hipfftSetStream(m_plan, stream);
+    KOKKOSFFT_THROW_IF(hipfft_rt != HIPFFT_SUCCESS, "hipfftSetStream failed");
+  }
 };
 
 #if defined(ENABLE_HOST_AND_DEVICE)
@@ -137,8 +178,8 @@ struct transform_type<ExecutionSpace, Kokkos::complex<T1>,
 
 template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTPlanType {
-  using fftw_plan_type   = ScopedFFTWPlanType<ExecutionSpace, T1, T2>;
-  using hipfft_plan_type = ScopedHIPfftPlanType;
+  using fftw_plan_type   = ScopedFFTWPlan<ExecutionSpace, T1, T2>;
+  using hipfft_plan_type = ScopedHIPfftPlan<ExecutionSpace>;
   using type = std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
                                   hipfft_plan_type, fftw_plan_type>;
 };
@@ -201,7 +242,7 @@ struct transform_type<ExecutionSpace, Kokkos::complex<T1>,
 
 template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTPlanType {
-  using type = ScopedHIPfftPlanType;
+  using type = ScopedHIPfftPlan<ExecutionSpace>;
 };
 
 template <typename ExecutionSpace>
