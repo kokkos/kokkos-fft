@@ -8,6 +8,10 @@
 #include <hipfft/hipfft.h>
 #include "KokkosFFT_common_types.hpp"
 
+#if defined(ENABLE_HOST_AND_DEVICE)
+#include "KokkosFFT_FFTW_Types.hpp"
+#endif
+
 // Check the size of complex type
 static_assert(sizeof(hipfftComplex) == sizeof(Kokkos::complex<float>));
 static_assert(alignof(hipfftComplex) <= alignof(Kokkos::complex<float>));
@@ -15,27 +19,22 @@ static_assert(alignof(hipfftComplex) <= alignof(Kokkos::complex<float>));
 static_assert(sizeof(hipfftDoubleComplex) == sizeof(Kokkos::complex<double>));
 static_assert(alignof(hipfftDoubleComplex) <= alignof(Kokkos::complex<double>));
 
-#ifdef ENABLE_HOST_AND_DEVICE
-#include <fftw3.h>
-#include "KokkosFFT_utils.hpp"
-static_assert(sizeof(fftwf_complex) == sizeof(Kokkos::complex<float>));
-static_assert(alignof(fftwf_complex) <= alignof(Kokkos::complex<float>));
-
-static_assert(sizeof(fftw_complex) == sizeof(Kokkos::complex<double>));
-static_assert(alignof(fftw_complex) <= alignof(Kokkos::complex<double>));
-#endif
-
 namespace KokkosFFT {
 namespace Impl {
 using FFTDirectionType = int;
 
-// Unused
-template <typename ExecutionSpace>
-using FFTInfoType = int;
+/// \brief A class that wraps hipfft for RAII
+template <typename ExecutionSpace, typename T1, typename T2>
+struct ScopedHIPfftPlanType {
+  hipfftHandle m_plan;
 
-#ifdef ENABLE_HOST_AND_DEVICE
-enum class FFTWTransformType { R2C, D2Z, C2R, Z2D, C2C, Z2Z };
+  ScopedHIPfftPlanType() { hipfftCreate(&m_plan); }
+  ~ScopedHIPfftPlanType() { hipfftDestroy(m_plan); }
 
+  ScopedHIPfftPlanType &plan() { return m_plan; }
+};
+
+#if defined(ENABLE_HOST_AND_DEVICE)
 template <typename ExecutionSpace>
 struct FFTDataType {
   using float32 =
@@ -50,15 +49,6 @@ struct FFTDataType {
   using complex128 =
       std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
                          hipfftDoubleComplex, fftw_complex>;
-};
-
-template <typename ExecutionSpace, typename T1, typename T2>
-struct FFTPlanType {
-  using fftwHandle = std::conditional_t<
-      std::is_same_v<KokkosFFT::Impl::base_floating_point_type<T1>, float>,
-      fftwf_plan, fftw_plan>;
-  using type = std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
-                                  hipfftHandle, fftwHandle>;
 };
 
 template <typename ExecutionSpace>
@@ -136,6 +126,14 @@ struct transform_type<ExecutionSpace, Kokkos::complex<T1>,
   }
 };
 
+template <typename ExecutionSpace, typename T1, typename T2>
+struct FFTPlanType {
+  using fftw_plan_type  = ScopedFFTWPlanType<ExecutionSpace, T1, T2>;
+  using hipfft_plan_type = ScopedHIPfftPlanType<ExecutionSpace, T1, T2>;
+  using type = std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
+                                  hipfft_plan_type, fftw_plan_type>;
+};
+
 template <typename ExecutionSpace>
 auto direction_type(Direction direction) {
   static constexpr FFTDirectionType FORWARD =
@@ -153,11 +151,6 @@ struct FFTDataType {
   using float64    = hipfftDoubleReal;
   using complex64  = hipfftComplex;
   using complex128 = hipfftDoubleComplex;
-};
-
-template <typename ExecutionSpace, typename T1, typename T2>
-struct FFTPlanType {
-  using type = hipfftHandle;
 };
 
 template <typename ExecutionSpace>
@@ -195,6 +188,11 @@ struct transform_type<ExecutionSpace, Kokkos::complex<T1>,
   static constexpr hipfftType m_type =
       std::is_same_v<T1, float> ? HIPFFT_C2C : HIPFFT_Z2Z;
   static constexpr hipfftType type() { return m_type; };
+};
+
+template <typename ExecutionSpace, typename T1, typename T2>
+struct FFTPlanType {
+  using type = ScopedHIPfftPlanType<ExecutionSpace, T1, T2>;
 };
 
 template <typename ExecutionSpace>
