@@ -138,7 +138,7 @@ struct FFTDataType {
 
 template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTPlanType {
-  using fftw_plan_type   = ScopedFFTWPlanType<ExecutionSpace, T1, T2>;
+  using fftw_plan_type   = ScopedFFTWPlan<ExecutionSpace, T1, T2>;
   using rocfft_plan_type = ScopedRocfftPlan<ExecutionSpace, T1>;
   using type = std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
                                   rocfft_plan_type, fftw_plan_type>;
