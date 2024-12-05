@@ -21,9 +21,8 @@ template <typename ExecutionSpace, typename PlanType, typename InViewType,
                            std::nullptr_t> = nullptr>
 auto create_plan(const ExecutionSpace& exec_space,
                  std::unique_ptr<PlanType>& plan, const InViewType& in,
-                 const OutViewType& out,
-                 Direction /*direction*/, axis_type<1> axes, shape_type<1> s,
-                 bool is_inplace) {
+                 const OutViewType& out, Direction /*direction*/,
+                 axis_type<1> axes, shape_type<1> s, bool is_inplace) {
   static_assert(
       KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
                                               OutViewType>,
@@ -36,8 +35,7 @@ auto create_plan(const ExecutionSpace& exec_space,
   using out_value_type = typename OutViewType::non_const_value_type;
 
   plan                   = std::make_unique<PlanType>();
-
-  hipStream_t stream = exec_space.hip_stream();
+  hipStream_t stream     = exec_space.hip_stream();
   hipfftResult hipfft_rt = hipfftSetStream((*plan).plan(), stream);
   KOKKOSFFT_THROW_IF(hipfft_rt != HIPFFT_SUCCESS, "hipfftSetStream failed");
 
@@ -63,9 +61,8 @@ template <typename ExecutionSpace, typename PlanType, typename InViewType,
                            std::nullptr_t> = nullptr>
 auto create_plan(const ExecutionSpace& exec_space,
                  std::unique_ptr<PlanType>& plan, const InViewType& in,
-                 const OutViewType& out,
-                 Direction /*direction*/, axis_type<2> axes, shape_type<2> s,
-                 bool is_inplace) {
+                 const OutViewType& out, Direction /*direction*/,
+                 axis_type<2> axes, shape_type<2> s, bool is_inplace) {
   static_assert(
       KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
                                               OutViewType>,
@@ -103,9 +100,8 @@ template <typename ExecutionSpace, typename PlanType, typename InViewType,
                            std::nullptr_t> = nullptr>
 auto create_plan(const ExecutionSpace& exec_space,
                  std::unique_ptr<PlanType>& plan, const InViewType& in,
-                 const OutViewType& out,
-                 Direction /*direction*/, axis_type<3> axes, shape_type<3> s,
-                 bool is_inplace) {
+                 const OutViewType& out, Direction /*direction*/,
+                 axis_type<3> axes, shape_type<3> s, bool is_inplace) {
   static_assert(
       KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
                                               OutViewType>,
@@ -118,8 +114,7 @@ auto create_plan(const ExecutionSpace& exec_space,
   using out_value_type = typename OutViewType::non_const_value_type;
 
   plan                   = std::make_unique<PlanType>();
-
-  hipStream_t stream = exec_space.hip_stream();
+  hipStream_t stream     = exec_space.hip_stream();
   hipfftResult hipfft_rt = hipfftSetStream((*plan).plan(), stream);
   KOKKOSFFT_THROW_IF(hipfft_rt != HIPFFT_SUCCESS, "hipfftSetStream failed");
 
@@ -141,15 +136,14 @@ auto create_plan(const ExecutionSpace& exec_space,
 
 // batched transform, over ND Views
 template <typename ExecutionSpace, typename PlanType, typename InViewType,
-          typename OutViewType,
-          std::size_t fft_rank             = 1,
+          typename OutViewType, std::size_t fft_rank = 1,
           std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
                            std::nullptr_t> = nullptr>
 auto create_plan(const ExecutionSpace& exec_space,
                  std::unique_ptr<PlanType>& plan, const InViewType& in,
-                 const OutViewType& out,
-                 Direction /*direction*/, axis_type<fft_rank> axes,
-                 shape_type<fft_rank> s, bool is_inplace) {
+                 const OutViewType& out, Direction /*direction*/,
+                 axis_type<fft_rank> axes, shape_type<fft_rank> s,
+                 bool is_inplace) {
   static_assert(
       KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
                                               OutViewType>,
@@ -181,9 +175,8 @@ auto create_plan(const ExecutionSpace& exec_space,
   // For the moment, considering the contiguous layout only
   int istride = 1, ostride = 1;
 
-  plan                   = std::make_unique<PlanType>();
-
-  hipStream_t stream = exec_space.hip_stream();
+  plan = std::make_unique<PlanType>();
+  hipStream_t stream     = exec_space.hip_stream();
   hipfftResult hipfft_rt = hipfftSetStream((*plan).plan(), stream);
   KOKKOSFFT_THROW_IF(hipfft_rt != HIPFFT_SUCCESS, "hipfftSetStream failed");
 
