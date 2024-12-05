@@ -2,16 +2,15 @@
 #
 # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
-# Build Kokkos FFT using Docker images. Kokkos on develop branch is cloned and
-# used.
+# Build and test Kokkos FFT using Docker and Singularity images. Pre-generated
+# images are pulled from Github registry; they are updated only if the current
+# PR or commit modified the Docker files.
 
 name: Nightly tests
 
 on:
-  # FIXME remove before merging
-  pull_request:
-  # schedule:
-  #   cron: "0 1 * * 1-5" # every weekday at 1am
+  schedule:
+    cron: "0 1 * * 1-5" # every weekday at 1am
 
 env:
   # Force the use of BuildKit for Docker
