@@ -170,13 +170,13 @@ auto create_plan(const ExecutionSpace& exec_space,
   );
   KOKKOSFFT_THROW_IF(status != rocfft_status_success,
                      "rocfft_plan_create failed");
-  plan->m_is_plan_created = true;
+  plan->set_is_plan_created();
 
   // Prepare workbuffer and set execution information
   status = rocfft_execution_info_create(&(plan->execution_info()));
   KOKKOSFFT_THROW_IF(status != rocfft_status_success,
                      "rocfft_execution_info_create failed");
-  plan->m_is_info_created = true;
+  plan->set_is_info_created();
 
   // set stream
   // NOTE: The stream must be of type hipStream_t.
@@ -194,7 +194,7 @@ auto create_plan(const ExecutionSpace& exec_space,
   if (workbuffersize > 0) {
     plan->allocate_work_buffer(workbuffersize);
     status = rocfft_execution_info_set_work_buffer(
-        plan->execution_info(), (void*)plan->m_buffer.data(), workbuffersize);
+        plan->execution_info(), (void*)plan->buffer_data(), workbuffersize);
     KOKKOSFFT_THROW_IF(status != rocfft_status_success,
                        "rocfft_execution_info_set_work_buffer failed");
   }

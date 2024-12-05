@@ -7,8 +7,10 @@
 
 #include <complex>
 #include <rocfft/rocfft.h>
+#include <Kokkos_Abort.hpp>
 #include "KokkosFFT_common_types.hpp"
 #include "KokkosFFT_traits.hpp"
+#include "KokkosFFT_asserts.hpp"
 #if defined(ENABLE_HOST_AND_DEVICE)
 #include "KokkosFFT_FFTW_Types.hpp"
 #endif
@@ -37,6 +39,7 @@ using TransformType = FFTWTransformType;
 /// \brief A class that wraps rocfft for RAII
 template <typename ExecutionSpace, typename T>
 struct ScopedRocfftPlanType {
+ private:
   using floating_point_type = KokkosFFT::Impl::base_floating_point_type<T>;
   rocfft_plan m_plan;
   rocfft_execution_info m_execution_info;
@@ -44,23 +47,36 @@ struct ScopedRocfftPlanType {
   using BufferViewType =
       Kokkos::View<Kokkos::complex<floating_point_type> *, ExecutionSpace>;
 
-  bool m_is_info_created = false;
   bool m_is_plan_created = false;
+  bool m_is_info_created = false;
 
   //! Internal work buffer
   BufferViewType m_buffer;
 
+ public:
   ScopedRocfftPlanType() {}
   ~ScopedRocfftPlanType() {
-    if (m_is_info_created) rocfft_execution_info_destroy(m_execution_info);
-    if (m_is_plan_created) rocfft_plan_destroy(m_plan);
+    if (m_is_info_created) {
+      rocfft_status status = rocfft_execution_info_destroy(m_execution_info);
+      if (status != rocfft_status_success)
+        Kokkos::abort("rocfft_execution_info_destroy failed");
+    }
+    if (m_is_plan_created) {
+      rocfft_status status = rocfft_plan_destroy(m_plan);
+      if (status != rocfft_status_success)
+        Kokkos::abort("rocfft_plan_destroy failed");
+    }
   }
+
+  void set_is_plan_created() { m_is_plan_created = true; }
+  void set_is_info_created() { m_is_info_created = true; }
 
   void allocate_work_buffer(std::size_t workbuffersize) {
     m_buffer = BufferViewType("work buffer", workbuffersize);
   }
   rocfft_plan &plan() { return m_plan; }
   rocfft_execution_info &execution_info() { return m_execution_info; }
+  auto *buffer_data() { return m_buffer.data(); }
 };
 
 // Define fft transform types

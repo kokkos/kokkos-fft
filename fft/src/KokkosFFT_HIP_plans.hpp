@@ -74,7 +74,7 @@ auto create_plan(const ExecutionSpace& exec_space,
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
 
-  plan = std::make_unique<PlanType>();
+  plan                   = std::make_unique<PlanType>();
   hipStream_t stream     = exec_space.hip_stream();
   hipfftResult hipfft_rt = hipfftSetStream((*plan).plan(), stream);
   KOKKOSFFT_THROW_IF(hipfft_rt != HIPFFT_SUCCESS, "hipfftSetStream failed");
@@ -176,7 +176,7 @@ auto create_plan(const ExecutionSpace& exec_space,
   // For the moment, considering the contiguous layout only
   int istride = 1, ostride = 1;
 
-  plan = std::make_unique<PlanType>();
+  plan                   = std::make_unique<PlanType>();
   hipStream_t stream     = exec_space.hip_stream();
   hipfftResult hipfft_rt = hipfftSetStream((*plan).plan(), stream);
   KOKKOSFFT_THROW_IF(hipfft_rt != HIPFFT_SUCCESS, "hipfftSetStream failed");
