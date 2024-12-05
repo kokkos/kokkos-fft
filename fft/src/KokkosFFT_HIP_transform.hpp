@@ -10,45 +10,45 @@
 
 namespace KokkosFFT {
 namespace Impl {
-template <typename... Args>
-inline void exec_plan(hipfftHandle& plan, hipfftReal* idata,
-                      hipfftComplex* odata, int /*direction*/, Args...) {
-  hipfftResult hipfft_rt = hipfftExecR2C(plan, idata, odata);
+template <typename ScopedPlanType>
+inline void exec_plan(ScopedPlanType& scoped_plan, hipfftReal* idata,
+                      hipfftComplex* odata, int /*direction*/) {
+  hipfftResult hipfft_rt = hipfftExecR2C(scoped_plan.plan(), idata, odata);
   KOKKOSFFT_THROW_IF(hipfft_rt != HIPFFT_SUCCESS, "hipfftExecR2C failed");
 }
 
-template <typename... Args>
-inline void exec_plan(hipfftHandle& plan, hipfftDoubleReal* idata,
-                      hipfftDoubleComplex* odata, int /*direction*/, Args...) {
-  hipfftResult hipfft_rt = hipfftExecD2Z(plan, idata, odata);
+template <typename ScopedPlanType>
+inline void exec_plan(ScopedPlanType& scoped_plan, hipfftDoubleReal* idata,
+                      hipfftDoubleComplex* odata, int /*direction*/) {
+  hipfftResult hipfft_rt = hipfftExecD2Z(scoped_plan.plan(), idata, odata);
   KOKKOSFFT_THROW_IF(hipfft_rt != HIPFFT_SUCCESS, "hipfftExecD2Z failed");
 }
 
-template <typename... Args>
-inline void exec_plan(hipfftHandle& plan, hipfftComplex* idata,
-                      hipfftReal* odata, int /*direction*/, Args...) {
-  hipfftResult hipfft_rt = hipfftExecC2R(plan, idata, odata);
+template <typename ScopedPlanType>
+inline void exec_plan(ScopedPlanType& scoped_plan, hipfftComplex* idata,
+                      hipfftReal* odata, int /*direction*/) {
+  hipfftResult hipfft_rt = hipfftExecC2R(scoped_plan.plan(), idata, odata);
   KOKKOSFFT_THROW_IF(hipfft_rt != HIPFFT_SUCCESS, "hipfftExecC2R failed");
 }
 
-template <typename... Args>
-inline void exec_plan(hipfftHandle& plan, hipfftDoubleComplex* idata,
-                      hipfftDoubleReal* odata, int /*direction*/, Args...) {
-  hipfftResult hipfft_rt = hipfftExecZ2D(plan, idata, odata);
+template <typename ScopedPlanType>
+inline void exec_plan(ScopedPlanType& scoped_plan, hipfftDoubleComplex* idata,
+                      hipfftDoubleReal* odata, int /*direction*/) {
+  hipfftResult hipfft_rt = hipfftExecZ2D(scoped_plan.plan(), idata, odata);
   KOKKOSFFT_THROW_IF(hipfft_rt != HIPFFT_SUCCESS, "hipfftExecZ2D failed");
 }
 
-template <typename... Args>
-inline void exec_plan(hipfftHandle& plan, hipfftComplex* idata,
-                      hipfftComplex* odata, int direction, Args...) {
-  hipfftResult hipfft_rt = hipfftExecC2C(plan, idata, odata, direction);
+template <typename ScopedPlanType>
+inline void exec_plan(ScopedPlanType& scoped_plan, hipfftComplex* idata,
+                      hipfftComplex* odata, int direction) {
+  hipfftResult hipfft_rt = hipfftExecC2C(scoped_plan.plan(), idata, odata, direction);
   KOKKOSFFT_THROW_IF(hipfft_rt != HIPFFT_SUCCESS, "hipfftExecC2C failed");
 }
 
-template <typename... Args>
-inline void exec_plan(hipfftHandle& plan, hipfftDoubleComplex* idata,
-                      hipfftDoubleComplex* odata, int direction, Args...) {
-  hipfftResult hipfft_rt = hipfftExecZ2Z(plan, idata, odata, direction);
+template <typename ScopedPlanType>
+inline void exec_plan(ScopedPlanType& scoped_plan, hipfftDoubleComplex* idata,
+                      hipfftDoubleComplex* odata, int direction) {
+  hipfftResult hipfft_rt = hipfftExecZ2Z(scoped_plan.plan(), idata, odata, direction);
   KOKKOSFFT_THROW_IF(hipfft_rt != HIPFFT_SUCCESS, "hipfftExecZ2Z failed");
 }
 }  // namespace Impl
