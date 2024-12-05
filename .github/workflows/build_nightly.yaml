@@ -1,0 +1,144 @@
+# SPDX-FileCopyrightText: (C) The kokkos-fft development team, see COPYRIGHT.md file
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
+
+# Build and test Kokkos FFT using Docker and Singularity images. Pre-generated
+# images are pulled from Github registry; they are updated only if the current
+# PR or commit modified the Docker files.
+
+name: Nightly tests
+
+on:
+  schedule:
+    cron: "0 1 * * 1-5" # every weekday at 1am
+
+env:
+  # Force the use of BuildKit for Docker
+  DOCKER_BUILDKIT: 1
+
+jobs:
+  # build project
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        backend:
+          - name: openmp
+            image: gcc
+            compiler:
+              c: gcc
+              cxx: g++
+            cmake_flags:
+              cxx_standard: 17
+              kokkos: -DKokkos_ENABLE_OPENMP=ON
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
+          - name: threads
+            image: gcc
+            compiler:
+              c: gcc
+              cxx: g++
+            cmake_flags:
+              cxx_standard: 20
+              kokkos: -DKokkos_ENABLE_THREADS=ON
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
+          - name: serial
+            image: gcc
+            compiler:
+              c: gcc
+              cxx: g++
+            cmake_flags:
+              cxx_standard: 17
+              kokkos: -DKokkos_ENABLE_SERIAL=ON
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
+          - name: cuda
+            image: nvcc
+            compiler:
+              c: gcc
+              cxx: g++
+            cmake_flags:
+              cxx_standard: 17
+              kokkos: -DKokkos_ENABLE_CUDA=ON -DKokkos_ARCH_AMPERE80=ON
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror"
+          - name: hip
+            image: rocm
+            compiler:
+              c: hipcc
+              cxx: hipcc
+            cmake_flags:
+              cxx_standard: 17
+              kokkos: -DKokkos_ENABLE_HIP=ON -DKokkos_ARCH_VEGA90A=ON
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror"
+          - name: rocm
+            image: rocm
+            compiler:
+              c: hipcc
+              cxx: hipcc
+            cmake_flags:
+              cxx_standard: 20
+              kokkos: -DKokkos_ENABLE_HIP=ON -DKokkos_ARCH_VEGA90A=ON
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror" -DKokkosFFT_ENABLE_ROCFFT=ON
+          - name: sycl
+            image: intel
+            compiler:
+              c: icx
+              cxx: icpx
+            cmake_flags:
+              # building for Intel PVC was unsuccessful without the proper
+              # device, so for now, we simply generate generic Intel GPU code
+              cxx_standard: 17
+              kokkos: -DKokkos_ENABLE_SYCL=ON -DKokkos_ARCH_INTEL_GEN=ON
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra"
+    steps:
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          tool-cache: true
+          large-packages: false
+
+      - name: Checkout built branch
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Checkout Kokkos devel branch
+        uses: actions/checkout@v4
+        with:
+          repository: kokkos/kokkos
+          path: kokkos
+
+      - name: Configure Kokkos
+        run: |
+          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_base:latest \
+            cmake -B build_kokkos \
+            -DCMAKE_INSTALL_PREFIX=/work/install \
+            -DCMAKE_C_COMPILER=${{ matrix.backend.compiler.c }} \
+            -DCMAKE_CXX_COMPILER=${{ matrix.backend.compiler.cxx }} \
+            -DCMAKE_CXX_STANDARD=${{ matrix.backend.cmake_flags.cxx_standard }} \
+            -DCMAKE_BUILD_TYPE=${{ matrix.backend.cmake_build_type }} \
+            ${{ matrix.backend.cmake_flags.kokkos }} \
+            kokkos
+
+      - name: Build and install Kokkos
+        run: |
+          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_base:latest \
+            cmake --install build_kokkos -j $(( $(nproc) * 2 + 1 ))
+
+      - name: Configure
+        run: |
+          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_base:latest \
+            cmake -B build \
+            -DCMAKE_PREFIX_PATH=/work/install \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_C_COMPILER=${{ matrix.backend.compiler.c }} \
+            -DCMAKE_CXX_COMPILER=${{ matrix.backend.compiler.cxx }} \
+            -DCMAKE_CXX_STANDARD=${{ matrix.backend.cmake_flags.cxx_standard }} \
+            -DKokkosFFT_ENABLE_EXAMPLES=ON \
+            -DKokkosFFT_ENABLE_TESTS=ON \
+            ${{ matrix.backend.cmake_flags.kokkos }} \
+            ${{ matrix.backend.cmake_flags.kokkos_fft }}
+
+      - name: Build
+        run: |
+          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_base:latest \
+            cmake --build build -j $(( $(nproc) * 2 + 1 ))
