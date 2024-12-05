@@ -15,7 +15,7 @@ static_assert(alignof(cufftComplex) <= alignof(Kokkos::complex<float>));
 static_assert(sizeof(cufftDoubleComplex) == sizeof(Kokkos::complex<double>));
 static_assert(alignof(cufftDoubleComplex) <= alignof(Kokkos::complex<double>));
 
-#ifdef ENABLE_HOST_AND_DEVICE
+#if defined(ENABLE_HOST_AND_DEVICE)
 #include <fftw3.h>
 #include "KokkosFFT_utils.hpp"
 static_assert(sizeof(fftwf_complex) == sizeof(Kokkos::complex<float>));
@@ -33,7 +33,18 @@ using FFTDirectionType = int;
 template <typename ExecutionSpace>
 using FFTInfoType = int;
 
-#ifdef ENABLE_HOST_AND_DEVICE
+/// \brief A class that wraps cufft for RAII
+template <typename ExecutionSpace, typename T1, typename T2>
+struct ScopedCufftPlanType {
+  cufftHandle m_plan;
+
+  ScopedCufftPlanType() { cufftCreate(&m_plan); }
+  ~ScopedCufftPlanType() { cufftDestroy(m_plan); }
+
+  cufftHandle &plan() { return m_plan; }
+};
+
+#if defined(ENABLE_HOST_AND_DEVICE)
 enum class FFTWTransformType { R2C, D2Z, C2R, Z2D, C2C, Z2Z };
 
 template <typename ExecutionSpace>
@@ -50,15 +61,6 @@ struct FFTDataType {
   using complex128 =
       std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::Cuda>,
                          cufftDoubleComplex, fftw_complex>;
-};
-
-template <typename ExecutionSpace, typename T1, typename T2>
-struct FFTPlanType {
-  using fftwHandle = std::conditional_t<
-      std::is_same_v<KokkosFFT::Impl::base_floating_point_type<T1>, float>,
-      fftwf_plan, fftw_plan>;
-  using type = std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::Cuda>,
-                                  cufftHandle, fftwHandle>;
 };
 
 template <typename ExecutionSpace>
@@ -136,6 +138,101 @@ struct transform_type<ExecutionSpace, Kokkos::complex<T1>,
   }
 };
 
+/// \brief A class that wraps fftw_plan and fftwf_plan for RAII
+template <typename ExecutionSpace, typename T1, typename T2>
+struct ScopedFFTWPlanType {
+  using floating_point_type = KokkosFFT::Impl::base_floating_point_type<T1>;
+  using plan_type =
+      std::conditional_t<std::is_same_v<floating_point_type, float>, fftwf_plan,
+                         fftw_plan>;
+  plan_type m_plan;
+  bool m_is_created = false;
+
+  ScopedFFTWPlanType() {}
+  ~ScopedFFTWPlanType() {
+    cleanup_threads<floating_point_type>();
+    if constexpr (std::is_same_v<floating_point_type, float>) {
+      if (m_is_created) fftwf_destroy_plan(m_plan);
+    } else {
+      if (m_is_created) fftw_destroy_plan(m_plan);
+    }
+  }
+
+  const plan_type &plan() const { return m_plan; }
+
+  template <typename InScalarType, typename OutScalarType>
+  void create(const ExecutionSpace &exec_space, int rank, const int *n,
+              int howmany, InScalarType *in, const int *inembed, int istride,
+              int idist, OutScalarType *out, const int *onembed, int ostride,
+              int odist, [[maybe_unused]] int sign, unsigned flags) {
+    init_threads<floating_point_type>(exec_space);
+
+    constexpr auto type =
+        KokkosFFT::Impl::transform_type<ExecutionSpace, T1, T2>::type();
+
+    if constexpr (type == KokkosFFT::Impl::FFTWTransformType::R2C) {
+      m_plan =
+          fftwf_plan_many_dft_r2c(rank, n, howmany, in, inembed, istride, idist,
+                                  out, onembed, ostride, odist, flags);
+    } else if constexpr (type == KokkosFFT::Impl::FFTWTransformType::D2Z) {
+      m_plan =
+          fftw_plan_many_dft_r2c(rank, n, howmany, in, inembed, istride, idist,
+                                 out, onembed, ostride, odist, flags);
+    } else if constexpr (type == KokkosFFT::Impl::FFTWTransformType::C2R) {
+      m_plan =
+          fftwf_plan_many_dft_c2r(rank, n, howmany, in, inembed, istride, idist,
+                                  out, onembed, ostride, odist, flags);
+    } else if constexpr (type == KokkosFFT::Impl::FFTWTransformType::Z2D) {
+      m_plan =
+          fftw_plan_many_dft_c2r(rank, n, howmany, in, inembed, istride, idist,
+                                 out, onembed, ostride, odist, flags);
+    } else if constexpr (type == KokkosFFT::Impl::FFTWTransformType::C2C) {
+      m_plan =
+          fftwf_plan_many_dft(rank, n, howmany, in, inembed, istride, idist,
+                              out, onembed, ostride, odist, sign, flags);
+    } else if constexpr (type == KokkosFFT::Impl::FFTWTransformType::Z2Z) {
+      m_plan = fftw_plan_many_dft(rank, n, howmany, in, inembed, istride, idist,
+                                  out, onembed, ostride, odist, sign, flags);
+    }
+    m_is_created = true;
+  }
+
+ private:
+  template <typename T>
+  void init_threads([[maybe_unused]] const ExecutionSpace &exec_space) {
+#if defined(KOKKOS_ENABLE_OPENMP) || defined(KOKKOS_ENABLE_THREADS)
+    int nthreads = exec_space.concurrency();
+
+    if constexpr (std::is_same_v<T, float>) {
+      fftwf_init_threads();
+      fftwf_plan_with_nthreads(nthreads);
+    } else {
+      fftw_init_threads();
+      fftw_plan_with_nthreads(nthreads);
+    }
+#endif
+  }
+
+  template <typename T>
+  void cleanup_threads() {
+#if defined(KOKKOS_ENABLE_OPENMP) || defined(KOKKOS_ENABLE_THREADS)
+    if constexpr (std::is_same_v<T, float>) {
+      fftwf_cleanup_threads();
+    } else {
+      fftw_cleanup_threads();
+    }
+#endif
+  }
+};
+
+template <typename ExecutionSpace, typename T1, typename T2>
+struct FFTPlanType {
+  using fftw_plan_type  = ScopedFFTWPlanType<ExecutionSpace, T1, T2>;
+  using cufft_plan_type = ScopedCufftPlanType<ExecutionSpace, T1, T2>;
+  using type = std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::Cuda>,
+                                  cufft_plan_type, fftw_plan_type>;
+};
+
 template <typename ExecutionSpace>
 auto direction_type(Direction direction) {
   static constexpr FFTDirectionType FORWARD =
@@ -153,11 +250,6 @@ struct FFTDataType {
   using float64    = cufftDoubleReal;
   using complex64  = cufftComplex;
   using complex128 = cufftDoubleComplex;
-};
-
-template <typename ExecutionSpace, typename T1, typename T2>
-struct FFTPlanType {
-  using type = cufftHandle;
 };
 
 template <typename ExecutionSpace>
@@ -195,6 +287,11 @@ struct transform_type<ExecutionSpace, Kokkos::complex<T1>,
   static constexpr cufftType m_type =
       std::is_same_v<T1, float> ? CUFFT_C2C : CUFFT_Z2Z;
   static constexpr cufftType type() { return m_type; };
+};
+
+template <typename ExecutionSpace, typename T1, typename T2>
+struct FFTPlanType {
+  using type = ScopedCufftPlanType<ExecutionSpace, T1, T2>;
 };
 
 template <typename ExecutionSpace>

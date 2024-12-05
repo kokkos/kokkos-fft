@@ -277,10 +277,7 @@ class Plan {
                                      m_info, direction, axes, s, m_is_inplace);
   }
 
-  ~Plan() {
-    KokkosFFT::Impl::destroy_plan_and_info<ExecutionSpace, fft_plan_type,
-                                           fft_info_type>(m_plan, m_info);
-  }
+  ~Plan() {}
 
   Plan()                       = delete;
   Plan(const Plan&)            = delete;
@@ -358,7 +355,8 @@ class Plan {
 
     auto const direction =
         KokkosFFT::Impl::direction_type<execSpace>(m_direction);
-    KokkosFFT::Impl::exec_plan(*m_plan, idata, odata, direction, m_info);
+    KokkosFFT::Impl::exec_plan((*m_plan).plan(), idata, odata, direction,
+                               m_info);
 
     if constexpr (KokkosFFT::Impl::is_complex_v<in_value_type> &&
                   KokkosFFT::Impl::is_real_v<out_value_type>) {
