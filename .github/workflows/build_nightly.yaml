@@ -110,7 +110,7 @@ jobs:
 
       - name: Configure Kokkos
         run: |
-          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_base:latest \
+          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_main:latest \
             cmake -B build_kokkos \
             -DCMAKE_INSTALL_PREFIX=/work/install \
             -DCMAKE_C_COMPILER=${{ matrix.backend.compiler.c }} \
@@ -122,12 +122,12 @@ jobs:
 
       - name: Build and install Kokkos
         run: |
-          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_base:latest \
+          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_main:latest \
             cmake --install build_kokkos -j $(( $(nproc) * 2 + 1 ))
 
       - name: Configure
         run: |
-          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_base:latest \
+          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_main:latest \
             cmake -B build \
             -DCMAKE_PREFIX_PATH=/work/install \
             -DCMAKE_BUILD_TYPE=Release \
@@ -141,5 +141,5 @@ jobs:
 
       - name: Build
         run: |
-          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_base:latest \
+          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_main:latest \
             cmake --build build -j $(( $(nproc) * 2 + 1 ))
