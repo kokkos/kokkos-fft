@@ -62,7 +62,7 @@ struct fftw_transform_type<ExecutionSpace, Kokkos::complex<T1>,
 
 /// \brief A class that wraps fftw_plan and fftwf_plan for RAII
 template <typename ExecutionSpace, typename T1, typename T2>
-struct ScopedFFTWPlanType {
+struct ScopedFFTWPlan {
  private:
   using floating_point_type = KokkosFFT::Impl::base_floating_point_type<T1>;
   using plan_type =
@@ -72,13 +72,11 @@ struct ScopedFFTWPlanType {
   bool m_is_created = false;
 
  public:
-  ScopedFFTWPlanType() = delete;
   template <typename InScalarType, typename OutScalarType>
-  ScopedFFTWPlanType(const ExecutionSpace &exec_space, int rank, const int *n,
-                     int howmany, InScalarType *in, const int *inembed,
-                     int istride, int idist, OutScalarType *out,
-                     const int *onembed, int ostride, int odist,
-                     [[maybe_unused]] int sign, unsigned flags) {
+  ScopedFFTWPlan(const ExecutionSpace &exec_space, int rank, const int *n,
+                 int howmany, InScalarType *in, const int *inembed, int istride,
+                 int idist, OutScalarType *out, const int *onembed, int ostride,
+                 int odist, [[maybe_unused]] int sign, unsigned flags) {
     init_threads(exec_space);
     constexpr auto type = fftw_transform_type<ExecutionSpace, T1, T2>::type();
     if constexpr (type == KokkosFFT::Impl::FFTWTransformType::R2C) {
@@ -107,7 +105,7 @@ struct ScopedFFTWPlanType {
     }
     m_is_created = true;
   }
-  ~ScopedFFTWPlanType() {
+  ~ScopedFFTWPlan() noexcept {
     cleanup_threads();
     if constexpr (std::is_same_v<plan_type, fftwf_plan>) {
       if (m_is_created) fftwf_destroy_plan(m_plan);
@@ -115,6 +113,12 @@ struct ScopedFFTWPlanType {
       if (m_is_created) fftw_destroy_plan(m_plan);
     }
   }
+
+  ScopedFFTWPlan()                                  = delete;
+  ScopedFFTWPlan(const ScopedFFTWPlan &)            = delete;
+  ScopedFFTWPlan &operator=(const ScopedFFTWPlan &) = delete;
+  ScopedFFTWPlan &operator=(ScopedFFTWPlan &&)      = delete;
+  ScopedFFTWPlan(ScopedFFTWPlan &&)                 = delete;
 
   const plan_type &plan() const { return m_plan; }
 
