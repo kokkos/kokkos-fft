@@ -10,7 +10,7 @@ name: Nightly tests
 
 on:
   schedule:
-    cron: "0 1 * * 1-5" # every weekday at 1am
+    - cron: "0 1 * * 1-5" # every weekday at 1am
 
 env:
   # Force the use of BuildKit for Docker
