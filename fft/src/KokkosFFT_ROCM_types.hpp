@@ -7,7 +7,13 @@
 
 #include <complex>
 #include <rocfft/rocfft.h>
+#include <Kokkos_Abort.hpp>
 #include "KokkosFFT_common_types.hpp"
+#include "KokkosFFT_traits.hpp"
+#include "KokkosFFT_asserts.hpp"
+#if defined(ENABLE_HOST_AND_DEVICE)
+#include "KokkosFFT_FFTW_Types.hpp"
+#endif
 
 // Check the size of complex type
 static_assert(sizeof(std::complex<float>) == sizeof(Kokkos::complex<float>));
@@ -17,26 +23,66 @@ static_assert(sizeof(std::complex<double>) == sizeof(Kokkos::complex<double>));
 static_assert(alignof(std::complex<double>) <=
               alignof(Kokkos::complex<double>));
 
-#ifdef ENABLE_HOST_AND_DEVICE
-#include <fftw3.h>
-#include "KokkosFFT_utils.hpp"
-static_assert(sizeof(fftwf_complex) == sizeof(Kokkos::complex<float>));
-static_assert(alignof(fftwf_complex) <= alignof(Kokkos::complex<float>));
-
-static_assert(sizeof(fftw_complex) == sizeof(Kokkos::complex<double>));
-static_assert(alignof(fftw_complex) <= alignof(Kokkos::complex<double>));
-#endif
-
 namespace KokkosFFT {
 namespace Impl {
 using FFTDirectionType                     = int;
 constexpr FFTDirectionType ROCFFT_FORWARD  = 1;
 constexpr FFTDirectionType ROCFFT_BACKWARD = -1;
 
+#if !defined(ENABLE_HOST_AND_DEVICE)
 enum class FFTWTransformType { R2C, D2Z, C2R, Z2D, C2C, Z2Z };
+#endif
 
 template <typename ExecutionSpace>
 using TransformType = FFTWTransformType;
+
+/// \brief A class that wraps rocfft for RAII
+template <typename ExecutionSpace, typename T>
+struct ScopedRocfftPlan {
+ private:
+  using floating_point_type = KokkosFFT::Impl::base_floating_point_type<T>;
+  rocfft_plan m_plan;
+  rocfft_execution_info m_execution_info;
+
+  using BufferViewType =
+      Kokkos::View<Kokkos::complex<floating_point_type> *, ExecutionSpace>;
+
+  bool m_is_plan_created = false;
+  bool m_is_info_created = false;
+
+  //! Internal work buffer
+  BufferViewType m_buffer;
+
+ public:
+  ScopedRocfftPlan() {}
+  ~ScopedRocfftPlan() noexcept {
+    if (m_is_info_created) {
+      rocfft_status status = rocfft_execution_info_destroy(m_execution_info);
+      if (status != rocfft_status_success)
+        Kokkos::abort("rocfft_execution_info_destroy failed");
+    }
+    if (m_is_plan_created) {
+      rocfft_status status = rocfft_plan_destroy(m_plan);
+      if (status != rocfft_status_success)
+        Kokkos::abort("rocfft_plan_destroy failed");
+    }
+  }
+
+  ScopedRocfftPlan(const ScopedRocfftPlan &)            = delete;
+  ScopedRocfftPlan &operator=(const ScopedRocfftPlan &) = delete;
+  ScopedRocfftPlan &operator=(ScopedRocfftPlan &&)      = delete;
+  ScopedRocfftPlan(ScopedRocfftPlan &&)                 = delete;
+
+  void set_is_plan_created() { m_is_plan_created = true; }
+  void set_is_info_created() { m_is_info_created = true; }
+
+  void allocate_work_buffer(std::size_t workbuffersize) {
+    m_buffer = BufferViewType("workbuffer", workbuffersize);
+  }
+  rocfft_plan &plan() { return m_plan; }
+  rocfft_execution_info &execution_info() { return m_execution_info; }
+  auto *buffer_data() { return m_buffer.data(); }
+};
 
 // Define fft transform types
 template <typename ExecutionSpace, typename T1, typename T2>
@@ -76,7 +122,7 @@ struct transform_type<ExecutionSpace, Kokkos::complex<T1>,
   static constexpr FFTWTransformType type() { return m_type; };
 };
 
-#ifdef ENABLE_HOST_AND_DEVICE
+#if defined(ENABLE_HOST_AND_DEVICE)
 
 template <typename ExecutionSpace>
 struct FFTDataType {
@@ -92,17 +138,11 @@ struct FFTDataType {
 
 template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTPlanType {
-  using fftwHandle = std::conditional_t<
-      std::is_same_v<KokkosFFT::Impl::base_floating_point_type<T1>, float>,
-      fftwf_plan, fftw_plan>;
+  using fftw_plan_type   = ScopedFFTWPlan<ExecutionSpace, T1, T2>;
+  using rocfft_plan_type = ScopedRocfftPlan<ExecutionSpace, T1>;
   using type = std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
-                                  rocfft_plan, fftwHandle>;
+                                  rocfft_plan_type, fftw_plan_type>;
 };
-
-template <typename ExecutionSpace>
-using FFTInfoType =
-    std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
-                       rocfft_execution_info, int>;
 
 template <typename ExecutionSpace>
 auto direction_type(Direction direction) {
@@ -126,11 +166,8 @@ struct FFTDataType {
 
 template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTPlanType {
-  using type = rocfft_plan;
+  using type = ScopedRocfftPlan<ExecutionSpace, T1>;
 };
-
-template <typename ExecutionSpace>
-using FFTInfoType = rocfft_execution_info;
 
 template <typename ExecutionSpace>
 auto direction_type(Direction direction) {

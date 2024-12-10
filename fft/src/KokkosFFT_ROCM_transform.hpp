@@ -11,60 +11,65 @@
 
 namespace KokkosFFT {
 namespace Impl {
-inline void exec_plan(rocfft_plan& plan, float* idata,
-                      std::complex<float>* odata, int /*direction*/,
-                      const rocfft_execution_info& execution_info) {
+template <typename ScopedPlanType>
+void exec_plan(ScopedPlanType& scoped_plan, float* idata,
+               std::complex<float>* odata, int /*direction*/) {
   rocfft_status status =
-      rocfft_execute(plan, (void**)&idata, (void**)&odata, execution_info);
+      rocfft_execute(scoped_plan.plan(), (void**)&idata, (void**)&odata,
+                     scoped_plan.execution_info());
   KOKKOSFFT_THROW_IF(status != rocfft_status_success,
                      "rocfft_execute for R2C failed");
 }
 
-inline void exec_plan(rocfft_plan& plan, double* idata,
-                      std::complex<double>* odata, int /*direction*/,
-                      const rocfft_execution_info& execution_info) {
+template <typename ScopedPlanType>
+void exec_plan(ScopedPlanType& scoped_plan, double* idata,
+               std::complex<double>* odata, int /*direction*/) {
   rocfft_status status =
-      rocfft_execute(plan, (void**)&idata, (void**)&odata, execution_info);
+      rocfft_execute(scoped_plan.plan(), (void**)&idata, (void**)&odata,
+                     scoped_plan.execution_info());
   KOKKOSFFT_THROW_IF(status != rocfft_status_success,
                      "rocfft_execute for D2Z failed");
 }
 
-inline void exec_plan(rocfft_plan& plan, std::complex<float>* idata,
-                      float* odata, int /*direction*/,
-                      const rocfft_execution_info& execution_info) {
+template <typename ScopedPlanType>
+void exec_plan(ScopedPlanType& scoped_plan, std::complex<float>* idata,
+               float* odata, int /*direction*/) {
   rocfft_status status =
-      rocfft_execute(plan, (void**)&idata, (void**)&odata, execution_info);
+      rocfft_execute(scoped_plan.plan(), (void**)&idata, (void**)&odata,
+                     scoped_plan.execution_info());
   KOKKOSFFT_THROW_IF(status != rocfft_status_success,
                      "rocfft_execute for C2R failed");
 }
 
-inline void exec_plan(rocfft_plan& plan, std::complex<double>* idata,
-                      double* odata, int /*direction*/,
-                      const rocfft_execution_info& execution_info) {
+template <typename ScopedPlanType>
+void exec_plan(ScopedPlanType& scoped_plan, std::complex<double>* idata,
+               double* odata, int /*direction*/) {
   rocfft_status status =
-      rocfft_execute(plan, (void**)&idata, (void**)&odata, execution_info);
+      rocfft_execute(scoped_plan.plan(), (void**)&idata, (void**)&odata,
+                     scoped_plan.execution_info());
   KOKKOSFFT_THROW_IF(status != rocfft_status_success,
                      "rocfft_execute for Z2D failed");
 }
 
-inline void exec_plan(rocfft_plan& plan, std::complex<float>* idata,
-                      std::complex<float>* odata, int /*direction*/,
-                      const rocfft_execution_info& execution_info) {
+template <typename ScopedPlanType>
+void exec_plan(ScopedPlanType& scoped_plan, std::complex<float>* idata,
+               std::complex<float>* odata, int /*direction*/) {
   rocfft_status status =
-      rocfft_execute(plan, (void**)&idata, (void**)&odata, execution_info);
+      rocfft_execute(scoped_plan.plan(), (void**)&idata, (void**)&odata,
+                     scoped_plan.execution_info());
   KOKKOSFFT_THROW_IF(status != rocfft_status_success,
                      "rocfft_execute for C2C failed");
 }
 
-inline void exec_plan(rocfft_plan& plan, std::complex<double>* idata,
-                      std::complex<double>* odata, int /*direction*/,
-                      const rocfft_execution_info& execution_info) {
+template <typename ScopedPlanType>
+void exec_plan(ScopedPlanType& scoped_plan, std::complex<double>* idata,
+               std::complex<double>* odata, int /*direction*/) {
   rocfft_status status =
-      rocfft_execute(plan, (void**)&idata, (void**)&odata, execution_info);
+      rocfft_execute(scoped_plan.plan(), (void**)&idata, (void**)&odata,
+                     scoped_plan.execution_info());
   KOKKOSFFT_THROW_IF(status != rocfft_status_success,
                      "rocfft_execute for Z2Z failed");
 }
-
 }  // namespace Impl
 }  // namespace KokkosFFT
 
