@@ -3,8 +3,7 @@
 # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
 # Build and test Kokkos FFT using Docker and Singularity images. Pre-generated
-# images are pulled from Github registry; they are updated only if the current
-# PR or commit modified the Docker files.
+# images are pulled from Github registry.
 
 name: Nightly tests
 
@@ -19,6 +18,9 @@ env:
 jobs:
   # build project
   build:
+    # only run on original repo
+    if: ${{ github.repository == "kokkos/kokkos-fft" }}
+
     runs-on: ubuntu-latest
 
     strategy:
