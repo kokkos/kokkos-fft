@@ -19,7 +19,7 @@ jobs:
   # build project
   build:
     # only run on original repo
-    if: ${{ github.repository == "kokkos/kokkos-fft" }}
+    if: github.repository == 'kokkos/kokkos-fft'
 
     runs-on: ubuntu-latest
 
