@@ -26,34 +26,33 @@ namespace Impl {
 using FFTDirectionType = int;
 
 /// \brief A class that wraps cufft for RAII
-template <typename ExecutionSpace>
 struct ScopedCufftPlan {
  private:
   cufftHandle m_plan;
 
  public:
-  ScopedCufftPlan(const ExecutionSpace &exec_space, int nx, cufftType type,
+  ScopedCufftPlan(const Kokkos::Cuda &exec_space, int nx, cufftType type,
                   int batch) {
     cufftResult cufft_rt = cufftPlan1d(&m_plan, nx, type, batch);
     KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftPlan1d failed");
     set_stream(exec_space);
   }
 
-  ScopedCufftPlan(const ExecutionSpace &exec_space, int nx, int ny,
+  ScopedCufftPlan(const Kokkos::Cuda &exec_space, int nx, int ny,
                   cufftType type) {
     cufftResult cufft_rt = cufftPlan2d(&m_plan, nx, ny, type);
     KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftPlan2d failed");
     set_stream(exec_space);
   }
 
-  ScopedCufftPlan(const ExecutionSpace &exec_space, int nx, int ny, int nz,
+  ScopedCufftPlan(const Kokkos::Cuda &exec_space, int nx, int ny, int nz,
                   cufftType type) {
     cufftResult cufft_rt = cufftPlan3d(&m_plan, nx, ny, nz, type);
     KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftPlan3d failed");
     set_stream(exec_space);
   }
 
-  ScopedCufftPlan(const ExecutionSpace &exec_space, int rank, int *n,
+  ScopedCufftPlan(const Kokkos::Cuda &exec_space, int rank, int *n,
                   int *inembed, int istride, int idist, int *onembed,
                   int ostride, int odist, cufftType type, int batch) {
     cufftResult cufft_rt =
@@ -74,10 +73,11 @@ struct ScopedCufftPlan {
   ScopedCufftPlan &operator=(ScopedCufftPlan &&)      = delete;
   ScopedCufftPlan(ScopedCufftPlan &&)                 = delete;
 
-  cufftHandle &plan() { return m_plan; }
+  // cufftHandle &plan() { return m_plan; }
+  cufftHandle plan() const noexcept { return m_plan; }
 
  private:
-  void set_stream(const ExecutionSpace &exec_space) {
+  void set_stream(const Kokkos::Cuda &exec_space) {
     cudaStream_t stream  = exec_space.cuda_stream();
     cufftResult cufft_rt = cufftSetStream(m_plan, stream);
     KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftSetStream failed");
@@ -179,7 +179,7 @@ struct transform_type<ExecutionSpace, Kokkos::complex<T1>,
 template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTPlanType {
   using fftw_plan_type  = ScopedFFTWPlan<ExecutionSpace, T1, T2>;
-  using cufft_plan_type = ScopedCufftPlan<ExecutionSpace>;
+  using cufft_plan_type = ScopedCufftPlan;
   using type = std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::Cuda>,
                                   cufft_plan_type, fftw_plan_type>;
 };
@@ -242,7 +242,7 @@ struct transform_type<ExecutionSpace, Kokkos::complex<T1>,
 
 template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTPlanType {
-  using type = ScopedCufftPlan<ExecutionSpace>;
+  using type = ScopedCufftPlan;
 };
 
 template <typename ExecutionSpace>
