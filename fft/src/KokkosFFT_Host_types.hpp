@@ -23,7 +23,7 @@ template <typename ExecutionSpace>
 using TransformType = FFTWTransformType;
 
 template <typename ExecutionSpace, typename T1, typename T2>
-using transform_type = fftw_transform_type<ExecutionSpace, T1, T2>;
+using transform_type = fftw_transform_type<T1, T2>;
 
 template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTPlanType {

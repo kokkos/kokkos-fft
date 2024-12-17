@@ -264,7 +264,7 @@ class Plan {
                                               direction, axes, s, m_is_inplace);
   }
 
-  ~Plan() {}
+  ~Plan() noexcept = default;
 
   Plan()                       = delete;
   Plan(const Plan&)            = delete;

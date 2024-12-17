@@ -9,6 +9,7 @@
 
 namespace KokkosFFT {
 namespace Impl {
+
 template <typename ScopedPlanType>
 void exec_plan(ScopedPlanType& scoped_plan, float* idata, fftwf_complex* odata,
                int /*direction*/) {
