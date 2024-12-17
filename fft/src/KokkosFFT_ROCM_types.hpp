@@ -58,7 +58,7 @@ struct ScopedRocfftPlan {
 
  public:
   ScopedRocfftPlan(const Kokkos::HIP &exec_space,
-                   const TransformType transform_type,
+                   const FFTWTransformType transform_type,
                    const std::vector<int> &in_extents,
                    const std::vector<int> &out_extents,
                    const std::vector<int> &fft_extents, int howmany,
@@ -151,6 +151,8 @@ struct ScopedRocfftPlan {
       KOKKOSFFT_THROW_IF(status != rocfft_status_success,
                          "rocfft_execution_info_set_work_buffer failed");
     }
+
+    return fft_size;
   }
   ~ScopedRocfftPlan() noexcept {
     if (m_is_info_created) {
@@ -176,7 +178,7 @@ struct ScopedRocfftPlan {
 
  private:
   // Helper to get input and output array type and direction from transform type
-  auto get_in_out_array_type(TransformType type, Direction direction) {
+  auto get_in_out_array_type(FFTWTransformType type, Direction direction) {
     rocfft_array_type in_array_type, out_array_type;
     rocfft_transform_type fft_direction;
 
@@ -291,7 +293,7 @@ struct FFTDataType {
 template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTPlanType {
   using fftw_plan_type   = ScopedFFTWPlan<ExecutionSpace, T1, T2>;
-  using rocfft_plan_type = ScopedRocfftPlan<ExecutionSpace, T1>;
+  using rocfft_plan_type = ScopedRocfftPlan<T1>;
   using type = std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
                                   rocfft_plan_type, fftw_plan_type>;
 };
@@ -318,7 +320,7 @@ struct FFTDataType {
 
 template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTPlanType {
-  using type = ScopedRocfftPlan<ExecutionSpace, T1>;
+  using type = ScopedRocfftPlan<T1>;
 };
 
 template <typename ExecutionSpace>
