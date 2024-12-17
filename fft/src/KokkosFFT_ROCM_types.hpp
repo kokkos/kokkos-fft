@@ -37,15 +37,18 @@ template <typename ExecutionSpace>
 using TransformType = FFTWTransformType;
 
 /// \brief A class that wraps rocfft for RAII
-template <typename ExecutionSpace, typename T>
+template <typename T>
 struct ScopedRocfftPlan {
  private:
   using floating_point_type = KokkosFFT::Impl::base_floating_point_type<T>;
+  using BufferViewType =
+      Kokkos::View<Kokkos::complex<floating_point_type> *, Kokkos::HIP>;
+
+  rocfft_precision m_precision = std::is_same_v<floating_point_type, float>
+                                     ? rocfft_precision_single
+                                     : rocfft_precision_double;
   rocfft_plan m_plan;
   rocfft_execution_info m_execution_info;
-
-  using BufferViewType =
-      Kokkos::View<Kokkos::complex<floating_point_type> *, ExecutionSpace>;
 
   bool m_is_plan_created = false;
   bool m_is_info_created = false;
@@ -54,7 +57,101 @@ struct ScopedRocfftPlan {
   BufferViewType m_buffer;
 
  public:
-  ScopedRocfftPlan() {}
+  ScopedRocfftPlan(const Kokkos::HIP &exec_space,
+                   const TransformType transform_type,
+                   const std::vector<int> &in_extents,
+                   const std::vector<int> &out_extents,
+                   const std::vector<int> &fft_extents, int howmany,
+                   Direction direction, bool is_inplace) {
+    std::unique_ptr<rocfft_plan_description,
+                    std::function<void(rocfft_plan_description *)>> const
+        description(new rocfft_plan_description,
+                    [](rocfft_plan_description *desc) {
+                      if (desc) rocfft_plan_description_destroy(*desc);
+                      desc = nullptr;
+                    });
+
+    rocfft_status status = rocfft_plan_description_create(&(*description));
+    KOKKOSFFT_THROW_IF(status != rocfft_status_success,
+                       "rocfft_plan_description_create failed");
+
+    auto [in_array_type, out_array_type, fft_direction] =
+        get_in_out_array_type(transform_type, direction);
+
+    // Compute dist and strides from extents
+    int idist    = std::accumulate(in_extents.begin(), in_extents.end(), 1,
+                                   std::multiplies<>());
+    int odist    = std::accumulate(out_extents.begin(), out_extents.end(), 1,
+                                   std::multiplies<>());
+    int fft_size = std::accumulate(fft_extents.begin(), fft_extents.end(), 1,
+                                   std::multiplies<>());
+
+    auto in_strides  = compute_strides<int, std::size_t>(in_extents);
+    auto out_strides = compute_strides<int, std::size_t>(out_extents);
+    auto reversed_fft_extents =
+        convert_int_type_and_reverse<int, std::size_t>(fft_extents);
+
+    status = rocfft_plan_description_set_data_layout(
+        *description,        // description handle
+        in_array_type,       // input array type
+        out_array_type,      // output array type
+        nullptr,             // offsets to start of input data
+        nullptr,             // offsets to start of output data
+        in_strides.size(),   // input stride length
+        in_strides.data(),   // input stride data
+        idist,               // input batch distance
+        out_strides.size(),  // output stride length
+        out_strides.data(),  // output stride data
+        odist);              // output batch distance
+
+    KOKKOSFFT_THROW_IF(status != rocfft_status_success,
+                       "rocfft_plan_description_set_data_layout failed");
+
+    // inplace or Out-of-place transform
+    const rocfft_result_placement place =
+        is_inplace ? rocfft_placement_inplace : rocfft_placement_notinplace;
+
+    // Create a plan
+    status = rocfft_plan_create(&m_plan, place, fft_direction, m_precision,
+                                reversed_fft_extents.size(),  // Dimension
+                                reversed_fft_extents.data(),  // Lengths
+                                howmany,      // Number of transforms
+                                *description  // Description
+    );
+    KOKKOSFFT_THROW_IF(status != rocfft_status_success,
+                       "rocfft_plan_create failed");
+
+    m_is_plan_created = true;
+
+    // Prepare workbuffer and set execution information
+    status = rocfft_execution_info_create(&m_execution_info);
+    KOKKOSFFT_THROW_IF(status != rocfft_status_success,
+                       "rocfft_execution_info_create failed");
+
+    m_is_info_created = true;
+
+    // set stream
+    // NOTE: The stream must be of type hipStream_t.
+    // It is an error to pass the address of a hipStream_t object.
+    hipStream_t stream = exec_space.hip_stream();
+    status = rocfft_execution_info_set_stream(m_execution_info, stream);
+    KOKKOSFFT_THROW_IF(status != rocfft_status_success,
+                       "rocfft_execution_info_set_stream failed");
+
+    // Set work buffer
+    std::size_t workbuffersize = 0;
+    status = rocfft_plan_get_work_buffer_size(m_plan, &workbuffersize);
+    KOKKOSFFT_THROW_IF(status != rocfft_status_success,
+                       "rocfft_plan_get_work_buffer_size failed");
+
+    if (workbuffersize > 0) {
+      m_buffer = BufferViewType("workbuffer", workbuffersize);
+      status   = rocfft_execution_info_set_work_buffer(
+          m_execution_info, (void *)m_buffer.data(), workbuffersize);
+      KOKKOSFFT_THROW_IF(status != rocfft_status_success,
+                         "rocfft_execution_info_set_work_buffer failed");
+    }
+  }
   ~ScopedRocfftPlan() noexcept {
     if (m_is_info_created) {
       rocfft_status status = rocfft_execution_info_destroy(m_execution_info);
@@ -68,20 +165,75 @@ struct ScopedRocfftPlan {
     }
   }
 
+  ScopedRocfftPlan()                                    = delete;
   ScopedRocfftPlan(const ScopedRocfftPlan &)            = delete;
   ScopedRocfftPlan &operator=(const ScopedRocfftPlan &) = delete;
   ScopedRocfftPlan &operator=(ScopedRocfftPlan &&)      = delete;
   ScopedRocfftPlan(ScopedRocfftPlan &&)                 = delete;
 
-  void set_is_plan_created() { m_is_plan_created = true; }
-  void set_is_info_created() { m_is_info_created = true; }
-
-  void allocate_work_buffer(std::size_t workbuffersize) {
-    m_buffer = BufferViewType("workbuffer", workbuffersize);
-  }
-  rocfft_plan &plan() { return m_plan; }
+  rocfft_plan plan() const noexcept { return m_plan; }
   rocfft_execution_info &execution_info() { return m_execution_info; }
-  auto *buffer_data() { return m_buffer.data(); }
+
+ private:
+  // Helper to get input and output array type and direction from transform type
+  auto get_in_out_array_type(TransformType type, Direction direction) {
+    rocfft_array_type in_array_type, out_array_type;
+    rocfft_transform_type fft_direction;
+
+    if (type == FFTWTransformType::C2C || type == FFTWTransformType::Z2Z) {
+      in_array_type  = rocfft_array_type_complex_interleaved;
+      out_array_type = rocfft_array_type_complex_interleaved;
+      fft_direction  = direction == Direction::forward
+                           ? rocfft_transform_type_complex_forward
+                           : rocfft_transform_type_complex_inverse;
+    } else if (type == FFTWTransformType::R2C ||
+               type == FFTWTransformType::D2Z) {
+      in_array_type  = rocfft_array_type_real;
+      out_array_type = rocfft_array_type_hermitian_interleaved;
+      fft_direction  = rocfft_transform_type_real_forward;
+    } else if (type == FFTWTransformType::C2R ||
+               type == FFTWTransformType::Z2D) {
+      in_array_type  = rocfft_array_type_hermitian_interleaved;
+      out_array_type = rocfft_array_type_real;
+      fft_direction  = rocfft_transform_type_real_inverse;
+    }
+
+    return std::tuple<rocfft_array_type, rocfft_array_type,
+                      rocfft_transform_type>(
+        {in_array_type, out_array_type, fft_direction});
+  };
+
+  // Helper to convert the integer type of vectors
+  template <typename InType, typename OutType>
+  auto convert_int_type_and_reverse(std::vector<InType> &in)
+      -> std::vector<OutType> {
+    std::vector<OutType> out(in.size());
+    std::transform(
+        in.begin(), in.end(), out.begin(),
+        [](const InType v) -> OutType { return static_cast<OutType>(v); });
+
+    std::reverse(out.begin(), out.end());
+    return out;
+  }
+
+  // Helper to compute strides from extents
+  // (n0, n1, n2) -> (1, n0, n0*n1)
+  // (n0, n1) -> (1, n0)
+  // (n0) -> (1)
+  template <typename InType, typename OutType>
+  auto compute_strides(const std::vector<InType> &extents)
+      -> std::vector<OutType> {
+    std::vector<OutType> out = {1};
+    auto reversed_extents    = extents;
+    std::reverse(reversed_extents.begin(), reversed_extents.end());
+
+    for (std::size_t i = 1; i < reversed_extents.size(); i++) {
+      out.push_back(static_cast<OutType>(reversed_extents.at(i - 1)) *
+                    out.at(i - 1));
+    }
+
+    return out;
+  }
 };
 
 // Define fft transform types
