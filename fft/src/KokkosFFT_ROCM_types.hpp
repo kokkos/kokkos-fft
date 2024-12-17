@@ -5,6 +5,8 @@
 #ifndef KOKKOSFFT_ROCM_TYPES_HPP
 #define KOKKOSFFT_ROCM_TYPES_HPP
 
+#include <numeric>
+#include <algorithm>
 #include <complex>
 #include <rocfft/rocfft.h>
 #include <Kokkos_Abort.hpp>
