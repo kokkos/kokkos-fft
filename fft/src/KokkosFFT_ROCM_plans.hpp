@@ -52,6 +52,10 @@ auto create_plan(const ExecutionSpace& exec_space,
       std::make_unique<PlanType>(exec_space, type, in_extents, out_extents,
                                  fft_extents, howmany, direction, is_inplace);
 
+  // Calculate the total size of the FFT
+  int fft_size = std::accumulate(fft_extents.begin(), fft_extents.end(), 1,
+                                 std::multiplies<>());
+
   return fft_size;
 }
 

@@ -79,12 +79,10 @@ struct ScopedRocfftPlan {
         get_in_out_array_type(transform_type, direction);
 
     // Compute dist and strides from extents
-    int idist    = std::accumulate(in_extents.begin(), in_extents.end(), 1,
-                                   std::multiplies<>());
-    int odist    = std::accumulate(out_extents.begin(), out_extents.end(), 1,
-                                   std::multiplies<>());
-    int fft_size = std::accumulate(fft_extents.begin(), fft_extents.end(), 1,
-                                   std::multiplies<>());
+    int idist = std::accumulate(in_extents.begin(), in_extents.end(), 1,
+                                std::multiplies<>());
+    int odist = std::accumulate(out_extents.begin(), out_extents.end(), 1,
+                                std::multiplies<>());
 
     auto in_strides  = compute_strides<int, std::size_t>(in_extents);
     auto out_strides = compute_strides<int, std::size_t>(out_extents);
@@ -151,8 +149,6 @@ struct ScopedRocfftPlan {
       KOKKOSFFT_THROW_IF(status != rocfft_status_success,
                          "rocfft_execution_info_set_work_buffer failed");
     }
-
-    return fft_size;
   }
   ~ScopedRocfftPlan() noexcept {
     if (m_is_info_created) {
