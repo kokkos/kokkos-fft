@@ -12,7 +12,7 @@
 namespace KokkosFFT {
 namespace Impl {
 template <typename ScopedPlanType>
-void exec_plan(const ScopedPlanType& scoped_plan, float* idata,
+void exec_plan(ScopedPlanType& scoped_plan, float* idata,
                std::complex<float>* odata, int /*direction*/) {
   rocfft_status status =
       rocfft_execute(scoped_plan.plan(), (void**)&idata, (void**)&odata,
@@ -22,7 +22,7 @@ void exec_plan(const ScopedPlanType& scoped_plan, float* idata,
 }
 
 template <typename ScopedPlanType>
-void exec_plan(const ScopedPlanType& scoped_plan, double* idata,
+void exec_plan(ScopedPlanType& scoped_plan, double* idata,
                std::complex<double>* odata, int /*direction*/) {
   rocfft_status status =
       rocfft_execute(scoped_plan.plan(), (void**)&idata, (void**)&odata,
@@ -32,7 +32,7 @@ void exec_plan(const ScopedPlanType& scoped_plan, double* idata,
 }
 
 template <typename ScopedPlanType>
-void exec_plan(const ScopedPlanType& scoped_plan, std::complex<float>* idata,
+void exec_plan(ScopedPlanType& scoped_plan, std::complex<float>* idata,
                float* odata, int /*direction*/) {
   rocfft_status status =
       rocfft_execute(scoped_plan.plan(), (void**)&idata, (void**)&odata,
@@ -42,7 +42,7 @@ void exec_plan(const ScopedPlanType& scoped_plan, std::complex<float>* idata,
 }
 
 template <typename ScopedPlanType>
-void exec_plan(const ScopedPlanType& scoped_plan, std::complex<double>* idata,
+void exec_plan(ScopedPlanType& scoped_plan, std::complex<double>* idata,
                double* odata, int /*direction*/) {
   rocfft_status status =
       rocfft_execute(scoped_plan.plan(), (void**)&idata, (void**)&odata,
@@ -52,7 +52,7 @@ void exec_plan(const ScopedPlanType& scoped_plan, std::complex<double>* idata,
 }
 
 template <typename ScopedPlanType>
-void exec_plan(const ScopedPlanType& scoped_plan, std::complex<float>* idata,
+void exec_plan(ScopedPlanType& scoped_plan, std::complex<float>* idata,
                std::complex<float>* odata, int /*direction*/) {
   rocfft_status status =
       rocfft_execute(scoped_plan.plan(), (void**)&idata, (void**)&odata,
@@ -62,7 +62,7 @@ void exec_plan(const ScopedPlanType& scoped_plan, std::complex<float>* idata,
 }
 
 template <typename ScopedPlanType>
-void exec_plan(const ScopedPlanType& scoped_plan, std::complex<double>* idata,
+void exec_plan(ScopedPlanType& scoped_plan, std::complex<double>* idata,
                std::complex<double>* odata, int /*direction*/) {
   rocfft_status status =
       rocfft_execute(scoped_plan.plan(), (void**)&idata, (void**)&odata,

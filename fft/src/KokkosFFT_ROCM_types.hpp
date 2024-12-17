@@ -203,11 +203,11 @@ struct ScopedRocfftPlan {
 
   // Helper to convert the integer type of vectors
   template <typename InType, typename OutType>
-  auto convert_int_type_and_reverse(std::vector<InType> &in)
+  auto convert_int_type_and_reverse(const std::vector<InType> &in)
       -> std::vector<OutType> {
     std::vector<OutType> out(in.size());
     std::transform(
-        in.begin(), in.end(), out.begin(),
+        in.cbegin(), in.cend(), out.begin(),
         [](const InType v) -> OutType { return static_cast<OutType>(v); });
 
     std::reverse(out.begin(), out.end());
