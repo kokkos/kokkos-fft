@@ -56,7 +56,7 @@ struct ScopedRocfftPlanDescription {
   }
 
   rocfft_plan_description &description() { return m_description; }
-}
+};
 
 /// \brief A class that wraps rocfft for RAII
 template <typename T>
@@ -101,7 +101,7 @@ struct ScopedRocfftPlan {
     auto reversed_fft_extents =
         convert_int_type_and_reverse<int, std::size_t>(fft_extents);
 
-    status = rocfft_plan_description_set_data_layout(
+    rocfft_status status = rocfft_plan_description_set_data_layout(
         scoped_description.description(),  // description handle
         in_array_type,                     // input array type
         out_array_type,                    // output array type
