@@ -73,7 +73,6 @@ struct ScopedCufftPlan {
   ScopedCufftPlan &operator=(ScopedCufftPlan &&)      = delete;
   ScopedCufftPlan(ScopedCufftPlan &&)                 = delete;
 
-  // cufftHandle &plan() { return m_plan; }
   cufftHandle plan() const noexcept { return m_plan; }
 
  private:
