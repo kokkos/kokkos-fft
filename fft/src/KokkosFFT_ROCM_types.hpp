@@ -85,8 +85,6 @@ struct ScopedRocfftPlan {
                    const std::vector<int> &out_extents,
                    const std::vector<int> &fft_extents, int howmany,
                    Direction direction, bool is_inplace) {
-    ScopedRocfftPlanDescription scoped_description;
-
     auto [in_array_type, out_array_type, fft_direction] =
         get_in_out_array_type(transform_type, direction);
 
@@ -101,6 +99,8 @@ struct ScopedRocfftPlan {
     auto reversed_fft_extents =
         convert_int_type_and_reverse<int, std::size_t>(fft_extents);
 
+    // Create a plan description
+    ScopedRocfftPlanDescription scoped_description;
     rocfft_status status = rocfft_plan_description_set_data_layout(
         scoped_description.description(),  // description handle
         in_array_type,                     // input array type
