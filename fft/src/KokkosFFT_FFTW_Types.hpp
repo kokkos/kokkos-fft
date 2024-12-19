@@ -68,7 +68,6 @@ struct ScopedFFTWPlan {
       std::conditional_t<std::is_same_v<floating_point_type, float>, fftwf_plan,
                          fftw_plan>;
   plan_type m_plan;
-  bool m_is_created = false;
 
  public:
   template <typename InScalarType, typename OutScalarType>
@@ -102,15 +101,14 @@ struct ScopedFFTWPlan {
       m_plan = fftw_plan_many_dft(rank, n, howmany, in, inembed, istride, idist,
                                   out, onembed, ostride, odist, sign, flags);
     }
-    m_is_created = true;
   }
 
   ~ScopedFFTWPlan() noexcept {
     cleanup_threads();
     if constexpr (std::is_same_v<plan_type, fftwf_plan>) {
-      if (m_is_created) fftwf_destroy_plan(m_plan);
+      fftwf_destroy_plan(m_plan);
     } else {
-      if (m_is_created) fftw_destroy_plan(m_plan);
+      fftw_destroy_plan(m_plan);
     }
   }
 
