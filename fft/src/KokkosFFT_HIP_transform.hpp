@@ -6,12 +6,10 @@
 #define KOKKOSFFT_HIP_TRANSFORM_HPP
 
 #include <hipfft/hipfft.h>
-#include "KokkosFFT_asserts.hpp"
+#include "KokkosFFT_HIP_types.hpp"
 
 namespace KokkosFFT {
 namespace Impl {
-
-struct ScopedHIPfftPlan;
 
 inline void exec_plan(const ScopedHIPfftPlan& scoped_plan, hipfftReal* idata,
                       hipfftComplex* odata, int /*direction*/) {
