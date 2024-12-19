@@ -46,15 +46,14 @@ auto compute_strides(std::vector<InType>& extents) -> std::vector<OutType> {
 // batched transform, over ND Views
 template <
     typename ExecutionSpace, typename PlanType, typename InViewType,
-    typename OutViewType, typename BufferViewType, typename InfoType,
-    std::size_t fft_rank             = 1,
+    typename OutViewType, std::size_t fft_rank = 1,
     std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::Experimental::SYCL>,
                      std::nullptr_t> = nullptr>
 auto create_plan(const ExecutionSpace& exec_space,
                  std::unique_ptr<PlanType>& plan, const InViewType& in,
-                 const OutViewType& out, BufferViewType&, InfoType&,
-                 Direction /*direction*/, axis_type<fft_rank> axes,
-                 shape_type<fft_rank> s, bool is_inplace) {
+                 const OutViewType& out, Direction /*direction*/,
+                 axis_type<fft_rank> axes, shape_type<fft_rank> s,
+                 bool is_inplace) {
   static_assert(
       KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
                                               OutViewType>,
@@ -108,14 +107,6 @@ auto create_plan(const ExecutionSpace& exec_space,
   plan->commit(q);
 
   return fft_size;
-}
-
-template <
-    typename ExecutionSpace, typename PlanType, typename InfoType,
-    std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::Experimental::SYCL>,
-                     std::nullptr_t> = nullptr>
-void destroy_plan_and_info(std::unique_ptr<PlanType>&, InfoType&) {
-  // In oneMKL, plans are destroyed by destructor
 }
 }  // namespace Impl
 }  // namespace KokkosFFT

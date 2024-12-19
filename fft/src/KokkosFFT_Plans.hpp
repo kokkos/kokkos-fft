@@ -5,7 +5,7 @@
 /// \file KokkosFFT_Plans.hpp
 /// \brief Wrapping fft plans of different fft libraries
 ///
-/// This file provides KokkosFFT::Impl::Plan.
+/// This file provides KokkosFFT::Plan.
 /// This implements a local (no MPI) interface for fft plans
 
 #ifndef KOKKOSFFT_PLANS_HPP
@@ -22,7 +22,7 @@
 #if defined(KOKKOS_ENABLE_CUDA)
 #include "KokkosFFT_Cuda_plans.hpp"
 #include "KokkosFFT_Cuda_transform.hpp"
-#ifdef ENABLE_HOST_AND_DEVICE
+#if defined(ENABLE_HOST_AND_DEVICE)
 #include "KokkosFFT_Host_plans.hpp"
 #include "KokkosFFT_Host_transform.hpp"
 #endif
@@ -34,14 +34,14 @@
 #include "KokkosFFT_HIP_plans.hpp"
 #include "KokkosFFT_HIP_transform.hpp"
 #endif
-#ifdef ENABLE_HOST_AND_DEVICE
+#if defined(ENABLE_HOST_AND_DEVICE)
 #include "KokkosFFT_Host_plans.hpp"
 #include "KokkosFFT_Host_transform.hpp"
 #endif
 #elif defined(KOKKOS_ENABLE_SYCL)
 #include "KokkosFFT_SYCL_plans.hpp"
 #include "KokkosFFT_SYCL_transform.hpp"
-#ifdef ENABLE_HOST_AND_DEVICE
+#if defined(ENABLE_HOST_AND_DEVICE)
 #include "KokkosFFT_Host_plans.hpp"
 #include "KokkosFFT_Host_transform.hpp"
 #endif
@@ -88,18 +88,11 @@ class Plan {
       typename KokkosFFT::Impl::FFTPlanType<ExecutionSpace, in_value_type,
                                             out_value_type>::type;
 
-  //! The type of fft info (used for rocfft only)
-  using fft_info_type = typename KokkosFFT::Impl::FFTInfoType<ExecutionSpace>;
-
   //! The type of fft size
   using fft_size_type = std::size_t;
 
   //! The type of map for transpose
   using map_type = axis_type<InViewType::rank()>;
-
-  //! Naive 1D View for work buffer
-  using BufferViewType =
-      Kokkos::View<Kokkos::complex<float_type>*, layout_type, execSpace>;
 
   //! The type of extents of input/output views
   using extents_type = shape_type<InViewType::rank()>;
@@ -110,9 +103,6 @@ class Plan {
 
   //! Dynamically allocatable fft plan.
   std::unique_ptr<fft_plan_type> m_plan;
-
-  //! fft info
-  fft_info_type m_info;
 
   //! fft size
   fft_size_type m_fft_size = 1;
@@ -142,9 +132,6 @@ class Plan {
   //! extents of input/output views
   extents_type m_in_extents, m_out_extents;
   ///@}
-
-  //! Internal work buffer (for rocfft)
-  BufferViewType m_buffer;
 
  public:
   /// \brief Constructor
@@ -209,9 +196,9 @@ class Plan {
     KOKKOSFFT_THROW_IF(m_is_inplace && m_is_crop_or_pad_needed,
                        "In-place transform is not supported with reshape. "
                        "Please use out-of-place transform.");
-    m_fft_size = KokkosFFT::Impl::create_plan(exec_space, m_plan, in, out,
-                                              m_buffer, m_info, direction,
-                                              m_axes, s, m_is_inplace);
+
+    m_fft_size = KokkosFFT::Impl::create_plan(
+        exec_space, m_plan, in, out, direction, m_axes, s, m_is_inplace);
   }
 
   /// \brief Constructor for multidimensional FFT
@@ -272,15 +259,12 @@ class Plan {
     KOKKOSFFT_THROW_IF(m_is_inplace && m_is_crop_or_pad_needed,
                        "In-place transform is not supported with reshape. "
                        "Please use out-of-place transform.");
-    m_fft_size =
-        KokkosFFT::Impl::create_plan(exec_space, m_plan, in, out, m_buffer,
-                                     m_info, direction, axes, s, m_is_inplace);
+
+    m_fft_size = KokkosFFT::Impl::create_plan(exec_space, m_plan, in, out,
+                                              direction, axes, s, m_is_inplace);
   }
 
-  ~Plan() {
-    KokkosFFT::Impl::destroy_plan_and_info<ExecutionSpace, fft_plan_type,
-                                           fft_info_type>(m_plan, m_info);
-  }
+  ~Plan() noexcept = default;
 
   Plan()                       = delete;
   Plan(const Plan&)            = delete;
@@ -358,7 +342,7 @@ class Plan {
 
     auto const direction =
         KokkosFFT::Impl::direction_type<execSpace>(m_direction);
-    KokkosFFT::Impl::exec_plan(*m_plan, idata, odata, direction, m_info);
+    KokkosFFT::Impl::exec_plan(*m_plan, idata, odata, direction);
 
     if constexpr (KokkosFFT::Impl::is_complex_v<in_value_type> &&
                   KokkosFFT::Impl::is_real_v<out_value_type>) {
