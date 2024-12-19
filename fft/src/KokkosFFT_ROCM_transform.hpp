@@ -11,8 +11,8 @@
 
 namespace KokkosFFT {
 namespace Impl {
-void exec_plan(ScopedRocfftPlan<float>& scoped_plan, float* idata,
-               std::complex<float>* odata, int /*direction*/) {
+inline void exec_plan(ScopedRocfftPlan<float>& scoped_plan, float* idata,
+                      std::complex<float>* odata, int /*direction*/) {
   rocfft_status status =
       rocfft_execute(scoped_plan.plan(), (void**)&idata, (void**)&odata,
                      scoped_plan.execution_info());
@@ -20,8 +20,8 @@ void exec_plan(ScopedRocfftPlan<float>& scoped_plan, float* idata,
                      "rocfft_execute for R2C failed");
 }
 
-void exec_plan(ScopedRocfftPlan<double>& scoped_plan, double* idata,
-               std::complex<double>* odata, int /*direction*/) {
+inline void exec_plan(ScopedRocfftPlan<double>& scoped_plan, double* idata,
+                      std::complex<double>* odata, int /*direction*/) {
   rocfft_status status =
       rocfft_execute(scoped_plan.plan(), (void**)&idata, (void**)&odata,
                      scoped_plan.execution_info());
@@ -29,8 +29,9 @@ void exec_plan(ScopedRocfftPlan<double>& scoped_plan, double* idata,
                      "rocfft_execute for D2Z failed");
 }
 
-void exec_plan(ScopedRocfftPlan<float>& scoped_plan, std::complex<float>* idata,
-               float* odata, int /*direction*/) {
+inline void exec_plan(ScopedRocfftPlan<Kokkos::complex<float>>& scoped_plan,
+                      std::complex<float>* idata, float* odata,
+                      int /*direction*/) {
   rocfft_status status =
       rocfft_execute(scoped_plan.plan(), (void**)&idata, (void**)&odata,
                      scoped_plan.execution_info());
@@ -38,8 +39,9 @@ void exec_plan(ScopedRocfftPlan<float>& scoped_plan, std::complex<float>* idata,
                      "rocfft_execute for C2R failed");
 }
 
-void exec_plan(ScopedRocfftPlan<double>& scoped_plan,
-               std::complex<double>* idata, double* odata, int /*direction*/) {
+inline void exec_plan(ScopedRocfftPlan<Kokkos::complex<double>>& scoped_plan,
+                      std::complex<double>* idata, double* odata,
+                      int /*direction*/) {
   rocfft_status status =
       rocfft_execute(scoped_plan.plan(), (void**)&idata, (void**)&odata,
                      scoped_plan.execution_info());
@@ -47,8 +49,9 @@ void exec_plan(ScopedRocfftPlan<double>& scoped_plan,
                      "rocfft_execute for Z2D failed");
 }
 
-void exec_plan(ScopedRocfftPlan<float>& scoped_plan, std::complex<float>* idata,
-               std::complex<float>* odata, int /*direction*/) {
+inline void exec_plan(ScopedRocfftPlan<Kokkos::complex<float>>& scoped_plan,
+                      std::complex<float>* idata, std::complex<float>* odata,
+                      int /*direction*/) {
   rocfft_status status =
       rocfft_execute(scoped_plan.plan(), (void**)&idata, (void**)&odata,
                      scoped_plan.execution_info());
@@ -56,9 +59,9 @@ void exec_plan(ScopedRocfftPlan<float>& scoped_plan, std::complex<float>* idata,
                      "rocfft_execute for C2C failed");
 }
 
-void exec_plan(ScopedRocfftPlan<double>& scoped_plan,
-               std::complex<double>* idata, std::complex<double>* odata,
-               int /*direction*/) {
+inline void exec_plan(ScopedRocfftPlan<Kokkos::complex<double>>& scoped_plan,
+                      std::complex<double>* idata, std::complex<double>* odata,
+                      int /*direction*/) {
   rocfft_status status =
       rocfft_execute(scoped_plan.plan(), (void**)&idata, (void**)&odata,
                      scoped_plan.execution_info());
