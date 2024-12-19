@@ -6,12 +6,10 @@
 #define KOKKOSFFT_CUDA_TRANSFORM_HPP
 
 #include <cufft.h>
-#include "KokkosFFT_asserts.hpp"
+#include "KokkosFFT_Cuda_types.hpp"
 
 namespace KokkosFFT {
 namespace Impl {
-
-struct ScopedCufftPlan;
 
 inline void exec_plan(const ScopedCufftPlan& scoped_plan, cufftReal* idata,
                       cufftComplex* odata, int /*direction*/) {
