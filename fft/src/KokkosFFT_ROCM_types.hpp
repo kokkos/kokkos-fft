@@ -56,7 +56,7 @@ struct ScopedRocfftPlanDescription {
       Kokkos::abort("rocfft_plan_description_destroy failed");
   }
 
-  rocfft_plan_description &description() { return m_description; }
+  rocfft_plan_description description() const noexcept { return m_description; }
 };
 
 /// \brief A class that wraps rocfft for RAII
@@ -172,7 +172,9 @@ struct ScopedRocfftPlan {
   ScopedRocfftPlan(ScopedRocfftPlan &&)                 = delete;
 
   rocfft_plan plan() const noexcept { return m_plan; }
-  rocfft_execution_info &execution_info() { return m_execution_info; }
+  rocfft_execution_info execution_info() const noexcept {
+    return m_execution_info;
+  }
 
  private:
   void cleanup() {
