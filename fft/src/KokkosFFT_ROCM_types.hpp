@@ -180,7 +180,7 @@ struct ScopedRocfftPlan {
     if (status != rocfft_status_success)
       Kokkos::abort("rocfft_plan_destroy failed");
 
-    rocfft_status status = rocfft_execution_info_destroy(m_execution_info);
+    status = rocfft_execution_info_destroy(m_execution_info);
     if (status != rocfft_status_success)
       Kokkos::abort("rocfft_execution_info_destroy failed");
   }
