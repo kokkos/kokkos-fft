@@ -40,7 +40,8 @@ auto create_plan(const ExecutionSpace& exec_space,
   const int nx = fft_extents.at(0);
   int fft_size = std::accumulate(fft_extents.begin(), fft_extents.end(), 1,
                                  std::multiplies<>());
-  plan         = std::make_unique<PlanType>(exec_space, nx, type, howmany);
+  plan         = std::make_unique<PlanType>(nx, type, howmany);
+  plan->commit(exec_space);
 
   return fft_size;
 }
@@ -72,7 +73,8 @@ auto create_plan(const ExecutionSpace& exec_space,
   const int nx = fft_extents.at(0), ny = fft_extents.at(1);
   int fft_size = std::accumulate(fft_extents.begin(), fft_extents.end(), 1,
                                  std::multiplies<>());
-  plan         = std::make_unique<PlanType>(exec_space, nx, ny, type);
+  plan         = std::make_unique<PlanType>(nx, ny, type);
+  plan->commit(exec_space);
 
   return fft_size;
 }
@@ -106,7 +108,8 @@ auto create_plan(const ExecutionSpace& exec_space,
             nz = fft_extents.at(2);
   int fft_size = std::accumulate(fft_extents.begin(), fft_extents.end(), 1,
                                  std::multiplies<>());
-  plan         = std::make_unique<PlanType>(exec_space, nx, ny, nz, type);
+  plan         = std::make_unique<PlanType>(nx, ny, nz, type);
+  plan->commit(exec_space);
 
   return fft_size;
 }
@@ -151,9 +154,10 @@ auto create_plan(const ExecutionSpace& exec_space,
 
   // For the moment, considering the contiguous layout only
   int istride = 1, ostride = 1;
-  plan = std::make_unique<PlanType>(
-      exec_space, rank, fft_extents.data(), in_extents.data(), istride, idist,
-      out_extents.data(), ostride, odist, type, howmany);
+  plan = std::make_unique<PlanType>(rank, fft_extents.data(), in_extents.data(),
+                                    istride, idist, out_extents.data(), ostride,
+                                    odist, type, howmany);
+  plan->commit(exec_space);
 
   return fft_size;
 }

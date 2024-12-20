@@ -32,59 +32,28 @@ struct ScopedCufftPlan {
   cufftHandle m_plan;
 
  public:
-  ScopedCufftPlan(const Kokkos::Cuda &exec_space, int nx, cufftType type,
+  ScopedCufftPlan(int nx, cufftType type, int batch) {
+    cufftResult cufft_rt = cufftPlan1d(&m_plan, nx, type, batch);
+    KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftPlan1d failed");
+  }
+
+  ScopedCufftPlan(int nx, int ny, cufftType type) {
+    cufftResult cufft_rt = cufftPlan2d(&m_plan, nx, ny, type);
+    KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftPlan2d failed");
+  }
+
+  ScopedCufftPlan(int nx, int ny, int nz, cufftType type) {
+    cufftResult cufft_rt = cufftPlan3d(&m_plan, nx, ny, nz, type);
+    KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftPlan3d failed");
+  }
+
+  ScopedCufftPlan(int rank, int *n, int *inembed, int istride, int idist,
+                  int *onembed, int ostride, int odist, cufftType type,
                   int batch) {
-    try {
-      cufftResult cufft_rt = cufftPlan1d(&m_plan, nx, type, batch);
-      KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftPlan1d failed");
-      set_stream(exec_space);
-    } catch (const std::runtime_error &e) {
-      std::cerr << e.what() << std::endl;
-      cleanup();
-      throw;
-    }
-  }
-
-  ScopedCufftPlan(const Kokkos::Cuda &exec_space, int nx, int ny,
-                  cufftType type) {
-    try {
-      cufftResult cufft_rt = cufftPlan2d(&m_plan, nx, ny, type);
-      KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftPlan2d failed");
-      set_stream(exec_space);
-    } catch (const std::runtime_error &e) {
-      std::cerr << e.what() << std::endl;
-      cleanup();
-      throw;
-    }
-  }
-
-  ScopedCufftPlan(const Kokkos::Cuda &exec_space, int nx, int ny, int nz,
-                  cufftType type) {
-    try {
-      cufftResult cufft_rt = cufftPlan3d(&m_plan, nx, ny, nz, type);
-      KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftPlan3d failed");
-      set_stream(exec_space);
-    } catch (const std::runtime_error &e) {
-      std::cerr << e.what() << std::endl;
-      cleanup();
-      throw;
-    }
-  }
-
-  ScopedCufftPlan(const Kokkos::Cuda &exec_space, int rank, int *n,
-                  int *inembed, int istride, int idist, int *onembed,
-                  int ostride, int odist, cufftType type, int batch) {
-    try {
-      cufftResult cufft_rt =
-          cufftPlanMany(&m_plan, rank, n, inembed, istride, idist, onembed,
-                        ostride, odist, type, batch);
-      KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftPlanMany failed");
-      set_stream(exec_space);
-    } catch (const std::runtime_error &e) {
-      std::cerr << e.what() << std::endl;
-      cleanup();
-      throw;
-    }
+    cufftResult cufft_rt =
+        cufftPlanMany(&m_plan, rank, n, inembed, istride, idist, onembed,
+                      ostride, odist, type, batch);
+    KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftPlanMany failed");
   }
 
   ~ScopedCufftPlan() noexcept { cleanup(); }
@@ -96,17 +65,22 @@ struct ScopedCufftPlan {
   ScopedCufftPlan(ScopedCufftPlan &&)                 = delete;
 
   cufftHandle plan() const noexcept { return m_plan; }
+  void commit(const Kokkos::Cuda &exec_space) {
+    cudaStream_t stream = exec_space.cuda_stream();
+    try {
+      cufftResult cufft_rt = cufftSetStream(m_plan, stream);
+      KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftSetStream failed");
+    } catch (const std::runtime_error &e) {
+      std::cerr << e.what() << std::endl;
+      cleanup();
+      throw;
+    }
+  }
 
  private:
   void cleanup() {
     cufftResult cufft_rt = cufftDestroy(m_plan);
     if (cufft_rt != CUFFT_SUCCESS) Kokkos::abort("cufftDestroy failed");
-  }
-
-  void set_stream(const Kokkos::Cuda &exec_space) {
-    cudaStream_t stream  = exec_space.cuda_stream();
-    cufftResult cufft_rt = cufftSetStream(m_plan, stream);
-    KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftSetStream failed");
   }
 };
 
