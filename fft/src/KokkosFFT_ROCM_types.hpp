@@ -144,7 +144,7 @@ struct ScopedRocfftPlan {
   void commit(const Kokkos::HIP &exec_space) {
     try {
       // Prepare workbuffer and set execution information
-      status = rocfft_execution_info_create(&m_execution_info);
+      rocfft_status status = rocfft_execution_info_create(&m_execution_info);
       KOKKOSFFT_THROW_IF(status != rocfft_status_success,
                          "rocfft_execution_info_create failed");
 
