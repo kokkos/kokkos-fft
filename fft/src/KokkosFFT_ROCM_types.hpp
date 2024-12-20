@@ -77,8 +77,7 @@ struct ScopedRocfftPlan {
   BufferViewType m_buffer;
 
  public:
-  ScopedRocfftPlan(const Kokkos::HIP &exec_space,
-                   const FFTWTransformType transform_type,
+  ScopedRocfftPlan(const FFTWTransformType transform_type,
                    const std::vector<int> &in_extents,
                    const std::vector<int> &out_extents,
                    const std::vector<int> &fft_extents, int howmany,
@@ -115,22 +114,35 @@ struct ScopedRocfftPlan {
     KOKKOSFFT_THROW_IF(status != rocfft_status_success,
                        "rocfft_plan_description_set_data_layout failed");
 
+    // inplace or Out-of-place transform
+    const rocfft_result_placement place =
+        is_inplace ? rocfft_placement_inplace : rocfft_placement_notinplace;
+
+    // Create a plan
+    status = rocfft_plan_create(&m_plan, place, fft_direction, m_precision,
+                                reversed_fft_extents.size(),  // Dimension
+                                reversed_fft_extents.data(),  // Lengths
+                                howmany,  // Number of transforms
+                                scoped_description.description()  // Description
+    );
+    KOKKOSFFT_THROW_IF(status != rocfft_status_success,
+                       "rocfft_plan_create failed");
+  }
+  ~ScopedRocfftPlan() noexcept { cleanup(); }
+
+  ScopedRocfftPlan()                                    = delete;
+  ScopedRocfftPlan(const ScopedRocfftPlan &)            = delete;
+  ScopedRocfftPlan &operator=(const ScopedRocfftPlan &) = delete;
+  ScopedRocfftPlan &operator=(ScopedRocfftPlan &&)      = delete;
+  ScopedRocfftPlan(ScopedRocfftPlan &&)                 = delete;
+
+  rocfft_plan plan() const noexcept { return m_plan; }
+  rocfft_execution_info execution_info() const noexcept {
+    return m_execution_info;
+  }
+
+  void commit(const Kokkos::HIP &exec_space) {
     try {
-      // inplace or Out-of-place transform
-      const rocfft_result_placement place =
-          is_inplace ? rocfft_placement_inplace : rocfft_placement_notinplace;
-
-      // Create a plan
-      status =
-          rocfft_plan_create(&m_plan, place, fft_direction, m_precision,
-                             reversed_fft_extents.size(),  // Dimension
-                             reversed_fft_extents.data(),  // Lengths
-                             howmany,  // Number of transforms
-                             scoped_description.description()  // Description
-          );
-      KOKKOSFFT_THROW_IF(status != rocfft_status_success,
-                         "rocfft_plan_create failed");
-
       // Prepare workbuffer and set execution information
       status = rocfft_execution_info_create(&m_execution_info);
       KOKKOSFFT_THROW_IF(status != rocfft_status_success,
@@ -162,18 +174,6 @@ struct ScopedRocfftPlan {
       cleanup();
       throw;
     }
-  }
-  ~ScopedRocfftPlan() noexcept { cleanup(); }
-
-  ScopedRocfftPlan()                                    = delete;
-  ScopedRocfftPlan(const ScopedRocfftPlan &)            = delete;
-  ScopedRocfftPlan &operator=(const ScopedRocfftPlan &) = delete;
-  ScopedRocfftPlan &operator=(ScopedRocfftPlan &&)      = delete;
-  ScopedRocfftPlan(ScopedRocfftPlan &&)                 = delete;
-
-  rocfft_plan plan() const noexcept { return m_plan; }
-  rocfft_execution_info execution_info() const noexcept {
-    return m_execution_info;
   }
 
  private:

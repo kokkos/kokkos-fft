@@ -46,9 +46,9 @@ auto create_plan(const ExecutionSpace& exec_space,
       KokkosFFT::Impl::get_extents(in, out, axes, s, is_inplace);
 
   // Create a plan
-  plan =
-      std::make_unique<PlanType>(exec_space, type, in_extents, out_extents,
-                                 fft_extents, howmany, direction, is_inplace);
+  plan = std::make_unique<PlanType>(type, in_extents, out_extents, fft_extents,
+                                    howmany, direction, is_inplace);
+  plan->commit(exec_space);
 
   // Calculate the total size of the FFT
   int fft_size = std::accumulate(fft_extents.begin(), fft_extents.end(), 1,

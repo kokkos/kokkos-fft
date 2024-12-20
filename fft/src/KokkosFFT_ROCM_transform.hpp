@@ -7,6 +7,7 @@
 
 #include <complex>
 #include <rocfft/rocfft.h>
+#include "KokkosFFT_asserts.hpp"
 #include "KokkosFFT_ROCM_types.hpp"
 
 namespace KokkosFFT {
