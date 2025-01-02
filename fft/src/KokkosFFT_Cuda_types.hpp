@@ -5,7 +5,6 @@
 #ifndef KOKKOSFFT_CUDA_TYPES_HPP
 #define KOKKOSFFT_CUDA_TYPES_HPP
 
-#include <iostream>
 #include <cufft.h>
 #include <Kokkos_Abort.hpp>
 #include "KokkosFFT_common_types.hpp"
@@ -56,7 +55,10 @@ struct ScopedCufftPlan {
     KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftPlanMany failed");
   }
 
-  ~ScopedCufftPlan() noexcept { cleanup(); }
+  ~ScopedCufftPlan() noexcept {
+    cufftResult cufft_rt = cufftDestroy(m_plan);
+    if (cufft_rt != CUFFT_SUCCESS) Kokkos::abort("cufftDestroy failed");
+  }
 
   ScopedCufftPlan()                                   = delete;
   ScopedCufftPlan(const ScopedCufftPlan &)            = delete;
@@ -66,21 +68,8 @@ struct ScopedCufftPlan {
 
   cufftHandle plan() const noexcept { return m_plan; }
   void commit(const Kokkos::Cuda &exec_space) {
-    cudaStream_t stream = exec_space.cuda_stream();
-    try {
-      cufftResult cufft_rt = cufftSetStream(m_plan, stream);
-      KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftSetStream failed");
-    } catch (const std::runtime_error &e) {
-      std::cerr << e.what() << std::endl;
-      cleanup();
-      throw;
-    }
-  }
-
- private:
-  void cleanup() {
-    cufftResult cufft_rt = cufftDestroy(m_plan);
-    if (cufft_rt != CUFFT_SUCCESS) Kokkos::abort("cufftDestroy failed");
+    cufftResult cufft_rt = cufftSetStream(m_plan, exec_space.cuda_stream());
+    KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftSetStream failed");
   }
 };
 
