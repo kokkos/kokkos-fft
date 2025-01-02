@@ -121,7 +121,7 @@ struct ScopedFFTWPlan {
   plan_type plan() const noexcept { return m_plan; }
 
  private:
-  void init_threads([[maybe_unused]] const ExecutionSpace &exec_space) {
+  static void init_threads([[maybe_unused]] const ExecutionSpace &exec_space) {
 #if defined(KOKKOS_ENABLE_OPENMP) || defined(KOKKOS_ENABLE_THREADS)
     if constexpr (std::is_same_v<ExecutionSpace,
                                  Kokkos::DefaultHostExecutionSpace>) {
@@ -138,7 +138,7 @@ struct ScopedFFTWPlan {
 #endif
   }
 
-  void cleanup_threads() {
+  static void cleanup_threads() {
 #if defined(KOKKOS_ENABLE_OPENMP) || defined(KOKKOS_ENABLE_THREADS)
     if constexpr (std::is_same_v<ExecutionSpace,
                                  Kokkos::DefaultHostExecutionSpace>) {
