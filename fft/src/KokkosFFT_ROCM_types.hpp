@@ -192,7 +192,8 @@ struct ScopedRocfftPlan {
 
   void commit(const Kokkos::HIP &exec_space) {
     std::size_t workbuffersize = 0;
-    status = rocfft_plan_get_work_buffer_size(m_plan, &workbuffersize);
+    rocfft_status status =
+        rocfft_plan_get_work_buffer_size(m_plan, &workbuffersize);
     KOKKOSFFT_THROW_IF(status != rocfft_status_success,
                        "rocfft_plan_get_work_buffer_size failed");
 
