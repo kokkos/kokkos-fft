@@ -197,7 +197,7 @@ struct ScopedRocfftPlan {
     KOKKOSFFT_THROW_IF(status != rocfft_status_success,
                        "rocfft_plan_get_work_buffer_size failed");
 
-    m_execution_info = std::make_unique<ScopedRocfftExecutionInfo>();
+    m_execution_info = std::make_unique<ScopedRocfftExecutionInfoType>();
     m_execution_info->setup(exec_space, workbuffersize);
   }
 
