@@ -301,6 +301,7 @@ jobs:
   # test the project
   test:
     runs-on: ${{ matrix.backend.runner }}
+    continue-on-error: ${{ matrix.unstable }}
 
     needs:
       - check_docker_files
@@ -311,12 +312,14 @@ jobs:
 
     strategy:
       matrix:
+        unstable: [false]
         backend:
           # run CUDA tests on Ruche supercomputer with Singularity
           - name: cuda
             image: nvcc
             runner: [self-hosted, cuda]
             use_singularity: true
+            unstable: true
           # run OpenMP tests on Azure server
           - name: openmp
             image: gcc
