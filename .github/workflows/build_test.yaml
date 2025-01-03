@@ -311,6 +311,7 @@ jobs:
     if: ${{ ! cancelled() && needs.build.result == 'success' }}
 
     strategy:
+      fail-fast: false
       matrix:
         unstable: [false]
         backend:
