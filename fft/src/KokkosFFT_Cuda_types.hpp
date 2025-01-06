@@ -67,7 +67,7 @@ struct ScopedCufftPlan {
   ScopedCufftPlan(ScopedCufftPlan &&)                 = delete;
 
   cufftHandle plan() const noexcept { return m_plan; }
-  void commit(const Kokkos::Cuda &exec_space) {
+  void commit(const Kokkos::Cuda &exec_space) const {
     cufftResult cufft_rt = cufftSetStream(m_plan, exec_space.cuda_stream());
     KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftSetStream failed");
   }

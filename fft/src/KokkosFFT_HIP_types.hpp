@@ -67,7 +67,7 @@ struct ScopedHIPfftPlan {
   ScopedHIPfftPlan(ScopedHIPfftPlan &&)                 = delete;
 
   hipfftHandle plan() const noexcept { return m_plan; }
-  void commit(const Kokkos::HIP &exec_space) {
+  void commit(const Kokkos::HIP &exec_space) const {
     hipfftResult hipfft_rt = hipfftSetStream(m_plan, exec_space.hip_stream());
     KOKKOSFFT_THROW_IF(hipfft_rt != HIPFFT_SUCCESS, "hipfftSetStream failed");
   }
