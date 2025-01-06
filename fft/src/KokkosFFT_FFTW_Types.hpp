@@ -131,7 +131,7 @@ struct ScopedFFTWPlan {
     return global_id++;
   }
 
-  static void init_threads([[maybe_unused]] const ExecutionSpace &exec_space) {
+  void init_threads([[maybe_unused]] const ExecutionSpace &exec_space) {
 #if defined(KOKKOS_ENABLE_OPENMP) || defined(KOKKOS_ENABLE_THREADS)
     if constexpr (std::is_same_v<ExecutionSpace,
                                  Kokkos::DefaultHostExecutionSpace>) {
@@ -148,7 +148,7 @@ struct ScopedFFTWPlan {
 #endif
   }
 
-  static void cleanup_threads() {
+  void cleanup_threads() {
 #if defined(KOKKOS_ENABLE_OPENMP) || defined(KOKKOS_ENABLE_THREADS)
     if constexpr (std::is_same_v<ExecutionSpace,
                                  Kokkos::DefaultHostExecutionSpace>) {
