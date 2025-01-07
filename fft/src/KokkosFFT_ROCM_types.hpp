@@ -8,7 +8,6 @@
 #include <numeric>
 #include <algorithm>
 #include <complex>
-#include <iostream>
 #include <rocfft/rocfft.h>
 #include <Kokkos_Abort.hpp>
 #include "KokkosFFT_common_types.hpp"
@@ -56,6 +55,14 @@ struct ScopedRocfftPlanDescription {
       Kokkos::abort("rocfft_plan_description_destroy failed");
   }
 
+  ScopedRocfftPlanDescription()                                    = delete;
+  ScopedRocfftPlanDescription(const ScopedRocfftPlanDescription &) = delete;
+  ScopedRocfftPlanDescription &operator=(const ScopedRocfftPlanDescription &) =
+      delete;
+  ScopedRocfftPlanDescription &operator=(ScopedRocfftPlanDescription &&) =
+      delete;
+  ScopedRocfftPlanDescription(ScopedRocfftPlanDescription &&) = delete;
+
   rocfft_plan_description description() const noexcept { return m_description; }
 };
 
@@ -82,6 +89,13 @@ struct ScopedRocfftExecutionInfo {
     if (status != rocfft_status_success)
       Kokkos::abort("rocfft_execution_info_destroy failed");
   }
+
+  ScopedRocfftExecutionInfo()                                  = delete;
+  ScopedRocfftExecutionInfo(const ScopedRocfftExecutionInfo &) = delete;
+  ScopedRocfftExecutionInfo &operator=(const ScopedRocfftExecutionInfo &) =
+      delete;
+  ScopedRocfftExecutionInfo &operator=(ScopedRocfftExecutionInfo &&) = delete;
+  ScopedRocfftExecutionInfo(ScopedRocfftExecutionInfo &&)            = delete;
 
   rocfft_execution_info execution_info() const noexcept {
     return m_execution_info;
