@@ -55,7 +55,6 @@ struct ScopedRocfftPlanDescription {
       Kokkos::abort("rocfft_plan_description_destroy failed");
   }
 
-  ScopedRocfftPlanDescription()                                    = delete;
   ScopedRocfftPlanDescription(const ScopedRocfftPlanDescription &) = delete;
   ScopedRocfftPlanDescription &operator=(const ScopedRocfftPlanDescription &) =
       delete;
@@ -90,7 +89,6 @@ struct ScopedRocfftExecutionInfo {
       Kokkos::abort("rocfft_execution_info_destroy failed");
   }
 
-  ScopedRocfftExecutionInfo()                                  = delete;
   ScopedRocfftExecutionInfo(const ScopedRocfftExecutionInfo &) = delete;
   ScopedRocfftExecutionInfo &operator=(const ScopedRocfftExecutionInfo &) =
       delete;
