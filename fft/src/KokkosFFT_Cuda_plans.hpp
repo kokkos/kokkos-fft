@@ -15,15 +15,14 @@ namespace KokkosFFT {
 namespace Impl {
 // 1D transform
 template <typename ExecutionSpace, typename PlanType, typename InViewType,
-          typename OutViewType, typename BufferViewType, typename InfoType,
+          typename OutViewType,
           std::enable_if_t<InViewType::rank() == 1 &&
                                std::is_same_v<ExecutionSpace, Kokkos::Cuda>,
                            std::nullptr_t> = nullptr>
 auto create_plan(const ExecutionSpace& exec_space,
                  std::unique_ptr<PlanType>& plan, const InViewType& in,
-                 const OutViewType& out, BufferViewType&, InfoType&,
-                 Direction /*direction*/, axis_type<1> axes, shape_type<1> s,
-                 bool is_inplace) {
+                 const OutViewType& out, Direction /*direction*/,
+                 axis_type<1> axes, shape_type<1> s, bool is_inplace) {
   static_assert(
       KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
                                               OutViewType>,
@@ -34,7 +33,6 @@ auto create_plan(const ExecutionSpace& exec_space,
       "InViewType and OutViewType.");
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
-
   auto type = KokkosFFT::Impl::transform_type<ExecutionSpace, in_value_type,
                                               out_value_type>::type();
   auto [in_extents, out_extents, fft_extents, howmany] =
@@ -42,29 +40,22 @@ auto create_plan(const ExecutionSpace& exec_space,
   const int nx = fft_extents.at(0);
   int fft_size = std::accumulate(fft_extents.begin(), fft_extents.end(), 1,
                                  std::multiplies<>());
-
-  plan                 = std::make_unique<PlanType>();
-  cufftResult cufft_rt = cufftPlan1d(&(*plan), nx, type, howmany);
-  KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftPlan1d failed");
-
-  cudaStream_t stream = exec_space.cuda_stream();
-  cufft_rt            = cufftSetStream((*plan), stream);
-  KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftSetStream failed");
+  plan         = std::make_unique<PlanType>(nx, type, howmany);
+  plan->commit(exec_space);
 
   return fft_size;
 }
 
 // 2D transform
 template <typename ExecutionSpace, typename PlanType, typename InViewType,
-          typename OutViewType, typename BufferViewType, typename InfoType,
+          typename OutViewType,
           std::enable_if_t<InViewType::rank() == 2 &&
                                std::is_same_v<ExecutionSpace, Kokkos::Cuda>,
                            std::nullptr_t> = nullptr>
 auto create_plan(const ExecutionSpace& exec_space,
                  std::unique_ptr<PlanType>& plan, const InViewType& in,
-                 const OutViewType& out, BufferViewType&, InfoType&,
-                 Direction /*direction*/, axis_type<2> axes, shape_type<2> s,
-                 bool is_inplace) {
+                 const OutViewType& out, Direction /*direction*/,
+                 axis_type<2> axes, shape_type<2> s, bool is_inplace) {
   static_assert(
       KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
                                               OutViewType>,
@@ -75,7 +66,6 @@ auto create_plan(const ExecutionSpace& exec_space,
       "InViewType and OutViewType.");
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
-
   auto type = KokkosFFT::Impl::transform_type<ExecutionSpace, in_value_type,
                                               out_value_type>::type();
   [[maybe_unused]] auto [in_extents, out_extents, fft_extents, howmany] =
@@ -83,29 +73,22 @@ auto create_plan(const ExecutionSpace& exec_space,
   const int nx = fft_extents.at(0), ny = fft_extents.at(1);
   int fft_size = std::accumulate(fft_extents.begin(), fft_extents.end(), 1,
                                  std::multiplies<>());
-
-  plan                 = std::make_unique<PlanType>();
-  cufftResult cufft_rt = cufftPlan2d(&(*plan), nx, ny, type);
-  KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftPlan2d failed");
-
-  cudaStream_t stream = exec_space.cuda_stream();
-  cufft_rt            = cufftSetStream((*plan), stream);
-  KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftSetStream failed");
+  plan         = std::make_unique<PlanType>(nx, ny, type);
+  plan->commit(exec_space);
 
   return fft_size;
 }
 
 // 3D transform
 template <typename ExecutionSpace, typename PlanType, typename InViewType,
-          typename OutViewType, typename BufferViewType, typename InfoType,
+          typename OutViewType,
           std::enable_if_t<InViewType::rank() == 3 &&
                                std::is_same_v<ExecutionSpace, Kokkos::Cuda>,
                            std::nullptr_t> = nullptr>
 auto create_plan(const ExecutionSpace& exec_space,
                  std::unique_ptr<PlanType>& plan, const InViewType& in,
-                 const OutViewType& out, BufferViewType&, InfoType&,
-                 Direction /*direction*/, axis_type<3> axes, shape_type<3> s,
-                 bool is_inplace) {
+                 const OutViewType& out, Direction /*direction*/,
+                 axis_type<3> axes, shape_type<3> s, bool is_inplace) {
   static_assert(
       KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
                                               OutViewType>,
@@ -116,7 +99,6 @@ auto create_plan(const ExecutionSpace& exec_space,
       "InViewType and OutViewType.");
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
-
   auto type = KokkosFFT::Impl::transform_type<ExecutionSpace, in_value_type,
                                               out_value_type>::type();
   [[maybe_unused]] auto [in_extents, out_extents, fft_extents, howmany] =
@@ -126,29 +108,22 @@ auto create_plan(const ExecutionSpace& exec_space,
             nz = fft_extents.at(2);
   int fft_size = std::accumulate(fft_extents.begin(), fft_extents.end(), 1,
                                  std::multiplies<>());
-
-  plan                 = std::make_unique<PlanType>();
-  cufftResult cufft_rt = cufftPlan3d(&(*plan), nx, ny, nz, type);
-  KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftPlan3d failed");
-
-  cudaStream_t stream = exec_space.cuda_stream();
-  cufft_rt            = cufftSetStream((*plan), stream);
-  KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftSetStream failed");
+  plan         = std::make_unique<PlanType>(nx, ny, nz, type);
+  plan->commit(exec_space);
 
   return fft_size;
 }
 
 // batched transform, over ND Views
 template <typename ExecutionSpace, typename PlanType, typename InViewType,
-          typename OutViewType, typename BufferViewType, typename InfoType,
-          std::size_t fft_rank             = 1,
+          typename OutViewType, std::size_t fft_rank = 1,
           std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::Cuda>,
                            std::nullptr_t> = nullptr>
 auto create_plan(const ExecutionSpace& exec_space,
                  std::unique_ptr<PlanType>& plan, const InViewType& in,
-                 const OutViewType& out, BufferViewType&, InfoType&,
-                 Direction /*direction*/, axis_type<fft_rank> axes,
-                 shape_type<fft_rank> s, bool is_inplace) {
+                 const OutViewType& out, Direction /*direction*/,
+                 axis_type<fft_rank> axes, shape_type<fft_rank> s,
+                 bool is_inplace) {
   static_assert(
       KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
                                               OutViewType>,
@@ -179,27 +154,14 @@ auto create_plan(const ExecutionSpace& exec_space,
 
   // For the moment, considering the contiguous layout only
   int istride = 1, ostride = 1;
-
-  plan                 = std::make_unique<PlanType>();
-  cufftResult cufft_rt = cufftPlanMany(
-      &(*plan), rank, fft_extents.data(), in_extents.data(), istride, idist,
-      out_extents.data(), ostride, odist, type, howmany);
-
-  KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftPlanMany failed");
-
-  cudaStream_t stream = exec_space.cuda_stream();
-  cufft_rt            = cufftSetStream((*plan), stream);
-  KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftSetStream failed");
+  plan = std::make_unique<PlanType>(rank, fft_extents.data(), in_extents.data(),
+                                    istride, idist, out_extents.data(), ostride,
+                                    odist, type, howmany);
+  plan->commit(exec_space);
 
   return fft_size;
 }
 
-template <typename ExecutionSpace, typename PlanType, typename InfoType,
-          std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::Cuda>,
-                           std::nullptr_t> = nullptr>
-void destroy_plan_and_info(std::unique_ptr<PlanType>& plan, InfoType&) {
-  cufftDestroy(*plan);
-}
 }  // namespace Impl
 }  // namespace KokkosFFT
 
