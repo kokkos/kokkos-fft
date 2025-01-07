@@ -5,7 +5,6 @@
 #ifndef KOKKOSFFT_FFTW_TYPES_HPP
 #define KOKKOSFFT_FFTW_TYPES_HPP
 
-#include <mutex>
 #include <fftw3.h>
 #include <Kokkos_Core.hpp>
 #include "KokkosFFT_common_types.hpp"
