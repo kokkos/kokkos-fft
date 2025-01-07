@@ -60,26 +60,6 @@ struct fftw_transform_type<Kokkos::complex<T1>, Kokkos::complex<T2>> {
   static constexpr FFTWTransformType type() { return m_type; };
 };
 
-/// \brief A class that wraps fftw_init_threads and fftw_cleanup_threads
-template <typename PlanType>
-struct ScopedFFTWThreads {
-  ScopedFFTWThreads() {
-    if constexpr (std::is_same_v<PlanType, fftwf_plan>) {
-      fftwf_init_threads();
-    } else {
-      fftw_init_threads();
-    }
-  }
-
-  ~ScopedFFTWThreads() noexcept {
-    if constexpr (std::is_same_v<PlanType, fftwf_plan>) {
-      fftwf_cleanup_threads();
-    } else {
-      fftw_cleanup_threads();
-    }
-  }
-};
-
 /// \brief A class that wraps fftw_plan and fftwf_plan for RAII
 template <typename ExecutionSpace, typename T1, typename T2>
 struct ScopedFFTWPlan {
@@ -143,16 +123,15 @@ struct ScopedFFTWPlan {
  private:
   void init_threads([[maybe_unused]] const ExecutionSpace &exec_space) {
 #if defined(KOKKOS_ENABLE_OPENMP) || defined(KOKKOS_ENABLE_THREADS)
-    static std::mutex mtx;
-    std::lock_guard<std::mutex> lock(mtx);
-    static ScopedFFTWThreads<plan_type> fftw_threads;
     if constexpr (std::is_same_v<ExecutionSpace,
                                  Kokkos::DefaultHostExecutionSpace>) {
       int nthreads = exec_space.concurrency();
 
       if constexpr (std::is_same_v<plan_type, fftwf_plan>) {
+        fftwf_init_threads();
         fftwf_plan_with_nthreads(nthreads);
       } else {
+        fftw_init_threads();
         fftw_plan_with_nthreads(nthreads);
       }
     }
