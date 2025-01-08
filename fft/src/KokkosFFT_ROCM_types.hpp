@@ -111,8 +111,8 @@ struct ScopedRocfftExecutionInfo {
 
     // Set work buffer
     if (workbuffersize > 0) {
-      m_workbuffer = Kokkos::kokkos_malloc<Kokkos::HIP>(
-          "kokkos_malloc workbuffer", workbuffersize);
+      m_workbuffer =
+          Kokkos::kokkos_malloc<Kokkos::HIP>("workbuffer", workbuffersize);
 
       status = rocfft_execution_info_set_work_buffer(
           m_execution_info, m_workbuffer, workbuffersize);
