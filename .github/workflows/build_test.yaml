@@ -313,7 +313,6 @@ jobs:
     strategy:
       matrix:
         backend:
-          unstable: [false]
           # run CUDA tests on Ruche supercomputer with Singularity
           - name: cuda
             image: nvcc
@@ -325,16 +324,19 @@ jobs:
             image: gcc
             runner: ubuntu-latest
             use_singularity: false
+            unstable: false
           # run Threads tests on Azure server
           - name: threads
             image: gcc
             runner: ubuntu-latest
             use_singularity: false
+            unstable: false
           # run Serial tests on Azure server
           - name: serial
             image: gcc
             runner: ubuntu-latest
             use_singularity: false
+            unstable: false
 
     steps:
       - name: Get artifacts
