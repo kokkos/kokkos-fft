@@ -82,8 +82,7 @@ struct ScopedRocfftExecutionInfo {
   }
   ~ScopedRocfftExecutionInfo() noexcept {
     if (m_workbuffer != nullptr) {
-      hipError_t hip_status = hipFree(m_workbuffer);
-      if (hip_status != hipSuccess) Kokkos::abort("hipFree failed");
+      Kokkos::kokkos_free<Kokkos::HIP>(m_workbuffer);
     }
     rocfft_status status = rocfft_execution_info_destroy(m_execution_info);
     if (status != rocfft_status_success)
@@ -112,8 +111,9 @@ struct ScopedRocfftExecutionInfo {
 
     // Set work buffer
     if (workbuffersize > 0) {
-      hipError_t hip_status = hipMalloc(&m_workbuffer, workbuffersize);
-      KOKKOSFFT_THROW_IF(hip_status != hipSuccess, "hipMalloc failed");
+      m_workbuffer = Kokkos::kokkos_malloc<Kokkos::HIP>(
+          "kokkos_malloc workbuffer", workbuffersize);
+
       status = rocfft_execution_info_set_work_buffer(
           m_execution_info, m_workbuffer, workbuffersize);
       KOKKOSFFT_THROW_IF(status != rocfft_status_success,
