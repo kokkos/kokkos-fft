@@ -301,7 +301,7 @@ jobs:
   # test the project
   test:
     runs-on: ${{ matrix.backend.runner }}
-    continue-on-error: ${{ matrix.unstable }}
+    continue-on-error: ${{ matrix.backend.unstable }}
 
     needs:
       - check_docker_files
@@ -311,10 +311,9 @@ jobs:
     if: ${{ ! cancelled() && needs.build.result == 'success' }}
 
     strategy:
-      fail-fast: false
       matrix:
-        unstable: [false]
         backend:
+          unstable: [false]
           # run CUDA tests on Ruche supercomputer with Singularity
           - name: cuda
             image: nvcc
