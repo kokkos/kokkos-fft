@@ -16,6 +16,7 @@ using HostView1D = Kokkos::View<T*, host_execution_space>;
 
 int main(int argc, char* argv[]) {
   Kokkos::initialize(argc, argv);
+  KokkosFFT::initialize();
   {
     const int n0 = 128;
     const Kokkos::complex<double> z(1.0, 1.0);
@@ -79,6 +80,7 @@ int main(int argc, char* argv[]) {
     host_exec.fence();
 #endif
   }
+  KokkosFFT::finalize();
   Kokkos::finalize();
 
   return 0;

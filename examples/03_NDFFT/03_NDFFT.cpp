@@ -15,6 +15,7 @@ using axis_type = KokkosFFT::axis_type<DIM>;
 
 int main(int argc, char* argv[]) {
   Kokkos::initialize(argc, argv);
+  KokkosFFT::initialize();
   {
     const int n0 = 128, n1 = 128, n2 = 16;
     const Kokkos::complex<double> z(1.0, 1.0);
@@ -46,6 +47,7 @@ int main(int argc, char* argv[]) {
     KokkosFFT::irfftn(exec, xc2r, xc2r_hat, axis_type<3>{-3, -2, -1});
     exec.fence();
   }
+  KokkosFFT::finalize();
   Kokkos::finalize();
 
   return 0;
