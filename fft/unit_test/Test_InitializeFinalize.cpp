@@ -163,8 +163,8 @@ TEST_F(InitializeFinalize_Test, is_finalized) {
         success &= !KokkosFFT::is_finalized();
         KokkosFFT::finalize();
         success &= KokkosFFT::is_finalized();
-        std::exit(success ? EXIT_SUCCESS : EXIT_FAILURE);
         Kokkos::finalize();
+        std::exit(success ? EXIT_SUCCESS : EXIT_FAILURE);
       },
       ::testing::ExitedWithCode(EXIT_SUCCESS), "");
 }
