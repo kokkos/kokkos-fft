@@ -2,15 +2,15 @@
 #
 # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
-add_library(fft INTERFACE)
+add_library(fft STATIC KokkosFFT_Core.cpp)
 
 target_link_libraries(fft
-    INTERFACE
+    PUBLIC
     common
     Kokkos::kokkos
 )
 
-target_include_directories(fft INTERFACE
+target_include_directories(fft PUBLIC
                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
                            $<INSTALL_INTERFACE:${INSTALL_INCLUDEDIR}>
 )
