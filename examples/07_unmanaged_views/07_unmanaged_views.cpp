@@ -25,7 +25,6 @@ using shape_type = KokkosFFT::shape_type<DIM>;
 
 int main(int argc, char* argv[]) {
   Kokkos::initialize(argc, argv);
-  KokkosFFT::initialize();
   {
     const int n0 = 128, n1 = 128, n2 = 16;
     const Kokkos::complex<double> z(1.0, 1.0);
@@ -64,7 +63,6 @@ int main(int argc, char* argv[]) {
                      KokkosFFT::Normalization::backward, shape);
     exec.fence();
   }
-  KokkosFFT::finalize();
   Kokkos::finalize();
 
   return 0;

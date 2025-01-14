@@ -14,7 +14,6 @@ using RightView2D = Kokkos::View<T **, Kokkos::LayoutRight, execution_space>;
 
 int main(int argc, char *argv[]) {
   Kokkos::initialize(argc, argv);
-  KokkosFFT::initialize();
   {
     const int n0 = 128, n1 = 128;
     const Kokkos::complex<double> z(1.0, 1.0);
@@ -70,7 +69,6 @@ int main(int argc, char *argv[]) {
 
     exec.fence();
   }
-  KokkosFFT::finalize();
   Kokkos::finalize();
 
   return 0;

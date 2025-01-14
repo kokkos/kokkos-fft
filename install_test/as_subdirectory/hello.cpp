@@ -13,9 +13,8 @@ using View2D = Kokkos::View<T**, execution_space>;
 
 int main(int argc, char* argv[]) {
   Kokkos::initialize(argc, argv);
-  KokkosFFT::initialize();
   {
-    const int n0 = 128, n1 = 128;
+    constexpr int n0 = 128, n1 = 128;
     const Kokkos::complex<double> z(1.0, 1.0);
 
     // 2D C2C FFT (Forward and Backward)
@@ -45,7 +44,6 @@ int main(int argc, char* argv[]) {
     KokkosFFT::irfft2(exec, xc2r, xc2r_hat);
     exec.fence();
   }
-  KokkosFFT::finalize();
   Kokkos::finalize();
 
   return 0;
