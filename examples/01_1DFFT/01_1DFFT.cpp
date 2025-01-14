@@ -13,7 +13,6 @@ using View1D = Kokkos::View<T*, execution_space>;
 
 int main(int argc, char* argv[]) {
   Kokkos::initialize(argc, argv);
-  KokkosFFT::initialize();
   {
     const int n0 = 128;
     const Kokkos::complex<double> z(1.0, 1.0);
@@ -45,7 +44,6 @@ int main(int argc, char* argv[]) {
     KokkosFFT::irfft(exec, xc2r, xc2r_hat);
     exec.fence();
   }
-  KokkosFFT::finalize();
   Kokkos::finalize();
 
   return 0;
