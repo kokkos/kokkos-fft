@@ -366,9 +366,7 @@ template <typename ExecutionSpace>
 auto direction_type(Direction direction) {
   return direction == Direction::forward ? ROCFFT_FORWARD : ROCFFT_BACKWARD;
 }
-
 #endif
-
 }  // namespace Impl
 }  // namespace KokkosFFT
 
