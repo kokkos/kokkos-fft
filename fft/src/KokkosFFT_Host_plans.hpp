@@ -18,7 +18,7 @@ template <typename ExecutionSpace, typename T,
           std::enable_if_t<is_AnyHostSpace_v<ExecutionSpace>, std::nullptr_t> =
               nullptr>
 void setup() {
-  static bool once = [] {
+  [[maybe_unused]] static bool once = [] {
     if (!(Kokkos::is_initialized() || Kokkos::is_finalized())) {
       Kokkos::abort(
           "Error: KokkosFFT APIs must not be called before initializing "
