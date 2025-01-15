@@ -10,6 +10,5 @@
 #include "KokkosFFT_Helpers.hpp"
 #include "KokkosFFT_Plans.hpp"
 #include "KokkosFFT_Transform.hpp"
-#include "KokkosFFT_Core.hpp"
 
 #endif

@@ -226,12 +226,8 @@ auto direction_type(Direction direction) {
   return direction == Direction::forward ? MKL_FFT_FORWARD : MKL_FFT_BACKWARD;
 }
 
-inline void initialize_host() {}
-inline void finalize_host() {}
 #endif
 
-inline void initialize_device() {}
-inline void finalize_device() {}
 }  // namespace Impl
 }  // namespace KokkosFFT
 

@@ -5,16 +5,13 @@
 
 #include <gtest/gtest.h>
 #include <Kokkos_Core.hpp>
-#include <KokkosFFT_Core.hpp>
 
 int main(int argc, char* argv[]) {
   ::testing::InitGoogleTest(&argc, argv);
 
   int result = 0;
   Kokkos::initialize(argc, argv);
-  KokkosFFT::initialize();
   result = RUN_ALL_TESTS();
-  KokkosFFT::finalize();
   Kokkos::finalize();
 
   return result;
