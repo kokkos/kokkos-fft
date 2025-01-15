@@ -5,7 +5,7 @@
 add_library(fft INTERFACE)
 
 target_link_libraries(fft
-INTERFACE
+    INTERFACE
     common
     Kokkos::kokkos
 )
