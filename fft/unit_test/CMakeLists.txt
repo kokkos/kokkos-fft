@@ -9,7 +9,6 @@ add_executable(unit-tests-kokkos-fft-core
 )
 
 target_compile_features(unit-tests-kokkos-fft-core PUBLIC cxx_std_17)
-
 target_link_libraries(unit-tests-kokkos-fft-core PUBLIC KokkosFFT::fft GTest::gtest)
 
 # Enable GoogleTest
