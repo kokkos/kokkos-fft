@@ -105,7 +105,7 @@ bool are_valid_axes(const ViewType& view, const ArrayType<IntType, DIM>& axes) {
       "are_valid_axes: the Rank of FFT axes must be between 1 and View rank");
 
   // Convert the input axes to be in the range of [0, rank-1]
-  // int type is choosen for consistency with the rest of the code
+  // int type is chosen for consistency with the rest of the code
   // the axes are defined with int type
   std::array<int, DIM> non_negative_axes;
 

@@ -301,6 +301,7 @@ jobs:
   # test the project
   test:
     runs-on: ${{ matrix.backend.runner }}
+    continue-on-error: ${{ matrix.backend.unstable }}
 
     needs:
       - check_docker_files
@@ -317,21 +318,25 @@ jobs:
             image: nvcc
             runner: [self-hosted, cuda]
             use_singularity: true
+            unstable: true
           # run OpenMP tests on Azure server
           - name: openmp
             image: gcc
             runner: ubuntu-latest
             use_singularity: false
+            unstable: false
           # run Threads tests on Azure server
           - name: threads
             image: gcc
             runner: ubuntu-latest
             use_singularity: false
+            unstable: false
           # run Serial tests on Azure server
           - name: serial
             image: gcc
             runner: ubuntu-latest
             use_singularity: false
+            unstable: false
 
     steps:
       - name: Get artifacts

@@ -65,7 +65,7 @@ void test_convert_negative_axes_1d() {
   EXPECT_EQ(converted_axis_0, ref_converted_axis_0);
   EXPECT_EQ(converted_axis_minus1, ref_converted_axis_minus1);
 
-  // Check if errors are correctly raised aginst invalid axis
+  // Check if errors are correctly raised against invalid axis
   // axis must be in [-1, 1)
   EXPECT_THROW({ KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/1); },
                std::runtime_error);
@@ -93,7 +93,7 @@ void test_convert_negative_axes_2d() {
   EXPECT_EQ(converted_axis_1, ref_converted_axis_1);
   EXPECT_EQ(converted_axis_minus1, ref_converted_axis_minus1);
 
-  // Check if errors are correctly raised aginst invalid axis
+  // Check if errors are correctly raised against invalid axis
   // axis must be in [-2, 2)
   EXPECT_THROW({ KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/2); },
                std::runtime_error);
@@ -128,7 +128,7 @@ void test_convert_negative_axes_3d() {
   EXPECT_EQ(converted_axis_minus1, ref_converted_axis_minus1);
   EXPECT_EQ(converted_axis_minus2, ref_converted_axis_minus2);
 
-  // Check if errors are correctly raised aginst invalid axis
+  // Check if errors are correctly raised against invalid axis
   // axis must be in [-3, 3)
   EXPECT_THROW({ KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/3); },
                std::runtime_error);
@@ -170,7 +170,7 @@ void test_convert_negative_axes_4d() {
   EXPECT_EQ(converted_axis_minus2, ref_converted_axis_minus2);
   EXPECT_EQ(converted_axis_minus3, ref_converted_axis_minus3);
 
-  // Check if errors are correctly raised aginst invalid axis
+  // Check if errors are correctly raised against invalid axis
   // axis must be in [-4, 4)
   EXPECT_THROW({ KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/4); },
                std::runtime_error);

@@ -155,7 +155,7 @@ void test_plan_1dfft_1dview() {
                                    KokkosFFT::Direction::backward,
                                    /*axes=*/axes_type<1>({0}));
 
-  // Check if errors are correctly raised aginst wrong dirction
+  // Check if errors are correctly raised against wrong direction
   // Input Real, Output Complex -> must be forward plan
   EXPECT_THROW(
       {
@@ -230,7 +230,7 @@ void test_plan_1dfft_2dview() {
                                     KokkosFFT::Direction::forward,
                                     /*axis=*/1);
 
-  // Check if errors are correctly raised aginst wrong dirction
+  // Check if errors are correctly raised against wrong direction
   // Input Real, Output Complex -> must be forward plan
   EXPECT_THROW(
       {
@@ -333,7 +333,7 @@ void test_plan_1dfft_3dview() {
                                     KokkosFFT::Direction::backward,
                                     /*axis=*/2);
 
-  // Check if errors are correctly raised aginst wrong dirction
+  // Check if errors are correctly raised against wrong direction
   // Input Real, Output Complex -> must be forward plan
   EXPECT_THROW(
       {
@@ -443,7 +443,7 @@ void test_plan_2dfft_2dview() {
                                       KokkosFFT::Direction::forward,
                                       /*axes=*/axes_type<2>({1, 0}));
 
-  // Check if errors are correctly raised aginst wrong dirction
+  // Check if errors are correctly raised against wrong direction
   // Input Real, Output Complex -> must be forward plan
   EXPECT_THROW(
       {
@@ -550,7 +550,7 @@ void test_plan_2dfft_3dview() {
                                       KokkosFFT::Direction::forward,
                                       /*axes=*/axes_type<2>({2, 1}));
 
-  // Check if errors are correctly raised aginst wrong dirction
+  // Check if errors are correctly raised against wrong direction
   // Input Real, Output Complex -> must be forward plan
   EXPECT_THROW(
       {
@@ -730,7 +730,7 @@ void test_plan_3dfft_3dview() {
                                         KokkosFFT::Direction::forward,
                                         /*axes=*/axes_type<3>({2, 1, 0}));
 
-  // Check if errors are correctly raised aginst wrong dirction
+  // Check if errors are correctly raised against wrong direction
   // Input Real, Output Complex -> must be forward plan
   EXPECT_THROW(
       {

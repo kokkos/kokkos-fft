@@ -241,7 +241,7 @@ template <typename T, typename LayoutType>
 void test_admissible_value_type() {
   using ViewType  = Kokkos::View<T*, LayoutType>;
   using real_type = KokkosFFT::Impl::base_floating_point_type<T>;
-  // Tests that a Value or View has a addmissible value type
+  // Tests that a Value or View has a admissible value type
   if constexpr (std::is_same_v<real_type, float> ||
                 std::is_same_v<real_type, double>) {
     // Base floating point type of a Value is float or double

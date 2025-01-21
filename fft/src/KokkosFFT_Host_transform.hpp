@@ -10,46 +10,53 @@
 
 namespace KokkosFFT {
 namespace Impl {
-template <typename PlanType, typename... Args>
-void exec_plan(PlanType& plan, float* idata, fftwf_complex* odata,
-               int /*direction*/, Args...) {
-  Kokkos::Profiling::ScopedRegion region("KokkosFFT::exec_plan[TPL_fftw]");
-  fftwf_execute_dft_r2c(plan, idata, odata);
+
+template <typename ScopedPlanType>
+void exec_plan(const ScopedPlanType& scoped_plan, float* idata,
+               fftwf_complex* odata, int /*direction*/) {
+  Kokkos::Profiling::ScopedRegion region(
+      "KokkosFFT::exec_plan[TPL_fftwExecR2C]");
+  fftwf_execute_dft_r2c(scoped_plan.plan(), idata, odata);
 }
 
-template <typename PlanType, typename... Args>
-void exec_plan(PlanType& plan, double* idata, fftw_complex* odata,
-               int /*direction*/, Args...) {
-  Kokkos::Profiling::ScopedRegion region("KokkosFFT::exec_plan[TPL_fftw]");
-  fftw_execute_dft_r2c(plan, idata, odata);
+template <typename ScopedPlanType>
+void exec_plan(const ScopedPlanType& scoped_plan, double* idata,
+               fftw_complex* odata, int /*direction*/) {
+  Kokkos::Profiling::ScopedRegion region(
+      "KokkosFFT::exec_plan[TPL_fftwExecD2Z]");
+  fftw_execute_dft_r2c(scoped_plan.plan(), idata, odata);
 }
 
-template <typename PlanType, typename... Args>
-void exec_plan(PlanType& plan, fftwf_complex* idata, float* odata,
-               int /*direction*/, Args...) {
-  Kokkos::Profiling::ScopedRegion region("KokkosFFT::exec_plan[TPL_fftw]");
-  fftwf_execute_dft_c2r(plan, idata, odata);
+template <typename ScopedPlanType>
+void exec_plan(const ScopedPlanType& scoped_plan, fftwf_complex* idata,
+               float* odata, int /*direction*/) {
+  Kokkos::Profiling::ScopedRegion region(
+      "KokkosFFT::exec_plan[TPL_fftwExecC2R]");
+  fftwf_execute_dft_c2r(scoped_plan.plan(), idata, odata);
 }
 
-template <typename PlanType, typename... Args>
-void exec_plan(PlanType& plan, fftw_complex* idata, double* odata,
-               int /*direction*/, Args...) {
-  Kokkos::Profiling::ScopedRegion region("KokkosFFT::exec_plan[TPL_fftw]");
-  fftw_execute_dft_c2r(plan, idata, odata);
+template <typename ScopedPlanType>
+void exec_plan(const ScopedPlanType& scoped_plan, fftw_complex* idata,
+               double* odata, int /*direction*/) {
+  Kokkos::Profiling::ScopedRegion region(
+      "KokkosFFT::exec_plan[TPL_fftwExecZ2D]");
+  fftw_execute_dft_c2r(scoped_plan.plan(), idata, odata);
 }
 
-template <typename PlanType, typename... Args>
-void exec_plan(PlanType& plan, fftwf_complex* idata, fftwf_complex* odata,
-               int /*direction*/, Args...) {
-  Kokkos::Profiling::ScopedRegion region("KokkosFFT::exec_plan[TPL_fftw]");
-  fftwf_execute_dft(plan, idata, odata);
+template <typename ScopedPlanType>
+void exec_plan(const ScopedPlanType& scoped_plan, fftwf_complex* idata,
+               fftwf_complex* odata, int /*direction*/) {
+  Kokkos::Profiling::ScopedRegion region(
+      "KokkosFFT::exec_plan[TPL_fftwExecC2C]");
+  fftwf_execute_dft(scoped_plan.plan(), idata, odata);
 }
 
-template <typename PlanType, typename... Args>
-void exec_plan(PlanType plan, fftw_complex* idata, fftw_complex* odata,
-               int /*direction*/, Args...) {
-  Kokkos::Profiling::ScopedRegion region("KokkosFFT::exec_plan[TPL_fftw]");
-  fftw_execute_dft(plan, idata, odata);
+template <typename ScopedPlanType>
+void exec_plan(const ScopedPlanType& scoped_plan, fftw_complex* idata,
+               fftw_complex* odata, int /*direction*/) {
+  Kokkos::Profiling::ScopedRegion region(
+      "KokkosFFT::exec_plan[TPL_fftwExecZ2Z]");
+  fftw_execute_dft(scoped_plan.plan(), idata, odata);
 }
 }  // namespace Impl
 }  // namespace KokkosFFT
