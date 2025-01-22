@@ -9,7 +9,7 @@ This public key can be extracted from the key ID.
 
 When updating the Dockerfiles for a newer version of CMake (if needed), the process to get the right public key is as follows:
 
-1. Identify the release on GitHub;
+1. Identify the release on GitHub (e.g. https://github.com/Kitware/CMake/releases/tag/v3.23.2);
 2. Copy the key ID in the line "PGP sign by XXXXXXXX";
 3. Paste it in `https://keys.openpgp.org/` to retrieve the URL of the public key file;
 4. Copy the last part in the URL `https://keys.openpgp.org/vks/v1/by-fingerprint/YYYYYYYY`;
