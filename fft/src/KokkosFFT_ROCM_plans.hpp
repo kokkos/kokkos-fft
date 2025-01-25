@@ -44,7 +44,6 @@ auto create_plan(const ExecutionSpace& exec_space,
   using out_value_type = typename OutViewType::non_const_value_type;
 
   Kokkos::Profiling::ScopedRegion region("KokkosFFT::create_plan[TPL_rocfft]");
-
   constexpr auto type =
       KokkosFFT::Impl::transform_type<ExecutionSpace, in_value_type,
                                       out_value_type>::type();

@@ -69,7 +69,6 @@ auto create_plan(const ExecutionSpace& exec_space,
       "KokkosFFT::create_plan: Rank of View must be larger than Rank of FFT.");
 
   Kokkos::Profiling::ScopedRegion region("KokkosFFT::create_plan[TPL_oneMKL]");
-
   auto [in_extents, out_extents, fft_extents, howmany] =
       KokkosFFT::Impl::get_extents(in, out, axes, s, is_inplace);
   int idist    = std::accumulate(in_extents.begin(), in_extents.end(), 1,
