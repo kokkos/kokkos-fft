@@ -43,12 +43,12 @@ template <typename RealView1DType, typename ComplexView2DType,
           typename RealView3DType>
 void initialize(RealView1DType& x, RealView1DType& y, ComplexView2DType& ikx,
                 ComplexView2DType& iky, RealView3DType& u) {
-  using value_type = typename RealView1DType::non_const_value_type;
-  const auto pi    = Kokkos::numbers::pi_v<double>;
-  value_type Lx = 2.0 * pi, Ly = 2.0 * pi;
+  using value_type    = typename RealView1DType::non_const_value_type;
+  const auto pi       = Kokkos::numbers::pi_v<double>;
+  const value_type Lx = 2.0 * pi, Ly = 2.0 * pi;
   const int nx = u.extent(2), ny = u.extent(1), nz = u.extent(0);
-  value_type dx = Lx / static_cast<value_type>(nx),
-             dy = Ly / static_cast<value_type>(ny);
+  const value_type dx = Lx / static_cast<value_type>(nx),
+                   dy = Ly / static_cast<value_type>(ny);
 
   // Initialize grids
   auto h_x = Kokkos::create_mirror_view(x);
@@ -180,7 +180,7 @@ void compute_derivative(const int nx, const int ny, const int nz,
         }
       });
 
-  // Baclward transform u_hat -> u (=IFFT (u_hat))
+  // Backward transform u_hat -> u (=IFFT (u_hat))
   c2r_plan.execute(u_hat, u);  // normalization is made here
   exec.fence();
   seconds = timer.seconds();
@@ -190,7 +190,7 @@ void compute_derivative(const int nx, const int ny, const int nz,
   auto h_dudxy =
       Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), dudxy);
 
-  double epsilon = 1.e-8;
+  const double epsilon = 1.e-8;
   for (int iz = 0; iz < nz; ++iz) {
     for (int iy = 0; iy < ny; ++iy) {
       for (int ix = 0; ix < nx; ++ix) {
