@@ -22,27 +22,26 @@ ENV FFTWDIR "/usr"
 
 RUN git config --global --add safe.directory "*"
 
-RUN KEYDUMP_URL=https://cloud.cees.ornl.gov/download && \
-    KEYDUMP_FILE=keydump && \
-    wget --quiet ${KEYDUMP_URL}/${KEYDUMP_FILE} && \
-    wget --quiet ${KEYDUMP_URL}/${KEYDUMP_FILE}.sig && \
-    gpg --import ${KEYDUMP_FILE} && \
-    gpg --verify ${KEYDUMP_FILE}.sig ${KEYDUMP_FILE} && \
-    rm ${KEYDUMP_FILE}*
-
+# Install newer CMake manually
 ARG CMAKE_VERSION=3.25.2
+
 ENV CMAKE_DIR=/opt/cmake
 RUN CMAKE_URL=https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION} && \
-    CMAKE_SCRIPT=cmake-${CMAKE_VERSION}-Linux-x86_64.sh && \
+    CMAKE_SCRIPT=cmake-${CMAKE_VERSION}-linux-x86_64.sh && \
     CMAKE_SHA256=cmake-${CMAKE_VERSION}-SHA-256.txt && \
+    CMAKE_SIGNATURE=cmake-${CMAKE_VERSION}-SHA-256.txt.asc && \
+    PUBLIC_KEY_ID=CBA23971357C2E6590D9EFD3EC8FEF3A7BFB4EDA && \
+    PUBLIC_KEY_URL=https://keys.openpgp.org/vks/v1/by-fingerprint/${PUBLIC_KEY_ID} && \
     wget --quiet ${CMAKE_URL}/${CMAKE_SHA256} && \
-    wget --quiet ${CMAKE_URL}/${CMAKE_SHA256}.asc && \
+    wget --quiet ${CMAKE_URL}/${CMAKE_SIGNATURE} && \
     wget --quiet ${CMAKE_URL}/${CMAKE_SCRIPT} && \
-    gpg --verify ${CMAKE_SHA256}.asc ${CMAKE_SHA256} && \
-    grep -i ${CMAKE_SCRIPT} ${CMAKE_SHA256} | sed -e s/linux/Linux/ | sha256sum --check && \
+    wget --quiet ${PUBLIC_KEY_URL} && \
+    gpg --import ${PUBLIC_KEY_ID} && \
+    gpg --verify ${CMAKE_SIGNATURE} ${CMAKE_SHA256} && \
+    grep -i ${CMAKE_SCRIPT} ${CMAKE_SHA256} | sha256sum --check && \
     mkdir -p ${CMAKE_DIR} && \
     sh ${CMAKE_SCRIPT} --skip-license --prefix=${CMAKE_DIR} && \
-    rm cmake*
+    rm cmake* ${PUBLIC_KEY_ID}
 ENV PATH=${CMAKE_DIR}/bin:$PATH
 
 WORKDIR /work

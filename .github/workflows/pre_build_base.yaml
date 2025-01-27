@@ -27,6 +27,10 @@ jobs:
   build_base:
     needs: check_docker_files
 
+    permissions:
+      contents: read
+      packages: write
+
     # run inconditionnaly on schedule or manual mode or if Docker files changed on other modes
     if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || needs.check_docker_files.outputs.docker_files_have_changed == 'true' }}
 
