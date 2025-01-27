@@ -7,6 +7,7 @@
 
 #include <cufft.h>
 #include <Kokkos_Abort.hpp>
+#include <Kokkos_Profiling_ScopedRegion.hpp>
 #include "KokkosFFT_common_types.hpp"
 #include "KokkosFFT_asserts.hpp"
 
@@ -56,6 +57,8 @@ struct ScopedCufftPlan {
   }
 
   ~ScopedCufftPlan() noexcept {
+    Kokkos::Profiling::ScopedRegion region(
+        "KokkosFFT::cleanup_plan[TPL_cufft]");
     cufftResult cufft_rt = cufftDestroy(m_plan);
     if (cufft_rt != CUFFT_SUCCESS) Kokkos::abort("cufftDestroy failed");
   }

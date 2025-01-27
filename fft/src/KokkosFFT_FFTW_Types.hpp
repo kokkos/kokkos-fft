@@ -7,6 +7,7 @@
 
 #include <fftw3.h>
 #include <Kokkos_Core.hpp>
+#include <Kokkos_Profiling_ScopedRegion.hpp>
 #include "KokkosFFT_common_types.hpp"
 #include "KokkosFFT_utils.hpp"
 
@@ -104,6 +105,7 @@ struct ScopedFFTWPlan {
   }
 
   ~ScopedFFTWPlan() noexcept {
+    Kokkos::Profiling::ScopedRegion region("KokkosFFT::cleanup_plan[TPL_fftw]");
     if constexpr (std::is_same_v<plan_type, fftwf_plan>) {
       fftwf_destroy_plan(m_plan);
     } else {

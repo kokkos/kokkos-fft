@@ -6,6 +6,7 @@
 #define KOKKOSFFT_TRANSFORM_HPP
 
 #include <Kokkos_Core.hpp>
+#include <Kokkos_Profiling_ScopedRegion.hpp>
 #include "KokkosFFT_traits.hpp"
 #include "KokkosFFT_normalization.hpp"
 #include "KokkosFFT_utils.hpp"
@@ -35,6 +36,8 @@ void fft(const ExecutionSpace& exec_space, const InViewType& in,
       "and OutViewType.");
   static_assert(InViewType::rank() >= 1,
                 "fft: View rank must be larger than or equal to 1");
+
+  Kokkos::Profiling::ScopedRegion region("KokkosFFT::fft");
   KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axis_type<1>({axis})),
                      "axes are invalid for in/out views");
   KokkosFFT::Plan plan(exec_space, in, out, KokkosFFT::Direction::forward, axis,
@@ -65,6 +68,8 @@ void ifft(const ExecutionSpace& exec_space, const InViewType& in,
       "and OutViewType.");
   static_assert(InViewType::rank() >= 1,
                 "ifft: View rank must be larger than or equal to 1");
+
+  Kokkos::Profiling::ScopedRegion region("KokkosFFT::ifft");
   KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axis_type<1>({axis})),
                      "axes are invalid for in/out views");
   KokkosFFT::Plan plan(exec_space, in, out, KokkosFFT::Direction::backward,
@@ -103,6 +108,8 @@ void rfft(const ExecutionSpace& exec_space, const InViewType& in,
                 "rfft: InViewType must be real");
   static_assert(KokkosFFT::Impl::is_complex_v<out_value_type>,
                 "rfft: OutViewType must be complex");
+
+  Kokkos::Profiling::ScopedRegion region("KokkosFFT::rfft");
   KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axis_type<1>({axis})),
                      "axes are invalid for in/out views");
   fft(exec_space, in, out, norm, axis, n);
@@ -140,6 +147,8 @@ void irfft(const ExecutionSpace& exec_space, const InViewType& in,
                 "irfft: InViewType must be complex");
   static_assert(KokkosFFT::Impl::is_real_v<out_value_type>,
                 "irfft: OutViewType must be real");
+
+  Kokkos::Profiling::ScopedRegion region("KokkosFFT::irfft");
   KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axis_type<1>({axis})),
                      "axes are invalid for in/out views");
   ifft(exec_space, in, out, norm, axis, n);
@@ -178,6 +187,8 @@ void hfft(const ExecutionSpace& exec_space, const InViewType& in,
                 "hfft: InViewType must be complex");
   static_assert(KokkosFFT::Impl::is_real_v<out_value_type>,
                 "hfft: OutViewType must be real");
+
+  Kokkos::Profiling::ScopedRegion region("KokkosFFT::hfft");
   KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axis_type<1>({axis})),
                      "axes are invalid for in/out views");
   auto new_norm = KokkosFFT::Impl::swap_direction(norm);
@@ -220,6 +231,8 @@ void ihfft(const ExecutionSpace& exec_space, const InViewType& in,
                 "ihfft: InViewType must be real");
   static_assert(KokkosFFT::Impl::is_complex_v<out_value_type>,
                 "ihfft: OutViewType must be complex");
+
+  Kokkos::Profiling::ScopedRegion region("KokkosFFT::ihfft");
   KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axis_type<1>({axis})),
                      "axes are invalid for in/out views");
   auto new_norm = KokkosFFT::Impl::swap_direction(norm);
@@ -253,6 +266,8 @@ void fft2(const ExecutionSpace& exec_space, const InViewType& in,
       "and OutViewType.");
   static_assert(InViewType::rank() >= 2,
                 "fft2: View rank must be larger than or equal to 2");
+
+  Kokkos::Profiling::ScopedRegion region("KokkosFFT::fft2");
   KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axes),
                      "axes are invalid for in/out views");
   KokkosFFT::Plan plan(exec_space, in, out, KokkosFFT::Direction::forward, axes,
@@ -283,6 +298,8 @@ void ifft2(const ExecutionSpace& exec_space, const InViewType& in,
       "and OutViewType.");
   static_assert(InViewType::rank() >= 2,
                 "ifft2: View rank must be larger than or equal to 2");
+
+  Kokkos::Profiling::ScopedRegion region("KokkosFFT::ifft2");
   KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axes),
                      "axes are invalid for in/out views");
   KokkosFFT::Plan plan(exec_space, in, out, KokkosFFT::Direction::backward,
@@ -321,6 +338,8 @@ void rfft2(const ExecutionSpace& exec_space, const InViewType& in,
                 "rfft2: InViewType must be real");
   static_assert(KokkosFFT::Impl::is_complex_v<out_value_type>,
                 "rfft2: OutViewType must be complex");
+
+  Kokkos::Profiling::ScopedRegion region("KokkosFFT::rfft2");
   KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axes),
                      "axes are invalid for in/out views");
   fft2(exec_space, in, out, norm, axes, s);
@@ -357,6 +376,8 @@ void irfft2(const ExecutionSpace& exec_space, const InViewType& in,
                 "irfft2: InViewType must be complex");
   static_assert(KokkosFFT::Impl::is_real_v<out_value_type>,
                 "irfft2: OutViewType must be real");
+
+  Kokkos::Profiling::ScopedRegion region("KokkosFFT::irfft2");
   KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axes),
                      "axes are invalid for in/out views");
   ifft2(exec_space, in, out, norm, axes, s);
@@ -398,6 +419,8 @@ void fftn(
   static_assert(
       InViewType::rank() >= DIM,
       "fftn: View rank must be larger than or equal to the Rank of FFT axes");
+
+  Kokkos::Profiling::ScopedRegion region("KokkosFFT::fftn");
   KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axes),
                      "axes are invalid for in/out views");
   KokkosFFT::Plan plan(exec_space, in, out, KokkosFFT::Direction::forward, axes,
@@ -441,6 +464,8 @@ void ifftn(
   static_assert(
       InViewType::rank() >= DIM,
       "ifftn: View rank must be larger than or equal to the Rank of FFT axes");
+
+  Kokkos::Profiling::ScopedRegion region("KokkosFFT::ifftn");
   KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axes),
                      "axes are invalid for in/out views");
   KokkosFFT::Plan plan(exec_space, in, out, KokkosFFT::Direction::backward,
@@ -492,6 +517,8 @@ void rfftn(
                 "rfftn: InViewType must be real");
   static_assert(KokkosFFT::Impl::is_complex_v<out_value_type>,
                 "rfftn: OutViewType must be complex");
+
+  Kokkos::Profiling::ScopedRegion region("KokkosFFT::rfftn");
   KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axes),
                      "axes are invalid for in/out views");
   fftn(exec_space, in, out, axes, norm, s);
@@ -541,6 +568,8 @@ void irfftn(
                 "irfftn: InViewType must be complex");
   static_assert(KokkosFFT::Impl::is_real_v<out_value_type>,
                 "irfftn: OutViewType must be real");
+
+  Kokkos::Profiling::ScopedRegion region("KokkosFFT::irfftn");
   KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axes),
                      "axes are invalid for in/out views");
   ifftn(exec_space, in, out, axes, norm, s);

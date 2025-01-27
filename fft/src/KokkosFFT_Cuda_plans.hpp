@@ -6,6 +6,7 @@
 #define KOKKOSFFT_CUDA_PLANS_HPP
 
 #include <numeric>
+#include <Kokkos_Profiling_ScopedRegion.hpp>
 #include "KokkosFFT_Cuda_types.hpp"
 #include "KokkosFFT_Extents.hpp"
 #include "KokkosFFT_traits.hpp"
@@ -33,6 +34,8 @@ auto create_plan(const ExecutionSpace& exec_space,
       "InViewType and OutViewType.");
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
+
+  Kokkos::Profiling::ScopedRegion region("KokkosFFT::create_plan[TPL_cufft]");
   auto type = KokkosFFT::Impl::transform_type<ExecutionSpace, in_value_type,
                                               out_value_type>::type();
   auto [in_extents, out_extents, fft_extents, howmany] =
@@ -66,6 +69,8 @@ auto create_plan(const ExecutionSpace& exec_space,
       "InViewType and OutViewType.");
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
+
+  Kokkos::Profiling::ScopedRegion region("KokkosFFT::create_plan[TPL_cufft]");
   auto type = KokkosFFT::Impl::transform_type<ExecutionSpace, in_value_type,
                                               out_value_type>::type();
   [[maybe_unused]] auto [in_extents, out_extents, fft_extents, howmany] =
@@ -99,6 +104,8 @@ auto create_plan(const ExecutionSpace& exec_space,
       "InViewType and OutViewType.");
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
+
+  Kokkos::Profiling::ScopedRegion region("KokkosFFT::create_plan[TPL_cufft]");
   auto type = KokkosFFT::Impl::transform_type<ExecutionSpace, in_value_type,
                                               out_value_type>::type();
   [[maybe_unused]] auto [in_extents, out_extents, fft_extents, howmany] =
@@ -139,7 +146,9 @@ auto create_plan(const ExecutionSpace& exec_space,
 
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
-  const int rank       = fft_rank;
+
+  Kokkos::Profiling::ScopedRegion region("KokkosFFT::create_plan[TPL_cufft]");
+  const int rank = fft_rank;
   constexpr auto type =
       KokkosFFT::Impl::transform_type<ExecutionSpace, in_value_type,
                                       out_value_type>::type();

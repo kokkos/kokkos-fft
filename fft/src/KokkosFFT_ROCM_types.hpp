@@ -10,6 +10,7 @@
 #include <complex>
 #include <rocfft/rocfft.h>
 #include <Kokkos_Abort.hpp>
+#include <Kokkos_Profiling_ScopedRegion.hpp>
 #include "KokkosFFT_common_types.hpp"
 #include "KokkosFFT_traits.hpp"
 #include "KokkosFFT_asserts.hpp"
@@ -186,6 +187,8 @@ struct ScopedRocfftPlan {
                        "rocfft_plan_create failed");
   }
   ~ScopedRocfftPlan() noexcept {
+    Kokkos::Profiling::ScopedRegion region(
+        "KokkosFFT::cleanup_plan[TPL_rocfft]");
     rocfft_status status = rocfft_plan_destroy(m_plan);
     if (status != rocfft_status_success)
       Kokkos::abort("rocfft_plan_destroy failed");

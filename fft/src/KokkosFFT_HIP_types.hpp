@@ -7,6 +7,7 @@
 
 #include <hipfft/hipfft.h>
 #include <Kokkos_Abort.hpp>
+#include <Kokkos_Profiling_ScopedRegion.hpp>
 #include "KokkosFFT_common_types.hpp"
 #include "KokkosFFT_asserts.hpp"
 
@@ -56,6 +57,8 @@ struct ScopedHIPfftPlan {
   }
 
   ~ScopedHIPfftPlan() noexcept {
+    Kokkos::Profiling::ScopedRegion region(
+        "KokkosFFT::cleanup_plan[TPL_hipfft]");
     hipfftResult hipfft_rt = hipfftDestroy(m_plan);
     if (hipfft_rt != HIPFFT_SUCCESS) Kokkos::abort("hipfftDestroy failed");
   }
