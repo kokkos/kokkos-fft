@@ -44,6 +44,9 @@ jobs:
     if: ${{ needs.check_docker_files.outputs.docker_files_have_changed == 'true' }}
 
     uses: ./.github/workflows/__build_base.yaml
+    permissions:
+      contents: read
+      packages: write
 
     with:
       image_suffix: ${{ needs.check_docker_files.outputs.image_suffix }}
