@@ -13,6 +13,25 @@
 #include "KokkosFFT_Plans.hpp"
 
 namespace KokkosFFT {
+
+/// \brief Execute FFT given by the Plan on input and output Views with
+/// normalization
+///
+/// \tparam PlanType: KokkosFFT Plan type
+/// \tparam InViewType: Input View type for the fft
+/// \tparam OutViewType: Output View type for the fft
+///
+/// \param plan [in] KokkosFFT Plan to be executed
+/// \param in [in] Input data
+/// \param out [out] Output data
+/// \param norm [in] How the normalization is applied (default, backward)
+template <typename PlanType, typename InViewType, typename OutViewType>
+void execute(
+    const PlanType& plan, const InViewType& in, const OutViewType& out,
+    KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward) {
+  plan.execute_impl(in, out, norm);
+}
+
 /// \brief One dimensional FFT in forward direction
 ///
 /// \param exec_space [in] Kokkos execution space
@@ -42,7 +61,7 @@ void fft(const ExecutionSpace& exec_space, const InViewType& in,
                      "axes are invalid for in/out views");
   KokkosFFT::Plan plan(exec_space, in, out, KokkosFFT::Direction::forward, axis,
                        n);
-  plan.execute(in, out, norm);
+  plan.execute_impl(in, out, norm);
 }
 
 /// \brief One dimensional FFT in backward direction
@@ -74,7 +93,7 @@ void ifft(const ExecutionSpace& exec_space, const InViewType& in,
                      "axes are invalid for in/out views");
   KokkosFFT::Plan plan(exec_space, in, out, KokkosFFT::Direction::backward,
                        axis, n);
-  plan.execute(in, out, norm);
+  plan.execute_impl(in, out, norm);
 }
 
 /// \brief One dimensional FFT for real input
@@ -272,7 +291,7 @@ void fft2(const ExecutionSpace& exec_space, const InViewType& in,
                      "axes are invalid for in/out views");
   KokkosFFT::Plan plan(exec_space, in, out, KokkosFFT::Direction::forward, axes,
                        s);
-  plan.execute(in, out, norm);
+  plan.execute_impl(in, out, norm);
 }
 
 /// \brief Two dimensional FFT in backward direction
@@ -304,7 +323,7 @@ void ifft2(const ExecutionSpace& exec_space, const InViewType& in,
                      "axes are invalid for in/out views");
   KokkosFFT::Plan plan(exec_space, in, out, KokkosFFT::Direction::backward,
                        axes, s);
-  plan.execute(in, out, norm);
+  plan.execute_impl(in, out, norm);
 }
 
 /// \brief Two dimensional FFT for real input
@@ -425,7 +444,7 @@ void fftn(
                      "axes are invalid for in/out views");
   KokkosFFT::Plan plan(exec_space, in, out, KokkosFFT::Direction::forward, axes,
                        s);
-  plan.execute(in, out, norm);
+  plan.execute_impl(in, out, norm);
 }
 
 /// \brief Inverse of fftn
@@ -470,7 +489,7 @@ void ifftn(
                      "axes are invalid for in/out views");
   KokkosFFT::Plan plan(exec_space, in, out, KokkosFFT::Direction::backward,
                        axes, s);
-  plan.execute(in, out, norm);
+  plan.execute_impl(in, out, norm);
 }
 
 /// \brief N-dimensional FFT for real input

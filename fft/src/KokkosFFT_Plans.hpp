@@ -272,14 +272,9 @@ class Plan {
   Plan& operator=(Plan&&)      = delete;
   Plan(Plan&&)                 = delete;
 
-  /// \brief Execute FFT on input and output Views with normalization
-  ///
-  /// \param in [in] Input data
-  /// \param out [out] Output data
-  /// \param norm [in] How the normalization is applied (default, backward)
-  void execute(const InViewType& in, const OutViewType& out,
-               KokkosFFT::Normalization norm =
-                   KokkosFFT::Normalization::backward) const {
+  void execute_impl(const InViewType& in, const OutViewType& out,
+                    KokkosFFT::Normalization norm =
+                        KokkosFFT::Normalization::backward) const {
     static_assert(
         KokkosFFT::Impl::are_operatable_views_v<execSpace, InViewType,
                                                 OutViewType>,

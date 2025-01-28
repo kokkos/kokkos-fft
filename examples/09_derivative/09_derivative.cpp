@@ -168,7 +168,7 @@ void compute_derivative(const int nx, const int ny, const int nz,
   Kokkos::Timer timer;
 
   // Forward transform u -> u_hat (=FFT (u))
-  r2c_plan.execute(u, u_hat);
+  KokkosFFT::execute(r2c_plan, u, u_hat);
 
   // Compute derivatives by multiplications in Fourier space
   Kokkos::parallel_for(
@@ -181,7 +181,7 @@ void compute_derivative(const int nx, const int ny, const int nz,
       });
 
   // Backward transform u_hat -> u (=IFFT (u_hat))
-  c2r_plan.execute(u_hat, u);  // normalization is made here
+  KokkosFFT::execute(c2r_plan, u_hat, u);  // normalization is made here
   exec.fence();
   seconds = timer.seconds();
 
