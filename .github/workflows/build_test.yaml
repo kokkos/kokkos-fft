@@ -354,6 +354,7 @@ jobs:
         run: |
           run \
             -m "singularity/3.8.3/gcc-11.2.0" \
+            -e local \
             "echo ${{ secrets.GITHUB_TOKEN }} | singularity remote login -u ${{ github.actor }} --password-stdin oras://ghcr.io"
         if: ${{ matrix.backend.use_singularity }}
 
@@ -370,14 +371,16 @@ jobs:
         run: |
           run \
             -m "singularity/3.8.3/gcc-11.2.0" \
+            -e local \
             singularity pull oras://ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_singularity_${{ needs.check_docker_files.outputs.image_suffix }}:${{ needs.check_docker_files.outputs.image_tag }}
         if: ${{ matrix.backend.use_singularity }}
 
       - name: Run CUDA tests within Slurm job and Singularity image
         run: |
           run \
-            -g a100 \
             -m "singularity/3.8.3/gcc-11.2.0" \
+            -e gpu \
+            -g a100 \
             singularity run --nv --bind $PWD/build:/work/build -H /work/build base_${{ matrix.backend.image }}_singularity_${{ needs.check_docker_files.outputs.image_suffix }}_${{ needs.check_docker_files.outputs.image_tag }}.sif \
             ctest --output-on-failure
         if: ${{ matrix.backend.use_singularity }}
