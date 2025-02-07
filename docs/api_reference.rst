@@ -19,7 +19,8 @@ FFT Plan
    :maxdepth: 1
    :hidden:
 
-   api/plan
+   api/plan/plan
+   api/plan/execute
 
 .. list-table::
    :widths: 50 25 25
@@ -29,7 +30,10 @@ FFT Plan
      - ``kokkos-fft``
      - ``numpy.fft``
    * - A class that manages a FFT plan of backend FFT library
-     - :doc:`api/plan`
+     - :doc:`api/plan/plan`
+     - 
+   * - Execute FFT given by the Plan on input and output Views
+     - :doc:`api/plan/execute`
      - 
 
 Standard FFTs

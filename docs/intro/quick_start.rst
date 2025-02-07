@@ -15,7 +15,7 @@ First of all, you need to clone this repo.
     git clone --recursive https://github.com/kokkos/kokkos-fft.git
 
 To configure kokkos-fft, we can just use CMake options for Kokkos, which automatically enables the FFT interface on Kokkos device. 
-If CMake fails to find a backend FFT library, see :doc:`How to find fft libraries?<../finding_libraries>`.
+If CMake fails to find a backend FFT library, see :doc:`How to find fft libraries?<../finding_libraries>`
 
 Requirements
 ------------

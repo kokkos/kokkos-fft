@@ -143,13 +143,13 @@ The following listing shows an example to reuse the FFT plan.
                             KokkosFFT::Direction::forward, axis);
    
    // Perform FFTs using fft_plan
-   fft_plan.execute(x, x_hat);
+   KokkosFFT::execute(fft_plan, x, x_hat);
 
    // [OK] Reuse the plan for different data
-   fft_plan.execute(y, y_hat);
+   KokkosFFT::execute(fft_plan, y, y_hat);
 
    // [NG, Run time error] Inconsistent extents
-   fft_plan.execute(z, z_hat);
+   KokkosFFT::execute(fft_plan, z, z_hat);
 
 .. note::
 
@@ -251,12 +251,12 @@ The following listing shows examples of inplace transforms.
    
    // Perform the complex to real transform
    // [Important] You must use xc2r_hat to define the FFT shape correctly
-   irfft2_plan.execute(xc2r, xc2r_hat);
+   KokkosFFT::execute(irfft2_plan, xc2r, xc2r_hat);
 
    View2D<double> xc2r_hat_out("xc2r_hat_out", n0, n1);
 
    // [NG, Runtime error] Inplace plan can only be reused for inplace transform
-   irfft2_plan.execute(xc2r, xc2r_hat_out);
+   KokkosFFT::execute(irfft2_plan, xc2r, xc2r_hat_out);
 
 .. note::
 
