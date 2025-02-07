@@ -194,6 +194,7 @@ class RK4th {
 // \param mask The mask view [0, 1, 1, ..., 1] (nkx + 1)
 template <typename ViewType, typename MaskViewType>
 void realityCondition(const ViewType& view, const MaskViewType& mask) {
+  static_assert(ViewType::rank() == 1 || ViewType::rank() == 2, "realityCondition: View rank should be 1 or 2");
   if constexpr (ViewType::rank() == 1) {
     const int nk0 = (view.extent(0) - 1) / 2;
     Kokkos::parallel_for(
@@ -224,8 +225,6 @@ void realityCondition(const ViewType& view, const MaskViewType& mask) {
             view(i0, dst_idx) = mask(i1) * Kokkos::conj(tmp_view);
           }
         });
-  } else {
-    throw std::runtime_error("rank should be 1 or 2");
   }
 }
 
@@ -416,7 +415,7 @@ class HasegawaWakatani {
 
     // ky == 0 component
     auto sub_pk = Kokkos::subview(pk, Kokkos::ALL, 0, Kokkos::ALL);
-    realityCondition(pk, m_mask);
+    realityCondition(sub_pk, m_mask);
   }
 
   template <typename FViewType, typename GViewType, typename FGViewType>
