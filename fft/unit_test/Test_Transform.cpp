@@ -145,15 +145,14 @@ void test_fft1_identity_inplace(T atol = 1.0e-12) {
     RealView1DType inv_ar_hat_out("inv_ar_hat_out", i);
     ComplexView1DType ar_hat_out("ar_hat_out", i / 2 + 1);
 
-    EXPECT_THROW(({ KokkosFFT::execute(fft_plan, a, a_hat_out); }),
+    EXPECT_THROW(KokkosFFT::execute(fft_plan, a, a_hat_out),
                  std::runtime_error);
-    EXPECT_THROW(({ KokkosFFT::execute(ifft_plan, a_hat_out, inv_a_hat_out); }),
+    EXPECT_THROW(KokkosFFT::execute(ifft_plan, a_hat_out, inv_a_hat_out),
                  std::runtime_error);
-    EXPECT_THROW(({ KokkosFFT::execute(rfft_plan, ar, ar_hat_out); }),
+    EXPECT_THROW(KokkosFFT::execute(rfft_plan, ar, ar_hat_out),
                  std::runtime_error);
-    EXPECT_THROW(
-        ({ KokkosFFT::execute(irfft_plan, ar_hat_out, inv_ar_hat_out); }),
-        std::runtime_error);
+    EXPECT_THROW(KokkosFFT::execute(irfft_plan, ar_hat_out, inv_ar_hat_out),
+                 std::runtime_error);
   }
 }
 
