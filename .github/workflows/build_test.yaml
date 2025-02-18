@@ -39,6 +39,7 @@ jobs:
     - uses: crate-ci/typos@v1.29.7
       with:
         files: ./cmake/ ./CMakeLists.txt ./docs/ ./README.md ./common/ ./fft/ ./examples/ ./install_test/
+        config: ./.typos.toml
 
   # check if Docker images should be recreated
   check_docker_files:

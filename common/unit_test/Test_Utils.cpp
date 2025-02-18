@@ -571,7 +571,7 @@ void test_are_pointers_aliasing() {
   using View2 = Kokkos::View<ValueType2*, execution_space>;
 
   const int n1 = 10;
-  // sizeof ValeuType2 is larger or equal to ValueType1
+  // sizeof ValueType2 is larger or equal to ValueType1
   const int n2 = sizeof(ValueType1) == sizeof(ValueType2) ? n1 : n1 / 2 + 1;
   View1 view1("view1", n1);
   View2 view2("view2", n1);
