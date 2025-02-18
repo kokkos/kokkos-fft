@@ -301,6 +301,7 @@ class HasegawaWakatani:
 
         Parameters
         ----------
+        iter (int): The current iteration number.
         time (np.float64): The current simulation time.
         """
         if iter % self.diag_steps == 0:
@@ -353,7 +354,7 @@ class HasegawaWakatani:
 
         Returns
         -------
-        np.ndarray: The time derivative of the density and vorticity field.
+        np.ndarray: The RHS of the vorticity equation.
         """
         pbk = np.zeros_like(fk, dtype=np.complex128)
         dfkdt = np.zeros_like(fk, dtype=np.complex128)
