@@ -367,7 +367,7 @@ class HasegawaWakatani {
   // \param out_dir [in] The directory to output diagnostic data.
   HasegawaWakatani(int nx, double lx, int nbiter, double dt,
                    const std::string& out_dir)
-      : m_nx(nx), m_ny(nx), m_nbiter(nbiter), m_dt(dt), m_out_dir(out_dir) {
+      : m_nbiter(nbiter), m_dt(dt), m_nx(nx), m_ny(nx), m_out_dir(out_dir) {
     m_grid      = std::make_unique<Grid>(nx, nx, lx, lx);
     m_variables = std::make_unique<Variables>(*m_grid);
     m_ode       = std::make_unique<OdeSolverType>(m_variables->m_fk, dt);
