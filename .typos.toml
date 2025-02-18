@@ -1,0 +1,10 @@
+# SPDX-FileCopyrightText: (C) The kokkos-fft development team, see COPYRIGHT.md file
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
+
+[default.extend-words]
+# Don't correct these word (parts)
+iy = "iy"
+ND = "ND"
+SAV = "SAV"
+arange = "arange"

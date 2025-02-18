@@ -97,7 +97,7 @@ void initialize(RealView1DType& x, RealView1DType& y, ComplexView2DType& ikx,
 //
 // \param x [in]: 1D grid in x direction
 // \param y [in]: 1D grid in y direction
-// \param dudxy [out]: 3D fiels of the analytical derivative values
+// \param dudxy [out]: 3D field of the analytical derivative value
 template <typename RealView1DType, typename RealView3DType>
 void analytical_solution(RealView1DType& x, RealView1DType& y,
                          RealView3DType& dudxy) {

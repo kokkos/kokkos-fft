@@ -506,7 +506,7 @@ void test_fft1_shape(T atol = 1.0e-12) {
 
   std::vector<int> shapes = {n / 2, n, n * 2};
   for (auto&& shape : shapes) {
-    // Real to comple
+    // Real to complex
     ComplexView1DType outr("outr", shape / 2 + 1),
         outr_b("outr_b", shape / 2 + 1), outr_o("outr_o", shape / 2 + 1),
         outr_f("outr_f", shape / 2 + 1);
@@ -3206,10 +3206,10 @@ void test_fftn_3dfft_5dview(T atol = 1.e-12) {
     std::shuffle(std::begin(tmp_axes), std::end(tmp_axes), rng);
 
     // pickup 3 elements only
-    axes_type trimed_axes;
+    axes_type trimmed_axes;
     std::copy(std::begin(tmp_axes) + DIM - 3, std::end(tmp_axes),
-              std::begin(trimed_axes));
-    list_of_tested_axes.push_back(trimed_axes);
+              std::begin(trimmed_axes));
+    list_of_tested_axes.push_back(trimmed_axes);
   }
 
   for (auto& tested_axes : list_of_tested_axes) {
@@ -3282,10 +3282,10 @@ void test_fftn_3dfft_6dview(T atol = 1.e-12) {
     std::shuffle(std::begin(tmp_axes), std::end(tmp_axes), rng);
 
     // pickup 3 elements only
-    axes_type trimed_axes;
+    axes_type trimmed_axes;
     std::copy(std::begin(tmp_axes) + DIM - 3, std::end(tmp_axes),
-              std::begin(trimed_axes));
-    list_of_tested_axes.push_back(trimed_axes);
+              std::begin(trimmed_axes));
+    list_of_tested_axes.push_back(trimmed_axes);
   }
 
   for (auto& tested_axes : list_of_tested_axes) {
@@ -3358,10 +3358,10 @@ void test_fftn_3dfft_7dview(T atol = 1.e-12) {
     std::shuffle(std::begin(tmp_axes), std::end(tmp_axes), rng);
 
     // pickup 3 elements only
-    axes_type trimed_axes;
+    axes_type trimmed_axes;
     std::copy(std::begin(tmp_axes) + DIM - 3, std::end(tmp_axes),
-              std::begin(trimed_axes));
-    list_of_tested_axes.push_back(trimed_axes);
+              std::begin(trimmed_axes));
+    list_of_tested_axes.push_back(trimmed_axes);
   }
 
   for (auto& tested_axes : list_of_tested_axes) {
@@ -3434,10 +3434,10 @@ void test_fftn_3dfft_8dview(T atol = 1.e-12) {
     std::shuffle(std::begin(tmp_axes), std::end(tmp_axes), rng);
 
     // pickup 3 elements only
-    axes_type trimed_axes;
+    axes_type trimmed_axes;
     std::copy(std::begin(tmp_axes) + DIM - 3, std::end(tmp_axes),
-              std::begin(trimed_axes));
-    list_of_tested_axes.push_back(trimed_axes);
+              std::begin(trimmed_axes));
+    list_of_tested_axes.push_back(trimmed_axes);
   }
 
   for (auto& tested_axes : list_of_tested_axes) {

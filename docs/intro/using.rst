@@ -63,7 +63,7 @@ The following listing shows good and bad examples of Real FFTs.
 
 .. note::
 
-   Input and ouptut views must have the same precision (either ``float`` or ``double``).
+   Input and output views must have the same precision (either ``float`` or ``double``).
 
 Supported data types
 --------------------
