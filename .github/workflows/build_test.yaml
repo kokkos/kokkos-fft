@@ -37,8 +37,8 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: crate-ci/typos@v1.29.7
-    with:
-      files: ./cmake/ ./CMakeLists.txt ./docs/ ./README.md ./common/ ./fft/ ./examples/ ./install_test/
+      with:
+        files: ./cmake/ ./CMakeLists.txt ./docs/ ./README.md ./common/ ./fft/ ./examples/ ./install_test/
 
   # check if Docker images should be recreated
   check_docker_files:
