@@ -3,10 +3,12 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
 #include <memory>
+#include <random>
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Complex.hpp>
 #include <Kokkos_Random.hpp>
 #include <KokkosFFT.hpp>
+#include "io_utils.hpp"
 
 #if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) || \
     defined(KOKKOS_ENABLE_SYCL)
@@ -25,7 +27,7 @@ using View2D = Kokkos::View<T**, Kokkos::LayoutRight, execution_space>;
 template <typename T>
 using View3D = Kokkos::View<T***, Kokkos::LayoutRight, execution_space>;
 
-// \brief A struct that manages grid in wavenumber space
+// \brief A class to represent the grid used in the Hasegawa-Wakatani model.
 struct Grid {
   //! Grid in x direction (nkx * 2 + 1)
   View1D<double> m_kx;
@@ -36,6 +38,11 @@ struct Grid {
   //! Grid in x and y direction (nky + 1, nkx * 2 + 1)
   View2D<double> m_ksq;
 
+  // \brief Constructor of a Grid class
+  // \param nx [in] Number of grid points in the x-direction.
+  // \param ny [in] Number of grid points in the y-direction.
+  // \param lx [in] Length of the domain in the x-direction.
+  // \param ly [in] Length of the domain in the y-direction.
   Grid(int nx, int ny, double lx, double ly) {
     int nkx = (nx - 2) / 3, nky = (ny - 2) / 3;
     int nkx2 = nkx * 2 + 1, nkyh = nky + 1;
@@ -74,17 +81,25 @@ struct Grid {
   }
 };
 
-// \brief A struct that manages physical quantities in wavenumber space
+// \brief A class to represent the variables used in the Hasegawa-Wakatani
+// model.
 struct Variables {
+  //! Density and vorticity field in Fourier space
   View3D<Kokkos::complex<double>> m_fk;
+
+  //! Potential field in Fourier space
   View2D<Kokkos::complex<double>> m_pk;
 
+  // \brief Constructor of a Variables class
+  // \param grid [in] Grid in Fourier space
+  // \param init_val [in] Initial value of the variables
   Variables(Grid& grid, double init_val = 0.001) {
-    double random_number  = 1.0;
+    auto rand_engine      = std::mt19937(0);
+    auto rand_dist        = std::uniform_real_distribution<double>(0.0, 1.0);
     constexpr int nb_vars = 2;
     const int nkx2 = grid.m_ksq.extent(1), nkyh = grid.m_ksq.extent(0);
-    m_fk = View3D<Kokkos::complex<double>>("m_fk", nb_vars, nkyh, nkx2);
-    m_pk = View2D<Kokkos::complex<double>>("m_pk", nkyh, nkx2);
+    m_fk = View3D<Kokkos::complex<double>>("fk", nb_vars, nkyh, nkx2);
+    m_pk = View2D<Kokkos::complex<double>>("pk", nkyh, nkx2);
 
     const Kokkos::complex<double> I(0.0, 1.0);  // Imaginary unit
     auto h_fk = Kokkos::create_mirror_view(m_fk);
@@ -92,7 +107,8 @@ struct Variables {
         Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), grid.m_ksq);
     for (int iky = 0; iky < nkyh; iky++) {
       for (int ikx = 0; ikx < nkx2; ikx++) {
-        h_fk(0, iky, ikx) = init_val / (1.0 + h_ksq(iky, ikx)) *
+        double random_number = rand_dist(rand_engine);
+        h_fk(0, iky, ikx)    = init_val / (1.0 + h_ksq(iky, ikx)) *
                             Kokkos::exp(I * 2.0 * M_PI * random_number);
         h_fk(1, iky, ikx) = -h_fk(0, iky, ikx) * h_ksq(iky, ikx);
       }
@@ -101,30 +117,53 @@ struct Variables {
   }
 };
 
-// \brief A class that manages the time integration using
-// the 4th order Runge-Kutta method
+// \brief A class to represent the 4th order Runge-Kutta method for solving ODE
+// dy/dt = f(t, y) by
+// y^{n+1} = y^{n} + (k1 + 2*k2 + 2*k3 + k4)/6
+// t^{n+1} = t^{n} + h
+// where h is a time step and
+// k1 = f(t^{n}      , y^{n}     ) * h
+// k2 = f(t^{n} + h/2, y^{n}+k1/2) * h
+// k3 = f(t^{n} + h/2, y^{n}+k2/2) * h
+// k4 = f(t^{n} + h  , y^{n}+k3  ) * h
+//
+// \tparam ViewType The type of the view
 template <typename ViewType>
 class RK4th {
   using value_type     = typename ViewType::non_const_value_type;
   using float_type     = KokkosFFT::Impl::base_floating_point_type<value_type>;
   using BufferViewType = View1D<value_type>;
 
+  //! Order of the Runge-Kutta method
   const int m_order = 4;
+
+  //! Time step size
   const float_type m_h;
+
+  //! Size of the input View after flattening
   std::size_t m_array_size;
+
+  //! Buffer views for intermediate results
   BufferViewType m_y, m_k1, m_k2, m_k3;
 
  public:
+  // \brief Constructor of a RK4th class
+  // \param y [in] The variable to be solved
+  // \param h [in] Time step
   RK4th(const ViewType& y, float_type h) : m_h(h) {
     m_array_size = y.size();
-    m_y          = BufferViewType("m_y", m_array_size);
-    m_k1         = BufferViewType("m_k1", m_array_size);
-    m_k2         = BufferViewType("m_k2", m_array_size);
-    m_k3         = BufferViewType("m_k3", m_array_size);
+    m_y          = BufferViewType("y", m_array_size);
+    m_k1         = BufferViewType("k1", m_array_size);
+    m_k2         = BufferViewType("k2", m_array_size);
+    m_k3         = BufferViewType("k3", m_array_size);
   }
 
   auto order() { return m_order; }
 
+  // \brief Advances the solution by one step using the Runge-Kutta method.
+  // \param dydt [in] The right-hand side of the ODE
+  // \param y [in] The current solution.
+  // \param step [in] The current step (0, 1, 2, or 3)
   void advance(ViewType& dydt, ViewType& y, int step) {
     auto h                = m_h;
     auto* y_data          = y.data();
@@ -184,7 +223,7 @@ class RK4th {
   }
 };
 
-// \brief Apply the reality condition in wavenumber space
+// \brief Apply the reality condition in Fourier space
 // Force A to satisfy the following conditios
 // A[i] == conj(A[-i]) and A[0] == 0
 //
@@ -194,7 +233,8 @@ class RK4th {
 // \param mask The mask view [0, 1, 1, ..., 1] (nkx + 1)
 template <typename ViewType, typename MaskViewType>
 void realityCondition(const ViewType& view, const MaskViewType& mask) {
-  static_assert(ViewType::rank() == 1 || ViewType::rank() == 2, "realityCondition: View rank should be 1 or 2");
+  static_assert(ViewType::rank() == 1 || ViewType::rank() == 2,
+                "realityCondition: View rank should be 1 or 2");
   if constexpr (ViewType::rank() == 1) {
     const int nk0 = (view.extent(0) - 1) / 2;
     Kokkos::parallel_for(
@@ -228,8 +268,12 @@ void realityCondition(const ViewType& view, const MaskViewType& mask) {
   }
 }
 
-// \brief A class that solves the Hasegawa-Wakatani equation using
-// spectral methods
+// \brief A class to simulate the Hasegawa-Wakatani plasma turbulence model.
+// ddns/dt + {phi,dns} + dphi/dy = - ca * (dns-phi) - nu * \nabla^4 dns
+//           domg/dt + {phi,omg} = - ca * (dns-phi) - nu * \nabla^4 omg
+// omg = \nabal^2 phi
+//
+// periodic boundary conditions in x and y
 class HasegawaWakatani {
   using OdeSolverType   = RK4th<View3D<Kokkos::complex<double>>>;
   using ForwardPlanType = KokkosFFT::Plan<execution_space, View3D<double>,
@@ -254,59 +298,100 @@ class HasegawaWakatani {
 
   using pair_type = std::pair<int, int>;
 
+  //! The grid used in the simulation
   std::unique_ptr<Grid> m_grid;
+
+  //! The variables used in the simulation
   std::unique_ptr<Variables> m_variables;
+
+  //! The ODE solver used in the simulation
   std::unique_ptr<OdeSolverType> m_ode;
+
+  //! The forward fft plan used in the simulation
   std::unique_ptr<ForwardPlanType> m_forward_plan;
+
+  //! The backward fft plan used in the simulation
   std::unique_ptr<BackwardPlanType> m_backward_plan;
 
+  //! Buffer view to store the time derivative of fk
   View3D<Kokkos::complex<double>> m_dfkdt;
+
+  //! Buffer view to store the nonlinear term
   View3D<Kokkos::complex<double>> m_nonlinear_k;
+
+  //! Buffer view to store the forward fft result
   View3D<Kokkos::complex<double>> m_forward_buffer;
+
+  //! Buffer view to store the backward fft result
   View3D<Kokkos::complex<double>> m_backward_buffer;
+
+  //! Buffer view to store the derivative of fk and pk
   View3D<Kokkos::complex<double>> m_ik_fg_all;
 
+  //! Buffer view to store the derivative of fk and pk in real space
   View3D<double> m_dfgdx_all;
+
+  //! Buffer view to store the convolution result
   View3D<double> m_conv;
 
+  //! View to store the mask for reality condition
   View1D<double> m_mask;
+
+  //! View to store the adiabacity factor
   View1D<double> m_adiabacity_factor;
+
+  //! View to store the Poisson operator
   View2D<double> m_poisson_operator;
 
+  //! The total number of iterations.
   const int m_nbiter;
+
+  //! The parameters used in the simulation.
   const double m_ca  = 3.0;
   const double m_nu  = 0.01;
-  const double m_eta = 5.0;
+  const double m_eta = 3.0;
   double m_norm_coef;
+  double m_dt = 0.0, m_time = 0.0;
   int m_nkx2, m_nkyh, m_nx, m_ny;
+  int m_diag_it = 0, m_diag_steps = 1000;
+
+  //! The directory to output diagnostic data.
+  std::string m_out_dir;
 
  public:
-  HasegawaWakatani(int nx, double lx, int nbiter, double dt)
-      : m_nbiter(nbiter), m_nx(nx), m_ny(nx) {
+  // \brief Constructor of a HasegawaWakatani class
+  // \param nx [in] The number of grid points in each direction.
+  // \param lx [in] The length of the domain in each direction.
+  // \param nbiter [in] The total number of iterations.
+  // \param dt [in] The time step size.
+  // \param out_dir [in] The directory to output diagnostic data.
+  HasegawaWakatani(int nx, double lx, int nbiter, double dt,
+                   const std::string& out_dir)
+      : m_nx(nx), m_ny(nx), m_nbiter(nbiter), m_dt(dt), m_out_dir(out_dir) {
     m_grid      = std::make_unique<Grid>(nx, nx, lx, lx);
     m_variables = std::make_unique<Variables>(*m_grid);
     m_ode       = std::make_unique<OdeSolverType>(m_variables->m_fk, dt);
+    IO::mkdirs(m_out_dir, 0755);
 
     m_nkx2                = m_grid->m_ksq.extent(1);
     m_nkyh                = m_grid->m_ksq.extent(0);
     m_norm_coef           = static_cast<double>(m_nx * m_ny);
     const int nkx         = (m_nkx2 - 1) / 2;
     constexpr int nb_vars = 2;
-    m_dfkdt =
-        View3D<Kokkos::complex<double>>("m_dfkdt", nb_vars, m_nkyh, m_nkx2);
-    m_nonlinear_k    = View3D<Kokkos::complex<double>>("m_nonlinear_k", nb_vars,
-                                                    m_nkyh, m_nkx2);
+    m_dfkdt = View3D<Kokkos::complex<double>>("dfkdt", nb_vars, m_nkyh, m_nkx2);
+    m_nonlinear_k =
+        View3D<Kokkos::complex<double>>("nonlinear_k", nb_vars, m_nkyh, m_nkx2);
     m_forward_buffer = View3D<Kokkos::complex<double>>(
-        "m_forward_buffer", nb_vars, m_ny, m_nx / 2 + 1);
-    m_backward_buffer = View3D<Kokkos::complex<double>>("m_backward_buffer", 6,
+        "forward_buffer", nb_vars, m_ny, m_nx / 2 + 1);
+    m_backward_buffer = View3D<Kokkos::complex<double>>("backward_buffer", 6,
                                                         m_ny, m_nx / 2 + 1);
     m_ik_fg_all =
-        View3D<Kokkos::complex<double>>("m_ik_fg_all", 6, m_nkyh, m_nkx2);
-    m_dfgdx_all         = View3D<double>("m_dfgdx_all", 6, m_ny, m_nx);
-    m_conv              = View3D<double>("m_conv", nb_vars, m_ny, m_nx);
-    m_mask              = View1D<double>("m_mask", nkx);
-    m_poisson_operator  = View2D<double>("m_poisson_operator", m_nkyh, m_nkx2);
-    m_adiabacity_factor = View1D<double>("m_adiabacity_factor", m_nkyh);
+        View3D<Kokkos::complex<double>>("ik_fg_all", 6, m_nkyh, m_nkx2);
+    m_dfgdx_all         = View3D<double>("dfgdx_all", 6, m_ny, m_nx);
+    m_conv              = View3D<double>("conv", nb_vars, m_ny, m_nx);
+    m_mask              = View1D<double>("mask", nkx);
+    m_poisson_operator  = View2D<double>("poisson_operator", m_nkyh, m_nkx2);
+    m_adiabacity_factor = View1D<double>("adiabacity_factor", m_nkyh);
 
     m_forward_plan = std::make_unique<ForwardPlanType>(
         execution_space(), m_conv, m_forward_buffer,
@@ -338,24 +423,72 @@ class HasegawaWakatani {
 
     auto rhok = Kokkos::subview(m_variables->m_fk, 1, Kokkos::ALL, Kokkos::ALL);
     poisson(rhok, m_variables->m_pk);
-    auto sub_fk = Kokkos::subview(m_variables->m_fk, Kokkos::ALL, 0,
-                                  Kokkos::ALL);  // ky == 0 component
-    auto sub_pk = Kokkos::subview(m_variables->m_pk, 0,
-                                  Kokkos::ALL);  // ky == 0 component
+    // Reality condition on ky == 0 component
+    auto sub_fk =
+        Kokkos::subview(m_variables->m_fk, Kokkos::ALL, 0, Kokkos::ALL);
+    auto sub_pk = Kokkos::subview(m_variables->m_pk, 0, Kokkos::ALL);
     realityCondition(sub_fk, m_mask);
     realityCondition(sub_pk, m_mask);
   }
   ~HasegawaWakatani() = default;
 
+  // \brief Runs the simulation for the specified number of iterations.
   void run() {
-    for (int i = 0; i < m_nbiter; i++) {
+    m_time = 0.0;
+    for (int iter = 0; iter < m_nbiter; iter++) {
+      diag(iter);
       solve();
+      m_time += m_dt;
     }
   }
 
+  // \brief Performs diagnostics at a given simulation time.
+  // \param iter [in] The current iteration number.
+  void diag(const int iter) {
+    if (iter % m_diag_steps == 0) {
+      diag_fields(m_diag_it);
+      m_diag_it += 1;
+    }
+  }
+
+  // \brief Prepare Views to be saved to a binary file
+  // \param iter [in] The current iteration number.
+  void diag_fields(const int iter) {
+    auto rhok = Kokkos::subview(m_variables->m_fk, 0, Kokkos::ALL, Kokkos::ALL);
+    auto vork = Kokkos::subview(m_variables->m_fk, 1, Kokkos::ALL, Kokkos::ALL);
+    to_binary_file("phi", m_variables->m_pk, iter);
+    to_binary_file("density", rhok, iter);
+    to_binary_file("vorticity", vork, iter);
+  }
+
+  // \brief Saves a View to a binary file
+  //
+  // \tparam ViewType The type of the field to be saved.
+  // \param label [in] The label of the field.
+  // \param value [in] The field to be saved.
+  // \param iter [in] The current iteration number.
+  template <typename ViewType>
+  void to_binary_file(const std::string& label, const ViewType& value,
+                      const int iter) {
+    View3D<double> out(label, 2, m_nkyh, m_nkx2);
+    range2D_type range(point2D_type{{0, 0}}, point2D_type{{m_nkyh, m_nkx2}},
+                       tile2D_type{{TILE0, TILE1}});
+
+    Kokkos::parallel_for(
+        "Complex2DtoReal3D", range, KOKKOS_LAMBDA(int iky, int ikx) {
+          out(0, iky, ikx) = value(iky, ikx).real();
+          out(1, iky, ikx) = value(iky, ikx).imag();
+        });
+    std::string file_name =
+        m_out_dir + "/" + label + "_" + IO::zfill(iter, 10) + ".dat";
+    auto h_out = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), out);
+    IO::to_binary(file_name, h_out);
+  }
+
+  // \brief Advances the simulation by one time step.
   void solve() {
     for (int step = 0; step < m_ode->order(); step++) {
-      vorticity(m_variables->m_fk, m_variables->m_pk, m_dfkdt);
+      rhs(m_variables->m_fk, m_variables->m_pk, m_dfkdt);
       m_ode->advance(m_dfkdt, m_variables->m_fk, step);
 
       auto rhok =
@@ -371,9 +504,16 @@ class HasegawaWakatani {
     }
   }
 
+  // \brief Computes the RHS of vorticity equation
+  //
+  // \tparam FViewType The type of the density and vorticity field.
+  // \tparam PViewType The type of the potential field.
+  // \tparam dFViewType The type of the RHS of the vorticity equation.
+  // \param fk [in] The density and vorticity field.
+  // \param pk [in] The potential field.
+  // \param dfkdt [out] The RHS of the vorticity equation.
   template <typename FViewType, typename PViewType, typename dFViewType>
-  void vorticity(const FViewType& fk, const PViewType& pk,
-                 const dFViewType& dfkdt) {
+  void rhs(const FViewType& fk, const PViewType& pk, const dFViewType& dfkdt) {
     poissonBracket(fk, pk, m_nonlinear_k);
 
     constexpr int nb_vars  = 2;
@@ -394,17 +534,28 @@ class HasegawaWakatani {
           auto tmp_adiabacity_factor = adiabacity_factor(iky);
           auto tmp_k4                = ksq(iky, ikx) * ksq(iky, ikx);
           for (int in = 0; in < nb_vars; in++) {
+            double is_dns = in == 0 ? 1.0 : 0.0;
             dfkdt(in, iky, ikx) =
-                -nonlinear_k(in, iky, ikx) - I * eta * tmp_kyh * tmp_pk -
-                ca * tmp_adiabacity_factor * (fk(in, iky, ikx) - tmp_pk) -
+                -nonlinear_k(in, iky, ikx) -
+                I * eta * tmp_kyh * tmp_pk * is_dns -
+                ca * tmp_adiabacity_factor * (fk(0, iky, ikx) - tmp_pk) -
                 nu * fk(in, iky, ikx) * tmp_k4;
           }
         });
   }
 
+  // \brief Computes the Poisson bracket of two fields
+  // {f,g} = (df/dx)(dg/dy) - (df/dy)(dg/dx)
+  //
+  // \tparam FViewType The type of the first field.
+  // \tparam GViewType The type of the second field.
+  // \tparam PViewType The type of the Poisson bracket.
+  // \param fk [in] The first field.
+  // \param gk [in] The second field.
+  // \param pk [out] The Poisson bracket of the two fields.
   template <typename FViewType, typename GViewType, typename PViewType>
   void poissonBracket(const FViewType& fk, const GViewType& gk, PViewType& pk) {
-    multiplication(fk, gk, m_ik_fg_all);
+    derivative(fk, gk, m_ik_fg_all);
     backwardFFT(m_ik_fg_all, m_dfgdx_all);
 
     // Convolution in real space
@@ -418,9 +569,17 @@ class HasegawaWakatani {
     realityCondition(sub_pk, m_mask);
   }
 
+  // \brief Computes the derivative in Fourier space
+  //
+  // \tparam FViewType The type of the first field.
+  // \tparam GViewType The type of the second field.
+  // \tparam FGViewType The type of the derivative.
+  // \param fk [in] The first field.
+  // \param gk [in] The second field.
+  // \param ik_fg_all [out] The derivative in Fourier space.
   template <typename FViewType, typename GViewType, typename FGViewType>
-  void multiplication(const FViewType& fk, const GViewType& gk,
-                      FGViewType& ik_fg_all) {
+  void derivative(const FViewType& fk, const GViewType& gk,
+                  FGViewType& ik_fg_all) {
     auto ikx_f =
         Kokkos::subview(ik_fg_all, pair_type(0, 2), Kokkos::ALL, Kokkos::ALL);
     auto iky_f =
@@ -451,9 +610,16 @@ class HasegawaWakatani {
         });
   }
 
+  // \brief Performs a forward FFT transforming a real space field into Fourier
+  // space.
+  //
+  // \tparam InViewType The type of the input field.
+  // \tparam OutViewType The type of the output field.
+  // \param f [in] The input field.
+  // \param fk [out] The output field.
   template <typename InViewType, typename OutViewType>
   void forwardFFT(const InViewType& f, OutViewType& fk) {
-    m_forward_plan->execute(f, m_forward_buffer);
+    KokkosFFT::execute(*m_forward_plan, f, m_forward_buffer);
 
     auto forward_buffer = m_forward_buffer;
     auto norm_coef      = m_norm_coef;
@@ -480,6 +646,13 @@ class HasegawaWakatani {
         });
   }
 
+  // \brief Performs a backward FFT transforming a Fourier space field into real
+  // space.
+  //
+  // \tparam InViewType The type of the input field.
+  // \tparam OutViewType The type of the output field.
+  // \param fk [in] The input field.
+  // \param f [out] The output field.
   template <typename InViewType, typename OutViewType>
   void backwardFFT(const InViewType& fk, OutViewType& f) {
     auto backward_buffer = m_backward_buffer;
@@ -505,9 +678,15 @@ class HasegawaWakatani {
               Kokkos::conj(fk(iv, iky_nonzero, ikx_neg));
         });
 
-    m_backward_plan->execute(backward_buffer, f);
+    KokkosFFT::execute(*m_backward_plan, backward_buffer, f);
   }
 
+  // \brief Computes the convolution of two fields
+  //
+  // \tparam InViewType The type of the input field.
+  // \tparam OutViewType The type of the output field.
+  // \param dfgdx_all [in] The input field.
+  // \param conv [out] The output field.
   template <typename InViewType, typename OutViewType>
   void convolution(const InViewType& dfgdx_all, OutViewType& conv) {
     auto dfdx =
@@ -533,32 +712,37 @@ class HasegawaWakatani {
         });
   }
 
+  // \brief Computes the Poisson equation
+  //
+  // \tparam InViewType The type of the input field.
+  // \tparam OutViewType The type of the output field.
+  // \param vork [in] The Fourier representation of the vorticity field.
+  // \param phik [out] The solution of the Poisson equation in Fourier space.
   template <typename InViewType, typename OutViewType>
-  void poisson(const InViewType& rhok, OutViewType& phik) {
+  void poisson(const InViewType& vork, OutViewType& phik) {
     range2D_type range(point2D_type{{0, 0}}, point2D_type{{m_nkyh, m_nkx2}},
                        tile2D_type{{TILE0, TILE1}});
 
     auto poisson_operator = m_poisson_operator;
     Kokkos::parallel_for(
         "poisson", range, KOKKOS_LAMBDA(int iky, int ikx) {
-          phik(iky, ikx) = poisson_operator(iky, ikx) * rhok(iky, ikx);
+          phik(iky, ikx) = poisson_operator(iky, ikx) * vork(iky, ikx);
         });
   }
 };
 
 int main(int argc, char* argv[]) {
-  Kokkos::initialize(argc, argv);
-  {
-    int nx = 1024, nbiter = 100;
-    double lx = 10.0, dt = 0.005;
-    HasegawaWakatani model(nx, lx, nbiter, dt);
-    Kokkos::Timer timer;
-    model.run();
-    Kokkos::fence();
-    double seconds = timer.seconds();
-    std::cout << "Elapsed time: " << seconds << " [s]" << std::endl;
-  }
-  Kokkos::finalize();
+  Kokkos::ScopeGuard guard(argc, argv);
+  auto kwargs         = IO::parse_args(argc, argv);
+  std::string out_dir = IO::get_arg(kwargs, "out_dir", "data_kokkos");
+  int nx = 512, nbiter = 100000;
+  double lx = 10.0, dt = 0.0005;
+  HasegawaWakatani model(nx, lx, nbiter, dt, out_dir);
+  Kokkos::Timer timer;
+  model.run();
+  Kokkos::fence();
+  double seconds = timer.seconds();
+  std::cout << "Elapsed time: " << seconds << " [s]" << std::endl;
 
   return 0;
 }
