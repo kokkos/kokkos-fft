@@ -38,9 +38,9 @@ if (NOT KokkosFFT_ENABLE_INTERNAL_KOKKOS)
     # First check, Kokkos is added as subdirectory or not
     if(NOT TARGET Kokkos::kokkos)
         find_package(Kokkos ${KOKKOS_REQUIRED_VERSION} REQUIRED)
+        # Check the alignment of complex numbers
+        kokkos_check(OPTIONS COMPLEX_ALIGN)
     endif()
-    # Check the alignment of complex numbers
-    kokkos_check(OPTIONS COMPLEX_ALIGN)
 else ()
     add_subdirectory(tpls/kokkos)
 endif ()
