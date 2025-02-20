@@ -39,6 +39,8 @@ if (NOT KokkosFFT_ENABLE_INTERNAL_KOKKOS)
     if(NOT TARGET Kokkos::kokkos)
         find_package(Kokkos ${KOKKOS_REQUIRED_VERSION} REQUIRED)
     endif()
+    # Check the alignment of complex numbers
+    kokkos_check(OPTIONS COMPLEX_ALIGN)
 else ()
     add_subdirectory(tpls/kokkos)
 endif ()
