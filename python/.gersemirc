@@ -1,0 +1,9 @@
+# SPDX-FileCopyrightText: (C) The kokkos-fft development team, see COPYRIGHT.md file
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
+
+# yaml-language-server: $schema=https://raw.githubusercontent.com/BlankSpruce/gersemi/0.17.0/gersemi/configuration.schema.json
+
+definitions: ["cmake"]
+indent: 4
+line_length: 100

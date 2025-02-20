@@ -1,0 +1,29 @@
+name: CI (python)
+
+on:
+  pull_request:
+    branches: [ "main" ]
+  
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+        
+      - name: Install dependencies and package with test extras
+        run: |
+          python -m pip install --upgrade pip
+          pip install hatch
+          cd python && hatch build && pip install .
+      
+      - name: Run gersemi
+        run: |
+          find CMakeLists.txt common/ examples/ fft/ -name 'CMakeLists.txt' -exec gersemi --check '{}' '+'
