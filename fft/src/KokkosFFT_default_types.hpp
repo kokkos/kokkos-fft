@@ -7,6 +7,12 @@
 
 #include <Kokkos_Core.hpp>
 
+#if !defined(KOKKOS_ENABLE_COMPLEX_ALIGN)
+static_assert(false,
+              "KokkosFFT requires option -DKokkos_ENABLE_COMPLEX_ALIGN=ON to "
+              "build Kokkos");
+#endif
+
 #if defined(KOKKOS_ENABLE_CUDA)
 #include "KokkosFFT_Cuda_types.hpp"
 #elif defined(KOKKOS_ENABLE_HIP)
