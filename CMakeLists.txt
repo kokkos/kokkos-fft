@@ -7,25 +7,33 @@ cmake_minimum_required(VERSION 3.22)
 set(KOKKOSFFT_TOP_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Set project
-project(
-    KokkosFFT
-    VERSION 0.2.1
-    LANGUAGES CXX
-)
+project(KokkosFFT VERSION 0.2.1 LANGUAGES CXX)
 
 # Add cmake helpers
 list(PREPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # Options
-option(KokkosFFT_ENABLE_HOST_AND_DEVICE "Enable FFT on both host and device" OFF)
-option(KokkosFFT_ENABLE_INTERNAL_KOKKOS "Build internal Kokkos instead of relying on external one" OFF)
+option(
+    KokkosFFT_ENABLE_HOST_AND_DEVICE
+    "Enable FFT on both host and device"
+    OFF
+)
+option(
+    KokkosFFT_ENABLE_INTERNAL_KOKKOS
+    "Build internal Kokkos instead of relying on external one"
+    OFF
+)
 option(KokkosFFT_ENABLE_EXAMPLES "Build KokkosFFT examples" OFF)
 option(KokkosFFT_ENABLE_TESTS "Build KokkosFFT tests" OFF)
 option(KokkosFFT_ENABLE_BENCHMARK "Build benchmarks for KokkosFFT" OFF)
 option(KokkosFFT_ENABLE_DOCS "Build KokkosFFT documentaion/website" OFF)
 
 # Device specific options
-option(KokkosFFT_ENABLE_ROCFFT "Enable rocfft as a KokkosFFT backend on AMD GPUs" OFF)
+option(
+    KokkosFFT_ENABLE_ROCFFT
+    "Enable rocfft as a KokkosFFT backend on AMD GPUs"
+    OFF
+)
 
 # Version information
 set(KOKKOSFFT_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
@@ -34,16 +42,16 @@ set(KOKKOSFFT_VERSION_PATCH ${PROJECT_VERSION_PATCH})
 
 set(KOKKOS_REQUIRED_VERSION 4.4.0)
 
-if (NOT KokkosFFT_ENABLE_INTERNAL_KOKKOS)
+if(NOT KokkosFFT_ENABLE_INTERNAL_KOKKOS)
     # First check, Kokkos is added as subdirectory or not
     if(NOT TARGET Kokkos::kokkos)
         find_package(Kokkos ${KOKKOS_REQUIRED_VERSION} REQUIRED)
         # Check the alignment of complex numbers
         kokkos_check(OPTIONS COMPLEX_ALIGN)
     endif()
-else ()
+else()
     add_subdirectory(tpls/kokkos)
-endif ()
+endif()
 
 # Set tpls
 set(KOKKOSFFT_TPL_LIST)
@@ -56,7 +64,10 @@ get_tpls_list(KOKKOSFFT_TPL_LIST KOKKOSFFT_BACKEND_LIST)
 # ==================================================================
 
 message("")
-message(STATUS "KokkosFFT version: ${KOKKOSFFT_VERSION_MAJOR}.${KOKKOSFFT_VERSION_MINOR}.${KOKKOSFFT_VERSION_PATCH}")
+message(
+    STATUS
+    "KokkosFFT version: ${KOKKOSFFT_VERSION_MAJOR}.${KOKKOSFFT_VERSION_MINOR}.${KOKKOSFFT_VERSION_PATCH}"
+)
 message(STATUS "KokkosFFT TPLs:")
 if(KOKKOSFFT_TPL_LIST)
     include(KokkosFFT_utils)
@@ -88,7 +99,11 @@ endif()
 
 # Benchmark
 if(KokkosFFT_ENABLE_BENCHMARK)
-    option(BENCHMARK_ENABLE_TESTING "Enable testing of the benchmark library." OFF)
+    option(
+        BENCHMARK_ENABLE_TESTING
+        "Enable testing of the benchmark library."
+        OFF
+    )
     add_subdirectory(tpls/benchmark)
     include(KokkosFFT_Git_Hash)
 
@@ -101,17 +116,10 @@ endif()
 
 # Configure files to display configuration
 # Configure the library
-set(
-    PACKAGE_NAME_CONFIG_FILES
-    KokkosFFT_config.h
-    KokkosFFT_Version_Info.hpp
-)
+set(PACKAGE_NAME_CONFIG_FILES KokkosFFT_config.h KokkosFFT_Version_Info.hpp)
 
 foreach(CONFIG_FILE ${PACKAGE_NAME_CONFIG_FILES})
-    configure_file(
-        cmake/${CONFIG_FILE}.in
-        ${CMAKE_BINARY_DIR}/${CONFIG_FILE}
-    )
+    configure_file(cmake/${CONFIG_FILE}.in ${CMAKE_BINARY_DIR}/${CONFIG_FILE})
 endforeach()
 
 # Set directories used for install
@@ -130,10 +138,7 @@ endif()
 # Installation
 include(CMakePackageConfigHelpers)
 
-install(
-    TARGETS common fft
-    EXPORT ${KokkosFFT_EXPORT_TARGET}
-)
+install(TARGETS common fft EXPORT ${KokkosFFT_EXPORT_TARGET})
 
 install(
     EXPORT ${KokkosFFT_EXPORT_TARGET}
@@ -142,9 +147,12 @@ install(
 )
 
 install(
-    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/common/src/ ${CMAKE_CURRENT_SOURCE_DIR}/fft/src/
+    DIRECTORY
+        ${CMAKE_CURRENT_SOURCE_DIR}/common/src/
+        ${CMAKE_CURRENT_SOURCE_DIR}/fft/src/
     DESTINATION ${INSTALL_INCLUDEDIR}
-    FILES_MATCHING PATTERN "*.hpp"
+    FILES_MATCHING
+    PATTERN "*.hpp"
 )
 
 install(
@@ -152,7 +160,8 @@ install(
     DESTINATION ${INSTALL_LIBDIR}
 )
 
-configure_package_config_file(cmake/KokkosFFTConfig.cmake.in
+configure_package_config_file(
+    cmake/KokkosFFTConfig.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/KokkosFFTConfig.cmake
     INSTALL_DESTINATION ${INSTALL_LIBDIR}
 )
@@ -164,7 +173,8 @@ write_basic_package_version_file(
 )
 
 install(
-    FILES ${CMAKE_CURRENT_BINARY_DIR}/KokkosFFTConfig.cmake
-          ${CMAKE_CURRENT_BINARY_DIR}/KokkosFFTConfigVersion.cmake
+    FILES
+        ${CMAKE_CURRENT_BINARY_DIR}/KokkosFFTConfig.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/KokkosFFTConfigVersion.cmake
     DESTINATION ${INSTALL_LIBDIR}
 )
