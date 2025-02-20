@@ -4,7 +4,6 @@
 
 import argparse
 import pathlib
-import time
 import numpy as np
 import xarray as xr
 import matplotlib.pyplot as plt
@@ -12,12 +11,51 @@ from typing import List
 from joblib import Parallel, delayed
 
 class DataLoader:
+    """
+    A class to load simulation data files and providing access to the data
+    for different variables and iterations. It supports both binary (.dat) and netCDF (.nc) formats.
+
+    Attributes
+    ----------
+    data_dir (str): Directory containing the data files.
+    var_names (List[str]): List of variable names to be loaded.
+    suffix (str): File format suffix, must be either 'nc' or 'dat'.
+    shape (tuple): Expected shape (ny, nx) of the simulation grid.
+    nb_iters (int): Number of iterations available in the data directory.
+
+    Raises:
+    ValueError: If an unsupported suffix is provided or if the number of files for each field
+                does not match for binary data.
+    FileNotFoundError: If the expected data files are not found in the provided directory.
+    """
     data_dir: str
     var_names: List[str]
     suffix: str
     shape: tuple
     nb_iters: int = 0
     def __init__(self, data_dir: str, var_names: List[str], suffix: str, shape: tuple) -> None:
+        """
+        Initializes the DataLoader.
+
+        Parameters
+        ----------
+        data_dir (str): Directory containing the data files.
+        var_names (List[str]): List of variable names to load.
+        suffix (str): File format suffix, must be either 'nc' or 'dat'.
+        shape (tuple): Expected grid shape (ny, nx).
+
+        Methods
+        -------
+        load(var_name: str, iter: int) -> np.ndarray:
+            Load and process data for a specific variable and iteration.
+        mesh() -> List[np.ndarray]:
+            Generate a meshgrid from the specified grid shape.
+
+        Raises
+        ------
+        ValueError: If the provided suffix is not 'nc' or 'dat'.
+        FileNotFoundError: If no files corresponding to the provided variable names or fields are found.
+        """
         self.data_dir = data_dir
         self.var_names = var_names
         self.shape = shape
@@ -49,6 +87,23 @@ class DataLoader:
             self.nb_iters = len(file_paths)
         
     def load(self, var_name: str, iter: int) -> np.ndarray:
+        """
+        Load and process data for a specific variable and iteration.
+
+        Parameters
+        ----------
+        var_name (str): The name of the variable to load.
+        iter (int): The iteration index to load.
+
+        Returns
+        -------
+        np.ndarray: Processed data array for the specified variable and iteration.
+
+        Raises
+        ------
+        ValueError: If the binary file does not have the expected shape.
+        FileNotFoundError: If the file for the given iteration is not found.
+        """
         to_real_data = lambda var: backwardFFT( Real3DtoComplex2D(A = var), shape=self.shape )
         
         if self.suffix == 'dat':
@@ -72,6 +127,13 @@ class DataLoader:
             return to_real_data(var)
             
     def mesh(self) -> List[np.ndarray]:
+        """
+        Generate a meshgrid from the specified grid shape.
+
+        Returns
+        -------
+        List[np.ndarray]: Two arrays representing the x and y coordinates of the grid.
+        """
         ny, nx = self.shape
         x, y = np.arange(nx), np.arange(ny)
         return x, y
@@ -126,7 +188,21 @@ def backwardFFT(fk: np.ndarray, shape: tuple) -> np.ndarray:
     return f
 
 def plot_fields(nx: int, data_dir: str, fig_dir: str, suffix: str, 
-                n_jobs: int, var_dict: dict) -> None: 
+                n_jobs: int, var_dict: dict) -> None:
+    """
+    Generate and save field plots for specified variables over multiple iterations.
+
+    Parameters:
+    nx (int): The number of grid points in each dimension.
+    data_dir (str): Directory containing the data files.
+    fig_dir (str): Directory where the figure files will be saved.
+    suffix (str): File format suffix, must be either 'nc' or 'dat'.
+    n_jobs (int): Number of parallel jobs for processing.
+    var_dict (dict): Dictionary with variable names as keys and corresponding maximum values for the colormap (vmax) as values.
+
+    Raises:
+    FileNotFoundError: If the specified data directory does not exist.
+    """
     data_path = pathlib.Path(data_dir)
     if not data_path.exists():
         raise FileNotFoundError(f"Directory {data_dir} does not exist.")
