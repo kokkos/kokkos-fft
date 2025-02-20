@@ -4,10 +4,7 @@
 
 add_library(common INTERFACE)
 
-target_link_libraries(common
-    INTERFACE
-    Kokkos::kokkos
-)
+target_link_libraries(common INTERFACE Kokkos::kokkos)
 
 # find and link libraries based on KOKKOSFFT_TPL_LIST
 if("CUFFT" IN_LIST KOKKOSFFT_TPL_LIST)
@@ -36,11 +33,21 @@ endif()
 
 if("FFTW_OPENMP" IN_LIST KOKKOSFFT_TPL_LIST)
     find_package(FFTW MODULE REQUIRED)
-    target_link_libraries(common INTERFACE FFTW::Float FFTW::Double FFTW::FloatOpenMP FFTW::DoubleOpenMP)
+    target_link_libraries(
+        common
+        INTERFACE FFTW::Float FFTW::Double FFTW::FloatOpenMP FFTW::DoubleOpenMP
+    )
     target_compile_definitions(common INTERFACE KOKKOSFFT_ENABLE_TPL_FFTW)
 elseif("FFTW_THREADS" IN_LIST KOKKOSFFT_TPL_LIST)
     find_package(FFTW MODULE REQUIRED)
-    target_link_libraries(common INTERFACE FFTW::Float FFTW::Double FFTW::FloatThreads FFTW::DoubleThreads)
+    target_link_libraries(
+        common
+        INTERFACE
+            FFTW::Float
+            FFTW::Double
+            FFTW::FloatThreads
+            FFTW::DoubleThreads
+    )
     target_compile_definitions(common INTERFACE KOKKOSFFT_ENABLE_TPL_FFTW)
 elseif("FFTW_SERIAL" IN_LIST KOKKOSFFT_TPL_LIST)
     find_package(FFTW MODULE REQUIRED)
@@ -53,8 +60,9 @@ if(KokkosFFT_ENABLE_HOST_AND_DEVICE)
 endif()
 
 target_compile_features(common INTERFACE cxx_std_17)
-target_include_directories(common INTERFACE
-                           $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-                           $<INSTALL_INTERFACE:${INSTALL_INCLUDEDIR}>
+target_include_directories(
+    common
+    INTERFACE
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<INSTALL_INTERFACE:${INSTALL_INCLUDEDIR}>
 )
-
