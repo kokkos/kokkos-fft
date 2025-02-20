@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: (C) The kokkos-fft development team, see COPYRIGHT.md file
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
+
 name: CI (python)
 
 on:
@@ -26,4 +30,4 @@ jobs:
       
       - name: Run gersemi
         run: |
-          find CMakeLists.txt common/ examples/ fft/ -name 'CMakeLists.txt' -exec gersemi --check '{}' '+'
+          find CMakeLists.txt common/ examples/ fft/ -name 'CMakeLists.txt' -exec gersemi --check --diff '{}' '+'
