@@ -7,11 +7,7 @@ cmake_minimum_required(VERSION 3.22)
 set(KOKKOSFFT_TOP_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Set project
-project(
-    KokkosFFT
-    VERSION 0.2.1
-    LANGUAGES CXX
-)
+project(KokkosFFT VERSION 0.2.1 LANGUAGES CXX)
 
 # Add cmake helpers
 list(PREPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
@@ -34,16 +30,16 @@ set(KOKKOSFFT_VERSION_PATCH ${PROJECT_VERSION_PATCH})
 
 set(KOKKOS_REQUIRED_VERSION 4.4.0)
 
-if (NOT KokkosFFT_ENABLE_INTERNAL_KOKKOS)
-    # First check, Kokkos is added as subdirectory or not
-    if(NOT TARGET Kokkos::kokkos)
-        find_package(Kokkos ${KOKKOS_REQUIRED_VERSION} REQUIRED)
-        # Check the alignment of complex numbers
-        kokkos_check(OPTIONS COMPLEX_ALIGN)
-    endif()
-else ()
-    add_subdirectory(tpls/kokkos)
-endif ()
+if(NOT KokkosFFT_ENABLE_INTERNAL_KOKKOS)
+  # First check, Kokkos is added as subdirectory or not
+  if(NOT TARGET Kokkos::kokkos)
+    find_package(Kokkos ${KOKKOS_REQUIRED_VERSION} REQUIRED)
+    # Check the alignment of complex numbers
+    kokkos_check(OPTIONS COMPLEX_ALIGN)
+  endif()
+else()
+  add_subdirectory(tpls/kokkos)
+endif()
 
 # Set tpls
 set(KOKKOSFFT_TPL_LIST)
@@ -59,59 +55,52 @@ message("")
 message(STATUS "KokkosFFT version: ${KOKKOSFFT_VERSION_MAJOR}.${KOKKOSFFT_VERSION_MINOR}.${KOKKOSFFT_VERSION_PATCH}")
 message(STATUS "KokkosFFT TPLs:")
 if(KOKKOSFFT_TPL_LIST)
-    include(KokkosFFT_utils)
-    foreach(BACKEND TPL IN ZIP_LISTS KOKKOSFFT_BACKEND_LIST KOKKOSFFT_TPL_LIST)
-        # [TO DO] show more information about the library (like location)
-        pad_string(BACKEND_PADDED "${BACKEND}" 13)
-        message(STATUS "    ${BACKEND_PADDED}: ${TPL}")
-    endforeach()
+  include(KokkosFFT_utils)
+  foreach(BACKEND TPL IN ZIP_LISTS KOKKOSFFT_BACKEND_LIST KOKKOSFFT_TPL_LIST)
+    # [TO DO] show more information about the library (like location)
+    pad_string(BACKEND_PADDED "${BACKEND}" 13)
+    message(STATUS "    ${BACKEND_PADDED}: ${TPL}")
+  endforeach()
 else()
-    message(STATUS " (None)")
+  message(STATUS " (None)")
 endif()
 message("")
 
 # Googletest
 if(KokkosFFT_ENABLE_TESTS)
-    include(CTest)
-    find_package(GTest CONFIG)
-    if(NOT GTest_FOUND)
-        add_subdirectory(tpls/googletest)
-    endif()
+  include(CTest)
+  find_package(GTest CONFIG)
+  if(NOT GTest_FOUND)
+    add_subdirectory(tpls/googletest)
+  endif()
 endif()
 
 # Build documentation with Doxygen and Sphinx
 if(KokkosFFT_ENABLE_DOCS)
-    find_package(Doxygen REQUIRED)
-    find_package(Sphinx REQUIRED)
-    add_subdirectory(docs)
+  find_package(Doxygen REQUIRED)
+  find_package(Sphinx REQUIRED)
+  add_subdirectory(docs)
 endif()
 
 # Benchmark
 if(KokkosFFT_ENABLE_BENCHMARK)
-    option(BENCHMARK_ENABLE_TESTING "Enable testing of the benchmark library." OFF)
-    add_subdirectory(tpls/benchmark)
-    include(KokkosFFT_Git_Hash)
+  option(BENCHMARK_ENABLE_TESTING "Enable testing of the benchmark library." OFF)
+  add_subdirectory(tpls/benchmark)
+  include(KokkosFFT_Git_Hash)
 
-    # [TO DO] Fix this, it detects benchmark not a googlebench
-    #find_package(benchmark QUIET)
-    #if(NOT benchmark_FOUND)
-    #    add_subdirectory(tpls/benchmark)
-    #endif()
+  # [TO DO] Fix this, it detects benchmark not a googlebench
+  #find_package(benchmark QUIET)
+  #if(NOT benchmark_FOUND)
+  #    add_subdirectory(tpls/benchmark)
+  #endif()
 endif()
 
 # Configure files to display configuration
 # Configure the library
-set(
-    PACKAGE_NAME_CONFIG_FILES
-    KokkosFFT_config.h
-    KokkosFFT_Version_Info.hpp
-)
+set(PACKAGE_NAME_CONFIG_FILES KokkosFFT_config.h KokkosFFT_Version_Info.hpp)
 
 foreach(CONFIG_FILE ${PACKAGE_NAME_CONFIG_FILES})
-    configure_file(
-        cmake/${CONFIG_FILE}.in
-        ${CMAKE_BINARY_DIR}/${CONFIG_FILE}
-    )
+  configure_file(cmake/${CONFIG_FILE}.in ${CMAKE_BINARY_DIR}/${CONFIG_FILE})
 endforeach()
 
 # Set directories used for install
@@ -124,47 +113,33 @@ set(KokkosFFT_EXPORT_TARGET "${PROJECT_NAME}-Targets")
 add_subdirectory(common)
 add_subdirectory(fft)
 if(KokkosFFT_ENABLE_EXAMPLES)
-    add_subdirectory(examples)
+  add_subdirectory(examples)
 endif()
 
 # Installation
 include(CMakePackageConfigHelpers)
 
-install(
-    TARGETS common fft
-    EXPORT ${KokkosFFT_EXPORT_TARGET}
-)
+install(TARGETS common fft EXPORT ${KokkosFFT_EXPORT_TARGET})
+install(EXPORT ${KokkosFFT_EXPORT_TARGET} NAMESPACE KokkosFFT:: DESTINATION ${INSTALL_LIBDIR})
 
 install(
-    EXPORT ${KokkosFFT_EXPORT_TARGET}
-    NAMESPACE KokkosFFT::
-    DESTINATION ${INSTALL_LIBDIR}
+  DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/common/src/ ${CMAKE_CURRENT_SOURCE_DIR}/fft/src/
+  DESTINATION ${INSTALL_INCLUDEDIR}
+  FILES_MATCHING
+  PATTERN "*.hpp"
 )
 
-install(
-    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/common/src/ ${CMAKE_CURRENT_SOURCE_DIR}/fft/src/
-    DESTINATION ${INSTALL_INCLUDEDIR}
-    FILES_MATCHING PATTERN "*.hpp"
-)
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindFFTW.cmake DESTINATION ${INSTALL_LIBDIR})
 
-install(
-    FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindFFTW.cmake
-    DESTINATION ${INSTALL_LIBDIR}
-)
-
-configure_package_config_file(cmake/KokkosFFTConfig.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/KokkosFFTConfig.cmake
-    INSTALL_DESTINATION ${INSTALL_LIBDIR}
+configure_package_config_file(
+  cmake/KokkosFFTConfig.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/KokkosFFTConfig.cmake
+  INSTALL_DESTINATION ${INSTALL_LIBDIR}
 )
 
 write_basic_package_version_file(
-    ${CMAKE_CURRENT_BINARY_DIR}/KokkosFFTConfigVersion.cmake
-    VERSION ${KokkosFFT_VERSION}
-    COMPATIBILITY SameMajorVersion
+  ${CMAKE_CURRENT_BINARY_DIR}/KokkosFFTConfigVersion.cmake VERSION ${KokkosFFT_VERSION} COMPATIBILITY SameMajorVersion
 )
 
-install(
-    FILES ${CMAKE_CURRENT_BINARY_DIR}/KokkosFFTConfig.cmake
-          ${CMAKE_CURRENT_BINARY_DIR}/KokkosFFTConfigVersion.cmake
-    DESTINATION ${INSTALL_LIBDIR}
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/KokkosFFTConfig.cmake ${CMAKE_CURRENT_BINARY_DIR}/KokkosFFTConfigVersion.cmake
+        DESTINATION ${INSTALL_LIBDIR}
 )
