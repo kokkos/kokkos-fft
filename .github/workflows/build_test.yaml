@@ -18,6 +18,9 @@ env:
   DOCKER_BUILDKIT: 1
 
 jobs:
+  # [TO DO] Modularize the small actions for better readability
+  # of the main workflow file
+  
   # run linter on the code
   clang-format-check:
     uses: ./.github/workflows/__clang-format-check.yaml

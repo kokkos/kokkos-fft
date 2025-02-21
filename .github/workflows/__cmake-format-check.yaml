@@ -2,6 +2,11 @@
 #
 # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
+# This job checks the CMake formatting using the cmake-format lint action.
+# If any formatting inconsistencies are found compared to the expected style, the job will fail 
+# and the differences will be displayed in the job log.
+# See https://github.com/puneetmatharu/cmake-format-lint-action for more details.
+
 name: cmake-format check
 
 on:
