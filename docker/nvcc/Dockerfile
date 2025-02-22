@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
-ARG BASE=nvidia/cuda:12.3.1-devel-ubuntu20.04
+ARG BASE=nvidia/cuda:12.2.0-devel-ubuntu22.04
 FROM $BASE
 
 ARG ADDITIONAL_PACKAGES
