@@ -18,20 +18,19 @@ env:
   DOCKER_BUILDKIT: 1
 
 jobs:
+  # [TO DO] Modularize the small actions for better readability
+  # of the main workflow file
+  
   # run linter on the code
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - uses: DoozyX/clang-format-lint-action@v0.18
-      with:
-        source: 'common/ fft/ examples/ install_test/'
-        exclude: ''
-        extensions: 'hpp,cpp'
-        clangFormatVersion: 17
+  clang-format-check:
+    uses: ./.github/workflows/__clang-format-check.yaml
+
+  # run cmake format check
+  cmake-format-check:
+    uses: ./.github/workflows/__cmake-format-check.yaml
 
   # run typos for spell check
-  spell_check:
+  spell-check:
     name: spell check with typos
     runs-on: ubuntu-latest
     steps:

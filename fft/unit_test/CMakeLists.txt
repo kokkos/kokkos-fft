@@ -2,11 +2,7 @@
 #
 # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
-add_executable(unit-tests-kokkos-fft-core
-    Test_Main.cpp
-    Test_Plans.cpp
-    Test_Transform.cpp
-)
+add_executable(unit-tests-kokkos-fft-core Test_Main.cpp Test_Plans.cpp Test_Transform.cpp)
 
 target_compile_features(unit-tests-kokkos-fft-core PUBLIC cxx_std_17)
 

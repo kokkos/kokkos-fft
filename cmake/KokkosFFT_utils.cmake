@@ -8,24 +8,21 @@
 # \param str[in] Input string
 # \param length[in] The length of an output string
 function(pad_string output_string input_string length)
-    # Get the length of the input string
-    string(LENGTH "${input_string}" input_length)
+  # Get the length of the input string
+  string(LENGTH "${input_string}" input_length)
+  # Check if padding is necessary
+  if(${input_length} LESS ${length})
+    # Calculate the number of spaces needed for padding
+    math(EXPR padding_length "${length} - ${input_length}")
 
-    # Check if padding is necessary
-    if(${input_length} LESS ${length})
-        # Calculate the number of spaces needed for padding
-        math(EXPR padding_length "${length} - ${input_length}")
-        
-        # Create a string of spaces for padding
-        string(REPEAT " " ${padding_length} padding)
-        
-        # Append the padding to the input string
-        set(padded_string "${padding}${input_string}")
-    else()
-        set(padded_string "${input_string}")
-    endif()
+    # Create a string of spaces for padding
+    string(REPEAT " " ${padding_length} padding)
 
-    # Set the output variable
-    set(${output_string} "${padded_string}" PARENT_SCOPE)
+    # Append the padding to the input string
+    set(padded_string "${padding}${input_string}")
+  else()
+    set(padded_string "${input_string}")
+  endif()
+  # Set the output variable
+  set(${output_string} "${padded_string}" PARENT_SCOPE)
 endfunction()
-
