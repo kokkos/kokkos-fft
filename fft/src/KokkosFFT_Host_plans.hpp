@@ -13,6 +13,45 @@
 
 namespace KokkosFFT {
 namespace Impl {
+
+template <typename ExecutionSpace, typename T,
+          std::enable_if_t<is_AnyHostSpace_v<ExecutionSpace>, std::nullptr_t> =
+              nullptr>
+void setup() {
+  [[maybe_unused]] static bool once = [] {
+    if (!(Kokkos::is_initialized() || Kokkos::is_finalized())) {
+      Kokkos::abort(
+          "Error: KokkosFFT APIs must not be called before initializing "
+          "Kokkos.\n");
+    }
+    if (Kokkos::is_finalized()) {
+      Kokkos::abort(
+          "Error: KokkosFFT APIs must not be called after finalizing "
+          "Kokkos.\n");
+    }
+#if defined(KOKKOS_ENABLE_OPENMP) || defined(KOKKOS_ENABLE_THREADS)
+    if constexpr (std::is_same_v<ExecutionSpace,
+                                 Kokkos::DefaultHostExecutionSpace>) {
+      if constexpr (std::is_same_v<T, float>) {
+        fftwf_init_threads();
+      } else {
+        fftw_init_threads();
+      }
+
+      // Register cleanup function as a hook in Kokkos::finalize
+      Kokkos::push_finalize_hook([]() {
+        if constexpr (std::is_same_v<T, float>) {
+          fftwf_cleanup_threads();
+        } else {
+          fftw_cleanup_threads();
+        }
+      });
+    }
+#endif
+    return true;
+  }();
+}
+
 // batched transform, over ND Views
 template <typename ExecutionSpace, typename PlanType, typename InViewType,
           typename OutViewType, std::size_t fft_rank = 1,

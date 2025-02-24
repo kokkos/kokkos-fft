@@ -14,6 +14,26 @@
 
 namespace KokkosFFT {
 namespace Impl {
+
+template <typename ExecutionSpace, typename T,
+          std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
+                           std::nullptr_t> = nullptr>
+void setup() {
+  [[maybe_unused]] static bool once = [] {
+    if (!(Kokkos::is_initialized() || Kokkos::is_finalized())) {
+      Kokkos::abort(
+          "Error: KokkosFFT APIs must not be called before initializing "
+          "Kokkos.\n");
+    }
+    if (Kokkos::is_finalized()) {
+      Kokkos::abort(
+          "Error: KokkosFFT APIs must not be called after finalizing "
+          "Kokkos.\n");
+    }
+    return true;
+  }();
+}
+
 // 1D transform
 template <typename ExecutionSpace, typename PlanType, typename InViewType,
           typename OutViewType,

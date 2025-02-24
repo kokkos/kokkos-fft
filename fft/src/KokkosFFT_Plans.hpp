@@ -201,6 +201,7 @@ class Plan {
                        "In-place transform is not supported with reshape. "
                        "Please use out-of-place transform.");
 
+    KokkosFFT::Impl::setup<ExecutionSpace, float_type>();
     m_fft_size = KokkosFFT::Impl::create_plan(
         exec_space, m_plan, in, out, direction, m_axes, s, m_is_inplace);
   }
@@ -264,6 +265,7 @@ class Plan {
                        "In-place transform is not supported with reshape. "
                        "Please use out-of-place transform.");
 
+    KokkosFFT::Impl::setup<ExecutionSpace, float_type>();
     m_fft_size = KokkosFFT::Impl::create_plan(exec_space, m_plan, in, out,
                                               direction, axes, s, m_is_inplace);
   }

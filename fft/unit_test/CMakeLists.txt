@@ -5,7 +5,6 @@
 add_executable(unit-tests-kokkos-fft-core Test_Main.cpp Test_Plans.cpp Test_Transform.cpp)
 
 target_compile_features(unit-tests-kokkos-fft-core PUBLIC cxx_std_17)
-
 target_link_libraries(unit-tests-kokkos-fft-core PUBLIC KokkosFFT::fft GTest::gtest)
 
 # Enable GoogleTest

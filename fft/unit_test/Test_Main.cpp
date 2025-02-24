@@ -3,25 +3,16 @@
 //
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 
-#include <Kokkos_Core.hpp>
 #include <gtest/gtest.h>
-
-namespace testing::internal {
-// accessing gtest internals is not very clean, but gtest provides no public
-// access...
-extern bool g_help_flag;
-}  // namespace testing::internal
+#include <Kokkos_Core.hpp>
 
 int main(int argc, char* argv[]) {
   ::testing::InitGoogleTest(&argc, argv);
+
   int result = 0;
-  if (::testing::GTEST_FLAG(list_tests) || ::testing::internal::g_help_flag) {
-    result = RUN_ALL_TESTS();
-  } else {
-    Kokkos::initialize(argc, argv);
-    result = RUN_ALL_TESTS();
-    Kokkos::finalize();
-  }
+  Kokkos::initialize(argc, argv);
+  result = RUN_ALL_TESTS();
+  Kokkos::finalize();
 
   return result;
 }

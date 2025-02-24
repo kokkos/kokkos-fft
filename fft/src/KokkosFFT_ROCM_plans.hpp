@@ -17,6 +17,35 @@
 namespace KokkosFFT {
 namespace Impl {
 
+template <typename ExecutionSpace, typename T,
+          std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
+                           std::nullptr_t> = nullptr>
+void setup() {
+  [[maybe_unused]] static bool once = [] {
+    if (!(Kokkos::is_initialized() || Kokkos::is_finalized())) {
+      Kokkos::abort(
+          "Error: KokkosFFT APIs must not be called before initializing "
+          "Kokkos.\n");
+    }
+    if (Kokkos::is_finalized()) {
+      Kokkos::abort(
+          "Error: KokkosFFT APIs must not be called after finalizing "
+          "Kokkos.\n");
+    }
+
+    rocfft_status status = rocfft_setup();
+    if (status != rocfft_status_success) Kokkos::abort("rocfft_setup failed");
+
+    // Register cleanup function as a hook in Kokkos::finalize
+    Kokkos::push_finalize_hook([]() {
+      rocfft_status status = rocfft_cleanup();
+      if (status != rocfft_status_success)
+        Kokkos::abort("rocfft_cleanup failed");
+    });
+    return true;
+  }();
+}
+
 // batched transform, over ND Views
 template <typename ExecutionSpace, typename PlanType, typename InViewType,
           typename OutViewType, std::size_t fft_rank = 1,
