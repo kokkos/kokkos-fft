@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
     // Create unmanaged views on the same data with the FFT shape,
     // that is (n0, n1) -> (n0, n1/2+1) R2C transform
     // The shape is incorrect from the view point of casting to real
-    // For casting, the shape should be (n0, (n0/2+1) * 2)
+    // For casting, the shape should be (n0, (n1/2+1) * 2)
     RightView2D<double> xr2c(reinterpret_cast<double *>(xr2c_hat.data()), n0,
                              n1),
         xr2c_padded(reinterpret_cast<double *>(xr2c_hat.data()), n0,

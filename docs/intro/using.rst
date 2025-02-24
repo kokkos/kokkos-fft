@@ -124,8 +124,7 @@ Reuse FFT plan
 
 Apart from the basic APIs, kokkos-fft offers the capability to create a FFT plan wrapping the FFT plans of backend libraries.
 We can reuse the FFT plan created once to perform FFTs multiple times on different data given that they have the same properties.
-In some backend, FFT plan creation leads to some overhead, wherein we need this functionality.
-(see :doc:`minimum working example<../samples/06_1DFFT_reuse_plans>`)
+In some backend, FFT plan creation leads to some overhead, wherein we need this functionality (see :doc:`minimum working example<../samples/06_1DFFT_reuse_plans>`).
 The following listing shows an example to reuse the FFT plan.
 
 .. code-block:: C++
@@ -207,7 +206,7 @@ Inplace transform
 Inplace transform is supported in kokkos-fft in case transpose or reshape is not needed. 
 For standard FFTs, we can just use the same input and output Views. For real FFTs, we need to use a single complex View and make 
 an unmanaged View which is an alias to the complex View. In addition, we need to pay attention to the extents of a real View,
-which should define the shape of the transform, not the reinterpreted shape of the complex View. (see :doc:`minimum working example<../samples/08_inplace_FFT>`)
+which should define the shape of the transform, not the reinterpreted shape of the complex View (see :doc:`minimum working example<../samples/08_inplace_FFT>`). 
 The following listing shows examples of inplace transforms. 
 
 .. code-block:: C++
@@ -229,7 +228,7 @@ The following listing shows examples of inplace transforms.
    // Create unmanaged views on the same data with the FFT shape,
    // that is (n0, n1) -> (n0, n1/2+1) R2C transform
    // The shape is incorrect from the view point of casting to real
-   // For casting, the shape should be (n0, (n0/2+1) * 2)
+   // For casting, the shape should be (n0, (n1/2+1) * 2)
    View2D<double> xr2c(reinterpret_cast<double *>(xr2c_hat.data()), n0, n1);
 
    // Perform the real to complex transform

@@ -34,6 +34,10 @@ void execute(
 
 /// \brief One dimensional FFT in forward direction
 ///
+/// \tparam ExecutionSpace: The type of Kokkos execution space
+/// \tparam InViewType: Input View type for the fft
+/// \tparam OutViewType: Output View type for the fft
+///
 /// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (complex)
 /// \param out [out] Output data (complex)
@@ -66,6 +70,10 @@ void fft(const ExecutionSpace& exec_space, const InViewType& in,
 
 /// \brief One dimensional FFT in backward direction
 ///
+/// \tparam ExecutionSpace: The type of Kokkos execution space
+/// \tparam InViewType: Input View type for the fft
+/// \tparam OutViewType: Output View type for the fft
+///
 /// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (complex)
 /// \param out [out] Output data (complex)
@@ -97,6 +105,10 @@ void ifft(const ExecutionSpace& exec_space, const InViewType& in,
 }
 
 /// \brief One dimensional FFT for real input
+///
+/// \tparam ExecutionSpace: The type of Kokkos execution space
+/// \tparam InViewType: Input View type for the fft
+/// \tparam OutViewType: Output View type for the fft
 ///
 /// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (real)
@@ -136,6 +148,10 @@ void rfft(const ExecutionSpace& exec_space, const InViewType& in,
 
 /// \brief Inverse of rfft
 ///
+/// \tparam ExecutionSpace: The type of Kokkos execution space
+/// \tparam InViewType: Input View type for the fft
+/// \tparam OutViewType: Output View type for the fft
+///
 /// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (complex)
 /// \param out [out] Output data (real)
@@ -174,6 +190,10 @@ void irfft(const ExecutionSpace& exec_space, const InViewType& in,
 }
 
 /// \brief One dimensional FFT of a signal that has Hermitian symmetry
+///
+/// \tparam ExecutionSpace: The type of Kokkos execution space
+/// \tparam InViewType: Input View type for the fft
+/// \tparam OutViewType: Output View type for the fft
 ///
 /// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (complex)
@@ -221,6 +241,10 @@ void hfft(const ExecutionSpace& exec_space, const InViewType& in,
 
 /// \brief Inverse of hfft
 ///
+/// \tparam ExecutionSpace: The type of Kokkos execution space
+/// \tparam InViewType: Input View type for the fft
+/// \tparam OutViewType: Output View type for the fft
+///
 /// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (real)
 /// \param out [out] Output data (complex)
@@ -265,6 +289,10 @@ void ihfft(const ExecutionSpace& exec_space, const InViewType& in,
 
 /// \brief Two dimensional FFT in forward direction
 ///
+/// \tparam ExecutionSpace: The type of Kokkos execution space
+/// \tparam InViewType: Input View type for the fft
+/// \tparam OutViewType: Output View type for the fft
+///
 /// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (complex)
 /// \param out [out] Output data (complex)
@@ -295,6 +323,10 @@ void fft2(const ExecutionSpace& exec_space, const InViewType& in,
 }
 
 /// \brief Two dimensional FFT in backward direction
+///
+/// \tparam ExecutionSpace: The type of Kokkos execution space
+/// \tparam InViewType: Input View type for the fft
+/// \tparam OutViewType: Output View type for the fft
 ///
 /// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (complex)
@@ -327,6 +359,10 @@ void ifft2(const ExecutionSpace& exec_space, const InViewType& in,
 }
 
 /// \brief Two dimensional FFT for real input
+///
+/// \tparam ExecutionSpace: The type of Kokkos execution space
+/// \tparam InViewType: Input View type for the fft
+/// \tparam OutViewType: Output View type for the fft
 ///
 /// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (real)
@@ -365,6 +401,10 @@ void rfft2(const ExecutionSpace& exec_space, const InViewType& in,
 }
 
 /// \brief Inverse of rfft2
+///
+/// \tparam ExecutionSpace: The type of Kokkos execution space
+/// \tparam InViewType: Input View type for the fft
+/// \tparam OutViewType: Output View type for the fft
 ///
 /// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (complex)
@@ -405,6 +445,11 @@ void irfft2(const ExecutionSpace& exec_space, const InViewType& in,
 // ND FFT
 
 /// \brief N-dimensional FFT in forward direction
+///
+/// \tparam ExecutionSpace: The type of Kokkos execution space
+/// \tparam InViewType: Input View type for the fft
+/// \tparam OutViewType: Output View type for the fft
+/// \tparam DIM: The dimensionality of the fft
 ///
 /// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (complex)
@@ -448,6 +493,11 @@ void fftn(
 }
 
 /// \brief Inverse of fftn
+///
+/// \tparam ExecutionSpace: The type of Kokkos execution space
+/// \tparam InViewType: Input View type for the fft
+/// \tparam OutViewType: Output View type for the fft
+/// \tparam DIM: The dimensionality of the fft
 ///
 /// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (complex)
@@ -493,6 +543,11 @@ void ifftn(
 }
 
 /// \brief N-dimensional FFT for real input
+///
+/// \tparam ExecutionSpace: The type of Kokkos execution space
+/// \tparam InViewType: Input View type for the fft
+/// \tparam OutViewType: Output View type for the fft
+/// \tparam DIM: The dimensionality of the fft
 ///
 /// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (real)
@@ -544,6 +599,11 @@ void rfftn(
 }
 
 /// \brief Inverse of rfftn
+///
+/// \tparam ExecutionSpace: The type of Kokkos execution space
+/// \tparam InViewType: Input View type for the fft
+/// \tparam OutViewType: Output View type for the fft
+/// \tparam DIM: The dimensionality of the fft
 ///
 /// \param exec_space [in] Kokkos execution space
 /// \param in [in] Input data (complex)
