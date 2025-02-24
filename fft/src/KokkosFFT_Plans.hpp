@@ -64,7 +64,7 @@ namespace KokkosFFT {
 /// created. If there are inconsistency in input and output views, the
 /// compilation would fail.
 ///
-/// \tparam ExecutionSpace: The type of Kokkos execution pace
+/// \tparam ExecutionSpace: The type of Kokkos execution space
 /// \tparam InViewType: Input View type for the fft
 /// \tparam OutViewType: Output View type for the fft
 /// \tparam DIM: The dimensionality of the fft
@@ -140,7 +140,7 @@ class Plan {
  public:
   /// \brief Constructor
   ///
-  /// \param exec_space [in] Kokkos execution device
+  /// \param exec_space [in] Kokkos execution space for this plan
   /// \param in [in] Input data
   /// \param out [in] Output data
   /// \param direction [in] Direction of FFT (forward/backward)

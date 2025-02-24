@@ -150,7 +150,7 @@ void ifftshift_impl(const ExecutionSpace& exec_space, const ViewType& inout,
 namespace KokkosFFT {
 /// \brief Return the DFT sample frequencies
 ///
-/// \tparam ExecutionSpace: The type of Kokkos execution pace
+/// \tparam ExecutionSpace: The type of Kokkos execution space
 /// \tparam RealType: The floating point precision type to represent frequencies
 ///
 /// \param exec_space [in] Kokkos execution space
@@ -188,7 +188,7 @@ auto fftfreq(const ExecutionSpace&, const std::size_t n,
 
 /// \brief Return the DFT sample frequencies for Real FFTs
 ///
-/// \tparam ExecutionSpace: The type of Kokkos execution pace
+/// \tparam ExecutionSpace: The type of Kokkos execution space
 /// \tparam RealType: The floating point precision type to represent frequencies
 ///
 /// \param exec_space [in] Kokkos execution space
@@ -220,7 +220,7 @@ auto rfftfreq(const ExecutionSpace&, const std::size_t n,
 
 /// \brief Shift the zero-frequency component to the center of the spectrum
 ///
-/// \tparam ExecutionSpace: The type of Kokkos execution pace
+/// \tparam ExecutionSpace: The type of Kokkos execution space
 /// \tparam ViewType: Input/Output View type for the shift
 ///
 /// \param exec_space [in] Kokkos execution space
@@ -251,7 +251,7 @@ void fftshift(const ExecutionSpace& exec_space, const ViewType& inout,
 
 /// \brief Shift the zero-frequency component to the center of the spectrum
 ///
-/// \tparam ExecutionSpace: The type of Kokkos execution pace
+/// \tparam ExecutionSpace: The type of Kokkos execution space
 /// \tparam ViewType: Input/Output View type for the shift
 /// \tparam DIM: The dimensionality of the shift
 ///
@@ -277,7 +277,7 @@ void fftshift(const ExecutionSpace& exec_space, const ViewType& inout,
 
 /// \brief The inverse of fftshift
 ///
-/// \tparam ExecutionSpace: The type of Kokkos execution pace
+/// \tparam ExecutionSpace: The type of Kokkos execution space
 /// \tparam ViewType: Input/Output View type for the shift
 ///
 /// \param exec_space [in] Kokkos execution space
@@ -307,7 +307,7 @@ void ifftshift(const ExecutionSpace& exec_space, const ViewType& inout,
 
 /// \brief The inverse of fftshift
 ///
-/// \tparam ExecutionSpace: The type of Kokkos execution pace
+/// \tparam ExecutionSpace: The type of Kokkos execution space
 /// \tparam ViewType: Input/Output View type for the shift
 /// \tparam DIM: The dimensionality of the shift
 ///
