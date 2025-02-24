@@ -13,7 +13,7 @@ SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 > [!WARNING]
 > EXPERIMENTAL FFT interfaces for Kokkos C++ Performance Portability Programming EcoSystem
 
-kokkos-fft implements local interfaces between [Kokkos](https://github.com/kokkos/kokkos) and de facto standard FFT libraries, including [fftw](http://www.fftw.org), [cufft](https://developer.nvidia.com/cufft), [hipfft](https://github.com/ROCm/hipFFT) ([rocfft](https://github.com/ROCm/rocFFT)), and [oneMKL](https://spec.oneapi.io/versions/latest/elements/oneMKL/source/index.html). "Local" means not using MPI, or running within a single MPI process without knowing about MPI. We are inclined to implement the [numpy.fft](https://numpy.org/doc/stable/reference/routines.fft.html)-like interfaces adapted for [Kokkos](https://github.com/kokkos/kokkos).
+kokkos-fft implements local interfaces between [Kokkos](https://github.com/kokkos/kokkos) and de facto standard FFT libraries, including [fftw](http://www.fftw.org), [cufft](https://developer.nvidia.com/cufft), [hipfft](https://github.com/ROCm/hipFFT) ([rocfft](https://github.com/ROCm/rocFFT)), and [oneMKL](https://www.intel.com/content/www/us/en/developer/tools/oneapi/onemkl.html). "Local" means not using MPI, or running within a single MPI process without knowing about MPI. We are inclined to implement the [numpy.fft](https://numpy.org/doc/stable/reference/routines.fft.html)-like interfaces adapted for [Kokkos](https://github.com/kokkos/kokkos).
 A key concept is that **"As easy as numpy, as fast as vendor libraries"**. Accordingly, our API follows the API by [numpy.fft](https://numpy.org/doc/stable/reference/routines.fft.html) with minor differences. A fft library dedicated to Kokkos Device backend (e.g. [cufft](https://developer.nvidia.com/cufft) for CUDA backend) is automatically used. If something is wrong with runtime values (say `View` extents), it will raise runtime errors (C++ `std::runtime_error`). See [documentations](https://kokkosfft.readthedocs.io/) for more information.
 
 Here is an example for 1D real to complex transform with `rfft` in kokkos-fft.
@@ -63,8 +63,9 @@ Kokkos::Random_XorShift64_Pool<> random_pool(12345);
 Kokkos::fill_random(x, random_pool, 1);
 Kokkos::fence();
 
+// FFT along -1 axis and batched along 0th axis
 int axis = -1;
-KokkosFFT::rfft(execution_space(), x, x_hat, KokkosFFT::Normalization::backward, axis); // FFT along -1 axis and batched along 0th axis
+KokkosFFT::rfft(execution_space(), x, x_hat, KokkosFFT::Normalization::backward, axis);
 ```
 
 This is equivalent to
@@ -138,4 +139,4 @@ This way, all the functionalities are executed on A100 GPUs. For installation, d
 [![License](https://img.shields.io/badge/License-Apache--2.0_WITH_LLVM--exception-blue)](https://spdx.org/licenses/LLVM-exception.html)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-kokkos-fft is distributed under either the MIT license, or at your option, the Apache-2.0 licence with LLVM exception.
+kokkos-fft is distributed under either the MIT license, or at your option, the Apache-2.0 license with LLVM exception.
