@@ -64,6 +64,10 @@ namespace KokkosFFT {
 /// created. If there are inconsistency in input and output views, the
 /// compilation would fail.
 ///
+/// \tparam ExecutionSpace: The type of Kokkos execution pace
+/// \tparam InViewType: Input View type for the fft
+/// \tparam OutViewType: Output View type for the fft
+/// \tparam DIM: The dimensionality of the fft
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           std::size_t DIM = 1>
 class Plan {
