@@ -225,7 +225,13 @@ template <typename ExecutionSpace>
 auto direction_type(Direction direction) {
   return direction == Direction::forward ? MKL_FFT_FORWARD : MKL_FFT_BACKWARD;
 }
+
+static void initialize_host() {}
+static void finalize_host() {}
 #endif
+
+static void initialize_device() {}
+static void finalize_device() {}
 }  // namespace Impl
 }  // namespace KokkosFFT
 

@@ -366,7 +366,19 @@ template <typename ExecutionSpace>
 auto direction_type(Direction direction) {
   return direction == Direction::forward ? ROCFFT_FORWARD : ROCFFT_BACKWARD;
 }
+
+static void initialize_host() {}
+static void finalize_host() {}
 #endif
+
+static void initialize_device() {
+  rocfft_status status = rocfft_setup();
+  if (status != rocfft_status_success) Kokkos::abort("rocfft_setup failed");
+}
+static void finalize_device() {
+  rocfft_status status = rocfft_cleanup();
+  if (status != rocfft_status_success) Kokkos::abort("rocfft_cleanup failed");
+}
 }  // namespace Impl
 }  // namespace KokkosFFT
 

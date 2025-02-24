@@ -241,7 +241,13 @@ template <typename ExecutionSpace>
 auto direction_type(Direction direction) {
   return direction == Direction::forward ? CUFFT_FORWARD : CUFFT_INVERSE;
 }
+
+static void initialize_host() {}
+static void finalize_host() {}
 #endif
+
+static void initialize_device() {}
+static void finalize_device() {}
 }  // namespace Impl
 }  // namespace KokkosFFT
 
