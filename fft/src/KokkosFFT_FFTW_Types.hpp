@@ -140,28 +140,6 @@ struct ScopedFFTWPlan {
   }
 };
 
-#if defined(KOKKOS_ENABLE_OPENMP) || defined(KOKKOS_ENABLE_THREADS)
-inline void initialize_host() {
-  fftwf_init_threads();
-  fftw_init_threads();
-}
-inline void finalize_host() {
-  fftwf_cleanup_threads();
-  fftw_cleanup_threads();
-}
-#else
-inline void initialize_host() {}
-inline void finalize_host() {}
-#endif
-
-// If non of device backend is enabled, then FFTW is responsible
-// for the device cleanup. Otherwise, device backend will cleanup
-#if !(defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) || \
-      defined(KOKKOS_ENABLE_SYCL))
-inline void initialize_device() {}
-inline void finalize_device() {}
-#endif
-
 }  // namespace Impl
 }  // namespace KokkosFFT
 

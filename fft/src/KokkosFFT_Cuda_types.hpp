@@ -242,12 +242,8 @@ auto direction_type(Direction direction) {
   return direction == Direction::forward ? CUFFT_FORWARD : CUFFT_INVERSE;
 }
 
-inline void initialize_host() {}
-inline void finalize_host() {}
 #endif
 
-inline void initialize_device() {}
-inline void finalize_device() {}
 }  // namespace Impl
 }  // namespace KokkosFFT
 

@@ -15,6 +15,27 @@
 
 namespace KokkosFFT {
 namespace Impl {
+
+template <
+    typename ExecutionSpace, typename T,
+    std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::Experimental::SYCL>,
+                     std::nullptr_t> = nullptr>
+void setup() {
+  static bool once = [] {
+    if (!(Kokkos::is_initialized() || Kokkos::is_finalized())) {
+      Kokkos::abort(
+          "Error: KokkosFFT APIs must not be called before initializing "
+          "Kokkos.\n");
+    }
+    if (Kokkos::is_finalized()) {
+      Kokkos::abort(
+          "Error: KokkosFFT APIs must not be called after finalizing "
+          "Kokkos.\n");
+    }
+    return true;
+  }();
+}
+
 // Helper to convert the integer type of vectors
 template <typename InType, typename OutType>
 auto convert_int_type(std::vector<InType>& in) -> std::vector<OutType> {
