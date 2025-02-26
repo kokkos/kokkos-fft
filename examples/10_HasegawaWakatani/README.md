@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
 # Solving 2D Hasegawa-Wakatani turbulence with Fourier spectral method
 
-For turbulence simulations, we sometimes consider periodic boundaries by assuming that a system is homogeneous and isotropic. Under the periodic bondary conditions, we can solve the system of equations with Fourier spectral method. Here, we consider a typical 2D turbulence plasma turbulence model, called Hasegawa-Wakatani equation `[Wakatani, 1984](#Wakatani1984)`. With kokkos and kokkos-fft, we can easily implement the code just like python while getting a significant acceleration.
+For turbulence simulations, we sometimes consider periodic boundaries by assuming that a system is homogeneous and isotropic. Under the periodic boundary conditions, we can solve the system of equations with Fourier spectral method. Here, we consider a typical 2D turbulence plasma turbulence model, called Hasegawa-Wakatani equation `[Wakatani, 1984](#Wakatani1984)`. With kokkos and kokkos-fft, we can easily implement the code just like python while getting a significant acceleration.
 
 ## Numerical description
 
