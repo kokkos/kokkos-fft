@@ -6,7 +6,7 @@ CI (Continuous Integration)
 ===========================
 
 Our CI system is designed to automate testing and ensure that every change meets our coding styles. 
-If you are familiar with github actions, you may find our workflow `here<https://github.com/kokkos/kokkos-fft/blob/main/.github/workflows/build_test.yaml>`_.
+If you are familiar with github actions, you may find our workflow `here <https://github.com/kokkos/kokkos-fft/blob/main/.github/workflows/build_test.yaml>`_.
 The CI process includes:
 
 - **Linting and Style Checks:** Verifying that the code follows to our style guidelines.
@@ -20,7 +20,7 @@ We have four CIs for formatting: ``reuse``, ``clang-format``, ``cmake-format`` a
 
 #. **License Check with Reuse:**  
    All the files in the repo need to include copyright and license information at the top.
-   These are automatically confirmed with `REUSE compilance check<https://reuse.software>`_ in CI.
+   These are automatically confirmed with `REUSE compliance check <https://reuse.software>`_ in CI.
    If there is a file without the copyright, the REUSE CI will fail and notify which file misses a copyright.
    The copyright statement in ``CMakeLists.txt`` is given in the following manner.
 
@@ -37,9 +37,10 @@ We have four CIs for formatting: ``reuse``, ``clang-format``, ``cmake-format`` a
    To format a C++ file, please apply the following command
 
    .. code-block:: bash
-   clang-format -i <cppfile_you_have_modified>
 
-   Format are automatically confirmed with `clang-format check<https://clang.llvm.org/docs/ClangFormat.html>`_ in CI.
+      clang-format -i <cppfile_you_have_modified>
+
+   Format are automatically confirmed with `clang-format check <https://clang.llvm.org/docs/ClangFormat.html>`_ in CI.
    If further formatting is needed, the clang-format CI will fail and notify which file needs to be modified.
 
 #. **CMake formatting with cmake-format:**  
@@ -47,13 +48,14 @@ We have four CIs for formatting: ``reuse``, ``clang-format``, ``cmake-format`` a
    To format a CMake file, please apply the following command
 
    .. code-block:: bash
-   cmake-format --in-place
 
-   Format are automatically confirmed with `cmake-format check<https://github.com/cheshirekow/cmake_format>`_ in CI.
+      cmake-format --in-place
+
+   Format are automatically confirmed with `cmake-format check <https://github.com/cheshirekow/cmake_format>`_ in CI.
    If further formatting is needed, the cmake-format CI will fail and notify which file needs to be modified.
 
 #. **Spell check with typos:**  
-   Spell errors are checked with `typos<https://github.com/crate-ci/typos>`_ in CI. 
+   Spell errors are checked with `typos <https://github.com/crate-ci/typos>`_ in CI.
    If potential typos are detected, they will report typos with suggestions.
 
 Build Verification
@@ -61,7 +63,7 @@ Build Verification
 
 Compilation tests are performed inside containers for each backend including NVIDIA, AMD and Intel GPUs
 (see `Dockerfiles <https://github.com/kokkos/kokkos-fft/tree/main/docker>`_).
-These images are useful to develop locally particulaly when you are interested in modifying the
+These images are useful to develop locally particularly when you are interested in modifying the
 backend specific codes. In other word, if you develop and test your code inside these containers, 
 your PR will likely to pass our CI. For each backend, we test to compile a simple test code by using kokkos-fft as CMake subdirectory or installed library. 
 

@@ -9,12 +9,10 @@ We briefly explain the workflow to contribute by making a pull request (PR) agai
 Followings are the steps to contribute the project:
 
 #. **Report bugs or Suggest features:**
- 
-First open issues or ask questions on the Kokkos slack channel.
+   First open issues or ask questions on the Kokkos slack channel.
 
 #. **Fork the Repository:**
- 
-Click the "Fork" button on our `repo<https://github.com/kokkos/kokkos-fft>`_ to create your own copy.
+   Click the "Fork" button on our `repo <https://github.com/kokkos/kokkos-fft>`_ to create your own copy.
 
 #. **Clone Your Fork:**  
    Clone the repository to your local machine with submodules.
@@ -32,8 +30,7 @@ Click the "Fork" button on our `repo<https://github.com/kokkos/kokkos-fft>`_ to 
       git remote add upstream https://github.com/kokkos/kokkos-fft.git   
 
 #. **Create a New Branch:**
-
-Create a new branch for your feature or bug fix with a descriptive name:
+   Create a new branch for your feature or bug fix with a descriptive name:
 
    .. code-block:: bash
 
@@ -55,7 +52,7 @@ Create a new branch for your feature or bug fix with a descriptive name:
          git rebase upstream/main
 
 #. **Make Your Changes:**  
-   Implement your feature or bug fix. Ensure you adhere to the project's coding standards and guidelines (see :doc:`details of CI<developer/CI>`).
+   Implement your feature or bug fix. Ensure you adhere to the project's coding standards and guidelines (see :doc:`details of CI<CI>`).
 
 #. **Commit Your Changes:**  
    Stage your changes and commit them with a clear, concise commit message:
@@ -73,7 +70,7 @@ Create a new branch for your feature or bug fix with a descriptive name:
       git push --force-with-lease origin <feature-name>
 
 #. **Open a Pull Request:**  
-   On `GitHub<https://github.com/kokkos/kokkos-fft>`_, open a PR from your branch to the original repository's ``main`` branch.
+   On `GitHub <https://github.com/kokkos/kokkos-fft>`_, open a PR from your branch to the original repository's ``main`` branch.
    Include a detailed description of your changes and reference any related issues.
 
 #. **Participate in the Code Review:**  
