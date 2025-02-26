@@ -144,7 +144,7 @@ def Real3DtoComplex2D(A: np.ndarray) -> np.ndarray:
 
     Parameters
     ----------
-    A (xr.DataArray): A 3D array where the first dimension represents the real and imaginary parts.
+    A (np.ndarray): A 3D array where the first dimension represents the real and imaginary parts.
 
     Returns
     -------

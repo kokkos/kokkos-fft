@@ -348,7 +348,7 @@ class HasegawaWakatani {
 
   //! The parameters used in the simulation.
   const double m_ca  = 3.0;
-  const double m_nu  = 0.01;
+  const double m_nu  = 0.001;
   const double m_eta = 3.0;
   double m_norm_coef;
   double m_dt = 0.0, m_time = 0.0;
@@ -735,7 +735,7 @@ int main(int argc, char* argv[]) {
   Kokkos::ScopeGuard guard(argc, argv);
   auto kwargs         = IO::parse_args(argc, argv);
   std::string out_dir = IO::get_arg(kwargs, "out_dir", "data_kokkos");
-  int nx = 512, nbiter = 100000;
+  int nx = 1024, nbiter = 100000;
   double lx = 10.0, dt = 0.0005;
   HasegawaWakatani model(nx, lx, nbiter, dt, out_dir);
   Kokkos::Timer timer;

@@ -24,6 +24,25 @@ The nonlinear term can be described as follows, which can be efficiently compute
 
 ![Poisson bracket](https://latex.codecogs.com/svg.latex?\\{\tilde{\phi},\tilde{n}\\}_k=-\sum_{k'}\sum_{k''}\delta_{k+k'+k'',0}\left(k_{x}'k_{y}''-k_{y}'k_{x}''\right)\hat{\phi}^{\ast}_{k'}\hat{n}^{\ast}_{k''})
 
+## Prerequisites
+
+For kokkos version, we need the followings:
+   
+* `CMake 3.22+`
+* `Kokkos 4.4+`
+* `gcc 8.3.0+` (CPUs)
+* `IntelLLVM 2023.0.0+` (CPUs, Intel GPUs)
+* `nvcc 11.0.0+` (NVIDIA GPUs)
+* `rocm 5.3.0+` (AMD GPUs)
+
+For python version, we need the followings:
+
+* `python 3.8+`
+* `numpy`
+* `matplotlib`
+* `xarray[io]`, `xarray[viz]`
+* `joblib`
+
 ## python and kokkos implementation
 
 As imagined, the nonlinear term is the core computational kernel of this code. In python, it is implemented by
