@@ -10,8 +10,8 @@ Kokkos slack channel before making PRs. A "good" PR is detailed in `the kokkos d
 When your pull request is ready for review, please:
 
 - **PR Description:** Ensure your PR description includes the context for the changes.
-- **Formatting:** Format your code following :doc:`our guideline<developer/CI>`.
-- **Adding unit-tests:** If your PR adds a new feature, add unit-tests for that feature (see :doc:`details of CI<developer/CI>`).
+- **Formatting:** Format your code following :doc:`our guideline<CI>`.
+- **Adding unit-tests:** If your PR adds a new feature, add unit-tests for that feature (see :doc:`details of CI<CI>`).
 - **Adding docstrings:** Add `doxygen style docstrings<https://www.doxygen.nl/manual/docblocks.html>`_ for APIs. 
 - **Responding to Feedback:** Actively communiate with reviewers and address any feedback.
 - **Approval Process:** Wait for approval from one or more core reviewers.

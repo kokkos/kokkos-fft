@@ -11,7 +11,7 @@ The CI process includes:
 
 - **Linting and Style Checks:** Verifying that the code follows to our style guidelines.
 - **Build Verification:** Compiling and installing the project in various environments to ensure compatibility.
-- **Automated Testing:** Running unit tests on CPUs (on github Azure) and NVIDIA GPUs (on our local server).
+- **Unit tests:** Running unit tests on CPUs (on github Azure) and NVIDIA GPUs (on our local server).
 
 Linting and Style Checks
 ------------------------
@@ -61,12 +61,12 @@ Build Verification
 
 Compilation tests are performed inside containers for each backend including NVIDIA, AMD and Intel GPUs
 (see `Dockerfiles <https://github.com/kokkos/kokkos-fft/tree/main/docker>`_).
-These images can be used to develop locally particulaly when you are interested in modifying the 
+These images are useful to develop locally particulaly when you are interested in modifying the
 backend specific codes. In other word, if you develop and test your code inside these containers, 
 your PR will likely to pass our CI. For each backend, we test to compile a simple test code by using kokkos-fft as CMake subdirectory or installed library. 
 
-Automated Testing
------------------
+Unit tests
+----------
 
 We rely on `googletest <https://github.com/google/googletest>`_ for unit-testing. For CPU backends, we perform unit-tests on github Azure. 
 We also perform unit-tests on NVIDIA GPUs in our local server, which requires a special approval from maintaniers.
@@ -87,3 +87,64 @@ For Intel GPUs (Intel PVC), you can test locally in the following way.
       
       cmake --build build -j 8
       cd build && ctest --output-on-failure
+
+Here is the summary of our compile and run tests for each backend. For GPU backends, we compile with and without ``KokkosFFT_ENABLE_HOST_AND_DEVICE`` option (see :doc:`CMake options<../intro/building>`).
+
+.. list-table:: Test summary
+   :widths: 15 15 15 15 15 15
+   :header-rows: 1
+
+   * - build name
+     - Compiler, C++ standard
+     - Kokkos backend
+     - Description
+     - Build/install test
+     - Run test
+   * - clang-tidy
+     - clang, 17
+     - ``Kokkos_ENABLE_SERIAL``
+     - clang-tidy check
+     - x (Aazure)
+     - None
+   * - serial
+     - gcc, 17
+     - ``Kokkos_ENABLE_SERIAL``
+     -
+     - x (Aazure)
+     - x (Aazure)
+   * - threads
+     - gcc, 20
+     - ``Kokkos_ENABLE_THREADS``
+     -
+     - x (Aazure)
+     - x (Aazure)
+   * - openmp
+     - gcc, 17
+     - ``Kokkos_ENABLE_OPENMP``
+     - Debug mode
+     - x (Aazure)
+     - x (Aazure)
+   * - cuda
+     - gcc, 17
+     - ``Kokkos_ENABLE_CUDA``
+     -
+     - x (Aazure)
+     - x (self-hosted)
+   * - hip
+     - hipcc, 17
+     - ``Kokkos_ENABLE_HIP``
+     - ``hipfft`` backend
+     - x (Aazure)
+     - None
+   * - rocm
+     - hipcc, 20
+     - ``Kokkos_ENABLE_HIP``
+     - ``rocfft`` backend
+     - x (Aazure)
+     - None
+   * - sycl
+     - icpx, 17
+     - ``Kokkos_ENABLE_SYCL``
+     -
+     - x (Aazure)
+     - None
