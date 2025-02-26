@@ -1,12 +1,18 @@
+<!--
+SPDX-FileCopyrightText: (C) The kokkos-fft development team, see COPYRIGHT.md file
+
+SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
+-->
+
 # Solving 2D Hasegawa-Wakatani turbulence with Fourier spectral method
 
-For turbulence simulations, we sometimes consider periodic boundaries by assuming that a system is homogeneous and isotropic. Under the periodic bondary conditions, we can solve the system of equations with Fourier spectral method. Here, we consider a typical 2D turbulence plasma turbulence model, called Hasegawa-Wakatani equation `[Wakatani, 1984](#Wakatani1984)`. With kokkos and kokkos-fft, we can easily implement the code like python while getting a big acceleration.
+For turbulence simulations, we sometimes consider periodic boundaries by assuming that a system is homogeneous and isotropic. Under the periodic bondary conditions, we can solve the system of equations with Fourier spectral method. Here, we consider a typical 2D turbulence plasma turbulence model, called Hasegawa-Wakatani equation `[Wakatani, 1984](#Wakatani1984)`. With kokkos and kokkos-fft, we can easily implement the code just like python while getting a significant acceleration.
 
 ## Numerical description
 
 In Fourier space, 2D Hasegawa-Wakatani model can be described as
 
- ![Continuity eq](https://latex.codecogs.com/svg.latex?\frac{\partial\hat{u}_k}{\partial{t}}+\\{\tilde{\phi},\tilde{u}\\}_k=-C_{k}\left(\hat{\phi}_k-\hat{n}_k\right)-\nu{k}^4{k}^2\hat{\phi}_k)
+ ![Continuity eq](https://latex.codecogs.com/svg.latex?\frac{\partial\hat{u}_k}{\partial{t}}+\\{\tilde{\phi},\tilde{u}\\}_k=-C_{k}\left(\hat{\phi}_k-\hat{n}_k\right)-\nu{k}^4\hat{u}_k)
 
  ![Vorticity eq](https://latex.codecogs.com/svg.latex?\frac{\partial\hat{n}_k}{\partial{t}}+\\{\tilde{\phi},\tilde{n}\\}_k=-i\kappa{k_{y}}\hat{\phi}_k+C_{k}\left(\hat{\phi}_k-\hat{n}_k\right)-\nu{k}^4\hat{n}_k)
 
