@@ -18,13 +18,13 @@ The project documentation is divided into several sections:
 
    * - Component
      - Detailed description
-   * - **User Guides:**
+   * - **User Guides**
      - Installation instructions and basic usage.
-   * - **Developer Guides:**
+   * - **Developer Guides**
      - Information for developers on how to contribute, set up the environment, and follow coding conventions.
-   * - **API Reference:**
+   * - **API Reference**
      - Automatically generated from the source code docstrings using breath. 
-   * - **examples:**
+   * - **examples**
      - Minimum working examples of APIs.
 
 Among these, we expect that API Reference is the most relevant to external contributors.
