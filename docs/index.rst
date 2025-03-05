@@ -27,7 +27,7 @@ Here is an example for 1D real to complex transform with ``rfft`` in kokkos-fft.
    #include <KokkosFFT.hpp>
    using execution_space = Kokkos::DefaultExecutionSpace;
    template <typename T> using View1D = Kokkos::View<T*, execution_space>;
-   constexpr int n = 4;
+   const int n = 4;
 
    View1D<double> x("x", n);
    View1D<Kokkos::complex<double> > x_hat("x_hat", n/2+1);
@@ -58,6 +58,7 @@ This is equivalent to the following python script.
    finding_libraries
    api_reference
    examples
+   developer_guide
 
 ..
     Indices and tables

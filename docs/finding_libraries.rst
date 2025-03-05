@@ -37,7 +37,7 @@ If CMake fails to find ``fftw``, please try to set ``FFTWDIR`` in the following 
 `rocfft <https://github.com/ROCm/rocFFT>`_
 ------------------------------------------
 
-`oneMKL <https://spec.oneapi.io/versions/latest/elements/oneMKL/source/index.html>`_
+`oneMKL <https://www.intel.com/content/www/us/en/developer/tools/oneapi/onemkl.html>`_
 ------------------------------------------------------------------------------------
 
 The most likely scenario to miss ``oneMKL`` is that forgetting to initialize ``oneAPI``.
