@@ -353,7 +353,7 @@ class HasegawaWakatani {
   double m_norm_coef;
   double m_dt = 0.0, m_time = 0.0;
   int m_nkx2, m_nkyh, m_nx, m_ny;
-  int m_diag_it = 0, m_diag_steps = 1000;
+  int m_diag_it = 0, m_diag_steps = 5000;
 
   //! The directory to output diagnostic data.
   std::string m_out_dir;
@@ -735,8 +735,8 @@ int main(int argc, char* argv[]) {
   Kokkos::ScopeGuard guard(argc, argv);
   auto kwargs         = IO::parse_args(argc, argv);
   std::string out_dir = IO::get_arg(kwargs, "out_dir", "data_kokkos");
-  int nx = 1024, nbiter = 100000;
-  double lx = 10.0, dt = 0.0005;
+  int nx = 1024, nbiter = 1000000;
+  double lx = 10.0, dt = 0.00025;
   HasegawaWakatani model(nx, lx, nbiter, dt, out_dir);
   Kokkos::Timer timer;
   model.run();

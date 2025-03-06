@@ -222,7 +222,7 @@ def plot_fields(nx: int, data_dir: str, fig_dir: str, suffix: str,
             if iter >= nb_iters:
                 return
             var = data_loader.load(var_name=var_name, iter=iter)
-            fig, ax = plt.subplots(figsize=(12,10))
+            fig, ax = plt.subplots(figsize=(12,10), subplot_kw={'xticks':[], 'yticks':[]})
             pmesh = ax.pcolormesh(x, y, var, cmap='twilight', vmin=-vmax, vmax=vmax)
             ax.set_title(r'Time $t = {:03d}$'.format(iter), **title_font)
             ax.set_xlabel(r'$x$', **axis_font)
@@ -246,7 +246,7 @@ if __name__ == '__main__':
     parser.add_argument('-n_jobs', nargs='?', type=int, default=8)
     args = parser.parse_args()
 
-    var_dict = dict(phi= 0.0005, density=0.0005, vorticity=0.0005)
+    var_dict = dict(phi= 2.e-5, density=2.e-5, vorticity=2.e-5)
     
     # Plot settings
     fontname = 'Times New Roman'
