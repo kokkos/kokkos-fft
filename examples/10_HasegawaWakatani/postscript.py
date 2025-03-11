@@ -161,16 +161,13 @@ def backwardFFT(fk: np.ndarray, shape: tuple) -> np.ndarray:
 
     Parameters
     ----------
-    fk : np.ndarray
-        A 2D complex array of shape (nky+1, 2*nkx+1) representing the Fourier 
-        space representation of a field.
-    shape : tuple
-        A tuple (ny, nx) representing the desired shape in the real space.
+    fk (np.ndarray) : A 2D complex array of shape (nky+1, 2*nkx+1) representing the Fourier
+                      space representation of a field.
+    shape (tuple) : A tuple (ny, nx) representing the desired shape in the real space.
 
     Returns
     -------
-    np.ndarray
-        A 2D real array of shape (ny, nx) corresponding to real space representation of fk.
+    np.ndarray: A 2D real array of shape (ny, nx) corresponding to real space representation of fk.
     """
 
     ny, nx = shape
