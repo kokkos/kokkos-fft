@@ -104,9 +104,6 @@ void to_binary(const std::string& filename, const ViewType& view) {
   // Write the entire block of data to the file.
   ofs.write(reinterpret_cast<const char*>(view.data()),
             size * sizeof(value_type));
-  if (!ofs) {
-    throw std::runtime_error("Error writing to file: " + filename);
-  }
 }
 
 template <class ViewType>
@@ -121,13 +118,7 @@ void from_binary(const std::string& filename, ViewType& view) {
 
   // Attempt to read the binary data into the view's buffer.
   ifs.read(reinterpret_cast<char*>(view.data()), size * sizeof(value_type));
-
-  // Check that the read operation was successful.
-  if (!ifs) {
-    throw std::runtime_error("Error reading from file: " + filename);
-  }
 }
-
 }  // namespace IO
 
 #endif

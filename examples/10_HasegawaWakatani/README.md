@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
 # Solving 2D Hasegawa-Wakatani turbulence with Fourier spectral method
 
-For turbulence simulations, we sometimes consider periodic boundaries by assuming that a system is homogeneous and isotropic. Under the periodic boundary conditions, we can solve the system of equations with Fourier spectral method. Here, we consider a typical 2D turbulence plasma turbulence model, called Hasegawa-Wakatani equation `[Wakatani, 1984](#Wakatani1984)`. With kokkos and kokkos-fft, we can easily implement the code just like python while getting a significant acceleration.
+For turbulence simulations, we sometimes consider periodic boundaries by assuming that a system is homogeneous and isotropic. Under the periodic boundary conditions, we can solve the system of equations with Fourier spectral method. Here, we consider a typical 2D turbulence plasma turbulence model, called Hasegawa-Wakatani equation `[Wakatani, 1984]`. With kokkos and kokkos-fft, we can easily implement the code just like python while getting a significant acceleration.
 
 ## Numerical description
 
@@ -26,7 +26,7 @@ The nonlinear term can be described as follows, which can be efficiently compute
 
 ## Prerequisites
 
-For kokkos version, we need the followings:
+For kokkos version, we need the followings (for the latest requirements, see [README.md](../../README.md)):
    
 * `CMake 3.22+`
 * `Kokkos 4.4+`
@@ -122,7 +122,7 @@ python examples/10_hasegawa_wakatani/hasegawa_wakatani.py
 After the simulations, you will get the following standard output.
 
 ```bash
-Elapsed time: 62.834 [s]
+Elapsed time: 2371.14 [s]
 ```
 
 You can visualize the simulation results with a python script `postscript.py` by

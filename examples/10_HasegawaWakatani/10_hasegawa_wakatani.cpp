@@ -12,11 +12,9 @@
 
 #if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) || \
     defined(KOKKOS_ENABLE_SYCL)
-constexpr int TILE0 = 4;
-constexpr int TILE1 = 32;
+constexpr int TILE0 = 4, TILE1 = 32;
 #else
-constexpr int TILE0 = 4;
-constexpr int TILE1 = 4;
+constexpr int TILE0 = 4, TILE1 = 4;
 #endif
 
 using execution_space = Kokkos::DefaultExecutionSpace;
@@ -93,7 +91,7 @@ struct Variables {
   // \brief Constructor of a Variables class
   // \param grid [in] Grid in Fourier space
   // \param init_val [in] Initial value of the variables
-  Variables(Grid& grid, double init_val = 0.001) {
+  Variables(const Grid& grid, double init_val = 0.001) {
     auto rand_engine      = std::mt19937(0);
     auto rand_dist        = std::uniform_real_distribution<double>(0.0, 1.0);
     constexpr int nb_vars = 2;
@@ -167,9 +165,9 @@ class RK4th {
   void advance(ViewType& dydt, ViewType& y, int step) {
     auto h                = m_h;
     auto* y_data          = y.data();
+    auto* y_copy_data     = m_y.data();
     const auto* dydt_data = dydt.data();
     if (step == 0) {
-      auto* y_copy_data = m_y.data();
       auto* k1_data     = m_k1.data();
       Kokkos::parallel_for(
           "rk_step0",
@@ -181,7 +179,6 @@ class RK4th {
             y_data[i]      = y_copy_data[i] + k1_data[i] / 2.0;
           });
     } else if (step == 1) {
-      const auto* y_copy_data = m_y.data();
       auto* k2_data           = m_k2.data();
       Kokkos::parallel_for(
           "rk_step1",
@@ -192,7 +189,6 @@ class RK4th {
             y_data[i]  = y_copy_data[i] + k2_data[i] / 2.0;
           });
     } else if (step == 2) {
-      const auto* y_copy_data = m_y.data();
       auto* k3_data           = m_k3.data();
       Kokkos::parallel_for(
           "rk_step2",
@@ -203,7 +199,6 @@ class RK4th {
             y_data[i]  = y_copy_data[i] + k3_data[i];
           });
     } else if (step == 3) {
-      const auto* y_copy_data = m_y.data();
       const auto* k1_data     = m_k1.data();
       const auto* k2_data     = m_k2.data();
       const auto* k3_data     = m_k3.data();
@@ -389,7 +384,7 @@ class HasegawaWakatani {
         View3D<Kokkos::complex<double>>("ik_fg_all", 6, m_nkyh, m_nkx2);
     m_dfgdx_all         = View3D<double>("dfgdx_all", 6, m_ny, m_nx);
     m_conv              = View3D<double>("conv", nb_vars, m_ny, m_nx);
-    m_mask              = View1D<double>("mask", nkx);
+    m_mask              = View1D<double>("mask", nkx + 1);
     m_poisson_operator  = View2D<double>("poisson_operator", m_nkyh, m_nkx2);
     m_adiabacity_factor = View1D<double>("adiabacity_factor", m_nkyh);
 
@@ -406,7 +401,7 @@ class HasegawaWakatani {
         Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), m_grid->m_ksq);
     auto h_kyh =
         Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), m_grid->m_kyh);
-    for (int ikx = 1; ikx < nkx; ikx++) {
+    for (int ikx = 1; ikx < nkx + 1; ikx++) {
       h_mask(ikx) = 1.0;
     }
 
@@ -430,7 +425,6 @@ class HasegawaWakatani {
     realityCondition(sub_fk, m_mask);
     realityCondition(sub_pk, m_mask);
   }
-  ~HasegawaWakatani() = default;
 
   // \brief Runs the simulation for the specified number of iterations.
   void run() {
