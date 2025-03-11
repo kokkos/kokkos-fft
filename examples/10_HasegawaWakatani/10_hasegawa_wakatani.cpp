@@ -168,7 +168,7 @@ class RK4th {
     auto* y_copy_data     = m_y.data();
     const auto* dydt_data = dydt.data();
     if (step == 0) {
-      auto* k1_data     = m_k1.data();
+      auto* k1_data = m_k1.data();
       Kokkos::parallel_for(
           "rk_step0",
           Kokkos::RangePolicy<execution_space, Kokkos::IndexType<std::size_t>>(
@@ -179,7 +179,7 @@ class RK4th {
             y_data[i]      = y_copy_data[i] + k1_data[i] / 2.0;
           });
     } else if (step == 1) {
-      auto* k2_data           = m_k2.data();
+      auto* k2_data = m_k2.data();
       Kokkos::parallel_for(
           "rk_step1",
           Kokkos::RangePolicy<execution_space, Kokkos::IndexType<std::size_t>>(
@@ -189,7 +189,7 @@ class RK4th {
             y_data[i]  = y_copy_data[i] + k2_data[i] / 2.0;
           });
     } else if (step == 2) {
-      auto* k3_data           = m_k3.data();
+      auto* k3_data = m_k3.data();
       Kokkos::parallel_for(
           "rk_step2",
           Kokkos::RangePolicy<execution_space, Kokkos::IndexType<std::size_t>>(
@@ -199,9 +199,9 @@ class RK4th {
             y_data[i]  = y_copy_data[i] + k3_data[i];
           });
     } else if (step == 3) {
-      const auto* k1_data     = m_k1.data();
-      const auto* k2_data     = m_k2.data();
-      const auto* k3_data     = m_k3.data();
+      const auto* k1_data = m_k1.data();
+      const auto* k2_data = m_k2.data();
+      const auto* k3_data = m_k3.data();
       Kokkos::parallel_for(
           "rk_step3",
           Kokkos::RangePolicy<execution_space, Kokkos::IndexType<std::size_t>>(
