@@ -45,15 +45,9 @@ class Grid:
         nkx, nky = (self.nx-2)//3, (self.ny-2)//3
         self.nky, self.nkx2 = nky, nkx * 2 + 1
 
-        self.kx = np.linspace(-nkx, nkx+1, nkx*2+1, endpoint=False) / lx
-        self.ky = np.linspace(-nky, nky+1, nky*2+1, endpoint=False) / ly
-
-        # Set zero-frequency component to the zero-th component
-        self.kx = np.fft.ifftshift(self.kx)
-        self.ky = np.fft.ifftshift(self.ky)
-
         # Half plane with ky >= 0.
-        self.kyh = self.ky[:nky+1]
+        self.kx  = np.fft.fftfreq(nkx*2+1, lx / (nkx*2+1))
+        self.kyh = np.fft.rfftfreq(nky*2+1, ly / (nky*2+1))
 
         self.kx  = np.expand_dims(self.kx, axis=0)
         self.kyh = np.expand_dims(self.kyh, axis=1)

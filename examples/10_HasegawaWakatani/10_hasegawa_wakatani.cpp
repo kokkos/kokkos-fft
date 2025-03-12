@@ -43,30 +43,22 @@ struct Grid {
   // \param ly [in] Length of the domain in the y-direction.
   Grid(int nx, int ny, double lx, double ly) {
     int nkx = (nx - 2) / 3, nky = (ny - 2) / 3;
-    int nkx2 = nkx * 2 + 1, nkyh = nky + 1;
+    int nkx2 = nkx * 2 + 1, nky2 = nky * 2 + 1, nkyh = nky + 1;
     m_kx  = View1D<double>("m_kx", nkx2);
     m_kyh = View1D<double>("m_kyh", nkyh);
     m_ksq = View2D<double>("m_ksq", nkyh, nkx2);
 
-    auto h_kx  = Kokkos::create_mirror_view(m_kx);
-    auto h_kyh = Kokkos::create_mirror_view(m_kyh);
-    auto h_ksq = Kokkos::create_mirror_view(m_ksq);
-
+    using host_execution_space = Kokkos::DefaultHostExecutionSpace;
     // [0, dkx, 2*dkx, ..., nkx * dkx, -nkx * dkx, ..., -dkx]
-    for (int ikx = 0; ikx < nkx + 1; ikx++) {
-      h_kx(ikx) = static_cast<double>(ikx) / lx;
-    }
-
-    for (int ikx = 1; ikx < nkx + 1; ikx++) {
-      h_kx(nkx2 - ikx) = -static_cast<double>(ikx) / lx;
-    }
+    double dkx = lx / static_cast<double>(nkx2);
+    auto h_kx  = KokkosFFT::fftfreq(host_execution_space(), nkx2, dkx);
 
     // [0, dky, 2*dky, ..., nky * dky]
-    for (int iky = 0; iky < nkyh; iky++) {
-      h_kyh(iky) = static_cast<double>(iky) / ly;
-    }
+    double dky = ly / static_cast<double>(nky2);
+    auto h_kyh = KokkosFFT::rfftfreq(host_execution_space(), nky2, dky);
 
     // kx**2 + ky**2
+    auto h_ksq = Kokkos::create_mirror_view(m_ksq);
     for (int iky = 0; iky < nkyh; iky++) {
       for (int ikx = 0; ikx < nkx2; ikx++) {
         h_ksq(iky, ikx) = h_kx(ikx) * h_kx(ikx) + h_kyh(iky) * h_kyh(iky);
@@ -515,7 +507,7 @@ class HasegawaWakatani {
     auto adiabacity_factor = m_adiabacity_factor;
     auto kyh               = m_grid->m_kyh;
     auto ksq               = m_grid->m_ksq;
-    const Kokkos::complex<double> I(0.0, 1.0);  // Imaginary unit
+    const Kokkos::complex<double> z(0.0, 1.0);  // Imaginary unit
     const double eta = m_eta, ca = m_ca, nu = m_nu;
 
     range2D_type range(point2D_type{{0, 0}}, point2D_type{{m_nkyh, m_nkx2}},
@@ -531,7 +523,7 @@ class HasegawaWakatani {
             double is_dns = in == 0 ? 1.0 : 0.0;
             dfkdt(in, iky, ikx) =
                 -nonlinear_k(in, iky, ikx) -
-                I * eta * tmp_kyh * tmp_pk * is_dns -
+                z * eta * tmp_kyh * tmp_pk * is_dns -
                 ca * tmp_adiabacity_factor * (fk(0, iky, ikx) - tmp_pk) -
                 nu * fk(in, iky, ikx) * tmp_k4;
           }
@@ -583,16 +575,15 @@ class HasegawaWakatani {
     auto kx    = m_grid->m_kx;
     auto kyh   = m_grid->m_kyh;
 
-    const Kokkos::complex<double> I(0.0, 1.0);  // Imaginary unit
+    const Kokkos::complex<double> z(0.0, 1.0);  // Imaginary unit
     constexpr int nb_vars = 2;
-
     range2D_type range(point2D_type{{0, 0}}, point2D_type{{m_nkyh, m_nkx2}},
                        tile2D_type{{TILE0, TILE1}});
 
     Kokkos::parallel_for(
         range, KOKKOS_LAMBDA(int iky, int ikx) {
-          const auto tmp_ikx = I * kx(ikx);
-          const auto tmp_iky = I * kyh(iky);
+          const auto tmp_ikx = z * kx(ikx);
+          const auto tmp_iky = z * kyh(iky);
           for (int in = 0; in < nb_vars; in++) {
             const auto tmp_fk   = fk(in, iky, ikx);
             ikx_f(in, iky, ikx) = tmp_ikx * tmp_fk;
@@ -671,7 +662,6 @@ class HasegawaWakatani {
           backward_buffer(iv, iky_neg, ikx) =
               Kokkos::conj(fk(iv, iky_nonzero, ikx_neg));
         });
-
     KokkosFFT::execute(*m_backward_plan, backward_buffer, f);
   }
 
@@ -692,7 +682,6 @@ class HasegawaWakatani {
 
     range2D_type range(point2D_type{{0, 0}}, point2D_type{{m_ny, m_nx}},
                        tile2D_type{{TILE0, TILE1}});
-
     constexpr int nb_vars = 2;
     Kokkos::parallel_for(
         "convolution", range, KOKKOS_LAMBDA(int iy, int ix) {
@@ -716,7 +705,6 @@ class HasegawaWakatani {
   void poisson(const InViewType& vork, OutViewType& phik) {
     range2D_type range(point2D_type{{0, 0}}, point2D_type{{m_nkyh, m_nkx2}},
                        tile2D_type{{TILE0, TILE1}});
-
     auto poisson_operator = m_poisson_operator;
     Kokkos::parallel_for(
         "poisson", range, KOKKOS_LAMBDA(int iky, int ikx) {
