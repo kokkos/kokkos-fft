@@ -162,7 +162,7 @@ class RK4th {
   // \param dydt [in] The right-hand side of the ODE
   // \param y [in] The current solution.
   // \param step [in] The current step (0, 1, 2, or 3)
-  void advance(ViewType& dydt, ViewType& y, int step) {
+  void advance(const ViewType& dydt, const ViewType& y, int step) {
     auto h                = m_h;
     auto* y_data          = y.data();
     auto* y_copy_data     = m_y.data();
