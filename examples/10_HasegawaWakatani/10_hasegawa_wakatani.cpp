@@ -119,12 +119,12 @@ struct Variables {
 // k3 = f(t^{n} + h/2, y^{n}+k2/2) * h
 // k4 = f(t^{n} + h  , y^{n}+k3  ) * h
 //
-// \tparam ViewType The type of the view
-template <typename ViewType>
+// \tparam BufferType The type of the view
+template <typename BufferType>
 class RK4th {
-  using value_type     = typename ViewType::non_const_value_type;
-  using float_type     = KokkosFFT::Impl::base_floating_point_type<value_type>;
-  using BufferViewType = View1D<value_type>;
+  static_assert(BufferType::rank == 1, "RK4th: BufferType must have rank 1.");
+  using value_type = typename BufferType::non_const_value_type;
+  using float_type = KokkosFFT::Impl::base_floating_point_type<value_type>;
 
   //! Order of the Runge-Kutta method
   const int m_order = 4;
@@ -136,75 +136,75 @@ class RK4th {
   std::size_t m_array_size;
 
   //! Buffer views for intermediate results
-  BufferViewType m_y, m_k1, m_k2, m_k3;
+  BufferType m_y, m_k1, m_k2, m_k3;
 
  public:
   // \brief Constructor of a RK4th class
   // \param y [in] The variable to be solved
   // \param h [in] Time step
-  RK4th(const ViewType& y, float_type h) : m_h(h) {
+  RK4th(const BufferType& y, float_type h) : m_h(h) {
     m_array_size = y.size();
-    m_y          = BufferViewType("y", m_array_size);
-    m_k1         = BufferViewType("k1", m_array_size);
-    m_k2         = BufferViewType("k2", m_array_size);
-    m_k3         = BufferViewType("k3", m_array_size);
+    m_y          = BufferType("y", m_array_size);
+    m_k1         = BufferType("k1", m_array_size);
+    m_k2         = BufferType("k2", m_array_size);
+    m_k3         = BufferType("k3", m_array_size);
   }
 
   auto order() { return m_order; }
 
   // \brief Advances the solution by one step using the Runge-Kutta method.
+  // \tparam ViewType The type of the view
   // \param dydt [in] The right-hand side of the ODE
   // \param y [in] The current solution.
   // \param step [in] The current step (0, 1, 2, or 3)
+  template <typename ViewType>
   void advance(const ViewType& dydt, const ViewType& y, int step) {
-    auto h                = m_h;
-    auto* y_data          = y.data();
-    auto* y_copy_data     = m_y.data();
-    const auto* dydt_data = dydt.data();
+    static_assert(ViewType::rank == 1, "RK4th: ViewType must have rank 1.");
+    auto h      = m_h;
+    auto y_copy = m_y;
     if (step == 0) {
-      auto* k1_data = m_k1.data();
+      auto k1 = m_k1;
       Kokkos::parallel_for(
           "rk_step0",
           Kokkos::RangePolicy<execution_space, Kokkos::IndexType<std::size_t>>(
               execution_space(), 0, m_array_size),
           KOKKOS_LAMBDA(const std::size_t& i) {
-            y_copy_data[i] = y_data[i];
-            k1_data[i]     = dydt_data[i] * h;
-            y_data[i]      = y_copy_data[i] + k1_data[i] / 2.0;
+            y_copy(i) = y(i);
+            k1(i)     = dydt(i) * h;
+            y(i)      = y_copy(i) + k1(i) / 2.0;
           });
     } else if (step == 1) {
-      auto* k2_data = m_k2.data();
+      auto k2 = m_k2;
       Kokkos::parallel_for(
           "rk_step1",
           Kokkos::RangePolicy<execution_space, Kokkos::IndexType<std::size_t>>(
               execution_space(), 0, m_array_size),
           KOKKOS_LAMBDA(const std::size_t& i) {
-            k2_data[i] = dydt_data[i] * h;
-            y_data[i]  = y_copy_data[i] + k2_data[i] / 2.0;
+            k2(i) = dydt(i) * h;
+            y(i)  = y_copy(i) + k2(i) / 2.0;
           });
     } else if (step == 2) {
-      auto* k3_data = m_k3.data();
+      auto k3 = m_k3;
       Kokkos::parallel_for(
           "rk_step2",
           Kokkos::RangePolicy<execution_space, Kokkos::IndexType<std::size_t>>(
               execution_space(), 0, m_array_size),
           KOKKOS_LAMBDA(const std::size_t& i) {
-            k3_data[i] = dydt_data[i] * h;
-            y_data[i]  = y_copy_data[i] + k3_data[i];
+            k3(i) = dydt(i) * h;
+            y(i)  = y_copy(i) + k3(i);
           });
     } else if (step == 3) {
-      const auto* k1_data = m_k1.data();
-      const auto* k2_data = m_k2.data();
-      const auto* k3_data = m_k3.data();
+      auto k1 = m_k1;
+      auto k2 = m_k2;
+      auto k3 = m_k3;
       Kokkos::parallel_for(
           "rk_step3",
           Kokkos::RangePolicy<execution_space, Kokkos::IndexType<std::size_t>>(
               execution_space(), 0, m_array_size),
           KOKKOS_LAMBDA(const std::size_t& i) {
-            auto tmp_k4 = dydt_data[i] * h;
-            y_data[i]   = y_copy_data[i] + (k1_data[i] + 2.0 * k2_data[i] +
-                                          2.0 * k3_data[i] + tmp_k4) /
-                                             6.0;
+            auto tmp_dy =
+                (k1(i) + 2.0 * k2(i) + 2.0 * k3(i) + dydt(i) * h) / 6.0;
+            y(i) = y_copy(i) + tmp_dy;
           });
     } else {
       throw std::runtime_error("step should be 0, 1, 2, or 3");
@@ -264,7 +264,7 @@ void realityCondition(const ViewType& view, const MaskViewType& mask) {
 //
 // periodic boundary conditions in x and y
 class HasegawaWakatani {
-  using OdeSolverType   = RK4th<View3D<Kokkos::complex<double>>>;
+  using OdeSolverType   = RK4th<View1D<Kokkos::complex<double>>>;
   using ForwardPlanType = KokkosFFT::Plan<execution_space, View3D<double>,
                                           View3D<Kokkos::complex<double>>, 2>;
   using BackwardPlanType =
@@ -357,9 +357,11 @@ class HasegawaWakatani {
   HasegawaWakatani(int nx, double lx, int nbiter, double dt,
                    const std::string& out_dir)
       : m_nbiter(nbiter), m_dt(dt), m_nx(nx), m_ny(nx), m_out_dir(out_dir) {
-    m_grid       = std::make_unique<Grid>(nx, nx, lx, lx);
-    m_variables  = std::make_unique<Variables>(*m_grid);
-    m_ode        = std::make_unique<OdeSolverType>(m_variables->m_fk, dt);
+    m_grid      = std::make_unique<Grid>(nx, nx, lx, lx);
+    m_variables = std::make_unique<Variables>(*m_grid);
+    View1D<Kokkos::complex<double>> fk(m_variables->m_fk.data(),
+                                       m_variables->m_fk.size());
+    m_ode        = std::make_unique<OdeSolverType>(fk, dt);
     namespace fs = std::filesystem;
     IO::mkdir(m_out_dir, fs::perms::owner_all | fs::perms::group_read |
                              fs::perms::group_exec | fs::perms::others_read |
@@ -480,7 +482,12 @@ class HasegawaWakatani {
   void solve() {
     for (int step = 0; step < m_ode->order(); step++) {
       rhs(m_variables->m_fk, m_variables->m_pk, m_dfkdt);
-      m_ode->advance(m_dfkdt, m_variables->m_fk, step);
+
+      // Flatten Views for time integral
+      View1D<Kokkos::complex<double>> fk(m_variables->m_fk.data(),
+                                         m_variables->m_fk.size()),
+          dfkdt(m_dfkdt.data(), m_dfkdt.size());
+      m_ode->advance(dfkdt, fk, step);
 
       auto vork =
           Kokkos::subview(m_variables->m_fk, 1, Kokkos::ALL, Kokkos::ALL);
@@ -593,7 +600,7 @@ class HasegawaWakatani {
             const auto tmp_fk   = fk(in, iky, ikx);
             ikx_f(in, iky, ikx) = tmp_ikx * tmp_fk;
             iky_f(in, iky, ikx) = tmp_iky * tmp_fk;
-          };
+          }
           const auto tmp_gk = gk(iky, ikx);
           ikx_g(iky, ikx)   = tmp_ikx * tmp_gk;
           iky_g(iky, ikx)   = tmp_iky * tmp_gk;
@@ -628,7 +635,7 @@ class HasegawaWakatani {
           if (iky == 0) {
             iky_neg     = ny - 1;
             iky_nonzero = 1;
-          };
+          }
           fk(iv, iky_nonzero, ikx_neg) =
               Kokkos::conj(forward_buffer(iv, iky_neg, ikx)) * norm_coef;
         });
@@ -659,7 +666,7 @@ class HasegawaWakatani {
           if (iky == 0) {
             iky_neg     = ny - 1;
             iky_nonzero = 1;
-          };
+          }
           backward_buffer(iv, iky_neg, ikx) =
               Kokkos::conj(fk(iv, iky_nonzero, ikx_neg));
         });
@@ -692,7 +699,7 @@ class HasegawaWakatani {
             const auto tmp_dfdx = dfdx(in, iy, ix);
             const auto tmp_dfdy = dfdy(in, iy, ix);
             conv(in, iy, ix)    = tmp_dfdx * tmp_dgdy - tmp_dfdy * tmp_dgdx;
-          };
+          }
         });
   }
 
