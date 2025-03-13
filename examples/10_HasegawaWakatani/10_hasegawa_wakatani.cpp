@@ -92,15 +92,16 @@ struct Variables {
     m_fk = View3D<Kokkos::complex<double>>("fk", nb_vars, nkyh, nkx2);
     m_pk = View2D<Kokkos::complex<double>>("pk", nkyh, nkx2);
 
-    const Kokkos::complex<double> I(0.0, 1.0);  // Imaginary unit
+    const Kokkos::complex<double> z(0.0, 1.0);  // Imaginary unit
     auto h_fk = Kokkos::create_mirror_view(m_fk);
     auto h_ksq =
         Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), grid.m_ksq);
     for (int iky = 0; iky < nkyh; iky++) {
       for (int ikx = 0; ikx < nkx2; ikx++) {
         double random_number = rand_dist(rand_engine);
-        h_fk(0, iky, ikx)    = init_val / (1.0 + h_ksq(iky, ikx)) *
-                            Kokkos::exp(I * 2.0 * M_PI * random_number);
+        h_fk(0, iky, ikx) =
+            init_val / (1.0 + h_ksq(iky, ikx)) *
+            Kokkos::exp(z * 2.0 * Kokkos::numbers::pi * random_number);
         h_fk(1, iky, ikx) = -h_fk(0, iky, ikx) * h_ksq(iky, ikx);
       }
     }
@@ -166,7 +167,7 @@ class RK4th {
           "rk_step0",
           Kokkos::RangePolicy<execution_space, Kokkos::IndexType<std::size_t>>(
               execution_space(), 0, m_array_size),
-          KOKKOS_LAMBDA(const int& i) {
+          KOKKOS_LAMBDA(const std::size_t& i) {
             y_copy_data[i] = y_data[i];
             k1_data[i]     = dydt_data[i] * h;
             y_data[i]      = y_copy_data[i] + k1_data[i] / 2.0;
@@ -177,7 +178,7 @@ class RK4th {
           "rk_step1",
           Kokkos::RangePolicy<execution_space, Kokkos::IndexType<std::size_t>>(
               execution_space(), 0, m_array_size),
-          KOKKOS_LAMBDA(const int& i) {
+          KOKKOS_LAMBDA(const std::size_t& i) {
             k2_data[i] = dydt_data[i] * h;
             y_data[i]  = y_copy_data[i] + k2_data[i] / 2.0;
           });
@@ -187,7 +188,7 @@ class RK4th {
           "rk_step2",
           Kokkos::RangePolicy<execution_space, Kokkos::IndexType<std::size_t>>(
               execution_space(), 0, m_array_size),
-          KOKKOS_LAMBDA(const int& i) {
+          KOKKOS_LAMBDA(const std::size_t& i) {
             k3_data[i] = dydt_data[i] * h;
             y_data[i]  = y_copy_data[i] + k3_data[i];
           });
@@ -199,7 +200,7 @@ class RK4th {
           "rk_step3",
           Kokkos::RangePolicy<execution_space, Kokkos::IndexType<std::size_t>>(
               execution_space(), 0, m_array_size),
-          KOKKOS_LAMBDA(const int& i) {
+          KOKKOS_LAMBDA(const std::size_t& i) {
             auto tmp_k4 = dydt_data[i] * h;
             y_data[i]   = y_copy_data[i] + (k1_data[i] + 2.0 * k2_data[i] +
                                           2.0 * k3_data[i] + tmp_k4) /
@@ -412,8 +413,8 @@ class HasegawaWakatani {
     Kokkos::deep_copy(m_poisson_operator, h_poisson_operator);
     Kokkos::deep_copy(m_adiabacity_factor, h_adiabacity_factor);
 
-    auto rhok = Kokkos::subview(m_variables->m_fk, 1, Kokkos::ALL, Kokkos::ALL);
-    poisson(rhok, m_variables->m_pk);
+    auto vork = Kokkos::subview(m_variables->m_fk, 1, Kokkos::ALL, Kokkos::ALL);
+    poisson(vork, m_variables->m_pk);
     // Reality condition on ky == 0 component
     auto sub_fk =
         Kokkos::subview(m_variables->m_fk, Kokkos::ALL, 0, Kokkos::ALL);
@@ -481,9 +482,9 @@ class HasegawaWakatani {
       rhs(m_variables->m_fk, m_variables->m_pk, m_dfkdt);
       m_ode->advance(m_dfkdt, m_variables->m_fk, step);
 
-      auto rhok =
+      auto vork =
           Kokkos::subview(m_variables->m_fk, 1, Kokkos::ALL, Kokkos::ALL);
-      poisson(rhok, m_variables->m_pk);
+      poisson(vork, m_variables->m_pk);
 
       // ky == 0 component
       auto sub_fk =
@@ -623,9 +624,7 @@ class HasegawaWakatani {
 
           int ikx_neg = nkx2 - ikx;
           int iky_neg = (ny - iky), iky_nonzero = iky;
-          if (ikx == 0) {
-            ikx_neg = 0;
-          };
+          if (ikx == 0) ikx_neg = 0;
           if (iky == 0) {
             iky_neg     = ny - 1;
             iky_nonzero = 1;
@@ -656,9 +655,7 @@ class HasegawaWakatani {
           backward_buffer(iv, iky, ikx) = fk(iv, iky, ikx);
           int ikx_neg                   = nkx2 - ikx;
           int iky_neg = (ny - iky), iky_nonzero = iky;
-          if (ikx == 0) {
-            ikx_neg = 0;
-          };
+          if (ikx == 0) ikx_neg = 0;
           if (iky == 0) {
             iky_neg     = ny - 1;
             iky_nonzero = 1;
