@@ -155,7 +155,7 @@ class RK4th {
   // \brief Advances the solution by one step using the Runge-Kutta method.
   // \tparam ViewType The type of the view
   // \param dydt [in] The right-hand side of the ODE
-  // \param y [in] The current solution.
+  // \param y [inout] The current solution.
   // \param step [in] The current step (0, 1, 2, or 3)
   template <typename ViewType>
   void advance(const ViewType& dydt, const ViewType& y, int step) {
@@ -213,13 +213,13 @@ class RK4th {
 };
 
 // \brief Apply the reality condition in Fourier space
-// Force A to satisfy the following conditios
+// Force A to satisfy the following conditions
 // A[i] == conj(A[-i]) and A[0] == 0
 //
 // \tparam ViewType The type of the view
 // \tparam MaskViewType The type of the mask view
-// \param view View to be modified (2 * nkx + 1) or (nvars, 2 * nkx + 1)
-// \param mask The mask view [0, 1, 1, ..., 1] (nkx + 1)
+// \param view [inout] View to be modified (2 * nkx + 1) or (nvars, 2 * nkx + 1)
+// \param mask [in] The mask view [0, 1, 1, ..., 1] (nkx + 1)
 template <typename ViewType, typename MaskViewType>
 void realityCondition(const ViewType& view, const MaskViewType& mask) {
   static_assert(ViewType::rank() == 1 || ViewType::rank() == 2,
