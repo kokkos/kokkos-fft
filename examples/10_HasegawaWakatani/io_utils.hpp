@@ -12,7 +12,7 @@
 #include <fstream>
 #include <iomanip>
 #include <cassert>
-#include <sys/stat.h>
+#include <filesystem>
 
 namespace IO {
 namespace Impl {
@@ -30,21 +30,6 @@ inline std::string trimLeft(const std::string& s, const std::string& c) {
 inline std::string trim(const std::string& s, const std::string& c) {
   return trimLeft(trimRight(s, c), c);
 }
-
-// From https://gist.github.com/hrlou/cd440c181df5f4f2d0b61b80ca13516b
-static int do_mkdir(const std::string& path, mode_t mode) {
-  struct stat st;
-  if (::stat(path.c_str(), &st) != 0) {
-    if (mkdir(path.c_str(), mode) != 0 && errno != EEXIST) {
-      return -1;
-    }
-  } else if (!S_ISDIR(st.st_mode)) {
-    errno = ENOTDIR;
-    return -1;
-  }
-  return 0;
-}
-
 }  // namespace Impl
 
 inline std::string zfill(int n, int length = 4) {
@@ -53,18 +38,23 @@ inline std::string zfill(int n, int length = 4) {
   return ss.str();
 }
 
-int mkdirs(std::string path, mode_t mode) {
-  std::string build;
-  for (std::size_t pos = 0; (pos = path.find('/')) != std::string::npos;) {
-    build += path.substr(0, pos + 1);
-    Impl::do_mkdir(build, mode);
-    path.erase(0, pos + 1);
+void mkdir(const std::string& path, std::filesystem::perms mode) {
+  std::filesystem::path dir(path);
+
+  // If the final directory already exists, throw an error.
+  if (std::filesystem::exists(dir)) {
+    throw std::runtime_error("mkdir error: path already exists: " + path);
   }
-  if (!path.empty()) {
-    build += path;
-    Impl::do_mkdir(build, mode);
+
+  // Create the directory along with any intermediate directories.
+  // create_directories returns true if at least one directory was created.
+  if (!std::filesystem::create_directories(dir)) {
+    throw std::runtime_error("mkdir error: failed to create directory: " +
+                             path);
   }
-  return 0;
+
+  // Set the permissions for the final directory.
+  std::filesystem::permissions(dir, mode);
 }
 
 using dict = std::map<std::string, std::string>;
@@ -91,7 +81,7 @@ std::string get_arg(dict& kwargs, const std::string& key,
   }
 }
 
-template <class ViewType>
+template <typename ViewType>
 void to_binary(const std::string& filename, const ViewType& view) {
   std::ofstream ofs(filename, std::ios::binary);
   if (!ofs) {
@@ -106,8 +96,8 @@ void to_binary(const std::string& filename, const ViewType& view) {
             size * sizeof(value_type));
 }
 
-template <class ViewType>
-void from_binary(const std::string& filename, ViewType& view) {
+template <typename ViewType>
+void from_binary(const std::string& filename, const ViewType& view) {
   std::ifstream ifs(filename, std::ios::binary);
   if (!ifs) {
     throw std::runtime_error("Failed to open file: " + filename);

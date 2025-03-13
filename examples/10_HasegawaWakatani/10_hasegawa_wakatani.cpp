@@ -4,6 +4,7 @@
 
 #include <memory>
 #include <random>
+#include <filesystem>
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Complex.hpp>
 #include <Kokkos_Random.hpp>
@@ -355,10 +356,13 @@ class HasegawaWakatani {
   HasegawaWakatani(int nx, double lx, int nbiter, double dt,
                    const std::string& out_dir)
       : m_nbiter(nbiter), m_dt(dt), m_nx(nx), m_ny(nx), m_out_dir(out_dir) {
-    m_grid      = std::make_unique<Grid>(nx, nx, lx, lx);
-    m_variables = std::make_unique<Variables>(*m_grid);
-    m_ode       = std::make_unique<OdeSolverType>(m_variables->m_fk, dt);
-    IO::mkdirs(m_out_dir, 0755);
+    m_grid       = std::make_unique<Grid>(nx, nx, lx, lx);
+    m_variables  = std::make_unique<Variables>(*m_grid);
+    m_ode        = std::make_unique<OdeSolverType>(m_variables->m_fk, dt);
+    namespace fs = std::filesystem;
+    IO::mkdir(m_out_dir, fs::perms::owner_all | fs::perms::group_read |
+                             fs::perms::group_exec | fs::perms::others_read |
+                             fs::perms::others_exec);
 
     m_nkx2                = m_grid->m_ksq.extent(1);
     m_nkyh                = m_grid->m_ksq.extent(0);
