@@ -1,6 +1,6 @@
-# SPDX-FileCopyrightText: 2022 Free Software Foundation Europe e.V. <https://fsfe.org>
+# SPDX-FileCopyrightText: (C) The kokkos-fft development team, see COPYRIGHT.md file
 #
-# SPDX-License-Identifier: CC0-1.0
+# SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
 name: CI (python)
 
