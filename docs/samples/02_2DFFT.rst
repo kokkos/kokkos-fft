@@ -16,5 +16,5 @@ kokkos-fft
 numpy
 -----
 
-.. literalinclude:: ../../examples/02_2DFFT/numpy_2DFFT.py
+.. literalinclude:: ../../examples/02_2DFFT/numpy_fft_2d.py
    :language: python

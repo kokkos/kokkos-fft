@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: (C) The kokkos-fft development team, see COPYRIGHT.md file
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "kokkos-fft-python"
+version = "1.0"
+readme = "../README.md"
+requires-python = ">=3.8"
+dependencies = [
+  "pytest>=7.0",
+  "numpy",
+  "xarray[io]",
+  "xarray[viz]",
+  "matplotlib",
+  "joblib",
+  "pylint"
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["python"]

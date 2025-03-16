@@ -16,5 +16,5 @@ kokkos-fft
 numpy
 -----
 
-.. literalinclude:: ../../examples/04_batchedFFT/numpy_batchedFFT.py
+.. literalinclude:: ../../examples/04_batchedFFT/numpy_batched_fft.py
    :language: python

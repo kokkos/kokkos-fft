@@ -2,14 +2,21 @@
 #
 # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
+"""
+This script implements the Hasegawa-Wakatani plasma turbulence model simulation
+with Fourier spectral method.
+
+The simulation uses periodic boundary conditions in both x and y directions.
+"""
+
 import argparse
 import pathlib
 import time
-import numpy as np
-import xarray as xr
 from typing import Callable
 from functools import partial
 from dataclasses import dataclass
+import numpy as np
+import xarray as xr
 
 @dataclass
 class Grid:
@@ -18,10 +25,14 @@ class Grid:
 
     Attributes
     ----------
-    nx (int): Number of grid points in the x-direction.
-    ny (int): Number of grid points in the y-direction.
-    lx (np.float64): Length of the domain in the x-direction.
-    ly (np.float64): Length of the domain in the y-direction.
+    nx : int
+        Number of grid points in the x-direction.
+    ny : int
+        Number of grid points in the y-direction.
+    lx : np.float64
+        Length of the domain in the x-direction.
+    ly : np.float64
+        Length of the domain in the y-direction.
     """
     nx: int
     ny: int
@@ -34,10 +45,14 @@ class Grid:
 
         Parameters
         ----------
-        nx (int): Number of grid points in the x-direction.
-        ny (int): Number of grid points in the y-direction.
-        lx (np.float64): Length of the domain in the x-direction.
-        ly (np.float64): Length of the domain in the y-direction.
+        nx : int
+            Number of grid points in the x-direction.
+        ny : int
+            Number of grid points in the y-direction.
+        lx : np.float64
+            Length of the domain in the x-direction.
+        ly : np.float64
+            Length of the domain in the y-direction.
         """
         self.nx, self.ny = nx, ny
         self.lx, self.ly = lx * np.pi, ly * np.pi
@@ -65,8 +80,10 @@ class Variables:
 
     Attributes
     ----------
-    fk (np.ndarray): The Fourier representation of the density and vorticity variables.
-    pk (np.ndarray): The Fourier representation of the potential variable.
+    fk : np.ndarray
+        The Fourier representation of the density and vorticity variables.
+    pk : np.ndarray
+        The Fourier representation of the potential variable.
     """
     fk: np.ndarray
     pk: np.ndarray
@@ -77,8 +94,10 @@ class Variables:
 
         Parameters
         ----------
-        grid (Grid): The computational grid.
-        init_val (np.float64, optional): The initial value of the variables. Defaults to 0.001.
+        grid : Grid
+            The computational grid.
+        init_val : np.float64, optional
+            The initial value of the variables. Defaults to 0.001.
         """
         random_number = np.random.rand(*grid.inv_ksq.shape)
         fk0 = init_val * grid.inv_ksq * np.exp(1j * 2. * np.pi * random_number)
@@ -101,12 +120,14 @@ class RungeKutta4th:
 
     Attributes
     ----------
-    order (int): The order of the Runge-Kutta method.
-    h (np.float64): The time step size.
+    order : int
+        The order of the Runge-Kutta method.
+    h : np.float64
+        The time step size.
 
     Methods
     -------
-    advance(f: Callable[[np.ndarray], np.ndarray], y: np.ndarray, step: int) -> np.ndarray:
+    advance(f: Callable[[np.ndarray], np.ndarray], y: np.ndarray, step: int)
         Advances the solution by one step using the Runge-Kutta method.
     """
     order: int = 4
@@ -117,7 +138,8 @@ class RungeKutta4th:
 
         Parameters
         ----------
-        h (np.float64): The time step size.
+        h : np.float64
+            The time step size.
         """
         self.y  = None
         self.k1 = None
@@ -133,13 +155,17 @@ class RungeKutta4th:
 
         Parameters
         ----------
-        f (Callable[[np.ndarray], np.ndarray]): The right hand side of the ODE.
-        y (np.ndarray): The current solution.
-        step (int): The current step.
+        f : Callable[[np.ndarray], np.ndarray]
+            The right-hand side function of the ODE.
+        y : np.ndarray
+            The current solution.
+        step : int
+            The current Runge-Kutta sub-step (0, 1, 2, or 3).
 
         Returns
         -------
-        np.ndarray: The updated solution.
+        np.ndarray
+            The updated solution after the sub-step.
         """
         y = np.asarray(y)
         if step==0:
@@ -166,14 +192,16 @@ def realityCondition(A: np.ndarray) -> np.ndarray:
 
     Parameters
     ----------
-    A (np.ndarray): A 2D or 3D array of complex numbers.
+    A : np.ndarray
+        A 2D or 3D array of complex numbers.
 
     Returns
     -------
-    np.ndarray: The array with the reality condition enforced.
+    np.ndarray
+        The array with the reality condition enforced.
     """
     def realityCondition2D(A_col):
-        nky, nkx2 = A_col.shape
+        _, nkx2 = A_col.shape
         nkx = (nkx2-1)//2
 
         conj = np.conj(A_col[0,1:nkx+1]).copy()[::-1]
@@ -199,11 +227,13 @@ def Complex2DtoReal3D(A: np.ndarray) -> np.ndarray:
 
     Parameters
     ----------
-    A (np.ndarray): A 2D array of complex numbers.
+    A : np.ndarray
+        A 2D array of complex numbers.
 
     Returns
     -------
-    np.ndarray: A 3D array where the first dimension represents the real and imaginary parts.
+    np.ndarray
+        A 3D array where the first dimension represents the real and imaginary parts.
     """
 
     real, img = np.real(A), np.imag(A)
@@ -213,31 +243,45 @@ class HasegawaWakatani:
     """
     A class to simulate the Hasegawa-Wakatani plasma turbulence model.
     ddns/dt + {phi,dns} + dphi/dy = - ca * (dns-phi) - nu * \nabla^4 dns
-              domg/dt + {phi,omg} = - ca * (dns-phi) - nu * \nabla^4 omg
+    domg/dt + {phi,omg} = - ca * (dns-phi) - nu * \nabla^4 omg
     omg = \nabal^2 phi
 
     periodic boundary conditions in x and y
 
     Attributes
     ----------
-    ca (np.float64): The adiabaticity parameter.
-    nu (np.float64): The viscosity coefficient.
-    eta (np.float64): The diffusion coefficient.
-    it (int): The iteration counter.
-    dt (np.float64): The time step size.
-    diag_it (int): The diagnostic iteration counter.
-    diag_steps (int): The number of steps between diagnostics.
-    out_dir (str): The directory to output diagnostic data.
-    grid (Grid): The computational grid.
-    variables (Variables): The simulation variables.
-    ode (RungeKutta4th): The ODE solver instance.
-    nbiter (int): The total number of iterations.
-    poisson_operator (np.ndarray): The spectral operator used to solve Poisson's equation.
-    adiabacity_factor (np.ndarray): Factor used in the adiabaticity related term.
+    ca : np.float64
+        The adiabaticity parameter.
+    nu : np.float64
+        The viscosity coefficient.
+    eta : np.float64
+        The diffusion coefficient.
+    it : int
+        The iteration counter.
+    dt : np.float64
+        The time step size.
+    diag_it : int
+        The diagnostic iteration counter.
+    diag_steps : int
+        The number of steps between diagnostics.
+    out_dir : str
+        The directory to output diagnostic data.
+    grid : Grid
+        The computational grid.
+    variables : Variables
+        The simulation variables.
+    ode : RungeKutta4th
+        The ODE solver instance.
+    nbiter : int
+        The total number of iterations.
+    poisson_operator : np.ndarray
+        The spectral operator used to solve Poisson's equation.
+    adiabacity_factor : np.ndarray
+        Factor used in the adiabaticity-related term.
 
     Methods
     -------
-    run() -> None:
+    run()
         Runs the simulation for the specified number of iterations.
     """
     ca: np.float64 = 3.
@@ -253,15 +297,20 @@ class HasegawaWakatani:
                  out_dir: str) -> None:
         """
         Initializes the HasegawaWakatani simulation with the specified grid dimensions,
-            number of iterations, time step, and output directory.
+        number of iterations, time step, and output directory.
 
         Parameters
         ----------
-        nx (int): The number of grid points in each direction.
-        lx (int): The length of the domain in each direction.
-        nbiter (int): The total number of iterations.
-        dt (np.float64): The time step size.
-        out_dir (str): The directory to output diagnostic data.
+        nx : int
+            The number of grid points in each direction.
+        lx : int
+            The length of the domain in each direction.
+        nbiter : int
+            The total number of iterations.
+        dt : np.float64
+            The time step size.
+        out_dir : str
+            The directory to output diagnostic data.
         """
         self.dt = dt
         self.grid = Grid(nx=nx, ny=nx, lx=lx, ly=lx)
@@ -278,48 +327,64 @@ class HasegawaWakatani:
         self.variables.pk = self._poisson(self.variables.fk[1])
         self.variables.fk = realityCondition(self.variables.fk)
         self.variables.pk = realityCondition(self.variables.pk)
-        
+
     def run(self) -> None:
         """
         Runs the simulation for the specified number of iterations.
         """
-        time = 0.
-        for iter in range(self.nbiter):
-            self._diag(iter, time)
+        t = 0.
+        for it in range(self.nbiter):
+            self._diag(it, t)
             self._solve()
-            time += self.dt
+            t += self.dt
 
-    def _diag(self, iter: int, time: np.float64) -> None:
+    def _diag(self, it: int, t: np.float64) -> None:
         """
         Performs diagnostics at a given simulation time.
 
         Parameters
         ----------
-        iter (int): The current iteration number.
-        time (np.float64): The current simulation time.
+        it : int
+            The current iteration number.
+        t : np.float64
+            The current simulation time.
         """
-        if iter % self.diag_steps == 0:
-            self._diag_fields(self.diag_it, time)
+        if it % self.diag_steps == 0:
+            self._diag_fields(self.diag_it, t)
             self.diag_it += 1
 
-    def _diag_fields(self, iter: int, time: np.float64) -> None:
+    def _diag_fields(self, it: int, t: np.float64) -> None:
         """
         Saves field diagnostics to a NetCDF file.
 
         Parameters
         ----------
-        time (np.float64): The current simulation time.
+        it : int
+            The diagnostic iteration index.
+        t : np.float64
+            The current simulation time.
         """
-        data_vars = dict(time = time,
-                         phi = (['complex_axis', 'kyg', 'kxg'], Complex2DtoReal3D(self.variables.pk)),
-                         density = (['complex_axis', 'kyg', 'kxg'], Complex2DtoReal3D(self.variables.fk[0])),
-                         vorticity = (['complex_axis', 'kyg', 'kxg'], Complex2DtoReal3D(self.variables.fk[1])),
-                        )
-        coords = dict(kxg = np.squeeze(self.grid.kx),
-                      kyg = np.squeeze(self.grid.kyh),
-                      complex_axis = np.arange(2), # axis to save complex number
-                     )
-        filename = pathlib.Path(self.out_dir) / f'fields_{iter:04d}.nc'
+        data_vars = {
+            'time': t,
+            'phi': (
+                ['complex_axis', 'kyg', 'kxg'],
+                Complex2DtoReal3D(self.variables.pk)
+            ),
+            'density': (
+                ['complex_axis', 'kyg', 'kxg'],
+                Complex2DtoReal3D(self.variables.fk[0])
+            ),
+            'vorticity': (
+                ['complex_axis', 'kyg', 'kxg'],
+                Complex2DtoReal3D(self.variables.fk[1])
+            ),
+        }
+        coords = {
+            'kxg': np.squeeze(self.grid.kx),
+            'kyg': np.squeeze(self.grid.kyh),
+            'complex_axis': np.arange(2),  # axis to save complex number
+        }
+        filename = pathlib.Path(self.out_dir) / f'fields_{it:04d}.nc'
         ds = xr.Dataset(data_vars = data_vars, coords = coords)
         ds.to_netcdf(filename)
 
@@ -329,9 +394,9 @@ class HasegawaWakatani:
         """
         for step in range(self.ode.order):
             dfkdt = partial(self._rhs, pk=self.variables.pk)
-            self.variables.fk = self.ode.advance(f=dfkdt,
-                                                 y=self.variables.fk,
-                                                 step=step)
+            self.variables.fk = self.ode.advance(
+                f=dfkdt, y=self.variables.fk, step=step
+            )
             self.variables.pk = self._poisson(fk=self.variables.fk[1])
 
             self.variables.fk = realityCondition(self.variables.fk)
@@ -343,12 +408,15 @@ class HasegawaWakatani:
 
         Parameters
         ----------
-        fk (np.ndarray): The density and vorticity field.
-        pk (np.ndarray): The potential field.
+        fk : np.ndarray
+            The density and vorticity field.
+        pk : np.ndarray
+            The potential field.
 
         Returns
         -------
-        np.ndarray: The RHS of the vorticity equation.
+        np.ndarray
+            The RHS of the vorticity equation.
         """
         pbk = np.zeros_like(fk, dtype=np.complex128)
         dfkdt = np.zeros_like(fk, dtype=np.complex128)
@@ -356,12 +424,13 @@ class HasegawaWakatani:
         phiky = 1j * self.eta * self.grid.kyh * pk
         for i in range(2):
             pbk[i] = self._poissonBracket(f=fk[i], g=pk)
-
-            is_dns = i==0
-            dfkdt[i] = - pbk[i] \
-                       - phiky * np.float64(is_dns) \
-                       - self.ca * self.adiabacity_factor * (fk[0] - pk) \
-                       - self.nu * fk[i] * self.grid.ksq**2
+            is_dns = i == 0
+            dfkdt[i] = (
+                -pbk[i]
+                - phiky * np.float64(is_dns)
+                - self.ca * self.adiabacity_factor * (fk[0] - pk)
+                - self.nu * fk[i] * self.grid.ksq**2
+            )
 
         return dfkdt
 
@@ -372,12 +441,15 @@ class HasegawaWakatani:
 
         Parameters
         ----------
-        f (np.ndarray): The first field.
-        g (np.ndarray): The second field.
+        f : np.ndarray
+            The first field.
+        g : np.ndarray
+            The second field.
 
         Returns
         -------
-        np.ndarray: The Poisson bracket of the two fields.
+        np.ndarray
+            The Poisson bracket of the two fields.
         """
         ikx_f = 1j * self.grid.kx  * f
         iky_f = 1j * self.grid.kyh * f
@@ -407,11 +479,13 @@ class HasegawaWakatani:
 
         Parameters
         ----------
-        f (np.ndarray): The real space field.
+        f : np.ndarray
+            The real space field.
 
         Returns
         -------
-        np.ndarray: The Fourier representation of the real space field.
+        np.ndarray
+            The Fourier representation of the real space field.
         """
         nky, nkx2 = self.grid.nky, self.grid.nkx2
         nkx = (nkx2-1)//2
@@ -434,11 +508,13 @@ class HasegawaWakatani:
 
         Parameters
         ----------
-        fk (np.ndarray): The Fourier space field.
+        fk : np.ndarray
+            The Fourier space field.
 
         Returns
         -------
-        np.ndarray: The real representation of the Fourier space field.
+        np.ndarray
+            The real representation of the Fourier space field.
         """
         nky, nkx2 = self.grid.nky, self.grid.nkx2
         nkx = (nkx2-1)//2
@@ -460,26 +536,33 @@ class HasegawaWakatani:
 
         Parameters
         ----------
-        fk (np.ndarray): The Fourier representation of the vorticity field.
+        fk : np.ndarray
+            The Fourier representation of the vorticity field.
 
         Returns
         -------
-        np.ndarray: The solution of the Poisson equation in Fourier space.
+        np.ndarray
+            The solution of the Poisson equation in Fourier space.
         """
         return self.poisson_operator * fk
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(add_help=True)
-    parser.add_argument('-nx', nargs='?', type=int, default=128)
-    parser.add_argument('-lx', nargs='?', type=float, default=10.0)
-    parser.add_argument('-nbiter', nargs='?', type=int, default=10000)
-    parser.add_argument('-dt', nargs='?', type=float, default=0.005)
-    parser.add_argument('-out_dir', nargs='?', type=str, default='data_python')
+    parser.add_argument('-nx', nargs='?', type=int, default=128,
+                        help="Number of grid points in each spatial dimension")
+    parser.add_argument('-lx', nargs='?', type=float, default=10.0,
+                        help="Physical domain length in one spatial direction")
+    parser.add_argument('-nbiter', nargs='?', type=int, default=10000,
+                        help="Total number of simulation iterations")
+    parser.add_argument('-dt', nargs='?', type=float, default=0.005,
+                        help="Time step size for the integration scheme")
+    parser.add_argument('-out_dir', nargs='?', type=str, default='data_python',
+                        help="Directory where diagnostic output files will be saved")
     args = parser.parse_args()
 
     model = HasegawaWakatani(**vars(args))
     start = time.time()
     model.run()
     seconds = time.time() - start
-    
+
     print(f'Elapsed time: {seconds} [s]')

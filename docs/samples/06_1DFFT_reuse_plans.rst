@@ -16,5 +16,5 @@ kokkos-fft
 numpy
 -----
 
-.. literalinclude:: ../../examples/06_1DFFT_reuse_plans/numpy_1DFFT.py
+.. literalinclude:: ../../examples/06_1DFFT_reuse_plans/numpy_fft_1d.py
    :language: python
