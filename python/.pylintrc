@@ -19,7 +19,8 @@ confidence=
 # --disable=W".
 disable=invalid-name,
         too-many-instance-attributes,
-        too-few-public-methods
+        too-few-public-methods,
+        duplicate-code
 
 [DESIGN]
 
