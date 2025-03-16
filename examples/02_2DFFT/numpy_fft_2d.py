@@ -2,6 +2,9 @@
 #
 # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
+""" Example of 2D FFTs with numpy.fft
+"""
+
 import numpy as np
 
 if __name__ == '__main__':
