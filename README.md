@@ -136,7 +136,7 @@ This way, all the functionalities are executed on A100 GPUs. For installation, d
 
 ## Support
 
-Find us on Slack: https://kokkosteam.slack.com #kokkos-fft or open a GitHub issue.
+Find us on [Slack channel](https://kokkosteam.slack.com/archives/C07NM5SD3FD) or open a GitHub issue.
 
 ## Contributing
 
