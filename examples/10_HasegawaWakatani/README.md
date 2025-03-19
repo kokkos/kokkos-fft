@@ -50,7 +50,7 @@ For python version, we need the followings:
 
 ## python and kokkos implementation
 
-The phisical variables ![potential](https://latex.codecogs.com/svg.latex?\phi), ![density](https://latex.codecogs.com/svg.latex?n) and ![vorticity](https://latex.codecogs.com/svg.latex?u) are stored in two arrays. ![potential](https://latex.codecogs.com/svg.latex?\phi) is stored in a complex 2D array `pk`. ![density](https://latex.codecogs.com/svg.latex?n) and ![vorticity](https://latex.codecogs.com/svg.latex?u) are stacked and stored in a complex 3D array `fk`. Since these are originally real variables, they have Hermitian symmetry for their Fourier representation. Thus, we represent them in the half domain in y direction, whose shape is `[0:nky+1, -nkx:nkx]`.
+The physical variables ![potential](https://latex.codecogs.com/svg.latex?\phi), ![density](https://latex.codecogs.com/svg.latex?n) and ![vorticity](https://latex.codecogs.com/svg.latex?u) are stored in two arrays. ![potential](https://latex.codecogs.com/svg.latex?\phi) is stored in a complex 2D array `pk`. ![density](https://latex.codecogs.com/svg.latex?n) and ![vorticity](https://latex.codecogs.com/svg.latex?u) are stacked and stored in a complex 3D array `fk`. Since these are originally real variables, they have Hermitian symmetry for their Fourier representation. Thus, we represent them in the half domain in y direction, whose shape is `[0:nky+1, -nkx:nkx]`.
 
 Let us consider the most computational kernel of this code, the nonlinear term. In python, it is implemented by
 
