@@ -4,25 +4,23 @@
 
 # Generate base images for each compiler environment. Images are stored on
 # Github registry as Docker format inconditionnaly and as Singularity format
-# only if requested.  Docker images are used for building Kokkos FFT, while
+# only if requested. Docker images are used for building Kokkos FFT, while
 # Singularity images are used for test execution on the righteous hardware.
-# This workflow can only be invoked through another workflows.
+# It runs once month, on any push on `main` if Docker files are changed, and
+# mannualy.
 
-name: Build base images
+name: Create base images
 
 on:
-  workflow_call:
-    inputs:
-      image_suffix:
-        description: "Suffix of the Docker and Singularity images"
-        required: false
-        default: main
-        type: string
-      image_tag:
-        description: "Tag of the Docker and Singularity images"
-        required: false
-        default: latest
-        type: string
+  schedule:
+    - cron: "0 1 2 * *" # every 2nd of the month at 1am UTC
+  push:
+    branches:
+      - 'main'
+    paths:
+      - 'docker/**/Dockerfile'
+  pull_request:
+  workflow_dispatch:
 
 env:
   # Force the use of BuildKit for Docker
@@ -79,19 +77,19 @@ jobs:
       - name: Build Docker image
         run: |
           docker build \
-            -t ghcr.io/kokkos/kokkos-fft/base_${{ matrix.image.name }}_${{ inputs.image_suffix }}:${{ inputs.image_tag }} \
-            --cache-from ghcr.io/kokkos/kokkos-fft/base_${{ matrix.image.name }}_main:latest \
+            -t ghcr.io/kokkos/kokkos-fft/base_${{ matrix.image.name }}:latest \
+            --cache-from ghcr.io/kokkos/kokkos-fft/base_${{ matrix.image.name }}:latest \
             --build-arg BUILDKIT_INLINE_CACHE=1 \
             --progress=plain \
             docker/${{ matrix.image.name }}
 
       - name: Push Docker image
-        run: docker push ghcr.io/kokkos/kokkos-fft/base_${{ matrix.image.name }}_${{ inputs.image_suffix }}:${{ inputs.image_tag }}
+        run: docker push ghcr.io/kokkos/kokkos-fft/base_${{ matrix.image.name }}:latest
 
       - name: Convert Docker image to Singularity
-        run: singularity build base.sif docker://ghcr.io/kokkos/kokkos-fft/base_${{ matrix.image.name }}_${{ inputs.image_suffix }}:${{ inputs.image_tag }}
+        run: singularity build base.sif docker://ghcr.io/kokkos/kokkos-fft/base_${{ matrix.image.name }}:latest
         if: ${{ matrix.image.use_singularity }}
 
       - name: Push Singularity image
-        run: singularity push base.sif oras://ghcr.io/kokkos/kokkos-fft/base_${{ matrix.image.name }}_singularity_${{ inputs.image_suffix }}:${{ inputs.image_tag }}
+        run: singularity push base.sif oras://ghcr.io/kokkos/kokkos-fft/base_${{ matrix.image.name }}_singularity:latest
         if: ${{ matrix.image.use_singularity }}
