@@ -8,6 +8,8 @@
 # Singularity images are used for test execution on the righteous hardware.
 # It runs once month, on any push on `main` if Docker files are changed, and
 # mannualy.
+# It also runs on pull requests, but thin the Singularity image is not created,
+# and no images are pushed to the registry.
 
 name: Create base images
 
@@ -20,6 +22,8 @@ on:
     paths:
       - 'docker/**/Dockerfile'
   pull_request:
+    paths:
+      - 'docker/**/Dockerfile'
   workflow_dispatch:
 
 env:
@@ -27,8 +31,9 @@ env:
   DOCKER_BUILDKIT: 1
 
 jobs:
-  build_base:
+  create_base:
     runs-on: ubuntu-latest
+
     permissions:
       contents: read
       packages: write
@@ -85,11 +90,12 @@ jobs:
 
       - name: Push Docker image
         run: docker push ghcr.io/kokkos/kokkos-fft/base_${{ matrix.image.name }}:latest
+        if: ${{ github.event != 'pull_request' }}
 
       - name: Convert Docker image to Singularity
         run: singularity build base.sif docker://ghcr.io/kokkos/kokkos-fft/base_${{ matrix.image.name }}:latest
-        if: ${{ matrix.image.use_singularity }}
+        if: ${{ matrix.image.use_singularity && github.event != 'pull_request' }}
 
       - name: Push Singularity image
         run: singularity push base.sif oras://ghcr.io/kokkos/kokkos-fft/base_${{ matrix.image.name }}_singularity:latest
-        if: ${{ matrix.image.use_singularity }}
+        if: ${{ matrix.image.use_singularity && github.event != 'pull_request' }}
