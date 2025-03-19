@@ -11,6 +11,16 @@ Each backend/compiler has a corresponding Dockerfile.
 
 # Contributing
 
+## Update the Dockerfiles
+
+If you have to update a Dockerfile, please do it in a specific PR.
+This is cumbersome, but it guarantees that Docker images are not messed up in the registry.
+
+By instance, let's say you want to add a new backend, which requires a new Dockerfile:
+
+- Step 1: Create a branch for the new Dockerfile. Have it reviewed and merged. The new image will be added to the registry when the branch is merged.
+- Step 2: Create a branch for the new backend, which CI uses the newly added Dockerfile.
+
 ## CMake installation in Dockerfiles
 
 As the project requires CMake v3.23 at least, and as some Dockerfiles are based on Ubuntu 20.04 images, CMake has to be installed manually.
@@ -24,4 +34,4 @@ When updating the Dockerfiles for a newer version of CMake (if needed), the proc
 2. Copy the key ID in the line "PGP sign by XXXXXXXX";
 3. Paste it in `https://keys.openpgp.org/` to retrieve the URL of the public key file;
 4. Copy the last part in the URL `https://keys.openpgp.org/vks/v1/by-fingerprint/YYYYYYYY`;
-5. Update the Dockrfiles with this value.
+5. Update the Dockerfiles with this value.
