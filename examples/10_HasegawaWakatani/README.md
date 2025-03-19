@@ -4,6 +4,11 @@ SPDX-FileCopyrightText: (C) The kokkos-fft development team, see COPYRIGHT.md fi
 SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 -->
 
+<div style style=”line-height: 25%” align="center">
+<h3> 2D Hasegawa-Wakatani turbulence </h3>
+<img src=../../docs/imgs/hw_anime.gif>
+</div>
+
 # Solving 2D Hasegawa-Wakatani turbulence with Fourier spectral method
 
 For turbulence simulations, we sometimes consider periodic boundaries by assuming that a system is homogeneous and isotropic. Under the periodic boundary conditions, we can solve the system of equations with Fourier spectral method. Here, we consider a typical 2D turbulence plasma turbulence model, called Hasegawa-Wakatani equation `[Wakatani, 1984]`. With kokkos and kokkos-fft, we can easily implement the code just like python while getting a significant acceleration.
@@ -16,7 +21,7 @@ In Fourier space, 2D Hasegawa-Wakatani model can be described as
 
  ![Vorticity eq](https://latex.codecogs.com/svg.latex?\frac{\partial\hat{n}_k}{\partial{t}}+\\{\tilde{\phi},\tilde{n}\\}_k=-i\kappa{k_{y}}\hat{\phi}_k+C_{k}\left(\hat{\phi}_k-\hat{n}_k\right)-\nu{k}^4\hat{n}_k)
 
-The upper one is the vorticity equation and the lower one is the continuity equation, where ![vorticity](https://latex.codecogs.com/svg.latex?u), ![density](https://latex.codecogs.com/svg.latex?n) and ![potential](https://latex.codecogs.com/svg.latex?\phi) are vorticity, density and potential respectively. The vorticity ![vorticity](https://latex.codecogs.com/svg.latex?u) satisfies the following equation.
+The upper one is the vorticity equation and the lower one is the continuity equation, where ![potential](https://latex.codecogs.com/svg.latex?\phi), ![density](https://latex.codecogs.com/svg.latex?n) and ![vorticity](https://latex.codecogs.com/svg.latex?u) are potential, density and vorticity respectively (shown in the animation). The vorticity ![vorticity](https://latex.codecogs.com/svg.latex?u) satisfies the following equation.
 
  ![Poisson eq](https://latex.codecogs.com/svg.latex?\tilde{u}=\nabla^2\tilde{\phi})
 
@@ -45,7 +50,9 @@ For python version, we need the followings:
 
 ## python and kokkos implementation
 
-As imagined, the nonlinear term is the core computational kernel of this code. In python, it is implemented by
+The phisical variables ![potential](https://latex.codecogs.com/svg.latex?\phi), ![density](https://latex.codecogs.com/svg.latex?n) and ![vorticity](https://latex.codecogs.com/svg.latex?u) are stored in two arrays. ![potential](https://latex.codecogs.com/svg.latex?\phi) is stored in a complex 2D array `pk`. ![density](https://latex.codecogs.com/svg.latex?n) and ![vorticity](https://latex.codecogs.com/svg.latex?u) are stacked and stored in a complex 3D array `fk`. Since these are originally real variables, they have Hermitian symmetry for their Fourier representation. Thus, we represent them in the half domain in y direction, whose shape is `[0:nky+1, -nkx:nkx]`.
+
+Let us consider the most computational kernel of this code, the nonlinear term. In python, it is implemented by
 
 ```python
 def _poissonBracket(self, f, g):
@@ -93,7 +100,6 @@ void poissonBracket(const FViewType& fk, const GViewType& gk, PViewType& pk) {
 ```
 
 `derivative` and `convolution` are parallelized by [`parallel_for`](https://kokkos.org/kokkos-core-wiki/API/core/parallel-dispatch/parallel_for.html) with [`MDRangePolicy`](https://kokkos.org/kokkos-core-wiki/API/core/policies/MDRangePolicy.html). For forward and backward FFTs, we create plans at initialization which are reused with [`KokkosFFT::execute`](https://kokkosfft.readthedocs.io/en/latest/intro/using.html#reuse-fft-plan). 
-
 
 ## How to run the simulation
 
