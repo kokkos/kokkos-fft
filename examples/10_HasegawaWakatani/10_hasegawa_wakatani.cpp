@@ -274,14 +274,14 @@ class HasegawaWakatani {
   // MDRanges used in the kernels
   using range2D_type = Kokkos::MDRangePolicy<
       execution_space,
-      Kokkos::Rank<2, Kokkos::Iterate::Default, Kokkos::Iterate::Default>>;
+      Kokkos::Rank<2, Kokkos::Iterate::Right, Kokkos::Iterate::Right>>;
   using tile2D_type  = typename range2D_type::tile_type;
   using point2D_type = typename range2D_type::point_type;
 
   // MDRanges used in the kernels
   using range3D_type = Kokkos::MDRangePolicy<
       execution_space,
-      Kokkos::Rank<3, Kokkos::Iterate::Default, Kokkos::Iterate::Default>>;
+      Kokkos::Rank<3, Kokkos::Iterate::Right, Kokkos::Iterate::Right>>;
   using tile3D_type  = typename range3D_type::tile_type;
   using point3D_type = typename range3D_type::point_type;
 
