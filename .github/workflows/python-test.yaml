@@ -38,4 +38,4 @@ jobs:
       - name: Check versions information in docs
         run: |
           cd python_scripts
-          python check_versions
+          python check_versions.py
