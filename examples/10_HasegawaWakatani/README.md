@@ -17,9 +17,9 @@ For turbulence simulations, we sometimes consider periodic boundaries by assumin
 
 In Fourier space, 2D Hasegawa-Wakatani model can be described as
 
- ![Continuity eq](https://latex.codecogs.com/svg.latex?\frac{\partial\hat{u}_k}{\partial{t}}+\\{\tilde{\phi},\tilde{u}\\}_k=-C_{k}\left(\hat{\phi}_k-\hat{n}_k\right)-\nu{k}^4\hat{u}_k)
+ ![Vorticity eq](https://latex.codecogs.com/svg.latex?\frac{\partial\hat{u}_k}{\partial{t}}+\\{\tilde{\phi},\tilde{u}\\}_k=-C_{k}\left(\hat{\phi}_k-\hat{n}_k\right)-\nu{k}^4\hat{u}_k)
 
- ![Vorticity eq](https://latex.codecogs.com/svg.latex?\frac{\partial\hat{n}_k}{\partial{t}}+\\{\tilde{\phi},\tilde{n}\\}_k=-i\eta{k_{y}}\hat{\phi}_k+C_{k}\left(\hat{\phi}_k-\hat{n}_k\right)-\nu{k}^4\hat{n}_k)
+ ![Continuity eq](https://latex.codecogs.com/svg.latex?\frac{\partial\hat{n}_k}{\partial{t}}+\\{\tilde{\phi},\tilde{n}\\}_k=-i\eta{k_{y}}\hat{\phi}_k+C_{k}\left(\hat{\phi}_k-\hat{n}_k\right)-\nu{k}^4\hat{n}_k)
 
 The upper one is the vorticity equation and the lower one is the continuity equation, where ![potential](https://latex.codecogs.com/svg.latex?\phi), ![density](https://latex.codecogs.com/svg.latex?n) and ![vorticity](https://latex.codecogs.com/svg.latex?u) are potential, density and vorticity respectively (shown in the animation). The vorticity ![vorticity](https://latex.codecogs.com/svg.latex?u) satisfies the following equation,
 
@@ -50,7 +50,7 @@ For python version, we need the followings:
 
 ## python and kokkos implementation
 
-The physical variables ![potential](https://latex.codecogs.com/svg.latex?\phi), ![density](https://latex.codecogs.com/svg.latex?n) and ![vorticity](https://latex.codecogs.com/svg.latex?u) are stored in two arrays. ![potential](https://latex.codecogs.com/svg.latex?\phi) is stored in a complex 2D array `pk`. ![density](https://latex.codecogs.com/svg.latex?n) and ![vorticity](https://latex.codecogs.com/svg.latex?u) are stacked and stored in a complex 3D array `fk`. Since these are originally real variables, they have Hermitian symmetry for their Fourier representation. Thus, we represent them in the half domain in y direction, whose shape is `[0:nky+1, -nkx:nkx]`. The numerical constants ![C_k](https://latex.codecogs.com/svg.latex?C_{k}), ![eta](https://latex.codecogs.com/svg.latex?\eta), and ![nu](https://latex.codecogs.com/svg.latex?\nu{k}) are respectively stored as member variabls, `ca`, `eta`, and `nu`.
+The physical variables ![potential](https://latex.codecogs.com/svg.latex?\phi), ![density](https://latex.codecogs.com/svg.latex?n) and ![vorticity](https://latex.codecogs.com/svg.latex?u) are stored in two arrays. ![potential](https://latex.codecogs.com/svg.latex?\phi) is stored in a complex 2D array `pk`. ![density](https://latex.codecogs.com/svg.latex?n) and ![vorticity](https://latex.codecogs.com/svg.latex?u) are stacked and stored in a complex 3D array `fk`. Since these are originally real variables, they have Hermitian symmetry for their Fourier representation. Thus, we represent them in the half domain in y direction, whose shape is `[0:nky+1, -nkx:nkx]`. The numerical constants ![C_k](https://latex.codecogs.com/svg.latex?C_{k}), ![eta](https://latex.codecogs.com/svg.latex?\eta), and ![nu](https://latex.codecogs.com/svg.latex?\nu_{k}) in the vorticity and continuity equations are respectively stored as member variabls, `ca`, `eta`, and `nu`.
 
 Let us consider the most computationally intensive kernel of this code, the nonlinear term. In python, it is implemented by
 
