@@ -28,11 +28,11 @@ def test_extract_versions_normal(tmp_path):
     )
     file_path = tmp_path / "test.md"
     file_path.write_text(content, encoding="utf-8")
-    
+
     # Call extract_versions with modules list including one missing module 'nvcc'
     modules = ["CMake", "gcc", "nvcc"]
     result = extract_versions(str(file_path), modules)
-    
+
     # Expect only keys for CMake and gcc
     expected = {
         "CMake": (3, 20, 1),
@@ -51,7 +51,7 @@ def test_file_not_found():
     non_existent_file = "non_existent_test_file.md"
     result = extract_versions(non_existent_file, ["CMake"])
     # Check that the result is empty.
-    assert result == {}
+    assert not result
 
 def test_extract_cmake_versions_normal(tmp_path):
     """
@@ -68,10 +68,10 @@ def test_extract_cmake_versions_normal(tmp_path):
     )
     file_path = tmp_path / "CMakeLists.txt"
     file_path.write_text(content, encoding="utf-8")
-    
+
     modules = ["gcc", "nvcc"]
     result = extract_cmake_versions(str(file_path), modules)
-    
+
     expected = {
         "CMake": (3, 18, 5),
         "gcc": (9, 3, 0),
@@ -88,7 +88,7 @@ def test_extract_cmake_versions_file_not_found():
     """
     non_existent_file = "non_existent_CMakeLists.txt"
     result = extract_cmake_versions(non_existent_file, ["gcc"])
-    assert result == {}
+    assert not result
 
 def test_is_subdictionary():
     """
