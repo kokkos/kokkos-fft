@@ -30,7 +30,7 @@ jobs:
 
       - name: Analysing the code with pylint
         run: |
-          pylint --rcfile=python_scripts/.pylintrc $(git ls-files 'examples/**/*.py')
+          pylint --rcfile=python_scripts/.pylintrc $(git ls-files 'examples/**/*.py' 'python_scripts/*.py')
       
       - name: Test with pytest
         run: pytest examples/09_derivative
