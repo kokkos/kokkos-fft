@@ -138,26 +138,28 @@ def is_subdictionary(sub: dict, main: dict) -> bool:
     # Check that each lower-case key from sub exists in main with the same value.
     return all(key in main_lower and main_lower[key] == sub_lower[key] for key in sub_lower)
 
-if __name__ == "__main__":    
+if __name__ == "__main__":
     # Get versions from the README.md as a reference
-    module_list = ['CMake', 'Kokkos', 'gcc', 'IntelLLVM', 'nvcc', 'rocm']
-    reference_readme = pathlib.Path('..') / 'README.md'
+    module_list = ["CMake", "Kokkos", "gcc", "IntelLLVM", "nvcc", "rocm"]
+    reference_readme = pathlib.Path("..") / "README.md"
     reference_versions = extract_versions(str(reference_readme), module_list)
 
     # Get versions from multiple files
-    readme_in_example = pathlib.Path('../examples/10_HasegawaWakatani') / 'README.md'
-    docs_building = pathlib.Path('../docs/intro') / 'building.rst'
-    docs_quick_start = pathlib.Path('../docs/intro') / 'quick_start.rst'
-    cmake_file = pathlib.Path('..') / 'CMakeLists.txt'
+    readme_in_example = pathlib.Path("../examples/10_HasegawaWakatani") / "README.md"
+    docs_building = pathlib.Path("../docs/intro") / "building.rst"
+    docs_quick_start = pathlib.Path("../docs/intro") / "quick_start.rst"
+    cmake_file = pathlib.Path("..") / "CMakeLists.txt"
 
+    error_message = ""
     inspected_files = [readme_in_example, docs_building, docs_quick_start, cmake_file]
     for inspected_file in inspected_files:
-        versions_in_file = extract_cmake_versions(str(inspected_file), ['Kokkos']) \
+        versions_in_file = extract_cmake_versions(str(inspected_file), ["Kokkos"]) \
             if inspected_file == cmake_file else extract_versions(str(inspected_file), module_list)
 
         if is_subdictionary(sub=versions_in_file, main=reference_versions):
-            print(f'All the versions are consistent between {inspected_file} and README.md.')
+            print(f"All the versions are consistent between {inspected_file} and README.md.")
         else:
+            version_matched = False
             # Create a dictionary to store the mismatches.
             mismatches = {}
 
@@ -167,7 +169,22 @@ if __name__ == "__main__":
             for key in all_keys:
                 val1 = reference_versions.get(key)
                 val2 = versions_in_file.get(key)
-                if val1 != val2:
-                    mismatches[key] = (f'{str(reference_readme)}: {val1}', f'{str(inspected_file)}: {val2}')
 
-            raise ValueError(f"Versions are not identical. Mismatches: {mismatches}")    
+                # Check only if the key exists in both dictionaries.
+                if val2 is not None and val1 != val2:
+                    mismatches[key] = (
+                        f"{str(reference_readme)}: {val1}",
+                        f"{str(inspected_file)}: {val2}",
+                    )
+
+            error_message += (
+                f"Versions are not identical between {inspected_file} "
+                "and ../README.md\n"
+            )
+            for key, values in mismatches.items():
+                error_message += f"  {key}:\n"
+                error_message += f"    {values[0]}\n"
+                error_message += f"    {values[1]}\n"
+
+    if error_message:
+        raise ValueError(error_message)
