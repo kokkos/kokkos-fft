@@ -33,9 +33,8 @@ jobs:
           pylint --rcfile=python_scripts/.pylintrc $(git ls-files 'examples/**/*.py' 'python_scripts/*.py')
       
       - name: Test with pytest
-        run: pytest examples/09_derivative
+        run: pytest examples/09_derivative python_scripts
 
       - name: Check versions information in docs
         run: |
-          cd python_scripts
-          python check_versions.py
+          python python_scripts/check_versions.py

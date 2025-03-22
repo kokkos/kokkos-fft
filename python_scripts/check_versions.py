@@ -141,14 +141,14 @@ def is_subdictionary(sub: dict, main: dict) -> bool:
 if __name__ == "__main__":
     # Get versions from the README.md as a reference
     module_list = ["CMake", "Kokkos", "gcc", "IntelLLVM", "nvcc", "rocm"]
-    reference_readme = pathlib.Path("..") / "README.md"
-    reference_versions = extract_versions(str(reference_readme), module_list)
+    reference_readme = "README.md"
+    reference_versions = extract_versions(reference_readme, module_list)
 
     # Get versions from multiple files
-    readme_in_example = pathlib.Path("../examples/10_HasegawaWakatani") / "README.md"
-    docs_building = pathlib.Path("../docs/intro") / "building.rst"
-    docs_quick_start = pathlib.Path("../docs/intro") / "quick_start.rst"
-    cmake_file = pathlib.Path("..") / "CMakeLists.txt"
+    readme_in_example = pathlib.Path("examples/10_HasegawaWakatani") / "README.md"
+    docs_building = pathlib.Path("docs/intro") / "building.rst"
+    docs_quick_start = pathlib.Path("docs/intro") / "quick_start.rst"
+    cmake_file = pathlib.Path(".") / "CMakeLists.txt"
 
     error_message = ""
     inspected_files = [readme_in_example, docs_building, docs_quick_start, cmake_file]
@@ -179,7 +179,7 @@ if __name__ == "__main__":
 
             error_message += (
                 f"Versions are not identical between {inspected_file} "
-                "and ../README.md\n"
+                "and README.md\n"
             )
             for key, values in mismatches.items():
                 error_message += f"  {key}:\n"
