@@ -8,7 +8,7 @@
 # Singularity images are used for test execution on the righteous hardware.
 # It runs once month, on any push on `main` if Docker files are changed, and
 # mannualy.
-# It also runs on pull requests, but thin the Singularity image is not created,
+# It also runs on pull requests, but then the Singularity image is not created,
 # and no images are pushed to the registry.
 
 name: Create base images
