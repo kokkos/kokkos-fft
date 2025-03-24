@@ -159,7 +159,6 @@ if __name__ == "__main__":
         if is_subdictionary(sub=versions_in_file, main=reference_versions):
             print(f"All the versions are consistent between {inspected_file} and README.md.")
         else:
-            version_matched = False
             # Create a dictionary to store the mismatches.
             mismatches = {}
 
