@@ -21,7 +21,11 @@ option(KokkosFFT_ENABLE_BENCHMARK "Build benchmarks for KokkosFFT" OFF)
 option(KokkosFFT_ENABLE_DOCS "Build KokkosFFT documentaion/website" OFF)
 
 # Device specific options
+option(KokkosFFT_ENABLE_FFTW "Enable fftw as a KokkosFFT backend on CPUs" ON)
+option(KokkosFFT_ENABLE_CUFFT "Enable cufft as a KokkosFFT backend on NVIDIA GPUs" ON)
 option(KokkosFFT_ENABLE_ROCFFT "Enable rocfft as a KokkosFFT backend on AMD GPUs" OFF)
+option(KokkosFFT_ENABLE_HIPFFT "Enable hipfft as a KokkosFFT backend on AMD GPUs" ON)
+option(KokkosFFT_ENABLE_ONEMKL "Enable onemkl as a KokkosFFT backend on Intel GPUs" ON)
 
 # Version information
 set(KOKKOSFFT_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
