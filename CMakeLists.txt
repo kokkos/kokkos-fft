@@ -20,9 +20,6 @@ option(KokkosFFT_ENABLE_TESTS "Build KokkosFFT tests" OFF)
 option(KokkosFFT_ENABLE_BENCHMARK "Build benchmarks for KokkosFFT" OFF)
 option(KokkosFFT_ENABLE_DOCS "Build KokkosFFT documentaion/website" OFF)
 
-# Device specific options
-option(KokkosFFT_ENABLE_ROCFFT "Enable rocfft as a KokkosFFT backend on AMD GPUs" OFF)
-
 # Version information
 set(KOKKOSFFT_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
 set(KOKKOSFFT_VERSION_MINOR ${PROJECT_VERSION_MINOR})
@@ -40,6 +37,17 @@ if(NOT KokkosFFT_ENABLE_INTERNAL_KOKKOS)
 else()
   add_subdirectory(tpls/kokkos)
 endif()
+
+# Device specific options
+set(HOST_BACKEND_ENABLED OFF CACHE BOOL "One of the Kokkos host backend is enabled")
+if(Kokkos_ENABLE_SERIAL OR Kokkos_ENABLE_THREADS OR Kokkos_ENABLE_OPENMP)
+  set(HOST_BACKEND_ENABLED ON)
+endif()
+option(KokkosFFT_ENABLE_FFTW "Enable fftw as a KokkosFFT backend on CPUs" ${HOST_BACKEND_ENABLED})
+option(KokkosFFT_ENABLE_CUFFT "Enable cufft as a KokkosFFT backend on NVIDIA GPUs" ${Kokkos_ENABLE_CUDA})
+option(KokkosFFT_ENABLE_ROCFFT "Enable rocfft as a KokkosFFT backend on AMD GPUs" OFF)
+option(KokkosFFT_ENABLE_HIPFFT "Enable hipfft as a KokkosFFT backend on AMD GPUs" ${Kokkos_ENABLE_HIP})
+option(KokkosFFT_ENABLE_ONEMKL "Enable onemkl as a KokkosFFT backend on Intel GPUs" ${Kokkos_ENABLE_SYCL})
 
 # Set tpls
 set(KOKKOSFFT_TPL_LIST)
