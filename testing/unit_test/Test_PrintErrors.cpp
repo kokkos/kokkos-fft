@@ -128,12 +128,15 @@ void test_print_errors_1D_analytical() {
   Kokkos::deep_copy(loc_error, h_loc_error);
 
   auto error_map =
-      KokkosFFT::Testing::Impl::sort_errors(a_error, b_error, loc_error);
+      KokkosFFT::Testing::Impl::sort_errors(b_error, a_error, loc_error);
 
+  // clang-format off
+  // NOLINTBEGIN(*)
   // Example error message. The floating point numbers may vary.
   // "Mismatched elements (by indices):\n"
-  // "  Index (0): actual 3.0000000000000000 vs expected 3.0000599999999999
-  // (diff=0.0000599999999999)";
+  // "  Index (0): actual 3.0000599999999999 vs expected 3.0000000000000000 (diff=0.0000599999999999)";
+  // NOLINTEND(*)
+  // clang-format on
   std::string error_str = KokkosFFT::Testing::Impl::print_errors(error_map);
 
   // Regular expression pattern matching the expected format.
@@ -141,7 +144,7 @@ void test_print_errors_1D_analytical() {
   // \s+ matches one or more whitespace characters.
   // Updated regex pattern: Replace \d with [0-9]
   std::string pattern =
-      R"(Mismatched elements \(by indices\):\n\s+Index \(0\): actual [0-9]+\.[0-9]+ vs expected [0-9]+\.[0-9]+ \(diff=[0-9]+\.[0-9]+\))";
+      R"(Mismatched elements \(by indices\):)" "\n" R"(\s+Index \(0\): actual [0-9]+\.[0-9]+ vs expected [0-9]+\.[0-9]+ \(diff=[0-9]+\.[0-9]+\))";
 
   // Using GoogleMock's MatchesRegex matcher to compare the string with the
   // pattern.
@@ -178,13 +181,16 @@ void test_print_errors_2D_analytical() {
   Kokkos::deep_copy(loc_error, h_loc_error);
 
   auto error_map =
-      KokkosFFT::Testing::Impl::sort_errors(a_error, b_error, loc_error);
+      KokkosFFT::Testing::Impl::sort_errors(b_error, a_error, loc_error);
 
+  // clang-format off
+  // NOLINTBEGIN(*)
   // Example error message. The floating point numbers may vary.
   // "Mismatched elements (by indices):\n"
-  // "  Index (0, 1): actual 3.0000000000000000 vs expected 3.0000599999999999
-  // (diff=0.0000599999999999)\n" "  Index (1, 1): actual 3.0000000000000000 vs
-  // expected 4.0000000000000000 (diff=1.0000000000000000)";
+  // "  Index (0, 1): actual 3.0000599999999999 vs expected 3.0000000000000000 (diff=0.0000599999999999)\n"
+  // "  Index (1, 1): actual 4.0000000000000000 vs expected 3.0000000000000000 (diff=1.0000000000000000)";
+  // NOLINTEND(*)
+  // clang-format on
   std::string error_str = KokkosFFT::Testing::Impl::print_errors(error_map);
 
   // Regular expression pattern matching the expected format.
@@ -192,7 +198,7 @@ void test_print_errors_2D_analytical() {
   // \s+ matches one or more whitespace characters.
   // Updated regex pattern: Replace \d with [0-9]
   std::string pattern =
-      R"(Mismatched elements \(by indices\):\n\s+Index \(0, 1\): actual [0-9]+\.[0-9]+ vs expected [0-9]+\.[0-9]+ \(diff=[0-9]+\.[0-9]+\)\n\s+Index \(1, 1\): actual [0-9]+\.[0-9]+ vs expected [0-9]+\.[0-9]+ \(diff=[0-9]+\.[0-9]+\))";
+      R"(Mismatched elements \(by indices\):)" "\n" R"(\s+Index \(0, 1\): actual [0-9]+\.[0-9]+ vs expected [0-9]+\.[0-9]+ \(diff=[0-9]+\.[0-9]+\))" "\n" R"(\s+Index \(1, 1\): actual [0-9]+\.[0-9]+ vs expected [0-9]+\.[0-9]+ \(diff=[0-9]+\.[0-9]+\))";
 
   // Using GoogleMock's MatchesRegex matcher to compare the string with the
   // pattern.
