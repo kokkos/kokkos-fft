@@ -60,7 +60,7 @@ auto sort_errors(const AErrorViewType &a_error, const BErrorViewType &b_error,
   using error_map_type = std::map<iType, error_value_type>;
   error_map_type error_map;
   const std::size_t nb_errors = h_a_error.extent(0);
-  const int rank              = h_loc_error.extent(1);
+  const std::size_t rank      = h_loc_error.extent(1);
 
   for (std::size_t err = 0; err < nb_errors; ++err) {
     iType global_idx = h_loc_error(err, 0);  // global idx -> key
