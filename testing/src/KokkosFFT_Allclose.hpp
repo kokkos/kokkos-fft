@@ -17,7 +17,7 @@ namespace Testing {
 
 MATCHER_P5(allclose, exec_space, expected, rtol, atol, verbose, "") {
   const std::size_t rank = arg.rank();
-  for (int i = 0; i < rank; i++) {
+  for (std::size_t i = 0; i < rank; i++) {
     if (arg.extent(i) != expected.extent(i)) {
       *result_listener << arg.label() + ".extent(" + std::to_string(i) + ") != "
                        << arg.label() + ".extent(" + std::to_string(i) + ")";
@@ -25,8 +25,8 @@ MATCHER_P5(allclose, exec_space, expected, rtol, atol, verbose, "") {
     }
   }
 
-  int errors = KokkosFFT::Testing::Impl::count_errors(exec_space, arg, expected,
-                                                      rtol, atol);
+  std::size_t errors = KokkosFFT::Testing::Impl::count_errors(
+      exec_space, arg, expected, rtol, atol);
   if (errors == 0) return true;
 
   auto [b_error, a_error, loc_error] = KokkosFFT::Testing::Impl::find_errors(
@@ -42,7 +42,7 @@ MATCHER_P5(allclose, exec_space, expected, rtol, atol, verbose, "") {
 
 MATCHER_P4(allclose, exec_space, expected, rtol, atol, "") {
   const std::size_t rank = arg.rank();
-  for (int i = 0; i < rank; i++) {
+  for (std::size_t i = 0; i < rank; i++) {
     if (arg.extent(i) != expected.extent(i)) {
       *result_listener << arg.label() + ".extent(" + std::to_string(i) + ") != "
                        << arg.label() + ".extent(" + std::to_string(i) + ")";
@@ -50,8 +50,8 @@ MATCHER_P4(allclose, exec_space, expected, rtol, atol, "") {
     }
   }
 
-  int errors = KokkosFFT::Testing::Impl::count_errors(exec_space, arg, expected,
-                                                      rtol, atol);
+  std::size_t errors = KokkosFFT::Testing::Impl::count_errors(
+      exec_space, arg, expected, rtol, atol);
   if (errors == 0) return true;
 
   auto [b_error, a_error, loc_error] = KokkosFFT::Testing::Impl::find_errors(
@@ -68,7 +68,7 @@ MATCHER_P4(allclose, exec_space, expected, rtol, atol, "") {
 MATCHER_P3(allclose, exec_space, expected, rtol, "") {
   double atol            = 1.0e-8;
   const std::size_t rank = arg.rank();
-  for (int i = 0; i < rank; i++) {
+  for (std::size_t i = 0; i < rank; i++) {
     if (arg.extent(i) != expected.extent(i)) {
       *result_listener << arg.label() + ".extent(" + std::to_string(i) + ") != "
                        << arg.label() + ".extent(" + std::to_string(i) + ")";
@@ -76,8 +76,8 @@ MATCHER_P3(allclose, exec_space, expected, rtol, "") {
     }
   }
 
-  int errors = KokkosFFT::Testing::Impl::count_errors(exec_space, arg, expected,
-                                                      rtol, atol);
+  std::size_t errors = KokkosFFT::Testing::Impl::count_errors(
+      exec_space, arg, expected, rtol, atol);
   if (errors == 0) return true;
 
   auto [b_error, a_error, loc_error] = KokkosFFT::Testing::Impl::find_errors(
@@ -94,7 +94,7 @@ MATCHER_P3(allclose, exec_space, expected, rtol, "") {
 MATCHER_P2(allclose, exec_space, expected, "") {
   const double rtol = 1.0e-5, atol = 1.0e-8;
   const std::size_t rank = arg.rank();
-  for (int i = 0; i < rank; i++) {
+  for (std::size_t i = 0; i < rank; i++) {
     if (arg.extent(i) != expected.extent(i)) {
       *result_listener << arg.label() + ".extent(" + std::to_string(i) + ") != "
                        << arg.label() + ".extent(" + std::to_string(i) + ")";
@@ -102,8 +102,8 @@ MATCHER_P2(allclose, exec_space, expected, "") {
     }
   }
 
-  int errors = KokkosFFT::Testing::Impl::count_errors(exec_space, arg, expected,
-                                                      rtol, atol);
+  std::size_t errors = KokkosFFT::Testing::Impl::count_errors(
+      exec_space, arg, expected, rtol, atol);
   if (errors == 0) return true;
 
   auto [b_error, a_error, loc_error] = KokkosFFT::Testing::Impl::find_errors(
