@@ -32,7 +32,7 @@ template <typename T>
 concept KokkosExecutionSpace = Kokkos::is_execution_space_v<T>;
 
 template <typename ExecutionSpace, typename ViewType>
-concept KokkosViewAccesible = (bool)Kokkos::SpaceAccessibility<
+concept KokkosViewAccessible = (bool)Kokkos::SpaceAccessibility<
     ExecutionSpace, typename ViewType::memory_space>::accessible;
 }  // namespace KokkosFFT
 

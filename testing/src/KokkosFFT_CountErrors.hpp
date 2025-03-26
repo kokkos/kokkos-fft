@@ -108,7 +108,7 @@ struct ViewErrors<ExecutionSpace, AViewType, BViewType, Layout, 1, iType> {
   /// \brief Retrieves the computed error count.
   ///
   /// \return The total number of mismatches detected.
-  const auto error() const { return m_error; }
+  auto error() const { return m_error; }
 };
 
 /// \brief Computes the number of error mismatches between two 2D Kokkos views.
@@ -182,7 +182,7 @@ struct ViewErrors<ExecutionSpace, AViewType, BViewType, Layout, 2, iType> {
   /// \brief Retrieves the computed error count.
   ///
   /// \return The total number of mismatches detected.
-  const auto error() const { return m_error; }
+  auto error() const { return m_error; }
 };
 
 /// \brief Finds errors in 1D Kokkos views by comparing two views element-wise.
@@ -275,7 +275,7 @@ struct FindErrors<ExecutionSpace, AViewType, BViewType, Layout, 1, iType> {
   ///
   ///\return A tuple containing the error view of the first input, the error
   /// view of the second input, and the error locations.
-  const auto error_info() const {
+  auto error_info() const {
     return std::make_tuple(m_a_error, m_b_error, m_loc_error);
   }
 };
@@ -383,7 +383,7 @@ struct FindErrors<ExecutionSpace, AViewType, BViewType, Layout, 2, iType> {
   ///
   /// \return A tuple containing the error view of the first input, the error
   /// view of the second input, and the error locations.
-  const auto error_info() const {
+  auto error_info() const {
     return std::make_tuple(m_a_error, m_b_error, m_loc_error);
   }
 };
@@ -406,8 +406,8 @@ struct FindErrors<ExecutionSpace, AViewType, BViewType, Layout, 2, iType> {
 /// \return The total number of mismatches detected.
 template <KokkosExecutionSpace ExecutionSpace, KokkosView AViewType,
           KokkosView BViewType>
-  requires KokkosViewAccesible<ExecutionSpace, AViewType> &&
-           KokkosViewAccesible<ExecutionSpace, BViewType>
+  requires KokkosViewAccessible<ExecutionSpace, AViewType> &&
+           KokkosViewAccessible<ExecutionSpace, BViewType>
 std::size_t count_errors(const ExecutionSpace& exec, const AViewType& a,
                          const BViewType& b, double rtol = 1.e-5,
                          double atol = 1.e-8) {
@@ -418,12 +418,12 @@ std::size_t count_errors(const ExecutionSpace& exec, const AViewType& a,
       (b.span() >= size_t(std::numeric_limits<int>::max()))) {
     if (iterate == Kokkos::Iterate::Right) {
       Impl::ViewErrors<ExecutionSpace, AViewType, BViewType,
-                       Kokkos::LayoutRight, AViewType::rank(), std::size_t>
+                       Kokkos::LayoutRight, AViewType::rank(), int64_t>
           view_errors(a, b, rtol, atol, exec);
       return view_errors.error();
     } else {
       Impl::ViewErrors<ExecutionSpace, AViewType, BViewType, Kokkos::LayoutLeft,
-                       AViewType::rank(), std::size_t>
+                       AViewType::rank(), int64_t>
           view_errors(a, b, rtol, atol, exec);
       return view_errors.error();
     }
@@ -467,8 +467,8 @@ std::size_t count_errors(const ExecutionSpace& exec, const AViewType& a,
 ///         - The Kokkos view of error location indices.
 template <KokkosExecutionSpace ExecutionSpace, KokkosView AViewType,
           KokkosView BViewType>
-  requires KokkosViewAccesible<ExecutionSpace, AViewType> &&
-           KokkosViewAccesible<ExecutionSpace, BViewType>
+  requires KokkosViewAccessible<ExecutionSpace, AViewType> &&
+           KokkosViewAccessible<ExecutionSpace, BViewType>
 auto find_errors(const ExecutionSpace& exec, const AViewType& a,
                  const BViewType& b, const std::size_t nb_errors,
                  double rtol = 1.e-5, double atol = 1.e-8) {
@@ -479,12 +479,12 @@ auto find_errors(const ExecutionSpace& exec, const AViewType& a,
       (b.span() >= size_t(std::numeric_limits<int>::max()))) {
     if (iterate == Kokkos::Iterate::Right) {
       Impl::FindErrors<ExecutionSpace, AViewType, BViewType,
-                       Kokkos::LayoutRight, AViewType::rank(), std::size_t>
+                       Kokkos::LayoutRight, AViewType::rank(), int64_t>
           view_errors(a, b, nb_errors, rtol, atol, exec);
       return view_errors.error_info();
     } else {
       Impl::FindErrors<ExecutionSpace, AViewType, BViewType, Kokkos::LayoutLeft,
-                       AViewType::rank(), std::size_t>
+                       AViewType::rank(), int64_t>
           view_errors(a, b, nb_errors, rtol, atol, exec);
       return view_errors.error_info();
     }
