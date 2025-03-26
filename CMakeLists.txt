@@ -107,6 +107,9 @@ if(KokkosFFT_ENABLE_TESTS)
   if(NOT GTest_FOUND)
     add_subdirectory(tpls/googletest)
   endif()
+  if(KokkosFFT_ENABLE_TESTING_TOOLS)
+    add_subdirectory(testing)
+  endif()
 endif()
 
 # Build documentation with Doxygen and Sphinx
