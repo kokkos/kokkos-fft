@@ -29,11 +29,11 @@ MATCHER_P5(allclose, exec_space, expected, rtol, atol, verbose, "") {
       exec_space, arg, expected, rtol, atol);
   if (errors == 0) return true;
 
-  auto [b_error, a_error, loc_error] = KokkosFFT::Testing::Impl::find_errors(
+  auto [a_val, e_val, loc_error] = KokkosFFT::Testing::Impl::find_errors(
       exec_space, arg, expected, errors, rtol, atol);
 
   auto error_map =
-      KokkosFFT::Testing::Impl::sort_errors(a_error, b_error, loc_error);
+      KokkosFFT::Testing::Impl::sort_errors(a_val, e_val, loc_error, verbose);
   std::string error_str = KokkosFFT::Testing::Impl::print_errors(error_map);
 
   *result_listener << error_str;
@@ -54,11 +54,11 @@ MATCHER_P4(allclose, exec_space, expected, rtol, atol, "") {
       exec_space, arg, expected, rtol, atol);
   if (errors == 0) return true;
 
-  auto [b_error, a_error, loc_error] = KokkosFFT::Testing::Impl::find_errors(
+  auto [a_val, e_val, loc_error] = KokkosFFT::Testing::Impl::find_errors(
       exec_space, arg, expected, errors, rtol, atol);
 
   auto error_map =
-      KokkosFFT::Testing::Impl::sort_errors(a_error, b_error, loc_error);
+      KokkosFFT::Testing::Impl::sort_errors(a_val, e_val, loc_error);
   std::string error_str = KokkosFFT::Testing::Impl::print_errors(error_map);
 
   *result_listener << error_str;
@@ -80,11 +80,11 @@ MATCHER_P3(allclose, exec_space, expected, rtol, "") {
       exec_space, arg, expected, rtol, atol);
   if (errors == 0) return true;
 
-  auto [b_error, a_error, loc_error] = KokkosFFT::Testing::Impl::find_errors(
+  auto [a_val, e_val, loc_error] = KokkosFFT::Testing::Impl::find_errors(
       exec_space, arg, expected, errors, rtol, atol);
 
   auto error_map =
-      KokkosFFT::Testing::Impl::sort_errors(a_error, b_error, loc_error);
+      KokkosFFT::Testing::Impl::sort_errors(a_val, e_val, loc_error);
   std::string error_str = KokkosFFT::Testing::Impl::print_errors(error_map);
 
   *result_listener << error_str;
@@ -106,11 +106,11 @@ MATCHER_P2(allclose, exec_space, expected, "") {
       exec_space, arg, expected, rtol, atol);
   if (errors == 0) return true;
 
-  auto [b_error, a_error, loc_error] = KokkosFFT::Testing::Impl::find_errors(
+  auto [a_val, e_val, loc_error] = KokkosFFT::Testing::Impl::find_errors(
       exec_space, arg, expected, errors, rtol, atol);
 
   auto error_map =
-      KokkosFFT::Testing::Impl::sort_errors(a_error, b_error, loc_error);
+      KokkosFFT::Testing::Impl::sort_errors(a_val, e_val, loc_error);
   std::string error_str = KokkosFFT::Testing::Impl::print_errors(error_map);
 
   *result_listener << error_str;

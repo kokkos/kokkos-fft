@@ -121,11 +121,9 @@ TYPED_TEST(TestFindErrors, View1D) {
   test_find_errors_1D_analytical<float_type>(this->m_rtol, this->m_atol);
 }
 
-/*
 TYPED_TEST(TestFindErrors, View2D) {
   using float_type = typename TestFixture::float_type;
   test_find_errors_2D_analytical<float_type>(this->m_rtol, this->m_atol);
 }
-*/
 
 }  // namespace
