@@ -144,7 +144,9 @@ void test_print_errors_1D_analytical() {
   // \s+ matches one or more whitespace characters.
   // Updated regex pattern: Replace \d with [0-9]
   std::string pattern =
-      R"(Mismatched elements \(by indices\):)" "\n" R"(\s+Index \(0\): actual [0-9]+\.[0-9]+ vs expected [0-9]+\.[0-9]+ \(diff=[0-9]+\.[0-9]+\))";
+      R"(Mismatched elements \(by indices\):)"
+      "\n"
+      R"(\s+Index \(0\): actual [0-9]+\.[0-9]+ vs expected [0-9]+\.[0-9]+ \(diff=[0-9]+\.[0-9]+\))";
 
   // Using GoogleMock's MatchesRegex matcher to compare the string with the
   // pattern.
@@ -198,7 +200,11 @@ void test_print_errors_2D_analytical() {
   // \s+ matches one or more whitespace characters.
   // Updated regex pattern: Replace \d with [0-9]
   std::string pattern =
-      R"(Mismatched elements \(by indices\):)" "\n" R"(\s+Index \(0, 1\): actual [0-9]+\.[0-9]+ vs expected [0-9]+\.[0-9]+ \(diff=[0-9]+\.[0-9]+\))" "\n" R"(\s+Index \(1, 1\): actual [0-9]+\.[0-9]+ vs expected [0-9]+\.[0-9]+ \(diff=[0-9]+\.[0-9]+\))";
+      R"(Mismatched elements \(by indices\):)"
+      "\n"
+      R"(\s+Index \(0, 1\): actual [0-9]+\.[0-9]+ vs expected [0-9]+\.[0-9]+ \(diff=[0-9]+\.[0-9]+\))"
+      "\n"
+      R"(\s+Index \(1, 1\): actual [0-9]+\.[0-9]+ vs expected [0-9]+\.[0-9]+ \(diff=[0-9]+\.[0-9]+\))";
 
   // Using GoogleMock's MatchesRegex matcher to compare the string with the
   // pattern.
