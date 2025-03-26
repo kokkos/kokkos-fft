@@ -21,7 +21,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: DoozyX/clang-format-lint-action@v0.18
       with:
-        source: 'common/ fft/ examples/ install_test/'
+        source: 'common/ fft/ examples/ install_test/ testing/'
         exclude: ''
         extensions: 'hpp,cpp'
         clangFormatVersion: 17
