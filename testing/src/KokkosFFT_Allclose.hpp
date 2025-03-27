@@ -23,7 +23,8 @@ namespace Impl {
 /// \tparam BViewType The type of the second Kokkos view.
 ///
 /// \param listener [out] The testing match result listener.
-/// \param exec_space [in] The execution space used to launch the parallel kernel.
+/// \param exec_space [in] The execution space used to launch the parallel
+/// kernel.
 /// \param actual [in] The actual Kokkos view.
 /// \param expected [in] The expected (reference) Kokkos view.
 /// \param rtol [in]  Relative tolerance for comparing the view elements
