@@ -4,8 +4,9 @@
 
 #include <gtest/gtest.h>
 #include "KokkosFFT_utils.hpp"
-#include "Test_Types.hpp"
 
+namespace {
+using execution_space = Kokkos::DefaultExecutionSpace;
 using test_types = ::testing::Types<Kokkos::LayoutLeft, Kokkos::LayoutRight>;
 
 // Int like types
@@ -586,3 +587,5 @@ TYPED_TEST(PairedScalarTypes, are_pointers_aliasing) {
   using value_type2 = typename TestFixture::value_type2;
   test_are_pointers_aliasing<value_type1, value_type2>();
 }
+
+}  // namespace

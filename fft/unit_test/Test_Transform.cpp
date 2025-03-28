@@ -7,8 +7,10 @@
 #include <random>
 #include <Kokkos_Random.hpp>
 #include "KokkosFFT_Transform.hpp"
-#include "Test_Types.hpp"
 #include "Test_Utils.hpp"
+
+namespace {
+using execution_space = Kokkos::DefaultExecutionSpace;
 
 template <std::size_t DIM>
 using shape_type = KokkosFFT::shape_type<DIM>;
@@ -73,8 +75,8 @@ void test_fft1_identity(T atol = 1.0e-12) {
     KokkosFFT::rfft(execution_space(), ar, ar_hat);
     KokkosFFT::irfft(execution_space(), ar_hat, inv_ar_hat);
 
-    EXPECT_TRUE(allclose(inv_a_hat, a_ref, 1.e-5, atol));
-    EXPECT_TRUE(allclose(inv_ar_hat, ar_ref, 1.e-5, atol));
+    EXPECT_TRUE(allclose(execution_space(), inv_a_hat, a_ref, 1.e-5, atol));
+    EXPECT_TRUE(allclose(execution_space(), inv_ar_hat, ar_ref, 1.e-5, atol));
   }
 }
 
@@ -111,8 +113,8 @@ void test_fft1_identity_inplace(T atol = 1.0e-12) {
 
     Kokkos::fence();
 
-    EXPECT_TRUE(allclose(inv_a_hat, a_ref, 1.e-5, atol));
-    EXPECT_TRUE(allclose(inv_ar_hat, ar_ref, 1.e-5, atol));
+    EXPECT_TRUE(allclose(execution_space(), inv_a_hat, a_ref, 1.e-5, atol));
+    EXPECT_TRUE(allclose(execution_space(), inv_ar_hat, ar_ref, 1.e-5, atol));
 
     // Create a plan for inplace transform
     Kokkos::deep_copy(a_ref, a);
@@ -135,8 +137,8 @@ void test_fft1_identity_inplace(T atol = 1.0e-12) {
                                KokkosFFT::Direction::backward, axis);
     KokkosFFT::execute(irfft_plan, ar_hat, inv_ar_hat);
 
-    EXPECT_TRUE(allclose(inv_a_hat, a_ref, 1.e-5, atol));
-    EXPECT_TRUE(allclose(inv_ar_hat, ar_ref, 1.e-5, atol));
+    EXPECT_TRUE(allclose(execution_space(), inv_a_hat, a_ref, 1.e-5, atol));
+    EXPECT_TRUE(allclose(execution_space(), inv_ar_hat, ar_ref, 1.e-5, atol));
 
     // inplace Plan cannot be reused for out-of-place case
     ComplexView1DType a_hat_out("a_hat_out", i),
@@ -198,8 +200,8 @@ void test_fft1_identity_reuse_plan(T atol = 1.0e-12) {
                                KokkosFFT::Direction::backward, axis);
     KokkosFFT::execute(irfft_plan, ar_hat, inv_ar_hat);
 
-    EXPECT_TRUE(allclose(inv_a_hat, a_ref, 1.e-5, atol));
-    EXPECT_TRUE(allclose(inv_ar_hat, ar_ref, 1.e-5, atol));
+    EXPECT_TRUE(allclose(execution_space(), inv_a_hat, a_ref, 1.e-5, atol));
+    EXPECT_TRUE(allclose(execution_space(), inv_ar_hat, ar_ref, 1.e-5, atol));
   }
 
   ComplexView1DType a("a", maxlen), a_ref("a_ref", maxlen);
@@ -311,14 +313,14 @@ void test_fft1_1dfft_1dview() {
   KokkosFFT::fft(execution_space(), x, out_f,
                  KokkosFFT::Normalization::forward);
 
-  fft1(x, ref);
-  multiply(out_o, sqrt(static_cast<T>(len)));
-  multiply(out_f, static_cast<T>(len));
+  fft1(execution_space(), x, ref);
+  multiply(execution_space(), out_o, sqrt(static_cast<T>(len)));
+  multiply(execution_space(), out_f, static_cast<T>(len));
 
-  EXPECT_TRUE(allclose(out, ref, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_b, ref, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_o, ref, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_f, ref, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out, ref, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_b, ref, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_o, ref, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_f, ref, 1.e-5, 1.e-6));
 }
 
 template <typename T, typename LayoutType>
@@ -345,15 +347,15 @@ void test_fft1_1difft_1dview() {
   KokkosFFT::ifft(execution_space(), x, out_f,
                   KokkosFFT::Normalization::forward);
 
-  ifft1(x, ref);
-  multiply(out_o, sqrt(static_cast<T>(len)));
-  multiply(out_b, static_cast<T>(len));
-  multiply(out, static_cast<T>(len));
+  ifft1(execution_space(), x, ref);
+  multiply(execution_space(), out_o, sqrt(static_cast<T>(len)));
+  multiply(execution_space(), out_b, static_cast<T>(len));
+  multiply(execution_space(), out, static_cast<T>(len));
 
-  EXPECT_TRUE(allclose(out, ref, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_b, ref, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_o, ref, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_f, ref, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out, ref, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_b, ref, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_o, ref, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_f, ref, 1.e-5, 1.e-6));
 }
 
 template <typename T, typename LayoutType>
@@ -414,13 +416,13 @@ void test_fft1_1dhfft_1dview() {
   KokkosFFT::hfft(execution_space(), x_herm, out_f,
                   KokkosFFT::Normalization::forward);
 
-  multiply(out_o, sqrt(static_cast<T>(len)));
-  multiply(out_f, static_cast<T>(len));
+  multiply(execution_space(), out_o, sqrt(static_cast<T>(len)));
+  multiply(execution_space(), out_f, static_cast<T>(len));
 
-  EXPECT_TRUE(allclose(out, ref, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_b, out, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_o, out, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_f, out, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out, ref, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_b, out, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_o, out, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_f, out, 1.e-5, 1.e-6));
 }
 
 template <typename T, typename LayoutType>
@@ -477,10 +479,10 @@ void test_fft1_1dihfft_1dview() {
   KokkosFFT::ihfft(execution_space(), out1_f, out2_f,
                    KokkosFFT::Normalization::forward);
 
-  EXPECT_TRUE(allclose(out2, x_herm_ref, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out2_b, x_herm_ref, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out2_o, x_herm_ref, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out2_f, x_herm_ref, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out2, x_herm_ref, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out2_b, x_herm_ref, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out2_o, x_herm_ref, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out2_f, x_herm_ref, 1.e-5, 1.e-6));
 }
 
 template <typename T, typename LayoutType>
@@ -527,12 +529,12 @@ void test_fft1_shape(T atol = 1.0e-12) {
     KokkosFFT::rfft(execution_space(), xr, outr_f,
                     KokkosFFT::Normalization::forward, -1, shape);
 
-    multiply(outr_o, sqrt(static_cast<T>(shape)));
-    multiply(outr_f, static_cast<T>(shape));
+    multiply(execution_space(), outr_o, sqrt(static_cast<T>(shape)));
+    multiply(execution_space(), outr_f, static_cast<T>(shape));
 
-    EXPECT_TRUE(allclose(outr_b, outr, 1.e-5, atol));
-    EXPECT_TRUE(allclose(outr_o, outr, 1.e-5, atol));
-    EXPECT_TRUE(allclose(outr_f, outr, 1.e-5, atol));
+    EXPECT_TRUE(allclose(execution_space(), outr_b, outr, 1.e-5, atol));
+    EXPECT_TRUE(allclose(execution_space(), outr_o, outr, 1.e-5, atol));
+    EXPECT_TRUE(allclose(execution_space(), outr_f, outr, 1.e-5, atol));
 
     // Complex to real
     RealView1DType out("out", shape), out_b("out_b", shape),
@@ -554,12 +556,12 @@ void test_fft1_shape(T atol = 1.0e-12) {
     KokkosFFT::irfft(execution_space(), x, out_f,
                      KokkosFFT::Normalization::forward, -1, shape);
 
-    multiply(out_o, sqrt(static_cast<T>(shape)));
-    multiply(out_b, static_cast<T>(shape));
+    multiply(execution_space(), out_o, sqrt(static_cast<T>(shape)));
+    multiply(execution_space(), out_b, static_cast<T>(shape));
 
-    EXPECT_TRUE(allclose(out_b, out, 1.e-5, atol));
-    EXPECT_TRUE(allclose(out_o, out, 1.e-5, atol));
-    EXPECT_TRUE(allclose(out_f, out, 1.e-5, atol));
+    EXPECT_TRUE(allclose(execution_space(), out_b, out, 1.e-5, atol));
+    EXPECT_TRUE(allclose(execution_space(), out_o, out, 1.e-5, atol));
+    EXPECT_TRUE(allclose(execution_space(), out_f, out, 1.e-5, atol));
   }
 }
 
@@ -599,16 +601,17 @@ void test_fft1_1dfft_2dview(T atol = 1.e-12) {
   for (int i1 = 0; i1 < n1; i1++) {
     auto sub_x   = Kokkos::subview(x, Kokkos::ALL, i1);
     auto sub_ref = Kokkos::subview(ref_out_axis0, Kokkos::ALL, i1);
-    fft1(sub_x, sub_ref);
+    fft1(execution_space(), sub_x, sub_ref);
   }
 
   KokkosFFT::fft(execution_space(), x, out_axis0,
                  KokkosFFT::Normalization::backward, /*axis=*/0);
-  EXPECT_TRUE(allclose(out_axis0, ref_out_axis0, 1.e-5, atol));
+  EXPECT_TRUE(
+      allclose(execution_space(), out_axis0, ref_out_axis0, 1.e-5, atol));
 
   KokkosFFT::ifft(execution_space(), out_axis0, x_axis0,
                   KokkosFFT::Normalization::backward, /*axis=*/0);
-  EXPECT_TRUE(allclose(x_axis0, ref_x, 1.e-5, atol));
+  EXPECT_TRUE(allclose(execution_space(), x_axis0, ref_x, 1.e-5, atol));
 
   // Simple identity tests for r2c and c2r transforms
   KokkosFFT::rfft(execution_space(), xr, outr_axis0,
@@ -616,7 +619,7 @@ void test_fft1_1dfft_2dview(T atol = 1.e-12) {
   KokkosFFT::irfft(execution_space(), outr_axis0, xr_axis0,
                    KokkosFFT::Normalization::backward, /*axis=*/0);
 
-  EXPECT_TRUE(allclose(xr_axis0, ref_xr, 1.e-5, atol));
+  EXPECT_TRUE(allclose(execution_space(), xr_axis0, ref_xr, 1.e-5, atol));
 
   // Recover input from reference
   Kokkos::deep_copy(x, ref_x);
@@ -627,16 +630,17 @@ void test_fft1_1dfft_2dview(T atol = 1.e-12) {
   for (int i0 = 0; i0 < n0; i0++) {
     auto sub_x   = Kokkos::subview(x, i0, Kokkos::ALL);
     auto sub_ref = Kokkos::subview(ref_out_axis1, i0, Kokkos::ALL);
-    fft1(sub_x, sub_ref);
+    fft1(execution_space(), sub_x, sub_ref);
   }
 
   KokkosFFT::fft(execution_space(), x, out_axis1,
                  KokkosFFT::Normalization::backward, /*axis=*/1);
-  EXPECT_TRUE(allclose(out_axis1, ref_out_axis1, 1.e-5, atol));
+  EXPECT_TRUE(
+      allclose(execution_space(), out_axis1, ref_out_axis1, 1.e-5, atol));
 
   KokkosFFT::ifft(execution_space(), out_axis1, x_axis1,
                   KokkosFFT::Normalization::backward, /*axis=*/1);
-  EXPECT_TRUE(allclose(x_axis1, ref_x, 1.e-5, atol));
+  EXPECT_TRUE(allclose(execution_space(), x_axis1, ref_x, 1.e-5, atol));
 
   // Simple identity tests for r2c and c2r transforms
   KokkosFFT::rfft(execution_space(), xr, outr_axis1,
@@ -644,7 +648,7 @@ void test_fft1_1dfft_2dview(T atol = 1.e-12) {
   KokkosFFT::irfft(execution_space(), outr_axis1, xr_axis1,
                    KokkosFFT::Normalization::backward, /*axis=*/1);
 
-  EXPECT_TRUE(allclose(xr_axis1, ref_xr, 1.e-5, atol));
+  EXPECT_TRUE(allclose(execution_space(), xr_axis1, ref_xr, 1.e-5, atol));
 }
 
 template <typename T, typename LayoutType>
@@ -689,17 +693,18 @@ void test_fft1_1dfft_3dview(T atol = 1.e-12) {
     for (int i1 = 0; i1 < n1; i1++) {
       auto sub_x   = Kokkos::subview(x, Kokkos::ALL, i1, i2);
       auto sub_ref = Kokkos::subview(ref_out_axis0, Kokkos::ALL, i1, i2);
-      fft1(sub_x, sub_ref);
+      fft1(execution_space(), sub_x, sub_ref);
     }
   }
 
   KokkosFFT::fft(execution_space(), x, out_axis0,
                  KokkosFFT::Normalization::backward, /*axis=*/0);
-  EXPECT_TRUE(allclose(out_axis0, ref_out_axis0, 1.e-5, atol));
+  EXPECT_TRUE(
+      allclose(execution_space(), out_axis0, ref_out_axis0, 1.e-5, atol));
 
   KokkosFFT::ifft(execution_space(), out_axis0, x_axis0,
                   KokkosFFT::Normalization::backward, /*axis=*/0);
-  EXPECT_TRUE(allclose(x_axis0, ref_x, 1.e-5, atol));
+  EXPECT_TRUE(allclose(execution_space(), x_axis0, ref_x, 1.e-5, atol));
 
   // Simple identity tests for r2c and c2r transforms
   KokkosFFT::rfft(execution_space(), xr, outr_axis0,
@@ -707,7 +712,7 @@ void test_fft1_1dfft_3dview(T atol = 1.e-12) {
   KokkosFFT::irfft(execution_space(), outr_axis0, xr_axis0,
                    KokkosFFT::Normalization::backward, /*axis=*/0);
 
-  EXPECT_TRUE(allclose(xr_axis0, ref_xr, 1.e-5, atol));
+  EXPECT_TRUE(allclose(execution_space(), xr_axis0, ref_xr, 1.e-5, atol));
 
   // Recover input from reference
   Kokkos::deep_copy(x, ref_x);
@@ -719,17 +724,18 @@ void test_fft1_1dfft_3dview(T atol = 1.e-12) {
     for (int i0 = 0; i0 < n0; i0++) {
       auto sub_x   = Kokkos::subview(x, i0, Kokkos::ALL, i2);
       auto sub_ref = Kokkos::subview(ref_out_axis1, i0, Kokkos::ALL, i2);
-      fft1(sub_x, sub_ref);
+      fft1(execution_space(), sub_x, sub_ref);
     }
   }
 
   KokkosFFT::fft(execution_space(), x, out_axis1,
                  KokkosFFT::Normalization::backward, /*axis=*/1);
-  EXPECT_TRUE(allclose(out_axis1, ref_out_axis1, 1.e-5, atol));
+  EXPECT_TRUE(
+      allclose(execution_space(), out_axis1, ref_out_axis1, 1.e-5, atol));
 
   KokkosFFT::ifft(execution_space(), out_axis1, x_axis1,
                   KokkosFFT::Normalization::backward, /*axis=*/1);
-  EXPECT_TRUE(allclose(x_axis1, ref_x, 1.e-5, atol));
+  EXPECT_TRUE(allclose(execution_space(), x_axis1, ref_x, 1.e-5, atol));
 
   // Simple identity tests for r2c and c2r transforms
   KokkosFFT::rfft(execution_space(), xr, outr_axis1,
@@ -737,7 +743,7 @@ void test_fft1_1dfft_3dview(T atol = 1.e-12) {
   KokkosFFT::irfft(execution_space(), outr_axis1, xr_axis1,
                    KokkosFFT::Normalization::backward, /*axis=*/1);
 
-  EXPECT_TRUE(allclose(xr_axis1, ref_xr, 1.e-5, atol));
+  EXPECT_TRUE(allclose(execution_space(), xr_axis1, ref_xr, 1.e-5, atol));
 
   // Recover input from reference
   Kokkos::deep_copy(x, ref_x);
@@ -749,17 +755,18 @@ void test_fft1_1dfft_3dview(T atol = 1.e-12) {
     for (int i0 = 0; i0 < n0; i0++) {
       auto sub_x   = Kokkos::subview(x, i0, i1, Kokkos::ALL);
       auto sub_ref = Kokkos::subview(ref_out_axis2, i0, i1, Kokkos::ALL);
-      fft1(sub_x, sub_ref);
+      fft1(execution_space(), sub_x, sub_ref);
     }
   }
 
   KokkosFFT::fft(execution_space(), x, out_axis2,
                  KokkosFFT::Normalization::backward, /*axis=*/2);
-  EXPECT_TRUE(allclose(out_axis2, ref_out_axis2, 1.e-5, atol));
+  EXPECT_TRUE(
+      allclose(execution_space(), out_axis2, ref_out_axis2, 1.e-5, atol));
 
   KokkosFFT::ifft(execution_space(), out_axis2, x_axis2,
                   KokkosFFT::Normalization::backward, /*axis=*/2);
-  EXPECT_TRUE(allclose(x_axis2, ref_x, 1.e-5, atol));
+  EXPECT_TRUE(allclose(execution_space(), x_axis2, ref_x, 1.e-5, atol));
 
   // Simple identity tests for r2c and c2r transforms
   KokkosFFT::rfft(execution_space(), xr, outr_axis2,
@@ -767,7 +774,7 @@ void test_fft1_1dfft_3dview(T atol = 1.e-12) {
   KokkosFFT::irfft(execution_space(), outr_axis2, xr_axis2,
                    KokkosFFT::Normalization::backward, /*axis=*/2);
 
-  EXPECT_TRUE(allclose(xr_axis2, ref_xr, 1.e-5, atol));
+  EXPECT_TRUE(allclose(execution_space(), xr_axis2, ref_xr, 1.e-5, atol));
 }
 
 template <typename T, typename LayoutType>
@@ -819,18 +826,19 @@ void test_fft1_1dfft_4dview(T atol = 1.e-12) {
       for (int i1 = 0; i1 < n1; i1++) {
         auto sub_x   = Kokkos::subview(x, Kokkos::ALL, i1, i2, i3);
         auto sub_ref = Kokkos::subview(ref_out_axis0, Kokkos::ALL, i1, i2, i3);
-        fft1(sub_x, sub_ref);
+        fft1(execution_space(), sub_x, sub_ref);
       }
     }
   }
 
   KokkosFFT::fft(execution_space(), x, out_axis0,
                  KokkosFFT::Normalization::backward, /*axis=*/0);
-  EXPECT_TRUE(allclose(out_axis0, ref_out_axis0, 1.e-5, atol));
+  EXPECT_TRUE(
+      allclose(execution_space(), out_axis0, ref_out_axis0, 1.e-5, atol));
 
   KokkosFFT::ifft(execution_space(), out_axis0, x_axis0,
                   KokkosFFT::Normalization::backward, /*axis=*/0);
-  EXPECT_TRUE(allclose(x_axis0, ref_x, 1.e-5, atol));
+  EXPECT_TRUE(allclose(execution_space(), x_axis0, ref_x, 1.e-5, atol));
 
   // Simple identity tests for r2c and c2r transforms
   KokkosFFT::rfft(execution_space(), xr, outr_axis0,
@@ -838,7 +846,7 @@ void test_fft1_1dfft_4dview(T atol = 1.e-12) {
   KokkosFFT::irfft(execution_space(), outr_axis0, xr_axis0,
                    KokkosFFT::Normalization::backward, /*axis=*/0);
 
-  EXPECT_TRUE(allclose(xr_axis0, ref_xr, 1.e-5, atol));
+  EXPECT_TRUE(allclose(execution_space(), xr_axis0, ref_xr, 1.e-5, atol));
 
   // Recover input from reference
   Kokkos::deep_copy(x, ref_x);
@@ -851,18 +859,19 @@ void test_fft1_1dfft_4dview(T atol = 1.e-12) {
       for (int i0 = 0; i0 < n0; i0++) {
         auto sub_x   = Kokkos::subview(x, i0, Kokkos::ALL, i2, i3);
         auto sub_ref = Kokkos::subview(ref_out_axis1, i0, Kokkos::ALL, i2, i3);
-        fft1(sub_x, sub_ref);
+        fft1(execution_space(), sub_x, sub_ref);
       }
     }
   }
 
   KokkosFFT::fft(execution_space(), x, out_axis1,
                  KokkosFFT::Normalization::backward, /*axis=*/1);
-  EXPECT_TRUE(allclose(out_axis1, ref_out_axis1, 1.e-5, atol));
+  EXPECT_TRUE(
+      allclose(execution_space(), out_axis1, ref_out_axis1, 1.e-5, atol));
 
   KokkosFFT::ifft(execution_space(), out_axis1, x_axis1,
                   KokkosFFT::Normalization::backward, /*axis=*/1);
-  EXPECT_TRUE(allclose(x_axis1, ref_x, 1.e-5, atol));
+  EXPECT_TRUE(allclose(execution_space(), x_axis1, ref_x, 1.e-5, atol));
 
   // Simple identity tests for r2c and c2r transforms
   KokkosFFT::rfft(execution_space(), xr, outr_axis1,
@@ -870,7 +879,7 @@ void test_fft1_1dfft_4dview(T atol = 1.e-12) {
   KokkosFFT::irfft(execution_space(), outr_axis1, xr_axis1,
                    KokkosFFT::Normalization::backward, /*axis=*/1);
 
-  EXPECT_TRUE(allclose(xr_axis1, ref_xr, 1.e-5, atol));
+  EXPECT_TRUE(allclose(execution_space(), xr_axis1, ref_xr, 1.e-5, atol));
 
   // Recover input from reference
   Kokkos::deep_copy(x, ref_x);
@@ -883,18 +892,19 @@ void test_fft1_1dfft_4dview(T atol = 1.e-12) {
       for (int i0 = 0; i0 < n0; i0++) {
         auto sub_x   = Kokkos::subview(x, i0, i1, Kokkos::ALL, i3);
         auto sub_ref = Kokkos::subview(ref_out_axis2, i0, i1, Kokkos::ALL, i3);
-        fft1(sub_x, sub_ref);
+        fft1(execution_space(), sub_x, sub_ref);
       }
     }
   }
 
   KokkosFFT::fft(execution_space(), x, out_axis2,
                  KokkosFFT::Normalization::backward, /*axis=*/2);
-  EXPECT_TRUE(allclose(out_axis2, ref_out_axis2, 1.e-5, atol));
+  EXPECT_TRUE(
+      allclose(execution_space(), out_axis2, ref_out_axis2, 1.e-5, atol));
 
   KokkosFFT::ifft(execution_space(), out_axis2, x_axis2,
                   KokkosFFT::Normalization::backward, /*axis=*/2);
-  EXPECT_TRUE(allclose(x_axis2, ref_x, 1.e-5, atol));
+  EXPECT_TRUE(allclose(execution_space(), x_axis2, ref_x, 1.e-5, atol));
 
   // Simple identity tests for r2c and c2r transforms
   KokkosFFT::rfft(execution_space(), xr, outr_axis2,
@@ -902,7 +912,7 @@ void test_fft1_1dfft_4dview(T atol = 1.e-12) {
   KokkosFFT::irfft(execution_space(), outr_axis2, xr_axis2,
                    KokkosFFT::Normalization::backward, /*axis=*/2);
 
-  EXPECT_TRUE(allclose(xr_axis2, ref_xr, 1.e-5, atol));
+  EXPECT_TRUE(allclose(execution_space(), xr_axis2, ref_xr, 1.e-5, atol));
 
   // Recover input from reference
   Kokkos::deep_copy(x, ref_x);
@@ -915,18 +925,19 @@ void test_fft1_1dfft_4dview(T atol = 1.e-12) {
       for (int i0 = 0; i0 < n0; i0++) {
         auto sub_x   = Kokkos::subview(x, i0, i1, i2, Kokkos::ALL);
         auto sub_ref = Kokkos::subview(ref_out_axis3, i0, i1, i2, Kokkos::ALL);
-        fft1(sub_x, sub_ref);
+        fft1(execution_space(), sub_x, sub_ref);
       }
     }
   }
 
   KokkosFFT::fft(execution_space(), x, out_axis3,
                  KokkosFFT::Normalization::backward, /*axis=*/3);
-  EXPECT_TRUE(allclose(out_axis3, ref_out_axis3, 1.e-5, atol));
+  EXPECT_TRUE(
+      allclose(execution_space(), out_axis3, ref_out_axis3, 1.e-5, atol));
 
   KokkosFFT::ifft(execution_space(), out_axis3, x_axis3,
                   KokkosFFT::Normalization::backward, /*axis=*/3);
-  EXPECT_TRUE(allclose(x_axis3, ref_x, 1.e-5, atol));
+  EXPECT_TRUE(allclose(execution_space(), x_axis3, ref_x, 1.e-5, atol));
 
   // Simple identity tests for r2c and c2r transforms
   KokkosFFT::rfft(execution_space(), xr, outr_axis3,
@@ -934,7 +945,7 @@ void test_fft1_1dfft_4dview(T atol = 1.e-12) {
   KokkosFFT::irfft(execution_space(), outr_axis3, xr_axis3,
                    KokkosFFT::Normalization::backward, /*axis=*/3);
 
-  EXPECT_TRUE(allclose(xr_axis3, ref_xr, 1.e-5, atol));
+  EXPECT_TRUE(allclose(execution_space(), xr_axis3, ref_xr, 1.e-5, atol));
 }
 
 template <typename T, typename LayoutType>
@@ -981,7 +992,7 @@ void test_fft1_1dfft_5dview(T atol = 1.e-12) {
                      KokkosFFT::Normalization::backward, axis, n_new);
       KokkosFFT::ifft(execution_space(), x_hat, inv_x_hat,
                       KokkosFFT::Normalization::backward, axis, n_new);
-      EXPECT_TRUE(allclose(inv_x_hat, ref_x, 1.e-5, atol));
+      EXPECT_TRUE(allclose(execution_space(), inv_x_hat, ref_x, 1.e-5, atol));
 
       // Simple identity tests for r2c and c2r transforms
       KokkosFFT::rfft(execution_space(), xr, xr_hat,
@@ -989,7 +1000,7 @@ void test_fft1_1dfft_5dview(T atol = 1.e-12) {
       KokkosFFT::irfft(execution_space(), xr_hat, inv_xr_hat,
                        KokkosFFT::Normalization::backward, axis, n_new);
 
-      EXPECT_TRUE(allclose(inv_xr_hat, ref_xr, 1.e-5, atol));
+      EXPECT_TRUE(allclose(execution_space(), inv_xr_hat, ref_xr, 1.e-5, atol));
     }
   }
 }
@@ -1038,7 +1049,7 @@ void test_fft1_1dfft_6dview(T atol = 1.e-12) {
                      KokkosFFT::Normalization::backward, axis, n_new);
       KokkosFFT::ifft(execution_space(), x_hat, inv_x_hat,
                       KokkosFFT::Normalization::backward, axis, n_new);
-      EXPECT_TRUE(allclose(inv_x_hat, ref_x, 1.e-5, atol));
+      EXPECT_TRUE(allclose(execution_space(), inv_x_hat, ref_x, 1.e-5, atol));
 
       // Simple identity tests for r2c and c2r transforms
       KokkosFFT::rfft(execution_space(), xr, xr_hat,
@@ -1046,7 +1057,7 @@ void test_fft1_1dfft_6dview(T atol = 1.e-12) {
       KokkosFFT::irfft(execution_space(), xr_hat, inv_xr_hat,
                        KokkosFFT::Normalization::backward, axis, n_new);
 
-      EXPECT_TRUE(allclose(inv_xr_hat, ref_xr, 1.e-5, atol));
+      EXPECT_TRUE(allclose(execution_space(), inv_xr_hat, ref_xr, 1.e-5, atol));
     }
   }
 }
@@ -1095,7 +1106,7 @@ void test_fft1_1dfft_7dview(T atol = 1.e-12) {
                      KokkosFFT::Normalization::backward, axis, n_new);
       KokkosFFT::ifft(execution_space(), x_hat, inv_x_hat,
                       KokkosFFT::Normalization::backward, axis, n_new);
-      EXPECT_TRUE(allclose(inv_x_hat, ref_x, 1.e-5, atol));
+      EXPECT_TRUE(allclose(execution_space(), inv_x_hat, ref_x, 1.e-5, atol));
 
       // Simple identity tests for r2c and c2r transforms
       KokkosFFT::rfft(execution_space(), xr, xr_hat,
@@ -1103,7 +1114,7 @@ void test_fft1_1dfft_7dview(T atol = 1.e-12) {
       KokkosFFT::irfft(execution_space(), xr_hat, inv_xr_hat,
                        KokkosFFT::Normalization::backward, axis, n_new);
 
-      EXPECT_TRUE(allclose(inv_xr_hat, ref_xr, 1.e-5, atol));
+      EXPECT_TRUE(allclose(execution_space(), inv_xr_hat, ref_xr, 1.e-5, atol));
     }
   }
 }
@@ -1153,7 +1164,7 @@ void test_fft1_1dfft_8dview(T atol = 1.e-12) {
                      KokkosFFT::Normalization::backward, axis, n_new);
       KokkosFFT::ifft(execution_space(), x_hat, inv_x_hat,
                       KokkosFFT::Normalization::backward, axis, n_new);
-      EXPECT_TRUE(allclose(inv_x_hat, ref_x, 1.e-5, atol));
+      EXPECT_TRUE(allclose(execution_space(), inv_x_hat, ref_x, 1.e-5, atol));
 
       // Simple identity tests for r2c and c2r transforms
       KokkosFFT::rfft(execution_space(), xr, xr_hat,
@@ -1161,7 +1172,7 @@ void test_fft1_1dfft_8dview(T atol = 1.e-12) {
       KokkosFFT::irfft(execution_space(), xr_hat, inv_xr_hat,
                        KokkosFFT::Normalization::backward, axis, n_new);
 
-      EXPECT_TRUE(allclose(inv_xr_hat, ref_xr, 1.e-5, atol));
+      EXPECT_TRUE(allclose(execution_space(), inv_xr_hat, ref_xr, 1.e-5, atol));
     }
   }
 }
@@ -1330,13 +1341,13 @@ void test_fft2_2dfft_2dview() {
   KokkosFFT::fft2(execution_space(), x, out_f,
                   KokkosFFT::Normalization::forward);
 
-  multiply(out_o, sqrt(static_cast<T>(n0 * n1)));
-  multiply(out_f, static_cast<T>(n0 * n1));
+  multiply(execution_space(), out_o, sqrt(static_cast<T>(n0 * n1)));
+  multiply(execution_space(), out_f, static_cast<T>(n0 * n1));
 
-  EXPECT_TRUE(allclose(out, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_b, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_o, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_f, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_b, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_o, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_f, out2, 1.e-5, 1.e-6));
 
   // Reuse plans
   using axes_type = KokkosFFT::axis_type<2>;
@@ -1349,13 +1360,13 @@ void test_fft2_2dfft_2dview() {
   KokkosFFT::execute(fft2_plan, x, out_o, KokkosFFT::Normalization::ortho);
   KokkosFFT::execute(fft2_plan, x, out_f, KokkosFFT::Normalization::forward);
 
-  multiply(out_o, sqrt(static_cast<T>(n0 * n1)));
-  multiply(out_f, static_cast<T>(n0 * n1));
+  multiply(execution_space(), out_o, sqrt(static_cast<T>(n0 * n1)));
+  multiply(execution_space(), out_f, static_cast<T>(n0 * n1));
 
-  EXPECT_TRUE(allclose(out, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_b, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_o, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_f, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_b, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_o, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_f, out2, 1.e-5, 1.e-6));
 
   // np.fft2(axes=(-1, -2)) is identical to np.fft(np.fft(x, axis=0), axis=1)
   axes_type axes10 = {-1, -2};
@@ -1372,12 +1383,12 @@ void test_fft2_2dfft_2dview() {
   KokkosFFT::fft2(execution_space(), x, out_f,
                   KokkosFFT::Normalization::forward, axes10);
 
-  multiply(out_o, sqrt(static_cast<T>(n0 * n1)));
-  multiply(out_f, static_cast<T>(n0 * n1));
+  multiply(execution_space(), out_o, sqrt(static_cast<T>(n0 * n1)));
+  multiply(execution_space(), out_f, static_cast<T>(n0 * n1));
 
-  EXPECT_TRUE(allclose(out_b, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_o, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_f, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_b, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_o, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_f, out2, 1.e-5, 1.e-6));
 
   // Reuse plans np.fft2(axes=(-1, -2))
   KokkosFFT::Plan fft2_plan_axes10(execution_space(), x, out,
@@ -1390,12 +1401,12 @@ void test_fft2_2dfft_2dview() {
   KokkosFFT::execute(fft2_plan_axes10, x, out_f,
                      KokkosFFT::Normalization::forward);
 
-  multiply(out_o, sqrt(static_cast<T>(n0 * n1)));
-  multiply(out_f, static_cast<T>(n0 * n1));
+  multiply(execution_space(), out_o, sqrt(static_cast<T>(n0 * n1)));
+  multiply(execution_space(), out_f, static_cast<T>(n0 * n1));
 
-  EXPECT_TRUE(allclose(out_b, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_o, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_f, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_b, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_o, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_f, out2, 1.e-5, 1.e-6));
 }
 
 template <typename T, typename LayoutType>
@@ -1431,13 +1442,13 @@ void test_fft2_2difft_2dview() {
   KokkosFFT::ifft2(execution_space(), x, out_f,
                    KokkosFFT::Normalization::forward);
 
-  multiply(out_o, 1.0 / sqrt(static_cast<T>(n0 * n1)));
-  multiply(out_f, 1.0 / static_cast<T>(n0 * n1));
+  multiply(execution_space(), out_o, 1.0 / sqrt(static_cast<T>(n0 * n1)));
+  multiply(execution_space(), out_f, 1.0 / static_cast<T>(n0 * n1));
 
-  EXPECT_TRUE(allclose(out, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_b, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_o, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_f, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_b, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_o, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_f, out2, 1.e-5, 1.e-6));
 
   // Reuse plans
   using axes_type = KokkosFFT::axis_type<2>;
@@ -1450,13 +1461,13 @@ void test_fft2_2difft_2dview() {
   KokkosFFT::execute(ifft2_plan, x, out_o, KokkosFFT::Normalization::ortho);
   KokkosFFT::execute(ifft2_plan, x, out_f, KokkosFFT::Normalization::forward);
 
-  multiply(out_o, 1.0 / sqrt(static_cast<T>(n0 * n1)));
-  multiply(out_f, 1.0 / static_cast<T>(n0 * n1));
+  multiply(execution_space(), out_o, 1.0 / sqrt(static_cast<T>(n0 * n1)));
+  multiply(execution_space(), out_f, 1.0 / static_cast<T>(n0 * n1));
 
-  EXPECT_TRUE(allclose(out, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_b, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_o, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_f, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_b, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_o, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_f, out2, 1.e-5, 1.e-6));
 
   // np.ifft2(axes=(-1, -2)) is identical to np.ifft(np.ifft(x, axis=0), axis=1)
   axes_type axes10 = {-1, -2};
@@ -1472,12 +1483,12 @@ void test_fft2_2difft_2dview() {
   KokkosFFT::ifft2(execution_space(), x, out_f,
                    KokkosFFT::Normalization::forward, axes10);
 
-  multiply(out_o, 1.0 / sqrt(static_cast<T>(n0 * n1)));
-  multiply(out_f, 1.0 / static_cast<T>(n0 * n1));
+  multiply(execution_space(), out_o, 1.0 / sqrt(static_cast<T>(n0 * n1)));
+  multiply(execution_space(), out_f, 1.0 / static_cast<T>(n0 * n1));
 
-  EXPECT_TRUE(allclose(out_b, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_o, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_f, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_b, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_o, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_f, out2, 1.e-5, 1.e-6));
 
   KokkosFFT::Plan ifft2_plan_axes10(execution_space(), x, out,
                                     KokkosFFT::Direction::backward, axes10);
@@ -1489,12 +1500,12 @@ void test_fft2_2difft_2dview() {
   KokkosFFT::execute(ifft2_plan_axes10, x, out_f,
                      KokkosFFT::Normalization::forward);
 
-  multiply(out_o, 1.0 / sqrt(static_cast<T>(n0 * n1)));
-  multiply(out_f, 1.0 / static_cast<T>(n0 * n1));
+  multiply(execution_space(), out_o, 1.0 / sqrt(static_cast<T>(n0 * n1)));
+  multiply(execution_space(), out_f, 1.0 / static_cast<T>(n0 * n1));
 
-  EXPECT_TRUE(allclose(out_b, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_o, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_f, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_b, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_o, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_f, out2, 1.e-5, 1.e-6));
 }
 
 template <typename T, typename LayoutType>
@@ -1537,13 +1548,13 @@ void test_fft2_2drfft_2dview() {
   KokkosFFT::rfft2(execution_space(), x, out_f,
                    KokkosFFT::Normalization::forward);
 
-  multiply(out_o, sqrt(static_cast<T>(n0 * n1)));
-  multiply(out_f, static_cast<T>(n0 * n1));
+  multiply(execution_space(), out_o, sqrt(static_cast<T>(n0 * n1)));
+  multiply(execution_space(), out_f, static_cast<T>(n0 * n1));
 
-  EXPECT_TRUE(allclose(out, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_b, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_o, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_f, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_b, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_o, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_f, out2, 1.e-5, 1.e-6));
 
   // Reuse plans
   using axes_type = KokkosFFT::axis_type<2>;
@@ -1563,13 +1574,13 @@ void test_fft2_2drfft_2dview() {
   Kokkos::deep_copy(x, x_ref);
   KokkosFFT::execute(rfft2_plan, x, out_f, KokkosFFT::Normalization::forward);
 
-  multiply(out_o, sqrt(static_cast<T>(n0 * n1)));
-  multiply(out_f, static_cast<T>(n0 * n1));
+  multiply(execution_space(), out_o, sqrt(static_cast<T>(n0 * n1)));
+  multiply(execution_space(), out_f, static_cast<T>(n0 * n1));
 
-  EXPECT_TRUE(allclose(out, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_b, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_o, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_f, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_b, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_o, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_f, out2, 1.e-5, 1.e-6));
 }
 
 template <typename T, typename LayoutType>
@@ -1612,13 +1623,13 @@ void test_fft2_2dirfft_2dview() {
   KokkosFFT::irfft2(execution_space(), x, out_f,
                     KokkosFFT::Normalization::forward);
 
-  multiply(out_o, 1.0 / sqrt(static_cast<T>(n0 * n1)));
-  multiply(out_f, 1.0 / static_cast<T>(n0 * n1));
+  multiply(execution_space(), out_o, 1.0 / sqrt(static_cast<T>(n0 * n1)));
+  multiply(execution_space(), out_f, 1.0 / static_cast<T>(n0 * n1));
 
-  EXPECT_TRUE(allclose(out, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_b, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_o, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_f, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_b, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_o, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_f, out2, 1.e-5, 1.e-6));
 
   // Reuse plans
   using axes_type = KokkosFFT::axis_type<2>;
@@ -1638,13 +1649,13 @@ void test_fft2_2dirfft_2dview() {
   Kokkos::deep_copy(x, x_ref);
   KokkosFFT::execute(irfft2_plan, x, out_f, KokkosFFT::Normalization::forward);
 
-  multiply(out_o, 1.0 / sqrt(static_cast<T>(n0 * n1)));
-  multiply(out_f, 1.0 / static_cast<T>(n0 * n1));
+  multiply(execution_space(), out_o, 1.0 / sqrt(static_cast<T>(n0 * n1)));
+  multiply(execution_space(), out_f, 1.0 / static_cast<T>(n0 * n1));
 
-  EXPECT_TRUE(allclose(out, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_b, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_o, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_f, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_b, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_o, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_f, out2, 1.e-5, 1.e-6));
 }
 
 template <typename T, typename LayoutType>
@@ -1696,12 +1707,13 @@ void test_fft2_2dfft_2dview_shape(T atol = 1.0e-12) {
       KokkosFFT::rfft2(execution_space(), xr, outr_f,
                        KokkosFFT::Normalization::forward, axes, new_shape);
 
-      multiply(outr_o, sqrt(static_cast<T>(shape0 * shape1)));
-      multiply(outr_f, static_cast<T>(shape0 * shape1));
+      multiply(execution_space(), outr_o,
+               sqrt(static_cast<T>(shape0 * shape1)));
+      multiply(execution_space(), outr_f, static_cast<T>(shape0 * shape1));
 
-      EXPECT_TRUE(allclose(outr_b, outr, 1.e-5, atol));
-      EXPECT_TRUE(allclose(outr_o, outr, 1.e-5, atol));
-      EXPECT_TRUE(allclose(outr_f, outr, 1.e-5, atol));
+      EXPECT_TRUE(allclose(execution_space(), outr_b, outr, 1.e-5, atol));
+      EXPECT_TRUE(allclose(execution_space(), outr_o, outr, 1.e-5, atol));
+      EXPECT_TRUE(allclose(execution_space(), outr_f, outr, 1.e-5, atol));
 
       // Complex to real
       RealView2DType out("out", shape0, shape1), out_b("out_b", shape0, shape1),
@@ -1723,12 +1735,12 @@ void test_fft2_2dfft_2dview_shape(T atol = 1.0e-12) {
       KokkosFFT::irfft2(execution_space(), x, out_f,
                         KokkosFFT::Normalization::forward, axes, new_shape);
 
-      multiply(out_o, sqrt(static_cast<T>(shape0 * shape1)));
-      multiply(out_b, static_cast<T>(shape0 * shape1));
+      multiply(execution_space(), out_o, sqrt(static_cast<T>(shape0 * shape1)));
+      multiply(execution_space(), out_b, static_cast<T>(shape0 * shape1));
 
-      EXPECT_TRUE(allclose(out_b, out, 1.e-5, atol));
-      EXPECT_TRUE(allclose(out_o, out, 1.e-5, atol));
-      EXPECT_TRUE(allclose(out_f, out, 1.e-5, atol));
+      EXPECT_TRUE(allclose(execution_space(), out_b, out, 1.e-5, atol));
+      EXPECT_TRUE(allclose(execution_space(), out_o, out, 1.e-5, atol));
+      EXPECT_TRUE(allclose(execution_space(), out_f, out, 1.e-5, atol));
     }
   }
 }
@@ -1794,7 +1806,7 @@ void test_fft2_2dfft_2dview_inplace([[maybe_unused]] T atol = 1.0e-12) {
                      KokkosFFT::Normalization::backward, axes);
 
     Kokkos::fence();
-    EXPECT_TRUE(allclose(inv_x_hat, x_ref, 1.e-5, atol));
+    EXPECT_TRUE(allclose(execution_space(), inv_x_hat, x_ref, 1.e-5, atol));
 
     // In-place transforms
     KokkosFFT::rfft2(execution_space(), xr, xr_hat,
@@ -1805,7 +1817,7 @@ void test_fft2_2dfft_2dview_inplace([[maybe_unused]] T atol = 1.0e-12) {
                      KokkosFFT::Normalization::backward, axes);
 
     Kokkos::fence();
-    EXPECT_TRUE(allclose(xr_hat, xr_hat_ref, 1.e-5, atol));
+    EXPECT_TRUE(allclose(execution_space(), xr_hat, xr_hat_ref, 1.e-5, atol));
 
     // In-place transforms
     Kokkos::fill_random(xr_hat, random_pool, z);
@@ -1822,7 +1834,8 @@ void test_fft2_2dfft_2dview_inplace([[maybe_unused]] T atol = 1.0e-12) {
                                                  Kokkos::pair<int, int>(0, n1));
     Kokkos::deep_copy(inv_xr_hat_unpadded, sub_inv_xr_hat_padded);
 
-    EXPECT_TRUE(allclose(inv_xr_hat_unpadded, inv_xr_hat_ref, 1.e-5, atol));
+    EXPECT_TRUE(allclose(execution_space(), inv_xr_hat_unpadded, inv_xr_hat_ref,
+                         1.e-5, atol));
   }
 }
 
@@ -1889,7 +1902,8 @@ void test_fft2_2dfft_3dview(T atol = 1.e-12) {
           KokkosFFT::ifft2(execution_space(), x_hat, inv_x_hat,
                            KokkosFFT::Normalization::backward, axes, new_shape);
 
-          EXPECT_TRUE(allclose(inv_x_hat, ref_x, 1.e-5, atol));
+          EXPECT_TRUE(
+              allclose(execution_space(), inv_x_hat, ref_x, 1.e-5, atol));
 
           // Simple identity tests for r2c and c2r transforms
           KokkosFFT::rfft2(execution_space(), xr, xr_hat,
@@ -1899,7 +1913,8 @@ void test_fft2_2dfft_3dview(T atol = 1.e-12) {
                             KokkosFFT::Normalization::backward, axes,
                             new_shape);
 
-          EXPECT_TRUE(allclose(inv_xr_hat, ref_xr, 1.e-5, atol));
+          EXPECT_TRUE(
+              allclose(execution_space(), inv_xr_hat, ref_xr, 1.e-5, atol));
         }
       }
     }
@@ -1969,7 +1984,8 @@ void test_fft2_2dfft_4dview(T atol = 1.e-12) {
           KokkosFFT::ifft2(execution_space(), x_hat, inv_x_hat,
                            KokkosFFT::Normalization::backward, axes, new_shape);
 
-          EXPECT_TRUE(allclose(inv_x_hat, ref_x, 1.e-5, atol));
+          EXPECT_TRUE(
+              allclose(execution_space(), inv_x_hat, ref_x, 1.e-5, atol));
 
           // Simple identity tests for r2c and c2r transforms
           KokkosFFT::rfft2(execution_space(), xr, xr_hat,
@@ -1979,7 +1995,8 @@ void test_fft2_2dfft_4dview(T atol = 1.e-12) {
                             KokkosFFT::Normalization::backward, axes,
                             new_shape);
 
-          EXPECT_TRUE(allclose(inv_xr_hat, ref_xr, 1.e-5, atol));
+          EXPECT_TRUE(
+              allclose(execution_space(), inv_xr_hat, ref_xr, 1.e-5, atol));
         }
       }
     }
@@ -2050,7 +2067,8 @@ void test_fft2_2dfft_5dview(T atol = 1.e-12) {
           KokkosFFT::ifft2(execution_space(), x_hat, inv_x_hat,
                            KokkosFFT::Normalization::backward, axes, new_shape);
 
-          EXPECT_TRUE(allclose(inv_x_hat, ref_x, 1.e-5, atol));
+          EXPECT_TRUE(
+              allclose(execution_space(), inv_x_hat, ref_x, 1.e-5, atol));
 
           // Simple identity tests for r2c and c2r transforms
           KokkosFFT::rfft2(execution_space(), xr, xr_hat,
@@ -2060,7 +2078,8 @@ void test_fft2_2dfft_5dview(T atol = 1.e-12) {
                             KokkosFFT::Normalization::backward, axes,
                             new_shape);
 
-          EXPECT_TRUE(allclose(inv_xr_hat, ref_xr, 1.e-5, atol));
+          EXPECT_TRUE(
+              allclose(execution_space(), inv_xr_hat, ref_xr, 1.e-5, atol));
         }
       }
     }
@@ -2131,7 +2150,8 @@ void test_fft2_2dfft_6dview(T atol = 1.e-12) {
           KokkosFFT::ifft2(execution_space(), x_hat, inv_x_hat,
                            KokkosFFT::Normalization::backward, axes, new_shape);
 
-          EXPECT_TRUE(allclose(inv_x_hat, ref_x, 1.e-5, atol));
+          EXPECT_TRUE(
+              allclose(execution_space(), inv_x_hat, ref_x, 1.e-5, atol));
 
           // Simple identity tests for r2c and c2r transforms
           KokkosFFT::rfft2(execution_space(), xr, xr_hat,
@@ -2141,7 +2161,8 @@ void test_fft2_2dfft_6dview(T atol = 1.e-12) {
                             KokkosFFT::Normalization::backward, axes,
                             new_shape);
 
-          EXPECT_TRUE(allclose(inv_xr_hat, ref_xr, 1.e-5, atol));
+          EXPECT_TRUE(
+              allclose(execution_space(), inv_xr_hat, ref_xr, 1.e-5, atol));
         }
       }
     }
@@ -2213,7 +2234,8 @@ void test_fft2_2dfft_7dview(T atol = 1.e-12) {
           KokkosFFT::ifft2(execution_space(), x_hat, inv_x_hat,
                            KokkosFFT::Normalization::backward, axes, new_shape);
 
-          EXPECT_TRUE(allclose(inv_x_hat, ref_x, 1.e-5, atol));
+          EXPECT_TRUE(
+              allclose(execution_space(), inv_x_hat, ref_x, 1.e-5, atol));
 
           // Simple identity tests for r2c and c2r transforms
           KokkosFFT::rfft2(execution_space(), xr, xr_hat,
@@ -2223,7 +2245,8 @@ void test_fft2_2dfft_7dview(T atol = 1.e-12) {
                             KokkosFFT::Normalization::backward, axes,
                             new_shape);
 
-          EXPECT_TRUE(allclose(inv_xr_hat, ref_xr, 1.e-5, atol));
+          EXPECT_TRUE(
+              allclose(execution_space(), inv_xr_hat, ref_xr, 1.e-5, atol));
         }
       }
     }
@@ -2297,7 +2320,8 @@ void test_fft2_2dfft_8dview(T atol = 1.e-12) {
           KokkosFFT::ifft2(execution_space(), x_hat, inv_x_hat,
                            KokkosFFT::Normalization::backward, axes, new_shape);
 
-          EXPECT_TRUE(allclose(inv_x_hat, ref_x, 1.e-5, atol));
+          EXPECT_TRUE(
+              allclose(execution_space(), inv_x_hat, ref_x, 1.e-5, atol));
 
           // Simple identity tests for r2c and c2r transforms
           KokkosFFT::rfft2(execution_space(), xr, xr_hat,
@@ -2307,7 +2331,8 @@ void test_fft2_2dfft_8dview(T atol = 1.e-12) {
                             KokkosFFT::Normalization::backward, axes,
                             new_shape);
 
-          EXPECT_TRUE(allclose(inv_xr_hat, ref_xr, 1.e-5, atol));
+          EXPECT_TRUE(
+              allclose(execution_space(), inv_xr_hat, ref_xr, 1.e-5, atol));
         }
       }
     }
@@ -2454,14 +2479,14 @@ void test_fftn_2dfft_2dview() {
   KokkosFFT::fftn(execution_space(), x, out_f, axes,
                   KokkosFFT::Normalization::forward);
 
-  multiply(out_o, sqrt(static_cast<T>(n0 * n1)));
-  multiply(out_f, static_cast<T>(n0 * n1));
+  multiply(execution_space(), out_o, sqrt(static_cast<T>(n0 * n1)));
+  multiply(execution_space(), out_f, static_cast<T>(n0 * n1));
 
-  EXPECT_TRUE(allclose(out, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_no_axes, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_b, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_o, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_f, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_no_axes, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_b, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_o, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_f, out2, 1.e-5, 1.e-6));
 
   // Reuse plans
   KokkosFFT::Plan fftn_plan(execution_space(), x, out,
@@ -2472,13 +2497,13 @@ void test_fftn_2dfft_2dview() {
   KokkosFFT::execute(fftn_plan, x, out_o, KokkosFFT::Normalization::ortho);
   KokkosFFT::execute(fftn_plan, x, out_f, KokkosFFT::Normalization::forward);
 
-  multiply(out_o, sqrt(static_cast<T>(n0 * n1)));
-  multiply(out_f, static_cast<T>(n0 * n1));
+  multiply(execution_space(), out_o, sqrt(static_cast<T>(n0 * n1)));
+  multiply(execution_space(), out_f, static_cast<T>(n0 * n1));
 
-  EXPECT_TRUE(allclose(out, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_b, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_o, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_f, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_b, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_o, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_f, out2, 1.e-5, 1.e-6));
 }
 
 template <typename T, typename LayoutType>
@@ -2519,14 +2544,14 @@ void test_ifftn_2dfft_2dview() {
   KokkosFFT::ifftn(execution_space(), x, out_f, axes,
                    KokkosFFT::Normalization::forward);
 
-  multiply(out_o, 1.0 / sqrt(static_cast<T>(n0 * n1)));
-  multiply(out_f, 1.0 / static_cast<T>(n0 * n1));
+  multiply(execution_space(), out_o, 1.0 / sqrt(static_cast<T>(n0 * n1)));
+  multiply(execution_space(), out_f, 1.0 / static_cast<T>(n0 * n1));
 
-  EXPECT_TRUE(allclose(out, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_no_axes, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_b, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_o, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_f, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_no_axes, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_b, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_o, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_f, out2, 1.e-5, 1.e-6));
 
   // Reuse plans
   KokkosFFT::Plan ifftn_plan(execution_space(), x, out,
@@ -2537,13 +2562,13 @@ void test_ifftn_2dfft_2dview() {
   KokkosFFT::execute(ifftn_plan, x, out_o, KokkosFFT::Normalization::ortho);
   KokkosFFT::execute(ifftn_plan, x, out_f, KokkosFFT::Normalization::forward);
 
-  multiply(out_o, 1.0 / sqrt(static_cast<T>(n0 * n1)));
-  multiply(out_f, 1.0 / static_cast<T>(n0 * n1));
+  multiply(execution_space(), out_o, 1.0 / sqrt(static_cast<T>(n0 * n1)));
+  multiply(execution_space(), out_f, 1.0 / static_cast<T>(n0 * n1));
 
-  EXPECT_TRUE(allclose(out, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_b, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_o, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_f, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_b, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_o, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_f, out2, 1.e-5, 1.e-6));
 }
 
 template <typename T, typename LayoutType>
@@ -2592,14 +2617,14 @@ void test_rfftn_2dfft_2dview() {
   KokkosFFT::rfftn(execution_space(), x, out_f, axes,
                    KokkosFFT::Normalization::forward);
 
-  multiply(out_o, sqrt(static_cast<T>(n0 * n1)));
-  multiply(out_f, static_cast<T>(n0 * n1));
+  multiply(execution_space(), out_o, sqrt(static_cast<T>(n0 * n1)));
+  multiply(execution_space(), out_f, static_cast<T>(n0 * n1));
 
-  EXPECT_TRUE(allclose(out, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_no_axes, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_b, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_o, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_f, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_no_axes, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_b, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_o, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_f, out2, 1.e-5, 1.e-6));
 
   // Reuse plans
   KokkosFFT::Plan rfftn_plan(execution_space(), x, out,
@@ -2617,13 +2642,13 @@ void test_rfftn_2dfft_2dview() {
   Kokkos::deep_copy(x, x_ref);
   KokkosFFT::execute(rfftn_plan, x, out_f, KokkosFFT::Normalization::forward);
 
-  multiply(out_o, sqrt(static_cast<T>(n0 * n1)));
-  multiply(out_f, static_cast<T>(n0 * n1));
+  multiply(execution_space(), out_o, sqrt(static_cast<T>(n0 * n1)));
+  multiply(execution_space(), out_f, static_cast<T>(n0 * n1));
 
-  EXPECT_TRUE(allclose(out, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_b, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_o, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_f, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_b, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_o, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_f, out2, 1.e-5, 1.e-6));
 }
 
 template <typename T, typename LayoutType>
@@ -2674,14 +2699,14 @@ void test_irfftn_2dfft_2dview() {
   KokkosFFT::irfftn(execution_space(), x, out_f, axes,
                     KokkosFFT::Normalization::forward);
 
-  multiply(out_o, 1.0 / sqrt(static_cast<T>(n0 * n1)));
-  multiply(out_f, 1.0 / static_cast<T>(n0 * n1));
+  multiply(execution_space(), out_o, 1.0 / sqrt(static_cast<T>(n0 * n1)));
+  multiply(execution_space(), out_f, 1.0 / static_cast<T>(n0 * n1));
 
-  EXPECT_TRUE(allclose(out, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_no_axes, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_b, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_o, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_f, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_no_axes, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_b, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_o, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_f, out2, 1.e-5, 1.e-6));
 
   // Reuse plans
   KokkosFFT::Plan irfftn_plan(execution_space(), x, out,
@@ -2698,13 +2723,13 @@ void test_irfftn_2dfft_2dview() {
   Kokkos::deep_copy(x, x_ref);
   KokkosFFT::execute(irfftn_plan, x, out_f, KokkosFFT::Normalization::forward);
 
-  multiply(out_o, 1.0 / sqrt(static_cast<T>(n0 * n1)));
-  multiply(out_f, 1.0 / static_cast<T>(n0 * n1));
+  multiply(execution_space(), out_o, 1.0 / sqrt(static_cast<T>(n0 * n1)));
+  multiply(execution_space(), out_f, 1.0 / static_cast<T>(n0 * n1));
 
-  EXPECT_TRUE(allclose(out, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_b, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_o, out2, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_f, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_b, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_o, out2, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_f, out2, 1.e-5, 1.e-6));
 }
 
 template <typename T, typename LayoutType>
@@ -2757,12 +2782,13 @@ void test_fftn_2dfft_2dview_shape(T atol = 1.0e-12) {
       KokkosFFT::rfftn(execution_space(), xr, outr_f, axes,
                        KokkosFFT::Normalization::forward, new_shape);
 
-      multiply(outr_o, sqrt(static_cast<T>(shape0 * shape1)));
-      multiply(outr_f, static_cast<T>(shape0 * shape1));
+      multiply(execution_space(), outr_o,
+               sqrt(static_cast<T>(shape0 * shape1)));
+      multiply(execution_space(), outr_f, static_cast<T>(shape0 * shape1));
 
-      EXPECT_TRUE(allclose(outr_b, outr, 1.e-5, atol));
-      EXPECT_TRUE(allclose(outr_o, outr, 1.e-5, atol));
-      EXPECT_TRUE(allclose(outr_f, outr, 1.e-5, atol));
+      EXPECT_TRUE(allclose(execution_space(), outr_b, outr, 1.e-5, atol));
+      EXPECT_TRUE(allclose(execution_space(), outr_o, outr, 1.e-5, atol));
+      EXPECT_TRUE(allclose(execution_space(), outr_f, outr, 1.e-5, atol));
 
       // Complex to real
       RealView2DType out("out", shape0, shape1), out_b("out_b", shape0, shape1),
@@ -2784,12 +2810,12 @@ void test_fftn_2dfft_2dview_shape(T atol = 1.0e-12) {
       KokkosFFT::irfftn(execution_space(), x, out_f, axes,
                         KokkosFFT::Normalization::forward, new_shape);
 
-      multiply(out_o, sqrt(static_cast<T>(shape0 * shape1)));
-      multiply(out_b, static_cast<T>(shape0 * shape1));
+      multiply(execution_space(), out_o, sqrt(static_cast<T>(shape0 * shape1)));
+      multiply(execution_space(), out_b, static_cast<T>(shape0 * shape1));
 
-      EXPECT_TRUE(allclose(out_b, out, 1.e-5, atol));
-      EXPECT_TRUE(allclose(out_o, out, 1.e-5, atol));
-      EXPECT_TRUE(allclose(out_f, out, 1.e-5, atol));
+      EXPECT_TRUE(allclose(execution_space(), out_b, out, 1.e-5, atol));
+      EXPECT_TRUE(allclose(execution_space(), out_o, out, 1.e-5, atol));
+      EXPECT_TRUE(allclose(execution_space(), out_f, out, 1.e-5, atol));
     }
   }
 }
@@ -2835,14 +2861,14 @@ void test_fftn_3dfft_3dview(T atol = 1.0e-6) {
   KokkosFFT::fftn(execution_space(), x, out_f, axes,
                   KokkosFFT::Normalization::forward);
 
-  multiply(out_o, sqrt(static_cast<T>(n0 * n1 * n2)));
-  multiply(out_f, static_cast<T>(n0 * n1 * n2));
+  multiply(execution_space(), out_o, sqrt(static_cast<T>(n0 * n1 * n2)));
+  multiply(execution_space(), out_f, static_cast<T>(n0 * n1 * n2));
 
-  EXPECT_TRUE(allclose(out, out3, 1.e-5, atol));
-  EXPECT_TRUE(allclose(out_no_axes, out3, 1.e-5, atol));
-  EXPECT_TRUE(allclose(out_b, out3, 1.e-5, atol));
-  EXPECT_TRUE(allclose(out_o, out3, 1.e-5, atol));
-  EXPECT_TRUE(allclose(out_f, out3, 1.e-5, atol));
+  EXPECT_TRUE(allclose(execution_space(), out, out3, 1.e-5, atol));
+  EXPECT_TRUE(allclose(execution_space(), out_no_axes, out3, 1.e-5, atol));
+  EXPECT_TRUE(allclose(execution_space(), out_b, out3, 1.e-5, atol));
+  EXPECT_TRUE(allclose(execution_space(), out_o, out3, 1.e-5, atol));
+  EXPECT_TRUE(allclose(execution_space(), out_f, out3, 1.e-5, atol));
 }
 
 template <typename T, typename LayoutType>
@@ -2886,14 +2912,14 @@ void test_ifftn_3dfft_3dview() {
   KokkosFFT::ifftn(execution_space(), x, out_f, axes,
                    KokkosFFT::Normalization::forward);
 
-  multiply(out_o, 1.0 / sqrt(static_cast<T>(n0 * n1 * n2)));
-  multiply(out_f, 1.0 / static_cast<T>(n0 * n1 * n2));
+  multiply(execution_space(), out_o, 1.0 / sqrt(static_cast<T>(n0 * n1 * n2)));
+  multiply(execution_space(), out_f, 1.0 / static_cast<T>(n0 * n1 * n2));
 
-  EXPECT_TRUE(allclose(out, out3, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_no_axes, out3, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_b, out3, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_o, out3, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_f, out3, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out, out3, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_no_axes, out3, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_b, out3, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_o, out3, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_f, out3, 1.e-5, 1.e-6));
 }
 
 template <typename T, typename LayoutType>
@@ -2948,14 +2974,14 @@ void test_rfftn_3dfft_3dview() {
   KokkosFFT::rfftn(execution_space(), x, out_f, axes,
                    KokkosFFT::Normalization::forward);
 
-  multiply(out_o, sqrt(static_cast<T>(n0 * n1 * n2)));
-  multiply(out_f, static_cast<T>(n0 * n1 * n2));
+  multiply(execution_space(), out_o, sqrt(static_cast<T>(n0 * n1 * n2)));
+  multiply(execution_space(), out_f, static_cast<T>(n0 * n1 * n2));
 
-  EXPECT_TRUE(allclose(out, out3, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_no_axes, out3, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_b, out3, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_o, out3, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_f, out3, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out, out3, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_no_axes, out3, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_b, out3, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_o, out3, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_f, out3, 1.e-5, 1.e-6));
 }
 
 template <typename T, typename LayoutType>
@@ -3011,14 +3037,14 @@ void test_irfftn_3dfft_3dview() {
   KokkosFFT::irfftn(execution_space(), x, out_f, axes,
                     KokkosFFT::Normalization::forward);
 
-  multiply(out_o, 1.0 / sqrt(static_cast<T>(n0 * n1 * n2)));
-  multiply(out_f, 1.0 / static_cast<T>(n0 * n1 * n2));
+  multiply(execution_space(), out_o, 1.0 / sqrt(static_cast<T>(n0 * n1 * n2)));
+  multiply(execution_space(), out_f, 1.0 / static_cast<T>(n0 * n1 * n2));
 
-  EXPECT_TRUE(allclose(out, out3, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_no_axes, out3, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_b, out3, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_o, out3, 1.e-5, 1.e-6));
-  EXPECT_TRUE(allclose(out_f, out3, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out, out3, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_no_axes, out3, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_b, out3, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_o, out3, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(execution_space(), out_f, out3, 1.e-5, 1.e-6));
 }
 
 template <typename T, typename LayoutType>
@@ -3075,12 +3101,14 @@ void test_fftn_3dfft_3dview_shape(T atol = 1.0e-12) {
         KokkosFFT::rfftn(execution_space(), xr, outr_f, axes,
                          KokkosFFT::Normalization::forward, new_shape);
 
-        multiply(outr_o, sqrt(static_cast<T>(shape0 * shape1 * shape2)));
-        multiply(outr_f, static_cast<T>(shape0 * shape1 * shape2));
+        multiply(execution_space(), outr_o,
+                 sqrt(static_cast<T>(shape0 * shape1 * shape2)));
+        multiply(execution_space(), outr_f,
+                 static_cast<T>(shape0 * shape1 * shape2));
 
-        EXPECT_TRUE(allclose(outr_b, outr, 1.e-5, atol));
-        EXPECT_TRUE(allclose(outr_o, outr, 1.e-5, atol));
-        EXPECT_TRUE(allclose(outr_f, outr, 1.e-5, atol));
+        EXPECT_TRUE(allclose(execution_space(), outr_b, outr, 1.e-5, atol));
+        EXPECT_TRUE(allclose(execution_space(), outr_o, outr, 1.e-5, atol));
+        EXPECT_TRUE(allclose(execution_space(), outr_f, outr, 1.e-5, atol));
 
         // Complex to real
         RealView3DType out("out", shape0, shape1, shape2),
@@ -3104,12 +3132,14 @@ void test_fftn_3dfft_3dview_shape(T atol = 1.0e-12) {
         KokkosFFT::irfftn(execution_space(), x, out_f, axes,
                           KokkosFFT::Normalization::forward, new_shape);
 
-        multiply(out_o, sqrt(static_cast<T>(shape0 * shape1 * shape2)));
-        multiply(out_b, static_cast<T>(shape0 * shape1 * shape2));
+        multiply(execution_space(), out_o,
+                 sqrt(static_cast<T>(shape0 * shape1 * shape2)));
+        multiply(execution_space(), out_b,
+                 static_cast<T>(shape0 * shape1 * shape2));
 
-        EXPECT_TRUE(allclose(out_b, out, 1.e-5, atol));
-        EXPECT_TRUE(allclose(out_o, out, 1.e-5, atol));
-        EXPECT_TRUE(allclose(out_f, out, 1.e-5, atol));
+        EXPECT_TRUE(allclose(execution_space(), out_b, out, 1.e-5, atol));
+        EXPECT_TRUE(allclose(execution_space(), out_o, out, 1.e-5, atol));
+        EXPECT_TRUE(allclose(execution_space(), out_f, out, 1.e-5, atol));
       }
     }
   }
@@ -3165,7 +3195,7 @@ void test_fftn_3dfft_4dview(T atol = 1.e-12) {
         KokkosFFT::ifftn(execution_space(), x_hat, inv_x_hat, axes,
                          KokkosFFT::Normalization::backward);
 
-        EXPECT_TRUE(allclose(inv_x_hat, ref_x, 1.e-5, atol));
+        EXPECT_TRUE(allclose(execution_space(), inv_x_hat, ref_x, 1.e-5, atol));
 
         // Simple identity tests for r2c and c2r transforms
         KokkosFFT::rfftn(execution_space(), xr, xr_hat, axes,
@@ -3174,7 +3204,8 @@ void test_fftn_3dfft_4dview(T atol = 1.e-12) {
         KokkosFFT::irfftn(execution_space(), xr_hat, inv_xr_hat, axes,
                           KokkosFFT::Normalization::backward);
 
-        EXPECT_TRUE(allclose(inv_xr_hat, ref_xr, 1.e-5, atol));
+        EXPECT_TRUE(
+            allclose(execution_space(), inv_xr_hat, ref_xr, 1.e-5, atol));
       }
     }
   }
@@ -3243,7 +3274,7 @@ void test_fftn_3dfft_5dview(T atol = 1.e-12) {
     KokkosFFT::ifftn(execution_space(), x_hat, inv_x_hat, tested_axes,
                      KokkosFFT::Normalization::backward);
 
-    EXPECT_TRUE(allclose(inv_x_hat, ref_x, 1.e-5, atol));
+    EXPECT_TRUE(allclose(execution_space(), inv_x_hat, ref_x, 1.e-5, atol));
 
     // Simple identity tests for r2c and c2r transforms
     KokkosFFT::rfftn(execution_space(), xr, xr_hat, tested_axes,
@@ -3252,7 +3283,7 @@ void test_fftn_3dfft_5dview(T atol = 1.e-12) {
     KokkosFFT::irfftn(execution_space(), xr_hat, inv_xr_hat, tested_axes,
                       KokkosFFT::Normalization::backward);
 
-    EXPECT_TRUE(allclose(inv_xr_hat, ref_xr, 1.e-5, atol));
+    EXPECT_TRUE(allclose(execution_space(), inv_xr_hat, ref_xr, 1.e-5, atol));
   }
 }
 
@@ -3319,7 +3350,7 @@ void test_fftn_3dfft_6dview(T atol = 1.e-12) {
     KokkosFFT::ifftn(execution_space(), x_hat, inv_x_hat, tested_axes,
                      KokkosFFT::Normalization::backward);
 
-    EXPECT_TRUE(allclose(inv_x_hat, ref_x, 1.e-5, atol));
+    EXPECT_TRUE(allclose(execution_space(), inv_x_hat, ref_x, 1.e-5, atol));
 
     // Simple identity tests for r2c and c2r transforms
     KokkosFFT::rfftn(execution_space(), xr, xr_hat, tested_axes,
@@ -3328,7 +3359,7 @@ void test_fftn_3dfft_6dview(T atol = 1.e-12) {
     KokkosFFT::irfftn(execution_space(), xr_hat, inv_xr_hat, tested_axes,
                       KokkosFFT::Normalization::backward);
 
-    EXPECT_TRUE(allclose(inv_xr_hat, ref_xr, 1.e-5, atol));
+    EXPECT_TRUE(allclose(execution_space(), inv_xr_hat, ref_xr, 1.e-5, atol));
   }
 }
 
@@ -3395,7 +3426,7 @@ void test_fftn_3dfft_7dview(T atol = 1.e-12) {
     KokkosFFT::ifftn(execution_space(), x_hat, inv_x_hat, tested_axes,
                      KokkosFFT::Normalization::backward);
 
-    EXPECT_TRUE(allclose(inv_x_hat, ref_x, 1.e-5, atol));
+    EXPECT_TRUE(allclose(execution_space(), inv_x_hat, ref_x, 1.e-5, atol));
 
     // Simple identity tests for r2c and c2r transforms
     KokkosFFT::rfftn(execution_space(), xr, xr_hat, tested_axes,
@@ -3404,7 +3435,7 @@ void test_fftn_3dfft_7dview(T atol = 1.e-12) {
     KokkosFFT::irfftn(execution_space(), xr_hat, inv_xr_hat, tested_axes,
                       KokkosFFT::Normalization::backward);
 
-    EXPECT_TRUE(allclose(inv_xr_hat, ref_xr, 1.e-5, atol));
+    EXPECT_TRUE(allclose(execution_space(), inv_xr_hat, ref_xr, 1.e-5, atol));
   }
 }
 
@@ -3471,7 +3502,7 @@ void test_fftn_3dfft_8dview(T atol = 1.e-12) {
     KokkosFFT::ifftn(execution_space(), x_hat, inv_x_hat, tested_axes,
                      KokkosFFT::Normalization::backward);
 
-    EXPECT_TRUE(allclose(inv_x_hat, ref_x, 1.e-5, atol));
+    EXPECT_TRUE(allclose(execution_space(), inv_x_hat, ref_x, 1.e-5, atol));
 
     // Simple identity tests for r2c and c2r transforms
     KokkosFFT::rfftn(execution_space(), xr, xr_hat, tested_axes,
@@ -3480,7 +3511,7 @@ void test_fftn_3dfft_8dview(T atol = 1.e-12) {
     KokkosFFT::irfftn(execution_space(), xr_hat, inv_xr_hat, tested_axes,
                       KokkosFFT::Normalization::backward);
 
-    EXPECT_TRUE(allclose(inv_xr_hat, ref_xr, 1.e-5, atol));
+    EXPECT_TRUE(allclose(execution_space(), inv_xr_hat, ref_xr, 1.e-5, atol));
   }
 }
 
@@ -3609,3 +3640,5 @@ TYPED_TEST(FFTND, 3DFFT_batched_8DView) {
   float_type atol = std::is_same_v<float_type, float> ? 1.0e-5 : 1.0e-10;
   test_fftn_3dfft_8dview<float_type, layout_type>(atol);
 }
+
+}  // namespace
