@@ -26,7 +26,7 @@ bool allclose(const ExecutionSpace& exec, const AViewType& a,
       "KokkosFFT::Test::allclose",
       Kokkos::RangePolicy<ExecutionSpace, Kokkos::IndexType<std::size_t>>(exec,
                                                                           0, n),
-      KOKKOS_LAMBDA(const int& i, int& err) {
+      KOKKOS_LAMBDA(const std::size_t& i, int& err) {
         auto tmp_a = ptr_a[i];
         auto tmp_b = ptr_b[i];
         bool not_close =
@@ -47,7 +47,7 @@ void multiply(const ExecutionSpace& exec, ViewType& x, T a) {
       "KokkosFFT::Test::multiply",
       Kokkos::RangePolicy<ExecutionSpace, Kokkos::IndexType<std::size_t>>(exec,
                                                                           0, n),
-      KOKKOS_LAMBDA(const int& i) { ptr_x[i] = ptr_x[i] * a; });
+      KOKKOS_LAMBDA(const std::size_t& i) { ptr_x[i] = ptr_x[i] * a; });
 }
 
 template <typename T>
