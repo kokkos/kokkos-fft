@@ -6,9 +6,10 @@
 #include <Kokkos_Random.hpp>
 #include <vector>
 #include "KokkosFFT_Extents.hpp"
-#include "Test_Types.hpp"
 #include "Test_Utils.hpp"
 
+namespace {
+using execution_space = Kokkos::DefaultExecutionSpace;
 using test_types = ::testing::Types<Kokkos::LayoutLeft, Kokkos::LayoutRight>;
 
 // Basically the same fixtures, used for labeling tests
@@ -765,3 +766,5 @@ TYPED_TEST(Extents2D, 2DFFT_3DView) {
 
   test_extents_2d_batched_FFT_3d<layout_type>();
 }
+
+}  // namespace

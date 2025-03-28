@@ -7,11 +7,10 @@
 
 #include <Kokkos_Core.hpp>
 #include <iomanip>
-#include "Test_Types.hpp"
 
-template <typename AViewType, typename BViewType>
-bool allclose(const AViewType& a, const BViewType& b, double rtol = 1.e-5,
-              double atol = 1.e-8) {
+template <typename ExecutionSpace, typename AViewType, typename BViewType>
+bool allclose(const ExecutionSpace& exec, const AViewType& a,
+              const BViewType& b, double rtol = 1.e-5, double atol = 1.e-8) {
   constexpr std::size_t rank = AViewType::rank;
   for (std::size_t i = 0; i < rank; i++) {
     assert(a.extent(i) == b.extent(i));
@@ -24,9 +23,9 @@ bool allclose(const AViewType& a, const BViewType& b, double rtol = 1.e-5,
   int error = 0;
   Kokkos::parallel_reduce(
       "KokkosFFT::Test::allclose",
-      Kokkos::RangePolicy<execution_space, Kokkos::IndexType<std::size_t>>{0,
-                                                                           n},
-      KOKKOS_LAMBDA(const int& i, int& err) {
+      Kokkos::RangePolicy<ExecutionSpace, Kokkos::IndexType<std::size_t>>(exec,
+                                                                          0, n),
+      KOKKOS_LAMBDA(const std::size_t& i, int& err) {
         auto tmp_a = ptr_a[i];
         auto tmp_b = ptr_b[i];
         bool not_close =
@@ -38,16 +37,16 @@ bool allclose(const AViewType& a, const BViewType& b, double rtol = 1.e-5,
   return error == 0;
 }
 
-template <typename ViewType, typename T>
-void multiply(ViewType& x, T a) {
+template <typename ExecutionSpace, typename ViewType, typename T>
+void multiply(const ExecutionSpace& exec, ViewType& x, T a) {
   const auto n = x.size();
   auto* ptr_x  = x.data();
 
   Kokkos::parallel_for(
       "KokkosFFT::Test::multiply",
-      Kokkos::RangePolicy<execution_space, Kokkos::IndexType<std::size_t>>{0,
-                                                                           n},
-      KOKKOS_LAMBDA(const int& i) { ptr_x[i] = ptr_x[i] * a; });
+      Kokkos::RangePolicy<ExecutionSpace, Kokkos::IndexType<std::size_t>>(exec,
+                                                                          0, n),
+      KOKKOS_LAMBDA(const std::size_t& i) { ptr_x[i] = ptr_x[i] * a; });
 }
 
 template <typename ViewType>
@@ -77,8 +76,8 @@ void display(ViewType& a) {
 ///
 /// \param in [in]: Input rank 1 view
 /// \param out [out]: Output rank 1 view
-template <typename ViewType>
-void fft1(const ViewType& in, const ViewType& out) {
+template <typename ExecutionSpace, typename ViewType>
+void fft1(const ExecutionSpace& exec, const ViewType& in, const ViewType& out) {
   using value_type      = typename ViewType::non_const_value_type;
   using real_value_type = KokkosFFT::Impl::base_floating_point_type<value_type>;
 
@@ -91,9 +90,10 @@ void fft1(const ViewType& in, const ViewType& out) {
 
   Kokkos::parallel_for(
       "KokkosFFT::Test::fft1",
-      Kokkos::TeamPolicy<execution_space>(L, Kokkos::AUTO),
+      Kokkos::TeamPolicy<ExecutionSpace>(exec, L, Kokkos::AUTO),
       KOKKOS_LAMBDA(
-          const Kokkos::TeamPolicy<execution_space>::member_type& team_member) {
+          const typename Kokkos::TeamPolicy<ExecutionSpace>::member_type&
+              team_member) {
         const int j = team_member.league_rank();
 
         value_type sum = 0;
@@ -124,8 +124,9 @@ void fft1(const ViewType& in, const ViewType& out) {
 ///
 /// \param in [in]: Input rank 1 view
 /// \param out [out]: Output rank 1 view
-template <typename ViewType>
-void ifft1(const ViewType& in, const ViewType& out) {
+template <typename ExecutionSpace, typename ViewType>
+void ifft1(const ExecutionSpace& exec, const ViewType& in,
+           const ViewType& out) {
   using value_type      = typename ViewType::non_const_value_type;
   using real_value_type = KokkosFFT::Impl::base_floating_point_type<value_type>;
 
@@ -138,9 +139,10 @@ void ifft1(const ViewType& in, const ViewType& out) {
 
   Kokkos::parallel_for(
       "KokkosFFT::Test::ifft1",
-      Kokkos::TeamPolicy<execution_space>(L, Kokkos::AUTO),
+      Kokkos::TeamPolicy<ExecutionSpace>(exec, L, Kokkos::AUTO),
       KOKKOS_LAMBDA(
-          const Kokkos::TeamPolicy<execution_space>::member_type& team_member) {
+          const typename Kokkos::TeamPolicy<ExecutionSpace>::member_type&
+              team_member) {
         const int j = team_member.league_rank();
 
         value_type sum = 0;

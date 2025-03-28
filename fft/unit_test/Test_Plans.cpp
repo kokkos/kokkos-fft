@@ -4,7 +4,9 @@
 
 #include <gtest/gtest.h>
 #include "KokkosFFT_Plans.hpp"
-#include "Test_Types.hpp"
+
+namespace {
+using execution_space = Kokkos::DefaultExecutionSpace;
 
 template <std::size_t DIM>
 using axes_type = std::array<int, DIM>;
@@ -827,3 +829,5 @@ TYPED_TEST(Plans3D, 3DFFT_3DView) {
 
   test_plan_3dfft_3dview<float_type, layout_type>();
 }
+
+}  // namespace
