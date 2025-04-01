@@ -206,6 +206,7 @@ struct FindErrors<ExecutionSpace, AViewType, BViewType, Layout, 1, iType> {
   using AErrorViewType = Kokkos::View<a_value_type*, ExecutionSpace>;
   using BErrorViewType = Kokkos::View<b_value_type*, ExecutionSpace>;
   using CountViewType  = Kokkos::View<std::size_t**, ExecutionSpace>;
+  using CountType      = Kokkos::View<std::size_t, ExecutionSpace>;
 
   AViewType m_a;
   BViewType m_b;
@@ -213,6 +214,7 @@ struct FindErrors<ExecutionSpace, AViewType, BViewType, Layout, 1, iType> {
   AErrorViewType m_a_error;
   BErrorViewType m_b_error;
   CountViewType m_loc_error;
+  CountType m_count;
 
   double m_rtol;
   double m_atol;
@@ -240,6 +242,7 @@ struct FindErrors<ExecutionSpace, AViewType, BViewType, Layout, 1, iType> {
         m_a_error("a_error", nb_errors),
         m_b_error("b_error", nb_errors),
         m_loc_error("loc_error", nb_errors, 2),
+        m_count("count"),
         m_rtol(rtol),
         m_atol(atol) {
     Kokkos::parallel_for("FindErrors-1D", policy_type(space, 0, m_a.extent(0)),
@@ -255,19 +258,17 @@ struct FindErrors<ExecutionSpace, AViewType, BViewType, Layout, 1, iType> {
   ///\param i0 [in] The index of the element in the views.
   KOKKOS_INLINE_FUNCTION
   void operator()(const iType i0) const {
-    iType err  = 0;
     auto tmp_a = m_a(i0);
     auto tmp_b = m_b(i0);
     bool not_close =
         Kokkos::abs(tmp_a - tmp_b) > (m_atol + m_rtol * Kokkos::abs(tmp_b));
-    iType tmp_error = static_cast<iType>(not_close);
-    Kokkos::atomic_add(&tmp_error, err);
-
     if (not_close) {
-      m_a_error(err)      = tmp_a;
-      m_b_error(err)      = tmp_b;
-      m_loc_error(err, 0) = i0;
-      m_loc_error(err, 1) = i0;
+      std::size_t count     = Kokkos::atomic_load(m_count.data());
+      m_a_error(count)      = tmp_a;
+      m_b_error(count)      = tmp_b;
+      m_loc_error(count, 0) = i0;
+      m_loc_error(count, 1) = i0;
+      Kokkos::atomic_fetch_add(m_count.data(), 1);
     }
   }
 
@@ -301,6 +302,7 @@ struct FindErrors<ExecutionSpace, AViewType, BViewType, Layout, 2, iType> {
   using AErrorViewType = Kokkos::View<a_value_type*, ExecutionSpace>;
   using BErrorViewType = Kokkos::View<b_value_type*, ExecutionSpace>;
   using CountViewType  = Kokkos::View<std::size_t**, ExecutionSpace>;
+  using CountType      = Kokkos::View<std::size_t, ExecutionSpace>;
 
   AViewType m_a;
   BViewType m_b;
@@ -308,6 +310,7 @@ struct FindErrors<ExecutionSpace, AViewType, BViewType, Layout, 2, iType> {
   AErrorViewType m_a_error;
   BErrorViewType m_b_error;
   CountViewType m_loc_error;
+  CountType m_count;
 
   double m_rtol;
   double m_atol;
@@ -343,6 +346,7 @@ struct FindErrors<ExecutionSpace, AViewType, BViewType, Layout, 2, iType> {
         m_a_error("a_error", nb_errors),
         m_b_error("b_error", nb_errors),
         m_loc_error("loc_error", nb_errors, 3),
+        m_count("count"),
         m_rtol(rtol),
         m_atol(atol) {
     Kokkos::parallel_for("FindErrors-2D",
@@ -362,20 +366,18 @@ struct FindErrors<ExecutionSpace, AViewType, BViewType, Layout, 2, iType> {
   /// views.
   KOKKOS_INLINE_FUNCTION
   void operator()(const iType i0, const iType i1) const {
-    iType err  = 0;
     auto tmp_a = m_a(i0, i1);
     auto tmp_b = m_b(i0, i1);
     bool not_close =
         Kokkos::abs(tmp_a - tmp_b) > (m_atol + m_rtol * Kokkos::abs(tmp_b));
-    iType tmp_error = static_cast<iType>(not_close);
-    Kokkos::atomic_add(&tmp_error, err);
-
     if (not_close) {
-      m_a_error(err)      = tmp_a;
-      m_b_error(err)      = tmp_b;
-      m_loc_error(err, 0) = i0 + i1 * m_a.extent(0);
-      m_loc_error(err, 1) = i0;
-      m_loc_error(err, 2) = i1;
+      std::size_t count     = Kokkos::atomic_load(m_count.data());
+      m_a_error(count)      = tmp_a;
+      m_b_error(count)      = tmp_b;
+      m_loc_error(count, 0) = i0 + i1 * m_a.extent(0);
+      m_loc_error(count, 1) = i0;
+      m_loc_error(count, 2) = i1;
+      Kokkos::atomic_fetch_add(m_count.data(), 1);
     }
   }
 
