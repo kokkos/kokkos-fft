@@ -7,8 +7,10 @@
 #include <gtest/gtest.h>
 #include <Kokkos_Random.hpp>
 #include "KokkosFFT_transpose.hpp"
-#include "Test_Types.hpp"
 #include "Test_Utils.hpp"
+
+namespace {
+using execution_space = Kokkos::DefaultExecutionSpace;
 
 template <std::size_t DIM>
 using axes_type = std::array<int, DIM>;
@@ -35,11 +37,6 @@ template <typename T>
 struct Transpose3D : public ::testing::Test {
   using layout_type = T;
 };
-
-TYPED_TEST_SUITE(MapAxes, test_types);
-TYPED_TEST_SUITE(Transpose1D, test_types);
-TYPED_TEST_SUITE(Transpose2D, test_types);
-TYPED_TEST_SUITE(Transpose3D, test_types);
 
 // Tests for map axes over ND views
 template <typename LayoutType>
@@ -311,35 +308,15 @@ void test_map_axes3d() {
   EXPECT_TRUE(map_inv_axes_2_1_0 == ref_map_inv_axes_2_1_0);
 }
 
-// Tests for 1D View
-TYPED_TEST(MapAxes, 1DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_map_axes1d<layout_type>();
-}
-
-// Tests for 2D View
-TYPED_TEST(MapAxes, 2DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_map_axes2d<layout_type>();
-}
-
-// Tests for 3D View
-TYPED_TEST(MapAxes, 3DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_map_axes3d<layout_type>();
-}
-
 // Tests for transpose
 // 1D Transpose
 template <typename LayoutType>
 void test_transpose_1d_1dview() {
   // When transpose is not necessary, we should not call transpose method
-  const int len = 30;
-  View1D<double> x("x", len), ref("ref", len);
-  View1D<double> xt("xt", len);
+  using RealView1Dtype = Kokkos::View<double*, LayoutType, execution_space>;
+  const int len        = 30;
+  RealView1Dtype x("x", len), ref("ref", len);
+  RealView1Dtype xt("xt", len);
 
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
   Kokkos::fill_random(x, random_pool, 1.0);
@@ -398,12 +375,12 @@ void test_transpose_1d_2dview() {
 
       KokkosFFT::Impl::transpose(execution_space(), x, xt,
                                  map);  // xt is the transpose of x
-      EXPECT_TRUE(allclose(xt, ref, 1.e-5, 1.e-12));
+      EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
 
       // Inverse (transpose of transpose is identical to the original)
       RealView2Dtype x_inv("x_inv", n0, n1);
       KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
-      EXPECT_TRUE(allclose(x_inv, x, 1.e-5, 1.e-12));
+      EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
     }
   }
 }
@@ -459,12 +436,12 @@ void test_transpose_1d_3dview() {
 
       KokkosFFT::Impl::transpose(execution_space(), x, xt,
                                  map);  // xt is the transpose of x
-      EXPECT_TRUE(allclose(xt, ref, 1.e-5, 1.e-12));
+      EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
 
       // Inverse (transpose of transpose is identical to the original)
       RealView3Dtype x_inv("x_invx", n0, n1, n2);
       KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
-      EXPECT_TRUE(allclose(x_inv, x, 1.e-5, 1.e-12));
+      EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
     }
   }
 }
@@ -536,12 +513,12 @@ void test_transpose_1d_4dview() {
 
       KokkosFFT::Impl::transpose(execution_space(), x, xt,
                                  map);  // xt is the transpose of x
-      EXPECT_TRUE(allclose(xt, ref, 1.e-5, 1.e-12));
+      EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
 
       // Inverse (transpose of transpose is identical to the original)
       RealView4Dtype x_inv("x_inv", n0, n1, n2, n3);
       KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
-      EXPECT_TRUE(allclose(x_inv, x, 1.e-5, 1.e-12));
+      EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
     }
   }
 }
@@ -625,12 +602,12 @@ void test_transpose_1d_5dview() {
 
       KokkosFFT::Impl::transpose(execution_space(), x, xt,
                                  map);  // xt is the transpose of x
-      EXPECT_TRUE(allclose(xt, ref, 1.e-5, 1.e-12));
+      EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
 
       // Inverse (transpose of transpose is identical to the original)
       RealView5Dtype x_inv("x_inv", n0, n1, n2, n3, n4);
       KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
-      EXPECT_TRUE(allclose(x_inv, x, 1.e-5, 1.e-12));
+      EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
     }
   }
 }
@@ -729,12 +706,12 @@ void test_transpose_1d_6dview() {
 
       KokkosFFT::Impl::transpose(execution_space(), x, xt,
                                  map);  // xt is the transpose of x
-      EXPECT_TRUE(allclose(xt, ref, 1.e-5, 1.e-12));
+      EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
 
       // Inverse (transpose of transpose is identical to the original)
       RealView6Dtype x_inv("x_inv_x", n0, n1, n2, n3, n4, n5);
       KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
-      EXPECT_TRUE(allclose(x_inv, x, 1.e-5, 1.e-12));
+      EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
     }
   }
 }
@@ -849,12 +826,12 @@ void test_transpose_1d_7dview() {
 
       KokkosFFT::Impl::transpose(execution_space(), x, xt,
                                  map);  // xt is the transpose of x
-      EXPECT_TRUE(allclose(xt, ref, 1.e-5, 1.e-12));
+      EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
 
       // Inverse (transpose of transpose is identical to the original)
       RealView7Dtype x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6);
       KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
-      EXPECT_TRUE(allclose(x_inv, x, 1.e-5, 1.e-12));
+      EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
     }
   }
 }
@@ -988,62 +965,14 @@ void test_transpose_1d_8dview() {
 
       KokkosFFT::Impl::transpose(execution_space(), x, xt,
                                  map);  // xt is the transpose of x
-      EXPECT_TRUE(allclose(xt, ref, 1.e-5, 1.e-12));
+      EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
 
       // Inverse (transpose of transpose is identical to the original)
       RealView8Dtype x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6, n7);
       KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
-      EXPECT_TRUE(allclose(x_inv, x, 1.e-5, 1.e-12));
+      EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
     }
   }
-}
-
-TYPED_TEST(Transpose1D, 1DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_transpose_1d_1dview<layout_type>();
-}
-
-TYPED_TEST(Transpose1D, 2DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_transpose_1d_2dview<layout_type>();
-}
-
-TYPED_TEST(Transpose1D, 3DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_transpose_1d_3dview<layout_type>();
-}
-
-TYPED_TEST(Transpose1D, 4DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_transpose_1d_4dview<layout_type>();
-}
-
-TYPED_TEST(Transpose1D, 5DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_transpose_1d_5dview<layout_type>();
-}
-
-TYPED_TEST(Transpose1D, 6DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_transpose_1d_6dview<layout_type>();
-}
-
-TYPED_TEST(Transpose1D, 7DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_transpose_1d_7dview<layout_type>();
-}
-
-TYPED_TEST(Transpose1D, 8DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_transpose_1d_8dview<layout_type>();
 }
 
 template <typename LayoutType>
@@ -1076,12 +1005,12 @@ void test_transpose_2d_2dview() {
 
   KokkosFFT::Impl::transpose(execution_space(), x, xt_axis10,
                              axes_type<2>({1, 0}));  // xt is the transpose of x
-  EXPECT_TRUE(allclose(xt_axis10, ref, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(execution_space(), xt_axis10, ref, 1.e-5, 1.e-12));
 
   // Inverse (transpose of transpose is identical to the original)
   KokkosFFT::Impl::transpose(execution_space(), xt_axis10, x_inv,
                              axes_type<2>({1, 0}));  // xt is the transpose of x
-  EXPECT_TRUE(allclose(x_inv, x, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
 }
 
 template <typename LayoutType>
@@ -1140,12 +1069,12 @@ void test_transpose_2d_3dview() {
 
         KokkosFFT::Impl::transpose(execution_space(), x, xt,
                                    map);  // xt is the transpose of x
-        EXPECT_TRUE(allclose(xt, ref, 1.e-5, 1.e-12));
+        EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
 
         // Inverse (transpose of transpose is identical to the original)
         RealView3Dtype x_inv("x_inv", n0, n1, n2);
         KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
-        EXPECT_TRUE(allclose(x_inv, x, 1.e-5, 1.e-12));
+        EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
       }
     }
   }
@@ -1223,12 +1152,12 @@ void test_transpose_2d_4dview() {
 
         KokkosFFT::Impl::transpose(execution_space(), x, xt,
                                    map);  // xt is the transpose of x
-        EXPECT_TRUE(allclose(xt, ref, 1.e-5, 1.e-12));
+        EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
 
         // Inverse (transpose of transpose is identical to the original)
         RealView4Dtype x_inv("x_inv", n0, n1, n2, n3);
         KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
-        EXPECT_TRUE(allclose(x_inv, x, 1.e-5, 1.e-12));
+        EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
       }
     }
   }
@@ -1318,12 +1247,12 @@ void test_transpose_2d_5dview() {
 
         KokkosFFT::Impl::transpose(execution_space(), x, xt,
                                    map);  // xt is the transpose of x
-        EXPECT_TRUE(allclose(xt, ref, 1.e-5, 1.e-12));
+        EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
 
         // Inverse (transpose of transpose is identical to the original)
         RealView5Dtype x_inv("x_inv", n0, n1, n2, n3, n4);
         KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
-        EXPECT_TRUE(allclose(x_inv, x, 1.e-5, 1.e-12));
+        EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
       }
     }
   }
@@ -1428,12 +1357,12 @@ void test_transpose_2d_6dview() {
 
         KokkosFFT::Impl::transpose(execution_space(), x, xt,
                                    map);  // xt is the transpose of x
-        EXPECT_TRUE(allclose(xt, ref, 1.e-5, 1.e-12));
+        EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
 
         // Inverse (transpose of transpose is identical to the original)
         RealView6Dtype x_inv("x_inv", n0, n1, n2, n3, n4, n5);
         KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
-        EXPECT_TRUE(allclose(x_inv, x, 1.e-5, 1.e-12));
+        EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
       }
     }
   }
@@ -1554,12 +1483,12 @@ void test_transpose_2d_7dview() {
 
         KokkosFFT::Impl::transpose(execution_space(), x, xt,
                                    map);  // xt is the transpose of x
-        EXPECT_TRUE(allclose(xt, ref, 1.e-5, 1.e-12));
+        EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
 
         // Inverse (transpose of transpose is identical to the original)
         RealView7Dtype x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6);
         KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
-        EXPECT_TRUE(allclose(x_inv, x, 1.e-5, 1.e-12));
+        EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
       }
     }
   }
@@ -1699,57 +1628,15 @@ void test_transpose_2d_8dview() {
 
         KokkosFFT::Impl::transpose(execution_space(), x, xt,
                                    map);  // xt is the transpose of x
-        EXPECT_TRUE(allclose(xt, ref, 1.e-5, 1.e-12));
+        EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
 
         // Inverse (transpose of transpose is identical to the original)
         RealView8Dtype x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6, n7);
         KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
-        EXPECT_TRUE(allclose(x_inv, x, 1.e-5, 1.e-12));
+        EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
       }
     }
   }
-}
-
-TYPED_TEST(Transpose2D, 2DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_transpose_2d_2dview<layout_type>();
-}
-
-TYPED_TEST(Transpose2D, 3DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_transpose_2d_3dview<layout_type>();
-}
-
-TYPED_TEST(Transpose2D, 4DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_transpose_2d_4dview<layout_type>();
-}
-
-TYPED_TEST(Transpose2D, 5DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_transpose_2d_5dview<layout_type>();
-}
-
-TYPED_TEST(Transpose2D, 6DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_transpose_2d_6dview<layout_type>();
-}
-
-TYPED_TEST(Transpose2D, 7DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_transpose_2d_7dview<layout_type>();
-}
-
-TYPED_TEST(Transpose2D, 8DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_transpose_2d_8dview<layout_type>();
 }
 
 template <typename LayoutType>
@@ -1810,27 +1697,32 @@ void test_transpose_3d_3dview() {
   KokkosFFT::Impl::transpose(
       execution_space(), x, xt_axis021,
       axes_type<3>({0, 2, 1}));  // xt is the transpose of x
-  EXPECT_TRUE(allclose(xt_axis021, ref_axis021, 1.e-5, 1.e-12));
+  EXPECT_TRUE(
+      allclose(execution_space(), xt_axis021, ref_axis021, 1.e-5, 1.e-12));
 
   KokkosFFT::Impl::transpose(
       execution_space(), x, xt_axis102,
       axes_type<3>({1, 0, 2}));  // xt is the transpose of x
-  EXPECT_TRUE(allclose(xt_axis102, ref_axis102, 1.e-5, 1.e-12));
+  EXPECT_TRUE(
+      allclose(execution_space(), xt_axis102, ref_axis102, 1.e-5, 1.e-12));
 
   KokkosFFT::Impl::transpose(
       execution_space(), x, xt_axis120,
       axes_type<3>({1, 2, 0}));  // xt is the transpose of x
-  EXPECT_TRUE(allclose(xt_axis120, ref_axis120, 1.e-5, 1.e-12));
+  EXPECT_TRUE(
+      allclose(execution_space(), xt_axis120, ref_axis120, 1.e-5, 1.e-12));
 
   KokkosFFT::Impl::transpose(
       execution_space(), x, xt_axis201,
       axes_type<3>({2, 0, 1}));  // xt is the transpose of x
-  EXPECT_TRUE(allclose(xt_axis201, ref_axis201, 1.e-5, 1.e-12));
+  EXPECT_TRUE(
+      allclose(execution_space(), xt_axis201, ref_axis201, 1.e-5, 1.e-12));
 
   KokkosFFT::Impl::transpose(
       execution_space(), x, xt_axis210,
       axes_type<3>({2, 1, 0}));  // xt is the transpose of x
-  EXPECT_TRUE(allclose(xt_axis210, ref_axis210, 1.e-5, 1.e-12));
+  EXPECT_TRUE(
+      allclose(execution_space(), xt_axis210, ref_axis210, 1.e-5, 1.e-12));
 }
 
 template <typename LayoutType>
@@ -1907,12 +1799,12 @@ void test_transpose_3d_4dview() {
 
           KokkosFFT::Impl::transpose(execution_space(), x, xt,
                                      map);  // xt is the transpose of x
-          EXPECT_TRUE(allclose(xt, ref, 1.e-5, 1.e-12));
+          EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
 
           // Inverse (transpose of transpose is identical to the original)
           RealView4Dtype x_inv("x_inv", n0, n1, n2, n3);
           KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
-          EXPECT_TRUE(allclose(x_inv, x, 1.e-5, 1.e-12));
+          EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
         }
       }
     }
@@ -2006,12 +1898,12 @@ void test_transpose_3d_5dview() {
 
           KokkosFFT::Impl::transpose(execution_space(), x, xt,
                                      map);  // xt is the transpose of x
-          EXPECT_TRUE(allclose(xt, ref, 1.e-5, 1.e-12));
+          EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
 
           // Inverse (transpose of transpose is identical to the original)
           RealView5Dtype x_inv("x_inv", n0, n1, n2, n3, n4);
           KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
-          EXPECT_TRUE(allclose(x_inv, x, 1.e-5, 1.e-12));
+          EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
         }
       }
     }
@@ -2120,12 +2012,12 @@ void test_transpose_3d_6dview() {
 
           KokkosFFT::Impl::transpose(execution_space(), x, xt,
                                      map);  // xt is the transpose of x
-          EXPECT_TRUE(allclose(xt, ref, 1.e-5, 1.e-12));
+          EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
 
           // Inverse (transpose of transpose is identical to the original)
           RealView6Dtype x_inv("x_inv", n0, n1, n2, n3, n4, n5);
           KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
-          EXPECT_TRUE(allclose(x_inv, x, 1.e-5, 1.e-12));
+          EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
         }
       }
     }
@@ -2250,12 +2142,12 @@ void test_transpose_3d_7dview() {
 
           KokkosFFT::Impl::transpose(execution_space(), x, xt,
                                      map);  // xt is the transpose of x
-          EXPECT_TRUE(allclose(xt, ref, 1.e-5, 1.e-12));
+          EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
 
           // Inverse (transpose of transpose is identical to the original)
           RealView7Dtype x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6);
           KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
-          EXPECT_TRUE(allclose(x_inv, x, 1.e-5, 1.e-12));
+          EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
         }
       }
     }
@@ -2400,16 +2292,134 @@ void test_transpose_3d_8dview() {
 
           KokkosFFT::Impl::transpose(execution_space(), x, xt,
                                      map);  // xt is the transpose of x
-          EXPECT_TRUE(allclose(xt, ref, 1.e-5, 1.e-12));
+          EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
 
           // Inverse (transpose of transpose is identical to the original)
           RealView8Dtype x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6, n7);
           KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
-          EXPECT_TRUE(allclose(x_inv, x, 1.e-5, 1.e-12));
+          EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
         }
       }
     }
   }
+}
+
+}  // namespace
+
+TYPED_TEST_SUITE(MapAxes, test_types);
+TYPED_TEST_SUITE(Transpose1D, test_types);
+TYPED_TEST_SUITE(Transpose2D, test_types);
+TYPED_TEST_SUITE(Transpose3D, test_types);
+
+// Tests for 1D View
+TYPED_TEST(MapAxes, 1DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_map_axes1d<layout_type>();
+}
+
+// Tests for 2D View
+TYPED_TEST(MapAxes, 2DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_map_axes2d<layout_type>();
+}
+
+// Tests for 3D View
+TYPED_TEST(MapAxes, 3DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_map_axes3d<layout_type>();
+}
+
+TYPED_TEST(Transpose1D, 1DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_transpose_1d_1dview<layout_type>();
+}
+
+TYPED_TEST(Transpose1D, 2DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_transpose_1d_2dview<layout_type>();
+}
+
+TYPED_TEST(Transpose1D, 3DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_transpose_1d_3dview<layout_type>();
+}
+
+TYPED_TEST(Transpose1D, 4DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_transpose_1d_4dview<layout_type>();
+}
+
+TYPED_TEST(Transpose1D, 5DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_transpose_1d_5dview<layout_type>();
+}
+
+TYPED_TEST(Transpose1D, 6DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_transpose_1d_6dview<layout_type>();
+}
+
+TYPED_TEST(Transpose1D, 7DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_transpose_1d_7dview<layout_type>();
+}
+
+TYPED_TEST(Transpose1D, 8DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_transpose_1d_8dview<layout_type>();
+}
+
+TYPED_TEST(Transpose2D, 2DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_transpose_2d_2dview<layout_type>();
+}
+
+TYPED_TEST(Transpose2D, 3DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_transpose_2d_3dview<layout_type>();
+}
+
+TYPED_TEST(Transpose2D, 4DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_transpose_2d_4dview<layout_type>();
+}
+
+TYPED_TEST(Transpose2D, 5DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_transpose_2d_5dview<layout_type>();
+}
+
+TYPED_TEST(Transpose2D, 6DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_transpose_2d_6dview<layout_type>();
+}
+
+TYPED_TEST(Transpose2D, 7DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_transpose_2d_7dview<layout_type>();
+}
+
+TYPED_TEST(Transpose2D, 8DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_transpose_2d_8dview<layout_type>();
 }
 
 TYPED_TEST(Transpose3D, 3DView) {

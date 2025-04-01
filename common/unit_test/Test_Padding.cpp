@@ -6,8 +6,26 @@
 #include <Kokkos_Random.hpp>
 #include <random>
 #include "KokkosFFT_padding.hpp"
-#include "Test_Types.hpp"
 #include "Test_Utils.hpp"
+
+namespace {
+using execution_space = Kokkos::DefaultExecutionSpace;
+template <typename T>
+using View1D = Kokkos::View<T*, execution_space>;
+template <typename T>
+using View2D = Kokkos::View<T**, execution_space>;
+template <typename T>
+using View3D = Kokkos::View<T***, execution_space>;
+template <typename T>
+using View4D = Kokkos::View<T****, execution_space>;
+template <typename T>
+using View5D = Kokkos::View<T*****, execution_space>;
+template <typename T>
+using View6D = Kokkos::View<T******, execution_space>;
+template <typename T>
+using View7D = Kokkos::View<T*******, execution_space>;
+template <typename T>
+using View8D = Kokkos::View<T********, execution_space>;
 
 template <std::size_t DIM>
 using shape_type = KokkosFFT::shape_type<DIM>;
@@ -32,10 +50,6 @@ template <typename T>
 struct GetModifiedShape3D : public ::testing::Test {
   using float_type = T;
 };
-
-TYPED_TEST_SUITE(GetModifiedShape1D, test_types);
-TYPED_TEST_SUITE(GetModifiedShape2D, test_types);
-TYPED_TEST_SUITE(GetModifiedShape3D, test_types);
 
 auto get_c2r_shape(std::size_t len, bool is_C2R) {
   return is_C2R ? (len / 2 + 1) : len;
@@ -249,46 +263,6 @@ void test_reshape1D_8DView() {
       EXPECT_TRUE(modified_shape == ref_shape);
     }
   }
-}
-
-TYPED_TEST(GetModifiedShape1D, 1DView) {
-  using float_type = typename TestFixture::float_type;
-  test_reshape1D_1DView<float_type>();
-}
-
-TYPED_TEST(GetModifiedShape1D, 2DView) {
-  using float_type = typename TestFixture::float_type;
-  test_reshape1D_2DView<float_type>();
-}
-
-TYPED_TEST(GetModifiedShape1D, 3DView) {
-  using float_type = typename TestFixture::float_type;
-  test_reshape1D_3DView<float_type>();
-}
-
-TYPED_TEST(GetModifiedShape1D, 4DView) {
-  using float_type = typename TestFixture::float_type;
-  test_reshape1D_4DView<float_type>();
-}
-
-TYPED_TEST(GetModifiedShape1D, 5DView) {
-  using float_type = typename TestFixture::float_type;
-  test_reshape1D_5DView<float_type>();
-}
-
-TYPED_TEST(GetModifiedShape1D, 6DView) {
-  using float_type = typename TestFixture::float_type;
-  test_reshape1D_6DView<float_type>();
-}
-
-TYPED_TEST(GetModifiedShape1D, 7DView) {
-  using float_type = typename TestFixture::float_type;
-  test_reshape1D_7DView<float_type>();
-}
-
-TYPED_TEST(GetModifiedShape1D, 8DView) {
-  using float_type = typename TestFixture::float_type;
-  test_reshape1D_8DView<float_type>();
 }
 
 template <typename T>
@@ -535,41 +509,6 @@ void test_reshape2D_8DView() {
       }
     }
   }
-}
-
-TYPED_TEST(GetModifiedShape2D, 2DView) {
-  using float_type = typename TestFixture::float_type;
-  test_reshape2D_2DView<float_type>();
-}
-
-TYPED_TEST(GetModifiedShape2D, 3DView) {
-  using float_type = typename TestFixture::float_type;
-  test_reshape2D_3DView<float_type>();
-}
-
-TYPED_TEST(GetModifiedShape2D, 4DView) {
-  using float_type = typename TestFixture::float_type;
-  test_reshape2D_4DView<float_type>();
-}
-
-TYPED_TEST(GetModifiedShape2D, 5DView) {
-  using float_type = typename TestFixture::float_type;
-  test_reshape2D_5DView<float_type>();
-}
-
-TYPED_TEST(GetModifiedShape2D, 6DView) {
-  using float_type = typename TestFixture::float_type;
-  test_reshape2D_6DView<float_type>();
-}
-
-TYPED_TEST(GetModifiedShape2D, 7DView) {
-  using float_type = typename TestFixture::float_type;
-  test_reshape2D_7DView<float_type>();
-}
-
-TYPED_TEST(GetModifiedShape2D, 8DView) {
-  using float_type = typename TestFixture::float_type;
-  test_reshape2D_8DView<float_type>();
 }
 
 template <typename T>
@@ -827,6 +766,87 @@ void test_reshape3D_8DView() {
   }
 }
 
+}  // namespace
+
+TYPED_TEST_SUITE(GetModifiedShape1D, test_types);
+TYPED_TEST_SUITE(GetModifiedShape2D, test_types);
+TYPED_TEST_SUITE(GetModifiedShape3D, test_types);
+
+TYPED_TEST(GetModifiedShape1D, 1DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape1D_1DView<float_type>();
+}
+
+TYPED_TEST(GetModifiedShape1D, 2DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape1D_2DView<float_type>();
+}
+
+TYPED_TEST(GetModifiedShape1D, 3DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape1D_3DView<float_type>();
+}
+
+TYPED_TEST(GetModifiedShape1D, 4DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape1D_4DView<float_type>();
+}
+
+TYPED_TEST(GetModifiedShape1D, 5DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape1D_5DView<float_type>();
+}
+
+TYPED_TEST(GetModifiedShape1D, 6DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape1D_6DView<float_type>();
+}
+
+TYPED_TEST(GetModifiedShape1D, 7DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape1D_7DView<float_type>();
+}
+
+TYPED_TEST(GetModifiedShape1D, 8DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape1D_8DView<float_type>();
+}
+
+TYPED_TEST(GetModifiedShape2D, 2DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape2D_2DView<float_type>();
+}
+
+TYPED_TEST(GetModifiedShape2D, 3DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape2D_3DView<float_type>();
+}
+
+TYPED_TEST(GetModifiedShape2D, 4DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape2D_4DView<float_type>();
+}
+
+TYPED_TEST(GetModifiedShape2D, 5DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape2D_5DView<float_type>();
+}
+
+TYPED_TEST(GetModifiedShape2D, 6DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape2D_6DView<float_type>();
+}
+
+TYPED_TEST(GetModifiedShape2D, 7DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape2D_7DView<float_type>();
+}
+
+TYPED_TEST(GetModifiedShape2D, 8DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape2D_8DView<float_type>();
+}
+
 TYPED_TEST(GetModifiedShape3D, 3DView) {
   using float_type = typename TestFixture::float_type;
   test_reshape3D_3DView<float_type>();
@@ -937,9 +957,10 @@ TEST(CropOrPad1D, 1DView) {
   KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_pad);
   KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_crop);
 
-  EXPECT_TRUE(allclose(x_out, ref_x, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(x_out_pad, ref_x_pad, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(x_out_crop, ref_x_crop, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(execution_space(), x_out, ref_x, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(execution_space(), x_out_pad, ref_x_pad, 1.e-5, 1.e-12));
+  EXPECT_TRUE(
+      allclose(execution_space(), x_out_crop, ref_x_crop, 1.e-5, 1.e-12));
 }
 
 TEST(CropOrPad1D, 2DView) {
@@ -1011,11 +1032,15 @@ TEST(CropOrPad1D, 2DView) {
   KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_pad_axis1);
   KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_crop_axis1);
 
-  EXPECT_TRUE(allclose(x_out, ref_x, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(x_out_pad_axis0, ref_x_pad_axis0, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(x_out_crop_axis0, ref_x_crop_axis0, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(x_out_pad_axis1, ref_x_pad_axis1, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(x_out_crop_axis1, ref_x_crop_axis1, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(execution_space(), x_out, ref_x, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(execution_space(), x_out_pad_axis0, ref_x_pad_axis0,
+                       1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(execution_space(), x_out_crop_axis0, ref_x_crop_axis0,
+                       1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(execution_space(), x_out_pad_axis1, ref_x_pad_axis1,
+                       1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(execution_space(), x_out_crop_axis1, ref_x_crop_axis1,
+                       1.e-5, 1.e-12));
 }
 
 TEST(CropOrPad1D, 3DView) {
@@ -1121,13 +1146,19 @@ TEST(CropOrPad1D, 3DView) {
   KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_pad_axis2);
   KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_crop_axis2);
 
-  EXPECT_TRUE(allclose(x_out, ref_x, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(x_out_pad_axis0, ref_x_pad_axis0, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(x_out_crop_axis0, ref_x_crop_axis0, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(x_out_pad_axis1, ref_x_pad_axis1, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(x_out_crop_axis1, ref_x_crop_axis1, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(x_out_pad_axis2, ref_x_pad_axis2, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(x_out_crop_axis2, ref_x_crop_axis2, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(execution_space(), x_out, ref_x, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(execution_space(), x_out_pad_axis0, ref_x_pad_axis0,
+                       1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(execution_space(), x_out_crop_axis0, ref_x_crop_axis0,
+                       1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(execution_space(), x_out_pad_axis1, ref_x_pad_axis1,
+                       1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(execution_space(), x_out_crop_axis1, ref_x_crop_axis1,
+                       1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(execution_space(), x_out_pad_axis2, ref_x_pad_axis2,
+                       1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(execution_space(), x_out_crop_axis2, ref_x_crop_axis2,
+                       1.e-5, 1.e-12));
 }
 
 TEST(CropOrPad2D, 2DView) {
@@ -1226,15 +1257,23 @@ TEST(CropOrPad2D, 2DView) {
   KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0c_1p);
   KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0c_1c);
 
-  EXPECT_TRUE(allclose(x_out, ref_x, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(x_out_0_1p, ref_x_0_1p, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(x_out_0_1c, ref_x_0_1c, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(x_out_0p_1, ref_x_0p_1, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(x_out_0p_1p, ref_x_0p_1p, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(x_out_0p_1c, ref_x_0p_1c, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(x_out_0c_1, ref_x_0c_1, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(x_out_0c_1p, ref_x_0c_1p, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(x_out_0c_1c, ref_x_0c_1c, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(execution_space(), x_out, ref_x, 1.e-5, 1.e-12));
+  EXPECT_TRUE(
+      allclose(execution_space(), x_out_0_1p, ref_x_0_1p, 1.e-5, 1.e-12));
+  EXPECT_TRUE(
+      allclose(execution_space(), x_out_0_1c, ref_x_0_1c, 1.e-5, 1.e-12));
+  EXPECT_TRUE(
+      allclose(execution_space(), x_out_0p_1, ref_x_0p_1, 1.e-5, 1.e-12));
+  EXPECT_TRUE(
+      allclose(execution_space(), x_out_0p_1p, ref_x_0p_1p, 1.e-5, 1.e-12));
+  EXPECT_TRUE(
+      allclose(execution_space(), x_out_0p_1c, ref_x_0p_1c, 1.e-5, 1.e-12));
+  EXPECT_TRUE(
+      allclose(execution_space(), x_out_0c_1, ref_x_0c_1, 1.e-5, 1.e-12));
+  EXPECT_TRUE(
+      allclose(execution_space(), x_out_0c_1p, ref_x_0c_1p, 1.e-5, 1.e-12));
+  EXPECT_TRUE(
+      allclose(execution_space(), x_out_0c_1c, ref_x_0c_1c, 1.e-5, 1.e-12));
 }
 
 TEST(CropOrPad2D, 3DView) {
@@ -1338,15 +1377,23 @@ TEST(CropOrPad2D, 3DView) {
   KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0c_1p);
   KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out_0c_1c);
 
-  EXPECT_TRUE(allclose(x_out, ref_x, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(x_out_0_1p, ref_x_0_1p, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(x_out_0_1c, ref_x_0_1c, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(x_out_0p_1, ref_x_0p_1, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(x_out_0p_1p, ref_x_0p_1p, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(x_out_0p_1c, ref_x_0p_1c, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(x_out_0c_1, ref_x_0c_1, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(x_out_0c_1p, ref_x_0c_1p, 1.e-5, 1.e-12));
-  EXPECT_TRUE(allclose(x_out_0c_1c, ref_x_0c_1c, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(execution_space(), x_out, ref_x, 1.e-5, 1.e-12));
+  EXPECT_TRUE(
+      allclose(execution_space(), x_out_0_1p, ref_x_0_1p, 1.e-5, 1.e-12));
+  EXPECT_TRUE(
+      allclose(execution_space(), x_out_0_1c, ref_x_0_1c, 1.e-5, 1.e-12));
+  EXPECT_TRUE(
+      allclose(execution_space(), x_out_0p_1, ref_x_0p_1, 1.e-5, 1.e-12));
+  EXPECT_TRUE(
+      allclose(execution_space(), x_out_0p_1p, ref_x_0p_1p, 1.e-5, 1.e-12));
+  EXPECT_TRUE(
+      allclose(execution_space(), x_out_0p_1c, ref_x_0p_1c, 1.e-5, 1.e-12));
+  EXPECT_TRUE(
+      allclose(execution_space(), x_out_0c_1, ref_x_0c_1, 1.e-5, 1.e-12));
+  EXPECT_TRUE(
+      allclose(execution_space(), x_out_0c_1p, ref_x_0c_1p, 1.e-5, 1.e-12));
+  EXPECT_TRUE(
+      allclose(execution_space(), x_out_0c_1c, ref_x_0c_1c, 1.e-5, 1.e-12));
 }
 
 TEST(CropOrPad3D, 3DView) {
@@ -1383,7 +1430,7 @@ TEST(CropOrPad3D, 3DView) {
 
         Kokkos::deep_copy(ref_x, h_ref_x);
         KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out);
-        EXPECT_TRUE(allclose(x_out, ref_x, 1.e-5, 1.e-12));
+        EXPECT_TRUE(allclose(execution_space(), x_out, ref_x, 1.e-5, 1.e-12));
       }
     }
   }
@@ -1432,7 +1479,7 @@ TEST(CropOrPad4D, 4DView) {
 
         Kokkos::deep_copy(ref_x, h_ref_x);
         KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out);
-        EXPECT_TRUE(allclose(x_out, ref_x, 1.e-5, 1.e-12));
+        EXPECT_TRUE(allclose(execution_space(), x_out, ref_x, 1.e-5, 1.e-12));
       }
     }
   }
@@ -1485,7 +1532,7 @@ TEST(CropOrPad5D, 5DView) {
 
         Kokkos::deep_copy(ref_x, h_ref_x);
         KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out);
-        EXPECT_TRUE(allclose(x_out, ref_x, 1.e-5, 1.e-12));
+        EXPECT_TRUE(allclose(execution_space(), x_out, ref_x, 1.e-5, 1.e-12));
       }
     }
   }
@@ -1546,7 +1593,7 @@ TEST(CropOrPad6D, 6DView) {
 
         Kokkos::deep_copy(ref_x, h_ref_x);
         KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out);
-        EXPECT_TRUE(allclose(x_out, ref_x, 1.e-5, 1.e-12));
+        EXPECT_TRUE(allclose(execution_space(), x_out, ref_x, 1.e-5, 1.e-12));
       }
     }
   }
@@ -1612,7 +1659,7 @@ TEST(CropOrPad7D, 7DView) {
 
         Kokkos::deep_copy(ref_x, h_ref_x);
         KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out);
-        EXPECT_TRUE(allclose(x_out, ref_x, 1.e-5, 1.e-12));
+        EXPECT_TRUE(allclose(execution_space(), x_out, ref_x, 1.e-5, 1.e-12));
       }
     }
   }
@@ -1683,7 +1730,7 @@ TEST(CropOrPad8D, 8DView) {
 
         Kokkos::deep_copy(ref_x, h_ref_x);
         KokkosFFT::Impl::crop_or_pad(execution_space(), x, x_out);
-        EXPECT_TRUE(allclose(x_out, ref_x, 1.e-5, 1.e-12));
+        EXPECT_TRUE(allclose(execution_space(), x_out, ref_x, 1.e-5, 1.e-12));
       }
     }
   }

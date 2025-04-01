@@ -5,8 +5,13 @@
 #include <gtest/gtest.h>
 #include <Kokkos_Random.hpp>
 #include "KokkosFFT_normalization.hpp"
-#include "Test_Types.hpp"
 #include "Test_Utils.hpp"
+
+namespace {
+using execution_space = Kokkos::DefaultExecutionSpace;
+template <typename T>
+using View1D = Kokkos::View<T*, execution_space>;
+}  // namespace
 
 TEST(Normalization, Forward) {
   const int len = 30;
@@ -19,7 +24,7 @@ TEST(Normalization, Forward) {
   Kokkos::deep_copy(ref_b, x);
 
   double coef = 1.0 / static_cast<double>(len);
-  multiply(ref_f, coef);
+  multiply(execution_space(), ref_f, coef);
 
   Kokkos::fence();
 
@@ -27,13 +32,13 @@ TEST(Normalization, Forward) {
   KokkosFFT::Impl::normalize(execution_space(), x,
                              KokkosFFT::Direction::backward,
                              KokkosFFT::Normalization::forward, len);
-  EXPECT_TRUE(allclose(x, ref_b, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(execution_space(), x, ref_b, 1.e-5, 1.e-12));
 
   // Forward FFT with forward Normalization -> 1/N normalization
   KokkosFFT::Impl::normalize(execution_space(), x,
                              KokkosFFT::Direction::forward,
                              KokkosFFT::Normalization::forward, len);
-  EXPECT_TRUE(allclose(x, ref_f, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(execution_space(), x, ref_f, 1.e-5, 1.e-12));
 }
 
 TEST(Normalization, Backward) {
@@ -47,7 +52,7 @@ TEST(Normalization, Backward) {
   Kokkos::deep_copy(ref_b, x);
 
   double coef = 1.0 / static_cast<double>(len);
-  multiply(ref_b, coef);
+  multiply(execution_space(), ref_b, coef);
 
   Kokkos::fence();
 
@@ -55,13 +60,13 @@ TEST(Normalization, Backward) {
   KokkosFFT::Impl::normalize(execution_space(), x,
                              KokkosFFT::Direction::forward,
                              KokkosFFT::Normalization::backward, len);
-  EXPECT_TRUE(allclose(x, ref_f, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(execution_space(), x, ref_f, 1.e-5, 1.e-12));
 
   // Backward FFT with backward Normalization -> 1/N normalization
   KokkosFFT::Impl::normalize(execution_space(), x,
                              KokkosFFT::Direction::backward,
                              KokkosFFT::Normalization::backward, len);
-  EXPECT_TRUE(allclose(x, ref_b, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(execution_space(), x, ref_b, 1.e-5, 1.e-12));
 }
 
 TEST(Normalization, Ortho) {
@@ -77,8 +82,8 @@ TEST(Normalization, Ortho) {
   Kokkos::deep_copy(ref_b, x_f);
 
   double coef = 1.0 / Kokkos::sqrt(static_cast<double>(len));
-  multiply(ref_f, coef);
-  multiply(ref_b, coef);
+  multiply(execution_space(), ref_f, coef);
+  multiply(execution_space(), ref_b, coef);
 
   Kokkos::fence();
 
@@ -86,13 +91,13 @@ TEST(Normalization, Ortho) {
   KokkosFFT::Impl::normalize(execution_space(), x_f,
                              KokkosFFT::Direction::forward,
                              KokkosFFT::Normalization::ortho, len);
-  EXPECT_TRUE(allclose(x_f, ref_f, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(execution_space(), x_f, ref_f, 1.e-5, 1.e-12));
 
   // Backward FFT with ortho Normalization -> 1 / sqrt(N) normalization
   KokkosFFT::Impl::normalize(execution_space(), x_b,
                              KokkosFFT::Direction::backward,
                              KokkosFFT::Normalization::ortho, len);
-  EXPECT_TRUE(allclose(x_b, ref_b, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(execution_space(), x_b, ref_b, 1.e-5, 1.e-12));
 }
 
 TEST(Normalization, None) {
@@ -113,11 +118,11 @@ TEST(Normalization, None) {
   KokkosFFT::Impl::normalize(execution_space(), x_f,
                              KokkosFFT::Direction::forward,
                              KokkosFFT::Normalization::none, len);
-  EXPECT_TRUE(allclose(x_f, ref_f, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(execution_space(), x_f, ref_f, 1.e-5, 1.e-12));
 
   // Backward FFT with none Normalization -> Do nothing
   KokkosFFT::Impl::normalize(execution_space(), x_b,
                              KokkosFFT::Direction::backward,
                              KokkosFFT::Normalization::none, len);
-  EXPECT_TRUE(allclose(x_b, ref_b, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(execution_space(), x_b, ref_b, 1.e-5, 1.e-12));
 }
