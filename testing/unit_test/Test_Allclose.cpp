@@ -57,13 +57,10 @@ void test_allclose_1D_analytical(double rtol, double atol) {
   Kokkos::deep_copy(d, h_d);
   Kokkos::deep_copy(e, h_e);
 
-  EXPECT_THAT(
-      b, ::testing::Not(KokkosFFT::Testing::allclose(execution_space(), a)));
-  EXPECT_THAT(c, KokkosFFT::Testing::allclose(execution_space(), a, rtol));
-  EXPECT_THAT(d, ::testing::Not(KokkosFFT::Testing::allclose(execution_space(),
-                                                             a, rtol, atol)));
-  EXPECT_THAT(
-      e, KokkosFFT::Testing::allclose(execution_space(), a, rtol, atol, 3));
+  EXPECT_THAT(b, ::testing::Not(KokkosFFT::Testing::allclose(a)));
+  EXPECT_THAT(c, KokkosFFT::Testing::allclose(a, rtol));
+  EXPECT_THAT(d, ::testing::Not(KokkosFFT::Testing::allclose(a, rtol, atol)));
+  EXPECT_THAT(e, KokkosFFT::Testing::allclose(a, rtol, atol, 3));
 }
 
 template <typename T>
@@ -103,13 +100,10 @@ void test_allclose_2D_analytical(double rtol, double atol) {
   Kokkos::deep_copy(d, h_d);
   Kokkos::deep_copy(e, h_e);
 
-  EXPECT_THAT(
-      b, ::testing::Not(KokkosFFT::Testing::allclose(execution_space(), a)));
-  EXPECT_THAT(c, KokkosFFT::Testing::allclose(execution_space(), a, rtol));
-  EXPECT_THAT(d, ::testing::Not(KokkosFFT::Testing::allclose(execution_space(),
-                                                             a, rtol, atol)));
-  EXPECT_THAT(
-      e, KokkosFFT::Testing::allclose(execution_space(), a, rtol, atol, 3));
+  EXPECT_THAT(b, ::testing::Not(KokkosFFT::Testing::allclose(a)));
+  EXPECT_THAT(c, KokkosFFT::Testing::allclose(a, rtol));
+  EXPECT_THAT(d, ::testing::Not(KokkosFFT::Testing::allclose(a, rtol, atol)));
+  EXPECT_THAT(e, KokkosFFT::Testing::allclose(a, rtol, atol, 3));
 }
 
 TYPED_TEST(TestAllClose, View1D) {
