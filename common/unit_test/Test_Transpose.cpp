@@ -2332,7 +2332,6 @@ TYPED_TEST(MapAxes, 3DView) {
   test_map_axes3d<layout_type>();
 }
 
-
 TYPED_TEST(Transpose1D, 1DView) {
   using layout_type = typename TestFixture::layout_type;
 
@@ -2458,4 +2457,3 @@ TYPED_TEST(Transpose3D, 8DView) {
 
   test_transpose_3d_8dview<layout_type>();
 }
-

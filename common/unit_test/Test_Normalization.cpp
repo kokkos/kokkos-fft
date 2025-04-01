@@ -126,4 +126,3 @@ TEST(Normalization, None) {
                              KokkosFFT::Normalization::none, len);
   EXPECT_TRUE(allclose(execution_space(), x_b, ref_b, 1.e-5, 1.e-12));
 }
-

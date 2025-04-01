@@ -767,4 +767,3 @@ TYPED_TEST(Extents2D, 2DFFT_3DView) {
 
   test_extents_2d_batched_FFT_3d<layout_type>();
 }
-

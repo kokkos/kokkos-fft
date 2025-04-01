@@ -588,4 +588,3 @@ TYPED_TEST(PairedScalarTypes, are_pointers_aliasing) {
   using value_type2 = typename TestFixture::value_type2;
   test_are_pointers_aliasing<value_type1, value_type2>();
 }
-

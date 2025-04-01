@@ -394,4 +394,3 @@ TEST_P(FFTShiftParamTests, 2DShift2DView) {
 
 INSTANTIATE_TEST_SUITE_P(FFTShift, FFTShiftParamTests,
                          ::testing::Values(9, 10));
-

@@ -570,7 +570,6 @@ void test_are_operatable_views() {
   }
 }
 
-
 }  // namespace
 
 TYPED_TEST_SUITE(CompileTestContainerTypes, base_int_types);
@@ -713,4 +712,3 @@ TYPED_TEST(CompileTestPairedViewTypes, are_operatable_views) {
   test_are_operatable_views<device_space, device_space, real_type1,
                             layout_type1, real_type2, layout_type2>();
 }
-
