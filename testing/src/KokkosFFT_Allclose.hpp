@@ -17,14 +17,13 @@ namespace Testing {
 namespace Impl {
 /// \brief Compares two Kokkos views element-wise and checks if they are close
 ///        within specified relative and absolute tolerances.
+///        AViewType and BViewType must have the same rank,
+///        non_const_value_type, and execution_space;
 ///
-/// \tparam ExecutionSpace The type of the Kokkos execution space.
 /// \tparam AViewType The type of the first Kokkos view.
 /// \tparam BViewType The type of the second Kokkos view.
 ///
 /// \param listener [out] The testing match result listener.
-/// \param exec_space [in] The execution space used to launch the parallel
-/// kernel.
 /// \param actual [in] The actual Kokkos view.
 /// \param expected [in] The expected (reference) Kokkos view.
 /// \param rtol [in]  Relative tolerance for comparing the view elements
@@ -32,12 +31,13 @@ namespace Impl {
 /// \param atol [in] Absolute tolerance for comparing the view elements
 /// (default 1.e-8).
 /// \param verbose [in] How many elements to be reported (default: 3)
-template <KokkosExecutionSpace ExecutionSpace, KokkosView AViewType,
-          KokkosView BViewType>
-  requires KokkosViewAccessible<ExecutionSpace, AViewType> &&
-           KokkosViewAccessible<ExecutionSpace, BViewType>
+template <KokkosView AViewType, KokkosView BViewType>
+  requires(std::is_same_v<typename AViewType::execution_space,
+                          typename BViewType::execution_space> &&
+           std::is_same_v<typename AViewType::non_const_value_type,
+                          typename BViewType::non_const_value_type> &&
+           (AViewType::rank() == BViewType::rank()))
 inline bool allclose_impl(testing::MatchResultListener* listener,
-                          const ExecutionSpace& exec_space,
                           const AViewType& actual, const BViewType& expected,
                           double rtol, double atol, std::size_t verbose) {
   const std::size_t rank = actual.rank();
@@ -48,6 +48,8 @@ inline bool allclose_impl(testing::MatchResultListener* listener,
       return false;
     }
   }
+  using ExecutionSpace = typename AViewType::execution_space;
+  ExecutionSpace exec_space;
 
   std::size_t errors = KokkosFFT::Testing::Impl::count_errors(
       exec_space, actual, expected, rtol, atol);
@@ -66,24 +68,21 @@ inline bool allclose_impl(testing::MatchResultListener* listener,
 }
 }  // namespace Impl
 
-MATCHER_P5(allclose, exec_space, expected, rtol, atol, verbose, "") {
-  return Impl::allclose_impl(result_listener, exec_space, arg, expected, rtol,
-                             atol, verbose);
+MATCHER_P4(allclose, expected, rtol, atol, verbose, "") {
+  return Impl::allclose_impl(result_listener, arg, expected, rtol, atol,
+                             verbose);
 }
 
-MATCHER_P4(allclose, exec_space, expected, rtol, atol, "") {
-  return Impl::allclose_impl(result_listener, exec_space, arg, expected, rtol,
-                             atol, 3);
+MATCHER_P3(allclose, expected, rtol, atol, "") {
+  return Impl::allclose_impl(result_listener, arg, expected, rtol, atol, 3);
 }
 
-MATCHER_P3(allclose, exec_space, expected, rtol, "") {
-  return Impl::allclose_impl(result_listener, exec_space, arg, expected, rtol,
-                             1.0e-8, 3);
+MATCHER_P2(allclose, expected, rtol, "") {
+  return Impl::allclose_impl(result_listener, arg, expected, rtol, 1.0e-8, 3);
 }
 
-MATCHER_P2(allclose, exec_space, expected, "") {
-  return Impl::allclose_impl(result_listener, exec_space, arg, expected, 1.0e-5,
-                             1.0e-8, 3);
+MATCHER_P(allclose, expected, "") {
+  return Impl::allclose_impl(result_listener, arg, expected, 1.0e-5, 1.0e-8, 3);
 }
 
 }  // namespace Testing
