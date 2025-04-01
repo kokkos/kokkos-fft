@@ -44,11 +44,6 @@ struct PairedScalarTypes : public ::testing::Test {
   using value_type2 = typename T::second_type;
 };
 
-TYPED_TEST_SUITE(ConvertNegativeAxis, test_types);
-TYPED_TEST_SUITE(ConvertNegativeShift, test_types);
-TYPED_TEST_SUITE(ContainerTypes, base_int_types);
-TYPED_TEST_SUITE(PairedScalarTypes, paired_scalar_types);
-
 // Tests for convert_negative_axes over ND views
 template <typename LayoutType>
 void test_convert_negative_axes_1d() {
@@ -180,34 +175,6 @@ void test_convert_negative_axes_4d() {
                std::runtime_error);
 }
 
-// Tests for 1D View
-TYPED_TEST(ConvertNegativeAxis, 1DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_convert_negative_axes_1d<layout_type>();
-}
-
-// Tests for 2D View
-TYPED_TEST(ConvertNegativeAxis, 2DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_convert_negative_axes_2d<layout_type>();
-}
-
-// Tests for 3D View
-TYPED_TEST(ConvertNegativeAxis, 3DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_convert_negative_axes_3d<layout_type>();
-}
-
-// Tests for 4D View
-TYPED_TEST(ConvertNegativeAxis, 4DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_convert_negative_axes_4d<layout_type>();
-}
-
 // Tests for convert_negative_shift over ND views
 template <typename LayoutType>
 void test_convert_negative_shift_1d() {
@@ -262,36 +229,6 @@ void test_convert_negative_shift_1d() {
   EXPECT_EQ(shift_0_2_even, ref_shift_0_2_even);
   EXPECT_EQ(shift_m5_2_odd, ref_shift_m5_2_odd);
   EXPECT_EQ(shift_m5_2_even, ref_shift_m5_2_even);
-}
-
-// Tests for 1D View
-TYPED_TEST(ConvertNegativeShift, 1DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_convert_negative_shift_1d<layout_type>();
-}
-
-TEST(IsTransposeNeeded, 1Dto3D) {
-  std::array<int, 1> map1D = {0};
-  EXPECT_FALSE(KokkosFFT::Impl::is_transpose_needed(map1D));
-
-  std::array<int, 2> map2D = {0, 1}, map2D_axis0 = {1, 0};
-  EXPECT_FALSE(KokkosFFT::Impl::is_transpose_needed(map2D));
-  EXPECT_TRUE(KokkosFFT::Impl::is_transpose_needed(map2D_axis0));
-
-  std::array<int, 3> map3D     = {0, 1, 2};
-  std::array<int, 3> map3D_021 = {0, 2, 1};
-  std::array<int, 3> map3D_102 = {1, 0, 2};
-  std::array<int, 3> map3D_120 = {1, 2, 0};
-  std::array<int, 3> map3D_201 = {2, 0, 1};
-  std::array<int, 3> map3D_210 = {2, 1, 0};
-
-  EXPECT_FALSE(KokkosFFT::Impl::is_transpose_needed(map3D));
-  EXPECT_TRUE(KokkosFFT::Impl::is_transpose_needed(map3D_021));
-  EXPECT_TRUE(KokkosFFT::Impl::is_transpose_needed(map3D_102));
-  EXPECT_TRUE(KokkosFFT::Impl::is_transpose_needed(map3D_120));
-  EXPECT_TRUE(KokkosFFT::Impl::is_transpose_needed(map3D_201));
-  EXPECT_TRUE(KokkosFFT::Impl::is_transpose_needed(map3D_210));
 }
 
 template <typename ContainerType>
@@ -438,6 +375,86 @@ void test_are_valid_axes() {
   }
 }
 
+template <typename ValueType1, typename ValueType2>
+void test_are_pointers_aliasing() {
+  using View1 = Kokkos::View<ValueType1*, execution_space>;
+  using View2 = Kokkos::View<ValueType2*, execution_space>;
+
+  const int n1 = 10;
+  // sizeof ValueType2 is larger or equal to ValueType1
+  const int n2 = sizeof(ValueType1) == sizeof(ValueType2) ? n1 : n1 / 2 + 1;
+  View1 view1("view1", n1);
+  View2 view2("view2", n1);
+  View2 uview2(reinterpret_cast<ValueType2*>(view1.data()), n2);
+
+  EXPECT_TRUE(KokkosFFT::Impl::are_aliasing(view1.data(), uview2.data()));
+  EXPECT_FALSE(KokkosFFT::Impl::are_aliasing(view1.data(), view2.data()));
+}
+}  // namespace
+
+TYPED_TEST_SUITE(ConvertNegativeAxis, test_types);
+TYPED_TEST_SUITE(ConvertNegativeShift, test_types);
+TYPED_TEST_SUITE(ContainerTypes, base_int_types);
+TYPED_TEST_SUITE(PairedScalarTypes, paired_scalar_types);
+
+// Tests for 1D View
+TYPED_TEST(ConvertNegativeAxis, 1DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_convert_negative_axes_1d<layout_type>();
+}
+
+// Tests for 2D View
+TYPED_TEST(ConvertNegativeAxis, 2DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_convert_negative_axes_2d<layout_type>();
+}
+
+// Tests for 3D View
+TYPED_TEST(ConvertNegativeAxis, 3DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_convert_negative_axes_3d<layout_type>();
+}
+
+// Tests for 4D View
+TYPED_TEST(ConvertNegativeAxis, 4DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_convert_negative_axes_4d<layout_type>();
+}
+
+// Tests for 1D View
+TYPED_TEST(ConvertNegativeShift, 1DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_convert_negative_shift_1d<layout_type>();
+}
+
+TEST(IsTransposeNeeded, 1Dto3D) {
+  std::array<int, 1> map1D = {0};
+  EXPECT_FALSE(KokkosFFT::Impl::is_transpose_needed(map1D));
+
+  std::array<int, 2> map2D = {0, 1}, map2D_axis0 = {1, 0};
+  EXPECT_FALSE(KokkosFFT::Impl::is_transpose_needed(map2D));
+  EXPECT_TRUE(KokkosFFT::Impl::is_transpose_needed(map2D_axis0));
+
+  std::array<int, 3> map3D     = {0, 1, 2};
+  std::array<int, 3> map3D_021 = {0, 2, 1};
+  std::array<int, 3> map3D_102 = {1, 0, 2};
+  std::array<int, 3> map3D_120 = {1, 2, 0};
+  std::array<int, 3> map3D_201 = {2, 0, 1};
+  std::array<int, 3> map3D_210 = {2, 1, 0};
+
+  EXPECT_FALSE(KokkosFFT::Impl::is_transpose_needed(map3D));
+  EXPECT_TRUE(KokkosFFT::Impl::is_transpose_needed(map3D_021));
+  EXPECT_TRUE(KokkosFFT::Impl::is_transpose_needed(map3D_102));
+  EXPECT_TRUE(KokkosFFT::Impl::is_transpose_needed(map3D_120));
+  EXPECT_TRUE(KokkosFFT::Impl::is_transpose_needed(map3D_201));
+  EXPECT_TRUE(KokkosFFT::Impl::is_transpose_needed(map3D_210));
+}
+
 TYPED_TEST(ContainerTypes, is_found_from_vector) {
   using container_type = typename TestFixture::vector_type;
   test_is_found<container_type>();
@@ -566,26 +583,9 @@ TEST(ToArray, rvalue) {
   ASSERT_EQ(KokkosFFT::Impl::to_array(std::array{1, 2}), (Kokkos::Array{1, 2}));
 }
 
-template <typename ValueType1, typename ValueType2>
-void test_are_pointers_aliasing() {
-  using View1 = Kokkos::View<ValueType1*, execution_space>;
-  using View2 = Kokkos::View<ValueType2*, execution_space>;
-
-  const int n1 = 10;
-  // sizeof ValueType2 is larger or equal to ValueType1
-  const int n2 = sizeof(ValueType1) == sizeof(ValueType2) ? n1 : n1 / 2 + 1;
-  View1 view1("view1", n1);
-  View2 view2("view2", n1);
-  View2 uview2(reinterpret_cast<ValueType2*>(view1.data()), n2);
-
-  EXPECT_TRUE(KokkosFFT::Impl::are_aliasing(view1.data(), uview2.data()));
-  EXPECT_FALSE(KokkosFFT::Impl::are_aliasing(view1.data(), view2.data()));
-}
-
 TYPED_TEST(PairedScalarTypes, are_pointers_aliasing) {
   using value_type1 = typename TestFixture::value_type1;
   using value_type2 = typename TestFixture::value_type2;
   test_are_pointers_aliasing<value_type1, value_type2>();
 }
 
-}  // namespace

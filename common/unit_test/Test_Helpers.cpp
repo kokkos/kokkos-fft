@@ -26,7 +26,8 @@ struct FFTHelper : public ::testing::Test {
   using layout_type = typename T::second_type;
 };
 
-TYPED_TEST_SUITE(FFTHelper, test_types);
+class GetShiftParamTests : public ::testing::TestWithParam<int> {};
+class FFTShiftParamTests : public ::testing::TestWithParam<int> {};
 
 // Tests for FFT Freq
 template <typename T, typename LayoutType>
@@ -119,24 +120,6 @@ void test_rfft_freq(T atol = 1.0e-12) {
   EXPECT_TRUE(allclose(execution_space(), x_even_pi, x_even_ref, 1.e-5, atol));
 }
 
-// Tests for fftfreq
-TYPED_TEST(FFTHelper, fftfreq) {
-  using float_type  = typename TestFixture::float_type;
-  using layout_type = typename TestFixture::layout_type;
-
-  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
-  test_fft_freq<float_type, layout_type>(atol);
-}
-
-// Tests for rfftfreq
-TYPED_TEST(FFTHelper, rfftfreq) {
-  using float_type  = typename TestFixture::float_type;
-  using layout_type = typename TestFixture::layout_type;
-
-  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
-  test_rfft_freq<float_type, layout_type>(atol);
-}
-
 // Tests for get shift
 void test_get_shift(int direction) {
   constexpr int n_odd = 9, n_even = 10, n2 = 8;
@@ -182,16 +165,6 @@ void test_get_shift(int direction) {
   EXPECT_TRUE(shift2_odd == shift2_odd_ref);
   EXPECT_TRUE(shift2_even == shift2_even_ref);
 }
-
-class GetShiftParamTests : public ::testing::TestWithParam<int> {};
-
-TEST_P(GetShiftParamTests, ForwardAndInverse) {
-  int direction = GetParam();
-  test_get_shift(direction);
-}
-
-INSTANTIATE_TEST_SUITE_P(GetShift, GetShiftParamTests,
-                         ::testing::Values(1, -1));
 
 // Identity Tests for fftshift1D on 1D View
 void test_fftshift1D_1DView_identity(int n0) {
@@ -364,8 +337,36 @@ void test_fftshift2D_2DView(int n0) {
   EXPECT_TRUE(allclose(execution_space(), x, y_ref));
   EXPECT_TRUE(allclose(execution_space(), y, x_ref));
 }
+}  // namespace
 
-class FFTShiftParamTests : public ::testing::TestWithParam<int> {};
+TYPED_TEST_SUITE(FFTHelper, test_types);
+
+// Tests for fftfreq
+TYPED_TEST(FFTHelper, fftfreq) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
+  test_fft_freq<float_type, layout_type>(atol);
+}
+
+// Tests for rfftfreq
+TYPED_TEST(FFTHelper, rfftfreq) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
+  test_rfft_freq<float_type, layout_type>(atol);
+}
+
+// Parameterized tests
+TEST_P(GetShiftParamTests, ForwardAndInverse) {
+  int direction = GetParam();
+  test_get_shift(direction);
+}
+
+INSTANTIATE_TEST_SUITE_P(GetShift, GetShiftParamTests,
+                         ::testing::Values(1, -1));
 
 // Identity Tests for fftshift1D on 1D View
 TEST_P(FFTShiftParamTests, Identity) {
@@ -394,4 +395,3 @@ TEST_P(FFTShiftParamTests, 2DShift2DView) {
 INSTANTIATE_TEST_SUITE_P(FFTShift, FFTShiftParamTests,
                          ::testing::Values(9, 10));
 
-}  // namespace

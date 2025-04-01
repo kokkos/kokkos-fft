@@ -38,11 +38,6 @@ struct Transpose3D : public ::testing::Test {
   using layout_type = T;
 };
 
-TYPED_TEST_SUITE(MapAxes, test_types);
-TYPED_TEST_SUITE(Transpose1D, test_types);
-TYPED_TEST_SUITE(Transpose2D, test_types);
-TYPED_TEST_SUITE(Transpose3D, test_types);
-
 // Tests for map axes over ND views
 template <typename LayoutType>
 void test_map_axes1d() {
@@ -311,27 +306,6 @@ void test_map_axes3d() {
   EXPECT_TRUE(map_inv_axes_1_2_0 == ref_map_inv_axes_1_2_0);
   EXPECT_TRUE(map_inv_axes_2_0_1 == ref_map_inv_axes_2_0_1);
   EXPECT_TRUE(map_inv_axes_2_1_0 == ref_map_inv_axes_2_1_0);
-}
-
-// Tests for 1D View
-TYPED_TEST(MapAxes, 1DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_map_axes1d<layout_type>();
-}
-
-// Tests for 2D View
-TYPED_TEST(MapAxes, 2DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_map_axes2d<layout_type>();
-}
-
-// Tests for 3D View
-TYPED_TEST(MapAxes, 3DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_map_axes3d<layout_type>();
 }
 
 // Tests for transpose
@@ -1001,54 +975,6 @@ void test_transpose_1d_8dview() {
   }
 }
 
-TYPED_TEST(Transpose1D, 1DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_transpose_1d_1dview<layout_type>();
-}
-
-TYPED_TEST(Transpose1D, 2DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_transpose_1d_2dview<layout_type>();
-}
-
-TYPED_TEST(Transpose1D, 3DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_transpose_1d_3dview<layout_type>();
-}
-
-TYPED_TEST(Transpose1D, 4DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_transpose_1d_4dview<layout_type>();
-}
-
-TYPED_TEST(Transpose1D, 5DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_transpose_1d_5dview<layout_type>();
-}
-
-TYPED_TEST(Transpose1D, 6DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_transpose_1d_6dview<layout_type>();
-}
-
-TYPED_TEST(Transpose1D, 7DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_transpose_1d_7dview<layout_type>();
-}
-
-TYPED_TEST(Transpose1D, 8DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_transpose_1d_8dview<layout_type>();
-}
-
 template <typename LayoutType>
 void test_transpose_2d_2dview() {
   using RealView2Dtype = Kokkos::View<double**, LayoutType, execution_space>;
@@ -1711,48 +1637,6 @@ void test_transpose_2d_8dview() {
       }
     }
   }
-}
-
-TYPED_TEST(Transpose2D, 2DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_transpose_2d_2dview<layout_type>();
-}
-
-TYPED_TEST(Transpose2D, 3DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_transpose_2d_3dview<layout_type>();
-}
-
-TYPED_TEST(Transpose2D, 4DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_transpose_2d_4dview<layout_type>();
-}
-
-TYPED_TEST(Transpose2D, 5DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_transpose_2d_5dview<layout_type>();
-}
-
-TYPED_TEST(Transpose2D, 6DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_transpose_2d_6dview<layout_type>();
-}
-
-TYPED_TEST(Transpose2D, 7DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_transpose_2d_7dview<layout_type>();
-}
-
-TYPED_TEST(Transpose2D, 8DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_transpose_2d_8dview<layout_type>();
 }
 
 template <typename LayoutType>
@@ -2420,6 +2304,125 @@ void test_transpose_3d_8dview() {
   }
 }
 
+}  // namespace
+
+TYPED_TEST_SUITE(MapAxes, test_types);
+TYPED_TEST_SUITE(Transpose1D, test_types);
+TYPED_TEST_SUITE(Transpose2D, test_types);
+TYPED_TEST_SUITE(Transpose3D, test_types);
+
+// Tests for 1D View
+TYPED_TEST(MapAxes, 1DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_map_axes1d<layout_type>();
+}
+
+// Tests for 2D View
+TYPED_TEST(MapAxes, 2DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_map_axes2d<layout_type>();
+}
+
+// Tests for 3D View
+TYPED_TEST(MapAxes, 3DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_map_axes3d<layout_type>();
+}
+
+
+TYPED_TEST(Transpose1D, 1DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_transpose_1d_1dview<layout_type>();
+}
+
+TYPED_TEST(Transpose1D, 2DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_transpose_1d_2dview<layout_type>();
+}
+
+TYPED_TEST(Transpose1D, 3DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_transpose_1d_3dview<layout_type>();
+}
+
+TYPED_TEST(Transpose1D, 4DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_transpose_1d_4dview<layout_type>();
+}
+
+TYPED_TEST(Transpose1D, 5DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_transpose_1d_5dview<layout_type>();
+}
+
+TYPED_TEST(Transpose1D, 6DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_transpose_1d_6dview<layout_type>();
+}
+
+TYPED_TEST(Transpose1D, 7DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_transpose_1d_7dview<layout_type>();
+}
+
+TYPED_TEST(Transpose1D, 8DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_transpose_1d_8dview<layout_type>();
+}
+
+TYPED_TEST(Transpose2D, 2DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_transpose_2d_2dview<layout_type>();
+}
+
+TYPED_TEST(Transpose2D, 3DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_transpose_2d_3dview<layout_type>();
+}
+
+TYPED_TEST(Transpose2D, 4DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_transpose_2d_4dview<layout_type>();
+}
+
+TYPED_TEST(Transpose2D, 5DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_transpose_2d_5dview<layout_type>();
+}
+
+TYPED_TEST(Transpose2D, 6DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_transpose_2d_6dview<layout_type>();
+}
+
+TYPED_TEST(Transpose2D, 7DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_transpose_2d_7dview<layout_type>();
+}
+
+TYPED_TEST(Transpose2D, 8DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_transpose_2d_8dview<layout_type>();
+}
+
 TYPED_TEST(Transpose3D, 3DView) {
   using layout_type = typename TestFixture::layout_type;
 
@@ -2456,4 +2459,3 @@ TYPED_TEST(Transpose3D, 8DView) {
   test_transpose_3d_8dview<layout_type>();
 }
 
-}  // namespace

@@ -109,13 +109,6 @@ struct CompileTestPairedViewTypes : public ::testing::Test {
   }
 };
 
-TYPED_TEST_SUITE(CompileTestContainerTypes, base_int_types);
-TYPED_TEST_SUITE(CompileTestRealAndComplexTypes, real_types);
-TYPED_TEST_SUITE(CompileTestRealAndComplexViewTypes, view_types);
-TYPED_TEST_SUITE(CompileTestPairedValueTypes, paired_value_types);
-TYPED_TEST_SUITE(CompileTestPairedLayoutTypes, paired_layout_types);
-TYPED_TEST_SUITE(CompileTestPairedViewTypes, paired_view_types);
-
 // Tests for host execution space
 void test_is_any_host_exec_space() {
 #if defined(KOKKOS_ENABLE_SERIAL)
@@ -132,11 +125,6 @@ void test_is_any_host_exec_space() {
 #endif
 }
 
-TEST(CompileTestExecutionSpace, test_is_any_host_exec_space) {
-  GTEST_SKIP() << "Skipping all tests";
-  test_is_any_host_exec_space();
-}
-
 // Tests for base value type deduction
 template <typename ValueType, typename ContainerType>
 void test_get_container_value_type() {
@@ -146,27 +134,6 @@ void test_get_container_value_type() {
   // base value type of ContainerType is ValueType
   static_assert(std::is_same_v<value_type_ContainerType, ValueType>,
                 "Value type not deduced correctly from ContainerType");
-}
-
-TYPED_TEST(CompileTestContainerTypes, get_value_type_from_vector) {
-  using value_type     = typename TestFixture::value_type;
-  using container_type = typename TestFixture::vector_type;
-
-  test_get_container_value_type<value_type, container_type>();
-}
-
-TYPED_TEST(CompileTestContainerTypes, get_value_type_from_std_array) {
-  using value_type     = typename TestFixture::value_type;
-  using container_type = typename TestFixture::std_array_type;
-
-  test_get_container_value_type<value_type, container_type>();
-}
-
-TYPED_TEST(CompileTestContainerTypes, get_value_type_from_kokkos_array) {
-  using value_type     = typename TestFixture::value_type;
-  using container_type = typename TestFixture::Kokkos_array_type;
-
-  test_get_container_value_type<value_type, container_type>();
 }
 
 // Tests for real type deduction
@@ -217,25 +184,6 @@ void test_admissible_complex_type() {
                   "Complex type must not be Kokkos::complex<float> or "
                   "Kokkos::complex<double>");
   }
-}
-
-TYPED_TEST(CompileTestRealAndComplexTypes, get_real_type) {
-  using real_type    = typename TestFixture::real_type;
-  using complex_type = typename TestFixture::complex_type;
-
-  test_get_real_type<real_type, complex_type>();
-}
-
-TYPED_TEST(CompileTestRealAndComplexTypes, admissible_real_type) {
-  using real_type = typename TestFixture::real_type;
-
-  test_admissible_real_type<real_type>();
-}
-
-TYPED_TEST(CompileTestRealAndComplexTypes, admissible_complex_type) {
-  using complex_type = typename TestFixture::complex_type;
-
-  test_admissible_complex_type<complex_type>();
 }
 
 // Tests for admissible view types
@@ -355,56 +303,6 @@ void test_operatable_view_type() {
         !KokkosFFT::Impl::is_operatable_view_v<ExecutionSpace1, ViewType>,
         "ExecutionSpace cannot access data in ViewType");
   }
-}
-
-TYPED_TEST(CompileTestRealAndComplexViewTypes, admissible_value_type) {
-  using real_type    = typename TestFixture::real_type;
-  using complex_type = typename TestFixture::complex_type;
-  using layout_type  = typename TestFixture::layout_type;
-
-  test_admissible_value_type<real_type, layout_type>();
-  test_admissible_value_type<complex_type, layout_type>();
-}
-
-TYPED_TEST(CompileTestRealAndComplexViewTypes, admissible_layout_type) {
-  using real_type    = typename TestFixture::real_type;
-  using complex_type = typename TestFixture::complex_type;
-  using layout_type  = typename TestFixture::layout_type;
-
-  test_admissible_layout_type<real_type, layout_type>();
-  test_admissible_layout_type<complex_type, layout_type>();
-}
-
-TYPED_TEST(CompileTestRealAndComplexViewTypes, admissible_view_type) {
-  using real_type    = typename TestFixture::real_type;
-  using complex_type = typename TestFixture::complex_type;
-  using layout_type  = typename TestFixture::layout_type;
-
-  test_admissible_view_type<real_type, layout_type>();
-  test_admissible_view_type<complex_type, layout_type>();
-}
-
-TYPED_TEST(CompileTestRealAndComplexViewTypes, operatable_view_type) {
-  using real_type    = typename TestFixture::real_type;
-  using complex_type = typename TestFixture::complex_type;
-  using layout_type  = typename TestFixture::layout_type;
-  using host_space   = Kokkos::DefaultHostExecutionSpace;
-  using device_space = Kokkos::DefaultExecutionSpace;
-
-  test_operatable_view_type<host_space, host_space, real_type, layout_type>();
-  test_operatable_view_type<host_space, device_space, real_type, layout_type>();
-  test_operatable_view_type<device_space, host_space, real_type, layout_type>();
-  test_operatable_view_type<device_space, device_space, real_type,
-                            layout_type>();
-
-  test_operatable_view_type<host_space, host_space, complex_type,
-                            layout_type>();
-  test_operatable_view_type<host_space, device_space, complex_type,
-                            layout_type>();
-  test_operatable_view_type<device_space, host_space, complex_type,
-                            layout_type>();
-  test_operatable_view_type<device_space, device_space, complex_type,
-                            layout_type>();
 }
 
 // Tests for multiple Views
@@ -672,6 +570,111 @@ void test_are_operatable_views() {
   }
 }
 
+
+}  // namespace
+
+TYPED_TEST_SUITE(CompileTestContainerTypes, base_int_types);
+TYPED_TEST_SUITE(CompileTestRealAndComplexTypes, real_types);
+TYPED_TEST_SUITE(CompileTestRealAndComplexViewTypes, view_types);
+TYPED_TEST_SUITE(CompileTestPairedValueTypes, paired_value_types);
+TYPED_TEST_SUITE(CompileTestPairedLayoutTypes, paired_layout_types);
+TYPED_TEST_SUITE(CompileTestPairedViewTypes, paired_view_types);
+
+TEST(CompileTestExecutionSpace, test_is_any_host_exec_space) {
+  GTEST_SKIP() << "Skipping all tests";
+  test_is_any_host_exec_space();
+}
+
+TYPED_TEST(CompileTestContainerTypes, get_value_type_from_vector) {
+  using value_type     = typename TestFixture::value_type;
+  using container_type = typename TestFixture::vector_type;
+
+  test_get_container_value_type<value_type, container_type>();
+}
+
+TYPED_TEST(CompileTestContainerTypes, get_value_type_from_std_array) {
+  using value_type     = typename TestFixture::value_type;
+  using container_type = typename TestFixture::std_array_type;
+
+  test_get_container_value_type<value_type, container_type>();
+}
+
+TYPED_TEST(CompileTestContainerTypes, get_value_type_from_kokkos_array) {
+  using value_type     = typename TestFixture::value_type;
+  using container_type = typename TestFixture::Kokkos_array_type;
+
+  test_get_container_value_type<value_type, container_type>();
+}
+
+TYPED_TEST(CompileTestRealAndComplexTypes, get_real_type) {
+  using real_type    = typename TestFixture::real_type;
+  using complex_type = typename TestFixture::complex_type;
+
+  test_get_real_type<real_type, complex_type>();
+}
+
+TYPED_TEST(CompileTestRealAndComplexTypes, admissible_real_type) {
+  using real_type = typename TestFixture::real_type;
+
+  test_admissible_real_type<real_type>();
+}
+
+TYPED_TEST(CompileTestRealAndComplexTypes, admissible_complex_type) {
+  using complex_type = typename TestFixture::complex_type;
+
+  test_admissible_complex_type<complex_type>();
+}
+
+TYPED_TEST(CompileTestRealAndComplexViewTypes, admissible_value_type) {
+  using real_type    = typename TestFixture::real_type;
+  using complex_type = typename TestFixture::complex_type;
+  using layout_type  = typename TestFixture::layout_type;
+
+  test_admissible_value_type<real_type, layout_type>();
+  test_admissible_value_type<complex_type, layout_type>();
+}
+
+TYPED_TEST(CompileTestRealAndComplexViewTypes, admissible_layout_type) {
+  using real_type    = typename TestFixture::real_type;
+  using complex_type = typename TestFixture::complex_type;
+  using layout_type  = typename TestFixture::layout_type;
+
+  test_admissible_layout_type<real_type, layout_type>();
+  test_admissible_layout_type<complex_type, layout_type>();
+}
+
+TYPED_TEST(CompileTestRealAndComplexViewTypes, admissible_view_type) {
+  using real_type    = typename TestFixture::real_type;
+  using complex_type = typename TestFixture::complex_type;
+  using layout_type  = typename TestFixture::layout_type;
+
+  test_admissible_view_type<real_type, layout_type>();
+  test_admissible_view_type<complex_type, layout_type>();
+}
+
+TYPED_TEST(CompileTestRealAndComplexViewTypes, operatable_view_type) {
+  using real_type    = typename TestFixture::real_type;
+  using complex_type = typename TestFixture::complex_type;
+  using layout_type  = typename TestFixture::layout_type;
+  using host_space   = Kokkos::DefaultHostExecutionSpace;
+  using device_space = Kokkos::DefaultExecutionSpace;
+
+  test_operatable_view_type<host_space, host_space, real_type, layout_type>();
+  test_operatable_view_type<host_space, device_space, real_type, layout_type>();
+  test_operatable_view_type<device_space, host_space, real_type, layout_type>();
+  test_operatable_view_type<device_space, device_space, real_type,
+                            layout_type>();
+
+  test_operatable_view_type<host_space, host_space, complex_type,
+                            layout_type>();
+  test_operatable_view_type<host_space, device_space, complex_type,
+                            layout_type>();
+  test_operatable_view_type<device_space, host_space, complex_type,
+                            layout_type>();
+  test_operatable_view_type<device_space, device_space, complex_type,
+                            layout_type>();
+}
+
 TYPED_TEST(CompileTestPairedValueTypes, have_same_base_floating_point_type) {
   using real_type1 = typename TestFixture::real_type1;
   using real_type2 = typename TestFixture::real_type2;
@@ -711,4 +714,3 @@ TYPED_TEST(CompileTestPairedViewTypes, are_operatable_views) {
                             layout_type1, real_type2, layout_type2>();
 }
 
-}  // namespace

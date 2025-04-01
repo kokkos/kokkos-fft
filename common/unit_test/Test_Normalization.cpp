@@ -11,6 +11,7 @@ namespace {
 using execution_space = Kokkos::DefaultExecutionSpace;
 template <typename T>
 using View1D = Kokkos::View<T*, execution_space>;
+}  // namespace
 
 TEST(Normalization, Forward) {
   const int len = 30;
@@ -126,4 +127,3 @@ TEST(Normalization, None) {
   EXPECT_TRUE(allclose(execution_space(), x_b, ref_b, 1.e-5, 1.e-12));
 }
 
-}  // namespace

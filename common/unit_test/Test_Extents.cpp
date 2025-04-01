@@ -23,9 +23,6 @@ struct Extents2D : public ::testing::Test {
   using layout_type = T;
 };
 
-TYPED_TEST_SUITE(Extents1D, test_types);
-TYPED_TEST_SUITE(Extents2D, test_types);
-
 // Tests for 1D FFT
 template <typename LayoutType>
 void test_extents_1d() {
@@ -323,24 +320,6 @@ void test_extents_1d_batched_FFT_3d() {
         { KokkosFFT::Impl::get_extents(xcin3, xcout3_wrong, axes_type({i})); },
         std::runtime_error);
   }
-}
-
-TYPED_TEST(Extents1D, 1DFFT_1DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_extents_1d<layout_type>();
-}
-
-TYPED_TEST(Extents1D, 1DFFT_batched_2DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_extents_1d_batched_FFT_2d<layout_type>();
-}
-
-TYPED_TEST(Extents1D, 1DFFT_batched_3DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_extents_1d_batched_FFT_3d<layout_type>();
 }
 
 // Tests for 2D FFT
@@ -754,6 +733,28 @@ void test_extents_2d_batched_FFT_3d() {
     }
   }
 }
+}  // namespace
+
+TYPED_TEST_SUITE(Extents1D, test_types);
+TYPED_TEST_SUITE(Extents2D, test_types);
+
+TYPED_TEST(Extents1D, 1DFFT_1DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_extents_1d<layout_type>();
+}
+
+TYPED_TEST(Extents1D, 1DFFT_batched_2DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_extents_1d_batched_FFT_2d<layout_type>();
+}
+
+TYPED_TEST(Extents1D, 1DFFT_batched_3DView) {
+  using layout_type = typename TestFixture::layout_type;
+
+  test_extents_1d_batched_FFT_3d<layout_type>();
+}
 
 TYPED_TEST(Extents2D, 2DFFT_2DView) {
   using layout_type = typename TestFixture::layout_type;
@@ -767,4 +768,3 @@ TYPED_TEST(Extents2D, 2DFFT_3DView) {
   test_extents_2d_batched_FFT_3d<layout_type>();
 }
 
-}  // namespace

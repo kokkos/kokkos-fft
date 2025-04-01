@@ -51,10 +51,6 @@ struct GetModifiedShape3D : public ::testing::Test {
   using float_type = T;
 };
 
-TYPED_TEST_SUITE(GetModifiedShape1D, test_types);
-TYPED_TEST_SUITE(GetModifiedShape2D, test_types);
-TYPED_TEST_SUITE(GetModifiedShape3D, test_types);
-
 auto get_c2r_shape(std::size_t len, bool is_C2R) {
   return is_C2R ? (len / 2 + 1) : len;
 }
@@ -267,46 +263,6 @@ void test_reshape1D_8DView() {
       EXPECT_TRUE(modified_shape == ref_shape);
     }
   }
-}
-
-TYPED_TEST(GetModifiedShape1D, 1DView) {
-  using float_type = typename TestFixture::float_type;
-  test_reshape1D_1DView<float_type>();
-}
-
-TYPED_TEST(GetModifiedShape1D, 2DView) {
-  using float_type = typename TestFixture::float_type;
-  test_reshape1D_2DView<float_type>();
-}
-
-TYPED_TEST(GetModifiedShape1D, 3DView) {
-  using float_type = typename TestFixture::float_type;
-  test_reshape1D_3DView<float_type>();
-}
-
-TYPED_TEST(GetModifiedShape1D, 4DView) {
-  using float_type = typename TestFixture::float_type;
-  test_reshape1D_4DView<float_type>();
-}
-
-TYPED_TEST(GetModifiedShape1D, 5DView) {
-  using float_type = typename TestFixture::float_type;
-  test_reshape1D_5DView<float_type>();
-}
-
-TYPED_TEST(GetModifiedShape1D, 6DView) {
-  using float_type = typename TestFixture::float_type;
-  test_reshape1D_6DView<float_type>();
-}
-
-TYPED_TEST(GetModifiedShape1D, 7DView) {
-  using float_type = typename TestFixture::float_type;
-  test_reshape1D_7DView<float_type>();
-}
-
-TYPED_TEST(GetModifiedShape1D, 8DView) {
-  using float_type = typename TestFixture::float_type;
-  test_reshape1D_8DView<float_type>();
 }
 
 template <typename T>
@@ -553,41 +509,6 @@ void test_reshape2D_8DView() {
       }
     }
   }
-}
-
-TYPED_TEST(GetModifiedShape2D, 2DView) {
-  using float_type = typename TestFixture::float_type;
-  test_reshape2D_2DView<float_type>();
-}
-
-TYPED_TEST(GetModifiedShape2D, 3DView) {
-  using float_type = typename TestFixture::float_type;
-  test_reshape2D_3DView<float_type>();
-}
-
-TYPED_TEST(GetModifiedShape2D, 4DView) {
-  using float_type = typename TestFixture::float_type;
-  test_reshape2D_4DView<float_type>();
-}
-
-TYPED_TEST(GetModifiedShape2D, 5DView) {
-  using float_type = typename TestFixture::float_type;
-  test_reshape2D_5DView<float_type>();
-}
-
-TYPED_TEST(GetModifiedShape2D, 6DView) {
-  using float_type = typename TestFixture::float_type;
-  test_reshape2D_6DView<float_type>();
-}
-
-TYPED_TEST(GetModifiedShape2D, 7DView) {
-  using float_type = typename TestFixture::float_type;
-  test_reshape2D_7DView<float_type>();
-}
-
-TYPED_TEST(GetModifiedShape2D, 8DView) {
-  using float_type = typename TestFixture::float_type;
-  test_reshape2D_8DView<float_type>();
 }
 
 template <typename T>
@@ -843,6 +764,87 @@ void test_reshape3D_8DView() {
       }
     }
   }
+}
+
+}  // namespace
+
+TYPED_TEST_SUITE(GetModifiedShape1D, test_types);
+TYPED_TEST_SUITE(GetModifiedShape2D, test_types);
+TYPED_TEST_SUITE(GetModifiedShape3D, test_types);
+
+TYPED_TEST(GetModifiedShape1D, 1DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape1D_1DView<float_type>();
+}
+
+TYPED_TEST(GetModifiedShape1D, 2DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape1D_2DView<float_type>();
+}
+
+TYPED_TEST(GetModifiedShape1D, 3DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape1D_3DView<float_type>();
+}
+
+TYPED_TEST(GetModifiedShape1D, 4DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape1D_4DView<float_type>();
+}
+
+TYPED_TEST(GetModifiedShape1D, 5DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape1D_5DView<float_type>();
+}
+
+TYPED_TEST(GetModifiedShape1D, 6DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape1D_6DView<float_type>();
+}
+
+TYPED_TEST(GetModifiedShape1D, 7DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape1D_7DView<float_type>();
+}
+
+TYPED_TEST(GetModifiedShape1D, 8DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape1D_8DView<float_type>();
+}
+
+TYPED_TEST(GetModifiedShape2D, 2DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape2D_2DView<float_type>();
+}
+
+TYPED_TEST(GetModifiedShape2D, 3DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape2D_3DView<float_type>();
+}
+
+TYPED_TEST(GetModifiedShape2D, 4DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape2D_4DView<float_type>();
+}
+
+TYPED_TEST(GetModifiedShape2D, 5DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape2D_5DView<float_type>();
+}
+
+TYPED_TEST(GetModifiedShape2D, 6DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape2D_6DView<float_type>();
+}
+
+TYPED_TEST(GetModifiedShape2D, 7DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape2D_7DView<float_type>();
+}
+
+TYPED_TEST(GetModifiedShape2D, 8DView) {
+  using float_type = typename TestFixture::float_type;
+  test_reshape2D_8DView<float_type>();
 }
 
 TYPED_TEST(GetModifiedShape3D, 3DView) {
@@ -1734,4 +1736,3 @@ TEST(CropOrPad8D, 8DView) {
   }
 }
 
-}  // namespace
