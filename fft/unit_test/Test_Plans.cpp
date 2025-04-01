@@ -53,11 +53,6 @@ struct Plans3D : public ::testing::Test {
   using layout_type = typename T::second_type;
 };
 
-TYPED_TEST_SUITE(ExecutionSpaceType, execution_spaces);
-TYPED_TEST_SUITE(Plans1D, test_types);
-TYPED_TEST_SUITE(Plans2D, test_types);
-TYPED_TEST_SUITE(Plans3D, test_types);
-
 // Tests for execution space
 template <typename ExecutionSpace>
 void test_allowed_exec_space() {
@@ -107,18 +102,6 @@ void test_plan_constructible() {
       std::is_constructible_v<PlanType, const ExecutionSpace&, RealView1DType&,
                               ComplexView1DType&, KokkosFFT::Direction, int>);
 #endif
-}
-
-// Tests for plan constructiblility
-TYPED_TEST(ExecutionSpaceType, is_allowed_space) {
-  using execution_space_type = typename TestFixture::execution_space_type;
-  test_allowed_exec_space<execution_space_type>();
-}
-
-// Tests for 1D FFT plan on 1D View
-TYPED_TEST(ExecutionSpaceType, is_constrcutrible) {
-  using execution_space_type = typename TestFixture::execution_space_type;
-  test_plan_constructible<execution_space_type>();
 }
 
 // Tests for 1D FFT Plans
@@ -385,30 +368,6 @@ void test_plan_1dfft_3dview() {
       std::runtime_error);
 }
 
-// Tests for 1D FFT plan on 1D View
-TYPED_TEST(Plans1D, 1DFFT_1DView) {
-  using float_type  = typename TestFixture::float_type;
-  using layout_type = typename TestFixture::layout_type;
-
-  test_plan_1dfft_1dview<float_type, layout_type>();
-}
-
-// Tests for 1D batched FFT plan on 2D View
-TYPED_TEST(Plans1D, 1DFFT_batched_2DView) {
-  using float_type  = typename TestFixture::float_type;
-  using layout_type = typename TestFixture::layout_type;
-
-  test_plan_1dfft_2dview<float_type, layout_type>();
-}
-
-// Tests for 1D batched FFT plan on 3D View
-TYPED_TEST(Plans1D, 1DFFT_batched_3DView) {
-  using float_type  = typename TestFixture::float_type;
-  using layout_type = typename TestFixture::layout_type;
-
-  test_plan_1dfft_3dview<float_type, layout_type>();
-}
-
 // Tests for 2D FFT Plans
 template <typename T, typename LayoutType>
 void test_plan_2dfft_2dview() {
@@ -642,22 +601,6 @@ void test_plan_2dfft_3dview() {
       std::runtime_error);
 }
 
-// Tests for 2D FFT plan on 2D View
-TYPED_TEST(Plans2D, 2DFFT_2DView) {
-  using float_type  = typename TestFixture::float_type;
-  using layout_type = typename TestFixture::layout_type;
-
-  test_plan_2dfft_2dview<float_type, layout_type>();
-}
-
-// Tests for 2D batched FFT plan on 3D View
-TYPED_TEST(Plans2D, 2DFFT_3DView) {
-  using float_type  = typename TestFixture::float_type;
-  using layout_type = typename TestFixture::layout_type;
-
-  test_plan_2dfft_3dview<float_type, layout_type>();
-}
-
 // Tests for 3D FFT Plans
 template <typename T, typename LayoutType>
 void test_plan_3dfft_3dview() {
@@ -822,6 +765,66 @@ void test_plan_3dfft_3dview() {
       std::runtime_error);
 }
 
+}  // namespace
+
+TYPED_TEST_SUITE(ExecutionSpaceType, execution_spaces);
+TYPED_TEST_SUITE(Plans1D, test_types);
+TYPED_TEST_SUITE(Plans2D, test_types);
+TYPED_TEST_SUITE(Plans3D, test_types);
+
+// Tests for plan constructiblility
+TYPED_TEST(ExecutionSpaceType, is_allowed_space) {
+  using execution_space_type = typename TestFixture::execution_space_type;
+  test_allowed_exec_space<execution_space_type>();
+}
+
+// Tests for 1D FFT plan on 1D View
+TYPED_TEST(ExecutionSpaceType, is_constrcutrible) {
+  using execution_space_type = typename TestFixture::execution_space_type;
+  test_plan_constructible<execution_space_type>();
+}
+
+// Tests for 1D FFT plan on 1D View
+TYPED_TEST(Plans1D, 1DFFT_1DView) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  test_plan_1dfft_1dview<float_type, layout_type>();
+}
+
+// Tests for 1D batched FFT plan on 2D View
+TYPED_TEST(Plans1D, 1DFFT_batched_2DView) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  test_plan_1dfft_2dview<float_type, layout_type>();
+}
+
+// Tests for 1D batched FFT plan on 3D View
+TYPED_TEST(Plans1D, 1DFFT_batched_3DView) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  test_plan_1dfft_3dview<float_type, layout_type>();
+}
+
+
+// Tests for 2D FFT plan on 2D View
+TYPED_TEST(Plans2D, 2DFFT_2DView) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  test_plan_2dfft_2dview<float_type, layout_type>();
+}
+
+// Tests for 2D batched FFT plan on 3D View
+TYPED_TEST(Plans2D, 2DFFT_3DView) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  test_plan_2dfft_3dview<float_type, layout_type>();
+}
+
 // Tests for 3D FFT plan on 3D View
 TYPED_TEST(Plans3D, 3DFFT_3DView) {
   using float_type  = typename TestFixture::float_type;
@@ -830,4 +833,3 @@ TYPED_TEST(Plans3D, 3DFFT_3DView) {
   test_plan_3dfft_3dview<float_type, layout_type>();
 }
 
-}  // namespace

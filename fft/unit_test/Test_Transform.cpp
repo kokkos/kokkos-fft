@@ -39,10 +39,6 @@ struct FFTND : public ::testing::Test {
   using layout_type = typename T::second_type;
 };
 
-TYPED_TEST_SUITE(FFT1D, test_types);
-TYPED_TEST_SUITE(FFT2D, test_types);
-TYPED_TEST_SUITE(FFTND, test_types);
-
 // Tests for 1D FFT
 template <typename T, typename LayoutType>
 void test_fft1_identity(T atol = 1.0e-12) {
@@ -1177,137 +1173,6 @@ void test_fft1_1dfft_8dview(T atol = 1.e-12) {
   }
 }
 
-// Identity tests on 1D Views
-TYPED_TEST(FFT1D, Identity_1DView) {
-  using float_type  = typename TestFixture::float_type;
-  using layout_type = typename TestFixture::layout_type;
-
-  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
-  test_fft1_identity<float_type, layout_type>(atol);
-}
-
-// Identity tests on 1D Views for in-place transform
-TYPED_TEST(FFT1D, Identity_1DView_inplace) {
-  using float_type  = typename TestFixture::float_type;
-  using layout_type = typename TestFixture::layout_type;
-
-  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
-  test_fft1_identity_inplace<float_type, layout_type>(atol);
-}
-
-// Identity tests on 1D Views with plan reuse
-TYPED_TEST(FFT1D, Identity_1DView_reuse_plans) {
-  using float_type  = typename TestFixture::float_type;
-  using layout_type = typename TestFixture::layout_type;
-
-  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
-  test_fft1_identity_reuse_plan<float_type, layout_type>(atol);
-}
-
-// fft on 1D Views
-TYPED_TEST(FFT1D, FFT_1DView) {
-  using float_type  = typename TestFixture::float_type;
-  using layout_type = typename TestFixture::layout_type;
-
-  test_fft1_1dfft_1dview<float_type, layout_type>();
-}
-
-// ifft on 1D Views
-TYPED_TEST(FFT1D, IFFT_1DView) {
-  using float_type  = typename TestFixture::float_type;
-  using layout_type = typename TestFixture::layout_type;
-
-  test_fft1_1difft_1dview<float_type, layout_type>();
-}
-
-// hfft on 1D Views
-TYPED_TEST(FFT1D, HFFT_1DView) {
-  using float_type  = typename TestFixture::float_type;
-  using layout_type = typename TestFixture::layout_type;
-
-  test_fft1_1dhfft_1dview<float_type, layout_type>();
-}
-
-// ihfft on 1D Views
-TYPED_TEST(FFT1D, IHFFT_1DView) {
-  using float_type  = typename TestFixture::float_type;
-  using layout_type = typename TestFixture::layout_type;
-
-  test_fft1_1dihfft_1dview<float_type, layout_type>();
-}
-
-// fft1 on 1D Views with shape argument
-TYPED_TEST(FFT1D, FFT_1DView_shape) {
-  using float_type  = typename TestFixture::float_type;
-  using layout_type = typename TestFixture::layout_type;
-
-  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
-  test_fft1_shape<float_type, layout_type>(atol);
-}
-
-// batched fft1 on 2D Views
-TYPED_TEST(FFT1D, FFT_batched_2DView) {
-  using float_type  = typename TestFixture::float_type;
-  using layout_type = typename TestFixture::layout_type;
-
-  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
-  test_fft1_1dfft_2dview<float_type, layout_type>(atol);
-}
-
-// batched fft1 on 3D Views
-TYPED_TEST(FFT1D, FFT_batched_3DView) {
-  using float_type  = typename TestFixture::float_type;
-  using layout_type = typename TestFixture::layout_type;
-
-  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
-  test_fft1_1dfft_3dview<float_type, layout_type>(atol);
-}
-
-// batched fft1 on 4D Views
-TYPED_TEST(FFT1D, FFT_batched_4DView) {
-  using float_type  = typename TestFixture::float_type;
-  using layout_type = typename TestFixture::layout_type;
-
-  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
-  test_fft1_1dfft_4dview<float_type, layout_type>(atol);
-}
-
-// batched fft1 on 5D Views
-TYPED_TEST(FFT1D, FFT_batched_5DView) {
-  using float_type  = typename TestFixture::float_type;
-  using layout_type = typename TestFixture::layout_type;
-
-  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
-  test_fft1_1dfft_5dview<float_type, layout_type>(atol);
-}
-
-// batched fft1 on 6D Views
-TYPED_TEST(FFT1D, FFT_batched_6DView) {
-  using float_type  = typename TestFixture::float_type;
-  using layout_type = typename TestFixture::layout_type;
-
-  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
-  test_fft1_1dfft_6dview<float_type, layout_type>(atol);
-}
-
-// batched fft1 on 7D Views
-TYPED_TEST(FFT1D, FFT_batched_7DView) {
-  using float_type  = typename TestFixture::float_type;
-  using layout_type = typename TestFixture::layout_type;
-
-  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
-  test_fft1_1dfft_7dview<float_type, layout_type>(atol);
-}
-
-// batched fft1 on 8D Views
-TYPED_TEST(FFT1D, FFT_batched_8DView) {
-  using float_type  = typename TestFixture::float_type;
-  using layout_type = typename TestFixture::layout_type;
-
-  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
-  test_fft1_1dfft_8dview<float_type, layout_type>(atol);
-}
-
 // Tests for FFT2
 template <typename T, typename LayoutType>
 void test_fft2_2dfft_2dview() {
@@ -2337,108 +2202,6 @@ void test_fft2_2dfft_8dview(T atol = 1.e-12) {
       }
     }
   }
-}
-
-// fft2 on 2D Views
-TYPED_TEST(FFT2D, FFT2_2DView) {
-  using float_type  = typename TestFixture::float_type;
-  using layout_type = typename TestFixture::layout_type;
-
-  test_fft2_2dfft_2dview<float_type, layout_type>();
-}
-
-// ifft2 on 2D Views
-TYPED_TEST(FFT2D, IFFT2_2DView) {
-  using float_type  = typename TestFixture::float_type;
-  using layout_type = typename TestFixture::layout_type;
-
-  test_fft2_2difft_2dview<float_type, layout_type>();
-}
-
-// rfft2 on 2D Views
-TYPED_TEST(FFT2D, RFFT2_2DView) {
-  using float_type  = typename TestFixture::float_type;
-  using layout_type = typename TestFixture::layout_type;
-
-  test_fft2_2drfft_2dview<float_type, layout_type>();
-}
-
-// irfft2 on 2D Views
-TYPED_TEST(FFT2D, IRFFT2_2DView) {
-  using float_type  = typename TestFixture::float_type;
-  using layout_type = typename TestFixture::layout_type;
-
-  test_fft2_2dirfft_2dview<float_type, layout_type>();
-}
-
-// fft2 on 2D Views with shape argument
-TYPED_TEST(FFT2D, 2DFFT_2DView_shape) {
-  using float_type  = typename TestFixture::float_type;
-  using layout_type = typename TestFixture::layout_type;
-
-  test_fft2_2dfft_2dview_shape<float_type, layout_type>();
-}
-
-// fft2 on 2D Views with in-place transform
-TYPED_TEST(FFT2D, 2DFFT_2DView_inplace) {
-  using float_type  = typename TestFixture::float_type;
-  using layout_type = typename TestFixture::layout_type;
-
-  test_fft2_2dfft_2dview_inplace<float_type, layout_type>();
-}
-
-// batched fft2 on 3D Views
-TYPED_TEST(FFT2D, FFT_batched_3DView) {
-  using float_type  = typename TestFixture::float_type;
-  using layout_type = typename TestFixture::layout_type;
-
-  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
-  test_fft2_2dfft_3dview<float_type, layout_type>(atol);
-}
-
-// batched fft2 on 4D Views
-TYPED_TEST(FFT2D, FFT_batched_4DView) {
-  using float_type  = typename TestFixture::float_type;
-  using layout_type = typename TestFixture::layout_type;
-
-  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
-  test_fft2_2dfft_4dview<float_type, layout_type>(atol);
-}
-
-// batched fft2 on 5D Views
-TYPED_TEST(FFT2D, FFT_batched_5DView) {
-  using float_type  = typename TestFixture::float_type;
-  using layout_type = typename TestFixture::layout_type;
-
-  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
-  test_fft2_2dfft_5dview<float_type, layout_type>(atol);
-}
-
-// batched fft2 on 6D Views
-TYPED_TEST(FFT2D, FFT_batched_6DView) {
-  using float_type  = typename TestFixture::float_type;
-  using layout_type = typename TestFixture::layout_type;
-
-  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
-  test_fft2_2dfft_6dview<float_type, layout_type>(atol);
-}
-
-// batched fft2 on 7D Views
-TYPED_TEST(FFT2D, FFT_batched_7DView) {
-  using float_type  = typename TestFixture::float_type;
-  using layout_type = typename TestFixture::layout_type;
-
-  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
-  test_fft2_2dfft_7dview<float_type, layout_type>(atol);
-}
-
-// batched fft2 on 8D Views
-TYPED_TEST(FFT2D, FFT_batched_8DView) {
-  using float_type  = typename TestFixture::float_type;
-  using layout_type = typename TestFixture::layout_type;
-
-  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
-  test_fft2_2dfft_8dview<float_type, layout_type>(atol);
 }
 
 // Tests for FFTN
@@ -3514,6 +3277,244 @@ void test_fftn_3dfft_8dview(T atol = 1.e-12) {
     EXPECT_TRUE(allclose(execution_space(), inv_xr_hat, ref_xr, 1.e-5, atol));
   }
 }
+}  // namespace
+
+TYPED_TEST_SUITE(FFT1D, test_types);
+TYPED_TEST_SUITE(FFT2D, test_types);
+TYPED_TEST_SUITE(FFTND, test_types);
+
+// Identity tests on 1D Views
+TYPED_TEST(FFT1D, Identity_1DView) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
+  test_fft1_identity<float_type, layout_type>(atol);
+}
+
+// Identity tests on 1D Views for in-place transform
+TYPED_TEST(FFT1D, Identity_1DView_inplace) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
+  test_fft1_identity_inplace<float_type, layout_type>(atol);
+}
+
+// Identity tests on 1D Views with plan reuse
+TYPED_TEST(FFT1D, Identity_1DView_reuse_plans) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
+  test_fft1_identity_reuse_plan<float_type, layout_type>(atol);
+}
+
+// fft on 1D Views
+TYPED_TEST(FFT1D, FFT_1DView) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  test_fft1_1dfft_1dview<float_type, layout_type>();
+}
+
+// ifft on 1D Views
+TYPED_TEST(FFT1D, IFFT_1DView) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  test_fft1_1difft_1dview<float_type, layout_type>();
+}
+
+// hfft on 1D Views
+TYPED_TEST(FFT1D, HFFT_1DView) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  test_fft1_1dhfft_1dview<float_type, layout_type>();
+}
+
+// ihfft on 1D Views
+TYPED_TEST(FFT1D, IHFFT_1DView) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  test_fft1_1dihfft_1dview<float_type, layout_type>();
+}
+
+// fft1 on 1D Views with shape argument
+TYPED_TEST(FFT1D, FFT_1DView_shape) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
+  test_fft1_shape<float_type, layout_type>(atol);
+}
+
+// batched fft1 on 2D Views
+TYPED_TEST(FFT1D, FFT_batched_2DView) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
+  test_fft1_1dfft_2dview<float_type, layout_type>(atol);
+}
+
+// batched fft1 on 3D Views
+TYPED_TEST(FFT1D, FFT_batched_3DView) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
+  test_fft1_1dfft_3dview<float_type, layout_type>(atol);
+}
+
+// batched fft1 on 4D Views
+TYPED_TEST(FFT1D, FFT_batched_4DView) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
+  test_fft1_1dfft_4dview<float_type, layout_type>(atol);
+}
+
+// batched fft1 on 5D Views
+TYPED_TEST(FFT1D, FFT_batched_5DView) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
+  test_fft1_1dfft_5dview<float_type, layout_type>(atol);
+}
+
+// batched fft1 on 6D Views
+TYPED_TEST(FFT1D, FFT_batched_6DView) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
+  test_fft1_1dfft_6dview<float_type, layout_type>(atol);
+}
+
+// batched fft1 on 7D Views
+TYPED_TEST(FFT1D, FFT_batched_7DView) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
+  test_fft1_1dfft_7dview<float_type, layout_type>(atol);
+}
+
+// batched fft1 on 8D Views
+TYPED_TEST(FFT1D, FFT_batched_8DView) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
+  test_fft1_1dfft_8dview<float_type, layout_type>(atol);
+}
+
+// fft2 on 2D Views
+TYPED_TEST(FFT2D, FFT2_2DView) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  test_fft2_2dfft_2dview<float_type, layout_type>();
+}
+
+// ifft2 on 2D Views
+TYPED_TEST(FFT2D, IFFT2_2DView) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  test_fft2_2difft_2dview<float_type, layout_type>();
+}
+
+// rfft2 on 2D Views
+TYPED_TEST(FFT2D, RFFT2_2DView) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  test_fft2_2drfft_2dview<float_type, layout_type>();
+}
+
+// irfft2 on 2D Views
+TYPED_TEST(FFT2D, IRFFT2_2DView) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  test_fft2_2dirfft_2dview<float_type, layout_type>();
+}
+
+// fft2 on 2D Views with shape argument
+TYPED_TEST(FFT2D, 2DFFT_2DView_shape) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  test_fft2_2dfft_2dview_shape<float_type, layout_type>();
+}
+
+// fft2 on 2D Views with in-place transform
+TYPED_TEST(FFT2D, 2DFFT_2DView_inplace) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  test_fft2_2dfft_2dview_inplace<float_type, layout_type>();
+}
+
+// batched fft2 on 3D Views
+TYPED_TEST(FFT2D, FFT_batched_3DView) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
+  test_fft2_2dfft_3dview<float_type, layout_type>(atol);
+}
+
+// batched fft2 on 4D Views
+TYPED_TEST(FFT2D, FFT_batched_4DView) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
+  test_fft2_2dfft_4dview<float_type, layout_type>(atol);
+}
+
+// batched fft2 on 5D Views
+TYPED_TEST(FFT2D, FFT_batched_5DView) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
+  test_fft2_2dfft_5dview<float_type, layout_type>(atol);
+}
+
+// batched fft2 on 6D Views
+TYPED_TEST(FFT2D, FFT_batched_6DView) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
+  test_fft2_2dfft_6dview<float_type, layout_type>(atol);
+}
+
+// batched fft2 on 7D Views
+TYPED_TEST(FFT2D, FFT_batched_7DView) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
+  test_fft2_2dfft_7dview<float_type, layout_type>(atol);
+}
+
+// batched fft2 on 8D Views
+TYPED_TEST(FFT2D, FFT_batched_8DView) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  float_type atol = std::is_same_v<float_type, float> ? 1.0e-6 : 1.0e-12;
+  test_fft2_2dfft_8dview<float_type, layout_type>(atol);
+}
 
 // fftn on 2D Views
 TYPED_TEST(FFTND, 2DFFT_2DView) {
@@ -3641,4 +3642,3 @@ TYPED_TEST(FFTND, 3DFFT_batched_8DView) {
   test_fftn_3dfft_8dview<float_type, layout_type>(atol);
 }
 
-}  // namespace
