@@ -3641,4 +3641,3 @@ TYPED_TEST(FFTND, 3DFFT_batched_8DView) {
   float_type atol = std::is_same_v<float_type, float> ? 1.0e-5 : 1.0e-10;
   test_fftn_3dfft_8dview<float_type, layout_type>(atol);
 }
-

@@ -808,7 +808,6 @@ TYPED_TEST(Plans1D, 1DFFT_batched_3DView) {
   test_plan_1dfft_3dview<float_type, layout_type>();
 }
 
-
 // Tests for 2D FFT plan on 2D View
 TYPED_TEST(Plans2D, 2DFFT_2DView) {
   using float_type  = typename TestFixture::float_type;
@@ -832,4 +831,3 @@ TYPED_TEST(Plans3D, 3DFFT_3DView) {
 
   test_plan_3dfft_3dview<float_type, layout_type>();
 }
-
