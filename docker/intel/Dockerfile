@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
-ARG BASE=intel/oneapi-basekit:2024.0.1-devel-ubuntu20.04
+ARG BASE=intel/oneapi-basekit:2025.1.0-0-devel-ubuntu24.04
 FROM $BASE
 
 ARG ADDITIONAL_PACKAGES
@@ -46,3 +46,4 @@ ENV PATH=${CMAKE_DIR}/bin:$PATH
 
 WORKDIR /work
 CMD ["bash"]
+
