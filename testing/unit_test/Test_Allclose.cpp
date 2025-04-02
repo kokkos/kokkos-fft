@@ -7,7 +7,6 @@
 #include "KokkosFFT_Allclose.hpp"
 
 namespace {
-
 using execution_space = Kokkos::DefaultExecutionSpace;
 using float_types     = ::testing::Types<float, double>;
 
@@ -18,8 +17,6 @@ struct TestAllClose : public ::testing::Test {
   const double m_rtol = 1.0e-5;
   const double m_atol = 1.0e-8;
 };
-
-TYPED_TEST_SUITE(TestAllClose, float_types);
 
 template <typename T>
 void test_allclose_1D_analytical(double rtol, double atol) {
@@ -105,6 +102,9 @@ void test_allclose_2D_analytical(double rtol, double atol) {
   EXPECT_THAT(d, ::testing::Not(KokkosFFT::Testing::allclose(a, rtol, atol)));
   EXPECT_THAT(e, KokkosFFT::Testing::allclose(a, rtol, atol, 3));
 }
+}  // namespace
+
+TYPED_TEST_SUITE(TestAllClose, float_types);
 
 TYPED_TEST(TestAllClose, View1D) {
   using float_type = typename TestFixture::float_type;
@@ -115,5 +115,3 @@ TYPED_TEST(TestAllClose, View2D) {
   using float_type = typename TestFixture::float_type;
   test_allclose_2D_analytical<float_type>(this->m_rtol, this->m_atol);
 }
-
-}  // namespace
