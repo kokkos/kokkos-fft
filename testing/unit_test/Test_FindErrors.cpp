@@ -19,8 +19,6 @@ struct TestFindErrors : public ::testing::Test {
   const double m_atol = 1.0e-8;
 };
 
-TYPED_TEST_SUITE(TestFindErrors, float_types);
-
 template <typename T>
 void test_find_errors_1D_analytical(double rtol, double atol) {
   using View1DType    = Kokkos::View<T*>;
@@ -115,6 +113,9 @@ void test_find_errors_2D_analytical(double rtol, double atol) {
     EXPECT_EQ(h_loc_error(i, 2), h_ref_loc_error(i, 2));
   }
 }
+}  // namespace
+
+TYPED_TEST_SUITE(TestFindErrors, float_types);
 
 TYPED_TEST(TestFindErrors, View1D) {
   using float_type = typename TestFixture::float_type;
@@ -125,5 +126,3 @@ TYPED_TEST(TestFindErrors, View2D) {
   using float_type = typename TestFixture::float_type;
   test_find_errors_2D_analytical<float_type>(this->m_rtol, this->m_atol);
 }
-
-}  // namespace

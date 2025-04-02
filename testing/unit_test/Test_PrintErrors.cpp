@@ -22,9 +22,6 @@ struct TestPrintErrors : public ::testing::Test {
   using float_type = T;
 };
 
-TYPED_TEST_SUITE(TestSortErrors, float_types);
-TYPED_TEST_SUITE(TestPrintErrors, float_types);
-
 template <typename T>
 void test_sort_errors_1D_analytical() {
   using View1DType            = Kokkos::View<T*>;
@@ -210,6 +207,10 @@ void test_print_errors_2D_analytical() {
   // pattern.
   EXPECT_THAT(error_str, ::testing::MatchesRegex(pattern));
 }
+}  // namespace
+
+TYPED_TEST_SUITE(TestSortErrors, float_types);
+TYPED_TEST_SUITE(TestPrintErrors, float_types);
 
 TYPED_TEST(TestSortErrors, View1D) {
   using float_type = typename TestFixture::float_type;
@@ -230,5 +231,3 @@ TYPED_TEST(TestPrintErrors, View2D) {
   using float_type = typename TestFixture::float_type;
   test_print_errors_2D_analytical<float_type>();
 }
-
-}  // namespace
