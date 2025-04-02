@@ -48,6 +48,12 @@ Kokkos::Iterate get_iteration_order(const ViewType& view) {
   return iterate;
 }
 
+template <typename ScalarA, typename ScalarB, typename ScalarTol>
+KOKKOS_INLINE_FUNCTION bool are_not_close(ScalarA a, ScalarB b, ScalarTol rtol,
+                                          ScalarTol atol) {
+  return Kokkos::abs(a - b) > (atol + rtol * Kokkos::abs(b));
+}
+
 /// \brief Computes the number of error mismatches between two 1D Kokkos views.
 /// This structure performs an element-by-element comparison of two 1D views. It
 /// counts the number of elements where the difference exceeds a specified
@@ -98,10 +104,9 @@ struct ViewErrors<ExecutionSpace, AViewType, BViewType, Layout, 1, iType> {
   /// detected.
   KOKKOS_INLINE_FUNCTION
   void operator()(const iType i0, std::size_t& err) const {
-    auto tmp_a = m_a(i0);
-    auto tmp_b = m_b(i0);
-    bool not_close =
-        Kokkos::abs(tmp_a - tmp_b) > (m_atol + m_rtol * Kokkos::abs(tmp_b));
+    auto tmp_a     = m_a(i0);
+    auto tmp_b     = m_b(i0);
+    bool not_close = are_not_close(tmp_a, tmp_b, m_rtol, m_atol);
     err += static_cast<std::size_t>(not_close);
   }
 
@@ -172,10 +177,9 @@ struct ViewErrors<ExecutionSpace, AViewType, BViewType, Layout, 2, iType> {
   /// detected.
   KOKKOS_INLINE_FUNCTION
   void operator()(const iType& i0, const iType& i1, std::size_t& err) const {
-    auto tmp_a = m_a(i0, i1);
-    auto tmp_b = m_b(i0, i1);
-    bool not_close =
-        Kokkos::abs(tmp_a - tmp_b) > (m_atol + m_rtol * Kokkos::abs(tmp_b));
+    auto tmp_a     = m_a(i0, i1);
+    auto tmp_b     = m_b(i0, i1);
+    bool not_close = are_not_close(tmp_a, tmp_b, m_rtol, m_atol);
     err += static_cast<std::size_t>(not_close);
   };
 
@@ -258,10 +262,9 @@ struct FindErrors<ExecutionSpace, AViewType, BViewType, Layout, 1, iType> {
   ///\param i0 [in] The index of the element in the views.
   KOKKOS_INLINE_FUNCTION
   void operator()(const iType i0) const {
-    auto tmp_a = m_a(i0);
-    auto tmp_b = m_b(i0);
-    bool not_close =
-        Kokkos::abs(tmp_a - tmp_b) > (m_atol + m_rtol * Kokkos::abs(tmp_b));
+    auto tmp_a     = m_a(i0);
+    auto tmp_b     = m_b(i0);
+    bool not_close = are_not_close(tmp_a, tmp_b, m_rtol, m_atol);
     if (not_close) {
       std::size_t count     = Kokkos::atomic_load(m_count.data());
       m_a_error(count)      = tmp_a;
@@ -366,10 +369,9 @@ struct FindErrors<ExecutionSpace, AViewType, BViewType, Layout, 2, iType> {
   /// views.
   KOKKOS_INLINE_FUNCTION
   void operator()(const iType i0, const iType i1) const {
-    auto tmp_a = m_a(i0, i1);
-    auto tmp_b = m_b(i0, i1);
-    bool not_close =
-        Kokkos::abs(tmp_a - tmp_b) > (m_atol + m_rtol * Kokkos::abs(tmp_b));
+    auto tmp_a     = m_a(i0, i1);
+    auto tmp_b     = m_b(i0, i1);
+    bool not_close = are_not_close(tmp_a, tmp_b, m_rtol, m_atol);
     if (not_close) {
       std::size_t count     = Kokkos::atomic_load(m_count.data());
       m_a_error(count)      = tmp_a;
