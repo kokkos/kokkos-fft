@@ -19,8 +19,6 @@ struct TestCountErrors : public ::testing::Test {
   const double m_atol = 1.0e-8;
 };
 
-TYPED_TEST_SUITE(TestCountErrors, float_types);
-
 template <typename T>
 void test_view_errors_1D_analytical(double rtol, double atol) {
   using View1DType = Kokkos::View<T*>;
@@ -121,6 +119,9 @@ void test_view_errors_2D_analytical(double rtol, double atol) {
                                                    rtol, atol),
             0);
 }
+}  // namespace
+
+TYPED_TEST_SUITE(TestCountErrors, float_types);
 
 TYPED_TEST(TestCountErrors, View1D) {
   using float_type = typename TestFixture::float_type;
@@ -131,5 +132,3 @@ TYPED_TEST(TestCountErrors, View2D) {
   using float_type = typename TestFixture::float_type;
   test_view_errors_2D_analytical<float_type>(this->m_rtol, this->m_atol);
 }
-
-}  // namespace
