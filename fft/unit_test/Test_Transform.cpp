@@ -1627,7 +1627,7 @@ void test_fft2_2dfft_2dview_inplace([[maybe_unused]] T atol = 1.0e-12) {
       inv_xr_hat_unpadded("inv_xr_hat_unpadded", n0, n1),
       inv_xr_hat_ref("inv_xr_hat_ref", n0, n1);
 
-  // Unmanged views for in-place transforms
+  // Unmanaged views for in-place transforms
   RealView2DType xr(reinterpret_cast<T*>(xr_hat.data()), n0, n1),
       inv_xr_hat(reinterpret_cast<T*>(xr_hat.data()), n0, n1);
   RealView2DType xr_padded(reinterpret_cast<T*>(xr_hat.data()), n0,

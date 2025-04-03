@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
     RightView2D<double> xr2c(reinterpret_cast<double *>(xr2c_hat.data()), n0,
                              n1),
         xr2c_padded(reinterpret_cast<double *>(xr2c_hat.data()), n0,
-                    (n0 / 2 + 1) * 2);
+                    (n1 / 2 + 1) * 2);
 
     // Fill the input view with random data in real space through xr2c_padded
     auto sub_xr2c_padded =
