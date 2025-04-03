@@ -143,7 +143,9 @@ void rfft(const ExecutionSpace& exec_space, const InViewType& in,
   Kokkos::Profiling::ScopedRegion region("KokkosFFT::rfft");
   KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axis_type<1>({axis})),
                      "axes are invalid for in/out views");
-  fft(exec_space, in, out, norm, axis, n);
+  KokkosFFT::Plan plan(exec_space, in, out, KokkosFFT::Direction::forward, axis,
+                       n);
+  plan.execute_impl(in, out, norm);
 }
 
 /// \brief Inverse of rfft
@@ -186,7 +188,9 @@ void irfft(const ExecutionSpace& exec_space, const InViewType& in,
   Kokkos::Profiling::ScopedRegion region("KokkosFFT::irfft");
   KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axis_type<1>({axis})),
                      "axes are invalid for in/out views");
-  ifft(exec_space, in, out, norm, axis, n);
+  KokkosFFT::Plan plan(exec_space, in, out, KokkosFFT::Direction::backward,
+                       axis, n);
+  plan.execute_impl(in, out, norm);
 }
 
 /// \brief One dimensional FFT of a signal that has Hermitian symmetry
@@ -397,7 +401,9 @@ void rfft2(const ExecutionSpace& exec_space, const InViewType& in,
   Kokkos::Profiling::ScopedRegion region("KokkosFFT::rfft2");
   KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axes),
                      "axes are invalid for in/out views");
-  fft2(exec_space, in, out, norm, axes, s);
+  KokkosFFT::Plan plan(exec_space, in, out, KokkosFFT::Direction::forward, axes,
+                       s);
+  plan.execute_impl(in, out, norm);
 }
 
 /// \brief Inverse of rfft2
@@ -439,7 +445,9 @@ void irfft2(const ExecutionSpace& exec_space, const InViewType& in,
   Kokkos::Profiling::ScopedRegion region("KokkosFFT::irfft2");
   KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axes),
                      "axes are invalid for in/out views");
-  ifft2(exec_space, in, out, norm, axes, s);
+  KokkosFFT::Plan plan(exec_space, in, out, KokkosFFT::Direction::backward,
+                       axes, s);
+  plan.execute_impl(in, out, norm);
 }
 
 // ND FFT
@@ -595,7 +603,9 @@ void rfftn(
   Kokkos::Profiling::ScopedRegion region("KokkosFFT::rfftn");
   KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axes),
                      "axes are invalid for in/out views");
-  fftn(exec_space, in, out, axes, norm, s);
+  KokkosFFT::Plan plan(exec_space, in, out, KokkosFFT::Direction::forward, axes,
+                       s);
+  plan.execute_impl(in, out, norm);
 }
 
 /// \brief Inverse of rfftn
@@ -651,9 +661,10 @@ void irfftn(
   Kokkos::Profiling::ScopedRegion region("KokkosFFT::irfftn");
   KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axes),
                      "axes are invalid for in/out views");
-  ifftn(exec_space, in, out, axes, norm, s);
+  KokkosFFT::Plan plan(exec_space, in, out, KokkosFFT::Direction::backward,
+                       axes, s);
+  plan.execute_impl(in, out, norm);
 }
-
 }  // namespace KokkosFFT
 
 #endif
