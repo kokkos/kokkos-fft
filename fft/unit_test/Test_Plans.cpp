@@ -6,7 +6,14 @@
 #include "KokkosFFT_Plans.hpp"
 
 namespace {
+#if (defined(KOKKOSFFT_ENABLE_TPL_CUFFT) ||  \
+     defined(KOKKOSFFT_ENABLE_TPL_ROCFFT) || \
+     defined(KOKKOSFFT_ENABLE_TPL_HIPFFT) || \
+     defined(KOKKOSFFT_ENABLE_TPL_ONEMKL))
 using execution_space = Kokkos::DefaultExecutionSpace;
+#else
+using execution_space = Kokkos::DefaultHostExecutionSpace;
+#endif
 
 template <std::size_t DIM>
 using axes_type = std::array<int, DIM>;
@@ -56,21 +63,37 @@ struct Plans3D : public ::testing::Test {
 // Tests for execution space
 template <typename ExecutionSpace>
 void test_allowed_exec_space() {
-#if !defined(ENABLE_HOST_AND_DEVICE) &&                           \
-    (defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) || \
-     defined(KOKKOS_ENABLE_SYCL))
-  // For GPUs without ENABLE_HOST_AND_DEVICE, a plan can be constructible from
-  // Kokkos::DefaultExecutionSpace only
+#if (defined(KOKKOSFFT_ENABLE_TPL_CUFFT) ||  \
+     defined(KOKKOSFFT_ENABLE_TPL_ROCFFT) || \
+     defined(KOKKOSFFT_ENABLE_TPL_HIPFFT) || \
+     defined(KOKKOSFFT_ENABLE_TPL_ONEMKL))
+#if defined(KOKKOSFFT_ENABLE_TPL_FFTW)
+  // A plan can be constructible from Kokkos::DefaultExecutionSpace,
+  // Kokkos::DefaultHostExecutionSpace or Kokkos::Serial (if enabled)
+  static_assert(KokkosFFT::Impl::is_AllowedSpace_v<ExecutionSpace>);
+#else
+  // Only device backend library is available
   if constexpr (std::is_same_v<ExecutionSpace, Kokkos::DefaultExecutionSpace>) {
     static_assert(KokkosFFT::Impl::is_AllowedSpace_v<ExecutionSpace>);
   } else {
     static_assert(!KokkosFFT::Impl::is_AllowedSpace_v<ExecutionSpace>);
   }
+#endif
 #else
-  // For CPUs or GPUs with ENABLE_HOST_AND_DEVICE,
-  // a plan can be constructible from Kokkos::DefaultExecutionSpace,
-  // Kokkos::DefaultHostExecutionSpace or Kokkos::Serial (if enabled)
+  // Only host backend library is available
+  // If device libraries are not enabled, at least FFTW is enabled
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) || \
+    defined(KOKKOS_ENABLE_SYCL)
+  // A plan can only be constructible from HostSpace
+  if constexpr (std::is_same_v<ExecutionSpace, Kokkos::DefaultExecutionSpace>) {
+    static_assert(!KokkosFFT::Impl::is_AllowedSpace_v<ExecutionSpace>);
+  } else {
+    static_assert(KokkosFFT::Impl::is_AllowedSpace_v<ExecutionSpace>);
+  }
+#else
+  // A plan can be constructible from HostSpace
   static_assert(KokkosFFT::Impl::is_AllowedSpace_v<ExecutionSpace>);
+#endif
 #endif
 }
 
@@ -84,23 +107,42 @@ void test_plan_constructible() {
   using PlanType =
       KokkosFFT::Plan<ExecutionSpace, RealView1DType, ComplexView1DType>;
 
-#if !defined(ENABLE_HOST_AND_DEVICE) &&                           \
-    (defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) || \
-     defined(KOKKOS_ENABLE_SYCL))
-  // For GPUs without ENABLE_HOST_AND_DEVICE, a plan can be constructible from
-  // Kokkos::DefaultExecutionSpace only
+#if (defined(KOKKOSFFT_ENABLE_TPL_CUFFT) ||  \
+     defined(KOKKOSFFT_ENABLE_TPL_ROCFFT) || \
+     defined(KOKKOSFFT_ENABLE_TPL_HIPFFT) || \
+     defined(KOKKOSFFT_ENABLE_TPL_ONEMKL))
+#if defined(KOKKOSFFT_ENABLE_TPL_FFTW)
+  // A plan can be constructible from Kokkos::DefaultExecutionSpace,
+  // Kokkos::DefaultHostExecutionSpace or Kokkos::Serial (if enabled)
+  static_assert(
+      std::is_constructible_v<PlanType, const ExecutionSpace&, RealView1DType&,
+                              ComplexView1DType&, KokkosFFT::Direction, int>);
+#else
+  // Only device backend library is available
   if constexpr (std::is_same_v<ExecutionSpace, Kokkos::DefaultExecutionSpace>) {
     static_assert(std::is_constructible_v<PlanType, const ExecutionSpace&,
                                           RealView1DType&, ComplexView1DType&,
                                           KokkosFFT::Direction, int>);
   }
+#endif
 #else
-  // For CPUs or GPUs with ENABLE_HOST_AND_DEVICE,
-  // a plan can be constructible from Kokkos::DefaultExecutionSpace,
-  // Kokkos::DefaultHostExecutionSpace or Kokkos::Serial (if enabled)
+  // Only host backend library is available
+  // If device libraries are not enabled, at least FFTW is enabled
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) || \
+    defined(KOKKOS_ENABLE_SYCL)
+  // A plan can only be constructible from HostSpace
+  if constexpr (!std::is_same_v<ExecutionSpace,
+                                Kokkos::DefaultExecutionSpace>) {
+    static_assert(std::is_constructible_v<PlanType, const ExecutionSpace&,
+                                          RealView1DType&, ComplexView1DType&,
+                                          KokkosFFT::Direction, int>);
+  }
+#else
+  // A plan can be constructible from HostSpace
   static_assert(
       std::is_constructible_v<PlanType, const ExecutionSpace&, RealView1DType&,
                               ComplexView1DType&, KokkosFFT::Direction, int>);
+#endif
 #endif
 }
 
