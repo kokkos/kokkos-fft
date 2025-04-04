@@ -11,19 +11,19 @@ include(CMakeFindDependencyMacro)
 list(INSERT CMAKE_MODULE_PATH 0 "${PACKAGE_PREFIX_DIR}/@LIBDIR@")
 find_dependency(Kokkos)
 
-if(@KokkosFFT_ENABLE_CUFFT@ AND @Kokkos_ENABLE_CUDA@)
+if(@KokkosFFT_ENABLE_CUFFT@)
   find_dependency(CUDAToolkit COMPONENTS cufft)
 endif()
 
-if(@KokkosFFT_ENABLE_ROCFFT@ AND @Kokkos_ENABLE_HIP@)
+if(@KokkosFFT_ENABLE_ROCFFT@)
   find_dependency(rocfft)
 endif()
 
-if(@KokkosFFT_ENABLE_HIPFFT@ AND @Kokkos_ENABLE_HIP@)
+if(@KokkosFFT_ENABLE_HIPFFT@)
   find_dependency(hipfft)
 endif()
 
-if(@KokkosFFT_ENABLE_ONEMKL@ AND @Kokkos_ENABLE_SYCL@)
+if(@KokkosFFT_ENABLE_ONEMKL@)
   find_dependency(MKL COMPONENTS SYCL)
 endif()
 
