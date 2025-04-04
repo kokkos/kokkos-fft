@@ -10,8 +10,15 @@
 #include <benchmark/benchmark.h>
 #include "Benchmark_Context.hpp"
 
+#if (defined(KOKKOSFFT_ENABLE_TPL_CUFFT) ||  \
+     defined(KOKKOSFFT_ENABLE_TPL_ROCFFT) || \
+     defined(KOKKOSFFT_ENABLE_TPL_HIPFFT) || \
+     defined(KOKKOSFFT_ENABLE_TPL_ONEMKL))
 using execution_space = Kokkos::DefaultExecutionSpace;
-using axis_type       = KokkosFFT::axis_type<2>;
+#else
+using execution_space = Kokkos::DefaultHostExecutionSpace;
+#endif
+using axis_type = KokkosFFT::axis_type<2>;
 
 namespace KokkosFFTBenchmark {
 

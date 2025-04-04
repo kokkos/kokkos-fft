@@ -7,7 +7,15 @@
 #include <Kokkos_Random.hpp>
 #include <KokkosFFT.hpp>
 
-using execution_space      = Kokkos::DefaultExecutionSpace;
+#if (defined(KOKKOSFFT_ENABLE_TPL_CUFFT) ||  \
+     defined(KOKKOSFFT_ENABLE_TPL_ROCFFT) || \
+     defined(KOKKOSFFT_ENABLE_TPL_HIPFFT) || \
+     defined(KOKKOSFFT_ENABLE_TPL_ONEMKL))
+using execution_space = Kokkos::DefaultExecutionSpace;
+#else
+using execution_space = Kokkos::DefaultHostExecutionSpace;
+#endif
+
 using host_execution_space = Kokkos::DefaultHostExecutionSpace;
 template <typename T>
 using View1D = Kokkos::View<T*, execution_space>;
@@ -25,7 +33,7 @@ int main(int argc, char* argv[]) {
     View1D<Kokkos::complex<double> > xc2c_hat("xc2c_hat", n0);
     View1D<Kokkos::complex<double> > xc2c_inv("xc2c_inv", n0);
 
-    Kokkos::Random_XorShift64_Pool<> random_pool(12345);
+    Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
     execution_space exec;
     Kokkos::fill_random(exec, xc2c, random_pool, z);
 
@@ -47,7 +55,7 @@ int main(int argc, char* argv[]) {
     KokkosFFT::irfft(exec, xc2r, xc2r_hat);
     exec.fence();
 
-#ifdef ENABLE_HOST_AND_DEVICE
+#if defined(KOKKOSFFT_ENABLE_TPL_FFTW)
     // FFTs on Host
     // 1D C2C FFT (Forward and Backward)
     HostView1D<Kokkos::complex<double> > h_xc2c("h_xc2c", n0);
