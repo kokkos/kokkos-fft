@@ -51,7 +51,7 @@ namespace Impl {
      defined(KOKKOSFFT_ENABLE_TPL_HIPFFT) || \
      defined(KOKKOSFFT_ENABLE_TPL_ONEMKL))
 #if defined(KOKKOSFFT_ENABLE_TPL_FFTW)
-// Backend libraries are available fom all the execution spaces
+// Backend libraries are available from all the execution spaces
 template <typename ExecutionSpace>
 struct is_AllowedSpace : std::true_type {};
 #else
