@@ -19,54 +19,51 @@
 #include "KokkosFFT_padding.hpp"
 #include "KokkosFFT_utils.hpp"
 
-#if defined(KOKKOS_ENABLE_CUDA)
+#if defined(KOKKOSFFT_ENABLE_TPL_CUFFT)
 #include "KokkosFFT_Cuda_plans.hpp"
 #include "KokkosFFT_Cuda_transform.hpp"
-#if defined(ENABLE_HOST_AND_DEVICE)
-#include "KokkosFFT_Host_plans.hpp"
-#include "KokkosFFT_Host_transform.hpp"
 #endif
-#elif defined(KOKKOS_ENABLE_HIP)
+
 #if defined(KOKKOSFFT_ENABLE_TPL_ROCFFT)
 #include "KokkosFFT_ROCM_plans.hpp"
 #include "KokkosFFT_ROCM_transform.hpp"
-#else
+#endif
+
+#if defined(KOKKOSFFT_ENABLE_TPL_HIPFFT)
 #include "KokkosFFT_HIP_plans.hpp"
 #include "KokkosFFT_HIP_transform.hpp"
 #endif
-#if defined(ENABLE_HOST_AND_DEVICE)
-#include "KokkosFFT_Host_plans.hpp"
-#include "KokkosFFT_Host_transform.hpp"
-#endif
-#elif defined(KOKKOS_ENABLE_SYCL)
+
+#if defined(KOKKOSFFT_ENABLE_TPL_ONEMKL)
 #include "KokkosFFT_SYCL_plans.hpp"
 #include "KokkosFFT_SYCL_transform.hpp"
-#if defined(ENABLE_HOST_AND_DEVICE)
-#include "KokkosFFT_Host_plans.hpp"
-#include "KokkosFFT_Host_transform.hpp"
 #endif
-#elif defined(KOKKOS_ENABLE_OPENMP)
-#include "KokkosFFT_Host_plans.hpp"
-#include "KokkosFFT_Host_transform.hpp"
-#elif defined(KOKKOS_ENABLE_THREADS)
-#include "KokkosFFT_Host_plans.hpp"
-#include "KokkosFFT_Host_transform.hpp"
-#else
+
+#if defined(KOKKOSFFT_ENABLE_TPL_FFTW)
 #include "KokkosFFT_Host_plans.hpp"
 #include "KokkosFFT_Host_transform.hpp"
 #endif
 
 namespace KokkosFFT {
 namespace Impl {
-#if !defined(ENABLE_HOST_AND_DEVICE) &&                           \
-    (defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) || \
-     defined(KOKKOS_ENABLE_SYCL))
+#if (defined(KOKKOSFFT_ENABLE_TPL_CUFFT) ||  \
+     defined(KOKKOSFFT_ENABLE_TPL_ROCFFT) || \
+     defined(KOKKOSFFT_ENABLE_TPL_HIPFFT) || \
+     defined(KOKKOSFFT_ENABLE_TPL_ONEMKL))
+#if defined(KOKKOSFFT_ENABLE_TPL_FFTW)
+// Backend libraries are available fom all the execution spaces
+template <typename ExecutionSpace>
+struct is_AllowedSpace : std::true_type {};
+#else
+// Only device backend library is available
 template <typename ExecutionSpace>
 struct is_AllowedSpace
     : std::is_same<ExecutionSpace, Kokkos::DefaultExecutionSpace> {};
+#endif
 #else
+// Only host backend library is available
 template <typename ExecutionSpace>
-struct is_AllowedSpace : std::true_type {};
+struct is_AllowedSpace : is_AnyHostSpace<ExecutionSpace> {};
 #endif
 
 /// \brief Helper to check if the ExecutionSpace is allowed to construct a plan

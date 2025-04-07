@@ -10,7 +10,14 @@
 #include "Test_Utils.hpp"
 
 namespace {
+#if (defined(KOKKOSFFT_ENABLE_TPL_CUFFT) ||  \
+     defined(KOKKOSFFT_ENABLE_TPL_ROCFFT) || \
+     defined(KOKKOSFFT_ENABLE_TPL_HIPFFT) || \
+     defined(KOKKOSFFT_ENABLE_TPL_ONEMKL))
 using execution_space = Kokkos::DefaultExecutionSpace;
+#else
+using execution_space = Kokkos::DefaultHostExecutionSpace;
+#endif
 
 template <std::size_t DIM>
 using shape_type = KokkosFFT::shape_type<DIM>;
