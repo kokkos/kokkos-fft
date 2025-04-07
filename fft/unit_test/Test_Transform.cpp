@@ -311,7 +311,7 @@ void test_fft1_1dfft_1dview() {
   KokkosFFT::fft(exec, x, out_f, KokkosFFT::Normalization::forward);
 
   fft1(exec, x, ref);
-  multiply(exec, out_o, sqrt(static_cast<T>(len)));
+  multiply(exec, out_o, Kokkos::sqrt(static_cast<T>(len)));
   multiply(exec, out_f, static_cast<T>(len));
 
   EXPECT_TRUE(allclose(exec, out, ref, 1.e-5, 1.e-6));
@@ -344,7 +344,7 @@ void test_fft1_1difft_1dview() {
   KokkosFFT::ifft(exec, x, out_f, KokkosFFT::Normalization::forward);
 
   ifft1(exec, x, ref);
-  multiply(exec, out_o, sqrt(static_cast<T>(len)));
+  multiply(exec, out_o, Kokkos::sqrt(static_cast<T>(len)));
   multiply(exec, out_b, static_cast<T>(len));
   multiply(exec, out, static_cast<T>(len));
 
@@ -410,7 +410,7 @@ void test_fft1_1dhfft_1dview() {
   Kokkos::deep_copy(x_herm, x_herm_ref);
   KokkosFFT::hfft(exec, x_herm, out_f, KokkosFFT::Normalization::forward);
 
-  multiply(exec, out_o, sqrt(static_cast<T>(len)));
+  multiply(exec, out_o, Kokkos::sqrt(static_cast<T>(len)));
   multiply(exec, out_f, static_cast<T>(len));
 
   EXPECT_TRUE(allclose(exec, out, ref, 1.e-5, 1.e-6));
@@ -519,7 +519,7 @@ void test_fft1_shape(T atol = 1.0e-12) {
     KokkosFFT::rfft(exec, xr, outr_f, KokkosFFT::Normalization::forward, -1,
                     shape);
 
-    multiply(exec, outr_o, sqrt(static_cast<T>(shape)));
+    multiply(exec, outr_o, Kokkos::sqrt(static_cast<T>(shape)));
     multiply(exec, outr_f, static_cast<T>(shape));
 
     EXPECT_TRUE(allclose(exec, outr_b, outr, 1.e-5, atol));
@@ -545,7 +545,7 @@ void test_fft1_shape(T atol = 1.0e-12) {
     KokkosFFT::irfft(exec, x, out_f, KokkosFFT::Normalization::forward, -1,
                      shape);
 
-    multiply(exec, out_o, sqrt(static_cast<T>(shape)));
+    multiply(exec, out_o, Kokkos::sqrt(static_cast<T>(shape)));
     multiply(exec, out_b, static_cast<T>(shape));
 
     EXPECT_TRUE(allclose(exec, out_b, out, 1.e-5, atol));
@@ -1195,7 +1195,7 @@ void test_fft2_2dfft_2dview() {
   KokkosFFT::fft2(exec, x, out_o, KokkosFFT::Normalization::ortho);
   KokkosFFT::fft2(exec, x, out_f, KokkosFFT::Normalization::forward);
 
-  multiply(exec, out_o, sqrt(static_cast<T>(n0 * n1)));
+  multiply(exec, out_o, Kokkos::sqrt(static_cast<T>(n0 * n1)));
   multiply(exec, out_f, static_cast<T>(n0 * n1));
 
   EXPECT_TRUE(allclose(exec, out, out2, 1.e-5, 1.e-6));
@@ -1213,7 +1213,7 @@ void test_fft2_2dfft_2dview() {
   KokkosFFT::execute(fft2_plan, x, out_o, KokkosFFT::Normalization::ortho);
   KokkosFFT::execute(fft2_plan, x, out_f, KokkosFFT::Normalization::forward);
 
-  multiply(exec, out_o, sqrt(static_cast<T>(n0 * n1)));
+  multiply(exec, out_o, Kokkos::sqrt(static_cast<T>(n0 * n1)));
   multiply(exec, out_f, static_cast<T>(n0 * n1));
 
   EXPECT_TRUE(allclose(exec, out, out2, 1.e-5, 1.e-6));
@@ -1233,7 +1233,7 @@ void test_fft2_2dfft_2dview() {
   KokkosFFT::fft2(exec, x, out_o, KokkosFFT::Normalization::ortho, axes10);
   KokkosFFT::fft2(exec, x, out_f, KokkosFFT::Normalization::forward, axes10);
 
-  multiply(exec, out_o, sqrt(static_cast<T>(n0 * n1)));
+  multiply(exec, out_o, Kokkos::sqrt(static_cast<T>(n0 * n1)));
   multiply(exec, out_f, static_cast<T>(n0 * n1));
 
   EXPECT_TRUE(allclose(exec, out_b, out2, 1.e-5, 1.e-6));
@@ -1251,7 +1251,7 @@ void test_fft2_2dfft_2dview() {
   KokkosFFT::execute(fft2_plan_axes10, x, out_f,
                      KokkosFFT::Normalization::forward);
 
-  multiply(exec, out_o, sqrt(static_cast<T>(n0 * n1)));
+  multiply(exec, out_o, Kokkos::sqrt(static_cast<T>(n0 * n1)));
   multiply(exec, out_f, static_cast<T>(n0 * n1));
 
   EXPECT_TRUE(allclose(exec, out_b, out2, 1.e-5, 1.e-6));
@@ -1290,7 +1290,7 @@ void test_fft2_2difft_2dview() {
   KokkosFFT::ifft2(exec, x, out_o, KokkosFFT::Normalization::ortho);
   KokkosFFT::ifft2(exec, x, out_f, KokkosFFT::Normalization::forward);
 
-  multiply(exec, out_o, 1.0 / sqrt(static_cast<T>(n0 * n1)));
+  multiply(exec, out_o, 1.0 / Kokkos::sqrt(static_cast<T>(n0 * n1)));
   multiply(exec, out_f, 1.0 / static_cast<T>(n0 * n1));
 
   EXPECT_TRUE(allclose(exec, out, out2, 1.e-5, 1.e-6));
@@ -1309,7 +1309,7 @@ void test_fft2_2difft_2dview() {
   KokkosFFT::execute(ifft2_plan, x, out_o, KokkosFFT::Normalization::ortho);
   KokkosFFT::execute(ifft2_plan, x, out_f, KokkosFFT::Normalization::forward);
 
-  multiply(exec, out_o, 1.0 / sqrt(static_cast<T>(n0 * n1)));
+  multiply(exec, out_o, 1.0 / Kokkos::sqrt(static_cast<T>(n0 * n1)));
   multiply(exec, out_f, 1.0 / static_cast<T>(n0 * n1));
 
   EXPECT_TRUE(allclose(exec, out, out2, 1.e-5, 1.e-6));
@@ -1328,7 +1328,7 @@ void test_fft2_2difft_2dview() {
   KokkosFFT::ifft2(exec, x, out_o, KokkosFFT::Normalization::ortho, axes10);
   KokkosFFT::ifft2(exec, x, out_f, KokkosFFT::Normalization::forward, axes10);
 
-  multiply(exec, out_o, 1.0 / sqrt(static_cast<T>(n0 * n1)));
+  multiply(exec, out_o, 1.0 / Kokkos::sqrt(static_cast<T>(n0 * n1)));
   multiply(exec, out_f, 1.0 / static_cast<T>(n0 * n1));
 
   EXPECT_TRUE(allclose(exec, out_b, out2, 1.e-5, 1.e-6));
@@ -1345,7 +1345,7 @@ void test_fft2_2difft_2dview() {
   KokkosFFT::execute(ifft2_plan_axes10, x, out_f,
                      KokkosFFT::Normalization::forward);
 
-  multiply(exec, out_o, 1.0 / sqrt(static_cast<T>(n0 * n1)));
+  multiply(exec, out_o, 1.0 / Kokkos::sqrt(static_cast<T>(n0 * n1)));
   multiply(exec, out_f, 1.0 / static_cast<T>(n0 * n1));
 
   EXPECT_TRUE(allclose(exec, out_b, out2, 1.e-5, 1.e-6));
@@ -1393,7 +1393,7 @@ void test_fft2_2drfft_2dview() {
   Kokkos::deep_copy(x, x_ref);
   KokkosFFT::rfft2(exec, x, out_f, KokkosFFT::Normalization::forward);
 
-  multiply(exec, out_o, sqrt(static_cast<T>(n0 * n1)));
+  multiply(exec, out_o, Kokkos::sqrt(static_cast<T>(n0 * n1)));
   multiply(exec, out_f, static_cast<T>(n0 * n1));
 
   EXPECT_TRUE(allclose(exec, out, out2, 1.e-5, 1.e-6));
@@ -1418,7 +1418,7 @@ void test_fft2_2drfft_2dview() {
   Kokkos::deep_copy(x, x_ref);
   KokkosFFT::execute(rfft2_plan, x, out_f, KokkosFFT::Normalization::forward);
 
-  multiply(exec, out_o, sqrt(static_cast<T>(n0 * n1)));
+  multiply(exec, out_o, Kokkos::sqrt(static_cast<T>(n0 * n1)));
   multiply(exec, out_f, static_cast<T>(n0 * n1));
 
   EXPECT_TRUE(allclose(exec, out, out2, 1.e-5, 1.e-6));
@@ -1466,7 +1466,7 @@ void test_fft2_2dirfft_2dview() {
   Kokkos::deep_copy(x, x_ref);
   KokkosFFT::irfft2(exec, x, out_f, KokkosFFT::Normalization::forward);
 
-  multiply(exec, out_o, 1.0 / sqrt(static_cast<T>(n0 * n1)));
+  multiply(exec, out_o, 1.0 / Kokkos::sqrt(static_cast<T>(n0 * n1)));
   multiply(exec, out_f, 1.0 / static_cast<T>(n0 * n1));
 
   EXPECT_TRUE(allclose(exec, out, out2, 1.e-5, 1.e-6));
@@ -1492,7 +1492,7 @@ void test_fft2_2dirfft_2dview() {
   Kokkos::deep_copy(x, x_ref);
   KokkosFFT::execute(irfft2_plan, x, out_f, KokkosFFT::Normalization::forward);
 
-  multiply(exec, out_o, 1.0 / sqrt(static_cast<T>(n0 * n1)));
+  multiply(exec, out_o, 1.0 / Kokkos::sqrt(static_cast<T>(n0 * n1)));
   multiply(exec, out_f, 1.0 / static_cast<T>(n0 * n1));
 
   EXPECT_TRUE(allclose(exec, out, out2, 1.e-5, 1.e-6));
@@ -1554,7 +1554,7 @@ void test_fft2_2dfft_2dview_shape(T atol = 1.0e-12) {
       KokkosFFT::rfft2(exec, xr, outr_f, KokkosFFT::Normalization::forward,
                        axes, new_shape);
 
-      multiply(exec, outr_o, sqrt(static_cast<T>(shape0 * shape1)));
+      multiply(exec, outr_o, Kokkos::sqrt(static_cast<T>(shape0 * shape1)));
       multiply(exec, outr_f, static_cast<T>(shape0 * shape1));
 
       EXPECT_TRUE(allclose(exec, outr_b, outr, 1.e-5, atol));
@@ -1581,7 +1581,7 @@ void test_fft2_2dfft_2dview_shape(T atol = 1.0e-12) {
       KokkosFFT::irfft2(exec, x, out_f, KokkosFFT::Normalization::forward, axes,
                         new_shape);
 
-      multiply(exec, out_o, sqrt(static_cast<T>(shape0 * shape1)));
+      multiply(exec, out_o, Kokkos::sqrt(static_cast<T>(shape0 * shape1)));
       multiply(exec, out_b, static_cast<T>(shape0 * shape1));
 
       EXPECT_TRUE(allclose(exec, out_b, out, 1.e-5, atol));
@@ -2207,7 +2207,7 @@ void test_fftn_2dfft_2dview() {
   KokkosFFT::fftn(exec, x, out_o, axes, KokkosFFT::Normalization::ortho);
   KokkosFFT::fftn(exec, x, out_f, axes, KokkosFFT::Normalization::forward);
 
-  multiply(exec, out_o, sqrt(static_cast<T>(n0 * n1)));
+  multiply(exec, out_o, Kokkos::sqrt(static_cast<T>(n0 * n1)));
   multiply(exec, out_f, static_cast<T>(n0 * n1));
 
   EXPECT_TRUE(allclose(exec, out, out2, 1.e-5, 1.e-6));
@@ -2224,7 +2224,7 @@ void test_fftn_2dfft_2dview() {
   KokkosFFT::execute(fftn_plan, x, out_o, KokkosFFT::Normalization::ortho);
   KokkosFFT::execute(fftn_plan, x, out_f, KokkosFFT::Normalization::forward);
 
-  multiply(exec, out_o, sqrt(static_cast<T>(n0 * n1)));
+  multiply(exec, out_o, Kokkos::sqrt(static_cast<T>(n0 * n1)));
   multiply(exec, out_f, static_cast<T>(n0 * n1));
 
   EXPECT_TRUE(allclose(exec, out, out2, 1.e-5, 1.e-6));
@@ -2269,7 +2269,7 @@ void test_ifftn_2dfft_2dview() {
   KokkosFFT::ifftn(exec, x, out_o, axes, KokkosFFT::Normalization::ortho);
   KokkosFFT::ifftn(exec, x, out_f, axes, KokkosFFT::Normalization::forward);
 
-  multiply(exec, out_o, 1.0 / sqrt(static_cast<T>(n0 * n1)));
+  multiply(exec, out_o, 1.0 / Kokkos::sqrt(static_cast<T>(n0 * n1)));
   multiply(exec, out_f, 1.0 / static_cast<T>(n0 * n1));
 
   EXPECT_TRUE(allclose(exec, out, out2, 1.e-5, 1.e-6));
@@ -2287,7 +2287,7 @@ void test_ifftn_2dfft_2dview() {
   KokkosFFT::execute(ifftn_plan, x, out_o, KokkosFFT::Normalization::ortho);
   KokkosFFT::execute(ifftn_plan, x, out_f, KokkosFFT::Normalization::forward);
 
-  multiply(exec, out_o, 1.0 / sqrt(static_cast<T>(n0 * n1)));
+  multiply(exec, out_o, 1.0 / Kokkos::sqrt(static_cast<T>(n0 * n1)));
   multiply(exec, out_f, 1.0 / static_cast<T>(n0 * n1));
 
   EXPECT_TRUE(allclose(exec, out, out2, 1.e-5, 1.e-6));
@@ -2341,7 +2341,7 @@ void test_rfftn_2dfft_2dview() {
   Kokkos::deep_copy(x, x_ref);
   KokkosFFT::rfftn(exec, x, out_f, axes, KokkosFFT::Normalization::forward);
 
-  multiply(exec, out_o, sqrt(static_cast<T>(n0 * n1)));
+  multiply(exec, out_o, Kokkos::sqrt(static_cast<T>(n0 * n1)));
   multiply(exec, out_f, static_cast<T>(n0 * n1));
 
   EXPECT_TRUE(allclose(exec, out, out2, 1.e-5, 1.e-6));
@@ -2365,7 +2365,7 @@ void test_rfftn_2dfft_2dview() {
   Kokkos::deep_copy(x, x_ref);
   KokkosFFT::execute(rfftn_plan, x, out_f, KokkosFFT::Normalization::forward);
 
-  multiply(exec, out_o, sqrt(static_cast<T>(n0 * n1)));
+  multiply(exec, out_o, Kokkos::sqrt(static_cast<T>(n0 * n1)));
   multiply(exec, out_f, static_cast<T>(n0 * n1));
 
   EXPECT_TRUE(allclose(exec, out, out2, 1.e-5, 1.e-6));
@@ -2422,7 +2422,7 @@ void test_irfftn_2dfft_2dview() {
   Kokkos::deep_copy(x, x_ref);
   KokkosFFT::irfftn(exec, x, out_f, axes, KokkosFFT::Normalization::forward);
 
-  multiply(exec, out_o, 1.0 / sqrt(static_cast<T>(n0 * n1)));
+  multiply(exec, out_o, 1.0 / Kokkos::sqrt(static_cast<T>(n0 * n1)));
   multiply(exec, out_f, 1.0 / static_cast<T>(n0 * n1));
 
   EXPECT_TRUE(allclose(exec, out, out2, 1.e-5, 1.e-6));
@@ -2446,7 +2446,7 @@ void test_irfftn_2dfft_2dview() {
   Kokkos::deep_copy(x, x_ref);
   KokkosFFT::execute(irfftn_plan, x, out_f, KokkosFFT::Normalization::forward);
 
-  multiply(exec, out_o, 1.0 / sqrt(static_cast<T>(n0 * n1)));
+  multiply(exec, out_o, 1.0 / Kokkos::sqrt(static_cast<T>(n0 * n1)));
   multiply(exec, out_f, 1.0 / static_cast<T>(n0 * n1));
 
   EXPECT_TRUE(allclose(exec, out, out2, 1.e-5, 1.e-6));
@@ -2509,7 +2509,7 @@ void test_fftn_2dfft_2dview_shape(T atol = 1.0e-12) {
       KokkosFFT::rfftn(exec, xr, outr_f, axes,
                        KokkosFFT::Normalization::forward, new_shape);
 
-      multiply(exec, outr_o, sqrt(static_cast<T>(shape0 * shape1)));
+      multiply(exec, outr_o, Kokkos::sqrt(static_cast<T>(shape0 * shape1)));
       multiply(exec, outr_f, static_cast<T>(shape0 * shape1));
 
       EXPECT_TRUE(allclose(exec, outr_b, outr, 1.e-5, atol));
@@ -2536,7 +2536,7 @@ void test_fftn_2dfft_2dview_shape(T atol = 1.0e-12) {
       KokkosFFT::irfftn(exec, x, out_f, axes, KokkosFFT::Normalization::forward,
                         new_shape);
 
-      multiply(exec, out_o, sqrt(static_cast<T>(shape0 * shape1)));
+      multiply(exec, out_o, Kokkos::sqrt(static_cast<T>(shape0 * shape1)));
       multiply(exec, out_b, static_cast<T>(shape0 * shape1));
 
       EXPECT_TRUE(allclose(exec, out_b, out, 1.e-5, atol));
@@ -2585,7 +2585,7 @@ void test_fftn_3dfft_3dview(T atol = 1.0e-6) {
   KokkosFFT::fftn(exec, x, out_o, axes, KokkosFFT::Normalization::ortho);
   KokkosFFT::fftn(exec, x, out_f, axes, KokkosFFT::Normalization::forward);
 
-  multiply(exec, out_o, sqrt(static_cast<T>(n0 * n1 * n2)));
+  multiply(exec, out_o, Kokkos::sqrt(static_cast<T>(n0 * n1 * n2)));
   multiply(exec, out_f, static_cast<T>(n0 * n1 * n2));
 
   EXPECT_TRUE(allclose(exec, out, out3, 1.e-5, atol));
@@ -2634,7 +2634,7 @@ void test_ifftn_3dfft_3dview() {
   KokkosFFT::ifftn(exec, x, out_o, axes, KokkosFFT::Normalization::ortho);
   KokkosFFT::ifftn(exec, x, out_f, axes, KokkosFFT::Normalization::forward);
 
-  multiply(exec, out_o, 1.0 / sqrt(static_cast<T>(n0 * n1 * n2)));
+  multiply(exec, out_o, 1.0 / Kokkos::sqrt(static_cast<T>(n0 * n1 * n2)));
   multiply(exec, out_f, 1.0 / static_cast<T>(n0 * n1 * n2));
 
   EXPECT_TRUE(allclose(exec, out, out3, 1.e-5, 1.e-6));
@@ -2696,7 +2696,7 @@ void test_rfftn_3dfft_3dview() {
   Kokkos::deep_copy(x, x_ref);
   KokkosFFT::rfftn(exec, x, out_f, axes, KokkosFFT::Normalization::forward);
 
-  multiply(exec, out_o, sqrt(static_cast<T>(n0 * n1 * n2)));
+  multiply(exec, out_o, Kokkos::sqrt(static_cast<T>(n0 * n1 * n2)));
   multiply(exec, out_f, static_cast<T>(n0 * n1 * n2));
 
   EXPECT_TRUE(allclose(exec, out, out3, 1.e-5, 1.e-6));
@@ -2758,7 +2758,7 @@ void test_irfftn_3dfft_3dview() {
   Kokkos::deep_copy(x, x_ref);
   KokkosFFT::irfftn(exec, x, out_f, axes, KokkosFFT::Normalization::forward);
 
-  multiply(exec, out_o, 1.0 / sqrt(static_cast<T>(n0 * n1 * n2)));
+  multiply(exec, out_o, 1.0 / Kokkos::sqrt(static_cast<T>(n0 * n1 * n2)));
   multiply(exec, out_f, 1.0 / static_cast<T>(n0 * n1 * n2));
 
   EXPECT_TRUE(allclose(exec, out, out3, 1.e-5, 1.e-6));
@@ -2826,7 +2826,8 @@ void test_fftn_3dfft_3dview_shape(T atol = 1.0e-12) {
         KokkosFFT::rfftn(exec, xr, outr_f, axes,
                          KokkosFFT::Normalization::forward, new_shape);
 
-        multiply(exec, outr_o, sqrt(static_cast<T>(shape0 * shape1 * shape2)));
+        multiply(exec, outr_o,
+                 Kokkos::sqrt(static_cast<T>(shape0 * shape1 * shape2)));
         multiply(exec, outr_f, static_cast<T>(shape0 * shape1 * shape2));
 
         EXPECT_TRUE(allclose(exec, outr_b, outr, 1.e-5, atol));
@@ -2855,7 +2856,8 @@ void test_fftn_3dfft_3dview_shape(T atol = 1.0e-12) {
         KokkosFFT::irfftn(exec, x, out_f, axes,
                           KokkosFFT::Normalization::forward, new_shape);
 
-        multiply(exec, out_o, sqrt(static_cast<T>(shape0 * shape1 * shape2)));
+        multiply(exec, out_o,
+                 Kokkos::sqrt(static_cast<T>(shape0 * shape1 * shape2)));
         multiply(exec, out_b, static_cast<T>(shape0 * shape1 * shape2));
 
         EXPECT_TRUE(allclose(exec, out_b, out, 1.e-5, atol));
