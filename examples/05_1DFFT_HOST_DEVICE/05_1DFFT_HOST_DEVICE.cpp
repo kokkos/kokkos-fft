@@ -25,7 +25,7 @@ int main(int argc, char* argv[]) {
     View1D<Kokkos::complex<double> > xc2c_hat("xc2c_hat", n0);
     View1D<Kokkos::complex<double> > xc2c_inv("xc2c_inv", n0);
 
-    Kokkos::Random_XorShift64_Pool<> random_pool(12345);
+    Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
     execution_space exec;
     Kokkos::fill_random(exec, xc2c, random_pool, z);
 
