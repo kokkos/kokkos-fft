@@ -39,17 +39,23 @@ else()
 endif()
 
 # Device specific options
-set(HOST_BACKEND_ENABLED OFF CACHE BOOL "One of the Kokkos host backend is enabled")
-if(Kokkos_ENABLE_SERIAL OR Kokkos_ENABLE_THREADS OR Kokkos_ENABLE_OPENMP)
-  set(HOST_BACKEND_ENABLED ON)
+set(TO_ENABLE_FFTW ON CACHE BOOL "Whether to enable FFTW by default")
+if(Kokkos_ENABLE_CUDA OR Kokkos_ENABLE_HIP OR Kokkos_ENABLE_SYCL)
+  if(KokkosFFT_ENABLE_HOST_AND_DEVICE)
+    message(WARNING "KokkosFFT_ENABLE_HOST_AND_DEVICE is deprecated. Please enable FFTW explicitly with -DKokkosFFT_ENABLE_FFTW=ON")
+  else()
+    set(TO_ENABLE_FFTW OFF)
+  endif()
 endif()
-option(KokkosFFT_ENABLE_FFTW "Enable fftw as a KokkosFFT backend on CPUs" ${HOST_BACKEND_ENABLED})
+
+option(KokkosFFT_ENABLE_FFTW "Enable fftw as a KokkosFFT backend on CPUs" ${TO_ENABLE_FFTW})
 option(KokkosFFT_ENABLE_CUFFT "Enable cufft as a KokkosFFT backend on NVIDIA GPUs" ${Kokkos_ENABLE_CUDA})
 option(KokkosFFT_ENABLE_ROCFFT "Enable rocfft as a KokkosFFT backend on AMD GPUs" OFF)
 option(KokkosFFT_ENABLE_HIPFFT "Enable hipfft as a KokkosFFT backend on AMD GPUs" ${Kokkos_ENABLE_HIP})
 option(KokkosFFT_ENABLE_ONEMKL "Enable onemkl as a KokkosFFT backend on Intel GPUs" ${Kokkos_ENABLE_SYCL})
 
 # Set tpls
+set(KOKKOSFFT_HAS_DEFAULT_BACKEND TRUE)
 set(KOKKOSFFT_TPL_LIST)
 set(KOKKOSFFT_BACKEND_LIST)
 include(KokkosFFT_tpls)
