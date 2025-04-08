@@ -10,8 +10,12 @@
 #include <benchmark/benchmark.h>
 #include "Benchmark_Context.hpp"
 
+#if defined(KOKKOSFFT_HAS_DEVICE_TPL)
 using execution_space = Kokkos::DefaultExecutionSpace;
-using axis_type       = KokkosFFT::axis_type<2>;
+#else
+using execution_space = Kokkos::DefaultHostExecutionSpace;
+#endif
+using axis_type = KokkosFFT::axis_type<2>;
 
 namespace KokkosFFTBenchmark {
 

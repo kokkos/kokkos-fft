@@ -10,7 +10,11 @@
 #include <benchmark/benchmark.h>
 #include "Benchmark_Context.hpp"
 
+#if defined(KOKKOSFFT_HAS_DEVICE_TPL)
 using execution_space = Kokkos::DefaultExecutionSpace;
+#else
+using execution_space = Kokkos::DefaultHostExecutionSpace;
+#endif
 
 namespace KokkosFFTBenchmark {
 

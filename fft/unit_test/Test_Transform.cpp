@@ -10,7 +10,11 @@
 #include "Test_Utils.hpp"
 
 namespace {
+#if defined(KOKKOSFFT_HAS_DEVICE_TPL)
 using execution_space = Kokkos::DefaultExecutionSpace;
+#else
+using execution_space = Kokkos::DefaultHostExecutionSpace;
+#endif
 
 template <std::size_t DIM>
 using shape_type = KokkosFFT::shape_type<DIM>;

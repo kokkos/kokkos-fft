@@ -13,22 +13,22 @@ static_assert(false,
               "build Kokkos");
 #endif
 
-#if defined(KOKKOS_ENABLE_CUDA)
+#if defined(KOKKOSFFT_ENABLE_TPL_CUFFT)
+#define KOKKOSFFT_HAS_DEVICE_TPL
 #include "KokkosFFT_Cuda_types.hpp"
-#elif defined(KOKKOS_ENABLE_HIP)
-#if defined(KOKKOSFFT_ENABLE_TPL_ROCFFT)
+#elif defined(KOKKOSFFT_ENABLE_TPL_ROCFFT)
+#define KOKKOSFFT_HAS_DEVICE_TPL
 #include "KokkosFFT_ROCM_types.hpp"
-#else
+#elif defined(KOKKOSFFT_ENABLE_TPL_HIPFFT)
+#define KOKKOSFFT_HAS_DEVICE_TPL
 #include "KokkosFFT_HIP_types.hpp"
-#endif
-#elif defined(KOKKOS_ENABLE_SYCL)
+#elif defined(KOKKOSFFT_ENABLE_TPL_ONEMKL)
+#define KOKKOSFFT_HAS_DEVICE_TPL
 #include "KokkosFFT_SYCL_types.hpp"
-#elif defined(KOKKOS_ENABLE_OPENMP)
-#include "KokkosFFT_Host_types.hpp"
-#elif defined(KOKKOS_ENABLE_THREADS)
+#elif defined(KOKKOSFFT_ENABLE_TPL_FFTW)
 #include "KokkosFFT_Host_types.hpp"
 #else
-#include "KokkosFFT_Host_types.hpp"
+static_assert(false, "KokkosFFT requires at least one backend library");
 #endif
 
 #include "KokkosFFT_utils.hpp"
