@@ -39,7 +39,7 @@ else()
 endif()
 
 # Device specific options
-set(TO_ENABLE_FFTW ON CACHE BOOL "Whether to enable FFTW by default")
+set(TO_ENABLE_FFTW ON)
 if(Kokkos_ENABLE_CUDA OR Kokkos_ENABLE_HIP OR Kokkos_ENABLE_SYCL)
   if(KokkosFFT_ENABLE_HOST_AND_DEVICE)
     message(WARNING "KokkosFFT_ENABLE_HOST_AND_DEVICE is deprecated. Please enable FFTW explicitly with -DKokkosFFT_ENABLE_FFTW=ON")

@@ -81,5 +81,7 @@ function(get_tpls_list tpls_list backend_list)
   endif()
   set(${tpls_list} ${${tpls_list}} PARENT_SCOPE)
   set(${backend_list} ${${backend_list}} PARENT_SCOPE)
+  # FIXME
+  # We will use "return" to update this value as soon as we make the minimum CMake version 3.25.0
   set(KOKKOSFFT_HAS_DEFAULT_BACKEND ${has_default_backend} PARENT_SCOPE)
 endfunction()

@@ -7,10 +7,7 @@
 #include <Kokkos_Random.hpp>
 #include <KokkosFFT.hpp>
 
-#if (defined(KOKKOSFFT_ENABLE_TPL_CUFFT) ||  \
-     defined(KOKKOSFFT_ENABLE_TPL_ROCFFT) || \
-     defined(KOKKOSFFT_ENABLE_TPL_HIPFFT) || \
-     defined(KOKKOSFFT_ENABLE_TPL_ONEMKL))
+#if defined(KOKKOSFFT_HAS_DEVICE_TPL)
 using execution_space = Kokkos::DefaultExecutionSpace;
 #else
 using execution_space = Kokkos::DefaultHostExecutionSpace;
