@@ -6,10 +6,7 @@
 #include "KokkosFFT_Plans.hpp"
 
 namespace {
-#if (defined(KOKKOSFFT_ENABLE_TPL_CUFFT) ||  \
-     defined(KOKKOSFFT_ENABLE_TPL_ROCFFT) || \
-     defined(KOKKOSFFT_ENABLE_TPL_HIPFFT) || \
-     defined(KOKKOSFFT_ENABLE_TPL_ONEMKL))
+#if defined(KOKKOSFFT_HAS_DEVICE_TPL)
 using execution_space = Kokkos::DefaultExecutionSpace;
 #else
 using execution_space = Kokkos::DefaultHostExecutionSpace;
@@ -63,10 +60,7 @@ struct Plans3D : public ::testing::Test {
 // Tests for execution space
 template <typename ExecutionSpace>
 void test_allowed_exec_space() {
-#if (defined(KOKKOSFFT_ENABLE_TPL_CUFFT) ||  \
-     defined(KOKKOSFFT_ENABLE_TPL_ROCFFT) || \
-     defined(KOKKOSFFT_ENABLE_TPL_HIPFFT) || \
-     defined(KOKKOSFFT_ENABLE_TPL_ONEMKL))
+#if defined(KOKKOSFFT_HAS_DEVICE_TPL)
 #if defined(KOKKOSFFT_ENABLE_TPL_FFTW)
   // A plan can be constructible from Kokkos::DefaultExecutionSpace,
   // Kokkos::DefaultHostExecutionSpace or Kokkos::Serial (if enabled)

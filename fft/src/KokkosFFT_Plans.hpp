@@ -46,10 +46,7 @@
 
 namespace KokkosFFT {
 namespace Impl {
-#if (defined(KOKKOSFFT_ENABLE_TPL_CUFFT) ||  \
-     defined(KOKKOSFFT_ENABLE_TPL_ROCFFT) || \
-     defined(KOKKOSFFT_ENABLE_TPL_HIPFFT) || \
-     defined(KOKKOSFFT_ENABLE_TPL_ONEMKL))
+#if defined(KOKKOSFFT_HAS_DEVICE_TPL)
 #if defined(KOKKOSFFT_ENABLE_TPL_FFTW)
 // Backend libraries are available from all the execution spaces
 template <typename ExecutionSpace>

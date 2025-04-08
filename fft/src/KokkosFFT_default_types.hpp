@@ -14,12 +14,16 @@ static_assert(false,
 #endif
 
 #if defined(KOKKOSFFT_ENABLE_TPL_CUFFT)
+#define KOKKOSFFT_HAS_DEVICE_TPL
 #include "KokkosFFT_Cuda_types.hpp"
 #elif defined(KOKKOSFFT_ENABLE_TPL_ROCFFT)
+#define KOKKOSFFT_HAS_DEVICE_TPL
 #include "KokkosFFT_ROCM_types.hpp"
 #elif defined(KOKKOSFFT_ENABLE_TPL_HIPFFT)
+#define KOKKOSFFT_HAS_DEVICE_TPL
 #include "KokkosFFT_HIP_types.hpp"
 #elif defined(KOKKOSFFT_ENABLE_TPL_ONEMKL)
+#define KOKKOSFFT_HAS_DEVICE_TPL
 #include "KokkosFFT_SYCL_types.hpp"
 #elif defined(KOKKOSFFT_ENABLE_TPL_FFTW)
 #include "KokkosFFT_Host_types.hpp"
