@@ -26,7 +26,6 @@ struct FFTHelper : public ::testing::Test {
   using layout_type = typename T::second_type;
 };
 
-class GetShiftParamTests : public ::testing::TestWithParam<int> {};
 class FFTShiftParamTests : public ::testing::TestWithParam<int> {};
 
 // Tests for FFT Freq
@@ -120,50 +119,59 @@ void test_rfft_freq(T atol = 1.0e-12) {
   EXPECT_TRUE(allclose(execution_space(), x_even_pi, x_even_ref, 1.e-5, atol));
 }
 
-// Tests for get shift
-void test_get_shift(int direction) {
-  constexpr int n_odd = 9, n_even = 10, n2 = 8;
+// Tests for get shifts
+void test_get_shift1D_1DView(int n0, int direction) {
   using RealView1DType = Kokkos::View<double*, execution_space>;
+  RealView1DType x("x", n0);
+
+  Kokkos::Array<std::size_t, 1> shifts1_ref = {};
+  int shift0                                = direction * n0 / 2;
+  if (shift0 < 0) shift0 += n0;
+  shifts1_ref[0] = static_cast<std::size_t>(shift0);
+  auto shifts1 =
+      KokkosFFT::Impl::get_shifts(x, KokkosFFT::axis_type<1>({0}), direction);
+  EXPECT_TRUE(shifts1 == shifts1_ref);
+}
+
+void test_get_shift1D_2DView(int n0, int direction) {
   using RealView2DType = Kokkos::View<double**, execution_space>;
-  RealView1DType x1_odd("x1_odd", n_odd), x1_even("x1_even", n_even);
-  RealView2DType x2_odd("x2_odd", n_odd, n2), x2_even("x2_even", n_even, n2);
+  const int n1         = 5;
+  RealView2DType x("x", n0, n1);
 
-  KokkosFFT::axis_type<1> shift1_odd_ref        = {direction * n_odd / 2};
-  KokkosFFT::axis_type<1> shift1_even_ref       = {direction * n_even / 2};
-  KokkosFFT::axis_type<2> shift1_axis0_odd_ref  = {direction * n_odd / 2, 0};
-  KokkosFFT::axis_type<2> shift1_axis0_even_ref = {direction * n_even / 2, 0};
-  KokkosFFT::axis_type<2> shift1_axis1_odd_ref  = {0, direction * n2 / 2};
-  KokkosFFT::axis_type<2> shift1_axis1_even_ref = {0, direction * n2 / 2};
-  KokkosFFT::axis_type<2> shift2_odd_ref        = {direction * n_odd / 2,
-                                                   direction * n2 / 2};
-  KokkosFFT::axis_type<2> shift2_even_ref       = {direction * n_even / 2,
-                                                   direction * n2 / 2};
+  Kokkos::Array<std::size_t, 2> shifts1_axis0_ref = {}, shifts1_axis1_ref = {};
+  int shift0 = direction * n0 / 2;
+  if (shift0 < 0) shift0 += n0;
+  shifts1_axis0_ref[0] = static_cast<std::size_t>(shift0);
 
-  auto shift1_odd = KokkosFFT::Impl::get_shift(
-      x1_odd, KokkosFFT::axis_type<1>({0}), direction);
-  auto shift1_even = KokkosFFT::Impl::get_shift(
-      x1_even, KokkosFFT::axis_type<1>({0}), direction);
-  auto shift1_axis0_odd = KokkosFFT::Impl::get_shift(
-      x2_odd, KokkosFFT::axis_type<1>({0}), direction);
-  auto shift1_axis0_even = KokkosFFT::Impl::get_shift(
-      x2_even, KokkosFFT::axis_type<1>({0}), direction);
-  auto shift1_axis1_odd = KokkosFFT::Impl::get_shift(
-      x2_odd, KokkosFFT::axis_type<1>({1}), direction);
-  auto shift1_axis1_even = KokkosFFT::Impl::get_shift(
-      x2_even, KokkosFFT::axis_type<1>({1}), direction);
-  auto shift2_odd = KokkosFFT::Impl::get_shift(
-      x2_odd, KokkosFFT::axis_type<2>({0, 1}), direction);
-  auto shift2_even = KokkosFFT::Impl::get_shift(
-      x2_even, KokkosFFT::axis_type<2>({0, 1}), direction);
+  int shift1 = direction * n1 / 2;
+  if (shift1 < 0) shift1 += n1;
+  shifts1_axis1_ref[1] = static_cast<std::size_t>(shift1);
 
-  EXPECT_TRUE(shift1_odd == shift1_odd_ref);
-  EXPECT_TRUE(shift1_even == shift1_even_ref);
-  EXPECT_TRUE(shift1_axis0_odd == shift1_axis0_odd_ref);
-  EXPECT_TRUE(shift1_axis0_even == shift1_axis0_even_ref);
-  EXPECT_TRUE(shift1_axis1_odd == shift1_axis1_odd_ref);
-  EXPECT_TRUE(shift1_axis1_even == shift1_axis1_even_ref);
-  EXPECT_TRUE(shift2_odd == shift2_odd_ref);
-  EXPECT_TRUE(shift2_even == shift2_even_ref);
+  auto shifts1_axis0 =
+      KokkosFFT::Impl::get_shifts(x, KokkosFFT::axis_type<1>({0}), direction);
+  auto shifts1_axis1 =
+      KokkosFFT::Impl::get_shifts(x, KokkosFFT::axis_type<1>({1}), direction);
+  EXPECT_TRUE(shifts1_axis0 == shifts1_axis0_ref);
+  EXPECT_TRUE(shifts1_axis1 == shifts1_axis1_ref);
+}
+
+void test_get_shift2D_2DView(int n0, int direction) {
+  using RealView2DType = Kokkos::View<double**, execution_space>;
+  const int n1         = 5;
+  RealView2DType x("x", n0, n1);
+
+  Kokkos::Array<std::size_t, 2> shifts2_ref = {};
+  int shift0                                = direction * n0 / 2;
+  if (shift0 < 0) shift0 += n0;
+  shifts2_ref[0] = static_cast<std::size_t>(shift0);
+
+  int shift1 = direction * n1 / 2;
+  if (shift1 < 0) shift1 += n1;
+  shifts2_ref[1] = static_cast<std::size_t>(shift1);
+
+  auto shifts2 = KokkosFFT::Impl::get_shifts(x, KokkosFFT::axis_type<2>({0, 1}),
+                                             direction);
+  EXPECT_TRUE(shifts2 == shifts2_ref);
 }
 
 // Identity Tests for fftshift1D on 1D View
@@ -359,14 +367,36 @@ TYPED_TEST(FFTHelper, rfftfreq) {
   test_rfft_freq<float_type, layout_type>(atol);
 }
 
-// Parameterized tests
-TEST_P(GetShiftParamTests, ForwardAndInverse) {
-  int direction = GetParam();
-  test_get_shift(direction);
+// Tests for get shift
+TEST_P(FFTShiftParamTests, GetForwardShift1D1DView) {
+  int n0 = GetParam();
+  test_get_shift1D_1DView(n0, /* direction= */ 1);
 }
 
-INSTANTIATE_TEST_SUITE_P(GetShift, GetShiftParamTests,
-                         ::testing::Values(1, -1));
+TEST_P(FFTShiftParamTests, GetBackwardShift1D1DView) {
+  int n0 = GetParam();
+  test_get_shift1D_1DView(n0, /* direction= */ -1);
+}
+
+TEST_P(FFTShiftParamTests, GetForwardShift1D2DView) {
+  int n0 = GetParam();
+  test_get_shift1D_2DView(n0, /* direction= */ 1);
+}
+
+TEST_P(FFTShiftParamTests, GetBackwardShift1D2DView) {
+  int n0 = GetParam();
+  test_get_shift1D_2DView(n0, /* direction= */ -1);
+}
+
+TEST_P(FFTShiftParamTests, GetForwardShift2D2DView) {
+  int n0 = GetParam();
+  test_get_shift2D_2DView(n0, /* direction= */ 1);
+}
+
+TEST_P(FFTShiftParamTests, GetBackwardShift2D2DView) {
+  int n0 = GetParam();
+  test_get_shift2D_2DView(n0, /* direction= */ -1);
+}
 
 // Identity Tests for fftshift1D on 1D View
 TEST_P(FFTShiftParamTests, Identity) {
