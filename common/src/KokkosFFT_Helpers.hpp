@@ -112,7 +112,7 @@ struct Roll<ExecutionSpace, ViewType, 1, iType> {
 
   KOKKOS_INLINE_FUNCTION
   void operator()(const iType i0) const {
-    iType i0_dst  = (i0 + m_shifts[0]) % static_cast<iType>(m_x.extent(0));
+    iType i0_dst  = (i0 + iType(m_shifts[0])) % iType(m_x.extent(0));
     m_tmp(i0_dst) = m_x(i0);
   }
 };
@@ -163,7 +163,7 @@ struct Roll<ExecutionSpace, ViewType, 2, iType> {
   KOKKOS_INLINE_FUNCTION
   void operator()(iType i0, iType i1) const {
     auto get_dst = [&](iType idx_src, std::size_t axis) {
-      return (idx_src + m_shifts[axis]) % static_cast<iType>(m_x.extent(axis));
+      return (idx_src + iType(m_shifts[axis])) % iType(m_x.extent(axis));
     };
     iType i0_dst          = get_dst(i0, 0);
     iType i1_dst          = get_dst(i1, 1);
@@ -217,7 +217,7 @@ struct Roll<ExecutionSpace, ViewType, 3, iType> {
   KOKKOS_INLINE_FUNCTION
   void operator()(iType i0, iType i1, iType i2) const {
     auto get_dst = [&](iType idx_src, std::size_t axis) {
-      return (idx_src + m_shifts[axis]) % static_cast<iType>(m_x.extent(axis));
+      return (idx_src + iType(m_shifts[axis])) % iType(m_x.extent(axis));
     };
     iType i0_dst                  = get_dst(i0, 0);
     iType i1_dst                  = get_dst(i1, 1);
@@ -274,7 +274,7 @@ struct Roll<ExecutionSpace, ViewType, 4, iType> {
   KOKKOS_INLINE_FUNCTION
   void operator()(iType i0, iType i1, iType i2, iType i3) const {
     auto get_dst = [&](iType idx_src, std::size_t axis) {
-      return (idx_src + m_shifts[axis]) % static_cast<iType>(m_x.extent(axis));
+      return (idx_src + iType(m_shifts[axis])) % iType(m_x.extent(axis));
     };
     iType i0_dst                          = get_dst(i0, 0);
     iType i1_dst                          = get_dst(i1, 1);
@@ -332,7 +332,7 @@ struct Roll<ExecutionSpace, ViewType, 5, iType> {
   KOKKOS_INLINE_FUNCTION
   void operator()(iType i0, iType i1, iType i2, iType i3, iType i4) const {
     auto get_dst = [&](iType idx_src, std::size_t axis) {
-      return (idx_src + m_shifts[axis]) % static_cast<iType>(m_x.extent(axis));
+      return (idx_src + iType(m_shifts[axis])) % iType(m_x.extent(axis));
     };
     iType i0_dst                                  = get_dst(i0, 0);
     iType i1_dst                                  = get_dst(i1, 1);
@@ -454,7 +454,7 @@ struct Roll<ExecutionSpace, ViewType, 7, iType> {
   void operator()(iType i0, iType i1, iType i2, iType i3, iType i4,
                   iType i5) const {
     auto get_dst = [&](iType idx_src, std::size_t axis) {
-      return (idx_src + m_shifts[axis]) % static_cast<iType>(m_x.extent(axis));
+      return (idx_src + iType(m_shifts[axis])) % iType(m_x.extent(axis));
     };
 
     iType i0_dst = get_dst(i0, 0);
@@ -520,7 +520,7 @@ struct Roll<ExecutionSpace, ViewType, 8, iType> {
   void operator()(iType i0, iType i1, iType i2, iType i3, iType i4,
                   iType i5) const {
     auto get_dst = [&](iType idx_src, std::size_t axis) {
-      return (idx_src + m_shifts[axis]) % static_cast<iType>(m_x.extent(axis));
+      return (idx_src + iType(m_shifts[axis])) % iType(m_x.extent(axis));
     };
 
     iType i0_dst = get_dst(i0, 0);
@@ -750,7 +750,6 @@ void ifftshift(const ExecutionSpace& exec_space, const ViewType& inout,
   static_assert(ViewType::rank() >= DIM,
                 "ifftshift: View rank must be larger than or equal to the Rank "
                 "of FFT axes");
-
   KokkosFFT::Impl::fftshift_impl(exec_space, inout, axes, -1);
 }
 }  // namespace KokkosFFT
