@@ -101,10 +101,7 @@ void test_plan_constructible() {
   using PlanType =
       KokkosFFT::Plan<ExecutionSpace, RealView1DType, ComplexView1DType>;
 
-#if (defined(KOKKOSFFT_ENABLE_TPL_CUFFT) ||  \
-     defined(KOKKOSFFT_ENABLE_TPL_ROCFFT) || \
-     defined(KOKKOSFFT_ENABLE_TPL_HIPFFT) || \
-     defined(KOKKOSFFT_ENABLE_TPL_ONEMKL))
+#if defined(KOKKOSFFT_HAS_DEVICE_TPL)
 #if defined(KOKKOSFFT_ENABLE_TPL_FFTW)
   // A plan can be constructible from Kokkos::DefaultExecutionSpace,
   // Kokkos::DefaultHostExecutionSpace or Kokkos::Serial (if enabled)
