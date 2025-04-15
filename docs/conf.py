@@ -21,13 +21,14 @@ import subprocess, os
 import re
 from datetime import datetime
 
-def configureDoxyfile(src_dir, input_dir, output_dir, doxyfile_in, doxyfile_out):
+def configureDoxyfile(src_dir, input_dirs, output_dir, doxyfile_in, doxyfile_out):
     
     with open(doxyfile_in, 'r') as file :
         filedata = file.read()
         
     filedata = filedata.replace('@CMAKE_SOURCE_DIR@', src_dir)
-    #filedata = filedata.replace('@DOXYGEN_INPUT_DIR@', input_dir)
+    filedata = filedata.replace('@DOXYGEN_INPUT_DIR1@', input_dirs[0])
+    filedata = filedata.replace('@DOXYGEN_INPUT_DIR2@', input_dirs[1])
     filedata = filedata.replace('@DOXYGEN_OUTPUT_DIR@', output_dir)
     
     with open(doxyfile_out, 'w') as file:
@@ -51,7 +52,7 @@ def get_version(src_dir):
 
 # -- Project information -----------------------------------------------------
 author = 'Yuuichi Asahi'
-project = 'KokkosFFT'
+project = 'kokkos-fft'
 copyright = f"2023-{datetime.now().year}, {author}"
 
 version = get_version('../')
@@ -67,11 +68,11 @@ if read_the_docs_build:
     print(cwd)
 
     src_dir = f'{cwd}/..'
-    input_dir = f'{cwd}/../fft/src/' + os.linesep + f'{cwd}/../common/src/'
+    input_dirs = [f'{cwd}/../common/src/', f'{cwd}/../fft/src/']
     output_dir = f'{cwd}/doxygen/'
     doxyfile_in = f'{cwd}/Doxyfile.in'
     doxyfile_out = f'{cwd}/Doxyfile'
-    configureDoxyfile(src_dir, input_dir, output_dir, doxyfile_in, doxyfile_out)
+    configureDoxyfile(src_dir, input_dirs, output_dir, doxyfile_in, doxyfile_out)
     subprocess.call('pwd; ls -lat; doxygen Doxyfile; ls -lat doxygen/xml', shell=True)
     breathe_projects[project] = output_dir + '/xml'
 

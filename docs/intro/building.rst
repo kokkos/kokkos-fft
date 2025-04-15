@@ -89,7 +89,7 @@ if one of the device backend is enabled.
    * - 
      - Description
      - Default
-   * - ``KokkosFFT_ENABLE_HOST_AND_DEVICE`` :red:`[Deprecated since 0.3]`
+   * - ``KokkosFFT_ENABLE_HOST_AND_DEVICE``
      - Enable FFT on both host and device.
      - OFF
    * - ``KokkosFFT_ENABLE_INTERNAL_KOKKOS``
@@ -122,6 +122,7 @@ if one of the device backend is enabled.
 
 .. note::
 
+   ``KokkosFFT_ENABLE_HOST_AND_DEVICE`` has been deprecated since 0.3.0 and will be removed in the future.
    To enable kokkos-fft on both host and device, set ``KokkosFFT_ENABLE_FFTW=ON`` instead of setting ``KokkosFFT_ENABLE_HOST_AND_DEVICE=ON``.
    Multiple device tpls cannot be enabled at the same time. In addition, at least one tpl must be enabled to configure.
    For example, it is allowed to set ``KokkosFFT_ENABLE_CUFFT=OFF`` even if ``Kokkos_ENABLE_CUDA=ON`` as long as ``KokkosFFT_ENABLE_FFTW=ON``.

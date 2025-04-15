@@ -205,7 +205,7 @@ Following macros can be used to check whether a backend library is enabled or no
 
    * - Description
      - Macros
-   * - Defined if the FFTW is enabled.
+   * - Defined if the fftw is enabled.
      - ``KOKKOSFFT_ENABLE_TPL_FFTW``
    * - Defined if the cufft is enabled.
      - ``KOKKOSFFT_ENABLE_TPL_CUFFT``
