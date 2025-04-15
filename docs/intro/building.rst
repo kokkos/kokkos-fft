@@ -106,7 +106,7 @@ if one of the device backend is enabled.
      - OFF
    * - ``KokkosFFT_ENABLE_FFTW``
      - Use `fftw <http://www.fftw.org>`_ for Host backend
-     - ON (if non of Kokkos devices is enabled, otherwise OFF)
+     - ON (if none of Kokkos devices is enabled, otherwise OFF)
    * - ``KokkosFFT_ENABLE_CUFFT``
      - Use `cufft <https://developer.nvidia.com/cufft>`_ for CUDA backend
      - ON (if ``Kokkos_ENABLE_CUDA`` is ON, otherwise OFF)
