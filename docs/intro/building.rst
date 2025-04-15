@@ -76,9 +76,10 @@ CMake options
 
 We rely on CMake to build kokkos-fft, more specifically ``CMake 3.22+``. Here is the list of CMake options. 
 For FFTs on Kokkos device only, we do not need to add extra compile options but for Kokkos ones.
-In order to use kokkos-fft from both host and device, it is necessary to add ``KokkosFFT_ENABLE_HOST_AND_DEVICE=ON``.
+In order to use kokkos-fft from both host and device, it is necessary to add ``KokkosFFT_ENABLE_FFTW=ON``.
 This option may be useful, for example FFT is used for initialization at host. 
 However, to enable this option, we need a pre-installed ``fftw`` for FFT on host, so it is disabled in default
+if one of the device backend is enabled.
 (see :doc:`minimum working example<../samples/05_1DFFT_HOST_DEVICE>`).
 
 .. list-table:: CMake options
@@ -88,7 +89,7 @@ However, to enable this option, we need a pre-installed ``fftw`` for FFT on host
    * - 
      - Description
      - Default
-   * - ``KokkosFFT_ENABLE_HOST_AND_DEVICE``
+   * - ``KokkosFFT_ENABLE_HOST_AND_DEVICE`` :red:`[Deprecated since 0.3]`
      - Enable FFT on both host and device.
      - OFF
    * - ``KokkosFFT_ENABLE_INTERNAL_KOKKOS``
@@ -103,9 +104,27 @@ However, to enable this option, we need a pre-installed ``fftw`` for FFT on host
    * - ``KokkosFFT_ENABLE_BENCHMARK``
      - Build benchmarks for kokkos-fft
      - OFF
+   * - ``KokkosFFT_ENABLE_FFTW``
+     - Use `fftw <http://www.fftw.org>`_ for Host backend
+     - ON (if non of Kokkos devices is enabled, otherwise OFF)
+   * - ``KokkosFFT_ENABLE_CUFFT``
+     - Use `cufft <https://developer.nvidia.com/cufft>`_ for CUDA backend
+     - ON (if ``Kokkos_ENABLE_CUDA`` is ON, otherwise OFF)
    * - ``KokkosFFT_ENABLE_ROCFFT``
      - Use `rocfft <https://github.com/ROCm/rocFFT>`_ for HIP backend
      - OFF
+   * - ``KokkosFFT_ENABLE_HIPFFT``
+     - Use `hipfft <https://github.com/ROCm/hipFFT>`_ for HIP backend
+     - ON (if ``Kokkos_ENABLE_HIP`` is ON, otherwise OFF)
+   * - ``KokkosFFT_ENABLE_ONEMKL``
+     - Use `oneMKL <https://www.intel.com/content/www/us/en/developer/tools/oneapi/onemkl.html>`_ for SYCL backend
+     - ON (if ``Kokkos_ENABLE_SYCL`` is ON, otherwise OFF)
+
+.. note::
+
+   To enable kokkos-fft on both host and device, set ``KokkosFFT_ENABLE_FFTW=ON`` instead of setting ``KokkosFFT_ENABLE_HOST_AND_DEVICE=ON``.
+   Multiple device tpls cannot be enabled at the same time. In addition, at least one tpl must be enabled to configure.
+   For example, it is allowed to set ``KokkosFFT_ENABLE_CUFFT=OFF`` even if ``Kokkos_ENABLE_CUDA=ON`` as long as ``KokkosFFT_ENABLE_FFTW=ON``.
 
 Kokkos backends
 ---------------
