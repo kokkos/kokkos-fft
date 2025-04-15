@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: (C) The kokkos-fft development team, see COPYRIGHT.md file
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
+
+name: Website tests
+
+on:
+  schedule:
+    - cron: "0 1 * * 0"  # At 01:00 on Sunday.
+  workflow_dispatch:
+  
+jobs:
+  links-check:
+    name: Links check using linkchecker
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+      - name: Install linkchecker
+        run: |
+          pipx install linkchecker
+      - name: Analysing the links of the website
+        run: |
+          linkchecker --check-extern https://kokkosfft.readthedocs.io/en/latest/
