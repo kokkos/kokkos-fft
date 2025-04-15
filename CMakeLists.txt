@@ -39,21 +39,47 @@ else()
 endif()
 
 # Device specific options
-set(HOST_BACKEND_ENABLED OFF CACHE BOOL "One of the Kokkos host backend is enabled")
-if(Kokkos_ENABLE_SERIAL OR Kokkos_ENABLE_THREADS OR Kokkos_ENABLE_OPENMP)
-  set(HOST_BACKEND_ENABLED ON)
+set(KokkosFFT_TO_ENABLE_FFTW ON)
+if(Kokkos_ENABLE_CUDA OR Kokkos_ENABLE_HIP OR Kokkos_ENABLE_SYCL)
+  if(KokkosFFT_ENABLE_HOST_AND_DEVICE)
+    message(WARNING "KokkosFFT_ENABLE_HOST_AND_DEVICE is deprecated. Please enable FFTW explicitly with -DKokkosFFT_ENABLE_FFTW=ON")
+  else()
+    set(KokkosFFT_TO_ENABLE_FFTW OFF)
+  endif()
 endif()
-option(KokkosFFT_ENABLE_FFTW "Enable fftw as a KokkosFFT backend on CPUs" ${HOST_BACKEND_ENABLED})
+
+option(KokkosFFT_ENABLE_FFTW "Enable fftw as a KokkosFFT backend on CPUs" ${KokkosFFT_TO_ENABLE_FFTW})
 option(KokkosFFT_ENABLE_CUFFT "Enable cufft as a KokkosFFT backend on NVIDIA GPUs" ${Kokkos_ENABLE_CUDA})
 option(KokkosFFT_ENABLE_ROCFFT "Enable rocfft as a KokkosFFT backend on AMD GPUs" OFF)
-option(KokkosFFT_ENABLE_HIPFFT "Enable hipfft as a KokkosFFT backend on AMD GPUs" ${Kokkos_ENABLE_HIP})
 option(KokkosFFT_ENABLE_ONEMKL "Enable onemkl as a KokkosFFT backend on Intel GPUs" ${Kokkos_ENABLE_SYCL})
 
+set(KokkosFFT_TO_ENABLE_HIPFFT ${Kokkos_ENABLE_HIP})
+if(KokkosFFT_ENABLE_ROCFFT)
+  set(KokkosFFT_TO_ENABLE_HIPFFT OFF)
+endif()
+option(KokkosFFT_ENABLE_HIPFFT "Enable hipfft as a KokkosFFT backend on AMD GPUs" ${KokkosFFT_TO_ENABLE_HIPFFT})
+
+# Check if multiple device tpls are not enabled
+set(ENABLED_DEVICE_TPLS "")
+set(KOKKOSFFT_DEVICE_TPL_LIST "CUFFT" "ROCFFT" "HIPFFT" "ONEMKL")
+foreach(DEVICE_TPL IN LISTS KOKKOSFFT_DEVICE_TPL_LIST)
+  if(KokkosFFT_ENABLE_${DEVICE_TPL})
+    list(APPEND ENABLED_DEVICE_TPLS ${DEVICE_TPL})
+  endif()
+endforeach()
+
+# Get the number of enabled tpls
+list(LENGTH ENABLED_DEVICE_TPLS COUNT)
+if(COUNT GREATER 1)
+  message(FATAL_ERROR "Error: Only one device tpls may be enabled. The following options are enabled: ${ENABLED_DEVICE_TPLS}")
+endif()
+
 # Set tpls
+set(KOKKOSFFT_HAS_DEFAULT_BACKEND)
 set(KOKKOSFFT_TPL_LIST)
 set(KOKKOSFFT_BACKEND_LIST)
 include(KokkosFFT_tpls)
-get_tpls_list(KOKKOSFFT_TPL_LIST KOKKOSFFT_BACKEND_LIST)
+get_tpls_list(KOKKOSFFT_TPL_LIST KOKKOSFFT_BACKEND_LIST KOKKOSFFT_HAS_DEFAULT_BACKEND)
 
 # ==================================================================
 # CMake Summary
