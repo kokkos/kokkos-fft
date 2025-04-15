@@ -45,10 +45,6 @@ elseif("FFTW_SERIAL" IN_LIST KOKKOSFFT_TPL_LIST)
   target_compile_definitions(fft INTERFACE KOKKOSFFT_ENABLE_TPL_FFTW)
 endif()
 
-if(KokkosFFT_ENABLE_HOST_AND_DEVICE)
-  target_compile_definitions(fft INTERFACE ENABLE_HOST_AND_DEVICE)
-endif()
-
 target_include_directories(
   fft INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}> $<INSTALL_INTERFACE:${INSTALL_INCLUDEDIR}>
 )

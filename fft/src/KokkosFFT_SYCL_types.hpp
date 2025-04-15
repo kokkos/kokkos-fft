@@ -12,7 +12,7 @@
 #include "KokkosFFT_common_types.hpp"
 #include "KokkosFFT_utils.hpp"
 
-#if defined(ENABLE_HOST_AND_DEVICE)
+#if defined(KOKKOSFFT_ENABLE_TPL_FFTW)
 #include "KokkosFFT_FFTW_Types.hpp"
 #endif
 
@@ -31,7 +31,7 @@ using FFTDirectionType                      = int;
 constexpr FFTDirectionType MKL_FFT_FORWARD  = 1;
 constexpr FFTDirectionType MKL_FFT_BACKWARD = -1;
 
-#if !defined(ENABLE_HOST_AND_DEVICE)
+#if !defined(KOKKOSFFT_ENABLE_TPL_FFTW)
 enum class FFTWTransformType { R2C, D2Z, C2R, Z2D, C2C, Z2Z };
 #endif
 
@@ -76,7 +76,7 @@ struct transform_type<ExecutionSpace, Kokkos::complex<T1>,
   static constexpr FFTWTransformType type() { return m_type; };
 };
 
-#if defined(ENABLE_HOST_AND_DEVICE)
+#if defined(KOKKOSFFT_ENABLE_TPL_FFTW)
 
 template <typename ExecutionSpace>
 struct FFTDataType {

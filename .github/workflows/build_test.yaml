@@ -141,7 +141,7 @@ jobs:
           - name: native
             cmake_flags: ""
           - name: host_device
-            cmake_flags: -DKokkosFFT_ENABLE_HOST_AND_DEVICE=ON
+            cmake_flags: -DKokkosFFT_ENABLE_FFTW=ON
         exclude:
           - backend:
               name: clang-tidy

@@ -172,3 +172,46 @@ Helper routines
    * - The inverse of :doc:`fftshift<api/helper/fftshift>`
      - :doc:`api/helper/ifftshift`
      - `numpy.fft.ifftshift <https://numpy.org/doc/stable/reference/generated/numpy.fft.ifftshift.html>`_
+
+Enums
+-----
+
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+
+   api/enums/normalization
+   api/enums/direction
+
+.. list-table::
+   :widths: 50 50
+   :header-rows: 1
+
+   * - Description
+     - ``kokkos-fft``
+   * - Tag to specify when and how to normalize
+     - :doc:`api/enums/normalization`
+   * - Tag to specify FFT direction
+     - :doc:`api/enums/direction`
+
+Macros
+------
+
+Following macros can be used to check whether a backend library is enabled or not.
+
+.. list-table::
+   :widths: 50 50
+   :header-rows: 1
+
+   * - Description
+     - Macros
+   * - Defined if the FFTW is enabled.
+     - ``KOKKOSFFT_ENABLE_TPL_FFTW``
+   * - Defined if the cufft is enabled.
+     - ``KOKKOSFFT_ENABLE_TPL_CUFFT``
+   * - Defined if the hipfft is enabled.
+     - ``KOKKOSFFT_ENABLE_TPL_HIPFFT``
+   * - Defined if the rocfft is enabled.
+     - ``KOKKOSFFT_ENABLE_TPL_ROCFFT``
+   * - Defined if the oneMKL is enabled.
+     - ``KOKKOSFFT_ENABLE_TPL_ONEMKL``
