@@ -11,7 +11,7 @@
 #include "KokkosFFT_common_types.hpp"
 #include "KokkosFFT_asserts.hpp"
 
-#if defined(ENABLE_HOST_AND_DEVICE)
+#if defined(KOKKOSFFT_ENABLE_TPL_FFTW)
 #include "KokkosFFT_FFTW_Types.hpp"
 #endif
 
@@ -76,7 +76,7 @@ struct ScopedCufftPlan {
   }
 };
 
-#if defined(ENABLE_HOST_AND_DEVICE)
+#if defined(KOKKOSFFT_ENABLE_TPL_FFTW)
 template <typename ExecutionSpace>
 struct FFTDataType {
   using float32 =
