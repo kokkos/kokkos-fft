@@ -54,6 +54,21 @@ option(KokkosFFT_ENABLE_ROCFFT "Enable rocfft as a KokkosFFT backend on AMD GPUs
 option(KokkosFFT_ENABLE_HIPFFT "Enable hipfft as a KokkosFFT backend on AMD GPUs" ${Kokkos_ENABLE_HIP})
 option(KokkosFFT_ENABLE_ONEMKL "Enable onemkl as a KokkosFFT backend on Intel GPUs" ${Kokkos_ENABLE_SYCL})
 
+# Check if multiple device tpls are not enabled
+set(ENABLED_DEVICE_TPLS "")
+set(KOKKOSFFT_DEVICE_TPL_LIST "CUFFT" "ROCFFT" "HIPFFT" "ONEMKL")
+foreach(DEVICE_TPL IN LISTS KOKKOSFFT_DEVICE_TPL_LIST)
+  if(KokkosFFT_ENABLE_${DEVICE_TPL})
+    list(APPEND ENABLED_DEVICE_TPLS ${DEVICE_TPL})
+  endif()
+endforeach()
+
+# Get the number of enabled tpls
+list(LENGTH ENABLED_DEVICE_TPLS COUNT)
+if(COUNT GREATER 1)
+  message(FATAL_ERROR "Error: Only one device tpls may be enabled. The following options are enabled: ${ENABLED_DEVICE_TPLS}")
+endif()
+
 # Set tpls
 set(KOKKOSFFT_HAS_DEFAULT_BACKEND)
 set(KOKKOSFFT_TPL_LIST)
