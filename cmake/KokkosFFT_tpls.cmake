@@ -11,7 +11,8 @@
 # \param tpls_list[inout] A list of tpls that are needed
 # \param backend_list[inout] A list of backends corresponding to tpls
 #        backend_list is used to display
-function(get_tpls_list tpls_list backend_list)
+# \param default_backend[inout] Whether default backend is available or not
+function(get_tpls_list tpls_list backend_list default_backend)
   set(KOKKOSFFT_HAS_DEVICE FALSE)
   set(has_default_backend TRUE)
   if(Kokkos_ENABLE_CUDA)
@@ -81,7 +82,5 @@ function(get_tpls_list tpls_list backend_list)
   endif()
   set(${tpls_list} ${${tpls_list}} PARENT_SCOPE)
   set(${backend_list} ${${backend_list}} PARENT_SCOPE)
-  # FIXME
-  # We will use "return" to update this value as soon as we make the minimum CMake version 3.25.0
-  set(KOKKOSFFT_HAS_DEFAULT_BACKEND ${has_default_backend} PARENT_SCOPE)
+  set(${default_backend} ${has_default_backend} PARENT_SCOPE)
 endfunction()

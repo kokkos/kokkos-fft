@@ -55,11 +55,11 @@ option(KokkosFFT_ENABLE_HIPFFT "Enable hipfft as a KokkosFFT backend on AMD GPUs
 option(KokkosFFT_ENABLE_ONEMKL "Enable onemkl as a KokkosFFT backend on Intel GPUs" ${Kokkos_ENABLE_SYCL})
 
 # Set tpls
-set(KOKKOSFFT_HAS_DEFAULT_BACKEND TRUE)
+set(KOKKOSFFT_HAS_DEFAULT_BACKEND)
 set(KOKKOSFFT_TPL_LIST)
 set(KOKKOSFFT_BACKEND_LIST)
 include(KokkosFFT_tpls)
-get_tpls_list(KOKKOSFFT_TPL_LIST KOKKOSFFT_BACKEND_LIST)
+get_tpls_list(KOKKOSFFT_TPL_LIST KOKKOSFFT_BACKEND_LIST KOKKOSFFT_HAS_DEFAULT_BACKEND)
 
 # ==================================================================
 # CMake Summary
