@@ -51,7 +51,7 @@ endif()
 option(KokkosFFT_ENABLE_FFTW "Enable fftw as a KokkosFFT backend on CPUs" ${KokkosFFT_TO_ENABLE_FFTW})
 option(KokkosFFT_ENABLE_CUFFT "Enable cufft as a KokkosFFT backend on NVIDIA GPUs" ${Kokkos_ENABLE_CUDA})
 option(KokkosFFT_ENABLE_ROCFFT "Enable rocfft as a KokkosFFT backend on AMD GPUs" OFF)
-option(KokkosFFT_ENABLE_HIPFFT "Enable hipfft as a KokkosFFT backend on AMD GPUs" ${Kokkos_ENABLE_HIP})
+option(KokkosFFT_ENABLE_HIPFFT "Enable hipfft as a KokkosFFT backend on AMD GPUs" ${Kokkos_ENABLE_HIP} AND NOT ${KokkosFFT_ENABLE_ROCFFT})
 option(KokkosFFT_ENABLE_ONEMKL "Enable onemkl as a KokkosFFT backend on Intel GPUs" ${Kokkos_ENABLE_SYCL})
 
 # Check if multiple device tpls are not enabled
