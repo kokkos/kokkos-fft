@@ -20,4 +20,4 @@ jobs:
           pipx install linkchecker
       - name: Analysing the links of the website
         run: |
-          linkchecker --check-extern https://kokkosfft.readthedocs.io/en/latest/
+          linkchecker --config=.linkcheckerrc --check-extern https://kokkosfft.readthedocs.io/en/latest/
