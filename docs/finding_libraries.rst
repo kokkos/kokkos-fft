@@ -9,24 +9,24 @@ Finding FFT libraries by CMake
 
 Some tips to find FFT libraries for each backend. 
 
-`fftw <http://www.fftw.org>`_
+`FFTW <http://www.fftw.org>`_
 -----------------------------
 
-If ``fftw`` is offered as a module, our CMake helper would likely find ``fftw``.
-Assuming ``fftw`` is installed in ``<path/to/fftw>``, it is expected that ``<path/to/fftw>`` would be found under ``LIBRARY_PATH``, ``LD_LIBRARY_PATH``, and ``PATH``.
+If ``FFTW`` is offered as a module, our CMake helper would likely find ``FFTW``.
+Assuming ``FFTW`` is installed in ``<path/to/FFTW>``, it is expected that ``<path/to/FFTW>`` would be found under ``LIBRARY_PATH``, ``LD_LIBRARY_PATH``, and ``PATH``.
 It would look like
 
 .. code-block:: bash
 
-    LIBRARY_PATH=...:<path/to/fftw>/lib
-    LD_LIBRARY_PATH=...:<path/to/fftw>/lib
-    PATH=...:<path/to/fftw>/bin
+    LIBRARY_PATH=...:<path/to/FFTW>/lib
+    LD_LIBRARY_PATH=...:<path/to/FFTW>/lib
+    PATH=...:<path/to/FFTW>/bin
 
-If CMake fails to find ``fftw``, please try to set ``FFTWDIR`` in the following way. 
+If CMake fails to find ``FFTW``, please try to set ``FFTWDIR`` in the following way.
 
 .. code-block:: bash
 
-    export FFTWDIR=<path/to/fftw>
+    export FFTWDIR=<path/to/FFTW>
 
 `cufft <https://developer.nvidia.com/cufft>`_
 ---------------------------------------------

@@ -7,7 +7,7 @@ kokkos-fft documentation
 
 kokkos-fft implements local interfaces between `Kokkos <https://kokkos.org>`_ 
 and de facto standard FFT libraries, 
-including `fftw <http://www.fftw.org>`_,
+including `FFTW <http://www.fftw.org>`_,
 `cufft <https://developer.nvidia.com/cufft>`_,
 `hipfft <https://github.com/ROCm/hipFFT>`_ (`rocfft <https://github.com/ROCm/rocFFT>`_), and `oneMKL <https://www.intel.com/content/www/us/en/developer/tools/oneapi/onemkl.html>`_. 
 "Local" means not using MPI, or running within a single MPI process without knowing about MPI.

@@ -21,37 +21,63 @@ import subprocess, os
 import re
 from datetime import datetime
 
-def configureDoxyfile(src_dir, input_dir, output_dir, doxyfile_in, doxyfile_out):
+def configureDoxyfile(src_dir, input_dirs, output_dir, doxyfile_in, doxyfile_out):
     
     with open(doxyfile_in, 'r') as file :
         filedata = file.read()
         
     filedata = filedata.replace('@CMAKE_SOURCE_DIR@', src_dir)
-    #filedata = filedata.replace('@DOXYGEN_INPUT_DIR@', input_dir)
+    filedata = filedata.replace('@DOXYGEN_INPUT_DIR1@', input_dirs[0])
+    filedata = filedata.replace('@DOXYGEN_INPUT_DIR2@', input_dirs[1])
     filedata = filedata.replace('@DOXYGEN_OUTPUT_DIR@', output_dir)
     
     with open(doxyfile_out, 'w') as file:
         file.write(filedata)
 		
-def get_version(src_dir):
+def get_version(src_dir: str) -> str:
+    """
+    Extracts the version string from a CMakeLists.txt file.
+
+    The function looks for a line formatted like:
+        project(NAME VERSION 1.2.0 LANGUAGES CXX)
+    and returns the version (e.g., "1.2.0").
+
+    Parameters
+    ----------
+    src_dir : str
+        The directory including CMakeLists.txt
+
+    Returns
+    -------
+    str
+        The version string if found.
+
+    Raises
+    ------
+    ValueError
+        If the version cannot be found in the file.
+    """
     cmake_file = src_dir + 'CMakeLists.txt'
     
-    try:
-        with open(cmake_file, 'r') as f:
-            txt = f.read()
-            
-        regex = 'project\((\n|.)*?\)'
-        project_detail = re.search(regex, txt).group()
-        version_detail = re.search('VERSION.*', project_detail).group()
-        version = re.split("\s", version_detail)[-1]
-    except:
-        version = '0.0.0'
+    # Define a regex pattern to capture the version string after 'VERSION'.
+    # Explanation:
+    #   - project\(: matches the literal "project(".
+    #   - [^)]*?: lazily matches any characters except the closing parenthesis.
+    #   - \bVERSION\s+: matches the word "VERSION" followed by one or more spaces.
+    #   - ([\d\.]+): capture group for the version number (digits and dots).
+    pattern = re.compile(r'project\([^)]*\bVERSION\s+([\d\.]+)', re.IGNORECASE)
+    with open(cmake_file, 'r', encoding='utf-8') as f:
+        content = f.read()
 
-    return version
+    match = pattern.search(content)
+    if match:
+        return match.group(1)
+    else:
+        raise ValueError("Version information not found in the CMakeLists.txt file.")
 
 # -- Project information -----------------------------------------------------
 author = 'Yuuichi Asahi'
-project = 'KokkosFFT'
+project = 'kokkos-fft'
 copyright = f"2023-{datetime.now().year}, {author}"
 
 version = get_version('../')
@@ -67,11 +93,11 @@ if read_the_docs_build:
     print(cwd)
 
     src_dir = f'{cwd}/..'
-    input_dir = f'{cwd}/../fft/src/' + os.linesep + f'{cwd}/../common/src/'
+    input_dirs = [f'{cwd}/../common/src/', f'{cwd}/../fft/src/']
     output_dir = f'{cwd}/doxygen/'
     doxyfile_in = f'{cwd}/Doxyfile.in'
     doxyfile_out = f'{cwd}/Doxyfile'
-    configureDoxyfile(src_dir, input_dir, output_dir, doxyfile_in, doxyfile_out)
+    configureDoxyfile(src_dir, input_dirs, output_dir, doxyfile_in, doxyfile_out)
     subprocess.call('pwd; ls -lat; doxygen Doxyfile; ls -lat doxygen/xml', shell=True)
     breathe_projects[project] = output_dir + '/xml'
 

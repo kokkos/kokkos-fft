@@ -78,7 +78,7 @@ We rely on CMake to build kokkos-fft, more specifically ``CMake 3.22+``. Here is
 For FFTs on Kokkos device only, we do not need to add extra compile options but for Kokkos ones.
 In order to use kokkos-fft from both host and device, it is necessary to add ``KokkosFFT_ENABLE_FFTW=ON``.
 This option may be useful, for example FFT is used for initialization at host. 
-However, to enable this option, we need a pre-installed ``fftw`` for FFT on host, so it is disabled in default
+However, to enable this option, we need a pre-installed ``FFTW`` for FFT on host, so it is disabled in default
 if one of the device backend is enabled.
 (see :doc:`minimum working example<../samples/05_1DFFT_HOST_DEVICE>`).
 
@@ -89,7 +89,7 @@ if one of the device backend is enabled.
    * - 
      - Description
      - Default
-   * - ``KokkosFFT_ENABLE_HOST_AND_DEVICE`` :red:`[Deprecated since 0.3]`
+   * - ``KokkosFFT_ENABLE_HOST_AND_DEVICE``
      - Enable FFT on both host and device.
      - OFF
    * - ``KokkosFFT_ENABLE_INTERNAL_KOKKOS``
@@ -105,7 +105,7 @@ if one of the device backend is enabled.
      - Build benchmarks for kokkos-fft
      - OFF
    * - ``KokkosFFT_ENABLE_FFTW``
-     - Use `fftw <http://www.fftw.org>`_ for Host backend
+     - Use `FFTW <http://www.fftw.org>`_ for Host backend
      - ON (if none of Kokkos devices is enabled, otherwise OFF)
    * - ``KokkosFFT_ENABLE_CUFFT``
      - Use `cufft <https://developer.nvidia.com/cufft>`_ for CUDA backend
@@ -122,6 +122,7 @@ if one of the device backend is enabled.
 
 .. note::
 
+   ``KokkosFFT_ENABLE_HOST_AND_DEVICE`` has been deprecated since 0.3.0 and will be removed in the future.
    To enable kokkos-fft on both host and device, set ``KokkosFFT_ENABLE_FFTW=ON`` instead of setting ``KokkosFFT_ENABLE_HOST_AND_DEVICE=ON``.
    Multiple device tpls cannot be enabled at the same time. In addition, at least one tpl must be enabled to configure.
    For example, it is allowed to set ``KokkosFFT_ENABLE_CUFFT=OFF`` even if ``Kokkos_ENABLE_CUDA=ON`` as long as ``KokkosFFT_ENABLE_FFTW=ON``.
@@ -143,13 +144,13 @@ We may support experimental backends like ``OPENMPTARGET`` in the future.
      - Backend FFT library
    * - ``Kokkos_ENABLE_SERIAL``
      - Serial backend targeting CPUs 
-     - ``fftw (Serial)``
+     - ``FFTW (Serial)``
    * - ``Kokkos_ENABLE_THREADS``
      - C++ threads backend targeting CPUs 
-     - ``fftw (Threads)``
+     - ``FFTW (Threads)``
    * - ``Kokkos_ENABLE_OPENMP``
      - OpenMP backend targeting CPUs 
-     - ``fftw (OpenMP)``
+     - ``FFTW (OpenMP)``
 
 .. list-table:: ``Device backend``
    :widths: 25 50 25
