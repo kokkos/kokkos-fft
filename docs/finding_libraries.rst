@@ -38,7 +38,7 @@ If CMake fails to find ``FFTW``, please try to set ``FFTWDIR`` in the following 
 ------------------------------------------
 
 `oneMKL <https://www.intel.com/content/www/us/en/developer/tools/oneapi/onemkl.html>`_
---------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------
 
 The most likely scenario to miss ``oneMKL`` is that forgetting to initialize ``oneAPI``.
 Please make sure to initialize ``oneAPI`` as
