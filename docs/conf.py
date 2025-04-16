@@ -77,7 +77,7 @@ def get_version(src_dir: str) -> str:
 
 # -- Project information -----------------------------------------------------
 author = 'Yuuichi Asahi'
-project = 'kokkos-fft'
+project = 'KokkosFFT'
 copyright = f"2023-{datetime.now().year}, {author}"
 
 version = get_version('../')
