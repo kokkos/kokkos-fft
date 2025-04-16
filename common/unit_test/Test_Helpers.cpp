@@ -345,6 +345,226 @@ void test_fftshift2D_2DView(int n0) {
   EXPECT_TRUE(allclose(execution_space(), x, y_ref));
   EXPECT_TRUE(allclose(execution_space(), y, x_ref));
 }
+
+// Tests for fftshift3D on 3D View
+void test_fftshift3D_3DView(int n0) {
+  using RealView3DType =
+      Kokkos::View<double***, Kokkos::LayoutLeft, execution_space>;
+  const int n1 = 3, n2 = 2;
+  RealView3DType x("x", n0, n1, n2), y("y", n0, n1, n2);
+  RealView3DType x_ref("x_ref", n0, n1, n2), y_ref("y_ref", n0, n1, n2);
+
+  auto h_x_ref = Kokkos::create_mirror_view(x_ref);
+  auto h_y_ref = Kokkos::create_mirror_view(y_ref);
+
+  std::vector<int> tmp_x_ref;
+  std::vector<int> tmp_y_ref;
+
+  if (n0 % 2 == 0) {
+    tmp_x_ref = {0,   1,   2,   3,   4,   5,   6,   7,   8,   9,   10,  11,
+                 12,  13,  14,  15,  16,  17,  18,  19,  20,  21,  22,  23,
+                 24,  25,  26,  27,  28,  29,  -30, -29, -28, -27, -26, -25,
+                 -24, -23, -22, -21, -20, -19, -18, -17, -16, -15, -14, -13,
+                 -12, -11, -10, -9,  -8,  -7,  -6,  -5,  -4,  -3,  -2,  -1};
+    tmp_y_ref = {-5,  -4,  -3,  -2,  -1,  -10, -9,  -8,  -7,  -6,  -25, -24,
+                 -23, -22, -21, -30, -29, -28, -27, -26, -15, -14, -13, -12,
+                 -11, -20, -19, -18, -17, -16, 25,  26,  27,  28,  29,  20,
+                 21,  22,  23,  24,  5,   6,   7,   8,   9,   0,   1,   2,
+                 3,   4,   15,  16,  17,  18,  19,  10,  11,  12,  13,  14};
+  } else {
+    tmp_x_ref = {0,   1,   2,   3,   4,   5,   6,   7,   8,   9,   10,
+                 11,  12,  13,  14,  15,  16,  17,  18,  19,  20,  21,
+                 22,  23,  24,  25,  26,  -27, -26, -25, -24, -23, -22,
+                 -21, -20, -19, -18, -17, -16, -15, -14, -13, -12, -11,
+                 -10, -9,  -8,  -7,  -6,  -5,  -4,  -3,  -2,  -1};
+    tmp_y_ref = {-4,  -3,  -2,  -1,  -9,  -8,  -7,  -6,  -5,  -22, -21,
+                 -20, -19, -27, -26, -25, -24, -23, -13, -12, -11, -10,
+                 -18, -17, -16, -15, -14, 23,  24,  25,  26,  18,  19,
+                 20,  21,  22,  5,   6,   7,   8,   0,   1,   2,   3,
+                 4,   14,  15,  16,  17,  9,   10,  11,  12,  13};
+  }
+
+  for (int i2 = 0; i2 < n2; i2++) {
+    for (int i1 = 0; i1 < n1; i1++) {
+      for (int i0 = 0; i0 < n0; i0++) {
+        std::size_t i       = i0 + i1 * n0 + i2 * n0 * n1;
+        h_x_ref(i0, i1, i2) = static_cast<double>(tmp_x_ref.at(i));
+        h_y_ref(i0, i1, i2) = static_cast<double>(tmp_y_ref.at(i));
+      }
+    }
+  }
+
+  Kokkos::deep_copy(x_ref, h_x_ref);
+  Kokkos::deep_copy(y_ref, h_y_ref);
+  Kokkos::deep_copy(x, h_x_ref);
+  Kokkos::deep_copy(y, h_y_ref);
+
+  KokkosFFT::fftshift(execution_space(), x, axes_type<3>({0, 1, 2}));
+  KokkosFFT::ifftshift(execution_space(), y, axes_type<3>({0, 1, 2}));
+
+  EXPECT_TRUE(allclose(execution_space(), x, y_ref));
+  EXPECT_TRUE(allclose(execution_space(), y, x_ref));
+}
+
+// Tests for fftshift4D on 4D View
+void test_fftshift4D_4DView(int n0) {
+  using RealView4DType =
+      Kokkos::View<double****, Kokkos::LayoutLeft, execution_space>;
+  constexpr int n1 = 3, n2 = 2, n3 = 2;
+  RealView4DType x("x", n0, n1, n2, n3), y("y", n0, n1, n2, n3);
+  RealView4DType x_ref("x_ref", n0, n1, n2, n3), y_ref("y_ref", n0, n1, n2, n3);
+
+  auto h_x_ref = Kokkos::create_mirror_view(x_ref);
+  auto h_y_ref = Kokkos::create_mirror_view(y_ref);
+
+  std::vector<int> tmp_x_ref;
+  std::vector<int> tmp_y_ref;
+
+  if (n0 % 2 == 0) {
+    tmp_x_ref = {0,   1,   2,   3,   4,   5,   6,   7,   8,   9,   10,  11,
+                 12,  13,  14,  15,  16,  17,  18,  19,  20,  21,  22,  23,
+                 24,  25,  26,  27,  28,  29,  30,  31,  32,  33,  34,  35,
+                 36,  37,  38,  39,  40,  41,  42,  43,  44,  45,  46,  47,
+                 48,  49,  50,  51,  52,  53,  54,  55,  56,  57,  58,  59,
+                 -60, -59, -58, -57, -56, -55, -54, -53, -52, -51, -50, -49,
+                 -48, -47, -46, -45, -44, -43, -42, -41, -40, -39, -38, -37,
+                 -36, -35, -34, -33, -32, -31, -30, -29, -28, -27, -26, -25,
+                 -24, -23, -22, -21, -20, -19, -18, -17, -16, -15, -14, -13,
+                 -12, -11, -10, -9,  -8,  -7,  -6,  -5,  -4,  -3,  -2,  -1};
+    tmp_y_ref = {-5,  -4,  -3,  -2,  -1,  -10, -9,  -8,  -7,  -6,  -25, -24,
+                 -23, -22, -21, -30, -29, -28, -27, -26, -15, -14, -13, -12,
+                 -11, -20, -19, -18, -17, -16, -35, -34, -33, -32, -31, -40,
+                 -39, -38, -37, -36, -55, -54, -53, -52, -51, -60, -59, -58,
+                 -57, -56, -45, -44, -43, -42, -41, -50, -49, -48, -47, -46,
+                 55,  56,  57,  58,  59,  50,  51,  52,  53,  54,  35,  36,
+                 37,  38,  39,  30,  31,  32,  33,  34,  45,  46,  47,  48,
+                 49,  40,  41,  42,  43,  44,  25,  26,  27,  28,  29,  20,
+                 21,  22,  23,  24,  5,   6,   7,   8,   9,   0,   1,   2,
+                 3,   4,   15,  16,  17,  18,  19,  10,  11,  12,  13,  14};
+  } else {
+    tmp_x_ref = {0,   1,   2,   3,   4,   5,   6,   7,   8,   9,   10,  11,
+                 12,  13,  14,  15,  16,  17,  18,  19,  20,  21,  22,  23,
+                 24,  25,  26,  27,  28,  29,  30,  31,  32,  33,  34,  35,
+                 36,  37,  38,  39,  40,  41,  42,  43,  44,  45,  46,  47,
+                 48,  49,  50,  51,  52,  53,  -54, -53, -52, -51, -50, -49,
+                 -48, -47, -46, -45, -44, -43, -42, -41, -40, -39, -38, -37,
+                 -36, -35, -34, -33, -32, -31, -30, -29, -28, -27, -26, -25,
+                 -24, -23, -22, -21, -20, -19, -18, -17, -16, -15, -14, -13,
+                 -12, -11, -10, -9,  -8,  -7,  -6,  -5,  -4,  -3,  -2,  -1};
+    tmp_y_ref = {-4,  -3,  -2,  -1,  -9,  -8,  -7,  -6,  -5,  -22, -21, -20,
+                 -19, -27, -26, -25, -24, -23, -13, -12, -11, -10, -18, -17,
+                 -16, -15, -14, -31, -30, -29, -28, -36, -35, -34, -33, -32,
+                 -49, -48, -47, -46, -54, -53, -52, -51, -50, -40, -39, -38,
+                 -37, -45, -44, -43, -42, -41, 50,  51,  52,  53,  45,  46,
+                 47,  48,  49,  32,  33,  34,  35,  27,  28,  29,  30,  31,
+                 41,  42,  43,  44,  36,  37,  38,  39,  40,  23,  24,  25,
+                 26,  18,  19,  20,  21,  22,  5,   6,   7,   8,   0,   1,
+                 2,   3,   4,   14,  15,  16,  17,  9,   10,  11,  12,  13};
+  }
+  for (int i3 = 0; i3 < n3; i3++) {
+    for (int i2 = 0; i2 < n2; i2++) {
+      for (int i1 = 0; i1 < n1; i1++) {
+        for (int i0 = 0; i0 < n0; i0++) {
+          std::size_t i = i0 + i1 * n0 + i2 * n0 * n1 + i3 * n0 * n1 * n2;
+          h_x_ref(i0, i1, i2, i3) = static_cast<double>(tmp_x_ref.at(i));
+          h_y_ref(i0, i1, i2, i3) = static_cast<double>(tmp_y_ref.at(i));
+        }
+      }
+    }
+  }
+
+  Kokkos::deep_copy(x_ref, h_x_ref);
+  Kokkos::deep_copy(y_ref, h_y_ref);
+  Kokkos::deep_copy(x, h_x_ref);
+  Kokkos::deep_copy(y, h_y_ref);
+
+  KokkosFFT::fftshift(execution_space(), x, axes_type<4>({0, 1, 2, 3}));
+  KokkosFFT::ifftshift(execution_space(), y, axes_type<4>({0, 1, 2, 3}));
+
+  EXPECT_TRUE(allclose(execution_space(), x, y_ref));
+  EXPECT_TRUE(allclose(execution_space(), y, x_ref));
+}
+
+// Tests for fftshift5D on 5D View (Identity test only)
+void test_fftshift5D_5DView(int n0) {
+  using RealView5DType = Kokkos::View<double*****, execution_space>;
+  const int n1 = 3, n2 = 4, n3 = 5, n4 = 9;
+  RealView5DType x("x", n0, n1, n2, n3, n4);
+  RealView5DType x_ref("x_ref", n0, n1, n2, n3, n4);
+
+  execution_space exec;
+  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(/*seed=*/12345);
+  Kokkos::fill_random(exec, x, random_pool, 1.0);
+  exec.fence();
+
+  Kokkos::deep_copy(x_ref, x);
+
+  KokkosFFT::fftshift(exec, x, axes_type<5>({0, 1, 2, 3, 4}));
+  KokkosFFT::ifftshift(exec, x, axes_type<5>({0, 1, 2, 3, 4}));
+
+  EXPECT_TRUE(allclose(exec, x, x_ref));
+}
+
+// Tests for fftshift6D on 6D View (Identity test only)
+void test_fftshift6D_6DView(int n0) {
+  using RealView6DType = Kokkos::View<double******, execution_space>;
+  const int n1 = 3, n2 = 4, n3 = 6, n4 = 5, n5 = 6;
+  RealView6DType x("x", n0, n1, n2, n3, n4, n5);
+  RealView6DType x_ref("x_ref", n0, n1, n2, n3, n4, n5);
+
+  execution_space exec;
+  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(/*seed=*/12345);
+  Kokkos::fill_random(exec, x, random_pool, 1.0);
+  exec.fence();
+
+  Kokkos::deep_copy(x_ref, x);
+
+  KokkosFFT::fftshift(exec, x, axes_type<6>({0, 1, 2, 3, 4, 5}));
+  KokkosFFT::ifftshift(exec, x, axes_type<6>({0, 1, 2, 3, 4, 5}));
+
+  EXPECT_TRUE(allclose(exec, x, x_ref));
+}
+
+// Tests for fftshift7D on 7D View (Identity test only)
+void test_fftshift7D_7DView(int n0) {
+  using RealView7DType = Kokkos::View<double*******, execution_space>;
+  const int n1 = 3, n2 = 4, n3 = 6, n4 = 5, n5 = 6, n6 = 7;
+  RealView7DType x("x", n0, n1, n2, n3, n4, n5, n6);
+  RealView7DType x_ref("x_ref", n0, n1, n2, n3, n4, n5, n6);
+
+  execution_space exec;
+  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(/*seed=*/12345);
+  Kokkos::fill_random(exec, x, random_pool, 1.0);
+  exec.fence();
+
+  Kokkos::deep_copy(x_ref, x);
+
+  KokkosFFT::fftshift(exec, x, axes_type<7>({0, 1, 2, 3, 4, 5, 6}));
+  KokkosFFT::ifftshift(exec, x, axes_type<7>({0, 1, 2, 3, 4, 5, 6}));
+
+  EXPECT_TRUE(allclose(exec, x, x_ref));
+}
+
+// Tests for fftshift8D on 8D View (Identity test only)
+void test_fftshift8D_8DView(int n0) {
+  using RealView8DType = Kokkos::View<double********, execution_space>;
+  const int n1 = 3, n2 = 4, n3 = 6, n4 = 5, n5 = 6, n6 = 7, n7 = 9;
+  RealView8DType x("x", n0, n1, n2, n3, n4, n5, n6, n7);
+  RealView8DType x_ref("x_ref", n0, n1, n2, n3, n4, n5, n6, n7);
+
+  execution_space exec;
+  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(/*seed=*/12345);
+  Kokkos::fill_random(exec, x, random_pool, 1.0);
+  exec.fence();
+
+  Kokkos::deep_copy(x_ref, x);
+
+  KokkosFFT::fftshift(exec, x, axes_type<8>({0, 1, 2, 3, 4, 5, 6, 7}));
+  KokkosFFT::ifftshift(exec, x, axes_type<8>({0, 1, 2, 3, 4, 5, 6, 7}));
+
+  EXPECT_TRUE(allclose(exec, x, x_ref));
+}
+
 }  // namespace
 
 TYPED_TEST_SUITE(FFTHelper, test_types);
@@ -420,6 +640,42 @@ TEST_P(FFTShiftParamTests, 1DShift2DView) {
 TEST_P(FFTShiftParamTests, 2DShift2DView) {
   int n0 = GetParam();
   test_fftshift2D_2DView(n0);
+}
+
+// Tests for fftshift3D on 3D View
+TEST_P(FFTShiftParamTests, 3DShift3DView) {
+  int n0 = GetParam();
+  test_fftshift3D_3DView(n0);
+}
+
+// Tests for fftshift4D on 4D View
+TEST_P(FFTShiftParamTests, 4DShift4DView) {
+  int n0 = GetParam();
+  test_fftshift4D_4DView(n0);
+}
+
+// Tests for fftshift5D on 5D View
+TEST_P(FFTShiftParamTests, 5DShift5DView) {
+  int n0 = GetParam();
+  test_fftshift5D_5DView(n0);
+}
+
+// Tests for fftshift6D on 6D View
+TEST_P(FFTShiftParamTests, 6DShift6DView) {
+  int n0 = GetParam();
+  test_fftshift6D_6DView(n0);
+}
+
+// Tests for fftshift7D on 7D View
+TEST_P(FFTShiftParamTests, 7DShift7DView) {
+  int n0 = GetParam();
+  test_fftshift7D_7DView(n0);
+}
+
+// Tests for fftshift8D on 8D View
+TEST_P(FFTShiftParamTests, 8DShift8DView) {
+  int n0 = GetParam();
+  test_fftshift8D_8DView(n0);
 }
 
 INSTANTIATE_TEST_SUITE_P(FFTShift, FFTShiftParamTests,
