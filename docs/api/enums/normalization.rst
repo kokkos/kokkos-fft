@@ -6,4 +6,4 @@ KokkosFFT::Normalization
 ------------------------
 
 .. doxygenenum:: KokkosFFT::Normalization
-   :project: KokkosFFT
+   :project: kokkos-fft

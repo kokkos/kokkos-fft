@@ -6,4 +6,4 @@ KokkosFFT::Direction
 --------------------
 
 .. doxygenenum:: KokkosFFT::Direction
-   :project: KokkosFFT
+   :project: kokkos-fft
