@@ -134,6 +134,14 @@ cmake --build build -j 8
 ```
 This way, all the functionalities are executed on A100 GPUs. For installation, details are provided in the [documentation](https://kokkosfft.readthedocs.io/en/latest/intro/building.html#install-kokkosfft-as-a-library).
 
+## Support
+
+Find us on [Slack channel](https://kokkosteam.slack.com/archives/C07NM5SD3FD) or open a GitHub issue.
+
+## Contributing
+
+Please see [this page](https://kokkosfft.readthedocs.io/en/latest/developer_guide.html) for details on how to contribute.
+
 ## LICENSE
 
 [![License](https://img.shields.io/badge/License-Apache--2.0_WITH_LLVM--exception-blue)](https://spdx.org/licenses/LLVM-exception.html)
