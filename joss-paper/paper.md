@@ -27,7 +27,7 @@ affiliations:
    index: 1
    ror: 00hx57361
 
-date: 7 April 2025
+date: 18 April 2025
 bibliography: paper.bib
 
 # Optional fields if submitting to a AAS journal too, see this blog post:
@@ -38,7 +38,7 @@ aas-journal: Astrophysical Journal <- The name of the AAS journal.
 
 # Summary
 
-kokkos-fft implements local (non-distributed) interfaces between Kokkos and de facto standard FFT libraries, including fftw, cufft, hipfft (rocfft), and oneMKL. The key concept of kokkos-fft is "As easy as numpy, as fast as vendor libraries". This library has simple interface like numpy.fft with in-place and out-of-place transforms, while keeping the performance portability. An exercise to solve the 2D Hasegawa-Wakatani turbulence with the Fourier spectral method demonstrates that we can achieve a signficiant speed up against python version without increasing the lines of code (LOC) drastically. This library allows the user to perform FFTs efficiently and simply in the kokkos eco system.
+kokkos-fft implements local (non-distributed) interfaces between Kokkos and de facto standard FFT libraries, including FFTW, cufft, hipfft (rocfft), and oneMKL. The key concept of kokkos-fft is "As easy as numpy, as fast as vendor libraries". This library has simple interface like numpy.fft with in-place and out-of-place transforms, while keeping the performance portability. An exercise to solve the 2D Hasegawa-Wakatani turbulence with the Fourier spectral method demonstrates that we can achieve a signficiant speed up against python version without increasing the lines of code (LOC) drastically. This library allows the user to perform FFTs efficiently and simply in the kokkos eco system.
 
 # Statement of need
 
@@ -59,7 +59,7 @@ Only accepts [Kokkos Views](https://kokkos.org/kokkos-core-wiki/API/core/view/vi
 Batched plans are automatically used if View dimension is larger than FFT dimension.
 
 * A reusable [FFT plan](https://kokkosfft.readthedocs.io/en/latest/api/plan/plan.html) which wraps the vendor libraries for each Kokkos backend:  
-[fftw](http://www.fftw.org), [cufft](https://developer.nvidia.com/cufft), [hipfft](https://github.com/ROCm/hipFFT) ([rocfft](https://github.com/ROCm/rocFFT)), and [oneMKL](https://www.intel.com/content/www/us/en/developer/tools/oneapi/onemkl.html) are automatically enabled based on the enabled Kokkos backend.
+[FFTW](http://www.fftw.org), [cufft](https://developer.nvidia.com/cufft), [hipfft](https://github.com/ROCm/hipFFT) ([rocfft](https://github.com/ROCm/rocFFT)), and [oneMKL](https://www.intel.com/content/www/us/en/developer/tools/oneapi/onemkl.html) are automatically enabled based on the enabled Kokkos backend.
 
 * Support for multiple CPU and GPU backends:  
 FFT libraries for the enabled Kokkos backend are executed on the stream/queue used in that [`ExecutionSpace`](https://kokkos.org/kokkos-core-wiki/API/core/execution_spaces.html) where the parallel operations are performed.
