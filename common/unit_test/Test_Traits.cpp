@@ -212,8 +212,10 @@ void test_add_pointers() {
 // \param LayoutType Layout type of the View
 template <typename T1, typename T2, typename LayoutType>
 void test_converted_view_types() {
-  using ViewType1 = Kokkos::View<T1*, LayoutType, Kokkos::DefaultExecutionSpace>;
-  using ViewType2 = Kokkos::View<T2*, LayoutType, Kokkos::DefaultExecutionSpace>;
+  using ViewType1 =
+      Kokkos::View<T1*, LayoutType, Kokkos::DefaultExecutionSpace>;
+  using ViewType2 =
+      Kokkos::View<T2*, LayoutType, Kokkos::DefaultExecutionSpace>;
   using DerivedViewType2 =
       typename KokkosFFT::Impl::ConvertedViewType<ViewType1, T2>::type;
   testing::StaticAssertTypeEq<DerivedViewType2, ViewType2>();
