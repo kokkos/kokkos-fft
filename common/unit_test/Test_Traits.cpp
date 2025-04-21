@@ -186,6 +186,22 @@ void test_admissible_complex_type() {
   }
 }
 
+template <typename T>
+void test_add_pointers() {
+  testing::StaticAssertTypeEq<KokkosFFT::Impl::add_pointer_n_t<T, 0>, T>();
+  testing::StaticAssertTypeEq<KokkosFFT::Impl::add_pointer_n_t<T, 1>, T*>();
+  testing::StaticAssertTypeEq<KokkosFFT::Impl::add_pointer_n_t<T, 2>, T**>();
+  testing::StaticAssertTypeEq<KokkosFFT::Impl::add_pointer_n_t<T, 3>, T***>();
+  testing::StaticAssertTypeEq<KokkosFFT::Impl::add_pointer_n_t<T, 4>, T****>();
+  testing::StaticAssertTypeEq<KokkosFFT::Impl::add_pointer_n_t<T, 5>, T*****>();
+  testing::StaticAssertTypeEq<KokkosFFT::Impl::add_pointer_n_t<T, 6>,
+                              T******>();
+  testing::StaticAssertTypeEq<KokkosFFT::Impl::add_pointer_n_t<T, 7>,
+                              T*******>();
+  testing::StaticAssertTypeEq<KokkosFFT::Impl::add_pointer_n_t<T, 8>,
+                              T********>();
+}
+
 // Tests for admissible view types
 template <typename T, typename LayoutType>
 void test_admissible_value_type() {
@@ -622,6 +638,14 @@ TYPED_TEST(CompileTestRealAndComplexTypes, admissible_complex_type) {
   using complex_type = typename TestFixture::complex_type;
 
   test_admissible_complex_type<complex_type>();
+}
+
+TYPED_TEST(CompileTestRealAndComplexTypes, add_pointers) {
+  using real_type    = typename TestFixture::real_type;
+  using complex_type = typename TestFixture::complex_type;
+
+  test_add_pointers<real_type>();
+  test_add_pointers<complex_type>();
 }
 
 TYPED_TEST(CompileTestRealAndComplexViewTypes, admissible_value_type) {
