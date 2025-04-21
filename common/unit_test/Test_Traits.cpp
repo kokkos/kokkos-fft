@@ -186,6 +186,7 @@ void test_admissible_complex_type() {
   }
 }
 
+// Tests for add_pointer helper
 template <typename T>
 void test_add_pointers() {
   testing::StaticAssertTypeEq<KokkosFFT::Impl::add_pointer_n_t<T, 0>, T>();
@@ -200,6 +201,22 @@ void test_add_pointers() {
                               T*******>();
   testing::StaticAssertTypeEq<KokkosFFT::Impl::add_pointer_n_t<T, 8>,
                               T********>();
+}
+
+// Tests for converted view types
+// Real to Real, Real to Complex, Complex to Real, Complex to Complex
+// are tested
+//
+// \param T1 Value type of the first View
+// \param T2 Value type of the second View
+// \param LayoutType Layout type of the View
+template <typename T1, typename T2, typename LayoutType>
+void test_converted_view_types() {
+  using ViewType1 = Kokkos::View<T1*, LayoutType, Kokkos::DefaultExecutionSpace>;
+  using ViewType2 = Kokkos::View<T2*, LayoutType, Kokkos::DefaultExecutionSpace>;
+  using DerivedViewType2 =
+      typename KokkosFFT::Impl::ConvertedViewType<ViewType1, T2>::type;
+  testing::StaticAssertTypeEq<DerivedViewType2, ViewType2>();
 }
 
 // Tests for admissible view types
@@ -646,6 +663,17 @@ TYPED_TEST(CompileTestRealAndComplexTypes, add_pointers) {
 
   test_add_pointers<real_type>();
   test_add_pointers<complex_type>();
+}
+
+TYPED_TEST(CompileTestRealAndComplexViewTypes, converted_view_types) {
+  using real_type    = typename TestFixture::real_type;
+  using complex_type = typename TestFixture::complex_type;
+  using layout_type  = typename TestFixture::layout_type;
+
+  test_converted_view_types<real_type, real_type, layout_type>();
+  test_converted_view_types<real_type, complex_type, layout_type>();
+  test_converted_view_types<complex_type, real_type, layout_type>();
+  test_converted_view_types<complex_type, complex_type, layout_type>();
 }
 
 TYPED_TEST(CompileTestRealAndComplexViewTypes, admissible_value_type) {

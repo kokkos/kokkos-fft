@@ -269,8 +269,8 @@ using add_pointer_n_t = typename add_pointer_n<T, Rank>::type;
 template <typename ViewType, typename T>
 struct ConvertedViewType {
   using data_type = add_pointer_n_t<T, ViewType::rank()>;
-  using type      = Kokkos::View<data_type, typename T::array_layout,
-                            typename T::memory_space>;
+  using type      = Kokkos::View<data_type, typename ViewType::array_layout,
+                            typename ViewType::execution_space>;
 };
 
 /// \brief Helper to define a complex 1D View type from a real/complex 1D View
