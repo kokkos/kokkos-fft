@@ -248,6 +248,31 @@ struct manageable_view_type {
                             typename T::memory_space>;
 };
 
+/// \brief Primary template: recurse by adding one pointer and decreasing Rank.
+template <typename T, std::size_t Rank>
+struct add_pointer_n {
+  using type = typename add_pointer_n<T*, Rank - 1>::type;
+};
+
+/// Base case: Rank == 0, just yield T.
+template <typename T>
+struct add_pointer_n<T, 0> {
+  using type = T;
+};
+
+/// Convenience alias:
+template <typename T, std::size_t Rank>
+using add_pointer_n_t = typename add_pointer_n<T, Rank>::type;
+
+/// \brief Helper to define a new View type with different value type
+/// while keeping rank, layout and memory space
+template <typename ViewType, typename T>
+struct ConvertedViewType {
+  using data_type = add_pointer_n_t<T, ViewType::rank()>;
+  using type      = Kokkos::View<data_type, typename ViewType::array_layout,
+                            typename ViewType::execution_space>;
+};
+
 /// \brief Helper to define a complex 1D View type from a real/complex 1D View
 /// type, while keeping other properties
 template <typename ExecutionSpace, typename ViewType,
