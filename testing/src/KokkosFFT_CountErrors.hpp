@@ -266,12 +266,11 @@ struct FindErrors<ExecutionSpace, AViewType, BViewType, Layout, 1, iType> {
     auto tmp_b     = m_b(i0);
     bool not_close = are_not_close(tmp_a, tmp_b, m_rtol, m_atol);
     if (not_close) {
-      std::size_t count     = Kokkos::atomic_load(m_count.data());
+      std::size_t count     = Kokkos::atomic_fetch_add(m_count.data(), 1);
       m_a_error(count)      = tmp_a;
       m_b_error(count)      = tmp_b;
       m_loc_error(count, 0) = i0;
       m_loc_error(count, 1) = i0;
-      Kokkos::atomic_fetch_add(m_count.data(), 1);
     }
   }
 
@@ -373,13 +372,12 @@ struct FindErrors<ExecutionSpace, AViewType, BViewType, Layout, 2, iType> {
     auto tmp_b     = m_b(i0, i1);
     bool not_close = are_not_close(tmp_a, tmp_b, m_rtol, m_atol);
     if (not_close) {
-      std::size_t count     = Kokkos::atomic_load(m_count.data());
+      std::size_t count     = Kokkos::atomic_fetch_add(m_count.data(), 1);
       m_a_error(count)      = tmp_a;
       m_b_error(count)      = tmp_b;
       m_loc_error(count, 0) = i0 + i1 * m_a.extent(0);
       m_loc_error(count, 1) = i0;
       m_loc_error(count, 2) = i1;
-      Kokkos::atomic_fetch_add(m_count.data(), 1);
     }
   }
 

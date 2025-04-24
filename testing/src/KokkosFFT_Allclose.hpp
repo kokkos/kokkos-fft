@@ -43,8 +43,8 @@ inline bool allclose_impl(testing::MatchResultListener* listener,
   const std::size_t rank = actual.rank();
   for (std::size_t i = 0; i < rank; i++) {
     if (actual.extent(i) != expected.extent(i)) {
-      *listener << actual.label() + ".extent(" + std::to_string(i) + ") != "
-                << expected.label() + ".extent(" + std::to_string(i) + ")";
+      *listener << actual.label() << ".extent(" << i
+                << ") != " << expected.label() << ".extent(" << i << ")";
       return false;
     }
   }
