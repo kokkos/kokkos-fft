@@ -39,7 +39,7 @@ void test_find_errors_1D_analytical(double rtol, double atol) {
 
   // Initialization and prepare reference at host
   // b(0) includes 3.00006 with bigger error than acceptance -> error count 1
-  h_b(0) = h_b(0) + 2.0 * (h_b(0) * rtol);
+  h_b(0) += 2.0 * (h_b(0) * rtol);
 
   h_ref_a_error(0)      = T(3.0);
   h_ref_b_error(0)      = h_b(0);
@@ -86,7 +86,7 @@ void test_find_errors_2D_analytical(double rtol, double atol) {
 
   // Initialization and prepare reference at host
   // b(0, 0) includes 3.00006 with bigger error than acceptance -> error count 1
-  h_b(2, 1) = h_b(2, 1) + 2.0 * (h_b(2, 1) * rtol);
+  h_b(2, 1) += 2.0 * (h_b(2, 1) * rtol);
 
   h_ref_a_error(0)      = T(3.0);
   h_ref_b_error(0)      = h_b(2, 1);
@@ -135,7 +135,7 @@ void test_find_errors_3D_analytical(double rtol, double atol) {
 
   // Initialization and prepare reference at host
   // b(0, 0) includes 3.00006 with bigger error than acceptance -> error count 1
-  h_b(2, 1, 3) = h_b(2, 1, 3) + 2.0 * (h_b(2, 1, 3) * rtol);
+  h_b(2, 1, 3) += 2.0 * (h_b(2, 1, 3) * rtol);
 
   h_ref_a_error(0) = T(3.0);
   h_ref_b_error(0) = h_b(2, 1, 3);
@@ -187,7 +187,7 @@ void test_find_errors_4D_analytical(double rtol, double atol) {
 
   // Initialization and prepare reference at host
   // b(0, 0) includes 3.00006 with bigger error than acceptance -> error count 1
-  h_b(2, 1, 3, 1) = h_b(2, 1, 3, 1) + 2.0 * (h_b(2, 1, 3, 1) * rtol);
+  h_b(2, 1, 3, 1) += 2.0 * (h_b(2, 1, 3, 1) * rtol);
 
   h_ref_a_error(0) = T(3.0);
   h_ref_b_error(0) = h_b(2, 1, 3, 1);
@@ -242,7 +242,7 @@ void test_find_errors_5D_analytical(double rtol, double atol) {
 
   // Initialization and prepare reference at host
   // b(0, 0) includes 3.00006 with bigger error than acceptance -> error count 1
-  h_b(2, 1, 3, 1, 2) = h_b(2, 1, 3, 1, 2) + 2.0 * (h_b(2, 1, 3, 1, 2) * rtol);
+  h_b(2, 1, 3, 1, 2) += 2.0 * (h_b(2, 1, 3, 1, 2) * rtol);
 
   h_ref_a_error(0) = T(3.0);
   h_ref_b_error(0) = h_b(2, 1, 3, 1, 2);
@@ -301,8 +301,7 @@ void test_find_errors_6D_analytical(double rtol, double atol) {
 
   // Initialization and prepare reference at host
   // b(0, 0) includes 3.00006 with bigger error than acceptance -> error count 1
-  h_b(2, 1, 3, 1, 2, 0) =
-      h_b(2, 1, 3, 1, 2, 0) + 2.0 * (h_b(2, 1, 3, 1, 2, 0) * rtol);
+  h_b(2, 1, 3, 1, 2, 0) += 2.0 * (h_b(2, 1, 3, 1, 2, 0) * rtol);
 
   h_ref_a_error(0) = T(3.0);
   h_ref_b_error(0) = h_b(2, 1, 3, 1, 2, 0);
@@ -366,8 +365,7 @@ void test_find_errors_7D_analytical(double rtol, double atol) {
 
   // Initialization and prepare reference at host
   // b(0, 0) includes 3.00006 with bigger error than acceptance -> error count 1
-  h_b(2, 1, 3, 1, 2, 0, 1) =
-      h_b(2, 1, 3, 1, 2, 0, 1) + 2.0 * (h_b(2, 1, 3, 1, 2, 0, 1) * rtol);
+  h_b(2, 1, 3, 1, 2, 0, 1) += 2.0 * (h_b(2, 1, 3, 1, 2, 0, 1) * rtol);
 
   h_ref_a_error(0) = T(3.0);
   h_ref_b_error(0) = h_b(2, 1, 3, 1, 2, 0, 1);
@@ -434,8 +432,7 @@ void test_find_errors_8D_analytical(double rtol, double atol) {
 
   // Initialization and prepare reference at host
   // b(0, 0) includes 3.00006 with bigger error than acceptance -> error count 1
-  h_b(2, 1, 3, 1, 2, 0, 1, 0) =
-      h_b(2, 1, 3, 1, 2, 0, 1, 0) + 2.0 * (h_b(2, 1, 3, 1, 2, 0, 1, 0) * rtol);
+  h_b(2, 1, 3, 1, 2, 0, 1, 0) += 2.0 * (h_b(2, 1, 3, 1, 2, 0, 1, 0) * rtol);
 
   h_ref_a_error(0) = T(3.0);
   h_ref_b_error(0) = h_b(2, 1, 3, 1, 2, 0, 1, 0);
