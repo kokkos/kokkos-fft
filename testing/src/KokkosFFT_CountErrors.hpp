@@ -70,6 +70,61 @@ struct ViewErrors {
   //! The error counter
   std::size_t m_error = 0;
 
+  /// \brief Retrieves the policy for the parallel execution.
+  /// If the view is 1D, a Kokkos::RangePolicy is used. For higher dimensions up
+  /// to 6D, a Kokkos::MDRangePolicy is used. For 7D and 8D views, we use 6D
+  /// MDRangePolicy
+  /// \param[in] space  The Kokkos execution space used to launch the parallel
+  /// reduction.
+  /// \param[in] a The Kokkos view to be used for determining the policy.
+  auto get_policy(const ExecutionSpace space, const AViewType a) const {
+    if constexpr (AViewType::rank() == 1) {
+      using range_policy_type =
+          Kokkos::RangePolicy<ExecutionSpace, Kokkos::IndexType<iType>>;
+      return range_policy_type(space, 0, a.extent(0));
+    } else {
+      static const Kokkos::Iterate outer_iteration_pattern =
+          Kokkos::Impl::layout_iterate_type_selector<
+              Layout>::outer_iteration_pattern;
+      static const Kokkos::Iterate inner_iteration_pattern =
+          Kokkos::Impl::layout_iterate_type_selector<
+              Layout>::inner_iteration_pattern;
+      using iterate_type =
+          Kokkos::Rank<m_rank_truncated, outer_iteration_pattern,
+                       inner_iteration_pattern>;
+      using mdrange_policy_type =
+          Kokkos::MDRangePolicy<ExecutionSpace, iterate_type,
+                                Kokkos::IndexType<iType>>;
+      Kokkos::Array<std::size_t, m_rank_truncated> begins = {};
+      Kokkos::Array<std::size_t, m_rank_truncated> ends   = {};
+      for (std::size_t i = 0; i < m_rank_truncated; ++i) {
+        ends[i] = a.extent(i);
+      }
+      return mdrange_policy_type(space, begins, ends);
+    }
+  }
+
+ public:
+  /// \brief Constructs the error counter and performs the error computation.
+  ///
+  /// \param[in] a First Kokkos view containing data to compare.
+  /// \param[in] b Second Kokkos view containing data to compare against.
+  /// \param[in] rtol Relative tolerance for comparing the view elements
+  /// (default 1.e-5).
+  /// \param[in] atol Absolute tolerance for comparing the view elements
+  /// (default 1.e-8).
+  /// \param[in] space The Kokkos execution space used to launch the parallel
+  /// reduction.
+  ViewErrors(const AViewType& a, const BViewType& b, double rtol = 1.e-5,
+             double atol                = 1.e-8,
+             const ExecutionSpace space = ExecutionSpace()) {
+    Kokkos::parallel_reduce(
+        "ViewErrors", get_policy(space, a),
+        CountErrors<std::make_index_sequence<m_rank_truncated>>(a, b, rtol,
+                                                                atol),
+        m_error);
+  }
+
   /// \brief Helper functor to count the number of errors in the views.
   ///
   /// \tparam IndexSequence The index sequence used for the parallel execution.
@@ -130,61 +185,6 @@ struct ViewErrors {
       }
     }
   };
-
-  /// \brief Retrieves the policy for the parallel execution.
-  /// If the view is 1D, a Kokkos::RangePolicy is used. For higher dimensions up
-  /// to 6D, a Kokkos::MDRangePolicy is used. For 7D and 8D views, we use 6D
-  /// MDRangePolicy
-  /// \param[in] space  The Kokkos execution space used to launch the parallel
-  /// reduction.
-  /// \param[in] a The Kokkos view to be used for determining the policy.
-  auto get_policy(const ExecutionSpace space, const AViewType a) const {
-    if constexpr (AViewType::rank() == 1) {
-      using range_policy_type =
-          Kokkos::RangePolicy<ExecutionSpace, Kokkos::IndexType<iType>>;
-      return range_policy_type(space, 0, a.extent(0));
-    } else {
-      static const Kokkos::Iterate outer_iteration_pattern =
-          Kokkos::Impl::layout_iterate_type_selector<
-              Layout>::outer_iteration_pattern;
-      static const Kokkos::Iterate inner_iteration_pattern =
-          Kokkos::Impl::layout_iterate_type_selector<
-              Layout>::inner_iteration_pattern;
-      using iterate_type =
-          Kokkos::Rank<m_rank_truncated, outer_iteration_pattern,
-                       inner_iteration_pattern>;
-      using mdrange_policy_type =
-          Kokkos::MDRangePolicy<ExecutionSpace, iterate_type,
-                                Kokkos::IndexType<iType>>;
-      Kokkos::Array<std::size_t, m_rank_truncated> begins = {};
-      Kokkos::Array<std::size_t, m_rank_truncated> ends   = {};
-      for (std::size_t i = 0; i < m_rank_truncated; ++i) {
-        ends[i] = a.extent(i);
-      }
-      return mdrange_policy_type(space, begins, ends);
-    }
-  }
-
- public:
-  /// \brief Constructs the error counter and performs the error computation.
-  ///
-  /// \param[in] a First Kokkos view containing data to compare.
-  /// \param[in] b Second Kokkos view containing data to compare against.
-  /// \param[in] rtol Relative tolerance for comparing the view elements
-  /// (default 1.e-5).
-  /// \param[in] atol Absolute tolerance for comparing the view elements
-  /// (default 1.e-8).
-  /// \param[in] space The Kokkos execution space used to launch the parallel
-  /// reduction.
-  ViewErrors(const AViewType& a, const BViewType& b, double rtol = 1.e-5,
-             double atol                = 1.e-8,
-             const ExecutionSpace space = ExecutionSpace()) {
-    Kokkos::parallel_reduce(
-        "ViewErrors", get_policy(space, a),
-        CountErrors<std::make_index_sequence<m_rank_truncated>>(a, b, rtol,
-                                                                atol),
-        m_error);
-  }
 
   /// \brief Retrieves the computed error count.
   ///
