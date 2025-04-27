@@ -282,8 +282,7 @@ struct FindErrors {
     Kokkos::parallel_for(
         "FindErrors", get_policy(space, a),
         FindErrorsInternal<std::make_index_sequence<m_rank_truncated>>(
-            a, b, nb_errors, m_a_error_pub, m_b_error_pub, m_loc_error_pub,
-            rtol, atol));
+            a, b, m_a_error_pub, m_b_error_pub, m_loc_error_pub, rtol, atol));
   }
 
   template <typename IndexSequence>
@@ -320,7 +319,7 @@ struct FindErrors {
     ///\param rtol [in] Relative tolerance for the comparison (default 1.e-5).
     ///\param atol [in] Absolute tolerance for the comparison (default 1.e-8).
     FindErrorsInternal(const AViewType& a, const BViewType& b,
-                       const iType nb_errors, const AErrorViewType& a_error,
+                       const AErrorViewType& a_error,
                        const BErrorViewType& b_error,
                        const CountViewType& loc_error, double rtol = 1.e-5,
                        double atol = 1.e-8)
