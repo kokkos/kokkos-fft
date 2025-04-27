@@ -36,18 +36,18 @@ void test_allclose_1D_analytical(double rtol, double atol) {
   auto h_e = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), e);
 
   // b(0) includes 3.00006 with bigger error than acceptance -> error count 1
-  h_b(0) = h_b(0) + 2.0 * (h_b(0) * rtol);
+  h_b(0) += 2.0 * (h_b(0) * rtol);
 
   // c(a) includes 3.00000001 which is acceptable by rtol -> error count 0
-  h_c(1) = h_c(1) + 2.0 * atol;
+  h_c(1) += 2.0 * atol;
 
   // d includes both the relative and absolute errors -> error count 1
   h_d(0) = h_b(0);
   h_d(1) = h_c(1);
 
   // e includes small relative and absolute errors -> error count 0
-  h_e(0) = h_e(0) + 0.1 * (h_e(0) * rtol);
-  h_e(1) = h_e(1) + 0.1 * atol;
+  h_e(0) += 0.1 * (h_e(0) * rtol);
+  h_e(1) += 0.1 * atol;
 
   Kokkos::deep_copy(b, h_b);
   Kokkos::deep_copy(c, h_c);
@@ -79,18 +79,18 @@ void test_allclose_2D_analytical(double rtol, double atol) {
   auto h_e = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), e);
 
   // b(0) includes 3.00006 with bigger error than acceptance -> error count 1
-  h_b(0, 0) = h_b(0, 0) + 2.0 * (h_b(0, 0) * rtol);
+  h_b(0, 0) += 2.0 * (h_b(0, 0) * rtol);
 
   // c(a) includes 3.00000001 which is acceptable by rtol -> error count 0
-  h_c(1, 0) = h_c(1, 0) + 2.0 * atol;
+  h_c(1, 0) += 2.0 * atol;
 
   // d includes both the relative and absolute errors -> error count 1
   h_d(0, 0) = h_b(0, 0);
   h_d(1, 0) = h_c(1, 0);
 
   // e includes small relative and absolute errors -> error count 0
-  h_e(0, 0) = h_e(0, 0) + 0.1 * (h_e(0, 0) * rtol);
-  h_e(1, 0) = h_e(1, 0) + 0.1 * atol;
+  h_e(0, 0) += 0.1 * (h_e(0, 0) * rtol);
+  h_e(1, 0) += 0.1 * atol;
 
   Kokkos::deep_copy(b, h_b);
   Kokkos::deep_copy(c, h_c);
@@ -122,19 +122,19 @@ void test_allclose_3D_analytical(double rtol, double atol) {
   auto h_e = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), e);
 
   // b(0) includes 3.00006 with bigger error than acceptance -> error count 1
-  h_b(0, 0, 0) = h_b(0, 0, 0) + 2.0 * (h_b(0, 0, 0) * rtol);
+  h_b(0, 0, 0) += 2.0 * (h_b(0, 0, 0) * rtol);
 
   // c(a) includes 3.00000001 which is acceptable by rtol -> error count 0
-  h_c(1, 0, 0) = h_c(1, 0, 0) + 2.0 * atol;
+  h_c(1, 0, 0) += 2.0 * atol;
 
   // d includes two values with bigger errors than acceptance -> error count 2
   h_d(0, 0, 0) = h_b(0, 0, 0);
   h_d(1, 0, 0) = h_c(1, 0, 0);
-  h_d(1, 0, 2) = h_b(1, 0, 2) + 3.0 * (h_b(1, 0, 2) * rtol);
+  h_d(1, 0, 2) += 3.0 * (h_b(1, 0, 2) * rtol);
 
   // e includes small relative and absolute errors -> error count 0
-  h_e(0, 0, 0) = h_e(0, 0, 0) + 0.1 * (h_e(0, 0, 0) * rtol);
-  h_e(1, 0, 0) = h_e(1, 0, 0) + 0.1 * atol;
+  h_e(0, 0, 0) += 0.1 * (h_e(0, 0, 0) * rtol);
+  h_e(1, 0, 0) += 0.1 * atol;
 
   Kokkos::deep_copy(b, h_b);
   Kokkos::deep_copy(c, h_c);
@@ -166,20 +166,20 @@ void test_allclose_4D_analytical(double rtol, double atol) {
   auto h_e = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), e);
 
   // b(0) includes 3.00006 with bigger error than acceptance -> error count 1
-  h_b(0, 0, 0, 0) = h_b(0, 0, 0, 0) + 2.0 * (h_b(0, 0, 0, 0) * rtol);
+  h_b(0, 0, 0, 0) += 2.0 * (h_b(0, 0, 0, 0) * rtol);
 
   // c(a) includes 3.00000001 which is acceptable by rtol -> error count 0
-  h_c(1, 0, 0, 0) = h_c(1, 0, 0, 0) + 2.0 * atol;
+  h_c(1, 0, 0, 0) += 2.0 * atol;
 
   // d includes three values with bigger errors than acceptance -> error count 3
   h_d(0, 0, 0, 0) = h_b(0, 0, 0, 0);
   h_d(1, 0, 0, 0) = h_c(1, 0, 0, 0);
-  h_d(1, 0, 2, 0) = h_b(1, 0, 2, 0) + 3.0 * (h_b(1, 0, 2, 0) * rtol);
-  h_d(1, 0, 1, 3) = h_b(1, 0, 1, 3) + 2.5 * (h_b(1, 0, 1, 3) * rtol);
+  h_d(1, 0, 2, 0) += 3.0 * (h_b(1, 0, 2, 0) * rtol);
+  h_d(1, 0, 1, 3) += 2.5 * (h_b(1, 0, 1, 3) * rtol);
 
   // e includes small relative and absolute errors -> error count 0
-  h_e(0, 0, 0, 0) = h_e(0, 0, 0, 0) + 0.1 * (h_e(0, 0, 0, 0) * rtol);
-  h_e(1, 0, 0, 0) = h_e(1, 0, 0, 0) + 0.1 * atol;
+  h_e(0, 0, 0, 0) += 0.1 * (h_e(0, 0, 0, 0) * rtol);
+  h_e(1, 0, 0, 0) += 0.1 * atol;
 
   Kokkos::deep_copy(b, h_b);
   Kokkos::deep_copy(c, h_c);
@@ -212,21 +212,21 @@ void test_allclose_5D_analytical(double rtol, double atol) {
   auto h_e = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), e);
 
   // b(0) includes 3.00006 with bigger error than acceptance -> error count 1
-  h_b(0, 0, 0, 0, 0) = h_b(0, 0, 0, 0, 0) + 2.0 * (h_b(0, 0, 0, 0, 0) * rtol);
+  h_b(0, 0, 0, 0, 0) += 2.0 * (h_b(0, 0, 0, 0, 0) * rtol);
 
   // c(a) includes 3.00000001 which is acceptable by rtol -> error count 0
-  h_c(1, 0, 0, 0, 0) = h_c(1, 0, 0, 0, 0) + 2.0 * atol;
+  h_c(1, 0, 0, 0, 0) += 2.0 * atol;
 
   // d includes four values with bigger errors than acceptance -> error count 4
   h_d(0, 0, 0, 0, 0) = h_b(0, 0, 0, 0, 0);
   h_d(1, 0, 0, 0, 0) = h_c(1, 0, 0, 0, 0);
-  h_d(1, 0, 2, 0, 0) = h_b(1, 0, 2, 0, 0) + 3.0 * (h_b(1, 0, 2, 0, 0) * rtol);
-  h_d(1, 0, 1, 3, 0) = h_b(1, 0, 1, 3, 0) + 2.5 * (h_b(1, 0, 1, 3, 0) * rtol);
-  h_d(1, 0, 2, 1, 4) = h_b(1, 0, 2, 1, 4) + 1.5 * (h_b(1, 0, 2, 1, 4) * rtol);
+  h_d(1, 0, 2, 0, 0) += 3.0 * (h_b(1, 0, 2, 0, 0) * rtol);
+  h_d(1, 0, 1, 3, 0) += 2.5 * (h_b(1, 0, 1, 3, 0) * rtol);
+  h_d(1, 0, 2, 1, 4) += 1.5 * (h_b(1, 0, 2, 1, 4) * rtol);
 
   // e includes small relative and absolute errors -> error count 0
-  h_e(0, 0, 0, 0, 0) = h_e(0, 0, 0, 0, 0) + 0.1 * (h_e(0, 0, 0, 0, 0) * rtol);
-  h_e(1, 0, 0, 0, 0) = h_e(1, 0, 0, 0, 0) + 0.1 * atol;
+  h_e(0, 0, 0, 0, 0) += 0.1 * (h_e(0, 0, 0, 0, 0) * rtol);
+  h_e(1, 0, 0, 0, 0) += 0.1 * atol;
 
   Kokkos::deep_copy(b, h_b);
   Kokkos::deep_copy(c, h_c);
@@ -259,28 +259,22 @@ void test_allclose_6D_analytical(double rtol, double atol) {
   auto h_e = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), e);
 
   // b(0) includes 3.00006 with bigger error than acceptance -> error count 1
-  h_b(0, 0, 0, 0, 0, 0) =
-      h_b(0, 0, 0, 0, 0, 0) + 2.0 * (h_b(0, 0, 0, 0, 0, 0) * rtol);
+  h_b(0, 0, 0, 0, 0, 0) += 2.0 * (h_b(0, 0, 0, 0, 0, 0) * rtol);
 
   // c(a) includes 3.00000001 which is acceptable by rtol -> error count 0
-  h_c(1, 0, 0, 0, 0, 0) = h_c(1, 0, 0, 0, 0, 0) + 2.0 * atol;
+  h_c(1, 0, 0, 0, 0, 0) += 2.0 * atol;
 
   // d includes five values with bigger errors than acceptance -> error count 5
   h_d(0, 0, 0, 0, 0, 0) = h_b(0, 0, 0, 0, 0, 0);
   h_d(1, 0, 0, 0, 0, 0) = h_c(1, 0, 0, 0, 0, 0);
-  h_d(1, 0, 2, 0, 0, 0) =
-      h_b(1, 0, 2, 0, 0, 0) + 3.0 * (h_b(1, 0, 2, 0, 0, 0) * rtol);
-  h_d(1, 0, 1, 3, 0, 0) =
-      h_b(1, 0, 1, 3, 0, 0) + 2.5 * (h_b(1, 0, 1, 3, 0, 0) * rtol);
-  h_d(1, 0, 2, 1, 4, 0) =
-      h_b(1, 0, 2, 1, 4, 0) + 1.5 * (h_b(1, 0, 2, 1, 4, 0) * rtol);
-  h_d(0, 0, 2, 1, 3, 1) =
-      h_b(0, 0, 2, 1, 3, 1) + 1.8 * (h_b(0, 0, 2, 1, 3, 1) * rtol);
+  h_d(1, 0, 2, 0, 0, 0) += 3.0 * (h_b(1, 0, 2, 0, 0, 0) * rtol);
+  h_d(1, 0, 1, 3, 0, 0) += 2.5 * (h_b(1, 0, 1, 3, 0, 0) * rtol);
+  h_d(1, 0, 2, 1, 4, 0) += 1.5 * (h_b(1, 0, 2, 1, 4, 0) * rtol);
+  h_d(0, 0, 2, 1, 3, 1) += 1.8 * (h_b(0, 0, 2, 1, 3, 1) * rtol);
 
   // e includes small relative and absolute errors -> error count 0
-  h_e(0, 0, 0, 0, 0, 0) =
-      h_e(0, 0, 0, 0, 0, 0) + 0.1 * (h_e(0, 0, 0, 0, 0, 0) * rtol);
-  h_e(1, 0, 0, 0, 0, 0) = h_e(1, 0, 0, 0, 0, 0) + 0.1 * atol;
+  h_e(0, 0, 0, 0, 0, 0) += 0.1 * (h_e(0, 0, 0, 0, 0, 0) * rtol);
+  h_e(1, 0, 0, 0, 0, 0) += 0.1 * atol;
 
   Kokkos::deep_copy(b, h_b);
   Kokkos::deep_copy(c, h_c);
@@ -313,30 +307,23 @@ void test_allclose_7D_analytical(double rtol, double atol) {
   auto h_e = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), e);
 
   // b(0) includes 3.00006 with bigger error than acceptance -> error count 1
-  h_b(0, 0, 0, 0, 0, 0, 0) =
-      h_b(0, 0, 0, 0, 0, 0, 0) + 2.0 * (h_b(0, 0, 0, 0, 0, 0, 0) * rtol);
+  h_b(0, 0, 0, 0, 0, 0, 0) += 2.0 * (h_b(0, 0, 0, 0, 0, 0, 0) * rtol);
 
   // c(a) includes 3.00000001 which is acceptable by rtol -> error count 0
-  h_c(1, 0, 0, 0, 0, 0, 0) = h_c(1, 0, 0, 0, 0, 0, 0) + 2.0 * atol;
+  h_c(1, 0, 0, 0, 0, 0, 0) += 2.0 * atol;
 
   // d includes six values with bigger errors than acceptance -> error count 6
   h_d(0, 0, 0, 0, 0, 0, 0) = h_b(0, 0, 0, 0, 0, 0, 0);
   h_d(1, 0, 0, 0, 0, 0, 0) = h_c(1, 0, 0, 0, 0, 0, 0);
-  h_d(1, 0, 2, 0, 0, 0, 0) =
-      h_b(1, 0, 2, 0, 0, 0, 0) + 3.0 * (h_b(1, 0, 2, 0, 0, 0, 0) * rtol);
-  h_d(1, 0, 1, 3, 0, 0, 0) =
-      h_b(1, 0, 1, 3, 0, 0, 0) + 2.5 * (h_b(1, 0, 1, 3, 0, 0, 0) * rtol);
-  h_d(1, 0, 2, 1, 4, 0, 0) =
-      h_b(1, 0, 2, 1, 4, 0, 0) + 1.5 * (h_b(1, 0, 2, 1, 4, 0, 0) * rtol);
-  h_d(0, 0, 2, 1, 3, 1, 0) =
-      h_b(0, 0, 2, 1, 3, 1, 0) + 1.8 * (h_b(0, 0, 2, 1, 3, 1, 0) * rtol);
-  h_d(0, 0, 2, 1, 4, 1, 2) =
-      h_b(0, 0, 2, 1, 4, 1, 2) + 2.1 * (h_b(0, 0, 2, 1, 4, 1, 2) * rtol);
+  h_d(1, 0, 2, 0, 0, 0, 0) += 3.0 * (h_b(1, 0, 2, 0, 0, 0, 0) * rtol);
+  h_d(1, 0, 1, 3, 0, 0, 0) += 2.5 * (h_b(1, 0, 1, 3, 0, 0, 0) * rtol);
+  h_d(1, 0, 2, 1, 4, 0, 0) += 1.5 * (h_b(1, 0, 2, 1, 4, 0, 0) * rtol);
+  h_d(0, 0, 2, 1, 3, 1, 0) += 1.8 * (h_b(0, 0, 2, 1, 3, 1, 0) * rtol);
+  h_d(0, 0, 2, 1, 4, 1, 2) += 2.1 * (h_b(0, 0, 2, 1, 4, 1, 2) * rtol);
 
   // e includes small relative and absolute errors -> error count 0
-  h_e(0, 0, 0, 0, 0, 0, 0) =
-      h_e(0, 0, 0, 0, 0, 0, 0) + 0.1 * (h_e(0, 0, 0, 0, 0, 0, 0) * rtol);
-  h_e(1, 0, 0, 0, 0, 0, 0) = h_e(1, 0, 0, 0, 0, 0, 0) + 0.1 * atol;
+  h_e(0, 0, 0, 0, 0, 0, 0) += 0.1 * (h_e(0, 0, 0, 0, 0, 0, 0) * rtol);
+  h_e(1, 0, 0, 0, 0, 0, 0) += 0.1 * atol;
 
   Kokkos::deep_copy(b, h_b);
   Kokkos::deep_copy(c, h_c);
@@ -371,32 +358,24 @@ void test_allclose_8D_analytical(double rtol, double atol) {
   auto h_e = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), e);
 
   // b(0) includes 3.00006 with bigger error than acceptance -> error count 1
-  h_b(0, 0, 0, 0, 0, 0, 0, 0) =
-      h_b(0, 0, 0, 0, 0, 0, 0, 0) + 2.0 * (h_b(0, 0, 0, 0, 0, 0, 0, 0) * rtol);
+  h_b(0, 0, 0, 0, 0, 0, 0, 0) += 2.0 * (h_b(0, 0, 0, 0, 0, 0, 0, 0) * rtol);
 
   // c(a) includes 3.00000001 which is acceptable by rtol -> error count 0
-  h_c(1, 0, 0, 0, 0, 0, 0, 0) = h_c(1, 0, 0, 0, 0, 0, 0, 0) + 2.0 * atol;
+  h_c(1, 0, 0, 0, 0, 0, 0, 0) += 2.0 * atol;
 
   // d includes seven values with bigger errors than acceptance -> error count 7
   h_d(0, 0, 0, 0, 0, 0, 0, 0) = h_b(0, 0, 0, 0, 0, 0, 0, 0);
   h_d(1, 0, 0, 0, 0, 0, 0, 0) = h_c(1, 0, 0, 0, 0, 0, 0, 0);
-  h_d(1, 0, 2, 0, 0, 0, 0, 0) =
-      h_b(1, 0, 2, 0, 0, 0, 0, 0) + 3.0 * (h_b(1, 0, 2, 0, 0, 0, 0, 0) * rtol);
-  h_d(1, 0, 1, 3, 0, 0, 0, 0) =
-      h_b(1, 0, 1, 3, 0, 0, 0, 0) + 2.5 * (h_b(1, 0, 1, 3, 0, 0, 0, 0) * rtol);
-  h_d(1, 0, 2, 1, 4, 0, 0, 0) =
-      h_b(1, 0, 2, 1, 4, 0, 0, 0) + 1.5 * (h_b(1, 0, 2, 1, 4, 0, 0, 0) * rtol);
-  h_d(0, 0, 2, 1, 3, 1, 0, 0) =
-      h_b(0, 0, 2, 1, 3, 1, 0, 0) + 1.8 * (h_b(0, 0, 2, 1, 3, 1, 0, 0) * rtol);
-  h_d(0, 0, 2, 1, 4, 1, 2, 0) =
-      h_b(0, 0, 2, 1, 4, 1, 2, 0) + 2.1 * (h_b(0, 0, 2, 1, 4, 1, 2, 0) * rtol);
-  h_d(0, 0, 2, 1, 4, 1, 2, 5) =
-      h_b(0, 0, 2, 1, 4, 1, 2, 5) + 1.7 * (h_b(0, 0, 2, 1, 4, 1, 2, 5) * rtol);
+  h_d(1, 0, 2, 0, 0, 0, 0, 0) += 3.0 * (h_b(1, 0, 2, 0, 0, 0, 0, 0) * rtol);
+  h_d(1, 0, 1, 3, 0, 0, 0, 0) += 2.5 * (h_b(1, 0, 1, 3, 0, 0, 0, 0) * rtol);
+  h_d(1, 0, 2, 1, 4, 0, 0, 0) += 1.5 * (h_b(1, 0, 2, 1, 4, 0, 0, 0) * rtol);
+  h_d(0, 0, 2, 1, 3, 1, 0, 0) += 1.8 * (h_b(0, 0, 2, 1, 3, 1, 0, 0) * rtol);
+  h_d(0, 0, 2, 1, 4, 1, 2, 0) += 2.1 * (h_b(0, 0, 2, 1, 4, 1, 2, 0) * rtol);
+  h_d(0, 0, 2, 1, 4, 1, 2, 5) += 1.7 * (h_b(0, 0, 2, 1, 4, 1, 2, 5) * rtol);
 
   // e includes small relative and absolute errors -> error count 0
-  h_e(0, 0, 0, 0, 0, 0, 0, 0) =
-      h_e(0, 0, 0, 0, 0, 0, 0, 0) + 0.1 * (h_e(0, 0, 0, 0, 0, 0, 0, 0) * rtol);
-  h_e(1, 0, 0, 0, 0, 0, 0, 0) = h_e(1, 0, 0, 0, 0, 0, 0, 0) + 0.1 * atol;
+  h_e(0, 0, 0, 0, 0, 0, 0, 0) += 0.1 * (h_e(0, 0, 0, 0, 0, 0, 0, 0) * rtol);
+  h_e(1, 0, 0, 0, 0, 0, 0, 0) += 0.1 * atol;
 
   Kokkos::deep_copy(b, h_b);
   Kokkos::deep_copy(c, h_c);
