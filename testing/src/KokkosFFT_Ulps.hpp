@@ -28,14 +28,20 @@ struct FloatIntMap<double> {
   using IntType = std::int64_t;
 };
 
+// half_t and bhalf_t can be alias to float types
+#if defined(KOKKOS_HALF_T_IS_FLOAT) && !KOKKOS_HALF_T_IS_FLOAT
 template <>
 struct FloatIntMap<Kokkos::Experimental::half_t> {
   using IntType = std::int16_t;
 };
+#endif
+
+#if defined(KOKKOS_BHALF_T_IS_FLOAT) && !KOKKOS_BHALF_T_IS_FLOAT
 template <>
 struct FloatIntMap<Kokkos::Experimental::bhalf_t> {
   using IntType = std::int16_t;
 };
+#endif
 
 template <typename ScalarA, typename ScalarB>
 KOKKOS_INLINE_FUNCTION bool almost_equal_ulps(ScalarA a, ScalarB b,
