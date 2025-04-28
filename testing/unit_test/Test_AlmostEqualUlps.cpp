@@ -21,6 +21,8 @@ struct TestAlmostEqualUlps : public ::testing::Test {
 
 // Helper function for nextafter on fp16 types
 template <typename fp16_t>
+  requires(std::is_same_v<fp16_t, Kokkos::Experimental::half_t> ||
+           std::is_same_v<fp16_t, Kokkos::Experimental::bhalf_t>)
 fp16_t nextafter_fp16(fp16_t from, fp16_t to) {
   constexpr std::uint16_t FP16_SIGN_MASK = 0x8000;
   constexpr std::uint16_t FP16_POS_ZERO  = 0x0000;
@@ -94,7 +96,12 @@ template <typename T>
 auto nextafter_wrapper(T from, T to) {
   if constexpr (std::is_same_v<T, Kokkos::Experimental::half_t> ||
                 std::is_same_v<T, Kokkos::Experimental::bhalf_t>) {
+#if (defined(KOKKOS_HALF_T_IS_FLOAT) && !KOKKOS_HALF_T_IS_FLOAT) || \
+    (defined(KOKKOS_BHALF_T_IS_FLOAT) && !KOKKOS_BHALF_T_IS_FLOAT)
     return nextafter_fp16<T>(from, to);
+#else
+    return Kokkos::nextafter(from, to);
+#endif
   } else {
     return Kokkos::nextafter(from, to);
   }
