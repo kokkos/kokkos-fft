@@ -96,8 +96,9 @@ template <typename T>
 auto nextafter_wrapper(T from, T to) {
   if constexpr (std::is_same_v<T, Kokkos::Experimental::half_t> ||
                 std::is_same_v<T, Kokkos::Experimental::bhalf_t>) {
-#if (defined(KOKKOS_HALF_T_IS_FLOAT) && !KOKKOS_HALF_T_IS_FLOAT) || \
-    (defined(KOKKOS_BHALF_T_IS_FLOAT) && !KOKKOS_BHALF_T_IS_FLOAT)
+#if defined(KOKKOS_IMPL_HALF_TYPE_DEFINED) &&                        \
+    ((defined(KOKKOS_HALF_T_IS_FLOAT) && !KOKKOS_HALF_T_IS_FLOAT) || \
+     (defined(KOKKOS_BHALF_T_IS_FLOAT) && !KOKKOS_BHALF_T_IS_FLOAT))
     return nextafter_fp16<T>(from, to);
 #else
     return Kokkos::nextafter(from, to);
