@@ -57,8 +57,7 @@ Kokkos::Iterate get_iteration_order(const ViewType& view) {
 /// \tparam Layout The layout type of the Kokkos views.
 /// \tparam iType The integer type used for indexing the view elements.
 template <KokkosExecutionSpace ExecutionSpace, KokkosView AViewType,
-          KokkosView BViewType, KokkosLayout Layout, std::size_t Rank,
-          typename iType>
+          KokkosView BViewType, KokkosLayout Layout, typename iType>
 struct ViewErrors {
  private:
   // Since MDRangePolicy is not available for 7D and 8D views, we need to
@@ -205,8 +204,7 @@ struct ViewErrors {
 /// \tparam Layout The memory layout type of the Kokkos views.
 /// \tparam iType The integer type used for indexing the view elements.
 template <KokkosExecutionSpace ExecutionSpace, KokkosView AViewType,
-          KokkosView BViewType, KokkosLayout Layout, std::size_t Rank,
-          typename iType>
+          KokkosView BViewType, KokkosLayout Layout, typename iType>
 struct FindErrors {
  private:
   // Since MDRangePolicy is not available for 7D and 8D views, we need to
@@ -392,64 +390,18 @@ struct FindErrors {
       }
     }
 
+    /// \brief Get the flatten index in LayoutLeft order.
+    ///
+    /// \param[in] error_indices The indices of the element in Views
     KOKKOS_INLINE_FUNCTION
     std::size_t get_global_idx(const iType error_indices[]) const {
-      std::size_t global_idx = error_indices[0];
-      if constexpr (AViewType::rank() == 1) {
-        return global_idx;
-      } else if constexpr (AViewType::rank() == 2) {
-        return global_idx + error_indices[1] * m_a.extent(0);
-      } else if constexpr (AViewType::rank() == 3) {
-        return global_idx + error_indices[1] * m_a.extent(0) +
-               error_indices[2] * m_a.extent(0) * m_a.extent(1);
-      } else if constexpr (AViewType::rank() == 4) {
-        return global_idx + error_indices[1] * m_a.extent(0) +
-               error_indices[2] * m_a.extent(0) * m_a.extent(1) +
-               error_indices[3] * m_a.extent(0) * m_a.extent(1) * m_a.extent(2);
-      } else if constexpr (AViewType::rank() == 5) {
-        return global_idx + error_indices[1] * m_a.extent(0) +
-               error_indices[2] * m_a.extent(0) * m_a.extent(1) +
-               error_indices[3] * m_a.extent(0) * m_a.extent(1) *
-                   m_a.extent(2) +
-               error_indices[4] * m_a.extent(0) * m_a.extent(1) *
-                   m_a.extent(2) * m_a.extent(3);
-      } else if constexpr (AViewType::rank() == 6) {
-        return global_idx + error_indices[1] * m_a.extent(0) +
-               error_indices[2] * m_a.extent(0) * m_a.extent(1) +
-               error_indices[3] * m_a.extent(0) * m_a.extent(1) *
-                   m_a.extent(2) +
-               error_indices[4] * m_a.extent(0) * m_a.extent(1) *
-                   m_a.extent(2) * m_a.extent(3) +
-               error_indices[5] * m_a.extent(0) * m_a.extent(1) *
-                   m_a.extent(2) * m_a.extent(3) * m_a.extent(4);
-      } else if constexpr (AViewType::rank() == 7) {
-        return global_idx + error_indices[1] * m_a.extent(0) +
-               error_indices[2] * m_a.extent(0) * m_a.extent(1) +
-               error_indices[3] * m_a.extent(0) * m_a.extent(1) *
-                   m_a.extent(2) +
-               error_indices[4] * m_a.extent(0) * m_a.extent(1) *
-                   m_a.extent(2) * m_a.extent(3) +
-               error_indices[5] * m_a.extent(0) * m_a.extent(1) *
-                   m_a.extent(2) * m_a.extent(3) * m_a.extent(4) +
-               error_indices[6] * m_a.extent(0) * m_a.extent(1) *
-                   m_a.extent(2) * m_a.extent(3) * m_a.extent(4) *
-                   m_a.extent(5);
-      } else {
-        return global_idx + error_indices[1] * m_a.extent(0) +
-               error_indices[2] * m_a.extent(0) * m_a.extent(1) +
-               error_indices[3] * m_a.extent(0) * m_a.extent(1) *
-                   m_a.extent(2) +
-               error_indices[4] * m_a.extent(0) * m_a.extent(1) *
-                   m_a.extent(2) * m_a.extent(3) +
-               error_indices[5] * m_a.extent(0) * m_a.extent(1) *
-                   m_a.extent(2) * m_a.extent(3) * m_a.extent(4) +
-               error_indices[6] * m_a.extent(0) * m_a.extent(1) *
-                   m_a.extent(2) * m_a.extent(3) * m_a.extent(4) *
-                   m_a.extent(5) +
-               error_indices[7] * m_a.extent(0) * m_a.extent(1) *
-                   m_a.extent(2) * m_a.extent(3) * m_a.extent(4) *
-                   m_a.extent(5) * m_a.extent(6);
+      std::size_t global_idx = 0;
+      std::size_t stride     = 1;
+      for (std::size_t d = 0; d < AViewType::rank(); ++d) {
+        global_idx += error_indices[d] * stride;
+        stride *= m_a.extent(d);
       }
+      return global_idx;
     }
   };
 
@@ -493,24 +445,24 @@ std::size_t
       (b.span() >= size_t(std::numeric_limits<int>::max()))) {
     if (iterate == Kokkos::Iterate::Right) {
       Impl::ViewErrors<ExecutionSpace, AViewType, BViewType,
-                       Kokkos::LayoutRight, AViewType::rank(), int64_t>
+                       Kokkos::LayoutRight, int64_t>
           view_errors(a, b, rtol, atol, exec);
       return view_errors.error();
     } else {
       Impl::ViewErrors<ExecutionSpace, AViewType, BViewType, Kokkos::LayoutLeft,
-                       AViewType::rank(), int64_t>
+                       int64_t>
           view_errors(a, b, rtol, atol, exec);
       return view_errors.error();
     }
   } else {
     if (iterate == Kokkos::Iterate::Right) {
       Impl::ViewErrors<ExecutionSpace, AViewType, BViewType,
-                       Kokkos::LayoutRight, AViewType::rank(), int>
+                       Kokkos::LayoutRight, int>
           view_errors(a, b, rtol, atol, exec);
       return view_errors.error();
     } else {
       Impl::ViewErrors<ExecutionSpace, AViewType, BViewType, Kokkos::LayoutLeft,
-                       AViewType::rank(), int>
+                       int>
           view_errors(a, b, rtol, atol, exec);
       return view_errors.error();
     }
@@ -555,24 +507,24 @@ auto find_errors(const ExecutionSpace& exec, const AViewType& a,
       (b.span() >= size_t(std::numeric_limits<int>::max()))) {
     if (iterate == Kokkos::Iterate::Right) {
       Impl::FindErrors<ExecutionSpace, AViewType, BViewType,
-                       Kokkos::LayoutRight, AViewType::rank(), int64_t>
+                       Kokkos::LayoutRight, int64_t>
           find_errors(a, b, nb_errors, rtol, atol, exec);
       return find_errors.error_info();
     } else {
       Impl::FindErrors<ExecutionSpace, AViewType, BViewType, Kokkos::LayoutLeft,
-                       AViewType::rank(), int64_t>
+                       int64_t>
           find_errors(a, b, nb_errors, rtol, atol, exec);
       return find_errors.error_info();
     }
   } else {
     if (iterate == Kokkos::Iterate::Right) {
       Impl::FindErrors<ExecutionSpace, AViewType, BViewType,
-                       Kokkos::LayoutRight, AViewType::rank(), int>
+                       Kokkos::LayoutRight, int>
           find_errors(a, b, nb_errors, rtol, atol, exec);
       return find_errors.error_info();
     } else {
       Impl::FindErrors<ExecutionSpace, AViewType, BViewType, Kokkos::LayoutLeft,
-                       AViewType::rank(), int>
+                       int>
           find_errors(a, b, nb_errors, rtol, atol, exec);
       return find_errors.error_info();
     }
