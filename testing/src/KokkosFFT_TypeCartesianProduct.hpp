@@ -98,6 +98,12 @@ template <class T>
 using tuple_to_types_t = typename tuple_to_types<T>::type;
 
 }  // namespace Impl
+
+// API to generate caresian product of input types
+template <class... InTuplesLike>
+using make_cartesian_types =
+    Impl::tuple_to_types_t<Impl::cartesian_product_t<InTuplesLike...>>;
+
 }  // namespace Testing
 }  // namespace KokkosFFT
 

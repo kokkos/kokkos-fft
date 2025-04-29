@@ -36,6 +36,15 @@ struct CompileTestCartesianProduct : public ::testing::Test {
   }
 };
 
+template <typename T>
+struct CompileTestMakeCartesianProduct : public ::testing::Test {
+  using tuple_type = T;
+
+  virtual void SetUp() {
+    GTEST_SKIP() << "Skipping all tests for this fixture";
+  }
+};
+
 // Tests for appending ValueType or std::tuple<ValueType> to
 // Input tuple type
 template <typename ValueType>
@@ -106,11 +115,12 @@ template <typename TupleType>
 void test_cartesian_product_of_tuple1D() {
   using cartesian_product_type =
       KokkosFFT::Testing::Impl::cartesian_product_t<TupleType>;
-  using T0 = std::tuple<typename std::tuple_element<0, TupleType>::type>;
-  using T1 = std::tuple<typename std::tuple_element<1, TupleType>::type>;
-  using T2 = std::tuple<typename std::tuple_element<2, TupleType>::type>;
+  using T0 = typename std::tuple_element<0, TupleType>::type;
+  using T1 = typename std::tuple_element<1, TupleType>::type;
+  using T2 = typename std::tuple_element<2, TupleType>::type;
 
-  using reference_tuple_type = std::tuple<T0, T1, T2>;
+  using reference_tuple_type =
+      std::tuple<std::tuple<T0>, std::tuple<T1>, std::tuple<T2>>;
 
   testing::StaticAssertTypeEq<cartesian_product_type, reference_tuple_type>();
 }
@@ -193,10 +203,107 @@ void test_cartesian_product_of_tuple3D() {
   testing::StaticAssertTypeEq<cartesian_product_type, reference_tuple_type>();
 }
 
+// Tests for getting a cartesian product of types
+// E.g.
+// std::tuple<float, double, long double> would be converted to
+// std::tuple< std::tuple<float>, std::tuple<double>, std::tuple<long double> >
+template <typename TupleType>
+void test_make_cartesian_product_of_tuple1D() {
+  using cartesian_product_type =
+      KokkosFFT::Testing::make_cartesian_types<TupleType>;
+  using T0 = typename std::tuple_element<0, TupleType>::type;
+  using T1 = typename std::tuple_element<1, TupleType>::type;
+  using T2 = typename std::tuple_element<2, TupleType>::type;
+
+  using reference_tuple_type =
+      testing::Types<std::tuple<T0>, std::tuple<T1>, std::tuple<T2>>;
+
+  testing::StaticAssertTypeEq<cartesian_product_type, reference_tuple_type>();
+}
+
+// Tests for getting a cartesian product of types
+// E.g.
+// std::tuple<float, double, long double> && std::tuple<float, double, long
+// double> would be converted to std::tuple< std::tuple<float, float>,
+// std::tuple<double, float>, std::tuple<long double, float>,
+//             std::tuple<float, double>, std::tuple<double, double>,
+//             std::tuple<long double, double>, std::tuple<float, long double>,
+//             std::tuple<double, long double>, std::tuple<long double, long
+//             double>>
+template <typename TupleType1, typename TupleType2>
+void test_make_cartesian_product_of_tuple2D() {
+  using cartesian_product_type =
+      KokkosFFT::Testing::make_cartesian_types<TupleType1, TupleType2>;
+
+  // Analyze TupleType1
+  using T0_1 = typename std::tuple_element<0, TupleType1>::type;
+  using T1_1 = typename std::tuple_element<1, TupleType1>::type;
+  using T2_1 = typename std::tuple_element<2, TupleType1>::type;
+
+  // Analyze TupleType2
+  using T0_2 = typename std::tuple_element<0, TupleType2>::type;
+  using T1_2 = typename std::tuple_element<1, TupleType2>::type;
+  using T2_2 = typename std::tuple_element<2, TupleType2>::type;
+
+  using reference_tuple_type = testing::Types<
+      std::tuple<T0_1, T0_2>, std::tuple<T1_1, T0_2>, std::tuple<T2_1, T0_2>,
+      std::tuple<T0_1, T1_2>, std::tuple<T1_1, T1_2>, std::tuple<T2_1, T1_2>,
+      std::tuple<T0_1, T2_2>, std::tuple<T1_1, T2_2>, std::tuple<T2_1, T2_2>>;
+
+  testing::StaticAssertTypeEq<cartesian_product_type, reference_tuple_type>();
+}
+
+// Tests for getting a cartesian product of types
+// E.g.
+// std::tuple<float, double, long double> && std::tuple<float, double, long
+// double> would be converted to std::tuple< std::tuple<float, float, float>,
+// std::tuple<double, float, float>, std::tuple<long double, float, float>,
+//             ...
+template <typename TupleType1, typename TupleType2, typename TupleType3>
+void test_make_cartesian_product_of_tuple3D() {
+  using cartesian_product_type =
+      KokkosFFT::Testing::make_cartesian_types<TupleType1, TupleType2,
+                                               TupleType3>;
+
+  // Analyze TupleType1
+  using T0_1 = typename std::tuple_element<0, TupleType1>::type;
+  using T1_1 = typename std::tuple_element<1, TupleType1>::type;
+  using T2_1 = typename std::tuple_element<2, TupleType1>::type;
+
+  // Analyze TupleType2
+  using T0_2 = typename std::tuple_element<0, TupleType2>::type;
+  using T1_2 = typename std::tuple_element<1, TupleType2>::type;
+  using T2_2 = typename std::tuple_element<2, TupleType2>::type;
+
+  // Analyze TupleType3
+  using T0_3 = typename std::tuple_element<0, TupleType3>::type;
+  using T1_3 = typename std::tuple_element<1, TupleType3>::type;
+  using T2_3 = typename std::tuple_element<2, TupleType3>::type;
+
+  using reference_tuple_type =
+      testing::Types<std::tuple<T0_1, T0_2, T0_3>, std::tuple<T1_1, T0_2, T0_3>,
+                     std::tuple<T2_1, T0_2, T0_3>, std::tuple<T0_1, T1_2, T0_3>,
+                     std::tuple<T1_1, T1_2, T0_3>, std::tuple<T2_1, T1_2, T0_3>,
+                     std::tuple<T0_1, T2_2, T0_3>, std::tuple<T1_1, T2_2, T0_3>,
+                     std::tuple<T2_1, T2_2, T0_3>, std::tuple<T0_1, T0_2, T1_3>,
+                     std::tuple<T1_1, T0_2, T1_3>, std::tuple<T2_1, T0_2, T1_3>,
+                     std::tuple<T0_1, T1_2, T1_3>, std::tuple<T1_1, T1_2, T1_3>,
+                     std::tuple<T2_1, T1_2, T1_3>, std::tuple<T0_1, T2_2, T1_3>,
+                     std::tuple<T1_1, T2_2, T1_3>, std::tuple<T2_1, T2_2, T1_3>,
+                     std::tuple<T0_1, T0_2, T2_3>, std::tuple<T1_1, T0_2, T2_3>,
+                     std::tuple<T2_1, T0_2, T2_3>, std::tuple<T0_1, T1_2, T2_3>,
+                     std::tuple<T1_1, T1_2, T2_3>, std::tuple<T2_1, T1_2, T2_3>,
+                     std::tuple<T0_1, T2_2, T2_3>, std::tuple<T1_1, T2_2, T2_3>,
+                     std::tuple<T2_1, T2_2, T2_3>>;
+
+  testing::StaticAssertTypeEq<cartesian_product_type, reference_tuple_type>();
+}
+
 }  // namespace
 
 TYPED_TEST_SUITE(CompileTestManipulateTuples, multiple_types);
 TYPED_TEST_SUITE(CompileTestCartesianProduct, multiple_tuple_types);
+TYPED_TEST_SUITE(CompileTestMakeCartesianProduct, multiple_tuple_types);
 
 TYPED_TEST(CompileTestManipulateTuples, ConcatTuple1D) {
   using value_type = typename TestFixture::value_type;
@@ -226,4 +333,19 @@ TYPED_TEST(CompileTestCartesianProduct, Tuple2D) {
 TYPED_TEST(CompileTestCartesianProduct, Tuple3D) {
   using tuple_type = typename TestFixture::tuple_type;
   test_cartesian_product_of_tuple3D<tuple_type, tuple_type, tuple_type>();
+}
+
+TYPED_TEST(CompileTestMakeCartesianProduct, Tuple1D) {
+  using tuple_type = typename TestFixture::tuple_type;
+  test_make_cartesian_product_of_tuple1D<tuple_type>();
+}
+
+TYPED_TEST(CompileTestMakeCartesianProduct, Tuple2D) {
+  using tuple_type = typename TestFixture::tuple_type;
+  test_make_cartesian_product_of_tuple2D<tuple_type, tuple_type>();
+}
+
+TYPED_TEST(CompileTestMakeCartesianProduct, Tuple3D) {
+  using tuple_type = typename TestFixture::tuple_type;
+  test_make_cartesian_product_of_tuple3D<tuple_type, tuple_type, tuple_type>();
 }
