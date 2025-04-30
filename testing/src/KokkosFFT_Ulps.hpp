@@ -46,6 +46,9 @@ struct FloatIntMap<Kokkos::Experimental::bhalf_t> {
 template <typename ScalarA, typename ScalarB>
 KOKKOS_INLINE_FUNCTION bool almost_equal_ulps(ScalarA a, ScalarB b,
                                               std::size_t max_ulps_diff) {
+  // We consider nans are identical
+  if (Kokkos::isnan(a) && Kokkos::isnan(b)) return true;
+
   // Handle non-finite cases and exact equality first
   if (Kokkos::isnan(a) || Kokkos::isnan(b)) return false;
 

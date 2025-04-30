@@ -21,8 +21,7 @@ struct TestAlmostEqualUlps : public ::testing::Test {
 
 // Helper function for nextafter on fp16 types
 template <typename fp16_t>
-  requires(std::is_same_v<fp16_t, Kokkos::Experimental::half_t> ||
-           std::is_same_v<fp16_t, Kokkos::Experimental::bhalf_t>)
+  requires(sizeof(fp16_t) == 2)
 fp16_t nextafter_fp16(fp16_t from, fp16_t to) {
   constexpr std::uint16_t FP16_SIGN_MASK = 0x8000;
   constexpr std::uint16_t FP16_POS_ZERO  = 0x0000;
@@ -94,11 +93,14 @@ fp16_t nextafter_fp16(fp16_t from, fp16_t to) {
 
 template <typename T>
 auto nextafter_wrapper(T from, T to) {
-  if constexpr (std::is_same_v<T, Kokkos::Experimental::half_t> ||
-                std::is_same_v<T, Kokkos::Experimental::bhalf_t>) {
-#if defined(KOKKOS_IMPL_HALF_TYPE_DEFINED) &&                        \
-    ((defined(KOKKOS_HALF_T_IS_FLOAT) && !KOKKOS_HALF_T_IS_FLOAT) || \
-     (defined(KOKKOS_BHALF_T_IS_FLOAT) && !KOKKOS_BHALF_T_IS_FLOAT))
+  if constexpr (std::is_same_v<T, Kokkos::Experimental::half_t>) {
+#if defined(KOKKOS_HALF_T_IS_FLOAT) && !KOKKOS_HALF_T_IS_FLOAT
+    return nextafter_fp16<T>(from, to);
+#else
+    return Kokkos::nextafter(from, to);
+#endif
+  } else if constexpr (std::is_same_v<T, Kokkos::Experimental::bhalf_t>) {
+#if defined(KOKKOS_BHALF_T_IS_FLOAT) && !KOKKOS_BHALF_T_IS_FLOAT
     return nextafter_fp16<T>(from, to);
 #else
     return Kokkos::nextafter(from, to);
@@ -276,7 +278,7 @@ void test_almost_equal_ulps_nan() {
   Kokkos::parallel_for(
       Kokkos::RangePolicy<execution_space, Kokkos::IndexType<int>>{0, 1},
       KOKKOS_LAMBDA(int) {
-        // Nans are always different -> false
+        // Nans are considered as identical -> true
         a_b_are_almost_equal() =
             KokkosFFT::Testing::Impl::almost_equal_ulps(a, b, 0);
         // Value and Nan are always different -> false
@@ -289,7 +291,7 @@ void test_almost_equal_ulps_nan() {
   auto h_a_c_are_almost_equal = Kokkos::create_mirror_view_and_copy(
       Kokkos::HostSpace{}, a_c_are_almost_equal);
 
-  ASSERT_FALSE(h_a_b_are_almost_equal());
+  ASSERT_TRUE(h_a_b_are_almost_equal());
   ASSERT_FALSE(h_a_c_are_almost_equal());
 }
 
