@@ -59,6 +59,7 @@ void fft(const ExecutionSpace& exec_space, const InViewType& in,
       "and OutViewType.");
   static_assert(InViewType::rank() >= 1,
                 "fft: View rank must be larger than or equal to 1");
+
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
 

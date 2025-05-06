@@ -307,7 +307,7 @@ void test_fft1_1dfft_1dview() {
   // Analytical tests with real signal
   const int len_sig = 6;
   RealView1DType signal("signal", len_sig);
-  ComplexView1DType signal_out("signal", len_sig),
+  ComplexView1DType signal_out("signal_out", len_sig),
       ref_signal("ref_signal", len_sig);
 
   execution_space exec;
@@ -342,8 +342,10 @@ void test_fft1_1dfft_1dview() {
   for (std::size_t i = 0; i < ref_signal_val.size(); i++) {
     h_ref_signal(i) = ref_signal_val.at(i);
   }
+
   Kokkos::deep_copy(signal, h_signal);
   Kokkos::deep_copy(ref_signal, h_ref_signal);
+
   KokkosFFT::fft(exec, signal, signal_out);
   EXPECT_TRUE(allclose(exec, signal_out, ref_signal, 1.e-5, 1.e-6));
   exec.fence();
@@ -399,7 +401,7 @@ void test_fft1_1dhfft_1dview() {
   // Analytical tests with real signal
   const int len_sig = 6;
   RealView1DType signal("signal", len_sig / 2 + 1),
-      signal_out("signal", len_sig), ref_signal("ref_signal", len_sig);
+      signal_out("signal_out", len_sig), ref_signal("ref_signal", len_sig);
 
   execution_space exec;
   const Kokkos::complex<T> z(1.0, 1.0);
