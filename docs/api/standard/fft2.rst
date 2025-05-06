@@ -6,3 +6,7 @@ KokkosFFT::fft2
 ---------------
 
 .. doxygenfunction:: KokkosFFT::fft2(const ExecutionSpace& exec_space, const InViewType& in, const OutViewType& out, KokkosFFT::Normalization, axis_type<2> axes, shape_type<2> s)
+
+.. note::
+
+   For the real input, we internally convert it to complex and perform ``fft2`` on it.
