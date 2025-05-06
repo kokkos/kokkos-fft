@@ -57,7 +57,7 @@ auto convert_negative_shift(const ViewType& view, int shift, int axis) {
 }
 
 template <typename ContainerType, typename ValueType>
-bool is_found(ContainerType& values, const ValueType& value) {
+bool is_found(const ContainerType& values, const ValueType value) {
   using value_type = KokkosFFT::Impl::base_container_value_type<ContainerType>;
   static_assert(std::is_same_v<value_type, ValueType>,
                 "is_found: Container value type must match ValueType");
@@ -126,14 +126,14 @@ bool are_valid_axes(const ViewType& view, const ArrayType<IntType, DIM>& axes) {
 }
 
 template <std::size_t DIM = 1>
-bool is_transpose_needed(std::array<int, DIM> map) {
+bool is_transpose_needed(const std::array<int, DIM>& map) {
   std::array<int, DIM> contiguous_map;
   std::iota(contiguous_map.begin(), contiguous_map.end(), 0);
   return map != contiguous_map;
 }
 
 template <typename ContainerType, typename ValueType>
-std::size_t get_index(ContainerType& values, const ValueType& value) {
+std::size_t get_index(const ContainerType& values, const ValueType value) {
   using value_type = KokkosFFT::Impl::base_container_value_type<ContainerType>;
   static_assert(std::is_same_v<value_type, ValueType>,
                 "get_index: Container value type must match ValueType");
