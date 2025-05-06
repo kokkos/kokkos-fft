@@ -39,7 +39,7 @@ void execute(
 /// \tparam OutViewType: Output View type for the fft
 ///
 /// \param exec_space [in] Kokkos execution space
-/// \param in [in] Input data (complex)
+/// \param in [in] Input data (real or complex)
 /// \param out [out] Output data (complex)
 /// \param norm [in] How the normalization is applied (default, backward)
 /// \param axis [in] Axis over which FFT is performed (default, -1)
@@ -224,7 +224,7 @@ void irfft(const ExecutionSpace& exec_space, const InViewType& in,
 /// \tparam OutViewType: Output View type for the fft
 ///
 /// \param exec_space [in] Kokkos execution space
-/// \param in [in] Input data (complex)
+/// \param in [in] Input data (real or complex)
 /// \param out [out] Output data (real)
 /// \param norm [in] How the normalization is applied (default, backward)
 /// \param axis [in] Axis over which FFT is performed (default, -1)
@@ -332,7 +332,7 @@ void ihfft(const ExecutionSpace& exec_space, const InViewType& in,
 /// \tparam OutViewType: Output View type for the fft
 ///
 /// \param exec_space [in] Kokkos execution space
-/// \param in [in] Input data (complex)
+/// \param in [in] Input data (real or complex)
 /// \param out [out] Output data (complex)
 /// \param norm [in] How the normalization is applied (default, backward)
 /// \param axes [in] Axes over which FFT is performed (default, {-2, -1})
@@ -518,7 +518,7 @@ void irfft2(const ExecutionSpace& exec_space, const InViewType& in,
 /// \tparam DIM: The dimensionality of the fft
 ///
 /// \param exec_space [in] Kokkos execution space
-/// \param in [in] Input data (complex)
+/// \param in [in] Input data (real or complex)
 /// \param out [out] Output data (complex)
 /// \param axes [in] Axes over which FFT is performed (default, all axes)
 /// \param norm [in] How the normalization is applied (default, backward)
