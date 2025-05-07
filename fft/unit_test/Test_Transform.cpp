@@ -295,13 +295,20 @@ void test_fft1_identity_reuse_plan(T atol = 1.0e-12) {
 
 template <typename T, typename LayoutType>
 void test_fft1_1dfft_1dview() {
-  const int len = 30;
+  const int len        = 30;
+  using RealView1DType = Kokkos::View<T*, LayoutType, execution_space>;
   using ComplexView1DType =
       Kokkos::View<Kokkos::complex<T>*, LayoutType, execution_space>;
 
   ComplexView1DType x("x", len), out("out", len), ref("ref", len);
   ComplexView1DType out_b("out_b", len), out_o("out_o", len),
       out_f("out_f", len);
+
+  // Analytical tests with real signal
+  const int len_sig = 6;
+  RealView1DType signal("signal", len_sig);
+  ComplexView1DType signal_out("signal_out", len_sig),
+      ref_signal("ref_signal", len_sig);
 
   execution_space exec;
   const Kokkos::complex<T> z(1.0, 1.0);
@@ -322,6 +329,25 @@ void test_fft1_1dfft_1dview() {
   EXPECT_TRUE(allclose(exec, out_b, ref, 1.e-5, 1.e-6));
   EXPECT_TRUE(allclose(exec, out_o, ref, 1.e-5, 1.e-6));
   EXPECT_TRUE(allclose(exec, out_f, ref, 1.e-5, 1.e-6));
+  exec.fence();
+
+  // For analytical tests
+  auto h_signal                 = Kokkos::create_mirror_view(signal);
+  auto h_ref_signal             = Kokkos::create_mirror_view(ref_signal);
+  std::vector<T> signal_val     = {1.0, 2.0, 3.0, 4.0, 3.0, 2.0};
+  std::vector<T> ref_signal_val = {15.0, -4.0, 0.0, -1.0, 0.0, -4.0};
+  for (std::size_t i = 0; i < signal_val.size(); i++) {
+    h_signal(i) = signal_val.at(i);
+  }
+  for (std::size_t i = 0; i < ref_signal_val.size(); i++) {
+    h_ref_signal(i) = ref_signal_val.at(i);
+  }
+
+  Kokkos::deep_copy(signal, h_signal);
+  Kokkos::deep_copy(ref_signal, h_ref_signal);
+
+  KokkosFFT::fft(exec, signal, signal_out);
+  EXPECT_TRUE(allclose(exec, signal_out, ref_signal, 1.e-5, 1.e-6));
   exec.fence();
 }
 
@@ -372,14 +398,21 @@ void test_fft1_1dhfft_1dview() {
   RealView1DType out("out", len);
   RealView1DType out_b("out_b", len), out_o("out_o", len), out_f("out_f", len);
 
+  // Analytical tests with real signal
+  const int len_sig = 6;
+  RealView1DType signal("signal", len_sig / 2 + 1),
+      signal_out("signal_out", len_sig), ref_signal("ref_signal", len_sig);
+
   execution_space exec;
   const Kokkos::complex<T> z(1.0, 1.0);
   Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
   Kokkos::fill_random(exec, x_herm, random_pool, z);
   exec.fence();
 
-  auto h_x      = Kokkos::create_mirror_view(x);
-  auto h_x_herm = Kokkos::create_mirror_view(x_herm);
+  auto h_x          = Kokkos::create_mirror_view(x);
+  auto h_x_herm     = Kokkos::create_mirror_view(x_herm);
+  auto h_signal     = Kokkos::create_mirror_view(signal);
+  auto h_ref_signal = Kokkos::create_mirror_view(ref_signal);
   Kokkos::deep_copy(h_x_herm, x_herm);
 
   auto last      = h_x_herm.extent(0) - 1;
@@ -395,9 +428,21 @@ void test_fft1_1dhfft_1dview() {
     h_x(len - i) = Kokkos::conj(h_x_herm(i));
   }
 
+  // For analytical tests
+  std::vector<T> signal_val     = {1.0, 2.0, 3.0, 4.0};
+  std::vector<T> ref_signal_val = {15.0, -4.0, 0.0, -1.0, 0.0, -4.0};
+  for (std::size_t i = 0; i < signal_val.size(); i++) {
+    h_signal(i) = signal_val.at(i);
+  }
+  for (std::size_t i = 0; i < ref_signal_val.size(); i++) {
+    h_ref_signal(i) = ref_signal_val.at(i);
+  }
+
   Kokkos::deep_copy(x_herm, h_x_herm);
   Kokkos::deep_copy(x_herm_ref, h_x_herm);
   Kokkos::deep_copy(x, h_x);
+  Kokkos::deep_copy(signal, h_signal);
+  Kokkos::deep_copy(ref_signal, h_ref_signal);
 
   KokkosFFT::fft(exec, x, ref);
 
@@ -421,6 +466,11 @@ void test_fft1_1dhfft_1dview() {
   EXPECT_TRUE(allclose(exec, out_b, out, 1.e-5, 1.e-6));
   EXPECT_TRUE(allclose(exec, out_o, out, 1.e-5, 1.e-6));
   EXPECT_TRUE(allclose(exec, out_f, out, 1.e-5, 1.e-6));
+  exec.fence();
+
+  // Analytical tests
+  KokkosFFT::hfft(exec, signal, signal_out);
+  EXPECT_TRUE(allclose(exec, signal_out, ref_signal, 1.e-5, 1.e-6));
   exec.fence();
 }
 

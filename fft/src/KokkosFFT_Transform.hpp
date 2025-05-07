@@ -39,7 +39,7 @@ void execute(
 /// \tparam OutViewType: Output View type for the fft
 ///
 /// \param exec_space [in] Kokkos execution space
-/// \param in [in] Input data (complex)
+/// \param in [in] Input data (real or complex)
 /// \param out [out] Output data (complex)
 /// \param norm [in] How the normalization is applied (default, backward)
 /// \param axis [in] Axis over which FFT is performed (default, -1)
@@ -60,12 +60,36 @@ void fft(const ExecutionSpace& exec_space, const InViewType& in,
   static_assert(InViewType::rank() >= 1,
                 "fft: View rank must be larger than or equal to 1");
 
+  using in_value_type  = typename InViewType::non_const_value_type;
+  using out_value_type = typename OutViewType::non_const_value_type;
+
+  static_assert(KokkosFFT::Impl::is_complex_v<out_value_type>,
+                "fft: OutViewType must be complex");
+
   Kokkos::Profiling::ScopedRegion region("KokkosFFT::fft");
   KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axis_type<1>({axis})),
                      "axes are invalid for in/out views");
-  KokkosFFT::Plan plan(exec_space, in, out, KokkosFFT::Direction::forward, axis,
-                       n);
-  plan.execute_impl(in, out, norm);
+  if constexpr (KokkosFFT::Impl::is_real_v<in_value_type>) {
+    // Convert to complex type
+    using ComplexType = Kokkos::complex<in_value_type>;
+    using ComplexInViewType =
+        typename KokkosFFT::Impl::ConvertedViewType<InViewType,
+                                                    ComplexType>::type;
+    using ManageableComplexInViewType =
+        typename KokkosFFT::Impl::manageable_view_type<ComplexInViewType>::type;
+    using LayoutType = typename ManageableComplexInViewType::array_layout;
+    auto extents     = KokkosFFT::Impl::extract_extents(in);
+    ManageableComplexInViewType cin(
+        "cin", KokkosFFT::Impl::create_layout<LayoutType>(extents));
+    Kokkos::deep_copy(cin, in);
+    KokkosFFT::Plan plan(exec_space, cin, out, KokkosFFT::Direction::forward,
+                         axis, n);
+    plan.execute_impl(cin, out, norm);
+  } else {
+    KokkosFFT::Plan plan(exec_space, in, out, KokkosFFT::Direction::forward,
+                         axis, n);
+    plan.execute_impl(in, out, norm);
+  }
 }
 
 /// \brief One dimensional FFT in backward direction
@@ -200,7 +224,7 @@ void irfft(const ExecutionSpace& exec_space, const InViewType& in,
 /// \tparam OutViewType: Output View type for the fft
 ///
 /// \param exec_space [in] Kokkos execution space
-/// \param in [in] Input data (complex)
+/// \param in [in] Input data (real or complex)
 /// \param out [out] Output data (real)
 /// \param norm [in] How the normalization is applied (default, backward)
 /// \param axis [in] Axis over which FFT is performed (default, -1)
@@ -221,13 +245,9 @@ void hfft(const ExecutionSpace& exec_space, const InViewType& in,
   static_assert(InViewType::rank() >= 1,
                 "hfft: View rank must be larger than or equal to 1");
 
-  // [TO DO]
-  // allow real type as input, need to obtain complex view type from in view
-  // type
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
-  static_assert(KokkosFFT::Impl::is_complex_v<in_value_type>,
-                "hfft: InViewType must be complex");
+
   static_assert(KokkosFFT::Impl::is_real_v<out_value_type>,
                 "hfft: OutViewType must be real");
 
@@ -235,12 +255,26 @@ void hfft(const ExecutionSpace& exec_space, const InViewType& in,
   KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axis_type<1>({axis})),
                      "axes are invalid for in/out views");
   auto new_norm = KokkosFFT::Impl::swap_direction(norm);
-  // using ComplexViewType = typename
-  // KokkosFFT::Impl::complex_view_type<ExecutionSpace, InViewType>::type;
-  // ComplexViewType in_conj;
-  InViewType in_conj;
-  KokkosFFT::Impl::conjugate(exec_space, in, in_conj);
-  irfft(exec_space, in_conj, out, new_norm, axis, n);
+
+  if constexpr (KokkosFFT::Impl::is_real_v<in_value_type>) {
+    // Convert to complex type
+    using ComplexType = Kokkos::complex<in_value_type>;
+    using ComplexInViewType =
+        typename KokkosFFT::Impl::ConvertedViewType<InViewType,
+                                                    ComplexType>::type;
+    using ManageableComplexInViewType =
+        typename KokkosFFT::Impl::manageable_view_type<ComplexInViewType>::type;
+    using LayoutType = typename ManageableComplexInViewType::array_layout;
+    auto extents     = KokkosFFT::Impl::extract_extents(in);
+    ManageableComplexInViewType cin(
+        "cin", KokkosFFT::Impl::create_layout<LayoutType>(extents));
+    Kokkos::deep_copy(cin, in);
+    irfft(exec_space, cin, out, new_norm, axis, n);
+  } else {
+    InViewType in_conj;
+    KokkosFFT::Impl::conjugate(exec_space, in, in_conj);
+    irfft(exec_space, in_conj, out, new_norm, axis, n);
+  }
 }
 
 /// \brief Inverse of hfft
@@ -298,7 +332,7 @@ void ihfft(const ExecutionSpace& exec_space, const InViewType& in,
 /// \tparam OutViewType: Output View type for the fft
 ///
 /// \param exec_space [in] Kokkos execution space
-/// \param in [in] Input data (complex)
+/// \param in [in] Input data (real or complex)
 /// \param out [out] Output data (complex)
 /// \param norm [in] How the normalization is applied (default, backward)
 /// \param axes [in] Axes over which FFT is performed (default, {-2, -1})
@@ -318,12 +352,36 @@ void fft2(const ExecutionSpace& exec_space, const InViewType& in,
   static_assert(InViewType::rank() >= 2,
                 "fft2: View rank must be larger than or equal to 2");
 
+  using in_value_type  = typename InViewType::non_const_value_type;
+  using out_value_type = typename OutViewType::non_const_value_type;
+
+  static_assert(KokkosFFT::Impl::is_complex_v<out_value_type>,
+                "fft2: OutViewType must be complex");
+
   Kokkos::Profiling::ScopedRegion region("KokkosFFT::fft2");
   KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axes),
                      "axes are invalid for in/out views");
-  KokkosFFT::Plan plan(exec_space, in, out, KokkosFFT::Direction::forward, axes,
-                       s);
-  plan.execute_impl(in, out, norm);
+  if constexpr (KokkosFFT::Impl::is_real_v<in_value_type>) {
+    // Convert to complex type
+    using ComplexType = Kokkos::complex<in_value_type>;
+    using ComplexInViewType =
+        typename KokkosFFT::Impl::ConvertedViewType<InViewType,
+                                                    ComplexType>::type;
+    using ManageableComplexInViewType =
+        typename KokkosFFT::Impl::manageable_view_type<ComplexInViewType>::type;
+    using LayoutType = typename ManageableComplexInViewType::array_layout;
+    auto extents     = KokkosFFT::Impl::extract_extents(in);
+    ManageableComplexInViewType cin(
+        "cin", KokkosFFT::Impl::create_layout<LayoutType>(extents));
+    Kokkos::deep_copy(cin, in);
+    KokkosFFT::Plan plan(exec_space, cin, out, KokkosFFT::Direction::forward,
+                         axes, s);
+    plan.execute_impl(cin, out, norm);
+  } else {
+    KokkosFFT::Plan plan(exec_space, in, out, KokkosFFT::Direction::forward,
+                         axes, s);
+    plan.execute_impl(in, out, norm);
+  }
 }
 
 /// \brief Two dimensional FFT in backward direction
@@ -460,7 +518,7 @@ void irfft2(const ExecutionSpace& exec_space, const InViewType& in,
 /// \tparam DIM: The dimensionality of the fft
 ///
 /// \param exec_space [in] Kokkos execution space
-/// \param in [in] Input data (complex)
+/// \param in [in] Input data (real or complex)
 /// \param out [out] Output data (complex)
 /// \param axes [in] Axes over which FFT is performed (default, all axes)
 /// \param norm [in] How the normalization is applied (default, backward)
@@ -492,12 +550,36 @@ void fftn(
       InViewType::rank() >= DIM,
       "fftn: View rank must be larger than or equal to the Rank of FFT axes");
 
+  using in_value_type  = typename InViewType::non_const_value_type;
+  using out_value_type = typename OutViewType::non_const_value_type;
+
+  static_assert(KokkosFFT::Impl::is_complex_v<out_value_type>,
+                "fftn: OutViewType must be complex");
+
   Kokkos::Profiling::ScopedRegion region("KokkosFFT::fftn");
   KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axes),
                      "axes are invalid for in/out views");
-  KokkosFFT::Plan plan(exec_space, in, out, KokkosFFT::Direction::forward, axes,
-                       s);
-  plan.execute_impl(in, out, norm);
+  if constexpr (KokkosFFT::Impl::is_real_v<in_value_type>) {
+    // Convert to complex type
+    using ComplexType = Kokkos::complex<in_value_type>;
+    using ComplexInViewType =
+        typename KokkosFFT::Impl::ConvertedViewType<InViewType,
+                                                    ComplexType>::type;
+    using ManageableComplexInViewType =
+        typename KokkosFFT::Impl::manageable_view_type<ComplexInViewType>::type;
+    using LayoutType = typename ManageableComplexInViewType::array_layout;
+    auto extents     = KokkosFFT::Impl::extract_extents(in);
+    ManageableComplexInViewType cin(
+        "cin", KokkosFFT::Impl::create_layout<LayoutType>(extents));
+    Kokkos::deep_copy(cin, in);
+    KokkosFFT::Plan plan(exec_space, cin, out, KokkosFFT::Direction::forward,
+                         axes, s);
+    plan.execute_impl(cin, out, norm);
+  } else {
+    KokkosFFT::Plan plan(exec_space, in, out, KokkosFFT::Direction::forward,
+                         axes, s);
+    plan.execute_impl(in, out, norm);
+  }
 }
 
 /// \brief Inverse of fftn
