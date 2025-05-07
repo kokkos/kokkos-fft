@@ -19,6 +19,7 @@ option(KokkosFFT_ENABLE_EXAMPLES "Build KokkosFFT examples" OFF)
 option(KokkosFFT_ENABLE_TESTS "Build KokkosFFT tests" OFF)
 option(KokkosFFT_ENABLE_BENCHMARK "Build benchmarks for KokkosFFT" OFF)
 option(KokkosFFT_ENABLE_DOCS "Build KokkosFFT documentaion/website" OFF)
+option(KokkosFFT_ENABLE_TESTING_TOOLS "Enable unit-testing tools" OFF)
 
 # Version information
 set(KOKKOSFFT_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
