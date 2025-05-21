@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
+#include <utility>
 #include <gtest/gtest.h>
 #include "KokkosFFT_TypeCartesianProduct.hpp"
 
@@ -9,11 +10,12 @@
 // by GTEST_SKIP(). gtest is used for type parameterization.
 
 namespace {
-using multiple_types = ::testing::Types<int, std::size_t, float, double>;
+using multiple_types = ::testing::Types<bool, int, std::size_t, float, double>;
+using integer_types  = ::testing::Types<int, std::size_t>;
 
 // Define the types to combine
 using base_real_types = std::tuple<float, double, long double>;
-using base_int_types  = std::tuple<int, std::size_t, bool>;
+using base_int_types  = std::tuple<bool, int, std::size_t>;
 
 using multiple_tuple_types = ::testing::Types<base_real_types, base_int_types>;
 
@@ -37,6 +39,15 @@ struct CompileTestCartesianProduct : public ::testing::Test {
 };
 
 template <typename T>
+struct CompileTestValueCartesianProduct : public ::testing::Test {
+  using int_type = T;
+
+  virtual void SetUp() {
+    GTEST_SKIP() << "Skipping all tests for this fixture";
+  }
+};
+
+template <typename T>
 struct CompileTestMakeCartesianProduct : public ::testing::Test {
   using tuple_type = T;
 
@@ -48,7 +59,7 @@ struct CompileTestMakeCartesianProduct : public ::testing::Test {
 // Tests for appending ValueType or std::tuple<ValueType> to
 // Input tuple type
 template <typename ValueType>
-void test_concat_tuple1D() {
+void test_concat_single_tuple() {
   using input_tuple_type = std::tuple<std::tuple<double, double>>;
   using tuple_and_tuple_type =
       KokkosFFT::Testing::Impl::for_each_tuple_cat_t<input_tuple_type,
@@ -66,7 +77,7 @@ void test_concat_tuple1D() {
 // Tests for appending ValueType or std::tuple<ValueType> to
 // Input 2D tuple type
 template <typename ValueType>
-void test_concat_tuple2D() {
+void test_concat_two_tuples() {
   using input_tuple_type =
       std::tuple<std::tuple<double, double>, std::tuple<int, double>>;
   using tuple_and_tuple_type =
@@ -85,7 +96,7 @@ void test_concat_tuple2D() {
 // Tests for transforming a std::tuple<Args...> to a testing::Types<Args...>,
 // identity otherwise
 template <typename ValueType>
-void test_to_testing_types() {
+void test_tuple_to_testing_types() {
   using from_value_type = KokkosFFT::Testing::Impl::tuple_to_types_t<ValueType>;
   using from_tuple_type =
       KokkosFFT::Testing::Impl::tuple_to_types_t<std::tuple<ValueType>>;
@@ -203,6 +214,47 @@ void test_cartesian_product_of_tuple3D() {
   testing::StaticAssertTypeEq<cartesian_product_type, reference_tuple_type>();
 }
 
+// Tests for getting a cartesian product of sequences
+// E.g.
+// std::integer_sequence<std::size_t, 1, 2, 3> && std::integer_sequence<bool,
+// true, false> would be converted to
+// std::tuple<std::tuple<std::integral_constant<std::size_t, 1>,
+// std::integral_constant<bool, true>>,
+//             std::tuple<std::integral_constant<std::size_t, 2>,
+//             std::integral_constant<bool, true>>,
+//             std::tuple<std::integral_constant<std::size_t, 3>,
+//             std::integral_constant<bool, true>>,
+//             std::tuple<std::integral_constant<std::size_t, 1>,
+//             std::integral_constant<bool, false>>,
+//             std::tuple<std::integral_constant<std::size_t, 2>,
+//             std::integral_constant<bool, false>>,
+//             std::tuple<std::integral_constant<std::size_t, 3>,
+//             std::integral_constant<bool, false>>>
+template <typename IntType>
+void test_cartesian_product_of_values() {
+  using integers = std::integer_sequence<IntType, 1, 2, 3>;
+  using booleans = std::integer_sequence<bool, true, false>;
+
+  using cartesian_product_type =
+      KokkosFFT::Testing::Impl::cartesian_product_t<integers, booleans>;
+
+  using reference_tuple_type =
+      std::tuple<std::tuple<std::integral_constant<IntType, 1>,
+                            std::integral_constant<bool, true>>,
+                 std::tuple<std::integral_constant<IntType, 2>,
+                            std::integral_constant<bool, true>>,
+                 std::tuple<std::integral_constant<IntType, 3>,
+                            std::integral_constant<bool, true>>,
+                 std::tuple<std::integral_constant<IntType, 1>,
+                            std::integral_constant<bool, false>>,
+                 std::tuple<std::integral_constant<IntType, 2>,
+                            std::integral_constant<bool, false>>,
+                 std::tuple<std::integral_constant<IntType, 3>,
+                            std::integral_constant<bool, false>>>;
+
+  testing::StaticAssertTypeEq<cartesian_product_type, reference_tuple_type>();
+}
+
 // Tests for getting a cartesian product of types
 // E.g.
 // std::tuple<float, double, long double> would be converted to
@@ -303,21 +355,22 @@ void test_make_cartesian_product_of_tuple3D() {
 
 TYPED_TEST_SUITE(CompileTestManipulateTuples, multiple_types);
 TYPED_TEST_SUITE(CompileTestCartesianProduct, multiple_tuple_types);
+TYPED_TEST_SUITE(CompileTestValueCartesianProduct, integer_types);
 TYPED_TEST_SUITE(CompileTestMakeCartesianProduct, multiple_tuple_types);
 
-TYPED_TEST(CompileTestManipulateTuples, ConcatTuple1D) {
+TYPED_TEST(CompileTestManipulateTuples, ConcatSingleTuple) {
   using value_type = typename TestFixture::value_type;
-  test_concat_tuple1D<value_type>();
+  test_concat_single_tuple<value_type>();
 }
 
-TYPED_TEST(CompileTestManipulateTuples, ConcatTuple2D) {
+TYPED_TEST(CompileTestManipulateTuples, ConcatTwoTuples) {
   using value_type = typename TestFixture::value_type;
-  test_concat_tuple2D<value_type>();
+  test_concat_two_tuples<value_type>();
 }
 
-TYPED_TEST(CompileTestManipulateTuples, ToTestingTypes) {
+TYPED_TEST(CompileTestManipulateTuples, TupleToTestingTypes) {
   using value_type = typename TestFixture::value_type;
-  test_to_testing_types<value_type>();
+  test_tuple_to_testing_types<value_type>();
 }
 
 TYPED_TEST(CompileTestCartesianProduct, Tuple1D) {
@@ -333,6 +386,11 @@ TYPED_TEST(CompileTestCartesianProduct, Tuple2D) {
 TYPED_TEST(CompileTestCartesianProduct, Tuple3D) {
   using tuple_type = typename TestFixture::tuple_type;
   test_cartesian_product_of_tuple3D<tuple_type, tuple_type, tuple_type>();
+}
+
+TYPED_TEST(CompileTestValueCartesianProduct, IntegerSequences) {
+  using int_type = typename TestFixture::int_type;
+  test_cartesian_product_of_values<int_type>();
 }
 
 TYPED_TEST(CompileTestMakeCartesianProduct, Tuple1D) {

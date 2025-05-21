@@ -35,30 +35,38 @@ struct to_tuple<std::pair<T, U>> {
 template <class S>
 using to_tuple_t = typename to_tuple<S>::type;
 
-template <class TupleOfTuples, class Tuple>
+template <class TupleOfTuples, class Type>
 struct for_each_tuple_cat;
 
-template <class... Tuples, class Tuple>
-struct for_each_tuple_cat<std::tuple<Tuples...>, Tuple> {
+template <class... Tuples, class Type>
+struct for_each_tuple_cat<std::tuple<Tuples...>, Type> {
   using type = std::tuple<decltype(std::tuple_cat(
-      std::declval<Tuples>(), std::declval<std::tuple<Tuple>>()))...>;
+      std::declval<Tuples>(), std::declval<std::tuple<Type>>()))...>;
 };
 
-template <class... Tuples, class Tuple>
-struct for_each_tuple_cat<std::tuple<Tuples...>, std::tuple<Tuple>> {
+template <class... Tuples, class Type>
+struct for_each_tuple_cat<std::tuple<Tuples...>, std::tuple<Type>> {
   using type = std::tuple<decltype(std::tuple_cat(
-      std::declval<Tuples>(), std::declval<std::tuple<Tuple>>()))...>;
+      std::declval<Tuples>(), std::declval<std::tuple<Type>>()))...>;
 };
 
 /// Construct a tuple of tuples that is the result of the concatenation of the
 /// tuples in TupleOfTuples with Tuple.
-template <class TupleOfTuples, class Tuple>
+template <class TupleOfTuples, class Type>
 using for_each_tuple_cat_t =
-    typename for_each_tuple_cat<TupleOfTuples, Tuple>::type;
+    typename for_each_tuple_cat<TupleOfTuples, Type>::type;
 
 template <class InTupleOfTuples, class OutTupleOfTuples>
 struct cartesian_product_impl;
 
+/// \brief Recursive case: The cartesian product is built in a recursive manner.
+/// Each time, each element of the tuple in std::tuple<HeardArgs...> is added to
+/// all the tuples in OutTupleOfTuples. Then the process is repeated with the
+/// next tuple that is present in TailTuples...
+///
+/// \tparam HeadArgs The types of the first tuple in the input tuple of tuples
+/// \tparam TailTuples The remaining tuples in the input tuple of tuples
+/// \tparam OutTupleOfTuples The output tuple of tuples
 template <class... HeadArgs, class... TailTuples, class OutTupleOfTuples>
 struct cartesian_product_impl<
     std::tuple<std::tuple<HeadArgs...>, TailTuples...>, OutTupleOfTuples>
