@@ -147,8 +147,7 @@ struct Roll {
   template <std::size_t... Idx>
   struct RollInternal<std::index_sequence<Idx...>> {
     template <std::size_t I>
-    using IndicesType                   = iType;
-    static constexpr std::size_t m_rank = sizeof...(Idx);
+    using IndicesType = iType;
 
     ViewType m_x;
     ManageableViewType m_buffer;
@@ -164,47 +163,47 @@ struct Roll {
         return (idx_src + iType(m_shifts[axis])) % iType(m_x.extent(axis));
       };
 
-      iType src_idx[m_rank] = {static_cast<iType>(indices)...};
-      iType dst_idx[m_rank] = {};
-
-      for (std::size_t i = 0; i < m_rank; ++i) {
-        dst_idx[i] = get_dst(src_idx[i], i);
-      }
-      if constexpr (ViewType::rank() == 1) {
-        m_buffer(dst_idx[0]) = m_x(src_idx[0]);
-      } else if constexpr (ViewType::rank() == 2) {
-        m_buffer(dst_idx[0], dst_idx[1]) = m_x(src_idx[0], src_idx[1]);
-      } else if constexpr (ViewType::rank() == 3) {
-        m_buffer(dst_idx[0], dst_idx[1], dst_idx[2]) =
-            m_x(src_idx[0], src_idx[1], src_idx[2]);
-      } else if constexpr (ViewType::rank() == 4) {
-        m_buffer(dst_idx[0], dst_idx[1], dst_idx[2], dst_idx[3]) =
-            m_x(src_idx[0], src_idx[1], src_idx[2], src_idx[3]);
-      } else if constexpr (ViewType::rank() == 5) {
-        m_buffer(dst_idx[0], dst_idx[1], dst_idx[2], dst_idx[3], dst_idx[4]) =
-            m_x(src_idx[0], src_idx[1], src_idx[2], src_idx[3], src_idx[4]);
-      } else if constexpr (ViewType::rank() == 6) {
-        m_buffer(dst_idx[0], dst_idx[1], dst_idx[2], dst_idx[3], dst_idx[4],
-                 dst_idx[5]) = m_x(src_idx[0], src_idx[1], src_idx[2],
-                                   src_idx[3], src_idx[4], src_idx[5]);
+      if constexpr (ViewType::rank() <= 6) {
+        iType src_idx[ViewType::rank()] = {static_cast<iType>(indices)...};
+        iType dst_idx[ViewType::rank()] = {};
+        for (std::size_t i = 0; i < ViewType::rank(); ++i) {
+          dst_idx[i] = get_dst(src_idx[i], i);
+        }
+        roll_internal(dst_idx, src_idx,
+                      std::make_index_sequence<ViewType::rank()>{});
       } else if constexpr (ViewType::rank() == 7) {
         for (iType i6 = 0; i6 < iType(m_x.extent(6)); i6++) {
-          m_buffer(dst_idx[0], dst_idx[1], dst_idx[2], dst_idx[3], dst_idx[4],
-                   dst_idx[5], get_dst(i6, 6)) =
-              m_x(src_idx[0], src_idx[1], src_idx[2], src_idx[3], src_idx[4],
-                  src_idx[5], i6);
-        }
+          iType src_idx[ViewType::rank()] = {static_cast<iType>(indices)...,
+                                             i6};
+          iType dst_idx[ViewType::rank()] = {};
 
+          for (std::size_t i = 0; i < ViewType::rank(); ++i) {
+            dst_idx[i] = get_dst(src_idx[i], i);
+          }
+          roll_internal(dst_idx, src_idx,
+                        std::make_index_sequence<ViewType::rank()>{});
+        }
       } else if constexpr (ViewType::rank() == 8) {
         for (iType i6 = 0; i6 < iType(m_x.extent(6)); i6++) {
           for (iType i7 = 0; i7 < iType(m_x.extent(7)); i7++) {
-            m_buffer(dst_idx[0], dst_idx[1], dst_idx[2], dst_idx[3], dst_idx[4],
-                     dst_idx[5], get_dst(i6, 6), get_dst(i7, 7)) =
-                m_x(src_idx[0], src_idx[1], src_idx[2], src_idx[3], src_idx[4],
-                    src_idx[5], i6, i7);
+            iType src_idx[ViewType::rank()] = {static_cast<iType>(indices)...,
+                                               i6, i7};
+            iType dst_idx[ViewType::rank()] = {};
+
+            for (std::size_t i = 0; i < ViewType::rank(); ++i) {
+              dst_idx[i] = get_dst(src_idx[i], i);
+            }
+            roll_internal(dst_idx, src_idx,
+                          std::make_index_sequence<ViewType::rank()>{});
           }
         }
       }
+    }
+
+    template <std::size_t... Is>
+    KOKKOS_INLINE_FUNCTION void roll_internal(
+        iType dst_idx[], iType src_idx[], std::index_sequence<Is...>) const {
+      m_buffer(dst_idx[Is]...) = m_x(src_idx[Is]...);
     }
   };
 };
