@@ -13,10 +13,6 @@
 namespace KokkosFFT {
 namespace Impl {
 
-template <typename ExecutionSpace, typename ViewType, std::size_t Rank,
-          typename iType>
-struct Roll;
-
 /// \brief Compute shift amounts for FFT shift operations.
 /// Computes the shift for each axis so that the zero-frequency component is
 /// moved to the center of the spectrum (or back to its original position for an
@@ -71,8 +67,8 @@ auto get_shifts(const ViewType& x, axis_type<DIM> axes, int direction = 1) {
   return shifts;
 }
 
-/// \brief 1D Roll functor for in-place FFT shift operations.
-/// This struct implements a functor that applies a 1-dimensional circular shift
+/// \brief Roll functor for in-place FFT shift operations.
+/// This struct implements a functor that applies a circular shift
 /// (roll) on a Kokkos view. It shifts the data so that the zero-frequency
 /// component is moved to the center of the spectrum. The shift amount is
 /// specified by m_shifts which is calculated using the get_shifts function. The
@@ -83,420 +79,49 @@ auto get_shifts(const ViewType& x, axis_type<DIM> axes, int direction = 1) {
 /// \tparam ViewType The type of the Kokkos View.
 /// \tparam iType The index type used for the view.
 template <typename ExecutionSpace, typename ViewType, typename iType>
-struct Roll<ExecutionSpace, ViewType, 1, iType> {
-  using ArrayType          = Kokkos::Array<std::size_t, 1>;
-  using LayoutType         = typename ViewType::array_layout;
-  using ManageableViewType = typename manageable_view_type<ViewType>::type;
-  using policy_type =
-      Kokkos::RangePolicy<ExecutionSpace, Kokkos::IndexType<iType>>;
+struct Roll {
+ private:
+  // Since MDRangePolicy is not available for 7D and 8D views, we need to
+  // handle them separately. We can use a 6D MDRangePolicy and iterate over
+  // the last two dimensions in the operator() function.
+  static constexpr std::size_t m_rank_truncated =
+      std::min(ViewType::rank(), std::size_t(6));
 
-  ViewType m_x;
-  ManageableViewType m_tmp;
-  ArrayType m_shifts;
-
-  /// \brief Constructor for the Roll functor.
-  ///
-  /// \param x[in,out] The input/output Kokkos view to be shifted.
-  /// \param shifts[in] The shift amounts for each axis.
-  /// \param exec_space[in] The Kokkos execution space to be used (defaults to
-  /// ExecutionSpace()).
-  Roll(const ViewType& x, const ArrayType& shifts,
-       const ExecutionSpace exec_space = ExecutionSpace())
-      : m_x(x),
-        m_tmp("tmp", create_layout<LayoutType>(extract_extents(x))),
-        m_shifts(shifts) {
-    Kokkos::parallel_for("KokkosFFT::roll-1D",
-                         policy_type(exec_space, 0, m_x.extent(0)), *this);
-    Kokkos::deep_copy(exec_space, m_x, m_tmp);
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const iType i0) const {
-    iType i0_dst  = (i0 + iType(m_shifts[0])) % iType(m_x.extent(0));
-    m_tmp(i0_dst) = m_x(i0);
-  }
-};
-
-/// \brief 2D Roll functor for in-place FFT shift operations.
-/// This struct implements a functor that applies a 2-dimensional circular shift
-/// (roll) on a Kokkos view. It shifts the data so that the zero-frequency
-/// component is moved to the center of the spectrum. The shift amount is
-/// specified by m_shifts which is calculated using the get_shifts function. The
-/// functor creates a temporary view to store the shifted data and then the
-/// shifted values are copied back into the original view.
-///
-/// \tparam ExecutionSpace The type of Kokkos execution space.
-/// \tparam ViewType The type of the Kokkos View.
-/// \tparam iType The index type used for the view.
-template <typename ExecutionSpace, typename ViewType, typename iType>
-struct Roll<ExecutionSpace, ViewType, 2, iType> {
-  using ArrayType          = Kokkos::Array<std::size_t, 2>;
+  using ArrayType          = Kokkos::Array<std::size_t, ViewType::rank()>;
   using LayoutType         = typename ViewType::array_layout;
   using ManageableViewType = typename manageable_view_type<ViewType>::type;
 
-  using policy_type = Kokkos::MDRangePolicy<
-      ExecutionSpace,
-      Kokkos::Rank<2, Kokkos::Iterate::Default, Kokkos::Iterate::Default>,
-      Kokkos::IndexType<iType>>;
-
-  ViewType m_x;
   ManageableViewType m_tmp;
-  ArrayType m_shifts;
 
-  /// \brief Constructor for the Roll functor.
-  ///
-  /// \param x[in,out] The input/output Kokkos view to be shifted.
-  /// \param shifts[in] The shift amounts for each axis.
-  /// \param exec_space[in] The Kokkos execution space to be used (defaults to
-  /// ExecutionSpace()).
-  Roll(const ViewType& x, const ArrayType& shifts,
-       const ExecutionSpace exec_space = ExecutionSpace())
-      : m_x(x),
-        m_tmp("tmp", create_layout<LayoutType>(extract_extents(x))),
-        m_shifts(shifts) {
-    iType n0 = m_x.extent(0), n1 = m_x.extent(1);
-    policy_type policy(exec_space, {0, 0}, {n0, n1}, {4, 4});
-    Kokkos::parallel_for("KokkosFFT::roll-2D", policy, *this);
-    Kokkos::deep_copy(exec_space, m_x, m_tmp);
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(iType i0, iType i1) const {
-    auto get_dst = [&](iType idx_src, std::size_t axis) {
-      return (idx_src + iType(m_shifts[axis])) % iType(m_x.extent(axis));
-    };
-    iType i0_dst          = get_dst(i0, 0);
-    iType i1_dst          = get_dst(i1, 1);
-    m_tmp(i0_dst, i1_dst) = m_x(i0, i1);
-  }
-};
-
-/// \brief 3D Roll functor for in-place FFT shift operations.
-/// This struct implements a functor that applies a 3-dimensional circular shift
-/// (roll) on a Kokkos view. It shifts the data so that the zero-frequency
-/// component is moved to the center of the spectrum. The shift amount is
-/// specified by m_shifts which is calculated using the get_shifts function. The
-/// functor creates a temporary view to store the shifted data and then the
-/// shifted values are copied back into the original view.
-///
-/// \tparam ExecutionSpace The type of Kokkos execution space.
-/// \tparam ViewType The type of the Kokkos View.
-/// \tparam iType The index type used for the view.
-template <typename ExecutionSpace, typename ViewType, typename iType>
-struct Roll<ExecutionSpace, ViewType, 3, iType> {
-  using ArrayType          = Kokkos::Array<std::size_t, 3>;
-  using LayoutType         = typename ViewType::array_layout;
-  using ManageableViewType = typename manageable_view_type<ViewType>::type;
-
-  using policy_type = Kokkos::MDRangePolicy<
-      ExecutionSpace,
-      Kokkos::Rank<3, Kokkos::Iterate::Default, Kokkos::Iterate::Default>,
-      Kokkos::IndexType<iType>>;
-
-  ViewType m_x;
-  ManageableViewType m_tmp;
-  ArrayType m_shifts;
-
-  /// \brief Constructor for the Roll functor.
-  ///
-  /// \param x[in,out] The input/output Kokkos view to be shifted.
-  /// \param shifts[in] The shift amounts for each axis.
-  /// \param exec_space[in] The Kokkos execution space to be used (defaults to
-  /// ExecutionSpace()).
-  Roll(const ViewType& x, const ArrayType& shifts,
-       const ExecutionSpace exec_space = ExecutionSpace())
-      : m_x(x),
-        m_tmp("tmp", create_layout<LayoutType>(extract_extents(x))),
-        m_shifts(shifts) {
-    iType n0 = m_x.extent(0), n1 = m_x.extent(1), n2 = m_x.extent(2);
-    policy_type policy(exec_space, {0, 0, 0}, {n0, n1, n2}, {4, 4, 4});
-    Kokkos::parallel_for("KokkosFFT::roll-3D", policy, *this);
-    Kokkos::deep_copy(exec_space, m_x, m_tmp);
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(iType i0, iType i1, iType i2) const {
-    auto get_dst = [&](iType idx_src, std::size_t axis) {
-      return (idx_src + iType(m_shifts[axis])) % iType(m_x.extent(axis));
-    };
-    iType i0_dst                  = get_dst(i0, 0);
-    iType i1_dst                  = get_dst(i1, 1);
-    iType i2_dst                  = get_dst(i2, 2);
-    m_tmp(i0_dst, i1_dst, i2_dst) = m_x(i0, i1, i2);
-  }
-};
-
-/// \brief 4D Roll functor for in-place FFT shift operations.
-/// This struct implements a functor that applies a 4-dimensional circular shift
-/// (roll) on a Kokkos view. It shifts the data so that the zero-frequency
-/// component is moved to the center of the spectrum. The shift amount is
-/// specified by m_shifts which is calculated using the get_shifts function. The
-/// functor creates a temporary view to store the shifted data and then the
-/// shifted values are copied back into the original view.
-///
-/// \tparam ExecutionSpace The type of Kokkos execution space.
-/// \tparam ViewType The type of the Kokkos View.
-/// \tparam iType The index type used for the view.
-template <typename ExecutionSpace, typename ViewType, typename iType>
-struct Roll<ExecutionSpace, ViewType, 4, iType> {
-  using ArrayType          = Kokkos::Array<std::size_t, 4>;
-  using LayoutType         = typename ViewType::array_layout;
-  using ManageableViewType = typename manageable_view_type<ViewType>::type;
-
-  using policy_type = Kokkos::MDRangePolicy<
-      ExecutionSpace,
-      Kokkos::Rank<4, Kokkos::Iterate::Default, Kokkos::Iterate::Default>,
-      Kokkos::IndexType<iType>>;
-
-  ViewType m_x;
-  ManageableViewType m_tmp;
-  ArrayType m_shifts;
-
-  /// \brief Constructor for the Roll functor.
-  ///
-  /// \param x[in,out] The input/output Kokkos view to be shifted.
-  /// \param shifts[in] The shift amounts for each axis.
-  /// \param exec_space[in] The Kokkos execution space to be used (defaults to
-  /// ExecutionSpace()).
-  Roll(const ViewType& x, const ArrayType& shifts,
-       const ExecutionSpace exec_space = ExecutionSpace())
-      : m_x(x),
-        m_tmp("tmp", create_layout<LayoutType>(extract_extents(x))),
-        m_shifts(shifts) {
-    iType n0 = m_x.extent(0), n1 = m_x.extent(1), n2 = m_x.extent(2),
-          n3 = m_x.extent(3);
-    policy_type policy(exec_space, {0, 0, 0, 0}, {n0, n1, n2, n3},
-                       {4, 4, 4, 1});
-    Kokkos::parallel_for("KokkosFFT::roll-4D", policy, *this);
-    Kokkos::deep_copy(exec_space, m_x, m_tmp);
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(iType i0, iType i1, iType i2, iType i3) const {
-    auto get_dst = [&](iType idx_src, std::size_t axis) {
-      return (idx_src + iType(m_shifts[axis])) % iType(m_x.extent(axis));
-    };
-    iType i0_dst                          = get_dst(i0, 0);
-    iType i1_dst                          = get_dst(i1, 1);
-    iType i2_dst                          = get_dst(i2, 2);
-    iType i3_dst                          = get_dst(i3, 3);
-    m_tmp(i0_dst, i1_dst, i2_dst, i3_dst) = m_x(i0, i1, i2, i3);
-  }
-};
-
-/// \brief 5D Roll functor for in-place FFT shift operations.
-/// This struct implements a functor that applies a 5-dimensional circular shift
-/// (roll) on a Kokkos view. It shifts the data so that the zero-frequency
-/// component is moved to the center of the spectrum. The shift amount is
-/// specified by m_shifts which is calculated using the get_shifts function. The
-/// functor creates a temporary view to store the shifted data and then the
-/// shifted values are copied back into the original view.
-///
-/// \tparam ExecutionSpace The type of Kokkos execution space.
-/// \tparam ViewType The type of the Kokkos View.
-/// \tparam iType The index type used for the view.
-template <typename ExecutionSpace, typename ViewType, typename iType>
-struct Roll<ExecutionSpace, ViewType, 5, iType> {
-  using ArrayType          = Kokkos::Array<std::size_t, 5>;
-  using LayoutType         = typename ViewType::array_layout;
-  using ManageableViewType = typename manageable_view_type<ViewType>::type;
-
-  using policy_type = Kokkos::MDRangePolicy<
-      ExecutionSpace,
-      Kokkos::Rank<5, Kokkos::Iterate::Default, Kokkos::Iterate::Default>,
-      Kokkos::IndexType<iType>>;
-
-  ViewType m_x;
-  ManageableViewType m_tmp;
-  ArrayType m_shifts;
-
-  /// \brief Constructor for the Roll functor.
-  ///
-  /// \param x[in,out] The input/output Kokkos view to be shifted.
-  /// \param shifts[in] The shift amounts for each axis.
-  /// \param exec_space[in] The Kokkos execution space to be used (defaults to
-  /// ExecutionSpace()).
-  Roll(const ViewType& x, const ArrayType& shifts,
-       const ExecutionSpace exec_space = ExecutionSpace())
-      : m_x(x),
-        m_tmp("tmp", create_layout<LayoutType>(extract_extents(x))),
-        m_shifts(shifts) {
-    iType n0 = m_x.extent(0), n1 = m_x.extent(1), n2 = m_x.extent(2),
-          n3 = m_x.extent(3), n4 = m_x.extent(4);
-    policy_type policy(exec_space, {0, 0, 0, 0, 0}, {n0, n1, n2, n3, n4},
-                       {4, 4, 4, 1, 1});
-    Kokkos::parallel_for("KokkosFFT::roll-5D", policy, *this);
-    Kokkos::deep_copy(exec_space, m_x, m_tmp);
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(iType i0, iType i1, iType i2, iType i3, iType i4) const {
-    auto get_dst = [&](iType idx_src, std::size_t axis) {
-      return (idx_src + iType(m_shifts[axis])) % iType(m_x.extent(axis));
-    };
-    iType i0_dst                                  = get_dst(i0, 0);
-    iType i1_dst                                  = get_dst(i1, 1);
-    iType i2_dst                                  = get_dst(i2, 2);
-    iType i3_dst                                  = get_dst(i3, 3);
-    iType i4_dst                                  = get_dst(i4, 4);
-    m_tmp(i0_dst, i1_dst, i2_dst, i3_dst, i4_dst) = m_x(i0, i1, i2, i3, i4);
-  }
-};
-
-/// \brief 6D Roll functor for in-place FFT shift operations.
-/// This struct implements a functor that applies a 6-dimensional circular shift
-/// (roll) on a Kokkos view. It shifts the data so that the zero-frequency
-/// component is moved to the center of the spectrum. The shift amount is
-/// specified by m_shifts which is calculated using the get_shifts function. The
-/// functor creates a temporary view to store the shifted data and then the
-/// shifted values are copied back into the original view.
-///
-/// \tparam ExecutionSpace The type of Kokkos execution space.
-/// \tparam ViewType The type of the Kokkos View.
-/// \tparam iType The index type used for the view.
-template <typename ExecutionSpace, typename ViewType, typename iType>
-struct Roll<ExecutionSpace, ViewType, 6, iType> {
-  using ArrayType          = Kokkos::Array<std::size_t, 6>;
-  using LayoutType         = typename ViewType::array_layout;
-  using ManageableViewType = typename manageable_view_type<ViewType>::type;
-
-  using policy_type = Kokkos::MDRangePolicy<
-      ExecutionSpace,
-      Kokkos::Rank<6, Kokkos::Iterate::Default, Kokkos::Iterate::Default>,
-      Kokkos::IndexType<iType>>;
-
-  ViewType m_x;
-  ManageableViewType m_tmp;
-  ArrayType m_shifts;
-
-  /// \brief Constructor for the Roll functor.
-  ///
-  /// \param x[in,out] The input/output Kokkos view to be shifted.
-  /// \param shifts[in] The shift amounts for each axis.
-  /// \param exec_space[in] The Kokkos execution space to be used (defaults to
-  /// ExecutionSpace()).
-  Roll(const ViewType& x, const ArrayType& shifts,
-       const ExecutionSpace exec_space = ExecutionSpace())
-      : m_x(x),
-        m_tmp("tmp", create_layout<LayoutType>(extract_extents(x))),
-        m_shifts(shifts) {
-    iType n0 = m_x.extent(0), n1 = m_x.extent(1), n2 = m_x.extent(2),
-          n3 = m_x.extent(3), n4 = m_x.extent(4), n5 = m_x.extent(5);
-    policy_type policy(exec_space, {0, 0, 0, 0, 0, 0}, {n0, n1, n2, n3, n4, n5},
-                       {4, 4, 4, 1, 1, 1});
-    Kokkos::parallel_for("KokkosFFT::roll-6D", policy, *this);
-    Kokkos::deep_copy(exec_space, m_x, m_tmp);
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(iType i0, iType i1, iType i2, iType i3, iType i4,
-                  iType i5) const {
-    auto get_dst = [&](iType idx_src, std::size_t axis) {
-      return (idx_src + iType(m_shifts[axis])) % iType(m_x.extent(axis));
-    };
-    iType i0_dst = get_dst(i0, 0);
-    iType i1_dst = get_dst(i1, 1);
-    iType i2_dst = get_dst(i2, 2);
-    iType i3_dst = get_dst(i3, 3);
-    iType i4_dst = get_dst(i4, 4);
-    iType i5_dst = get_dst(i5, 5);
-    m_tmp(i0_dst, i1_dst, i2_dst, i3_dst, i4_dst, i5_dst) =
-        m_x(i0, i1, i2, i3, i4, i5);
-  }
-};
-
-/// \brief 7D Roll functor for in-place FFT shift operations.
-/// This struct implements a functor that applies a 7-dimensional circular shift
-/// (roll) on a Kokkos view. It shifts the data so that the zero-frequency
-/// component is moved to the center of the spectrum. The shift amount is
-/// specified by m_shifts which is calculated using the get_shifts function. The
-/// functor creates a temporary view to store the shifted data and then the
-/// shifted values are copied back into the original view.
-///
-/// \tparam ExecutionSpace The type of Kokkos execution space.
-/// \tparam ViewType The type of the Kokkos View.
-/// \tparam iType The index type used for the view.
-template <typename ExecutionSpace, typename ViewType, typename iType>
-struct Roll<ExecutionSpace, ViewType, 7, iType> {
-  using ArrayType          = Kokkos::Array<std::size_t, 7>;
-  using LayoutType         = typename ViewType::array_layout;
-  using ManageableViewType = typename manageable_view_type<ViewType>::type;
-
-  using policy_type = Kokkos::MDRangePolicy<
-      ExecutionSpace,
-      Kokkos::Rank<6, Kokkos::Iterate::Default, Kokkos::Iterate::Default>,
-      Kokkos::IndexType<iType>>;
-
-  ViewType m_x;
-  ManageableViewType m_tmp;
-  ArrayType m_shifts;
-
-  /// \brief Constructor for the Roll functor.
-  ///
-  /// \param x[in,out] The input/output Kokkos view to be shifted.
-  /// \param shifts[in] The shift amounts for each axis.
-  /// \param exec_space[in] The Kokkos execution space to be used (defaults to
-  /// ExecutionSpace()).
-  Roll(const ViewType& x, const ArrayType& shifts,
-       const ExecutionSpace exec_space = ExecutionSpace())
-      : m_x(x),
-        m_tmp("tmp", create_layout<LayoutType>(extract_extents(x))),
-        m_shifts(shifts) {
-    iType n0 = m_x.extent(0), n1 = m_x.extent(1), n2 = m_x.extent(2),
-          n3 = m_x.extent(3), n4 = m_x.extent(4), n5 = m_x.extent(5);
-    policy_type policy(exec_space, {0, 0, 0, 0, 0, 0}, {n0, n1, n2, n3, n4, n5},
-                       {4, 4, 4, 1, 1, 1});
-    Kokkos::parallel_for("KokkosFFT::roll-7D", policy, *this);
-    Kokkos::deep_copy(exec_space, m_x, m_tmp);
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(iType i0, iType i1, iType i2, iType i3, iType i4,
-                  iType i5) const {
-    auto get_dst = [&](iType idx_src, std::size_t axis) {
-      return (idx_src + iType(m_shifts[axis])) % iType(m_x.extent(axis));
-    };
-
-    iType i0_dst = get_dst(i0, 0);
-    iType i1_dst = get_dst(i1, 1);
-    iType i2_dst = get_dst(i2, 2);
-    iType i3_dst = get_dst(i3, 3);
-    iType i4_dst = get_dst(i4, 4);
-    iType i5_dst = get_dst(i5, 5);
-    for (iType i6 = 0; i6 < iType(m_x.extent(6)); i6++) {
-      iType i6_dst = get_dst(i6, 6);
-      m_tmp(i0_dst, i1_dst, i2_dst, i3_dst, i4_dst, i5_dst, i6_dst) =
-          m_x(i0, i1, i2, i3, i4, i5, i6);
+  /// \brief Retrieves the policy for the parallel execution.
+  /// If the view is 1D, a Kokkos::RangePolicy is used. For higher dimensions up
+  /// to 6D, a Kokkos::MDRangePolicy is used. For 7D and 8D views, we use 6D
+  /// MDRangePolicy
+  /// \param[in] space The Kokkos execution space used to launch the parallel
+  /// reduction.
+  /// \param[in] x The Kokkos view to be used for determining the policy.
+  auto get_policy(const ExecutionSpace space, const ViewType& x) const {
+    if constexpr (ViewType::rank() == 1) {
+      using range_policy_type =
+          Kokkos::RangePolicy<ExecutionSpace, Kokkos::IndexType<iType>>;
+      return range_policy_type(space, 0, x.extent(0));
+    } else {
+      using iterate_type =
+          Kokkos::Rank<m_rank_truncated, Kokkos::Iterate::Default,
+                       Kokkos::Iterate::Default>;
+      using mdrange_policy_type =
+          Kokkos::MDRangePolicy<ExecutionSpace, iterate_type,
+                                Kokkos::IndexType<iType>>;
+      Kokkos::Array<std::size_t, m_rank_truncated> begins = {};
+      Kokkos::Array<std::size_t, m_rank_truncated> ends   = {};
+      for (std::size_t i = 0; i < m_rank_truncated; ++i) {
+        ends[i] = x.extent(i);
+      }
+      return mdrange_policy_type(space, begins, ends);
     }
   }
-};
 
-/// \brief 8D Roll functor for in-place FFT shift operations.
-/// This struct implements a functor that applies a 8-dimensional circular shift
-/// (roll) on a Kokkos view. It shifts the data so that the zero-frequency
-/// component is moved to the center of the spectrum. The shift amount is
-/// specified by m_shifts which is calculated using the get_shifts function. The
-/// functor creates a temporary view to store the shifted data and then the
-/// shifted values are copied back into the original view.
-///
-/// \tparam ExecutionSpace The type of Kokkos execution space.
-/// \tparam ViewType The type of the Kokkos View.
-/// \tparam iType The index type used for the view.
-template <typename ExecutionSpace, typename ViewType, typename iType>
-struct Roll<ExecutionSpace, ViewType, 8, iType> {
-  using ArrayType          = Kokkos::Array<std::size_t, 8>;
-  using LayoutType         = typename ViewType::array_layout;
-  using ManageableViewType = typename manageable_view_type<ViewType>::type;
-
-  using policy_type = Kokkos::MDRangePolicy<
-      ExecutionSpace,
-      Kokkos::Rank<6, Kokkos::Iterate::Default, Kokkos::Iterate::Default>,
-      Kokkos::IndexType<iType>>;
-
-  ViewType m_x;
-  ManageableViewType m_tmp;
-  ArrayType m_shifts;
-
+ public:
   /// \brief Constructor for the Roll functor.
   ///
   /// \param x[in,out] The input/output Kokkos view to be shifted.
@@ -505,39 +130,71 @@ struct Roll<ExecutionSpace, ViewType, 8, iType> {
   /// ExecutionSpace()).
   Roll(const ViewType& x, const ArrayType& shifts,
        const ExecutionSpace exec_space = ExecutionSpace())
-      : m_x(x),
-        m_tmp("tmp", create_layout<LayoutType>(extract_extents(x))),
-        m_shifts(shifts) {
-    iType n0 = m_x.extent(0), n1 = m_x.extent(1), n2 = m_x.extent(2),
-          n3 = m_x.extent(3), n4 = m_x.extent(4), n5 = m_x.extent(5);
-    policy_type policy(exec_space, {0, 0, 0, 0, 0, 0}, {n0, n1, n2, n3, n4, n5},
-                       {4, 4, 4, 1, 1, 1});
-    Kokkos::parallel_for("KokkosFFT::roll-8D", policy, *this);
-    Kokkos::deep_copy(exec_space, m_x, m_tmp);
+      : m_tmp("tmp", create_layout<LayoutType>(extract_extents(x))) {
+    Kokkos::parallel_for("KokkosFFT::roll", get_policy(exec_space, x),
+                         RollInternal(x, m_tmp, shifts));
+    Kokkos::deep_copy(exec_space, x, m_tmp);
   }
 
-  KOKKOS_INLINE_FUNCTION
-  void operator()(iType i0, iType i1, iType i2, iType i3, iType i4,
-                  iType i5) const {
-    auto get_dst = [&](iType idx_src, std::size_t axis) {
-      return (idx_src + iType(m_shifts[axis])) % iType(m_x.extent(axis));
-    };
+  /// \brief Helper functor to perform the roll operation
+  struct RollInternal {
+    ViewType m_x;
+    ManageableViewType m_buffer;
+    ArrayType m_shifts;
 
-    iType i0_dst = get_dst(i0, 0);
-    iType i1_dst = get_dst(i1, 1);
-    iType i2_dst = get_dst(i2, 2);
-    iType i3_dst = get_dst(i3, 3);
-    iType i4_dst = get_dst(i4, 4);
-    iType i5_dst = get_dst(i5, 5);
-    for (iType i6 = 0; i6 < iType(m_x.extent(6)); i6++) {
-      for (iType i7 = 0; i7 < iType(m_x.extent(7)); i7++) {
-        iType i6_dst = get_dst(i6, 6);
-        iType i7_dst = get_dst(i7, 7);
-        m_tmp(i0_dst, i1_dst, i2_dst, i3_dst, i4_dst, i5_dst, i6_dst, i7_dst) =
-            m_x(i0, i1, i2, i3, i4, i5, i6, i7);
+    RollInternal(const ViewType& x, const ManageableViewType& buffer,
+                 const ArrayType& shifts)
+        : m_x(x), m_buffer(buffer), m_shifts(shifts) {}
+
+    template <typename... IndicesType>
+    KOKKOS_INLINE_FUNCTION void operator()(const IndicesType... indices) const {
+      auto get_dst = [&](iType idx_src, std::size_t axis) {
+        return (idx_src + iType(m_shifts[axis])) % iType(m_x.extent(axis));
+      };
+
+      if constexpr (ViewType::rank() <= 6) {
+        iType src_idx[ViewType::rank()] = {static_cast<iType>(indices)...};
+        iType dst_idx[ViewType::rank()] = {};
+        for (std::size_t i = 0; i < ViewType::rank(); ++i) {
+          dst_idx[i] = get_dst(src_idx[i], i);
+        }
+        roll_internal(dst_idx, src_idx,
+                      std::make_index_sequence<ViewType::rank()>{});
+      } else if constexpr (ViewType::rank() == 7) {
+        for (iType i6 = 0; i6 < iType(m_x.extent(6)); i6++) {
+          iType src_idx[ViewType::rank()] = {static_cast<iType>(indices)...,
+                                             i6};
+          iType dst_idx[ViewType::rank()] = {};
+
+          for (std::size_t i = 0; i < ViewType::rank(); ++i) {
+            dst_idx[i] = get_dst(src_idx[i], i);
+          }
+          roll_internal(dst_idx, src_idx,
+                        std::make_index_sequence<ViewType::rank()>{});
+        }
+      } else if constexpr (ViewType::rank() == 8) {
+        for (iType i6 = 0; i6 < iType(m_x.extent(6)); i6++) {
+          for (iType i7 = 0; i7 < iType(m_x.extent(7)); i7++) {
+            iType src_idx[ViewType::rank()] = {static_cast<iType>(indices)...,
+                                               i6, i7};
+            iType dst_idx[ViewType::rank()] = {};
+
+            for (std::size_t i = 0; i < ViewType::rank(); ++i) {
+              dst_idx[i] = get_dst(src_idx[i], i);
+            }
+            roll_internal(dst_idx, src_idx,
+                          std::make_index_sequence<ViewType::rank()>{});
+          }
+        }
       }
     }
-  }
+
+    template <std::size_t... Is>
+    KOKKOS_INLINE_FUNCTION void roll_internal(
+        iType dst_idx[], iType src_idx[], std::index_sequence<Is...>) const {
+      m_buffer(dst_idx[Is]...) = m_x(src_idx[Is]...);
+    }
+  };
 };
 
 /// \brief Implementation of FFT shift operations.
@@ -564,11 +221,9 @@ void fftshift_impl(const ExecutionSpace& exec_space, const ViewType& x,
                    axis_type<DIM> axes, int direction) {
   auto shifts = get_shifts(x, axes, direction);
   if (x.span() >= std::size_t(std::numeric_limits<int>::max())) {
-    Roll<ExecutionSpace, ViewType, ViewType::rank(), int64_t>(x, shifts,
-                                                              exec_space);
+    Roll<ExecutionSpace, ViewType, int64_t>(x, shifts, exec_space);
   } else {
-    Roll<ExecutionSpace, ViewType, ViewType::rank(), int>(x, shifts,
-                                                          exec_space);
+    Roll<ExecutionSpace, ViewType, int>(x, shifts, exec_space);
   }
 }
 
