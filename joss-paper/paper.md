@@ -112,7 +112,7 @@ As a more scientific example, we solve a typical 2D plasma turbulence model, cal
 
 ![Vorticity.\label{fig:hw2D}](hw2D.png)
 
-Using Kokkos and kokkos-fft, we can easily implement the code, just like Python, while getting a significant acceleration. As described in the [documentation](https://github.com/kokkos/kokkos-fft/tree/main/examples/10_HasegawaWakatani/README.md), the core computational kernel of the code is the nonlinear term which is computed with FFTs. We construct the forward and backward FFT plans once in initialization which are reused in the time evolution loops.
+Using Kokkos and kokkos-fft, we can easily implement the code, just like Python, while getting a significant acceleration. The core computational kernel of the code is the nonlinear term which is computed with FFTs. We construct the forward and backward FFT plans once in initialization which are reused in the time evolution loops.
 
 We have performed a benchmark of this application over multiple backends. We performed a simulation for 100 steps with a resolution of `1024 x 1024` while I/Os are disabled. The following table shows the achieved performance.
 
@@ -132,10 +132,3 @@ Here, the testbed includes Intel Xeon Platinum 8360Y (referred to as Icelake), N
 This work has received support by the CExA Moonshot project of the CEA [cexa-project](https://cexa-project.org). This work was carried out using FUJITSU PRIMERGY GX2570 (Wisteria/BDEC-01) at The University of Tokyo. This work was partly supported by JHPCN project jh220036. This research used resources of the Oak Ridge Leadership Computing Facility at the Oak Ridge National Laboratory, which is supported by the Office of Science of the U.S. Department of Energy under Contract No. DE-AC05-00OR22725. This work was also granted access to the HPC resources of CINES under the allocation 2023-cin4492 made by GENCI.
 
 # References
-
-<!--
-* Daniel N Rockmore; The FFT: an algorithm the whole family can use. Computing in Science & Engineering Jan/Feb 2000; 2 (1): 60-64. https://doi.org/10.1109/5992.814659
-* Harris, C.R., Millman, K.J., van der Walt, S.J. et al. Array programming with NumPy. Nature 585, 357–362 (2020). DOI: 10.1038/s41586-020-2649-2. https://www.nature.com/articles/s41586-020-2649-2.
-* C. R. Trott et al., "Kokkos 3: Programming Model Extensions for the Exascale Era," in IEEE Transactions on Parallel and Distributed Systems, vol. 33, no. 4, pp. 805-817, 1 April 2022, doi: 10.1109/TPDS.2021.3097283.
-* Masahiro Wakatani, Akira Hasegawa; A collisional drift wave description of plasma edge turbulence. Phys. Fluids 1 March 1984; 27 (3): 611–618. https://doi.org/10.1063/1.864660
--->
