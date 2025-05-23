@@ -230,9 +230,9 @@ struct Transpose {
 /// \tparam DIM         The dimensionality of the map
 ///
 /// \param[in] exec_space execution space instance
-/// \param[in] in         The input view
-/// \param[out] out        The output view
-/// \param[in] map        The axis map for transpose
+/// \param[in] in The input view
+/// \param[out] out The output view
+/// \param[in] map The axis map for transpose
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           std::size_t DIM = 1>
 void transpose(const ExecutionSpace& exec_space, const InViewType& in,
