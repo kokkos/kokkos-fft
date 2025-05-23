@@ -166,33 +166,25 @@ struct Transpose {
 
     template <typename... IndicesType>
     KOKKOS_INLINE_FUNCTION void operator()(const IndicesType... indices) const {
-      // src_idx is permuted based on map, which is stored into dst_idx
-      auto transpose_wrapper = [&](iType dst_idx[], iType src_idx[]) {
-        for (std::size_t i = 0; i < InViewType::rank(); ++i) {
-          dst_idx[i] = src_idx[m_map[i]];
-        }
-        transpose_internal(dst_idx, src_idx,
-                           std::make_index_sequence<InViewType::rank()>{});
-      };
       if constexpr (InViewType::rank() <= 6) {
         iType src_indices[InViewType::rank()] = {
             static_cast<iType>(indices)...};
-        iType dst_indices[InViewType::rank()] = {};
-        transpose_wrapper(dst_indices, src_indices);
+        transpose_internal(src_indices,
+                           std::make_index_sequence<InViewType::rank()>{});
       } else if constexpr (InViewType::rank() == 7) {
         for (iType i6 = 0; i6 < iType(m_in.extent(6)); i6++) {
           iType src_indices[InViewType::rank()] = {
               static_cast<iType>(indices)..., i6};
-          iType dst_indices[InViewType::rank()] = {};
-          transpose_wrapper(dst_indices, src_indices);
+          transpose_internal(src_indices,
+                             std::make_index_sequence<InViewType::rank()>{});
         }
       } else if constexpr (InViewType::rank() == 8) {
         for (iType i6 = 0; i6 < iType(m_in.extent(6)); i6++) {
           for (iType i7 = 0; i7 < iType(m_in.extent(7)); i7++) {
             iType src_indices[InViewType::rank()] = {
                 static_cast<iType>(indices)..., i6, i7};
-            iType dst_indices[InViewType::rank()] = {};
-            transpose_wrapper(dst_indices, src_indices);
+            transpose_internal(src_indices,
+                               std::make_index_sequence<InViewType::rank()>{});
           }
         }
       }
@@ -200,8 +192,8 @@ struct Transpose {
 
     template <std::size_t... Is>
     KOKKOS_INLINE_FUNCTION void transpose_internal(
-        iType dst_idx[], iType src_idx[], std::index_sequence<Is...>) const {
-      m_out(dst_idx[Is]...) = m_in(src_idx[Is]...);
+        iType src_idx[], std::index_sequence<Is...>) const {
+      m_out(src_idx[m_map[Is]]...) = m_in(src_idx[Is]...);
     }
   };
 };
