@@ -131,24 +131,13 @@ struct Roll {
   Roll(const ViewType& x, const ArrayType& shifts,
        const ExecutionSpace exec_space = ExecutionSpace())
       : m_tmp("tmp", create_layout<LayoutType>(extract_extents(x))) {
-    Kokkos::parallel_for(
-        "KokkosFFT::roll", get_policy(exec_space, x),
-        RollInternal<std::make_index_sequence<m_rank_truncated>>(x, m_tmp,
-                                                                 shifts));
+    Kokkos::parallel_for("KokkosFFT::roll", get_policy(exec_space, x),
+                         RollInternal(x, m_tmp, shifts));
     Kokkos::deep_copy(exec_space, x, m_tmp);
   }
 
   /// \brief Helper functor to perform the roll operation
-  ///
-  /// \tparam IndexSequence The index sequence used for the parallel execution.
-  template <typename IndexSequence>
-  struct RollInternal;
-
-  template <std::size_t... Idx>
-  struct RollInternal<std::index_sequence<Idx...>> {
-    template <std::size_t I>
-    using IndicesType = iType;
-
+  struct RollInternal {
     ViewType m_x;
     ManageableViewType m_buffer;
     ArrayType m_shifts;
@@ -157,8 +146,8 @@ struct Roll {
                  const ArrayType& shifts)
         : m_x(x), m_buffer(buffer), m_shifts(shifts) {}
 
-    KOKKOS_INLINE_FUNCTION
-    void operator()(const IndicesType<Idx>... indices) const {
+    template <typename... IndicesType>
+    KOKKOS_INLINE_FUNCTION void operator()(const IndicesType... indices) const {
       auto get_dst = [&](iType idx_src, std::size_t axis) {
         return (idx_src + iType(m_shifts[axis])) % iType(m_x.extent(axis));
       };
