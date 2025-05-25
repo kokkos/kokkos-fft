@@ -38,7 +38,7 @@ aas-journal: Astrophysical Journal <- The name of the AAS journal.
 
 # Summary
 
-kokkos-fft implements local (non-distributed) interfaces between Kokkos and de facto standard FFT libraries, including FFTW, cufft, hipfft (rocfft), and oneMKL. The key concept of kokkos-fft is "As easy as numpy, as fast as vendor libraries". This library has simple interface like numpy.fft with in-place and out-of-place transforms, while keeping the performance portability. An exercise to solve the 2D Hasegawa-Wakatani turbulence with the Fourier spectral method demonstrates that we can achieve a signficiant speed up against python version without increasing the lines of code (LOC) drastically. This library allows the user to perform FFTs efficiently and simply in the kokkos eco system.
+kokkos-fft implements local (non-distributed) interfaces between Kokkos and de facto standard FFT libraries, including FFTW, cuFFT, rocFFT, and oneMKL. The key concept of kokkos-fft is "As easy as numpy, as fast as vendor libraries". This library has simple interface like numpy.fft with in-place and out-of-place transforms, while keeping the performance portability. An exercise to solve the 2D Hasegawa-Wakatani turbulence with the Fourier spectral method demonstrates that we can achieve a signficiant speed up against python version without increasing the lines of code (LOC) drastically. This library allows the user to perform FFTs efficiently and simply in the kokkos ecosystem [@Trott2021].
 
 # Statement of need
 
@@ -59,7 +59,7 @@ Only accepts [Kokkos Views](https://kokkos.org/kokkos-core-wiki/API/core/view/vi
 Batched plans are automatically used if View dimension is larger than FFT dimension.
 
 * A reusable [FFT plan](https://kokkosfft.readthedocs.io/en/latest/api/plan/plan.html) which wraps the vendor libraries for each Kokkos backend:  
-[FFTW](http://www.fftw.org), [cufft](https://developer.nvidia.com/cufft), [hipfft](https://github.com/ROCm/hipFFT) ([rocfft](https://github.com/ROCm/rocFFT)), and [oneMKL](https://www.intel.com/content/www/us/en/developer/tools/oneapi/onemkl.html) are automatically enabled based on the enabled Kokkos backend.
+[FFTW](http://www.fftw.org), [cuFFT](https://developer.nvidia.com/cufft), [rocFFT](https://github.com/ROCm/rocFFT), and [oneMKL](https://www.intel.com/content/www/us/en/developer/tools/oneapi/onemkl.html) are automatically enabled based on the enabled Kokkos backend.
 
 * Support for multiple CPU and GPU backends:  
 FFT libraries for the enabled Kokkos backend are executed on the stream/queue used in that [`ExecutionSpace`](https://kokkos.org/kokkos-core-wiki/API/core/execution_spaces.html) where the parallel operations are performed.
@@ -74,20 +74,20 @@ Let's start with a simple example to perform the 1D real to complex transform us
 
 ```C++
 #include <Kokkos_Core.hpp>
-#include <Kokkos_Complex.hpp>
 #include <Kokkos_Random.hpp>
 #include <KokkosFFT.hpp>
-using ExecutionSpace = Kokkos::DefaultExecutionSpace;
-template <typename T> using View1D = Kokkos::View<T*, ExecutionSpace>;
 int main(int argc, char* argv[]) {
   Kokkos::ScopeGuard guard(argc, argv);
   const int n = 4;
-  View1D<double> x("x", n);
-  View1D<Kokkos::complex<double> > x_hat("x_hat", n/2+1);
-  Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-  Kokkos::fill_random(x, random_pool, 1);
-  KokkosFFT::rfft(ExecutionSpace(), x, x_hat);
-  Kokkos::fence();
+  Kokkos::View<double*> x("x", n);
+  Kokkos::View<Kokkos::complex<double>*> x_hat("x_hat", n/2+1);
+  // initialize the input array with random values
+  Kokkos::DefaultExecutionSpace exec;
+  Kokkos::Random_XorShift64_Pool<> random_pool(/*seed=*/12345);
+  Kokkos::fill_random(exec, x, random_pool, /*range=*/1.0);
+  KokkosFFT::rfft(exec, x, x_hat);
+  // block the current thread until all work enqueued into exec is finished
+  exec.fence();
 }
 ```
 
@@ -101,8 +101,9 @@ x_hat = np.fft.rfft(x)
 
 There are two additional arguments in the Kokkos version:
 
-* An instance of the [`ExecutionSpace`](https://kokkos.org/kokkos-core-wiki/API/core/execution_spaces.html) wherein the operations are performed.
-* The output View (`x_hat`).
+* `exec`: the [*Kokkos execution space instance*](https://kokkos.org/kokkos-core-wiki/API/core/execution_spaces.html) that encapsulates the underlying compute resources (e.g., CPU cores, GPU devices) where the task will be dispatched for execution.
+
+* `x_hat`: the [Kokkos Views](https://kokkos.org/kokkos-core-wiki/API/core/view/view.html) where the complex-valued FFT output will be stored. By accepting this view as an argument, the function allows the user to pre-allocate memory and optimize data placement, avoiding unnecessary allocations and copies.
 
 Also, kokkos-fft only accepts [Kokkos Views](https://kokkos.org/kokkos-core-wiki/API/core/view/view.html) as input data. The accessibility of a View from `ExecutionSpace` is statically checked and will result in a compilation error if not accessible. See [documentations](https://kokkosfft.readthedocs.io/en/latest/intro/quick_start.html) for basic usage.
 
