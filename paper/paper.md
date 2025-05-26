@@ -22,12 +22,17 @@ authors:
     orcid: 0000-0002-0015-4304
     equal-contrib: true
     affiliation: "1" # (Multiple affiliations must be quoted)
+  - name: Damien Lebrun-Grandie
+    orcid: 0000-0003-1952-7219
+    equal-contrib: true
+    affiliation: "2" # (Multiple affiliations must be quoted)
 affiliations:
  - name: Université Paris-Saclay, UVSQ, CNRS, CEA, Maison de la Simulation, 91191, Gif-sur-Yvette, France
    index: 1
-   ror: 00hx57361
+ - name: Oak Ridge National Laboratory, Oak Ridge, Tennessee, US
+   index: 2
 
-date: 18 April 2025
+date: 26 May 2025
 bibliography: paper.bib
 
 # Optional fields if submitting to a AAS journal too, see this blog post:
