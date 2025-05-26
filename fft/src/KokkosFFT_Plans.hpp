@@ -68,6 +68,14 @@ template <typename ExecutionSpace>
 inline constexpr bool is_AllowedSpace_v =
     is_AllowedSpace<ExecutionSpace>::value;
 
+auto inline maybe_null_to_shape(std::optional<std::size_t> n) {
+  shape_type<1> s = {};
+  if (n) {
+    std::size_t n_tmp = n.value();
+    s                 = shape_type<1>({n_tmp});
+  }
+  return s;
+}
 }  // namespace Impl
 
 /// \brief A class that manages a FFT plan of backend FFT library.
@@ -151,7 +159,7 @@ class Plan {
   ///@}
 
  public:
-  /// \brief Constructor
+  /// \brief Constructor for one-dimensional FFT
   ///
   /// \param exec_space [in] Kokkos execution space for this plan
   /// \param in [in] Input data
@@ -164,60 +172,8 @@ class Plan {
   explicit Plan(const ExecutionSpace& exec_space, const InViewType& in,
                 const OutViewType& out, KokkosFFT::Direction direction,
                 int axis, std::optional<std::size_t> n = std::nullopt)
-      : m_exec_space(exec_space), m_axes({axis}), m_direction(direction) {
-    static_assert(KokkosFFT::Impl::is_AllowedSpace_v<ExecutionSpace>,
-                  "Plan::Plan: ExecutionSpace is not allowed ");
-    static_assert(
-        KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                                OutViewType>,
-        "Plan::Plan: InViewType and OutViewType must have the same base "
-        "floating point type (float/double), the same layout "
-        "(LayoutLeft/LayoutRight), "
-        "and the same rank. ExecutionSpace must be accessible to the data in "
-        "InViewType and OutViewType.");
-    static_assert(InViewType::rank() >= 1,
-                  "Plan::Plan: View rank must be larger than or equal to 1");
-
-    KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, m_axes),
-                       "axes are invalid for in/out views");
-
-    if constexpr (KokkosFFT::Impl::is_real_v<in_value_type>) {
-      KOKKOSFFT_THROW_IF(
-          m_direction != KokkosFFT::Direction::forward,
-          "real to complex transform is constructed with backward direction.");
-    }
-
-    if constexpr (KokkosFFT::Impl::is_real_v<out_value_type>) {
-      KOKKOSFFT_THROW_IF(
-          m_direction != KokkosFFT::Direction::backward,
-          "complex to real transform is constructed with forward direction.");
-    }
-
-    shape_type<1> s = {0};
-    if (n) {
-      std::size_t n_tmp = n.value();
-      s                 = shape_type<1>({n_tmp});
-    }
-
-    m_in_extents               = KokkosFFT::Impl::extract_extents(in);
-    m_out_extents              = KokkosFFT::Impl::extract_extents(out);
-    std::tie(m_map, m_map_inv) = KokkosFFT::Impl::get_map_axes(in, axis);
-    m_is_transpose_needed      = KokkosFFT::Impl::is_transpose_needed(m_map);
-    m_shape = KokkosFFT::Impl::get_modified_shape(in, out, s, m_axes);
-    m_is_crop_or_pad_needed =
-        KokkosFFT::Impl::is_crop_or_pad_needed(in, m_shape);
-    m_is_inplace = KokkosFFT::Impl::are_aliasing(in.data(), out.data());
-    KOKKOSFFT_THROW_IF(m_is_inplace && m_is_transpose_needed,
-                       "In-place transform is not supported with transpose. "
-                       "Please use out-of-place transform.");
-    KOKKOSFFT_THROW_IF(m_is_inplace && m_is_crop_or_pad_needed,
-                       "In-place transform is not supported with reshape. "
-                       "Please use out-of-place transform.");
-
-    KokkosFFT::Impl::setup<ExecutionSpace, float_type>();
-    m_fft_size = KokkosFFT::Impl::create_plan(
-        exec_space, m_plan, in, out, direction, m_axes, s, m_is_inplace);
-  }
+      : Plan(exec_space, in, out, direction, axis_type<DIM>({axis}),
+             Impl::maybe_null_to_shape(n)) {}
 
   /// \brief Constructor for multidimensional FFT
   ///
