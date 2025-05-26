@@ -68,7 +68,7 @@ template <typename ExecutionSpace>
 inline constexpr bool is_AllowedSpace_v =
     is_AllowedSpace<ExecutionSpace>::value;
 
-auto inline maybe_null_to_shape(std::optional<std::size_t> n = std::nullopt) {
+auto inline maybe_null_to_shape(std::optional<std::size_t> n) {
   shape_type<1> s = {};
   if (n) {
     std::size_t n_tmp = n.value();
