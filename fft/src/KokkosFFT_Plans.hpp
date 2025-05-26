@@ -68,14 +68,6 @@ template <typename ExecutionSpace>
 inline constexpr bool is_AllowedSpace_v =
     is_AllowedSpace<ExecutionSpace>::value;
 
-auto inline maybe_null_to_shape(std::optional<std::size_t> n) {
-  shape_type<1> s = {};
-  if (n) {
-    std::size_t n_tmp = n.value();
-    s                 = shape_type<1>({n_tmp});
-  }
-  return s;
-}
 }  // namespace Impl
 
 /// \brief A class that manages a FFT plan of backend FFT library.
@@ -173,7 +165,7 @@ class Plan {
                 const OutViewType& out, KokkosFFT::Direction direction,
                 int axis, std::optional<std::size_t> n = std::nullopt)
       : Plan(exec_space, in, out, direction, axis_type<DIM>({axis}),
-             Impl::maybe_null_to_shape(n)) {}
+             shape_type<DIM>{n.value_or(0)}) {}
 
   /// \brief Constructor for multidimensional FFT
   ///
