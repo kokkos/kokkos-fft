@@ -127,7 +127,6 @@ auto create_plan(const ExecutionSpace& exec_space,
 
 // Data layout in conjugate-even domain
 #if defined(__INTEL_LLVM_COMPILER) && INTEL_MKL_VERSION >= 20250100
-  // Data layout in conjugate-even domain
   const oneapi::mkl::dft::config_value placement =
       is_inplace ? oneapi::mkl::dft::config_value::INPLACE
                  : oneapi::mkl::dft::config_value::NOT_INPLACE;
