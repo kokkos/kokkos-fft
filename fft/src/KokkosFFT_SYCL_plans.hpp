@@ -7,6 +7,11 @@
 
 #include <numeric>
 #include <algorithm>
+#if defined(__INTEL_LLVM_COMPILER) && INTEL_MKL_VERSION >= 20250100
+#include <oneapi/mkl/dft.hpp>
+#else
+#include <oneapi/mkl/dfti.hpp>
+#endif
 #include <Kokkos_Profiling_ScopedRegion.hpp>
 #include "KokkosFFT_SYCL_types.hpp"
 #include "KokkosFFT_Extents.hpp"
@@ -21,7 +26,7 @@ template <
     std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::Experimental::SYCL>,
                      std::nullptr_t> = nullptr>
 void setup() {
-  static bool once = [] {
+  [[maybe_unused]] static bool once = [] {
     if (!(Kokkos::is_initialized() || Kokkos::is_finalized())) {
       Kokkos::abort(
           "Error: KokkosFFT APIs must not be called before initializing "
@@ -109,9 +114,9 @@ auto create_plan(const ExecutionSpace& exec_space,
   std::int64_t max_odist = static_cast<std::int64_t>(std::min(idist, odist));
 
   plan = std::make_unique<PlanType>(int64_fft_extents);
-  plan->set_value(oneapi::mkl::dft::config_param::INPUT_STRIDES,
+  plan->set_value(oneapi::mkl::dft::config_param::FWD_STRIDES,
                   in_strides.data());
-  plan->set_value(oneapi::mkl::dft::config_param::OUTPUT_STRIDES,
+  plan->set_value(oneapi::mkl::dft::config_param::BWD_STRIDES,
                   out_strides.data());
 
   // Configuration for batched plan
@@ -120,12 +125,22 @@ auto create_plan(const ExecutionSpace& exec_space,
   plan->set_value(oneapi::mkl::dft::config_param::NUMBER_OF_TRANSFORMS,
                   static_cast<std::int64_t>(howmany));
 
+// Data layout in conjugate-even domain
+#if defined(__INTEL_LLVM_COMPILER) && INTEL_MKL_VERSION >= 20250100
   // Data layout in conjugate-even domain
-  int placement = is_inplace ? DFTI_INPLACE : DFTI_NOT_INPLACE;
+  const oneapi::mkl::dft::config_value placement =
+      is_inplace ? oneapi::mkl::dft::config_value::INPLACE
+                 : oneapi::mkl::dft::config_value::NOT_INPLACE;
+  const oneapi::mkl::dft::config_value storage =
+      oneapi::mkl::dft::config_value::COMPLEX_COMPLEX;
+#else
+  const DFTI_CONFIG_VALUE placement =
+      is_inplace ? DFTI_INPLACE : DFTI_NOT_INPLACE;
+  const DFTI_CONFIG_VALUE storage = DFTI_COMPLEX_COMPLEX;
+#endif
   plan->set_value(oneapi::mkl::dft::config_param::PLACEMENT, placement);
   plan->set_value(oneapi::mkl::dft::config_param::CONJUGATE_EVEN_STORAGE,
-                  DFTI_COMPLEX_COMPLEX);
-
+                  storage);
   sycl::queue q = exec_space.sycl_queue();
   plan->commit(q);
 
