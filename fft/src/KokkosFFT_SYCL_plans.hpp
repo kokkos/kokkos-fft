@@ -114,10 +114,23 @@ auto create_plan(const ExecutionSpace& exec_space,
   std::int64_t max_odist = static_cast<std::int64_t>(std::min(idist, odist));
 
   plan = std::make_unique<PlanType>(int64_fft_extents);
+#if defined(__INTEL_LLVM_COMPILER) && INTEL_MKL_VERSION >= 20250100
+  const oneapi::mkl::dft::config_value placement =
+      is_inplace ? oneapi::mkl::dft::config_value::INPLACE
+                 : oneapi::mkl::dft::config_value::NOT_INPLACE;
+  const oneapi::mkl::dft::config_value storage =
+      oneapi::mkl::dft::config_value::COMPLEX_COMPLEX;
+  plan->set_value(oneapi::mkl::dft::config_param::FWD_STRIDES, in_strides);
+  plan->set_value(oneapi::mkl::dft::config_param::BWD_STRIDES, out_strides);
+#else
+  const DFTI_CONFIG_VALUE placement =
+      is_inplace ? DFTI_INPLACE : DFTI_NOT_INPLACE;
+  const DFTI_CONFIG_VALUE storage = DFTI_COMPLEX_COMPLEX;
   plan->set_value(oneapi::mkl::dft::config_param::FWD_STRIDES,
                   in_strides.data());
   plan->set_value(oneapi::mkl::dft::config_param::BWD_STRIDES,
                   out_strides.data());
+#endif
 
   // Configuration for batched plan
   plan->set_value(oneapi::mkl::dft::config_param::FWD_DISTANCE, max_idist);
@@ -125,18 +138,7 @@ auto create_plan(const ExecutionSpace& exec_space,
   plan->set_value(oneapi::mkl::dft::config_param::NUMBER_OF_TRANSFORMS,
                   static_cast<std::int64_t>(howmany));
 
-// Data layout in conjugate-even domain
-#if defined(__INTEL_LLVM_COMPILER) && INTEL_MKL_VERSION >= 20250100
-  const oneapi::mkl::dft::config_value placement =
-      is_inplace ? oneapi::mkl::dft::config_value::INPLACE
-                 : oneapi::mkl::dft::config_value::NOT_INPLACE;
-  const oneapi::mkl::dft::config_value storage =
-      oneapi::mkl::dft::config_value::COMPLEX_COMPLEX;
-#else
-  const DFTI_CONFIG_VALUE placement =
-      is_inplace ? DFTI_INPLACE : DFTI_NOT_INPLACE;
-  const DFTI_CONFIG_VALUE storage = DFTI_COMPLEX_COMPLEX;
-#endif
+  // Data layout in conjugate-even domain
   plan->set_value(oneapi::mkl::dft::config_param::PLACEMENT, placement);
   plan->set_value(oneapi::mkl::dft::config_param::CONJUGATE_EVEN_STORAGE,
                   storage);
