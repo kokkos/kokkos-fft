@@ -21,7 +21,9 @@ struct TestAlmostEqualUlps : public ::testing::Test {
 
 // Helper function for nextafter on fp16 types
 template <typename fp16_t>
-  requires(sizeof(fp16_t) == 2)
+  requires((std::is_same_v<fp16_t, Kokkos::Experimental::half_t> ||
+            std::is_same_v<fp16_t, Kokkos::Experimental::bhalf_t>) &&
+           sizeof(fp16_t) == 2)
 fp16_t nextafter_fp16(fp16_t from, fp16_t to) {
   constexpr std::uint16_t FP16_SIGN_MASK = 0x8000;
   constexpr std::uint16_t FP16_POS_ZERO  = 0x0000;
@@ -61,33 +63,37 @@ fp16_t nextafter_fp16(fp16_t from, fp16_t to) {
 
   // Determine direction and sign of 'from'
   // True if moving to positive infinity
-  bool increase_magnitude = (to > from);
-  bool from_is_negative   = ((uint_from & FP16_SIGN_MASK) != 0);
+  bool to_positive_infinity = (to > from);
+  bool from_is_negative     = ((uint_from & FP16_SIGN_MASK) != 0);
 
-  std::uint16_t uint_result;
-  if (from_is_negative) {
-    // For negative numbers, increasing magnitude means moving towards -inf
-    // (larger uint value) Decreasing magnitude means moving towards zero
-    // (smaller uint value)
-    if (increase_magnitude) {
-      // Moving toward zero or positive
-      uint_result = uint_from - 1;
-    } else {
-      // Moving toward negative infinity
-      uint_result = uint_from + 1;
-    }
-  } else {
-    // For positive numbers, increasing magnitude means moving towards +inf
-    // (larger uint value) Decreasing magnitude means moving towards zero
-    // (smaller uint value)
-    if (increase_magnitude) {
-      // Moving toward positive infinity
-      uint_result = uint_from + 1;
-    } else {
-      // Moving toward zero or negative infinity
-      uint_result = uint_from - 1;
-    }
-  }
+  std::uint16_t uint_result =
+      uint_from + 2 * (to_positive_infinity ^ from_is_negative) - 1;
+  // This is equivalent to the following operations.
+  // std::uint16_t uint_result;
+  //
+  // if (from_is_negative) {
+  //  // For negative numbers, increasing magnitude means moving towards -inf
+  //  // (larger uint value) Decreasing magnitude means moving towards zero
+  //  // (smaller uint value)
+  //  if (to_positive_infinity) {
+  //    // Moving toward zero or positive
+  //    uint_result = uint_from - 1;
+  //  } else {
+  //    // Moving toward negative infinity
+  //    uint_result = uint_from + 1;
+  //  }
+  //} else {
+  //  // For positive numbers, increasing magnitude means moving towards +inf
+  //  // (larger uint value) Decreasing magnitude means moving towards zero
+  //  // (smaller uint value)
+  //  if (to_positive_infinity) {
+  //    // Moving toward positive infinity
+  //    uint_result = uint_from + 1;
+  //  } else {
+  //    // Moving toward zero or negative infinity
+  //    uint_result = uint_from - 1;
+  //  }
+  //}
   return Kokkos::bit_cast<fp16_t>(uint_result);
 }
 
@@ -202,12 +208,14 @@ void test_almost_equal_ulps_negative() {
 
 template <typename T, typename BoolViewType>
 void test_almost_equal_ulps_near_zero() {
-  T a(1.0e-40);
-  T b(-1.0e-40);
   T c(0.0);
   T d(-0.0);
+  T a = nextafter_wrapper(c, T(1.0));
+  T b = nextafter_wrapper(d, T(-1.0));
 
   BoolViewType a_b_are_almost_equal("a_b_are_almost_equal"),
+      a_c_are_almost_equal("a_c_are_almost_equal"),
+      b_d_are_almost_equal("b_d_are_almost_equal"),
       c_d_are_almost_equal("c_d_are_almost_equal");
 
   Kokkos::parallel_for(
@@ -216,6 +224,12 @@ void test_almost_equal_ulps_near_zero() {
         // ULP diff should be big -> false
         a_b_are_almost_equal() =
             KokkosFFT::Testing::Impl::almost_equal_ulps(a, b, 1);
+        // ULP diff should be 1 -> true
+        a_c_are_almost_equal() =
+            KokkosFFT::Testing::Impl::almost_equal_ulps(a, c, 1);
+        // ULP diff should be 1 -> true
+        b_d_are_almost_equal() =
+            KokkosFFT::Testing::Impl::almost_equal_ulps(b, d, 1);
         // ULP diff should be 0 -> true (not sure this is a good behaviour)
         c_d_are_almost_equal() =
             KokkosFFT::Testing::Impl::almost_equal_ulps(c, d, 0);
@@ -223,47 +237,45 @@ void test_almost_equal_ulps_near_zero() {
 
   auto h_a_b_are_almost_equal = Kokkos::create_mirror_view_and_copy(
       Kokkos::HostSpace{}, a_b_are_almost_equal);
+  auto h_a_c_are_almost_equal = Kokkos::create_mirror_view_and_copy(
+      Kokkos::HostSpace{}, a_c_are_almost_equal);
+  auto h_b_d_are_almost_equal = Kokkos::create_mirror_view_and_copy(
+      Kokkos::HostSpace{}, b_d_are_almost_equal);
   auto h_c_d_are_almost_equal = Kokkos::create_mirror_view_and_copy(
       Kokkos::HostSpace{}, c_d_are_almost_equal);
 
-  if (std::is_same_v<T, Kokkos::Experimental::half_t>) {
-    // FIXME do not understand why this is satisfied
-    ASSERT_TRUE(h_a_b_are_almost_equal());
-  } else {
-    ASSERT_FALSE(h_a_b_are_almost_equal());
-  }
+  ASSERT_FALSE(h_a_b_are_almost_equal());
+  ASSERT_TRUE(h_a_c_are_almost_equal());
+  ASSERT_TRUE(h_b_d_are_almost_equal());
   ASSERT_TRUE(h_c_d_are_almost_equal());
 }
 
 template <typename T, typename BoolViewType>
 void test_almost_equal_ulps_inf() {
-  T a = Kokkos::Experimental::infinity<T>::value;
-  T b = a;
-  // FIXME do not compile
-  // T c = -Kokkos::Experimental::infinity<T>::value;
+  T pos_inf = Kokkos::Experimental::infinity<T>::value;
+  T neg_inf = -static_cast<T>(Kokkos::Experimental::infinity<T>::value);
 
-  BoolViewType a_b_are_almost_equal("a_b_are_almost_equal");
-  //  a_c_are_almost_equal("a_c_are_almost_equal");
+  BoolViewType a_b_are_almost_equal("a_b_are_almost_equal"),
+      a_c_are_almost_equal("a_c_are_almost_equal");
 
   Kokkos::parallel_for(
       Kokkos::RangePolicy<execution_space, Kokkos::IndexType<int>>{0, 1},
       KOKKOS_LAMBDA(int) {
         // ULP diff should be 0 -> true
         a_b_are_almost_equal() =
-            KokkosFFT::Testing::Impl::almost_equal_ulps(a, b, 0);
+            KokkosFFT::Testing::Impl::almost_equal_ulps(pos_inf, pos_inf, 0);
         // They are always different -> false
-        // FIXME do not compile
-        // a_c_are_almost_equal() =
-        //    KokkosFFT::Testing::Impl::almost_equal_ulps(a, c, 1000000);
+        a_c_are_almost_equal() = KokkosFFT::Testing::Impl::almost_equal_ulps(
+            pos_inf, neg_inf, 1000000);
       });
 
   auto h_a_b_are_almost_equal = Kokkos::create_mirror_view_and_copy(
       Kokkos::HostSpace{}, a_b_are_almost_equal);
-  // auto h_a_c_are_almost_equal = Kokkos::create_mirror_view_and_copy(
-  //     Kokkos::HostSpace{}, a_c_are_almost_equal);
+  auto h_a_c_are_almost_equal = Kokkos::create_mirror_view_and_copy(
+      Kokkos::HostSpace{}, a_c_are_almost_equal);
 
   ASSERT_TRUE(h_a_b_are_almost_equal());
-  // ASSERT_FALSE(h_a_c_are_almost_equal());
+  ASSERT_FALSE(h_a_c_are_almost_equal());
 }
 
 template <typename T, typename BoolViewType>
