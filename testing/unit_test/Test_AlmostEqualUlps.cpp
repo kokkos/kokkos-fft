@@ -26,8 +26,6 @@ template <typename fp16_t>
            sizeof(fp16_t) == 2)
 fp16_t nextafter_fp16(fp16_t from, fp16_t to) {
   constexpr std::uint16_t FP16_SIGN_MASK = 0x8000;
-  constexpr std::uint16_t FP16_POS_ZERO  = 0x0000;
-  constexpr std::uint16_t FP16_NEG_ZERO  = 0x8000;
   constexpr std::uint16_t FP16_SMALLEST_POS_DN =
       0x0001;  // Smallest positive denormal
   constexpr std::uint16_t FP16_SMALLEST_NEG_DN =
@@ -45,18 +43,11 @@ fp16_t nextafter_fp16(fp16_t from, fp16_t to) {
   std::uint16_t uint_from = Kokkos::bit_cast<std::uint16_t>(from);
 
   // Handle zeros
-  if (uint_from == FP16_POS_ZERO) {  // from is +0.0
-    // Direction is to a non-zero number.
+  if (from == fp16_t(0)) {
+    // from is +0.0 or -0.0
     // Return smallest magnitude number with the sign of 'to'.
-    // However, standard nextafter(+0, negative) -> smallest_negative
-    // And nextafter(+0, positive) -> smallest_positive
-    return Kokkos::bit_cast<fp16_t>((to > from) ? FP16_SMALLEST_POS_DN
-                                                : FP16_SMALLEST_NEG_DN);
-  }
-  if (uint_from == FP16_NEG_ZERO) {  // from is -0.0
-    // Return smallest magnitude number with the sign of 'to'.
-    // Standard nextafter(-0, negative) -> smallest_negative
-    // And nextafter(-0, positive) -> smallest_positive
+    // nextafter(±0, negative) -> smallest_negative
+    // nextafter(±0, positive) -> smallest_positive
     return Kokkos::bit_cast<fp16_t>((to > from) ? FP16_SMALLEST_POS_DN
                                                 : FP16_SMALLEST_NEG_DN);
   }
@@ -290,9 +281,9 @@ void test_almost_equal_ulps_nan() {
   Kokkos::parallel_for(
       Kokkos::RangePolicy<execution_space, Kokkos::IndexType<int>>{0, 1},
       KOKKOS_LAMBDA(int) {
-        // Nans are considered as identical -> true
+        // Nans are considered as different -> false
         a_b_are_almost_equal() =
-            KokkosFFT::Testing::Impl::almost_equal_ulps(a, b, 0);
+            KokkosFFT::Testing::Impl::almost_equal_ulps(a, b, 1000000);
         // Value and Nan are always different -> false
         a_c_are_almost_equal() =
             KokkosFFT::Testing::Impl::almost_equal_ulps(a, c, 1000000);
@@ -303,7 +294,7 @@ void test_almost_equal_ulps_nan() {
   auto h_a_c_are_almost_equal = Kokkos::create_mirror_view_and_copy(
       Kokkos::HostSpace{}, a_c_are_almost_equal);
 
-  ASSERT_TRUE(h_a_b_are_almost_equal());
+  ASSERT_FALSE(h_a_b_are_almost_equal());
   ASSERT_FALSE(h_a_c_are_almost_equal());
 }
 
