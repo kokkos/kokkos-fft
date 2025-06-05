@@ -32,7 +32,7 @@ affiliations:
  - name: Oak Ridge National Laboratory, Oak Ridge, Tennessee, US
    index: 2
 
-date: 26 May 2025
+date: 6 June 2025
 bibliography: paper.bib
 
 # Optional fields if submitting to a AAS journal too, see this blog post:
@@ -43,7 +43,7 @@ aas-journal: Astrophysical Journal <- The name of the AAS journal.
 
 # Summary
 
-kokkos-fft implements local (non-distributed) interfaces between Kokkos and de facto standard FFT libraries, including FFTW, cuFFT, rocFFT, and oneMKL. The key concept of kokkos-fft is "As easy as numpy, as fast as vendor libraries". This library has simple interface like numpy.fft with in-place and out-of-place transforms, while keeping the performance portability. An exercise to solve the 2D Hasegawa-Wakatani turbulence with the Fourier spectral method demonstrates that we can achieve a signficiant speed up against python version without increasing the lines of code (LOC) drastically. This library allows the user to perform FFTs efficiently and simply in the kokkos ecosystem [@Trott2021].
+kokkos-fft provides a unified, performance-portable interface for Fast Fourier Transforms (FFTs) within the Kokkos ecosystem [@Trott2021]. It seamlessly integrates with leading local FFT libraries including FFTW, cuFFT, rocFFT, and oneMKL. Designed for simplicity and efficiency, kokkos-fft offers a user experience akin to numpy.fft for in-place and out-of-place transforms, while leveraging the raw speed of vendor-optimized libraries. A demonstration solving 2D Hasegawa-Wakatani turbulence with the Fourier spectral method illustrates how kokkos-fft can deliver significant speedups over Python-based alternatives without drastically increasing code complexity, empowering researchers to perform high-performance FFTs simply and effectively.
 
 # Statement of need
 
@@ -51,7 +51,7 @@ The fast Fourier transform (FFT) is a family of fundamental algorithms that is w
 
 * using Kokkos to port a legacy application which relies on FFT libraries. E.g., fluid simulation codes with periodic boundaries, plasma turbulence, etc.
 
-* wishing to integrate in-situ signal and image processing with FFTs. E.g., spectral analyses, low pass filtering, etc.
+* inclined to integrate in-situ signal and image processing with FFTs. E.g., spectral analyses, low pass filtering, etc.
 
 * willing to use de facto standard FFT libraries just like [`numpy.fft`](https://numpy.org/doc/stable/reference/routines.fft.html) [@Harris2020].
 
@@ -96,7 +96,7 @@ int main(int argc, char* argv[]) {
 }
 ```
 
-This is equivalent to the following python code.
+This is equivalent to the following Python code.
 
 ```python
 import numpy as np
@@ -106,9 +106,9 @@ x_hat = np.fft.rfft(x)
 
 There are two additional arguments in the Kokkos version:
 
-* `exec`: the [*Kokkos execution space instance*](https://kokkos.org/kokkos-core-wiki/API/core/execution_spaces.html) that encapsulates the underlying compute resources (e.g., CPU cores, GPU devices) where the task will be dispatched for execution.
+* `exec`: [*Kokkos execution space instance*](https://kokkos.org/kokkos-core-wiki/API/core/execution_spaces.html) that encapsulates the underlying compute resources (e.g., CPU cores, GPU devices) where the task will be dispatched for execution.
 
-* `x_hat`: the [Kokkos Views](https://kokkos.org/kokkos-core-wiki/API/core/view/view.html) where the complex-valued FFT output will be stored. By accepting this view as an argument, the function allows the user to pre-allocate memory and optimize data placement, avoiding unnecessary allocations and copies.
+* `x_hat`: [*Kokkos Views*](https://kokkos.org/kokkos-core-wiki/API/core/view/view.html) where the complex-valued FFT output will be stored. By accepting this view as an argument, the function allows the user to pre-allocate memory and optimize data placement, avoiding unnecessary allocations and copies.
 
 Also, kokkos-fft only accepts [Kokkos Views](https://kokkos.org/kokkos-core-wiki/API/core/view/view.html) as input data. The accessibility of a View from `ExecutionSpace` is statically checked and will result in a compilation error if not accessible. See [documentations](https://kokkosfft.readthedocs.io/en/latest/intro/quick_start.html) for basic usage.
 
@@ -118,7 +118,7 @@ As a more scientific example, we solve a typical 2D plasma turbulence model, cal
 
 ![Vorticity.\label{fig:hw2D}](hw2D.png)
 
-Using Kokkos and kokkos-fft, we can easily implement the code, just like Python, while getting a significant acceleration. The core computational kernel of the code is the nonlinear term which is computed with FFTs. We construct the forward and backward FFT plans once in initialization which are reused in the time evolution loops.
+Using Kokkos and kokkos-fft, we can easily implement the code (see [example](https://github.com/kokkos/kokkos-fft/tree/main/examples/10_HasegawaWakatani/README.md)), just like Python, while getting a significant acceleration. The core computational kernel of the code is the nonlinear term which is computed with FFTs. We construct the forward and backward FFT plans once during initialization which are reused in the time evolution loops.
 
 We have performed a benchmark of this application over multiple backends. We performed a simulation for 100 steps with a resolution of `1024 x 1024` while I/Os are disabled. The following table shows the achieved performance.
 
