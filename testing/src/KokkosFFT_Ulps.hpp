@@ -43,6 +43,18 @@ struct FloatIntMap<Kokkos::Experimental::bhalf_t> {
 };
 #endif
 
+/// \brief Convert a floating-point number to a biased integer representation.
+/// Converts the float to unsigned integer representation, and then represents
+/// them as their two's complement
+/// See https://en.wikipedia.org/wiki/Two%27s_complement for detail
+///
+/// \tparam UIntType The unsigned integer type to convert to (e.g., uint32_t,
+/// uint16_t)
+/// \tparam FloatType The floating-point type to convert from (e.g.,
+/// float, double)
+///
+/// \param[in] from The floating-point number to convert
+/// \return The biased integer representation of the floating-point number
 template <typename UIntType, typename FloatType>
   requires(sizeof(UIntType) == sizeof(FloatType))
 KOKKOS_INLINE_FUNCTION UIntType float_to_biased_int(FloatType from) {
@@ -54,7 +66,7 @@ KOKKOS_INLINE_FUNCTION UIntType float_to_biased_int(FloatType from) {
   if ((to & sign_mask) != 0) {
     // Original float was negative (or -0.0f)
     // Bitwise NOT to reverse order and map to lower half conceptually
-    return ~to;
+    return ~to + 1;
   } else {
     // Original float was positive (or +0.0f)
     // OR with sign_mask to shift positive values to the upper half conceptually
@@ -62,6 +74,18 @@ KOKKOS_INLINE_FUNCTION UIntType float_to_biased_int(FloatType from) {
   }
 }
 
+/// \brief Compare two floating-point numbers for approximate equality
+/// using the ULP (Units in the Last Place) method.
+///
+/// \tparam ScalarA The type of the first floating-point number
+/// \tparam ScalarB The type of the second floating-point number
+///
+/// \param[in] a The first floating-point number
+/// \param[in] b The second floating-point number
+/// \param[in] max_ulps_diff The maximum allowed difference in ULPs for the
+/// numbers to be considered equal
+/// \return True if the two numbers are approximately equal within the specified
+/// ULP difference, false otherwise
 template <typename ScalarA, typename ScalarB>
 KOKKOS_INLINE_FUNCTION bool almost_equal_ulps(ScalarA a, ScalarB b,
                                               std::size_t max_ulps_diff) {
@@ -79,7 +103,6 @@ KOKKOS_INLINE_FUNCTION bool almost_equal_ulps(ScalarA a, ScalarB b,
   using CommonFloatType = std::common_type_t<ScalarA, ScalarB>;
   using UIntType        = typename FloatIntMap<CommonFloatType>::IntType;
 
-  // Reinterpret the bits using Kokkos::bit_cast
   UIntType biased_a = float_to_biased_int<UIntType>(a);
   UIntType biased_b = float_to_biased_int<UIntType>(b);
 
