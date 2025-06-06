@@ -88,7 +88,7 @@ git clone --recursive https://github.com/kokkos/kokkos-fft.git
 ```
 
 ### Prerequisites
-To use kokkos-fft, we need the followings:
+To use kokkos-fft, we need the following:
 * `CMake 3.22+`
 * `Kokkos 4.4+`
 * `gcc 8.3.0+` (CPUs)
