@@ -113,6 +113,21 @@ KOKKOS_INLINE_FUNCTION bool almost_equal_ulps(ScalarA a, ScalarB b,
   return abs_ulps_diff <= static_cast<UIntType>(max_ulps_diff);
 }
 
+template <typename IntType>
+struct AlmostEqualUlpsOp {
+ private:
+  IntType m_max_ulps_diff;
+
+ public:
+  AlmostEqualUlpsOp(IntType max_ulps_diff = 1)
+      : m_max_ulps_diff(max_ulps_diff) {}
+
+  template <typename ScalarA, typename ScalarB>
+  KOKKOS_INLINE_FUNCTION bool operator()(ScalarA a, ScalarB b) const {
+    return almost_equal_ulps(a, b, m_max_ulps_diff);
+  }
+};
+
 }  // namespace Impl
 }  // namespace Testing
 }  // namespace KokkosFFT
