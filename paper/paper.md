@@ -49,7 +49,7 @@ kokkos-fft provides a unified, performance-portable interface for Fast Fourier T
 
 The fast Fourier transform (FFT) is a family of fundamental algorithms that is widely used in scientific computing and other areas [@Rockmore2000]. [kokkos-fft](https://github.com/kokkos/kokkos-fft) is designed to help [Kokkos](https://github.com/kokkos/kokkos) [@Trott2022] users who are:
 
-* using Kokkos to port a legacy application which relies on FFT libraries. E.g., fluid simulation codes with periodic boundaries, plasma turbulence, etc.
+* developing a Kokkos application which relies on FFT libraries. E.g., fluid simulation codes with periodic boundaries, plasma turbulence, etc.
 
 * inclined to integrate in-situ signal and image processing with FFTs. E.g., spectral analyses, low pass filtering, etc.
 
@@ -129,9 +129,8 @@ We have performed a benchmark of this application over multiple backends. We per
 | Compiler/version | Python 3.12.3 | IntelLLVM 2023.0.0 | nvcc 12.2 | nvcc 12.3 | rocm 5.7 | IntelLLVM 2024.0.2 |
 | GB/s (Theoretical peak) | 205 | 205 | 1555 | 3350 | 1600 | 3276.8 |
 | Elapsed time [s] | 463 | 9.28 | 0.25 | 0.14 | 0.41 | 0.30 |
-| Speed up | x 1 | x 49.9 | x 1852 | x 3307 | x 1129 | x 1562 |
 
-Here, the testbed includes Intel Xeon Platinum 8360Y (referred to as Icelake), NVIDIA A100 and H100 GPUs, AMD MI250X GPU (1 GCD) and Intel Data Center GPU Max 1550 (referred to as PVC). On Icelake, we use 36 cores with OpenMP parallelization. As expected, the Python version is the simplest in terms of lines of code (LOC), which is definitively a good aspect of Python. With Kokkos and kokkos-fft, the same logic can be implemented without significantly increasing the source code size (roughly 1.5 times longer). However, the performance gain is enormous, allowing a speedup as high as 3000 times on the H100 GPU.
+Here, the testbed includes Intel Xeon Platinum 8360Y (referred to as Icelake), NVIDIA A100 and H100 GPUs, AMD MI250X GPU (1 GCD) and Intel Data Center GPU Max 1550 (referred to as PVC). On Icelake, we use 36 cores with OpenMP parallelization. As expected, the Python version is the simplest in terms of lines of code (LOC). With Kokkos and kokkos-fft, the same logic can be implemented without significantly increasing the source code size (roughly 1.5 times longer). However, the benefit is enormous, allowing a single and simple code runs on multiple architectures efficiently.
 
 # Acknowledgements
 
