@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
-add_executable(unit-tests-kokkos-fft-testing Test_Main.cpp Test_AreNotClose.cpp Test_AlmostEqualUlps.cpp Test_CountErrors.cpp Test_FindErrors.cpp Test_PrintErrors.cpp Test_Allclose.cpp 
+add_executable(unit-tests-kokkos-fft-testing Test_Main.cpp Test_AreClose.cpp Test_AlmostEqualUlps.cpp Test_CountErrors.cpp Test_FindErrors.cpp Test_PrintErrors.cpp Test_Allclose.cpp
 Test_TypeCartesianProduct.cpp)
 
 target_compile_features(unit-tests-kokkos-fft-testing PUBLIC cxx_std_20)
