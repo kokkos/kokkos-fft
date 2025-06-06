@@ -9,6 +9,7 @@
 #include <gmock/gmock.h>
 #include <Kokkos_Core.hpp>
 #include "KokkosFFT_Concepts.hpp"
+#include "KokkosFFT_AlmostEqual.hpp"
 #include "KokkosFFT_CountErrors.hpp"
 #include "KokkosFFT_PrintErrors.hpp"
 
@@ -51,12 +52,14 @@ inline bool allclose_impl(testing::MatchResultListener* listener,
   using ExecutionSpace = typename AViewType::execution_space;
   ExecutionSpace exec_space;
 
-  std::size_t errors = KokkosFFT::Testing::Impl::count_errors(
-      exec_space, actual, expected, rtol, atol);
+  KokkosFFT::Testing::Impl::AlmostEqualOp op(rtol, atol);
+
+  std::size_t errors =
+      KokkosFFT::Testing::Impl::count_errors(exec_space, actual, expected, op);
   if (errors == 0) return true;
 
   auto [a_val, e_val, loc_error] = KokkosFFT::Testing::Impl::find_errors(
-      exec_space, actual, expected, errors, rtol, atol);
+      exec_space, actual, expected, errors, op);
 
   exec_space.fence();
   auto error_map =
