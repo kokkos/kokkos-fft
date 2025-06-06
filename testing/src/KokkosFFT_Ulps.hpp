@@ -63,7 +63,7 @@ KOKKOS_INLINE_FUNCTION UIntType float_to_biased_int(FloatType from) {
   // e.g., 0x80000000 for int32_t, 0x8000 for int16_t
   constexpr UIntType sign_mask = UIntType(1) << (sizeof(UIntType) * 8 - 1);
 
-  if ((to & sign_mask) != 0) {
+  if (to & sign_mask) {
     // Original float was negative (or -0.0f)
     // Bitwise NOT to reverse order and map to lower half conceptually
     return ~to + 1;
