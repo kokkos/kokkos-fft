@@ -48,11 +48,12 @@ Kokkos::Iterate get_iteration_order(const ViewType& view) {
 /// parallel_reduce.
 /// \tparam AViewType The type of the first Kokkos view.
 /// \tparam BViewType The type of the second Kokkos view.
-/// \tparam BinaryOp The binary operation to apply to the elements of the views.
+/// \tparam ComparisonOp The binary operation to apply to the elements of the
+/// views.
 /// \tparam Layout The layout type of the Kokkos views.
 /// \tparam iType The integer type used for indexing the view elements.
 template <KokkosExecutionSpace ExecutionSpace, KokkosView AViewType,
-          KokkosView BViewType, typename BinaryOp, KokkosLayout Layout,
+          KokkosView BViewType, typename ComparisonOp, KokkosLayout Layout,
           typename iType>
 struct ViewErrors {
  private:
@@ -104,14 +105,14 @@ struct ViewErrors {
   ///
   /// \param[in] a First Kokkos view containing data to compare.
   /// \param[in] b Second Kokkos view containing data to compare against.
-  /// \param[in] p The binary operation used for comparison
+  /// \param[in] op The binary operation used for comparison
   /// \param[in] space The Kokkos execution space used to launch the parallel
   /// reduction.
-  ViewErrors(const AViewType& a, const BViewType& b, BinaryOp p,
+  ViewErrors(const AViewType& a, const BViewType& b, ComparisonOp op,
              const ExecutionSpace space = ExecutionSpace()) {
     Kokkos::parallel_reduce(
         "ViewErrors", get_policy(space, a),
-        CountErrors<std::make_index_sequence<m_rank_truncated>>(a, b, p),
+        CountErrors<std::make_index_sequence<m_rank_truncated>>(a, b, op),
         m_error);
   }
 
@@ -129,15 +130,15 @@ struct ViewErrors {
     AViewType m_a;
     BViewType m_b;
 
-    BinaryOp m_p;
+    ComparisonOp m_op;
 
     /// \brief Constructs the error counter and performs the error computation.
     ///
     /// \param[in] a First Kokkos view containing data to compare.
     /// \param[in] b Second Kokkos view containing data to compare against.
     /// \param[in] p The binary operation used for comparison
-    CountErrors(const AViewType& a, const BViewType& b, BinaryOp p)
-        : m_a(a), m_b(b), m_p(p) {}
+    CountErrors(const AViewType& a, const BViewType& b, ComparisonOp op)
+        : m_a(a), m_b(b), m_op(op) {}
 
     /// \brief Operator called by Kokkos to perform the comparison of each
     /// element.
@@ -148,13 +149,13 @@ struct ViewErrors {
     KOKKOS_INLINE_FUNCTION
     void operator()(const IndicesType<Idx>... indices, std::size_t& err) const {
       if constexpr (AViewType::rank() <= 6) {
-        bool close = m_p(m_a(indices...), m_b(indices...));
+        bool close = m_op(m_a(indices...), m_b(indices...));
         err += static_cast<std::size_t>(!close);
       } else if constexpr (AViewType::rank() == 7) {
         for (iType i6 = 0; i6 < iType(m_a.extent(6)); i6++) {
           auto tmp_a = m_a(indices..., i6);
           auto tmp_b = m_b(indices..., i6);
-          bool close = m_p(tmp_a, tmp_b);
+          bool close = m_op(tmp_a, tmp_b);
           err += static_cast<std::size_t>(!close);
         }
       } else if constexpr (AViewType::rank() == 8) {
@@ -162,7 +163,7 @@ struct ViewErrors {
           for (iType i7 = 0; i7 < iType(m_a.extent(7)); i7++) {
             auto tmp_a = m_a(indices..., i6, i7);
             auto tmp_b = m_b(indices..., i6, i7);
-            bool close = m_p(tmp_a, tmp_b);
+            bool close = m_op(tmp_a, tmp_b);
             err += static_cast<std::size_t>(!close);
           }
         }
@@ -186,11 +187,12 @@ struct ViewErrors {
 /// executed.
 /// \tparam AViewType The type of the first Kokkos view.
 /// \tparam BViewType The type of the second Kokkos view.
-/// \tparam BinaryOp The binary operation to apply to the elements of the views.
+/// \tparam ComparisonOp The binary operation to apply to the elements of the
+/// views.
 /// \tparam Layout The memory layout type of the Kokkos views.
 /// \tparam iType The integer type used for indexing the view elements.
 template <KokkosExecutionSpace ExecutionSpace, KokkosView AViewType,
-          KokkosView BViewType, typename BinaryOp, KokkosLayout Layout,
+          KokkosView BViewType, typename ComparisonOp, KokkosLayout Layout,
           typename iType>
 struct FindErrors {
  private:
@@ -255,17 +257,17 @@ struct FindErrors {
   ///\param[in] a The first Kokkos view containing data.
   ///\param[in] b The second Kokkos view containing data to compare against.
   ///\param[in] nb_errors The maximum number of errors expected.
-  ///\param[in] p The binary operation used for comparison.
+  ///\param[in] op The binary operation used for comparison.
   ///\param[in] space The execution space used to launch the parallel kernel.
   FindErrors(const AViewType& a, const BViewType& b, const iType nb_errors,
-             BinaryOp p, const ExecutionSpace space = ExecutionSpace())
+             ComparisonOp op, const ExecutionSpace space = ExecutionSpace())
       : m_a_error_pub("a_error", nb_errors),
         m_b_error_pub("b_error", nb_errors),
         m_loc_error_pub("loc_error", nb_errors, AViewType::rank() + 1) {
     Kokkos::parallel_for(
         "FindErrors", get_policy(space, a),
         FindErrorsInternal<std::make_index_sequence<m_rank_truncated>>(
-            a, b, m_a_error_pub, m_b_error_pub, m_loc_error_pub, p));
+            a, b, m_a_error_pub, m_b_error_pub, m_loc_error_pub, op));
   }
 
   template <typename IndexSequence>
@@ -286,7 +288,7 @@ struct FindErrors {
     //! The error counter
     CountType m_count;
 
-    BinaryOp m_p;
+    ComparisonOp m_op;
 
     ///\brief Constructs a FindErrorsInternal object and performs the error
     /// detection.
@@ -295,22 +297,21 @@ struct FindErrors {
     /// element, if the difference between the two views exceeds the specified
     /// tolerance, the corresponding error values and their index are recorded.
     ///
-    ///\param a [in] The first Kokkos view containing data.
-    ///\param b [in] The second Kokkos view containing data to compare against.
-    ///\param nb_errors [in] The maximum number of errors expected.
-    ///\param rtol [in] Relative tolerance for the comparison (default 1.e-5).
-    ///\param atol [in] Absolute tolerance for the comparison (default 1.e-8).
+    ///\param[in] a The first Kokkos view containing data.
+    ///\param[in] b The second Kokkos view containing data to compare against.
+    ///\param[in] nb_errors The maximum number of errors expected.
+    ///\param[in] op The binary operation used for comparison.
     FindErrorsInternal(const AViewType& a, const BViewType& b,
                        const AErrorViewType& a_error,
                        const BErrorViewType& b_error,
-                       const CountViewType& loc_error, BinaryOp p)
+                       const CountViewType& loc_error, ComparisonOp op)
         : m_a(a),
           m_b(b),
           m_a_error(a_error),
           m_b_error(b_error),
           m_loc_error(loc_error),
           m_count("count"),
-          m_p(p) {}
+          m_op(op) {}
 
     /// \brief Executes the element-wise comparison for the given index.
     /// This operator is invoked in parallel by Kokkos. For each index, it
@@ -324,7 +325,7 @@ struct FindErrors {
       if constexpr (AViewType::rank() <= 6) {
         auto tmp_a = m_a(indices...);
         auto tmp_b = m_b(indices...);
-        bool close = m_p(tmp_a, tmp_b);
+        bool close = m_op(tmp_a, tmp_b);
         if (!close) {
           std::size_t count = Kokkos::atomic_fetch_add(m_count.data(), 1);
           m_a_error(count)  = tmp_a;
@@ -339,7 +340,7 @@ struct FindErrors {
         for (iType i6 = 0; i6 < iType(m_a.extent(6)); i6++) {
           auto tmp_a = m_a(indices..., i6);
           auto tmp_b = m_b(indices..., i6);
-          bool close = m_p(tmp_a, tmp_b);
+          bool close = m_op(tmp_a, tmp_b);
           if (!close) {
             std::size_t count = Kokkos::atomic_fetch_add(m_count.data(), 1);
             m_a_error(count)  = tmp_a;
@@ -356,7 +357,7 @@ struct FindErrors {
           for (iType i7 = 0; i7 < iType(m_a.extent(7)); i7++) {
             auto tmp_a = m_a(indices..., i6, i7);
             auto tmp_b = m_b(indices..., i6, i7);
-            bool close = m_p(tmp_a, tmp_b);
+            bool close = m_op(tmp_a, tmp_b);
             if (!close) {
               std::size_t count = Kokkos::atomic_fetch_add(m_count.data(), 1);
               m_a_error(count)  = tmp_a;
@@ -404,46 +405,46 @@ struct FindErrors {
 /// \tparam ExecutionSpace The type of the Kokkos execution space.
 /// \tparam AViewType The type of the first Kokkos view.
 /// \tparam BViewType The type of the second Kokkos view.
-/// \tparam BinaryOp The type of the binary operation used for comparison.
+/// \tparam ComparisonOp The type of the binary operation used for comparison.
 ///
-/// \param exec [in] The execution space used to launch the parallel reduction.
-/// \param a [in] The first Kokkos view containing data to compare.
-/// \param b [in] The second Kokkos view containing data to compare against.
-/// \param p [in] The binary operation used for comparison.
+/// \param[in] exec The execution space used to launch the parallel reduction.
+/// \param[in] a The first Kokkos view containing data to compare.
+/// \param[in] b The second Kokkos view containing data to compare against.
+/// \param[in] op The binary operation used for comparison.
 /// \return The total number of mismatches detected.
 template <KokkosExecutionSpace ExecutionSpace, KokkosView AViewType,
-          KokkosView BViewType, typename BinaryOp>
+          KokkosView BViewType, typename ComparisonOp>
   requires KokkosViewAccessible<ExecutionSpace, AViewType> &&
            KokkosViewAccessible<ExecutionSpace, BViewType> &&
            (AViewType::rank() == BViewType::rank())
 std::size_t count_errors(const ExecutionSpace& exec, const AViewType& a,
-                         const BViewType& b, BinaryOp p) {
+                         const BViewType& b, ComparisonOp op) {
   // Figure out iteration order in case we need it
   Kokkos::Iterate iterate = get_iteration_order(a);
 
   if ((a.span() >= size_t(std::numeric_limits<int>::max())) ||
       (b.span() >= size_t(std::numeric_limits<int>::max()))) {
     if (iterate == Kokkos::Iterate::Right) {
-      Impl::ViewErrors<ExecutionSpace, AViewType, BViewType, BinaryOp,
+      Impl::ViewErrors<ExecutionSpace, AViewType, BViewType, ComparisonOp,
                        Kokkos::LayoutRight, int64_t>
-          view_errors(a, b, p, exec);
+          view_errors(a, b, op, exec);
       return view_errors.error();
     } else {
-      Impl::ViewErrors<ExecutionSpace, AViewType, BViewType, BinaryOp,
+      Impl::ViewErrors<ExecutionSpace, AViewType, BViewType, ComparisonOp,
                        Kokkos::LayoutLeft, int64_t>
-          view_errors(a, b, p, exec);
+          view_errors(a, b, op, exec);
       return view_errors.error();
     }
   } else {
     if (iterate == Kokkos::Iterate::Right) {
-      Impl::ViewErrors<ExecutionSpace, AViewType, BViewType, BinaryOp,
+      Impl::ViewErrors<ExecutionSpace, AViewType, BViewType, ComparisonOp,
                        Kokkos::LayoutRight, int>
-          view_errors(a, b, p, exec);
+          view_errors(a, b, op, exec);
       return view_errors.error();
     } else {
-      Impl::ViewErrors<ExecutionSpace, AViewType, BViewType, BinaryOp,
+      Impl::ViewErrors<ExecutionSpace, AViewType, BViewType, ComparisonOp,
                        Kokkos::LayoutLeft, int>
-          view_errors(a, b, p, exec);
+          view_errors(a, b, op, exec);
       return view_errors.error();
     }
   }
@@ -460,50 +461,51 @@ std::size_t count_errors(const ExecutionSpace& exec, const AViewType& a,
 /// operation.
 /// \tparam AViewType The type of the first Kokkos view.
 /// \tparam BViewType The type of the second Kokkos view.
-/// \tparam BinaryOp The type of the binary operation used for comparison.
+/// \tparam ComparisonOp The type of the binary operation used for comparison.
 ///
-/// \param exec [in] The execution space used to launch the parallel kernel.
-/// \param a [in] The first Kokkos view containing data.
-/// \param b [in] The second Kokkos view containing data to compare against.
-/// \param nb_errors [in] The maximum number of errors expected.
-/// \param p [in] The binary operation used for comparison.
+/// \param[in] exec The execution space used to launch the parallel kernel.
+/// \param[in] a The first Kokkos view containing data.
+/// \param[in] b The second Kokkos view containing data to compare against.
+/// \param[in] nb_errors The maximum number of errors expected.
+/// \param[in] op The binary operation used for comparison.
 /// \return A tuple containing:
 ///         - The Kokkos view of error values from the first view.
 ///         - The Kokkos view of error values from the second view.
 ///         - The Kokkos view of error location indices.
 template <KokkosExecutionSpace ExecutionSpace, KokkosView AViewType,
-          KokkosView BViewType, typename BinaryOp>
+          KokkosView BViewType, typename ComparisonOp>
   requires KokkosViewAccessible<ExecutionSpace, AViewType> &&
            KokkosViewAccessible<ExecutionSpace, BViewType> &&
            (AViewType::rank() == BViewType::rank())
 auto find_errors(const ExecutionSpace& exec, const AViewType& a,
-                 const BViewType& b, const std::size_t nb_errors, BinaryOp p) {
+                 const BViewType& b, const std::size_t nb_errors,
+                 ComparisonOp op) {
   // Figure out iteration order in case we need it
   Kokkos::Iterate iterate = get_iteration_order(a);
 
   if ((a.span() >= size_t(std::numeric_limits<int>::max())) ||
       (b.span() >= size_t(std::numeric_limits<int>::max()))) {
     if (iterate == Kokkos::Iterate::Right) {
-      Impl::FindErrors<ExecutionSpace, AViewType, BViewType, BinaryOp,
+      Impl::FindErrors<ExecutionSpace, AViewType, BViewType, ComparisonOp,
                        Kokkos::LayoutRight, int64_t>
-          find_errors(a, b, nb_errors, p, exec);
+          find_errors(a, b, nb_errors, op, exec);
       return find_errors.error_info();
     } else {
-      Impl::FindErrors<ExecutionSpace, AViewType, BViewType, BinaryOp,
+      Impl::FindErrors<ExecutionSpace, AViewType, BViewType, ComparisonOp,
                        Kokkos::LayoutLeft, int64_t>
-          find_errors(a, b, nb_errors, p, exec);
+          find_errors(a, b, nb_errors, op, exec);
       return find_errors.error_info();
     }
   } else {
     if (iterate == Kokkos::Iterate::Right) {
-      Impl::FindErrors<ExecutionSpace, AViewType, BViewType, BinaryOp,
+      Impl::FindErrors<ExecutionSpace, AViewType, BViewType, ComparisonOp,
                        Kokkos::LayoutRight, int>
-          find_errors(a, b, nb_errors, p, exec);
+          find_errors(a, b, nb_errors, op, exec);
       return find_errors.error_info();
     } else {
-      Impl::FindErrors<ExecutionSpace, AViewType, BViewType, BinaryOp,
+      Impl::FindErrors<ExecutionSpace, AViewType, BViewType, ComparisonOp,
                        Kokkos::LayoutLeft, int>
-          find_errors(a, b, nb_errors, p, exec);
+          find_errors(a, b, nb_errors, op, exec);
       return find_errors.error_info();
     }
   }
