@@ -5,9 +5,7 @@
 #ifndef KOKKOSFFT_ALMOST_EQUAL_HPP
 #define KOKKOSFFT_ALMOST_EQUAL_HPP
 
-#include <utility>
 #include <Kokkos_Core.hpp>
-#include "KokkosFFT_Concepts.hpp"
 
 namespace KokkosFFT {
 namespace Testing {
