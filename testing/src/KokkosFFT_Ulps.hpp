@@ -114,12 +114,12 @@ KOKKOS_INLINE_FUNCTION bool almost_equal_ulps(ScalarA a, ScalarB b,
 }
 
 template <typename IntType>
-struct AlmostEqualUlpsOp {
+struct UlpsComparisonOP {
  private:
   IntType m_max_ulps_diff;
 
  public:
-  AlmostEqualUlpsOp(IntType max_ulps_diff = 1)
+  UlpsComparisonOP(IntType max_ulps_diff = 1)
       : m_max_ulps_diff(max_ulps_diff) {}
 
   template <typename ScalarA, typename ScalarB>
