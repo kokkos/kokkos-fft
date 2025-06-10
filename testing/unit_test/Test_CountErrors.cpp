@@ -5,6 +5,7 @@
 #include <gtest/gtest.h>
 #include <Kokkos_Core.hpp>
 #include "KokkosFFT_CountErrors.hpp"
+#include "KokkosFFT_AlmostEqual.hpp"
 
 namespace {
 
@@ -55,17 +56,14 @@ void test_view_errors_1D_analytical(double rtol, double atol) {
   Kokkos::deep_copy(d, h_d);
   Kokkos::deep_copy(e, h_e);
 
-  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), b, a,
-                                                   rtol, atol),
+  KokkosFFT::Testing::Impl::AlmostEqualOp op(rtol, atol);
+  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), b, a, op),
             1);
-  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), c, a,
-                                                   rtol, atol),
+  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), c, a, op),
             0);
-  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), d, a,
-                                                   rtol, atol),
+  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), d, a, op),
             1);
-  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), e, a,
-                                                   rtol, atol),
+  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), e, a, op),
             0);
 }
 
@@ -106,17 +104,14 @@ void test_view_errors_2D_analytical(double rtol, double atol) {
   Kokkos::deep_copy(d, h_d);
   Kokkos::deep_copy(e, h_e);
 
-  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), b, a,
-                                                   rtol, atol),
+  KokkosFFT::Testing::Impl::AlmostEqualOp op(rtol, atol);
+  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), b, a, op),
             1);
-  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), c, a,
-                                                   rtol, atol),
+  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), c, a, op),
             0);
-  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), d, a,
-                                                   rtol, atol),
+  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), d, a, op),
             1);
-  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), e, a,
-                                                   rtol, atol),
+  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), e, a, op),
             0);
 }
 
@@ -158,17 +153,14 @@ void test_view_errors_3D_analytical(double rtol, double atol) {
   Kokkos::deep_copy(d, h_d);
   Kokkos::deep_copy(e, h_e);
 
-  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), b, a,
-                                                   rtol, atol),
+  KokkosFFT::Testing::Impl::AlmostEqualOp op(rtol, atol);
+  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), b, a, op),
             1);
-  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), c, a,
-                                                   rtol, atol),
+  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), c, a, op),
             0);
-  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), d, a,
-                                                   rtol, atol),
+  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), d, a, op),
             2);
-  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), e, a,
-                                                   rtol, atol),
+  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), e, a, op),
             0);
 }
 
@@ -211,17 +203,14 @@ void test_view_errors_4D_analytical(double rtol, double atol) {
   Kokkos::deep_copy(d, h_d);
   Kokkos::deep_copy(e, h_e);
 
-  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), b, a,
-                                                   rtol, atol),
+  KokkosFFT::Testing::Impl::AlmostEqualOp op(rtol, atol);
+  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), b, a, op),
             1);
-  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), c, a,
-                                                   rtol, atol),
+  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), c, a, op),
             0);
-  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), d, a,
-                                                   rtol, atol),
+  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), d, a, op),
             3);
-  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), e, a,
-                                                   rtol, atol),
+  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), e, a, op),
             0);
 }
 
@@ -266,17 +255,14 @@ void test_view_errors_5D_analytical(double rtol, double atol) {
   Kokkos::deep_copy(d, h_d);
   Kokkos::deep_copy(e, h_e);
 
-  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), b, a,
-                                                   rtol, atol),
+  KokkosFFT::Testing::Impl::AlmostEqualOp op(rtol, atol);
+  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), b, a, op),
             1);
-  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), c, a,
-                                                   rtol, atol),
+  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), c, a, op),
             0);
-  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), d, a,
-                                                   rtol, atol),
+  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), d, a, op),
             4);
-  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), e, a,
-                                                   rtol, atol),
+  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), e, a, op),
             0);
 }
 
@@ -322,17 +308,14 @@ void test_view_errors_6D_analytical(double rtol, double atol) {
   Kokkos::deep_copy(d, h_d);
   Kokkos::deep_copy(e, h_e);
 
-  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), b, a,
-                                                   rtol, atol),
+  KokkosFFT::Testing::Impl::AlmostEqualOp op(rtol, atol);
+  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), b, a, op),
             1);
-  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), c, a,
-                                                   rtol, atol),
+  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), c, a, op),
             0);
-  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), d, a,
-                                                   rtol, atol),
+  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), d, a, op),
             5);
-  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), e, a,
-                                                   rtol, atol),
+  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), e, a, op),
             0);
 }
 
@@ -379,17 +362,14 @@ void test_view_errors_7D_analytical(double rtol, double atol) {
   Kokkos::deep_copy(d, h_d);
   Kokkos::deep_copy(e, h_e);
 
-  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), b, a,
-                                                   rtol, atol),
+  KokkosFFT::Testing::Impl::AlmostEqualOp op(rtol, atol);
+  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), b, a, op),
             1);
-  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), c, a,
-                                                   rtol, atol),
+  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), c, a, op),
             0);
-  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), d, a,
-                                                   rtol, atol),
+  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), d, a, op),
             6);
-  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), e, a,
-                                                   rtol, atol),
+  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), e, a, op),
             0);
 }
 
@@ -439,17 +419,14 @@ void test_view_errors_8D_analytical(double rtol, double atol) {
   Kokkos::deep_copy(d, h_d);
   Kokkos::deep_copy(e, h_e);
 
-  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), b, a,
-                                                   rtol, atol),
+  KokkosFFT::Testing::Impl::AlmostEqualOp op(rtol, atol);
+  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), b, a, op),
             1);
-  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), c, a,
-                                                   rtol, atol),
+  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), c, a, op),
             0);
-  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), d, a,
-                                                   rtol, atol),
+  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), d, a, op),
             7);
-  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), e, a,
-                                                   rtol, atol),
+  EXPECT_EQ(KokkosFFT::Testing::Impl::count_errors(execution_space(), e, a, op),
             0);
 }
 }  // namespace

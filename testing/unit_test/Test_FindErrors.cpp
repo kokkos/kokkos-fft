@@ -5,6 +5,7 @@
 #include <gtest/gtest.h>
 #include <Kokkos_Core.hpp>
 #include "KokkosFFT_CountErrors.hpp"
+#include "KokkosFFT_AlmostEqual.hpp"
 
 namespace {
 
@@ -47,8 +48,9 @@ void test_find_errors_1D_analytical(double rtol, double atol) {
   h_ref_loc_error(0, 1) = 0;  // idx of dimension 0
   Kokkos::deep_copy(b, h_b);
 
+  KokkosFFT::Testing::Impl::AlmostEqualOp op(rtol, atol);
   auto [b_error, a_error, loc_error] = KokkosFFT::Testing::Impl::find_errors(
-      execution_space(), b, a, nb_errors, rtol, atol);
+      execution_space(), b, a, nb_errors, op);
   auto h_b_error =
       Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), b_error);
   auto h_a_error =
@@ -95,8 +97,9 @@ void test_find_errors_2D_analytical(double rtol, double atol) {
   h_ref_loc_error(0, 2) = 1;                    // idx of dimension 1
   Kokkos::deep_copy(b, h_b);
 
+  KokkosFFT::Testing::Impl::AlmostEqualOp op(rtol, atol);
   auto [b_error, a_error, loc_error] = KokkosFFT::Testing::Impl::find_errors(
-      execution_space(), b, a, nb_errors, rtol, atol);
+      execution_space(), b, a, nb_errors, op);
   auto h_b_error =
       Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), b_error);
   auto h_a_error =
@@ -146,8 +149,9 @@ void test_find_errors_3D_analytical(double rtol, double atol) {
   h_ref_loc_error(0, 3) = 3;  // idx of dimension 2
   Kokkos::deep_copy(b, h_b);
 
+  KokkosFFT::Testing::Impl::AlmostEqualOp op(rtol, atol);
   auto [b_error, a_error, loc_error] = KokkosFFT::Testing::Impl::find_errors(
-      execution_space(), b, a, nb_errors, rtol, atol);
+      execution_space(), b, a, nb_errors, op);
   auto h_b_error =
       Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), b_error);
   auto h_a_error =
@@ -200,8 +204,9 @@ void test_find_errors_4D_analytical(double rtol, double atol) {
   h_ref_loc_error(0, 4) = 1;                        // idx of dimension 3
   Kokkos::deep_copy(b, h_b);
 
+  KokkosFFT::Testing::Impl::AlmostEqualOp op(rtol, atol);
   auto [b_error, a_error, loc_error] = KokkosFFT::Testing::Impl::find_errors(
-      execution_space(), b, a, nb_errors, rtol, atol);
+      execution_space(), b, a, nb_errors, op);
   auto h_b_error =
       Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), b_error);
   auto h_a_error =
@@ -257,8 +262,9 @@ void test_find_errors_5D_analytical(double rtol, double atol) {
   h_ref_loc_error(0, 5) = 2;  // idx of dimension 3
   Kokkos::deep_copy(b, h_b);
 
+  KokkosFFT::Testing::Impl::AlmostEqualOp op(rtol, atol);
   auto [b_error, a_error, loc_error] = KokkosFFT::Testing::Impl::find_errors(
-      execution_space(), b, a, nb_errors, rtol, atol);
+      execution_space(), b, a, nb_errors, op);
   auto h_b_error =
       Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), b_error);
   auto h_a_error =
@@ -319,8 +325,9 @@ void test_find_errors_6D_analytical(double rtol, double atol) {
   h_ref_loc_error(0, 6) = 0;  // idx of dimension 5
   Kokkos::deep_copy(b, h_b);
 
+  KokkosFFT::Testing::Impl::AlmostEqualOp op(rtol, atol);
   auto [b_error, a_error, loc_error] = KokkosFFT::Testing::Impl::find_errors(
-      execution_space(), b, a, nb_errors, rtol, atol);
+      execution_space(), b, a, nb_errors, op);
   auto h_b_error =
       Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), b_error);
   auto h_a_error =
@@ -385,8 +392,9 @@ void test_find_errors_7D_analytical(double rtol, double atol) {
   h_ref_loc_error(0, 7) = 1;  // idx of dimension 6
   Kokkos::deep_copy(b, h_b);
 
+  KokkosFFT::Testing::Impl::AlmostEqualOp op(rtol, atol);
   auto [b_error, a_error, loc_error] = KokkosFFT::Testing::Impl::find_errors(
-      execution_space(), b, a, nb_errors, rtol, atol);
+      execution_space(), b, a, nb_errors, op);
   auto h_b_error =
       Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), b_error);
   auto h_a_error =
@@ -455,8 +463,9 @@ void test_find_errors_8D_analytical(double rtol, double atol) {
   h_ref_loc_error(0, 8) = 0;          // idx of dimension 7
   Kokkos::deep_copy(b, h_b);
 
+  KokkosFFT::Testing::Impl::AlmostEqualOp op(rtol, atol);
   auto [b_error, a_error, loc_error] = KokkosFFT::Testing::Impl::find_errors(
-      execution_space(), b, a, nb_errors, rtol, atol);
+      execution_space(), b, a, nb_errors, op);
   auto h_b_error =
       Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), b_error);
   auto h_a_error =
