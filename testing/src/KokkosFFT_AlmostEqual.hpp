@@ -14,7 +14,11 @@ namespace Impl {
 template <typename ScalarA, typename ScalarB, typename ScalarTol>
 KOKKOS_INLINE_FUNCTION bool are_almost_equal(ScalarA a, ScalarB b,
                                              ScalarTol rtol, ScalarTol atol) {
-  return Kokkos::abs(a - b) <= (atol + rtol * Kokkos::abs(b));
+  auto abs_diff = Kokkos::abs(a - b);
+  if (abs_diff <= atol) return true;
+
+  // b is a reference
+  return abs_diff <= rtol * Kokkos::abs(b);
 }
 
 template <typename ScalarTol>
