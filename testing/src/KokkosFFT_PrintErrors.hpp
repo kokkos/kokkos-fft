@@ -111,7 +111,7 @@ auto print_errors(const ErrorMapType &error_map,
     const auto &a   = std::get<1>(error.second);
     const auto &b   = std::get<2>(error.second);
 
-    auto diff = std::fabs(a - b);
+    auto diff = Kokkos::fabs(a - b);
 
     ss << "  Index (";
     for (std::size_t i = 0; i < loc.size(); ++i) {
