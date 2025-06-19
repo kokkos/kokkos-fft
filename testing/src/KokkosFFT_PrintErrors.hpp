@@ -30,13 +30,15 @@ namespace Impl {
 /// the second data set.
 /// \tparam CountViewType The type of the Kokkos view storing index information
 /// for each error.
-/// \param a_error [in] A Kokkos view containing error values from the first
+///
+/// \param[in] a_error A Kokkos view containing error values from the first
 /// set.
-/// \param b_error [in] A Kokkos view containing error values from the second
+/// \param[in] b_error A Kokkos view containing error values from the second
 /// set.
-/// \param loc_error [in] A Kokkos view containing index/location information
+/// \param[in] loc_error A Kokkos view containing index/location information
 /// for each error.
-/// \param verbose [in] How many elements to be returned (default: 3)
+/// \param[in] max_displayed_errors How many elements to be returned
+/// (default: 3)
 /// \return A std::map where the key is the global index and the value is a
 /// tuple consisting of a vector of additional indices, the corresponding error
 /// value from the first view, and the error value from the second view.
@@ -44,7 +46,7 @@ template <typename AErrorViewType, typename BErrorViewType,
           typename CountViewType>
 auto sort_errors(const AErrorViewType &a_error, const BErrorViewType &b_error,
                  const CountViewType &loc_error,
-                 const std::size_t verbose = 3) {
+                 const std::size_t max_displayed_errors = 3) {
   // Key: global idx
   // Value: tuple (vector of error idx, a, b)
   using a_value_type     = typename AErrorViewType::non_const_value_type;
@@ -62,11 +64,12 @@ auto sort_errors(const AErrorViewType &a_error, const BErrorViewType &b_error,
 
   using error_map_type = std::map<iType, error_value_type>;
   error_map_type error_map;
-  const std::size_t nb_errors         = h_a_error.extent(0);
-  const std::size_t nb_errors_verbose = std::min(nb_errors, verbose);
-  const std::size_t rank              = h_loc_error.extent(1);
+  const std::size_t nb_errors = h_a_error.extent(0);
+  const std::size_t nb_errors_displayed =
+      std::min(nb_errors, max_displayed_errors);
+  const std::size_t rank = h_loc_error.extent(1);
 
-  for (std::size_t err = 0; err < nb_errors_verbose; ++err) {
+  for (std::size_t err = 0; err < nb_errors_displayed; ++err) {
     iType global_idx = h_loc_error(err, 0);  // global idx -> key
 
     coord_type loc;
@@ -87,10 +90,10 @@ auto sort_errors(const AErrorViewType &a_error, const BErrorViewType &b_error,
 /// actual and expected error values and their difference.
 ///
 /// \tparam ErrorMapType The type of the error map containing error information.
-/// \param error_map [in] A constant reference to a map that stores error
+/// \param[in] error_map A constant reference to a map that stores error
 /// details.
-/// \param labelA [in] A label for the first error value (default is "actual").
-/// \param labelB [in] A label for the second error value (default is
+/// \param[in] labelA A label for the first error value (default is "actual").
+/// \param[in] labelB A label for the second error value (default is
 /// "expected").
 /// \return A std::string containing the formatted error report.
 template <typename ErrorMapType>
@@ -111,7 +114,7 @@ auto print_errors(const ErrorMapType &error_map,
     const auto &a   = std::get<1>(error.second);
     const auto &b   = std::get<2>(error.second);
 
-    auto diff = std::fabs(a - b);
+    auto diff = Kokkos::fabs(a - b);
 
     ss << "  Index (";
     for (std::size_t i = 0; i < loc.size(); ++i) {
