@@ -29,7 +29,7 @@ namespace Impl {
 /// \param[in] expected The expected (reference) Kokkos view.
 /// \param[in] nulp The maximum allowed difference in ULPs for the
 /// numbers to be considered equal
-/// \param [in] max_displayed_errors How many elements to be reported
+/// \param[in] max_displayed_errors How many elements to be reported
 /// (default: 3)
 template <KokkosView AViewType, KokkosView BViewType>
   requires(std::is_same_v<typename AViewType::execution_space,
