@@ -29,7 +29,8 @@ namespace Impl {
 /// \param[in] expected The expected (reference) Kokkos view.
 /// \param[in] nulp The maximum allowed difference in ULPs for the
 /// numbers to be considered equal
-/// \param [in] verbose How many elements to be reported (default: 3)
+/// \param [in] max_displayed_errors How many elements to be reported
+/// (default: 3)
 template <KokkosView AViewType, KokkosView BViewType>
   requires(std::is_same_v<typename AViewType::execution_space,
                           typename BViewType::execution_space> &&
@@ -39,7 +40,7 @@ template <KokkosView AViewType, KokkosView BViewType>
 inline bool almost_equal_nulp_impl(testing::MatchResultListener* listener,
                                    const AViewType& actual,
                                    const BViewType& expected, std::size_t nulp,
-                                   std::size_t verbose) {
+                                   std::size_t max_displayed_errors) {
   const std::size_t rank = actual.rank();
   for (std::size_t i = 0; i < rank; i++) {
     if (actual.extent(i) != expected.extent(i)) {
@@ -61,8 +62,8 @@ inline bool almost_equal_nulp_impl(testing::MatchResultListener* listener,
       exec_space, actual, expected, errors, op);
 
   exec_space.fence();
-  auto error_map =
-      KokkosFFT::Testing::Impl::sort_errors(a_val, e_val, loc_error, verbose);
+  auto error_map = KokkosFFT::Testing::Impl::sort_errors(
+      a_val, e_val, loc_error, max_displayed_errors);
   std::string error_str = KokkosFFT::Testing::Impl::print_errors(error_map);
 
   *listener << error_str;
@@ -70,9 +71,9 @@ inline bool almost_equal_nulp_impl(testing::MatchResultListener* listener,
 }
 }  // namespace Impl
 
-MATCHER_P3(almost_equal_nulp, expected, nulp, verbose, "") {
+MATCHER_P3(almost_equal_nulp, expected, nulp, max_displayed_errors, "") {
   return Impl::almost_equal_nulp_impl(result_listener, arg, expected, nulp,
-                                      verbose);
+                                      max_displayed_errors);
 }
 
 MATCHER_P2(almost_equal_nulp, expected, nulp, "") {

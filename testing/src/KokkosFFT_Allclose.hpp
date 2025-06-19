@@ -24,14 +24,15 @@ namespace Impl {
 /// \tparam AViewType The type of the first Kokkos view.
 /// \tparam BViewType The type of the second Kokkos view.
 ///
-/// \param listener [out] The testing match result listener.
-/// \param actual [in] The actual Kokkos view.
-/// \param expected [in] The expected (reference) Kokkos view.
-/// \param rtol [in]  Relative tolerance for comparing the view elements
+/// \param[out] listener The testing match result listener.
+/// \param[in] actual The actual Kokkos view.
+/// \param[in] expected The expected (reference) Kokkos view.
+/// \param[in] rtol Relative tolerance for comparing the view elements
 /// (default 1.e-5).
-/// \param atol [in] Absolute tolerance for comparing the view elements
+/// \param[in] atol Absolute tolerance for comparing the view elements
 /// (default 1.e-8).
-/// \param verbose [in] How many elements to be reported (default: 3)
+/// \param[in] max_displayed_errors How many elements to be reported
+/// (default: 3)
 template <KokkosView AViewType, KokkosView BViewType>
   requires(std::is_same_v<typename AViewType::execution_space,
                           typename BViewType::execution_space> &&
@@ -40,7 +41,8 @@ template <KokkosView AViewType, KokkosView BViewType>
            (AViewType::rank() == BViewType::rank()))
 inline bool allclose_impl(testing::MatchResultListener* listener,
                           const AViewType& actual, const BViewType& expected,
-                          double rtol, double atol, std::size_t verbose) {
+                          double rtol, double atol,
+                          std::size_t max_displayed_errors) {
   const std::size_t rank = actual.rank();
   for (std::size_t i = 0; i < rank; i++) {
     if (actual.extent(i) != expected.extent(i)) {
@@ -62,8 +64,8 @@ inline bool allclose_impl(testing::MatchResultListener* listener,
       exec_space, actual, expected, errors, op);
 
   exec_space.fence();
-  auto error_map =
-      KokkosFFT::Testing::Impl::sort_errors(a_val, e_val, loc_error, verbose);
+  auto error_map = KokkosFFT::Testing::Impl::sort_errors(
+      a_val, e_val, loc_error, max_displayed_errors);
   std::string error_str = KokkosFFT::Testing::Impl::print_errors(error_map);
 
   *listener << error_str;
@@ -71,9 +73,9 @@ inline bool allclose_impl(testing::MatchResultListener* listener,
 }
 }  // namespace Impl
 
-MATCHER_P4(allclose, expected, rtol, atol, verbose, "") {
+MATCHER_P4(allclose, expected, rtol, atol, max_displayed_errors, "") {
   return Impl::allclose_impl(result_listener, arg, expected, rtol, atol,
-                             verbose);
+                             max_displayed_errors);
 }
 
 MATCHER_P3(allclose, expected, rtol, atol, "") {
