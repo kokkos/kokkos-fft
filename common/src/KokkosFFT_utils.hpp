@@ -22,13 +22,11 @@ bool are_aliasing(const ScalarType1* ptr1, const ScalarType2* ptr2) {
   return (static_cast<const void*>(ptr1) == static_cast<const void*>(ptr2));
 }
 
-inline int convert_negative_axis(std::size_t rank, int axis = -1) {
-  int irank = static_cast<int>(rank);
-
-  KOKKOSFFT_THROW_IF(axis < -irank || axis >= irank,
+inline int convert_negative_axis(int rank, int axis = -1) {
+  KOKKOSFFT_THROW_IF(axis < -rank || axis >= rank,
                      "Axis must be in [-rank, rank-1]");
 
-  int non_negative_axis = axis < 0 ? irank + axis : axis;
+  int non_negative_axis = axis < 0 ? rank + axis : axis;
   return non_negative_axis;
 }
 
