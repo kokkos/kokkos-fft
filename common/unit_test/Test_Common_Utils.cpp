@@ -21,11 +21,6 @@ using paired_scalar_types = ::testing::Types<
 
 // Basically the same fixtures, used for labeling tests
 template <typename T>
-struct ConvertNegativeAxis : public ::testing::Test {
-  using layout_type = T;
-};
-
-template <typename T>
 struct ConvertNegativeShift : public ::testing::Test {
   using layout_type = T;
 };
@@ -45,7 +40,6 @@ struct PairedScalarTypes : public ::testing::Test {
 };
 
 // Tests for convert_negative_axes over ND views
-template <typename LayoutType>
 void test_convert_negative_axes_1d() {
   const std::size_t DIM = 1;
   int converted_axis_0 =
@@ -68,7 +62,6 @@ void test_convert_negative_axes_1d() {
                std::runtime_error);
 }
 
-template <typename LayoutType>
 void test_convert_negative_axes_2d() {
   const std::size_t DIM = 2;
   int converted_axis_0 =
@@ -95,7 +88,6 @@ void test_convert_negative_axes_2d() {
                std::runtime_error);
 }
 
-template <typename LayoutType>
 void test_convert_negative_axes_3d() {
   const std::size_t DIM = 3;
   int converted_axis_0 =
@@ -130,7 +122,6 @@ void test_convert_negative_axes_3d() {
                std::runtime_error);
 }
 
-template <typename LayoutType>
 void test_convert_negative_axes_4d() {
   const std::size_t DIM = 4;
   int converted_axis_0 =
@@ -390,38 +381,21 @@ void test_are_pointers_aliasing() {
 }
 }  // namespace
 
-TYPED_TEST_SUITE(ConvertNegativeAxis, test_types);
 TYPED_TEST_SUITE(ConvertNegativeShift, test_types);
 TYPED_TEST_SUITE(ContainerTypes, base_int_types);
 TYPED_TEST_SUITE(PairedScalarTypes, paired_scalar_types);
 
 // Tests for 1D View
-TYPED_TEST(ConvertNegativeAxis, 1DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_convert_negative_axes_1d<layout_type>();
-}
+TEST(ConvertNegativeAxis, 1DView) { test_convert_negative_axes_1d(); }
 
 // Tests for 2D View
-TYPED_TEST(ConvertNegativeAxis, 2DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_convert_negative_axes_2d<layout_type>();
-}
+TEST(ConvertNegativeAxis, 2DView) { test_convert_negative_axes_2d(); }
 
 // Tests for 3D View
-TYPED_TEST(ConvertNegativeAxis, 3DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_convert_negative_axes_3d<layout_type>();
-}
+TEST(ConvertNegativeAxis, 3DView) { test_convert_negative_axes_3d(); }
 
 // Tests for 4D View
-TYPED_TEST(ConvertNegativeAxis, 4DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_convert_negative_axes_4d<layout_type>();
-}
+TEST(ConvertNegativeAxis, 4DView) { test_convert_negative_axes_4d(); }
 
 // Tests for 1D View
 TYPED_TEST(ConvertNegativeShift, 1DView) {
