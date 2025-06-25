@@ -431,19 +431,16 @@ void test_index_sequence() {
     constexpr std::size_t DIM0 = 3;
     constexpr std::size_t DIM1 = 4;
     constexpr std::size_t DIM2 = 5;
-    constexpr auto default_axes0 =
-        KokkosFFT::Impl::index_sequence<IntType, DIM0, 0>();
-    constexpr auto default_axes1 =
-        KokkosFFT::Impl::index_sequence<IntType, DIM1, 0>();
-    constexpr auto default_axes2 =
-        KokkosFFT::Impl::index_sequence<IntType, DIM2, 0>();
-    std::array<IntType, DIM0> ref_axes0 = {0, 1, 2};
-    std::array<IntType, DIM1> ref_axes1 = {0, 1, 2, 3};
-    std::array<IntType, DIM2> ref_axes2 = {0, 1, 2, 3, 4};
+    constexpr auto range0 = KokkosFFT::Impl::index_sequence<IntType, DIM0, 0>();
+    constexpr auto range1 = KokkosFFT::Impl::index_sequence<IntType, DIM1, 0>();
+    constexpr auto range2 = KokkosFFT::Impl::index_sequence<IntType, DIM2, 0>();
+    std::array<IntType, DIM0> ref_range0 = {0, 1, 2};
+    std::array<IntType, DIM1> ref_range1 = {0, 1, 2, 3};
+    std::array<IntType, DIM2> ref_range2 = {0, 1, 2, 3, 4};
 
-    EXPECT_EQ(default_axes0, ref_axes0);
-    EXPECT_EQ(default_axes1, ref_axes1);
-    EXPECT_EQ(default_axes2, ref_axes2);
+    EXPECT_EQ(range0, ref_range0);
+    EXPECT_EQ(range1, ref_range1);
+    EXPECT_EQ(range2, ref_range2);
   }
 }
 }  // namespace
