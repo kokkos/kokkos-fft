@@ -22,12 +22,7 @@ bool are_aliasing(const ScalarType1* ptr1, const ScalarType2* ptr2) {
   return (static_cast<const void*>(ptr1) == static_cast<const void*>(ptr2));
 }
 
-template <typename ViewType>
-auto convert_negative_axis(ViewType, int axis = -1) {
-  static_assert(Kokkos::is_view_v<ViewType>,
-                "convert_negative_axis: ViewType must be a Kokkos::View.");
-  int rank = static_cast<int>(ViewType::rank());
-
+inline int convert_negative_axis(int rank, int axis = -1) {
   KOKKOSFFT_THROW_IF(axis < -rank || axis >= rank,
                      "Axis must be in [-rank, rank-1]");
 
@@ -39,7 +34,7 @@ template <typename ViewType>
 auto convert_negative_shift(const ViewType& view, int shift, int axis) {
   static_assert(Kokkos::is_view_v<ViewType>,
                 "convert_negative_shift: ViewType must be a Kokkos::View.");
-  int non_negative_axis = convert_negative_axis(view, axis);
+  int non_negative_axis = convert_negative_axis(ViewType::rank(), axis);
   int extent            = view.extent(non_negative_axis);
   int shift0 = 0, shift1 = 0, shift2 = extent / 2;
 
@@ -95,7 +90,8 @@ template <
     typename IntType, std::size_t DIM = 1,
     std::enable_if_t<Kokkos::is_view_v<ViewType> && std::is_integral_v<IntType>,
                      std::nullptr_t> = nullptr>
-bool are_valid_axes(const ViewType& view, const ArrayType<IntType, DIM>& axes) {
+bool are_valid_axes(const ViewType& /*view*/,
+                    const ArrayType<IntType, DIM>& axes) {
   static_assert(Kokkos::is_view_v<ViewType>,
                 "are_valid_axes: ViewType must be a Kokkos::View");
   static_assert(std::is_integral_v<IntType>,
@@ -114,7 +110,8 @@ bool are_valid_axes(const ViewType& view, const ArrayType<IntType, DIM>& axes) {
   // ensured that the 'non_negative_axes' are in the range of [0, rank-1]
   try {
     for (std::size_t i = 0; i < DIM; i++) {
-      int axis = KokkosFFT::Impl::convert_negative_axis(view, axes[i]);
+      int axis =
+          KokkosFFT::Impl::convert_negative_axis(ViewType::rank(), axes[i]);
       non_negative_axes[i] = axis;
     }
   } catch (std::runtime_error& e) {
