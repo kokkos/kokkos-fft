@@ -41,7 +41,8 @@ auto get_shifts(const ViewType& x, axis_type<DIM> axes, int direction = 1) {
   // Convert the input axes to be in the range of [0, rank-1]
   std::vector<int> non_negative_axes;
   for (std::size_t i = 0; i < DIM; i++) {
-    int axis = KokkosFFT::Impl::convert_negative_axis(x, axes.at(i));
+    int axis =
+        KokkosFFT::Impl::convert_negative_axis(ViewType::rank(), axes.at(i));
     non_negative_axes.push_back(axis);
   }
 

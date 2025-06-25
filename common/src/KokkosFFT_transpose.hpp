@@ -21,7 +21,7 @@ auto get_map_axes(const ViewType& view, axis_type<DIM> axes) {
   axis_type<DIM> non_negative_axes = {};
   for (std::size_t i = 0; i < DIM; i++) {
     non_negative_axes.at(i) =
-        KokkosFFT::Impl::convert_negative_axis(view, axes.at(i));
+        KokkosFFT::Impl::convert_negative_axis(ViewType::rank(), axes.at(i));
   }
 
   // how indices are map

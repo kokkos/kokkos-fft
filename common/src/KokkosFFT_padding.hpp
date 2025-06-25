@@ -41,7 +41,8 @@ auto get_modified_shape(const InViewType in, const OutViewType /* out */,
   // Convert the input axes to be in the range of [0, rank-1]
   std::vector<int> positive_axes;
   for (std::size_t i = 0; i < DIM; i++) {
-    int axis = KokkosFFT::Impl::convert_negative_axis(in, axes.at(i));
+    int axis =
+        KokkosFFT::Impl::convert_negative_axis(InViewType::rank(), axes.at(i));
     positive_axes.push_back(axis);
   }
 
