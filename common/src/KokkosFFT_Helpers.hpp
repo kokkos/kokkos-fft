@@ -24,11 +24,11 @@ namespace Impl {
 /// \tparam ViewType The type of the Kokkos View.
 /// \tparam DIM The number of axes to shift.
 ///
-/// \param[in,out] x The input/output Kokkos View whose extents are used to
+/// \param x[in,out] The input/output Kokkos View whose extents are used to
 /// determine the shift.
-/// \param[in] axes A container of axes indices (negative values allowed; they
+/// \param axes[in] A container of axes indices (negative values allowed; they
 /// are converted).
-/// \param[in] direction The direction of the shift: 1 for fftshift and -1 for
+/// \param direction[in] The direction of the shift: 1 for fftshift and -1 for
 /// ifftshift.
 ///
 /// \return A Kokkos::Array with the computed shift amounts for each axis.
@@ -38,16 +38,15 @@ namespace Impl {
 ///
 template <typename ViewType, std::size_t DIM = 1>
 auto get_shifts(const ViewType& x, axis_type<DIM> axes, int direction = 1) {
-  constexpr int rank = ViewType::rank();
-
   // Convert the input axes to be in the range of [0, rank-1]
   std::vector<int> non_negative_axes;
   for (std::size_t i = 0; i < DIM; i++) {
-    int axis = KokkosFFT::Impl::convert_negative_axis(rank, axes.at(i));
+    int axis = KokkosFFT::Impl::convert_negative_axis(x, axes.at(i));
     non_negative_axes.push_back(axis);
   }
 
   // Assert if the elements are overlapped
+  constexpr int rank = ViewType::rank();
   KOKKOSFFT_THROW_IF(KokkosFFT::Impl::has_duplicate_values(non_negative_axes),
                      "Axes overlap");
   KOKKOSFFT_THROW_IF(
