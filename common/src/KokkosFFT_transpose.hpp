@@ -18,16 +18,15 @@ auto get_map_axes(const ViewType& view, axis_type<DIM> axes) {
                      "get_map_axes: input axes are not valid for the view");
 
   // Convert the input axes to be in the range of [0, rank-1]
-  constexpr int rank               = static_cast<int>(ViewType::rank());
   axis_type<DIM> non_negative_axes = {};
   for (std::size_t i = 0; i < DIM; i++) {
     non_negative_axes.at(i) =
-        KokkosFFT::Impl::convert_negative_axis(rank, axes.at(i));
+        KokkosFFT::Impl::convert_negative_axis(view, axes.at(i));
   }
 
   // how indices are map
   // For 5D View and axes are (2,3), map would be (0, 1, 4, 2, 3)
-
+  constexpr int rank = static_cast<int>(ViewType::rank());
   std::vector<int> map;
   map.reserve(rank);
 
