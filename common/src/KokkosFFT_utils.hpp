@@ -27,12 +27,11 @@ IntType convert_negative_axis(IntType axis) {
   static_assert(
       std::is_integral_v<IntType> && std::is_signed_v<IntType>,
       "convert_negative_axis: IntType must be a signed integer type.");
-  constexpr int rank = static_cast<int>(Rank);
+  const IntType rank = static_cast<IntType>(Rank);
   KOKKOSFFT_THROW_IF(axis < -rank || axis >= rank,
                      "Axis must be in [-rank, rank-1]");
 
-  IntType non_negative_axis = axis < 0 ? rank + axis : axis;
-  return non_negative_axis;
+  return axis < 0 ? rank + axis : axis;
 }
 
 template <typename ViewType>
