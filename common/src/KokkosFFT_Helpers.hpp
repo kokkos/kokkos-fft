@@ -38,16 +38,16 @@ namespace Impl {
 ///
 template <typename ViewType, std::size_t DIM = 1>
 auto get_shifts(const ViewType& x, axis_type<DIM> axes, int direction = 1) {
-  constexpr int rank = ViewType::rank();
-
   // Convert the input axes to be in the range of [0, rank-1]
   std::vector<int> non_negative_axes;
   for (std::size_t i = 0; i < DIM; i++) {
-    int axis = KokkosFFT::Impl::convert_negative_axis(rank, axes.at(i));
+    int axis = KokkosFFT::Impl::convert_negative_axis<int, ViewType::rank()>(
+        axes.at(i));
     non_negative_axes.push_back(axis);
   }
 
   // Assert if the elements are overlapped
+  constexpr int rank = ViewType::rank();
   KOKKOSFFT_THROW_IF(KokkosFFT::Impl::has_duplicate_values(non_negative_axes),
                      "Axes overlap");
   KOKKOSFFT_THROW_IF(
