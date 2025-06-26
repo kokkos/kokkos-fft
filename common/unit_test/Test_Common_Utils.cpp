@@ -398,39 +398,30 @@ void test_are_pointers_aliasing() {
 
 template <typename IntType>
 void test_index_sequence() {
-  using View3Dtype = Kokkos::View<double***, execution_space>;
-  using View4Dtype = Kokkos::View<double****, execution_space>;
-  using View5Dtype = Kokkos::View<double*****, execution_space>;
-
-  constexpr std::size_t DIM = 3;
-  std::size_t n1 = 1, n2 = 1, n3 = 2, n4 = 3, n5 = 5;
-  View3Dtype view3D("view3D", n1, n2, n3);
-  View4Dtype view4D("view4D", n1, n2, n3, n4);
-  View5Dtype view5D("view5D", n1, n2, n3, n4, n5);
-
+  // Rank of the index sequence
+  constexpr std::size_t DIM0 = 3;
+  constexpr std::size_t DIM1 = 4;
+  constexpr std::size_t DIM2 = 5;
   if constexpr (std::is_signed_v<IntType>) {
-    constexpr IntType start0 = -static_cast<IntType>(View3Dtype::rank());
-    constexpr IntType start1 = -static_cast<IntType>(View4Dtype::rank());
-    constexpr IntType start2 = -static_cast<IntType>(View5Dtype::rank());
+    constexpr IntType start0 = -static_cast<IntType>(DIM0);
+    constexpr IntType start1 = -static_cast<IntType>(DIM1);
+    constexpr IntType start2 = -static_cast<IntType>(DIM2);
 
     constexpr auto default_axes0 =
-        KokkosFFT::Impl::index_sequence<IntType, DIM, start0>();
+        KokkosFFT::Impl::index_sequence<IntType, DIM0, start0>();
     constexpr auto default_axes1 =
-        KokkosFFT::Impl::index_sequence<IntType, DIM, start1>();
+        KokkosFFT::Impl::index_sequence<IntType, DIM1, start1>();
     constexpr auto default_axes2 =
-        KokkosFFT::Impl::index_sequence<IntType, DIM, start2>();
+        KokkosFFT::Impl::index_sequence<IntType, DIM2, start2>();
 
-    std::array<IntType, DIM> ref_axes0 = {-3, -2, -1};
-    std::array<IntType, DIM> ref_axes1 = {-4, -3, -2};
-    std::array<IntType, DIM> ref_axes2 = {-5, -4, -3};
+    std::array<IntType, DIM0> ref_axes0 = {-3, -2, -1};
+    std::array<IntType, DIM1> ref_axes1 = {-4, -3, -2, -1};
+    std::array<IntType, DIM2> ref_axes2 = {-5, -4, -3, -2, -1};
 
     EXPECT_EQ(default_axes0, ref_axes0);
     EXPECT_EQ(default_axes1, ref_axes1);
     EXPECT_EQ(default_axes2, ref_axes2);
   } else {
-    constexpr std::size_t DIM0 = 3;
-    constexpr std::size_t DIM1 = 4;
-    constexpr std::size_t DIM2 = 5;
     constexpr auto range0 = KokkosFFT::Impl::index_sequence<IntType, DIM0, 0>();
     constexpr auto range1 = KokkosFFT::Impl::index_sequence<IntType, DIM1, 0>();
     constexpr auto range2 = KokkosFFT::Impl::index_sequence<IntType, DIM2, 0>();
