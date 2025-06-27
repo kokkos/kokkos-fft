@@ -177,7 +177,7 @@ install(
   PATTERN "*.hpp"
 )
 
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/fft/src/KokkosFFT_config.h ${CMAKE_CURRENT_BINARY_DIR}/fft/src/KokkosFFT_Version_Info.hpp
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/fft/src/KokkosFFT_config.hpp ${CMAKE_CURRENT_BINARY_DIR}/fft/src/KokkosFFT_Version_Info.hpp
         DESTINATION ${INSTALL_INCLUDEDIR}
 )
 
