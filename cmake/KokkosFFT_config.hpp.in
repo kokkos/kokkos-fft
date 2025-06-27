@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
-#ifndef KOKKOSFFT_CONFIG_H
-#define KOKKOSFFT_CONFIG_H
+#ifndef KOKKOSFFT_CONFIG_HPP
+#define KOKKOSFFT_CONFIG_HPP
 
 /* Define the current version of Kokkos Kernels */
 #define KOKKOSFFT_VERSION @KOKKOSFFT_VERSION@

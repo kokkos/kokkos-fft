@@ -13,7 +13,7 @@ static_assert(false,
               "build Kokkos");
 #endif
 
-#include "KokkosFFT_config.h"
+#include "KokkosFFT_config.hpp"
 
 #if defined(KOKKOSFFT_ENABLE_TPL_CUFFT)
 #define KOKKOSFFT_HAS_DEVICE_TPL

@@ -22,9 +22,10 @@ option(KokkosFFT_ENABLE_DOCS "Build KokkosFFT documentaion/website" OFF)
 option(KokkosFFT_ENABLE_TESTING_TOOLS "Enable unit-testing tools" OFF)
 
 # Version information
-set(KOKKOSFFT_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
-set(KOKKOSFFT_VERSION_MINOR ${PROJECT_VERSION_MINOR})
-set(KOKKOSFFT_VERSION_PATCH ${PROJECT_VERSION_PATCH})
+set(KOKKOSFFT_VERSION ${CMAKE_PROJECT_VERSION})
+set(KOKKOSFFT_VERSION_MAJOR ${CMAKE_PROJECT_VERSION_MAJOR})
+set(KOKKOSFFT_VERSION_MINOR ${CMAKE_PROJECT_VERSION_MINOR})
+set(KOKKOSFFT_VERSION_PATCH ${CMAKE_PROJECT_VERSION_PATCH})
 
 set(KOKKOS_REQUIRED_VERSION 4.5.0)
 
@@ -141,7 +142,7 @@ endif()
 
 # Configure files to display configuration
 # Configure the library
-set(PACKAGE_NAME_CONFIG_FILES KokkosFFT_config.h KokkosFFT_Version_Info.hpp)
+set(PACKAGE_NAME_CONFIG_FILES KokkosFFT_config.hpp KokkosFFT_Version_Info.hpp)
 
 foreach(CONFIG_FILE ${PACKAGE_NAME_CONFIG_FILES})
   configure_file(cmake/${CONFIG_FILE}.in
