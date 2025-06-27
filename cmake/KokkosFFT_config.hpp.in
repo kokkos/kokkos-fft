@@ -11,9 +11,6 @@
 #define KOKKOSFFT_VERSION_MINOR @KOKKOSFFT_VERSION_MINOR@
 #define KOKKOSFFT_VERSION_PATCH @KOKKOSFFT_VERSION_PATCH@
 
-/* Define this macro if experimental features of KokkosFFT are enabled */
-#cmakedefine KOKKOSFFT_ENABLE_EXPERIMENTAL
-
 /* FFTW */
 #cmakedefine KOKKOSFFT_ENABLE_TPL_FFTW
 
