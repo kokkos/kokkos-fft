@@ -34,7 +34,7 @@ The nonlinear term can be described as follows, which can be efficiently compute
 For kokkos version, we need the followings (for the latest requirements, see [README.md](../../README.md)):
    
 * `CMake 3.22+`
-* `Kokkos 4.4+`
+* `Kokkos 4.5+`
 * `gcc 8.3.0+` (CPUs)
 * `IntelLLVM 2023.0.0+` (CPUs, Intel GPUs)
 * `nvcc 11.0.0+` (NVIDIA GPUs)

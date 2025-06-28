@@ -191,7 +191,7 @@ jobs:
       - name: Build
         run: |
           docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
-            cmake --build build -j $(( $(nproc) * 2 + 1 ))
+            cmake --build build -j 4
 
       - name: Prepare artifacts
         # this is mandatory to preserve execution rights
@@ -248,7 +248,7 @@ jobs:
             ${{ matrix.backend.cmake_flags.kokkos }} \
             tpls/kokkos
           docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
-            cmake --build build_kokkos -j $(( $(nproc) * 2 + 1 ))
+            cmake --build build_kokkos -j 4
           docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
             cmake --install build_kokkos
 
@@ -265,7 +265,7 @@ jobs:
             ${{ matrix.backend.cmake_flags.kokkos_fft }} \
             ${{ matrix.target.cmake_flags }}
           docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
-            cmake --build build_kokkos_fft -j $(( $(nproc) * 2 + 1 ))
+            cmake --build build_kokkos_fft -j 4
           docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
             cmake --install build_kokkos_fft
 
@@ -280,7 +280,7 @@ jobs:
             -DCMAKE_CXX_STANDARD=${{ matrix.backend.cmake_flags.cxx_standard }} \
             install_test/as_library
           docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
-            cmake --build install_test/as_library/build -j $(( $(nproc) * 2 + 1 ))
+            cmake --build install_test/as_library/build -j 4
 
   # test the project
   test:
