@@ -44,6 +44,11 @@ struct PairedScalarTypes : public ::testing::Test {
   using value_type2 = typename T::second_type;
 };
 
+template <typename T>
+struct TestIndexSequence : public ::testing::Test {
+  using value_type = T;
+};
+
 // Tests for convert_negative_axes over ND views
 template <typename LayoutType>
 void test_convert_negative_axes_1d() {
@@ -390,12 +395,52 @@ void test_are_pointers_aliasing() {
   EXPECT_TRUE(KokkosFFT::Impl::are_aliasing(view1.data(), uview2.data()));
   EXPECT_FALSE(KokkosFFT::Impl::are_aliasing(view1.data(), view2.data()));
 }
+
+template <typename IntType>
+void test_index_sequence() {
+  // Rank of the index sequence
+  constexpr std::size_t DIM0 = 3;
+  constexpr std::size_t DIM1 = 4;
+  constexpr std::size_t DIM2 = 5;
+  if constexpr (std::is_signed_v<IntType>) {
+    constexpr IntType start0 = -static_cast<IntType>(DIM0);
+    constexpr IntType start1 = -static_cast<IntType>(DIM1);
+    constexpr IntType start2 = -static_cast<IntType>(DIM2);
+
+    constexpr auto default_axes0 =
+        KokkosFFT::Impl::index_sequence<IntType, DIM0, start0>();
+    constexpr auto default_axes1 =
+        KokkosFFT::Impl::index_sequence<IntType, DIM1, start1>();
+    constexpr auto default_axes2 =
+        KokkosFFT::Impl::index_sequence<IntType, DIM2, start2>();
+
+    std::array<IntType, DIM0> ref_axes0 = {-3, -2, -1};
+    std::array<IntType, DIM1> ref_axes1 = {-4, -3, -2, -1};
+    std::array<IntType, DIM2> ref_axes2 = {-5, -4, -3, -2, -1};
+
+    EXPECT_EQ(default_axes0, ref_axes0);
+    EXPECT_EQ(default_axes1, ref_axes1);
+    EXPECT_EQ(default_axes2, ref_axes2);
+  } else {
+    constexpr auto range0 = KokkosFFT::Impl::index_sequence<IntType, DIM0, 0>();
+    constexpr auto range1 = KokkosFFT::Impl::index_sequence<IntType, DIM1, 0>();
+    constexpr auto range2 = KokkosFFT::Impl::index_sequence<IntType, DIM2, 0>();
+    std::array<IntType, DIM0> ref_range0 = {0, 1, 2};
+    std::array<IntType, DIM1> ref_range1 = {0, 1, 2, 3};
+    std::array<IntType, DIM2> ref_range2 = {0, 1, 2, 3, 4};
+
+    EXPECT_EQ(range0, ref_range0);
+    EXPECT_EQ(range1, ref_range1);
+    EXPECT_EQ(range2, ref_range2);
+  }
+}
 }  // namespace
 
 TYPED_TEST_SUITE(ConvertNegativeAxis, test_types);
 TYPED_TEST_SUITE(ConvertNegativeShift, test_types);
 TYPED_TEST_SUITE(ContainerTypes, base_int_types);
 TYPED_TEST_SUITE(PairedScalarTypes, paired_scalar_types);
+TYPED_TEST_SUITE(TestIndexSequence, base_int_types);
 
 // Tests for 1D View
 TYPED_TEST(ConvertNegativeAxis, 1DView) {
@@ -544,34 +589,9 @@ TEST(ExtractExtents, 1Dto8D) {
   EXPECT_EQ(KokkosFFT::Impl::extract_extents(view8D), ref_extents8D);
 }
 
-TEST(IndexSequence, 3Dto5D) {
-  using View3Dtype = Kokkos::View<double***, execution_space>;
-  using View4Dtype = Kokkos::View<double****, execution_space>;
-  using View5Dtype = Kokkos::View<double*****, execution_space>;
-
-  constexpr std::size_t DIM = 3;
-  std::size_t n1 = 1, n2 = 1, n3 = 2, n4 = 3, n5 = 5;
-  View3Dtype view3D("view3D", n1, n2, n3);
-  View4Dtype view4D("view4D", n1, n2, n3, n4);
-  View5Dtype view5D("view5D", n1, n2, n3, n4, n5);
-  constexpr int start0 = -static_cast<int>(View3Dtype::rank());
-  constexpr int start1 = -static_cast<int>(View4Dtype::rank());
-  constexpr int start2 = -static_cast<int>(View5Dtype::rank());
-
-  constexpr auto default_axes0 =
-      KokkosFFT::Impl::index_sequence<int, DIM, start0>();
-  constexpr auto default_axes1 =
-      KokkosFFT::Impl::index_sequence<int, DIM, start1>();
-  constexpr auto default_axes2 =
-      KokkosFFT::Impl::index_sequence<int, DIM, start2>();
-
-  std::array<int, DIM> ref_axes0 = {-3, -2, -1};
-  std::array<int, DIM> ref_axes1 = {-4, -3, -2};
-  std::array<int, DIM> ref_axes2 = {-5, -4, -3};
-
-  EXPECT_EQ(default_axes0, ref_axes0);
-  EXPECT_EQ(default_axes1, ref_axes1);
-  EXPECT_EQ(default_axes2, ref_axes2);
+TYPED_TEST(TestIndexSequence, make_sequence_3Dto5D) {
+  using value_type = typename TestFixture::value_type;
+  test_index_sequence<value_type>();
 }
 
 TEST(ToArray, lvalue) {

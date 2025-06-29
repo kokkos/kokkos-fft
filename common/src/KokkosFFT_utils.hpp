@@ -144,8 +144,8 @@ std::size_t get_index(const ContainerType& values, const ValueType value) {
 
 template <typename IntType, std::size_t N, IntType start>
 constexpr std::array<IntType, N> index_sequence() {
-  static_assert(std::is_integral_v<IntType> && std::is_signed_v<IntType>,
-                "index_sequence: IntType must be a signed integer type.");
+  static_assert(std::is_integral_v<IntType>,
+                "index_sequence: IntType must be an integral type.");
   std::array<IntType, N> sequence{};
   for (std::size_t i = 0; i < N; ++i) {
     sequence[i] = start + static_cast<IntType>(i);
