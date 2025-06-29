@@ -22,6 +22,7 @@ option(KokkosFFT_ENABLE_DOCS "Build KokkosFFT documentaion/website" OFF)
 option(KokkosFFT_ENABLE_TESTING_TOOLS "Enable unit-testing tools" OFF)
 
 # Version information
+set(KOKKOSFFT_VERSION ${PROJECT_VERSION})
 set(KOKKOSFFT_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
 set(KOKKOSFFT_VERSION_MINOR ${PROJECT_VERSION_MINOR})
 set(KOKKOSFFT_VERSION_PATCH ${PROJECT_VERSION_PATCH})
@@ -95,6 +96,12 @@ if(KOKKOSFFT_TPL_LIST)
     # [TO DO] show more information about the library (like location)
     pad_string(BACKEND_PADDED "${BACKEND}" 13)
     message(STATUS "    ${BACKEND_PADDED}: ${TPL}")
+
+    # Rename FFTW_<BACKEND> -> FFTW
+    string(REGEX REPLACE "_.*" "" TPL_NAME "${TPL}")
+
+    # Here we set the global variable
+    set(KOKKOSFFT_ENABLE_TPL_${TPL_NAME} TRUE)
   endforeach()
 else()
   message(STATUS " (None)")
@@ -135,10 +142,13 @@ endif()
 
 # Configure files to display configuration
 # Configure the library
-set(PACKAGE_NAME_CONFIG_FILES KokkosFFT_config.h KokkosFFT_Version_Info.hpp)
+set(PACKAGE_NAME_CONFIG_FILES KokkosFFT_config.hpp KokkosFFT_Version_Info.hpp)
 
 foreach(CONFIG_FILE ${PACKAGE_NAME_CONFIG_FILES})
-  configure_file(cmake/${CONFIG_FILE}.in ${CMAKE_BINARY_DIR}/${CONFIG_FILE})
+  configure_file(cmake/${CONFIG_FILE}.in
+                 ${CMAKE_CURRENT_BINARY_DIR}/fft/src/${CONFIG_FILE}
+                 @ONLY
+  )
 endforeach()
 
 # Set directories used for install
@@ -165,6 +175,10 @@ install(
   DESTINATION ${INSTALL_INCLUDEDIR}
   FILES_MATCHING
   PATTERN "*.hpp"
+)
+
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/fft/src/KokkosFFT_config.hpp ${CMAKE_CURRENT_BINARY_DIR}/fft/src/KokkosFFT_Version_Info.hpp
+        DESTINATION ${INSTALL_INCLUDEDIR}
 )
 
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindFFTW.cmake DESTINATION ${INSTALL_LIBDIR})

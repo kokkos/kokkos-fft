@@ -6,7 +6,7 @@
 #ifndef KOKKOSFFT_PRINT_CONFIGURATION_HPP
 #define KOKKOSFFT_PRINT_CONFIGURATION_HPP
 
-#include "KokkosFFT_config.h"
+#include "KokkosFFT_config.hpp"
 #include "KokkosFFT_TplsVersion.hpp"
 #include <iostream>
 

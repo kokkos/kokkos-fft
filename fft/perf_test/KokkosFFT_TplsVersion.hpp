@@ -6,7 +6,7 @@
 #ifndef KOKKOSFFT_TPLS_VERSIONS_HPP
 #define KOKKOSFFT_TPLS_VERSIONS_HPP
 
-#include "KokkosFFT_config.h"
+#include "KokkosFFT_config.hpp"
 #include <sstream>
 #include <iostream>
 
