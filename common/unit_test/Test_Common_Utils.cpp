@@ -443,44 +443,12 @@ void test_index_sequence() {
 }
 }  // namespace
 
-<<<<<<< HEAD
-TYPED_TEST_SUITE(ConvertNegativeAxis, test_types);
-=======
 TYPED_TEST_SUITE(TestConvertNegativeAxis, signed_int_types);
->>>>>>> 95a4121 (make convert_negative_axis a templated function again)
 TYPED_TEST_SUITE(ConvertNegativeShift, test_types);
 TYPED_TEST_SUITE(ContainerTypes, base_int_types);
 TYPED_TEST_SUITE(PairedScalarTypes, paired_scalar_types);
 TYPED_TEST_SUITE(TestIndexSequence, base_int_types);
 
-<<<<<<< HEAD
-// Tests for 1D View
-TYPED_TEST(ConvertNegativeAxis, 1DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_convert_negative_axes_1d<layout_type>();
-}
-
-// Tests for 2D View
-TYPED_TEST(ConvertNegativeAxis, 2DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_convert_negative_axes_2d<layout_type>();
-}
-
-// Tests for 3D View
-TYPED_TEST(ConvertNegativeAxis, 3DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_convert_negative_axes_3d<layout_type>();
-}
-
-// Tests for 4D View
-TYPED_TEST(ConvertNegativeAxis, 4DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_convert_negative_axes_4d<layout_type>();
-=======
 // Tests for 1D - 4D View
 TYPED_TEST(TestConvertNegativeAxis, 1DView) {
   using value_type = typename TestFixture::value_type;
@@ -500,7 +468,6 @@ TYPED_TEST(TestConvertNegativeAxis, 3DView) {
 TYPED_TEST(TestConvertNegativeAxis, 4DView) {
   using value_type = typename TestFixture::value_type;
   test_convert_negative_axes_4d<value_type>();
->>>>>>> 95a4121 (make convert_negative_axis a templated function again)
 }
 
 // Tests for 1D View

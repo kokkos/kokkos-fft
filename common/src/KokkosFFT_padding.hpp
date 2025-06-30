@@ -46,7 +46,6 @@ auto get_modified_shape(const InViewType in, const OutViewType /* out */,
     positive_axes.push_back(axis);
   }
 
-  constexpr int rank    = static_cast<int>(InViewType::rank());
   using full_shape_type = shape_type<rank>;
   full_shape_type modified_shape;
   for (std::size_t i = 0; i < rank; i++) {

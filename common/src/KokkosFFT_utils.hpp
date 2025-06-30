@@ -94,7 +94,8 @@ template <
     typename IntType, std::size_t DIM = 1,
     std::enable_if_t<Kokkos::is_view_v<ViewType> && std::is_integral_v<IntType>,
                      std::nullptr_t> = nullptr>
-bool are_valid_axes(const ViewType& view, const ArrayType<IntType, DIM>& axes) {
+bool are_valid_axes(const ViewType& /*view*/,
+                    const ArrayType<IntType, DIM>& axes) {
   static_assert(Kokkos::is_view_v<ViewType>,
                 "are_valid_axes: ViewType must be a Kokkos::View");
   static_assert(std::is_integral_v<IntType>,
