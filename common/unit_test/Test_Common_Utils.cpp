@@ -10,7 +10,8 @@ using execution_space = Kokkos::DefaultExecutionSpace;
 using test_types = ::testing::Types<Kokkos::LayoutLeft, Kokkos::LayoutRight>;
 
 // Int like types
-using base_int_types = ::testing::Types<int, std::size_t>;
+using base_int_types   = ::testing::Types<int, std::size_t>;
+using signed_int_types = ::testing::Types<int, std::int32_t, std::int64_t>;
 
 // value type combinations that are tested
 using paired_scalar_types = ::testing::Types<
@@ -21,8 +22,8 @@ using paired_scalar_types = ::testing::Types<
 
 // Basically the same fixtures, used for labeling tests
 template <typename T>
-struct ConvertNegativeAxis : public ::testing::Test {
-  using layout_type = T;
+struct TestConvertNegativeAxis : public ::testing::Test {
+  using value_type = T;
 };
 
 template <typename T>
@@ -50,45 +51,44 @@ struct TestIndexSequence : public ::testing::Test {
 };
 
 // Tests for convert_negative_axes over ND views
-template <typename LayoutType>
+template <typename IntType>
 void test_convert_negative_axes_1d() {
-  const int len        = 30;
-  using RealView1Dtype = Kokkos::View<double*, LayoutType, execution_space>;
-  RealView1Dtype x("x", len);
+  constexpr std::size_t DIM = 1;
+  IntType converted_axis_0 =
+      KokkosFFT::Impl::convert_negative_axis<IntType, DIM>(IntType(0));
+  IntType converted_axis_minus1 =
+      KokkosFFT::Impl::convert_negative_axis<IntType, DIM>(IntType(-1));
 
-  int converted_axis_0 = KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/0);
-  int converted_axis_minus1 =
-      KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/-1);
-
-  int ref_converted_axis_0      = 0;
-  int ref_converted_axis_minus1 = 0;
+  IntType ref_converted_axis_0      = 0;
+  IntType ref_converted_axis_minus1 = 0;
 
   EXPECT_EQ(converted_axis_0, ref_converted_axis_0);
   EXPECT_EQ(converted_axis_minus1, ref_converted_axis_minus1);
 
   // Check if errors are correctly raised against invalid axis
   // axis must be in [-1, 1)
-  EXPECT_THROW({ KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/1); },
-               std::runtime_error);
+  EXPECT_THROW(
+      ({ KokkosFFT::Impl::convert_negative_axis<IntType, DIM>(IntType(1)); }),
+      std::runtime_error);
 
-  EXPECT_THROW({ KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/-2); },
-               std::runtime_error);
+  EXPECT_THROW(
+      ({ KokkosFFT::Impl::convert_negative_axis<IntType, DIM>(IntType(-2)); }),
+      std::runtime_error);
 }
 
-template <typename LayoutType>
+template <typename IntType>
 void test_convert_negative_axes_2d() {
-  const int n0 = 3, n1 = 5;
-  using RealView2Dtype = Kokkos::View<double**, LayoutType, execution_space>;
-  RealView2Dtype x("x", n0, n1);
+  constexpr std::size_t DIM = 2;
+  IntType converted_axis_0 =
+      KokkosFFT::Impl::convert_negative_axis<IntType, DIM>(IntType(0));
+  IntType converted_axis_1 =
+      KokkosFFT::Impl::convert_negative_axis<IntType, DIM>(IntType(1));
+  IntType converted_axis_minus1 =
+      KokkosFFT::Impl::convert_negative_axis<IntType, DIM>(IntType(-1));
 
-  int converted_axis_0 = KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/0);
-  int converted_axis_1 = KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/1);
-  int converted_axis_minus1 =
-      KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/-1);
-
-  int ref_converted_axis_0      = 0;
-  int ref_converted_axis_1      = 1;
-  int ref_converted_axis_minus1 = 1;
+  IntType ref_converted_axis_0      = 0;
+  IntType ref_converted_axis_1      = 1;
+  IntType ref_converted_axis_minus1 = 1;
 
   EXPECT_EQ(converted_axis_0, ref_converted_axis_0);
   EXPECT_EQ(converted_axis_1, ref_converted_axis_1);
@@ -96,32 +96,34 @@ void test_convert_negative_axes_2d() {
 
   // Check if errors are correctly raised against invalid axis
   // axis must be in [-2, 2)
-  EXPECT_THROW({ KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/2); },
-               std::runtime_error);
+  EXPECT_THROW(
+      ({ KokkosFFT::Impl::convert_negative_axis<IntType, DIM>(IntType(2)); }),
+      std::runtime_error);
 
-  EXPECT_THROW({ KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/-3); },
-               std::runtime_error);
+  EXPECT_THROW(
+      ({ KokkosFFT::Impl::convert_negative_axis<IntType, DIM>(IntType(-3)); }),
+      std::runtime_error);
 }
 
-template <typename LayoutType>
+template <typename IntType>
 void test_convert_negative_axes_3d() {
-  const int n0 = 3, n1 = 5, n2 = 8;
-  using RealView3Dtype = Kokkos::View<double***, LayoutType, execution_space>;
-  RealView3Dtype x("x", n0, n1, n2);
+  constexpr std::size_t DIM = 3;
+  IntType converted_axis_0 =
+      KokkosFFT::Impl::convert_negative_axis<IntType, DIM>(IntType(0));
+  IntType converted_axis_1 =
+      KokkosFFT::Impl::convert_negative_axis<IntType, DIM>(IntType(1));
+  IntType converted_axis_2 =
+      KokkosFFT::Impl::convert_negative_axis<IntType, DIM>(IntType(2));
+  IntType converted_axis_minus1 =
+      KokkosFFT::Impl::convert_negative_axis<IntType, DIM>(IntType(-1));
+  IntType converted_axis_minus2 =
+      KokkosFFT::Impl::convert_negative_axis<IntType, DIM>(IntType(-2));
 
-  int converted_axis_0 = KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/0);
-  int converted_axis_1 = KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/1);
-  int converted_axis_2 = KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/2);
-  int converted_axis_minus1 =
-      KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/-1);
-  int converted_axis_minus2 =
-      KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/-2);
-
-  int ref_converted_axis_0      = 0;
-  int ref_converted_axis_1      = 1;
-  int ref_converted_axis_2      = 2;
-  int ref_converted_axis_minus1 = 2;
-  int ref_converted_axis_minus2 = 1;
+  IntType ref_converted_axis_0      = 0;
+  IntType ref_converted_axis_1      = 1;
+  IntType ref_converted_axis_2      = 2;
+  IntType ref_converted_axis_minus1 = 2;
+  IntType ref_converted_axis_minus2 = 1;
 
   EXPECT_EQ(converted_axis_0, ref_converted_axis_0);
   EXPECT_EQ(converted_axis_1, ref_converted_axis_1);
@@ -131,37 +133,40 @@ void test_convert_negative_axes_3d() {
 
   // Check if errors are correctly raised against invalid axis
   // axis must be in [-3, 3)
-  EXPECT_THROW({ KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/3); },
-               std::runtime_error);
+  EXPECT_THROW(
+      ({ KokkosFFT::Impl::convert_negative_axis<IntType, DIM>(IntType(3)); }),
+      std::runtime_error);
 
-  EXPECT_THROW({ KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/-4); },
-               std::runtime_error);
+  EXPECT_THROW(
+      ({ KokkosFFT::Impl::convert_negative_axis<IntType, DIM>(IntType(-4)); }),
+      std::runtime_error);
 }
 
-template <typename LayoutType>
+template <typename IntType>
 void test_convert_negative_axes_4d() {
-  const int n0 = 3, n1 = 5, n2 = 8, n3 = 13;
-  using RealView4Dtype = Kokkos::View<double****, LayoutType, execution_space>;
-  RealView4Dtype x("x", n0, n1, n2, n3);
+  constexpr std::size_t DIM = 4;
+  IntType converted_axis_0 =
+      KokkosFFT::Impl::convert_negative_axis<IntType, DIM>(IntType(0));
+  IntType converted_axis_1 =
+      KokkosFFT::Impl::convert_negative_axis<IntType, DIM>(IntType(1));
+  IntType converted_axis_2 =
+      KokkosFFT::Impl::convert_negative_axis<IntType, DIM>(IntType(2));
+  IntType converted_axis_3 =
+      KokkosFFT::Impl::convert_negative_axis<IntType, DIM>(IntType(3));
+  IntType converted_axis_minus1 =
+      KokkosFFT::Impl::convert_negative_axis<IntType, DIM>(IntType(-1));
+  IntType converted_axis_minus2 =
+      KokkosFFT::Impl::convert_negative_axis<IntType, DIM>(IntType(-2));
+  IntType converted_axis_minus3 =
+      KokkosFFT::Impl::convert_negative_axis<IntType, DIM>(IntType(-3));
 
-  int converted_axis_0 = KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/0);
-  int converted_axis_1 = KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/1);
-  int converted_axis_2 = KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/2);
-  int converted_axis_3 = KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/3);
-  int converted_axis_minus1 =
-      KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/-1);
-  int converted_axis_minus2 =
-      KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/-2);
-  int converted_axis_minus3 =
-      KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/-3);
-
-  int ref_converted_axis_0      = 0;
-  int ref_converted_axis_1      = 1;
-  int ref_converted_axis_2      = 2;
-  int ref_converted_axis_3      = 3;
-  int ref_converted_axis_minus1 = 3;
-  int ref_converted_axis_minus2 = 2;
-  int ref_converted_axis_minus3 = 1;
+  IntType ref_converted_axis_0      = 0;
+  IntType ref_converted_axis_1      = 1;
+  IntType ref_converted_axis_2      = 2;
+  IntType ref_converted_axis_3      = 3;
+  IntType ref_converted_axis_minus1 = 3;
+  IntType ref_converted_axis_minus2 = 2;
+  IntType ref_converted_axis_minus3 = 1;
 
   EXPECT_EQ(converted_axis_0, ref_converted_axis_0);
   EXPECT_EQ(converted_axis_1, ref_converted_axis_1);
@@ -173,11 +178,13 @@ void test_convert_negative_axes_4d() {
 
   // Check if errors are correctly raised against invalid axis
   // axis must be in [-4, 4)
-  EXPECT_THROW({ KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/4); },
-               std::runtime_error);
+  EXPECT_THROW(
+      ({ KokkosFFT::Impl::convert_negative_axis<IntType, DIM>(IntType(4)); }),
+      std::runtime_error);
 
-  EXPECT_THROW({ KokkosFFT::Impl::convert_negative_axis(x, /*axis=*/-5); },
-               std::runtime_error);
+  EXPECT_THROW(
+      ({ KokkosFFT::Impl::convert_negative_axis<IntType, DIM>(IntType(-5)); }),
+      std::runtime_error);
 }
 
 // Tests for convert_negative_shift over ND views
@@ -436,38 +443,31 @@ void test_index_sequence() {
 }
 }  // namespace
 
-TYPED_TEST_SUITE(ConvertNegativeAxis, test_types);
+TYPED_TEST_SUITE(TestConvertNegativeAxis, signed_int_types);
 TYPED_TEST_SUITE(ConvertNegativeShift, test_types);
 TYPED_TEST_SUITE(ContainerTypes, base_int_types);
 TYPED_TEST_SUITE(PairedScalarTypes, paired_scalar_types);
 TYPED_TEST_SUITE(TestIndexSequence, base_int_types);
 
-// Tests for 1D View
-TYPED_TEST(ConvertNegativeAxis, 1DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_convert_negative_axes_1d<layout_type>();
+// Tests for 1D - 4D View
+TYPED_TEST(TestConvertNegativeAxis, 1DView) {
+  using value_type = typename TestFixture::value_type;
+  test_convert_negative_axes_1d<value_type>();
 }
 
-// Tests for 2D View
-TYPED_TEST(ConvertNegativeAxis, 2DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_convert_negative_axes_2d<layout_type>();
+TYPED_TEST(TestConvertNegativeAxis, 2DView) {
+  using value_type = typename TestFixture::value_type;
+  test_convert_negative_axes_2d<value_type>();
 }
 
-// Tests for 3D View
-TYPED_TEST(ConvertNegativeAxis, 3DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_convert_negative_axes_3d<layout_type>();
+TYPED_TEST(TestConvertNegativeAxis, 3DView) {
+  using value_type = typename TestFixture::value_type;
+  test_convert_negative_axes_3d<value_type>();
 }
 
-// Tests for 4D View
-TYPED_TEST(ConvertNegativeAxis, 4DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_convert_negative_axes_4d<layout_type>();
+TYPED_TEST(TestConvertNegativeAxis, 4DView) {
+  using value_type = typename TestFixture::value_type;
+  test_convert_negative_axes_4d<value_type>();
 }
 
 // Tests for 1D View
