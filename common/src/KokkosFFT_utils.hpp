@@ -22,16 +22,15 @@ bool are_aliasing(const ScalarType1* ptr1, const ScalarType2* ptr2) {
   return (static_cast<const void*>(ptr1) == static_cast<const void*>(ptr2));
 }
 
-template <typename ViewType>
-auto convert_negative_axis(ViewType, int axis = -1) {
-  static_assert(Kokkos::is_view_v<ViewType>,
-                "convert_negative_axis: ViewType must be a Kokkos::View.");
-  int rank = static_cast<int>(ViewType::rank());
-
+template <typename IntType>
+IntType convert_negative_axis(IntType rank, IntType axis) {
+  static_assert(
+      std::is_integral_v<IntType> && std::is_signed_v<IntType>,
+      "convert_negative_axis: IntType must be a signed integer type.");
   KOKKOSFFT_THROW_IF(axis < -rank || axis >= rank,
                      "Axis must be in [-rank, rank-1]");
 
-  int non_negative_axis = axis < 0 ? rank + axis : axis;
+  IntType non_negative_axis = axis < 0 ? rank + axis : axis;
   return non_negative_axis;
 }
 
@@ -39,7 +38,8 @@ template <typename ViewType>
 auto convert_negative_shift(const ViewType& view, int shift, int axis) {
   static_assert(Kokkos::is_view_v<ViewType>,
                 "convert_negative_shift: ViewType must be a Kokkos::View.");
-  int non_negative_axis = convert_negative_axis(view, axis);
+  constexpr int rank    = ViewType::rank();
+  int non_negative_axis = convert_negative_axis(rank, axis);
   int extent            = view.extent(non_negative_axis);
   int shift0 = 0, shift1 = 0, shift2 = extent / 2;
 
@@ -114,8 +114,9 @@ bool are_valid_axes(const ViewType& view, const ArrayType<IntType, DIM>& axes) {
   // ensured that the 'non_negative_axes' are in the range of [0, rank-1]
   try {
     for (std::size_t i = 0; i < DIM; i++) {
-      int axis = KokkosFFT::Impl::convert_negative_axis(view, axes[i]);
-      non_negative_axes[i] = axis;
+      constexpr int rank   = ViewType::rank();
+      int axis             = axes[i];
+      non_negative_axes[i] = KokkosFFT::Impl::convert_negative_axis(rank, axis);
     }
   } catch (std::runtime_error& e) {
     return false;
