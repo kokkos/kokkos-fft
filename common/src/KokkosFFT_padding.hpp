@@ -39,16 +39,17 @@ auto get_modified_shape(const InViewType in, const OutViewType /* out */,
   }
 
   // Convert the input axes to be in the range of [0, rank-1]
+  constexpr std::size_t rank = InViewType::rank();
   std::vector<int> positive_axes;
   for (std::size_t i = 0; i < DIM; i++) {
-    int axis = KokkosFFT::Impl::convert_negative_axis(in, axes.at(i));
+    int axis = KokkosFFT::Impl::convert_negative_axis<int, rank>(axes.at(i));
     positive_axes.push_back(axis);
   }
 
   constexpr int rank    = static_cast<int>(InViewType::rank());
   using full_shape_type = shape_type<rank>;
   full_shape_type modified_shape;
-  for (int i = 0; i < rank; i++) {
+  for (std::size_t i = 0; i < rank; i++) {
     modified_shape.at(i) = in.extent(i);
   }
 
