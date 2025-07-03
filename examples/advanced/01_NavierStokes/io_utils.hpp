@@ -58,20 +58,21 @@ void mkdir(const std::string& path, std::filesystem::perms mode) {
   std::filesystem::permissions(dir, mode);
 }
 
-template<typename T>
+template <typename T>
 T string_to_num(const std::string& input) {
-    static_assert(std::is_arithmetic<T>::value, "Template argument must be an arithmetic type");
+  static_assert(std::is_arithmetic<T>::value,
+                "Template argument must be an arithmetic type");
 
-    std::istringstream iss(input);
-    T result;
-    iss >> result;
+  std::istringstream iss(input);
+  T result;
+  iss >> result;
 
-    // Check for conversion failure or extra characters
-    if (iss.fail() || !iss.eof()) {
-        throw std::invalid_argument("Invalid input for conversion to numeric type");
-    }
+  // Check for conversion failure or extra characters
+  if (iss.fail() || !iss.eof()) {
+    throw std::invalid_argument("Invalid input for conversion to numeric type");
+  }
 
-    return result;
+  return result;
 }
 
 using dict = std::map<std::string, std::string>;
@@ -89,9 +90,8 @@ dict parse_args(int argc, char* argv[]) {
   return kwargs;
 }
 
-template<typename T>
-T get_arg(dict& kwargs, const std::string& key,
-          const T& default_value) {
+template <typename T>
+T get_arg(dict& kwargs, const std::string& key, const T& default_value) {
   if (kwargs.find(key) != kwargs.end()) {
     return string_to_num<T>(kwargs[key]);
   } else {
@@ -101,7 +101,7 @@ T get_arg(dict& kwargs, const std::string& key,
 
 template <>
 std::string get_arg<std::string>(dict& kwargs, const std::string& key,
-                    const std::string& default_value) {
+                                 const std::string& default_value) {
   if (kwargs.find(key) != kwargs.end()) {
     return kwargs[key];
   } else {
