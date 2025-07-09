@@ -144,4 +144,4 @@ Please see [this page](https://kokkosfft.readthedocs.io/en/latest/developer_guid
 [![License](https://img.shields.io/badge/License-Apache--2.0_WITH_LLVM--exception-blue)](https://spdx.org/licenses/LLVM-exception.html)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-kokkos-fft is distributed under either the MIT license, or at your option, the Apache-2.0 license with LLVM exception.
+kokkos-fft is mainly distributed under either the MIT license, or at your option, the Apache-2.0 license with LLVM exception. More strictly, [FindFFTW.cmake](https://github.com/kokkos/kokkos-fft/blob/main/cmake/FindFFTW.cmake) file is provided under BSD-3-Clause license and [reuse.yml](https://github.com/kokkos/kokkos-fft/blob/main/.github/workflows/reuse.yml) file is provided under CC0-1.0 license. Licenses are automatically confirmed with [REUSE compliance check](<https://reuse.software>) in CI (see [this page](https://kokkosfft.readthedocs.io/en/latest/developer/CI.html) for detail). 
