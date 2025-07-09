@@ -108,7 +108,7 @@ if read_the_docs_build:
 # ones.
 #...
 
-extensions = [ "breathe" ]
+extensions = [ "breathe", "sphinx_copybutton" ]
 
 #...
 
