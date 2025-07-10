@@ -150,6 +150,23 @@ We have two main parameters to Spack:
 
 To enable the device library, you need to install kokkos with the corresponding Kokkos backend. See [this page](https://kokkosfft.readthedocs.io/en/latest/intro/building.html#install-kokkosfft-by-spack) for detail.
 
+## Spack
+
+kokkos-fft can also be installed with [spack](https://spack.io). For example, the recipe for H100 GPU with cufft is as follows.
+
+```bash
+source spack/share/spack/setup-env.sh # For bash
+spack install kokkos +cuda +wrapper cuda_arch=90
+spack install kokkos-fft device_backend=cufft
+```
+
+We have two main parameters to Spack:
+
+* `host_backend`: Enable device backend FFT library (`fftw-serial` or `fftw-openmp`)
+* `device_backend`: Enable device backend FFT library (e.g., `cufft`, `hipfft`, and `onemkl`)
+
+To enable the device library, you need to install kokkos with the corresponding Kokkos backend.
+
 ## Support
 
 Find us on [Slack channel](https://kokkosteam.slack.com/archives/C07NM5SD3FD) or open a GitHub issue.
