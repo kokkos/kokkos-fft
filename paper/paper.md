@@ -71,6 +71,8 @@ FFT libraries for the enabled Kokkos backend are executed on the stream/queue us
 
 * Compile time and/or runtime errors for invalid usage (e.g. `View` extents mismatch).
 
+There already exists a couple of libraries to offer common APIs over performant vendor FFT libraries. Relying on data structures in Python, these APIs are offered by a dedicated FFT library like FluidFFT [@Mohanan2019] or a more general library offering GPU acceleration like Jax [@jax2018github]. In C++, offering this kind of APIs is non-trivial because of the lack of standard data structures with extents and/or data locations. Thanks to [Kokkos Views](https://kokkos.org/kokkos-core-wiki/API/core/view/view.html) and [`ExecutionSpace`](https://kokkos.org/kokkos-core-wiki/API/core/execution_spaces.html), we can offer simple and safe APIs, which is the unique feature of this library.
+
 # How to use kokkos-fft
 
 For those who are familiar with [`numpy.fft`](https://numpy.org/doc/stable/reference/routines.fft.html), you may use kokkos-fft quite easily. In fact, all of the numpy.fft functions (`numpy.fft.<function_name>`) have an analogous counterpart in kokkos-fft (`KokkosFFT::<function_name>`), which can run on the Kokkos device. In addition, kokkos-fft supports [in-place transform](https://kokkosfft.readthedocs.io/en/latest/intro/using.html#inplace-transform) and [plan reuse](https://kokkosfft.readthedocs.io/en/latest/intro/using.html#reuse-fft-plan) capabilities.
