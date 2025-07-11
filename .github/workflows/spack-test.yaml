@@ -37,7 +37,9 @@ jobs:
         run: |
           docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
           apt-get update && apt-get install -y \
-          python3.12 \
+          python3 \
+          python3-pip \
+          python3-venv \
           && rm -rf /var/lib/apt/lists/*
 
       - name: Clone and install spack
