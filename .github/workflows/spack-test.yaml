@@ -30,10 +30,11 @@ jobs:
           tool-cache: true
           large-packages: false
 
-      - name: Clone spack
+      - name: Clone and install spack
         run: |
           docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
-          git clone https://github.com/spack/spack.git /opt/spack
+          git clone --depth=2 https://github.com/spack/spack.git /opt/spack && \
+          /opt/spack/bin/spack install libelf
 
       - name: Configure and build with CMake
         run: |
