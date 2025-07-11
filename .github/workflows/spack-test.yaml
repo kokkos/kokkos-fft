@@ -33,7 +33,10 @@ jobs:
       - name: Clone and install spack
         run: |
           docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
-          git clone --depth=2 https://github.com/spack/spack.git /opt/spack && \
+          git clone --depth=2 https://github.com/spack/spack.git /opt/spack
+          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
+          ls /opt/spack/
+          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
           /opt/spack/bin/spack install libelf
 
       - name: Configure and build with CMake
