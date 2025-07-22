@@ -75,12 +75,39 @@ auto get_extents(const InViewType& in, const OutViewType& out,
   static_assert(!(is_real_v<in_value_type> && is_real_v<out_value_type>),
                 "get_extents: real to real transform is not supported");
 
+  auto mismatched_extents = [&]() -> std::string {
+    std::string message;
+    message += in.label();
+    message += "(";
+    message += std::to_string(in.extent(0));
+    for (std::size_t r = 1; r < rank; r++) {
+      message += ",";
+      message += std::to_string(in.extent(r));
+    }
+    message += "), ";
+    message += out.label();
+    message += "(";
+    message += std::to_string(out.extent(0));
+    for (std::size_t r = 1; r < rank; r++) {
+      message += ",";
+      message += std::to_string(out.extent(r));
+    }
+    message += "), with axes (";
+    for (std::size_t i = 0; i < axes.size(); i++) {
+      message += std::to_string(axes.at(i));
+      if (i < axes.size() - 1) message += ",";
+    }
+    message += ")";
+    return message;
+  };
+
   for (std::size_t i = 0; i < rank; i++) {
     // The requirement for inner_most_axis is different for transform type
     if (static_cast<int>(i) == inner_most_axis) continue;
     KOKKOSFFT_THROW_IF(in_extents_full.at(i) != out_extents_full.at(i),
                        "input and output extents must be the same except for "
-                       "the transform axis");
+                       "the transform axis: " +
+                           mismatched_extents());
   }
 
   if constexpr (is_complex_v<in_value_type> && is_complex_v<out_value_type>) {
@@ -88,7 +115,8 @@ auto get_extents(const InViewType& in, const OutViewType& out,
     KOKKOSFFT_THROW_IF(
         in_extents_full.at(inner_most_axis) !=
             out_extents_full.at(inner_most_axis),
-        "input and output extents must be the same for C2C transform");
+        "input and output extents must be the same for C2C transform: " +
+            mismatched_extents());
   }
 
   if constexpr (is_real_v<in_value_type>) {
@@ -101,7 +129,8 @@ auto get_extents(const InViewType& in, const OutViewType& out,
           out_extents_full.at(inner_most_axis) !=
               in_extents_full.at(inner_most_axis) / 2 + 1,
           "For R2C, the 'output extent' of transform must be equal to "
-          "'input extent'/2 + 1");
+          "'input extent'/2 + 1: " +
+              mismatched_extents());
     }
   }
 
@@ -115,7 +144,8 @@ auto get_extents(const InViewType& in, const OutViewType& out,
           in_extents_full.at(inner_most_axis) !=
               out_extents_full.at(inner_most_axis) / 2 + 1,
           "For C2R, the 'input extent' of transform must be equal to "
-          "'output extent' / 2 + 1");
+          "'output extent' / 2 + 1: " +
+              mismatched_extents());
     }
   }
 
