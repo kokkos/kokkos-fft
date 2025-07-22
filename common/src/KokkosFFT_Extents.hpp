@@ -75,7 +75,7 @@ auto get_extents(const InViewType& in, const OutViewType& out,
   static_assert(!(is_real_v<in_value_type> && is_real_v<out_value_type>),
                 "get_extents: real to real transform is not supported");
 
-  auto mismatched_extents = [&]() -> std::string {
+  auto mismatched_extents = [&in, &out, &axes, rank]() -> std::string {
     std::string message;
     message += in.label();
     message += "(";
@@ -93,9 +93,10 @@ auto get_extents(const InViewType& in, const OutViewType& out,
       message += std::to_string(out.extent(r));
     }
     message += "), with axes (";
-    for (std::size_t i = 0; i < axes.size(); i++) {
+    message += std::to_string(axes.at(0));
+    for (std::size_t i = 1; i < axes.size(); i++) {
+      message += ",";
       message += std::to_string(axes.at(i));
-      if (i < axes.size() - 1) message += ",";
     }
     message += ")";
     return message;
