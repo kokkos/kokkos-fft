@@ -49,29 +49,29 @@ kokkos-fft provides a unified, performance-portable interface for Fast Fourier T
 
 The fast Fourier transform (FFT) is a family of fundamental algorithms that is widely used in scientific computing and other areas [@Rockmore2000]. [kokkos-fft](https://github.com/kokkos/kokkos-fft) is designed to help [Kokkos](https://github.com/kokkos/kokkos) [@Trott2022] users who are:
 
-* developing a Kokkos application which relies on FFT libraries. E.g., fluid simulation codes with periodic boundaries, plasma turbulence, etc.
+* developing a Kokkos application that relies on FFT libraries, e.g., fluid simulation codes with periodic boundaries, plasma turbulence, etc.
 
-* inclined to integrate in-situ signal and image processing with FFTs. E.g., spectral analyses, low pass filtering, etc.
+* inclined to integrate in-situ signal and image processing with FFTs, e.g., spectral analyses, low pass filtering, etc.
 
 * willing to use de facto standard FFT libraries just like [`numpy.fft`](https://numpy.org/doc/stable/reference/routines.fft.html) [@Harris2020].
 
 kokkos-fft can benefit such users through the following features:
 
 * A simple interface like [`numpy.fft`](https://numpy.org/doc/stable/reference/routines.fft.html) with in-place and out-of-place transforms:  
-Only accepts [Kokkos Views](https://kokkos.org/kokkos-core-wiki/API/core/view/view.html) which corresponds to the [numpy.array](https://numpy.org/doc/stable/reference/generated/numpy.array.html), to make APIs simple and safe.
+Only accepts [Kokkos Views](https://kokkos.org/kokkos-core-wiki/API/core/view/view.html) that correspond to the [numpy.array](https://numpy.org/doc/stable/reference/generated/numpy.array.html), to make APIs simple and safe.
 
 * 1D, 2D, 3D standard and real FFT functions (similar to [`numpy.fft`](https://numpy.org/doc/stable/reference/routines.fft.html)) over 1D to 8D Kokkos Views:  
 Batched plans are automatically used if View dimension is larger than FFT dimension.
 
-* A reusable [FFT plan](https://kokkosfft.readthedocs.io/en/latest/api/plan/plan.html) which wraps the vendor libraries for each Kokkos backend:  
+* A reusable [FFT plan](https://kokkosfft.readthedocs.io/en/latest/api/plan/plan.html) that wraps the vendor libraries for each Kokkos backend:  
 [FFTW](http://www.fftw.org), [cuFFT](https://developer.nvidia.com/cufft), [rocFFT](https://github.com/ROCm/rocFFT), and [oneMKL](https://www.intel.com/content/www/us/en/developer/tools/oneapi/onemkl.html) are automatically enabled based on the enabled Kokkos backend.
 
 * Support for multiple CPU and GPU backends:  
-FFT libraries for the enabled Kokkos backend are executed on the stream/queue used in that [`ExecutionSpace`](https://kokkos.org/kokkos-core-wiki/API/core/execution_spaces.html) where the parallel operations are performed.
+FFT libraries for the enabled Kokkos backend are executed on the stream/queue used in the [`ExecutionSpace`](https://kokkos.org/kokkos-core-wiki/API/core/execution_spaces.html) where the parallel operations are performed.
 
-* Compile time and/or runtime errors for invalid usage (e.g. `View` extents mismatch).
+* Compile time and/or runtime errors for invalid usage (e.g., `View` extents mismatch).
 
-There already exists a couple of libraries to offer common APIs over performant vendor FFT libraries. Relying on data structures in Python, these APIs are offered by a dedicated FFT library like FluidFFT [@Mohanan2019] or a more general library offering GPU acceleration like Jax [@jax2018github]. In C++, offering this kind of APIs is non-trivial because of the lack of standard data structures with extents and/or data locations. Thanks to [Kokkos Views](https://kokkos.org/kokkos-core-wiki/API/core/view/view.html) and [`ExecutionSpace`](https://kokkos.org/kokkos-core-wiki/API/core/execution_spaces.html), we can offer simple and safe APIs, which is the unique feature of this library.
+A couple of libraries that offer common APIs over performant vendor FFT libraries already exist. Relying on data structures in Python, these APIs are offered by a dedicated FFT library like FluidFFT [@Mohanan2019] or a more general library offering GPU acceleration like Jax [@jax2018github]. In C++, offering this kind of APIs is non-trivial because of the lack of standard data structures with extents and/or data locations. Thanks to [Kokkos Views](https://kokkos.org/kokkos-core-wiki/API/core/view/view.html) and [`ExecutionSpace`](https://kokkos.org/kokkos-core-wiki/API/core/execution_spaces.html), we can offer simple and safe APIs, which is the unique feature of this library.
 
 # How to use kokkos-fft
 
@@ -122,7 +122,7 @@ As a more scientific example, we solve a typical 2D plasma turbulence model, cal
 
 Using Kokkos and kokkos-fft, we can easily implement the code (see [example](https://github.com/kokkos/kokkos-fft/tree/main/examples/10_HasegawaWakatani/README.md)), just like Python, while getting a significant acceleration. The core computational kernel of the code is the nonlinear term which is computed with FFTs. We construct the forward and backward FFT plans once during initialization which are reused in the time evolution loops.
 
-We have performed a benchmark of this application over multiple backends. We performed a simulation for 100 steps with a resolution of `1024 x 1024` while I/Os are disabled. The following table shows the achieved performance.
+We have performed a benchmark of this application over multiple backends. We performed a simulation for 100 steps with a resolution of `1024 x 1024` while I/O is disabled. The following table shows the achieved performance.
 
 | Device | Icelake (python) | Icelake | A100 | H100 | MI250X | PVC |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -132,10 +132,10 @@ We have performed a benchmark of this application over multiple backends. We per
 | GB/s (Theoretical peak) | 205 | 205 | 1555 | 3350 | 1600 | 3276.8 |
 | Elapsed time [s] | 463 | 9.28 | 0.25 | 0.14 | 0.41 | 0.30 |
 
-Here, the testbed includes Intel Xeon Platinum 8360Y (referred to as Icelake), NVIDIA A100 and H100 GPUs, AMD MI250X GPU (1 GCD) and Intel Data Center GPU Max 1550 (referred to as PVC). On Icelake, we use 36 cores with OpenMP parallelization. As expected, the Python version is the simplest in terms of lines of code (LOC). With Kokkos and kokkos-fft, the same logic can be implemented without significantly increasing the source code size (roughly 1.5 times longer). However, the benefit is enormous, allowing a single and simple code runs on multiple architectures efficiently.
+Here, the testbed includes Intel Xeon Platinum 8360Y (referred to as Icelake), NVIDIA A100 and H100 GPUs, AMD MI250X GPU (1 GCD) and Intel Data Center GPU Max 1550 (referred to as PVC). On Icelake, we use 36 cores with OpenMP parallelization. As expected, the Python version is the simplest in terms of lines of code (LOC). With Kokkos and kokkos-fft, the same logic can be implemented without significantly increasing the source code size (roughly 1.5 times longer). However, the benefit is enormous: a single and simple code that runs on multiple architectures efficiently.
 
 # Acknowledgements
 
-This work has received support by the CExA Moonshot project of the CEA [cexa-project](https://cexa-project.org). This work was carried out using FUJITSU PRIMERGY GX2570 (Wisteria/BDEC-01) at The University of Tokyo. This work was partly supported by JHPCN project jh220036. This research used resources of the Oak Ridge Leadership Computing Facility at the Oak Ridge National Laboratory, which is supported by the Office of Science of the U.S. Department of Energy under Contract No. DE-AC05-00OR22725. This work was also granted access to the HPC resources of CINES under the allocation 2023-cin4492 made by GENCI.
+This work has received support by the CExA Moonshot project of the CEA [cexa-project](https://cexa-project.org). This work was carried out using FUJITSU PRIMERGY GX2570 (Wisteria/BDEC-01) at the University of Tokyo. This work was partly supported by JHPCN project jh220036. This research used resources of the Oak Ridge Leadership Computing Facility at the Oak Ridge National Laboratory, which is supported by the Office of Science of the U.S. Department of Energy under Contract No. DE-AC05-00OR22725. This work was also granted access to the HPC resources of CINES under the allocation 2023-cin4492 made by GENCI.
 
 # References
