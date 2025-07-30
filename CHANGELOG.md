@@ -24,7 +24,7 @@ SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 - General Enhancement: Use value_or instead of maybe_null_to_shape [\#276](https://github.com/kokkos/kokkos-fft/pull/276)
 - General Enhancement: Delegating Plan class constructor [\#275](https://github.com/kokkos/kokkos-fft/pull/275)
 - General Enhancement: Merging transpose implementation details into a single functor [\#274](https://github.com/kokkos/kokkos-fft/pull/274)
-- General Enhancement: MakeRefactor 1D-8D roll functors [\#273](https://github.com/kokkos/kokkos-fft/pull/273)
+- General Enhancement: Refactor 1D-8D roll functors [\#273](https://github.com/kokkos/kokkos-fft/pull/273)
 - General Enhancement: Add const for container types [\#270](https://github.com/kokkos/kokkos-fft/pull/270)
 - General Enhancement: Allow real input to fft and hfft [\#263](https://github.com/kokkos/kokkos-fft/pull/263)
 - General Enhancement: Introduce a helper to convert a view type with different base value type [\#262](https://github.com/kokkos/kokkos-fft/pull/262)
