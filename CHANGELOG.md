@@ -6,6 +6,32 @@ SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
 # Change Log
 
+## [0.4.0](https://github.com/kokkos/kokkos-kernels/tree/0.4.0) (2025-07-29)
+
+**Implemented enhancements:**
+
+- Documentation: Detail license in README [\#299](https://github.com/kokkos/kokkos-fft/pull/299)
+- Documentation: Fixes a link in the documentation [\#296](https://github.com/kokkos/kokkos-fft/pull/296)
+- Documentation: Suppress disclaimer [\#282](https://github.com/kokkos/kokkos-fft/pull/282)
+- Documentation: Typo fix in README.md [\#281](https://github.com/kokkos/kokkos-fft/pull/281)
+- CI: Build CUDA backend with cxx20 in CI and enable testing-tools [\#272](https://github.com/kokkos/kokkos-fft/pull/272)
+- General Enhancement: Print in/out view details and axes in case of extent errors [\#301](https://github.com/kokkos/kokkos-fft/pull/301)
+- General Enhancement: Improve error message of a failing find_package for FFTW [\#293](https://github.com/kokkos/kokkos-fft/pull/293)
+- General Enhancement: Update to kokkos 4.5.1 [\#292](https://github.com/kokkos/kokkos-fft/pull/292)
+- General Enhancement: Define KOKKOSFFT_ENABLE_TPL_\<NAME\> through KokkosFFT_config.hpp [\#291](https://github.com/kokkos/kokkos-fft/pull/291)
+- General Enhancement: Make convert_negative_axis a templated function again [\#288](https://github.com/kokkos/kokkos-fft/pull/288)
+- General Enhancement: Allow index_sequence to work on unsigned integers [\#287](https://github.com/kokkos/kokkos-fft/pull/287)
+- General Enhancement: Refactor convert_negative_axis to unuse View [\#286](https://github.com/kokkos/kokkos-fft/pull/286)
+- General Enhancement: Use value_or instead of maybe_null_to_shape [\#276](https://github.com/kokkos/kokkos-fft/pull/276)
+- General Enhancement: Delegating Plan class constructor [\#275](https://github.com/kokkos/kokkos-fft/pull/275)
+- General Enhancement: Merging transpose implementation details into a single functor [\#274](https://github.com/kokkos/kokkos-fft/pull/274)
+- General Enhancement: Refactor 1D-8D roll functors [\#273](https://github.com/kokkos/kokkos-fft/pull/273)
+- General Enhancement: Add const for container types [\#270](https://github.com/kokkos/kokkos-fft/pull/270)
+- General Enhancement: Allow real input to fft and hfft [\#263](https://github.com/kokkos/kokkos-fft/pull/263)
+- General Enhancement: Introduce a helper to convert a view type with different base value type [\#262](https://github.com/kokkos/kokkos-fft/pull/262)
+
+**Bug fix:**
+
 ## [0.3.0](https://github.com/kokkos/kokkos-kernels/tree/0.3.0) (2025-04-16)
 
 **Implemented enhancements:**

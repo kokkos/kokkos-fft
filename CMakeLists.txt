@@ -7,7 +7,7 @@ cmake_minimum_required(VERSION 3.22)
 set(KOKKOSFFT_TOP_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Set project
-project(KokkosFFT VERSION 0.3.0 LANGUAGES CXX)
+project(KokkosFFT VERSION 0.4.0 LANGUAGES CXX)
 
 # Add cmake helpers
 list(PREPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
