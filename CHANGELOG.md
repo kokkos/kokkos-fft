@@ -19,6 +19,7 @@ SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 - General Enhancement: Improve error message of a failing find_package for FFTW [\#293](https://github.com/kokkos/kokkos-fft/pull/293)
 - General Enhancement: Update to kokkos 4.5.1 [\#292](https://github.com/kokkos/kokkos-fft/pull/292)
 - General Enhancement: Define KOKKOSFFT_ENABLE_TPL_\<NAME\> through KokkosFFT_config.hpp [\#291](https://github.com/kokkos/kokkos-fft/pull/291)
+- General Enhancement: Make convert_negative_axis a templated function again [\#288](https://github.com/kokkos/kokkos-fft/pull/288)
 - General Enhancement: Allow index_sequence to work on unsigned integers [\#287](https://github.com/kokkos/kokkos-fft/pull/287)
 - General Enhancement: Refactor convert_negative_axis to unuse View [\#286](https://github.com/kokkos/kokkos-fft/pull/286)
 - General Enhancement: Use value_or instead of maybe_null_to_shape [\#276](https://github.com/kokkos/kokkos-fft/pull/276)
@@ -30,8 +31,6 @@ SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 - General Enhancement: Introduce a helper to convert a view type with different base value type [\#262](https://github.com/kokkos/kokkos-fft/pull/262)
 
 **Bug fix:**
-
-- Hotfix: make convert_negative_axis a templated function again [\#288](https://github.com/kokkos/kokkos-fft/pull/288)
 
 ## [0.3.0](https://github.com/kokkos/kokkos-kernels/tree/0.3.0) (2025-04-16)
 
