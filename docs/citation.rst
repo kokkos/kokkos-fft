@@ -7,6 +7,8 @@
 Citing kokkos-fft
 =================
 
+Please cite the following article when using kokkos-fft in your work.
+
 .. bibliography::
    :style: unsrt
    :all:
