@@ -9,11 +9,7 @@ Citing kokkos-fft
 
 Please cite the following article when using kokkos-fft in your work.
 
-.. bibliography::
-   :style: unsrt
-   :all:
-
-.. bibtex::
+::
 
    @article{Asahi2025, 
      doi = {10.21105/joss.08391}, 
