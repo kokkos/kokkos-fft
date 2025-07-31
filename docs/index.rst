@@ -59,6 +59,7 @@ This is equivalent to the following python script.
    api_reference
    examples
    developer_guide
+   citation
 
 ..
     Indices and tables

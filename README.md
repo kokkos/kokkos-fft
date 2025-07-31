@@ -9,6 +9,7 @@ SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 [![CI](https://github.com/kokkos/kokkos-fft/actions/workflows/build_test.yaml/badge.svg)](https://github.com/kokkos/kokkos-fft/actions)
 [![Nightly builds](https://github.com/kokkos/kokkos-fft/actions/workflows/build_nightly.yaml/badge.svg)](https://github.com/kokkos/kokkos-fft/actions/workflows/build_nightly.yaml)
 [![docs](https://readthedocs.org/projects/kokkosfft/badge/?version=latest)](https://kokkosfft.readthedocs.io/en/latest/?badge=latest)
+[![DOI](https://joss.theoj.org/papers/10.21105/joss.08391/status.svg)](https://doi.org/10.21105/joss.08391)
 
 > [!WARNING]
 > EXPERIMENTAL FFT interfaces for Kokkos C++ Performance Portability Programming EcoSystem
@@ -138,6 +139,10 @@ Find us on [Slack channel](https://kokkosteam.slack.com/archives/C07NM5SD3FD) or
 ## Contributing
 
 Please see [this page](https://kokkosfft.readthedocs.io/en/latest/developer_guide.html) for details on how to contribute.
+
+## Citing kokkos-fft
+
+Please see [this page](https://kokkosfft.readthedocs.io/en/latest/citation.html).
 
 ## LICENSE
 

@@ -5,3 +5,4 @@
 breathe
 sphinx-rtd-theme
 sphinx-copybutton
+sphinxcontrib-bibtex
