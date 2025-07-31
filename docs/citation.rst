@@ -25,4 +25,3 @@ Citing kokkos-fft
      title = {kokkos-fft: A shared-memory FFT for the Kokkos ecosystem},
      journal = {Journal of Open Source Software}
    }
-   
