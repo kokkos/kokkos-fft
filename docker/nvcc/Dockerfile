@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y \
         git \
         ccache \
         libfftw3-dev \
+        python3 \
         $ADDITIONAL_PACKAGES \
         && \
     apt-get clean && \
