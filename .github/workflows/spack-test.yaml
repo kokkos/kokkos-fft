@@ -1,0 +1,50 @@
+# SPDX-FileCopyrightText: (C) The kokkos-fft development team, see COPYRIGHT.md file
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
+
+name: CI (spack)
+
+on:
+  pull_request:
+    branches: [ "main" ]
+  
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        backend:
+          - name: nvcc
+            image: gcc
+            kokkos: +cuda +wrapper cuda_arch=90
+            kokkos_fft: cufft
+          - name: rocm
+            image: gcc
+            kokkos: +rocm amdgpu_target=gfx90a
+            kokkos_fft: hipfft
+
+    steps:
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be  # v1.3.1
+        with:
+          tool-cache: true
+          large-packages: false
+
+      - name: Checkout built branch
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+
+      - name: Clone and install spack
+        run: |
+          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
+          bash -c "git clone --depth=2 https://github.com/spack/spack.git && \
+                   spack/bin/spack install libelf"
+
+      - name: Configure and build with CMake
+        run: |
+          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
+          bash -c "source spack/share/spack/setup-env.sh && \
+            spack install kokkos ${{ matrix.backend.kokkos }} && \
+            spack install kokkos-fft ${{ matrix.backend.kokkos_fft }} && \
+            cmake -B install_test/as_library/build && \
+            cmake --build install_test/as_library/build -j 4"
+
