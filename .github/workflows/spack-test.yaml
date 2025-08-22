@@ -45,6 +45,7 @@ jobs:
           bash -c "source spack/share/spack/setup-env.sh && \
             spack install kokkos ${{ matrix.backend.kokkos }} && \
             spack install kokkos-fft ${{ matrix.backend.kokkos_fft }} && \
+            spack load kokkos kokkos-fft && \
             cmake -B install_test/as_library/build && \
             cmake --build install_test/as_library/build -j 4"
 
