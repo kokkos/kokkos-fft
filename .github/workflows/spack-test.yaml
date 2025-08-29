@@ -17,11 +17,6 @@ jobs:
           - name: nvcc
             image: gcc
             kokkos: +cuda +wrapper cuda_arch=90
-            kokkos_fft: device_backend=cufft
-          #- name: rocm
-          #  image: gcc
-          #  kokkos: +rocm amdgpu_target=gfx90a
-          #  kokkos_fft: hipfft
 
     steps:
       - name: Free Disk Space (Ubuntu)
