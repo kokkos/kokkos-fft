@@ -17,6 +17,9 @@ jobs:
           - name: nvcc
             image: gcc
             kokkos: +cuda +wrapper cuda_arch=90
+          - name: rocm
+            image: gcc
+            kokkos: +rocm amdgpu_target=gfx90a
 
     steps:
       - name: Free Disk Space (Ubuntu)
@@ -41,4 +44,3 @@ jobs:
             spack load kokkos kokkos-fft && \
             cmake -B install_test/as_library/build && \
             cmake --build install_test/as_library/build -j 4"
-
