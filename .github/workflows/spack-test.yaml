@@ -23,7 +23,7 @@ jobs:
             kokkos: +rocm amdgpu_target=gfx90a
             spack_path: spack-configs/rocm
     env:
-        SPACK_USER_CONFIG_PATH= ${{matrix.backend.spack_path}}
+      SPACK_USER_CONFIG_PATH: ${{ matrix.backend.spack_path }}
 
     steps:
       - name: Free Disk Space (Ubuntu)
