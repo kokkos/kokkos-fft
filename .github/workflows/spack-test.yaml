@@ -17,9 +17,13 @@ jobs:
           - name: nvcc
             image: gcc
             kokkos: +cuda +wrapper cuda_arch=90
+            spack_path: ""
           - name: rocm
-            image: gcc
+            image: rocm
             kokkos: +rocm amdgpu_target=gfx90a
+            spack_path: spack-configs/rocm
+    env:
+        SPACK_USER_CONFIG_PATH= ${{matrix.backend.spack_path}}
 
     steps:
       - name: Free Disk Space (Ubuntu)
