@@ -28,12 +28,6 @@ jobs:
             spack_path: /work/spack-configs/rocm
 
     steps:
-      - name: Free Disk Space (Ubuntu)
-        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be  # v1.3.1
-        with:
-          tool-cache: true
-          large-packages: false
-
       - name: Checkout built branch
         uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3  # v6.0.0
 
@@ -41,6 +35,23 @@ jobs:
         run: |
           docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
           bash -c "git clone --depth=2 --branch=v1.1.0 https://github.com/spack/spack.git"
+
+      - name: Install cmake
+        run: |
+          bash -c "source spack/share/spack/setup-env.sh && \
+            spack install cmake
+
+      - name: Install kokkos
+        run: |
+          bash -c "source spack/share/spack/setup-env.sh && \
+            spack load cmake && \
+            spack install kokkos ${{ matrix.backend.kokkos }}
+
+      - name: Install kokkos-fft
+        run: |
+          bash -c "source spack/share/spack/setup-env.sh && \
+            spack load cmake && spack load kokkos \
+            spack install kokkos-fft ${{ matrix.backend.kokkos_fft }}
 
       - name: Configure and build with CMake
         run: |
