@@ -130,16 +130,17 @@ cmake -B build \
       -DKokkos_ARCH_AMPERE80=ON
 cmake --build build -j 8
 ```
-This way, all the functionalities are executed on A100 GPUs. For installation, details are provided in the [documentation](https://kokkosfft.readthedocs.io/en/latest/intro/building.html#install-kokkosfft-as-a-library).
+This way, all the functionalities are executed on A100 GPUs. For installation, details are provided in the [documentation](https://kokkosfft.readthedocs.io/en/latest/intro/building.html#install-kokkosfft-by-cmake).
 
 ## Spack
 
 kokkos-fft can also be installed with [spack](https://spack.io). For example, the recipe for H100 GPU with cufft is as follows.
 
 ```bash
+git clone --depth=2 --branch=v1.0.1 https://github.com/spack/spack.git
 source spack/share/spack/setup-env.sh # For bash
-spack install kokkos +cuda +wrapper cuda_arch=90
-spack install kokkos-fft device_backend=cufft
+
+spack install kokkos-fft ^kokkos +cuda +wrapper cuda_arch=90
 ```
 
 We have two main parameters to Spack:
@@ -147,7 +148,7 @@ We have two main parameters to Spack:
 * `host_backend`: Enable device backend FFT library (`fftw-serial` or `fftw-openmp`)
 * `device_backend`: Enable device backend FFT library (e.g., `cufft`, `hipfft`, and `onemkl`)
 
-To enable the device library, you need to install kokkos with the corresponding Kokkos backend.
+To enable the device library, you need to install kokkos with the corresponding Kokkos backend. See [this page](https://kokkosfft.readthedocs.io/en/latest/intro/building.html#install-kokkosfft-by-spack) for detail.
 
 ## Support
 
