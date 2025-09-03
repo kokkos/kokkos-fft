@@ -41,4 +41,3 @@ jobs:
             spack load kokkos kokkos-fft && \
             cmake -B install_test/as_library/build && \
             cmake --build install_test/as_library/build -j 4"
-
