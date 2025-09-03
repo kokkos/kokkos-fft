@@ -16,7 +16,6 @@ RUN apt-get update && apt-get install -y \
         hipfft \
         rocfft \
         libfftw3-dev \
-        python \
         $ADDITIONAL_PACKAGES \
         && \
     apt-get clean && \
