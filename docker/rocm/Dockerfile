@@ -17,6 +17,7 @@ RUN apt-get update && apt-get install -y \
         rocfft \
         libfftw3-dev \
         python3 \
+        gfortran \
         $ADDITIONAL_PACKAGES \
         && \
     apt-get clean && \
