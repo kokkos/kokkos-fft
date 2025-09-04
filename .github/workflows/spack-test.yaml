@@ -17,6 +17,11 @@ jobs:
           - name: nvcc
             image: gcc
             kokkos: +cuda +wrapper cuda_arch=90
+            spack_path: ""
+          - name: rocm
+            image: rocm
+            kokkos: +rocm amdgpu_target=gfx90a
+            spack_path: spack-configs/rocm
 
     steps:
       - name: Free Disk Space (Ubuntu)
@@ -33,12 +38,21 @@ jobs:
           docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
           bash -c "git clone --depth=2 --branch=v1.0.1 https://github.com/spack/spack.git"
 
+      ### For debug
+      ###- name: Clone and install spack packages
+      ###  run: |
+      ###    docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
+      ###    bash -c "git clone --depth=100 --branch=update-kokkos-fft-recipe https://github.com/yasahi-hpc/spack-packages.git ~/spack-packages"
+
       - name: Configure and build with CMake
         run: |
           docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
           bash -c "source spack/share/spack/setup-env.sh && \
+            cp spack-configs/repos.yaml spack/etc/spack/repos.yaml && \
+            spack repo update && \
+            export SPACK_USER_CONFIG_PATH=${{ matrix.backend.spack_path }} && \
+            spack compiler find && \
             spack install kokkos-fft +tests ^kokkos ${{ matrix.backend.kokkos }} && \
             spack load kokkos kokkos-fft && \
             cmake -B install_test/as_library/build && \
             cmake --build install_test/as_library/build -j 4"
-
