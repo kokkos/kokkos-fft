@@ -40,18 +40,10 @@ jobs:
           docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
           bash -c "git clone --depth=2 --branch=v1.0.1 https://github.com/spack/spack.git"
 
-      ### For debug
-      ###- name: Clone and install spack packages
-      ###  run: |
-      ###    docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
-      ###    bash -c "git clone --depth=100 --branch=update-kokkos-fft-recipe https://github.com/yasahi-hpc/spack-packages.git ~/spack-packages"
-
       - name: Configure and build with CMake
         run: |
           docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
           bash -c "source spack/share/spack/setup-env.sh && \
-            cp spack-configs/repos.yaml spack/etc/spack/repos.yaml && \
-            spack repo update && \
             export SPACK_USER_CONFIG_PATH=${{ matrix.backend.spack_path }} && \
             spack spec kokkos-fft ${{ matrix.backend.kokkos_fft }} +tests ^kokkos ${{ matrix.backend.kokkos }} && \
             spack install kokkos-fft ${{ matrix.backend.kokkos_fft }} +tests ^kokkos ${{ matrix.backend.kokkos }} && \
