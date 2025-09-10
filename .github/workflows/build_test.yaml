@@ -109,7 +109,7 @@ jobs:
               cxx: hipcc
             cmake_flags:
               cxx_standard: 17
-              kokkos: -DKokkos_ENABLE_HIP=ON -DKokkos_ARCH_VEGA90A=ON -DKokkos_ENABLE_THREADS=ON
+              kokkos: -DKokkos_ENABLE_HIP=ON -DKokkos_ARCH_AMD_GFX90A=ON -DKokkos_ENABLE_THREADS=ON
               kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror"
               benchmark: ON
             cmake_build_type: Release
@@ -120,7 +120,7 @@ jobs:
               cxx: hipcc
             cmake_flags:
               cxx_standard: 20
-              kokkos: -DKokkos_ENABLE_HIP=ON -DKokkos_ARCH_VEGA90A=ON
+              kokkos: -DKokkos_ENABLE_HIP=ON -DKokkos_ARCH_AMD_GFX90A=ON
               kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror" -DKokkosFFT_ENABLE_ROCFFT=ON -DKokkosFFT_ENABLE_TESTING_TOOLS=ON
               benchmark: ON
             cmake_build_type: Release

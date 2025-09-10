@@ -69,7 +69,7 @@ jobs:
               cxx: hipcc
             cmake_flags:
               cxx_standard: 20
-              kokkos: -DKokkos_ENABLE_HIP=ON -DKokkos_ARCH_VEGA90A=ON
+              kokkos: -DKokkos_ENABLE_HIP=ON -DKokkos_ARCH_AMD_GFX90A=ON
               kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror"
           - name: rocm
             image: rocm
@@ -78,7 +78,7 @@ jobs:
               cxx: hipcc
             cmake_flags:
               cxx_standard: 20
-              kokkos: -DKokkos_ENABLE_HIP=ON -DKokkos_ARCH_VEGA90A=ON
+              kokkos: -DKokkos_ENABLE_HIP=ON -DKokkos_ARCH_AMD_GFX90A=ON
               kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror" -DKokkosFFT_ENABLE_ROCFFT=ON -DKokkosFFT_ENABLE_TESTING_TOOLS=ON
           - name: sycl
             image: intel
