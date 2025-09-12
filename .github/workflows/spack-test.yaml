@@ -18,7 +18,6 @@ jobs:
             image: gcc
             kokkos: +cuda +wrapper cuda_arch=90
             kokkos_fft: device_backend=cufft
-        backend:
           - name: sycl
             image: intel
             kokkos: +sycl intel_gpu_arch=intel_gen
