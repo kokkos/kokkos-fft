@@ -17,6 +17,7 @@ jobs:
           - name: nvcc
             image: gcc
             kokkos: +cuda +wrapper cuda_arch=90
+            kokkos_fft: device_backend=cufft
 
     steps:
       - name: Free Disk Space (Ubuntu)
@@ -37,8 +38,9 @@ jobs:
         run: |
           docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
           bash -c "source spack/share/spack/setup-env.sh && \
-            spack install kokkos-fft +tests ^kokkos ${{ matrix.backend.kokkos }} && \
+            spack spec kokkos-fft ${{ matrix.backend.kokkos_fft }} +tests ^kokkos ${{ matrix.backend.kokkos }} && \
+            spack install kokkos-fft ${{ matrix.backend.kokkos_fft }} +tests ^kokkos ${{ matrix.backend.kokkos }} && \
             spack load kokkos kokkos-fft && \
-            cmake -B install_test/as_library/build && \
-            cmake --build install_test/as_library/build -j 4"
-
+            cd install_test/as_library && \
+            cmake -B build && \
+            cmake --build build -j 4"
