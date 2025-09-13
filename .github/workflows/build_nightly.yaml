@@ -124,7 +124,7 @@ jobs:
       - name: Build Kokkos
         run: |
           docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
-            cmake --build build_kokkos -j $(( $(nproc) * 2 + 1 ))
+            cmake --build build_kokkos -j 4
 
       - name: Install Kokkos
         run: |
@@ -147,4 +147,4 @@ jobs:
       - name: Build
         run: |
           docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
-            cmake --build build -j $(( $(nproc) * 2 + 1 ))
+            cmake --build build -j 4
