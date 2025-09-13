@@ -13,19 +13,21 @@ RUN apt-get update && apt-get install -y \
         git \
         ccache \
         libfftw3-dev \
+        python3 \
+        gfortran \
         $ADDITIONAL_PACKAGES \
         && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-ENV FFTWDIR "/usr"
+ENV FFTWDIR=/usr \
+    CMAKE_DIR=/opt/cmake
 
 RUN git config --global --add safe.directory "*"
 
 # Install newer CMake manually
 ARG CMAKE_VERSION=3.25.2
 
-ENV CMAKE_DIR=/opt/cmake
 RUN CMAKE_URL=https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION} && \
     CMAKE_SCRIPT=cmake-${CMAKE_VERSION}-linux-x86_64.sh && \
     CMAKE_SHA256=cmake-${CMAKE_VERSION}-SHA-256.txt && \
@@ -46,4 +48,3 @@ ENV PATH=${CMAKE_DIR}/bin:$PATH
 
 WORKDIR /work
 CMD ["bash"]
-

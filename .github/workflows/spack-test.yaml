@@ -18,6 +18,10 @@ jobs:
             image: gcc
             kokkos: +cuda +wrapper cuda_arch=90
             kokkos_fft: device_backend=cufft
+          - name: sycl
+            image: intel
+            kokkos: +sycl intel_gpu_arch=intel_gen %oneapi
+            kokkos_fft: device_backend=onemkl
 
     steps:
       - name: Free Disk Space (Ubuntu)
