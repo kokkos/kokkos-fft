@@ -20,7 +20,7 @@ jobs:
             kokkos_fft: device_backend=cufft
           - name: sycl
             image: intel
-            kokkos: +sycl intel_gpu_arch=intel_gen %oneapi
+            kokkos: +sycl intel_gpu_arch=intel_gen %oneapi ^intel-oneapi-mkl@2025.1.0 ^intel-oneapi-tbb@2022.1.0
             kokkos_fft: device_backend=onemkl
 
     steps:
