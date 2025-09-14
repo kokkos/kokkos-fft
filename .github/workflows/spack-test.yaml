@@ -15,10 +15,12 @@ jobs:
       matrix:
         backend:
           - name: nvcc
+            compiler: nvcc_wrapper
             image: gcc
             kokkos: +cuda +wrapper cuda_arch=90
             kokkos_fft: device_backend=cufft
           - name: sycl
+            compiler: icpx
             image: intel
             kokkos: +sycl intel_gpu_arch=intel_gen %oneapi ^intel-oneapi-mkl@2025.1.0 ^intel-oneapi-tbb@2022.1.0
             kokkos_fft: device_backend=onemkl
@@ -46,5 +48,5 @@ jobs:
             spack install kokkos-fft ${{ matrix.backend.kokkos_fft }} +tests ^kokkos ${{ matrix.backend.kokkos }} && \
             spack load kokkos kokkos-fft && \
             cd install_test/as_library && \
-            cmake -B build && \
+            cmake -D CMAKE_CXX_COMPILER=${{ matrix.backend.compiler }} -B build && \
             cmake --build build -j 4"
