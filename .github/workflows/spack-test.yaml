@@ -50,9 +50,5 @@ jobs:
             spack install kokkos-fft ${{ matrix.backend.kokkos_fft }} +tests ^kokkos ${{ matrix.backend.kokkos }} && \
             spack load kokkos kokkos-fft && \
             cd install_test/as_library && \
-<<<<<<< HEAD
-            cmake -B build && \
-=======
             cmake -D CMAKE_CXX_COMPILER=${{ matrix.backend.compiler }} -B build && \
->>>>>>> 71301f3 (update spack-test for rocm using newer one)
             cmake --build build -j 4"
