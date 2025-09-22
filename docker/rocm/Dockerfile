@@ -16,23 +16,23 @@ RUN apt-get update && apt-get install -y \
         hipfft \
         rocfft \
         libfftw3-dev \
+        python3 \
         $ADDITIONAL_PACKAGES \
         && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-ENV FFTWDIR "/usr"
-
-ENV PATH=/opt/rocm/bin:$PATH
-ENV LD_LIBRARY_PATH /opt/rocm/hipfft/lib:$LD_LIBRARY_PATH
-ENV CMAKE_PREFIX_PATH /opt/rocm/hip/:/opt/rocm/:$CMAKE_PREFIX_PATH
+ENV FFTWDIR=/usr \
+    CMAKE_DIR=/opt/cmake \
+    PATH=/opt/rocm/bin:$PATH \
+    LD_LIBRARY_PATH=/opt/rocm/hipfft/lib:$LD_LIBRARY_PATH \
+    CMAKE_PREFIX_PATH=/opt/rocm/hip/:/opt/rocm/:$CMAKE_PREFIX_PATH
 
 RUN git config --global --add safe.directory "*"
 
 # Install newer CMake manually
 ARG CMAKE_VERSION=3.23.2
 
-ENV CMAKE_DIR=/opt/cmake
 RUN CMAKE_URL=https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION} && \
     CMAKE_SCRIPT=cmake-${CMAKE_VERSION}-linux-x86_64.sh && \
     CMAKE_SHA256=cmake-${CMAKE_VERSION}-SHA-256.txt && \

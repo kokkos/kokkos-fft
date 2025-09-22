@@ -1,0 +1,34 @@
+# SPDX-FileCopyrightText: (C) The kokkos-fft development team, see COPYRIGHT.md file
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
+
+packages:
+  llvm-amdgpu:
+    buildable: false
+    externals:
+    - spec: llvm-amdgpu@6.2.0
+      prefix: /opt/rocm
+      extra_attributes:
+        compilers:
+          c: /opt/rocm/bin/amdclang
+          cxx: /opt/rocm/bin/amdclang++
+  hip:
+    buildable: false
+    externals:
+    - spec: hip@6.2.0
+      prefix: /opt/rocm-6.2.0
+  hipfft:
+    buildable: false
+    externals:
+    - spec: hipfft@6.2.0
+      prefix: /opt/rocm-6.2.0
+  rocfft:
+    buildable: false
+    externals:
+    - spec: rocfft@6.2.0
+      prefix: /opt/rocm-6.2.0
+  cmake:
+    buildable: false
+    externals:
+    - spec: cmake@3.23.2
+      prefix: /opt/cmake
