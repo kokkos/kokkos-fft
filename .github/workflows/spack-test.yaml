@@ -7,7 +7,7 @@ name: CI (spack)
 on:
   pull_request:
     branches: [ "main" ]
-  
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -15,6 +15,7 @@ jobs:
       matrix:
         backend:
           - name: nvcc
+            compiler: nvcc_wrapper
             image: gcc
             kokkos: +cuda +wrapper cuda_arch=90
             kokkos_fft: device_backend=cufft
@@ -42,5 +43,40 @@ jobs:
             spack install kokkos-fft ${{ matrix.backend.kokkos_fft }} +tests ^kokkos ${{ matrix.backend.kokkos }} && \
             spack load kokkos kokkos-fft && \
             cd install_test/as_library && \
-            cmake -B build && \
+            cmake -D CMAKE_CXX_COMPILER=${{ matrix.backend.compiler }} -B build && \
+            cmake --build build -j 4"
+
+  build-sycl:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        backend:
+          - name: sycl
+            compiler: icpx
+            image: intel
+            spec: kokkos-fft device_backend=onemkl +tests ^kokkos +sycl intel_gpu_arch=intel_gen %oneapi ^intel-oneapi-mkl@2025.1.0 ^intel-oneapi-tbb
+
+    steps:
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be  # v1.3.1
+        with:
+          tool-cache: true
+          large-packages: false
+
+      - name: Checkout built branch
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
+
+      - name: Clone and install spack
+        run: |
+          docker run -v ${{ github.workspace }}:/work ubuntu:24.04 \
+          bash -c "apt update && \
+            apt install --yes --no-install-recommends file bzip2 ca-certificates g++ gcc gfortran git gzip lsb-release patch python3 tar unzip xz-utils zstd && \
+            git clone --depth=1 --branch=v1.0.2 https://github.com/spack/spack.git && \
+            . spack/share/spack/setup-env.sh && \
+            spack install intel-oneapi-compilers@2025 && \
+            spack spec ${{ matrix.backend.spec }} && \
+            spack install ${{ matrix.backend.spec }} && \
+            spack load cmake intel-oneapi-compilers kokkos kokkos-fft && \
+            cd /work/install_test/as_library && \
+            cmake -D CMAKE_CXX_COMPILER=${{ matrix.backend.compiler }} -B build && \
             cmake --build build -j 4"
