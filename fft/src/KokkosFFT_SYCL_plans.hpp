@@ -130,10 +130,10 @@ auto create_plan(const ExecutionSpace& exec_space,
   const DFTI_CONFIG_VALUE placement =
       is_inplace ? DFTI_INPLACE : DFTI_NOT_INPLACE;
   const DFTI_CONFIG_VALUE storage = DFTI_COMPLEX_COMPLEX;
-  plan->set_value(oneapi::mkl::dft::config_param::FWD_STRIDES,
-                  fwd_strides.data());
-  plan->set_value(oneapi::mkl::dft::config_param::BWD_STRIDES,
-                  bwd_strides.data());
+  plan->set_value(oneapi::mkl::dft::config_param::INPUT_STRIDES,
+                  in_strides.data());
+  plan->set_value(oneapi::mkl::dft::config_param::OUTPUT_STRIDES,
+                  out_strides.data());
   plan->set_value(oneapi::mkl::dft::config_param::CONJUGATE_EVEN_STORAGE,
                   storage);
 #endif
