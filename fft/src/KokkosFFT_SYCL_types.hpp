@@ -8,7 +8,7 @@
 #include <complex>
 #include <sycl/sycl.hpp>
 #include <mkl.h>
-#if defined(__INTEL_LLVM_COMPILER) && INTEL_MKL_VERSION >= 20250100
+#if defined(INTEL_MKL_VERSION) && INTEL_MKL_VERSION >= 20250100
 #include <oneapi/mkl/dft.hpp>
 #else
 #include <oneapi/mkl/dfti.hpp>

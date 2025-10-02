@@ -7,7 +7,7 @@
 
 #include <numeric>
 #include <algorithm>
-#if defined(__INTEL_LLVM_COMPILER) && INTEL_MKL_VERSION >= 20250100
+#if defined(INTEL_MKL_VERSION) && INTEL_MKL_VERSION >= 20250100
 #include <oneapi/mkl/dft.hpp>
 #else
 #include <oneapi/mkl/dfti.hpp>
@@ -117,7 +117,7 @@ auto create_plan(const ExecutionSpace& exec_space,
   std::int64_t max_odist = static_cast<std::int64_t>(std::min(idist, odist));
 
   plan = std::make_unique<PlanType>(int64_fft_extents);
-#if defined(__INTEL_LLVM_COMPILER) && INTEL_MKL_VERSION >= 20250100
+#if defined(INTEL_MKL_VERSION) && INTEL_MKL_VERSION >= 20250100
   const oneapi::mkl::dft::config_value placement =
       is_inplace ? oneapi::mkl::dft::config_value::INPLACE
                  : oneapi::mkl::dft::config_value::NOT_INPLACE;
@@ -125,6 +125,7 @@ auto create_plan(const ExecutionSpace& exec_space,
       oneapi::mkl::dft::config_value::COMPLEX_COMPLEX;
   plan->set_value(oneapi::mkl::dft::config_param::FWD_STRIDES, fwd_strides);
   plan->set_value(oneapi::mkl::dft::config_param::BWD_STRIDES, bwd_strides);
+  plan->set_value(oneapi::mkl::dft::config_param::COMPLEX_STORAGE, storage);
 #else
   const DFTI_CONFIG_VALUE placement =
       is_inplace ? DFTI_INPLACE : DFTI_NOT_INPLACE;
@@ -133,6 +134,8 @@ auto create_plan(const ExecutionSpace& exec_space,
                   fwd_strides.data());
   plan->set_value(oneapi::mkl::dft::config_param::BWD_STRIDES,
                   bwd_strides.data());
+  plan->set_value(oneapi::mkl::dft::config_param::CONJUGATE_EVEN_STORAGE,
+                  storage);
 #endif
 
   // Configuration for batched plan
@@ -143,7 +146,6 @@ auto create_plan(const ExecutionSpace& exec_space,
 
   // Data layout in conjugate-even domain
   plan->set_value(oneapi::mkl::dft::config_param::PLACEMENT, placement);
-  plan->set_value(oneapi::mkl::dft::config_param::COMPLEX_STORAGE, storage);
   sycl::queue q = exec_space.sycl_queue();
   plan->commit(q);
 
