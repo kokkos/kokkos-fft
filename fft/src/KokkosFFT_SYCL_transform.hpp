@@ -6,7 +6,11 @@
 #define KOKKOSFFT_SYCL_TRANSFORM_HPP
 
 #include <complex>
+#if defined(INTEL_MKL_VERSION) && INTEL_MKL_VERSION >= 20250100
+#include <oneapi/mkl/dft.hpp>
+#else
 #include <oneapi/mkl/dfti.hpp>
+#endif
 #include <Kokkos_Profiling_ScopedRegion.hpp>
 
 namespace KokkosFFT {

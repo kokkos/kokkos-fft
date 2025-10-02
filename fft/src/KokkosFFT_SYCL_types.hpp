@@ -8,7 +8,11 @@
 #include <complex>
 #include <sycl/sycl.hpp>
 #include <mkl.h>
+#if defined(INTEL_MKL_VERSION) && INTEL_MKL_VERSION >= 20250100
+#include <oneapi/mkl/dft.hpp>
+#else
 #include <oneapi/mkl/dfti.hpp>
+#endif
 #include "KokkosFFT_common_types.hpp"
 #include "KokkosFFT_utils.hpp"
 
