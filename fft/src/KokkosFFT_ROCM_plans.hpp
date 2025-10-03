@@ -5,8 +5,6 @@
 #ifndef KOKKOSFFT_ROCM_PLANS_HPP
 #define KOKKOSFFT_ROCM_PLANS_HPP
 
-#include <numeric>
-#include <algorithm>
 #include <Kokkos_Profiling_ScopedRegion.hpp>
 #include "KokkosFFT_ROCM_types.hpp"
 #include "KokkosFFT_Extents.hpp"
