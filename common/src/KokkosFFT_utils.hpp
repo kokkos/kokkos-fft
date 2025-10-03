@@ -248,17 +248,24 @@ constexpr Kokkos::Array<T, N> to_array(std::array<T, N>&& a) {
 template <typename T>
 T safe_multiply(T a, T b) {
   if constexpr (std::is_integral_v<T>) {
-    if (a != 0) {
-      if (a > 0) {
-        if ((b > 0 && a > std::numeric_limits<T>::max() / b) ||
-            (b < 0 && b < std::numeric_limits<T>::min() / a)) {
-          throw std::overflow_error("Integer multiplication overflow");
+    if constexpr (std::is_signed_v<T>) {
+      if (a != 0) {
+        if (a > 0) {
+          if ((b > 0 && a > std::numeric_limits<T>::max() / b) ||
+              (b < 0 && b < std::numeric_limits<T>::min() / a)) {
+            throw std::overflow_error("Integer multiplication overflow");
+          }
+        } else {  // a < 0
+          if ((b > 0 && a < std::numeric_limits<T>::min() / b) ||
+              (b < 0 && a != 0 && -a > std::numeric_limits<T>::max() / -b)) {
+            throw std::overflow_error("Integer multiplication overflow");
+          }
         }
-      } else {  // a < 0
-        if ((b > 0 && a < std::numeric_limits<T>::min() / b) ||
-            (b < 0 && a != 0 && -a > std::numeric_limits<T>::max() / -b)) {
-          throw std::overflow_error("Integer multiplication overflow");
-        }
+      }
+    } else {
+      // nvcc warns a pointless comparison of unsigned integer with zero
+      if (b != 0 && a > std::numeric_limits<T>::max() / b) {
+        throw std::overflow_error("Unsigned integer multiplication overflow");
       }
     }
   }
