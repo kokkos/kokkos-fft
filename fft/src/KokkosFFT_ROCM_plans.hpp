@@ -85,8 +85,7 @@ auto create_plan(const ExecutionSpace& exec_space,
   plan->commit(exec_space);
 
   // Calculate the total size of the FFT
-  int fft_size = std::accumulate(fft_extents.begin(), fft_extents.end(), 1,
-                                 std::multiplies<>());
+  int fft_size = total_size(fft_extents);
 
   return fft_size;
 }
