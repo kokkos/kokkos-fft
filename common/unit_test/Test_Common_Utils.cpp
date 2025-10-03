@@ -459,6 +459,13 @@ void test_total_size() {
   EXPECT_EQ(total_size0, ref_total_size0);
   EXPECT_EQ(total_size1, ref_total_size1);
   EXPECT_EQ(total_size2, ref_total_size2);
+
+  // Failure test with overflow
+  ContainerType1 v3 = {2, 3, std::numeric_limits<IntType>::max()};
+
+  EXPECT_THROW(
+      { [[maybe_unused]] auto total_size3 = KokkosFFT::Impl::total_size(v3); },
+      std::overflow_error);
 }
 
 }  // namespace
