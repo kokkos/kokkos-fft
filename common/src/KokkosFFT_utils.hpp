@@ -243,6 +243,15 @@ constexpr Kokkos::Array<T, N> to_array(std::array<T, N>&& a) {
   return to_array_rvalue(std::move(a), std::make_index_sequence<N>());
 }
 
+template <typename ContainerType>
+auto total_size(const ContainerType& values) {
+  using value_type = KokkosFFT::Impl::base_container_value_type<ContainerType>;
+  static_assert(std::is_integral_v<value_type>,
+                "total_size: Container value type must be an integral type");
+  return std::accumulate(values.begin(), values.end(), 1,
+                         std::multiplies<value_type>());
+}
+
 }  // namespace Impl
 }  // namespace KokkosFFT
 

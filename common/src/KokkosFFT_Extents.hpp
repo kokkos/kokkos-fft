@@ -165,16 +165,14 @@ auto get_extents(const InViewType& in, const OutViewType& out,
   std::vector<int> fft_extents(fft_extents_full.end() - DIM,
                                fft_extents_full.end());
 
-  int total_fft_size = std::accumulate(
-      fft_extents_full.begin(), fft_extents_full.end(), 1, std::multiplies<>());
-  int fft_size = std::accumulate(fft_extents.begin(), fft_extents.end(), 1,
-                                 std::multiplies<>());
-  int howmany  = total_fft_size / fft_size;
+  int total_fft_size = total_size(fft_extents_full);
+  int fft_size       = total_size(fft_extents);
+  int howmany        = total_fft_size / fft_size;
 
   return std::tuple<std::vector<int>, std::vector<int>, std::vector<int>, int>(
       in_extents, out_extents, fft_extents, howmany);
 }
 }  // namespace Impl
-};  // namespace KokkosFFT
+}  // namespace KokkosFFT
 
 #endif
