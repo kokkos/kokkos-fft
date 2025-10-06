@@ -441,6 +441,33 @@ void test_index_sequence() {
     EXPECT_EQ(range2, ref_range2);
   }
 }
+
+template <typename ContainerType0, typename ContainerType1,
+          typename ContainerType2>
+void test_total_size() {
+  using IntType = KokkosFFT::Impl::base_container_value_type<ContainerType0>;
+
+  ContainerType0 v0 = {0, 1, 4, 2, 3};
+  ContainerType1 v1 = {2, 3, 5};
+  ContainerType2 v2 = {1};
+  auto total_size0  = KokkosFFT::Impl::total_size(v0);
+  auto total_size1  = KokkosFFT::Impl::total_size(v1);
+  auto total_size2  = KokkosFFT::Impl::total_size(v2);
+
+  IntType ref_total_size0 = 0, ref_total_size1 = 30, ref_total_size2 = 1;
+
+  EXPECT_EQ(total_size0, ref_total_size0);
+  EXPECT_EQ(total_size1, ref_total_size1);
+  EXPECT_EQ(total_size2, ref_total_size2);
+
+  // Failure test with overflow
+  ContainerType1 v3 = {2, 3, std::numeric_limits<IntType>::max()};
+
+  EXPECT_THROW(
+      { [[maybe_unused]] auto total_size3 = KokkosFFT::Impl::total_size(v3); },
+      std::overflow_error);
+}
+
 }  // namespace
 
 TYPED_TEST_SUITE(TestConvertNegativeAxis, signed_int_types);
@@ -542,6 +569,19 @@ TYPED_TEST(ContainerTypes, is_out_of_range_value_included_in_vector) {
 TYPED_TEST(ContainerTypes, is_out_of_range_value_included_in_array) {
   using container_type = typename TestFixture::array_type;
   test_is_out_of_range_value_included<container_type>();
+}
+
+TYPED_TEST(ContainerTypes, test_total_size_of_vector) {
+  using container_type = typename TestFixture::vector_type;
+  test_total_size<container_type, container_type, container_type>();
+}
+
+TYPED_TEST(ContainerTypes, test_total_size_of_array) {
+  using value_type      = typename TestFixture::value_type;
+  using container_type0 = std::array<value_type, 5>;
+  using container_type1 = std::array<value_type, 3>;
+  using container_type2 = std::array<value_type, 1>;
+  test_total_size<container_type0, container_type1, container_type2>();
 }
 
 TYPED_TEST(ContainerTypes, are_valid_axes) {

@@ -5,11 +5,11 @@
 #ifndef KOKKOSFFT_HOST_PLANS_HPP
 #define KOKKOSFFT_HOST_PLANS_HPP
 
-#include <numeric>
 #include <Kokkos_Profiling_ScopedRegion.hpp>
 #include "KokkosFFT_default_types.hpp"
 #include "KokkosFFT_Extents.hpp"
 #include "KokkosFFT_traits.hpp"
+#include "KokkosFFT_utils.hpp"
 
 namespace KokkosFFT {
 namespace Impl {
@@ -82,12 +82,9 @@ auto create_plan(const ExecutionSpace& exec_space,
   const int rank = fft_rank;
   auto [in_extents, out_extents, fft_extents, howmany] =
       KokkosFFT::Impl::get_extents(in, out, axes, s, is_inplace);
-  int idist    = std::accumulate(in_extents.begin(), in_extents.end(), 1,
-                                 std::multiplies<>());
-  int odist    = std::accumulate(out_extents.begin(), out_extents.end(), 1,
-                                 std::multiplies<>());
-  int fft_size = std::accumulate(fft_extents.begin(), fft_extents.end(), 1,
-                                 std::multiplies<>());
+  int idist    = total_size(in_extents);
+  int odist    = total_size(out_extents);
+  int fft_size = total_size(fft_extents);
 
   auto* idata = reinterpret_cast<typename KokkosFFT::Impl::fft_data_type<
       ExecutionSpace, in_value_type>::type*>(in.data());

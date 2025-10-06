@@ -5,7 +5,6 @@
 #ifndef KOKKOSFFT_HIP_PLANS_HPP
 #define KOKKOSFFT_HIP_PLANS_HPP
 
-#include <numeric>
 #include <Kokkos_Profiling_ScopedRegion.hpp>
 #include "KokkosFFT_HIP_types.hpp"
 #include "KokkosFFT_Extents.hpp"
@@ -61,8 +60,7 @@ auto create_plan(const ExecutionSpace& exec_space,
   auto [in_extents, out_extents, fft_extents, howmany] =
       KokkosFFT::Impl::get_extents(in, out, axes, s, is_inplace);
   const int nx = fft_extents.at(0);
-  int fft_size = std::accumulate(fft_extents.begin(), fft_extents.end(), 1,
-                                 std::multiplies<>());
+  int fft_size = total_size(fft_extents);
   plan         = std::make_unique<PlanType>(nx, type, howmany);
   plan->commit(exec_space);
 
@@ -96,8 +94,7 @@ auto create_plan(const ExecutionSpace& exec_space,
   [[maybe_unused]] auto [in_extents, out_extents, fft_extents, howmany] =
       KokkosFFT::Impl::get_extents(in, out, axes, s, is_inplace);
   const int nx = fft_extents.at(0), ny = fft_extents.at(1);
-  int fft_size = std::accumulate(fft_extents.begin(), fft_extents.end(), 1,
-                                 std::multiplies<>());
+  int fft_size = total_size(fft_extents);
   plan         = std::make_unique<PlanType>(nx, ny, type);
   plan->commit(exec_space);
 
@@ -133,8 +130,7 @@ auto create_plan(const ExecutionSpace& exec_space,
 
   const int nx = fft_extents.at(0), ny = fft_extents.at(1),
             nz = fft_extents.at(2);
-  int fft_size = std::accumulate(fft_extents.begin(), fft_extents.end(), 1,
-                                 std::multiplies<>());
+  int fft_size = total_size(fft_extents);
   plan         = std::make_unique<PlanType>(nx, ny, nz, type);
   plan->commit(exec_space);
 
@@ -174,12 +170,9 @@ auto create_plan(const ExecutionSpace& exec_space,
                                       out_value_type>::type();
   auto [in_extents, out_extents, fft_extents, howmany] =
       KokkosFFT::Impl::get_extents(in, out, axes, s, is_inplace);
-  int idist    = std::accumulate(in_extents.begin(), in_extents.end(), 1,
-                                 std::multiplies<>());
-  int odist    = std::accumulate(out_extents.begin(), out_extents.end(), 1,
-                                 std::multiplies<>());
-  int fft_size = std::accumulate(fft_extents.begin(), fft_extents.end(), 1,
-                                 std::multiplies<>());
+  int idist    = total_size(in_extents);
+  int odist    = total_size(out_extents);
+  int fft_size = total_size(fft_extents);
 
   // For the moment, considering the contiguous layout only
   int istride = 1, ostride = 1;

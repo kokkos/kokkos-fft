@@ -10,6 +10,8 @@
 #include <set>
 #include <algorithm>
 #include <numeric>
+#include <stdexcept>
+#include <limits>
 #include "KokkosFFT_asserts.hpp"
 #include "KokkosFFT_traits.hpp"
 #include "KokkosFFT_common_types.hpp"
@@ -241,6 +243,44 @@ constexpr Kokkos::Array<T, N> to_array(std::array<T, N>& a) {
 template <typename T, std::size_t N>
 constexpr Kokkos::Array<T, N> to_array(std::array<T, N>&& a) {
   return to_array_rvalue(std::move(a), std::make_index_sequence<N>());
+}
+
+template <typename T>
+T safe_multiply(T a, T b) {
+  if constexpr (std::is_integral_v<T>) {
+    if constexpr (std::is_signed_v<T>) {
+      if (a != 0) {
+        if (a > 0) {
+          if ((b > 0 && a > std::numeric_limits<T>::max() / b) ||
+              (b < 0 && b < std::numeric_limits<T>::min() / a)) {
+            throw std::overflow_error("Integer multiplication overflow");
+          }
+        } else {  // a < 0
+          if ((b > 0 && a < std::numeric_limits<T>::min() / b) ||
+              (b < 0 && -a > std::numeric_limits<T>::max() / -b)) {
+            throw std::overflow_error("Integer multiplication overflow");
+          }
+        }
+      }
+    } else {
+      // nvcc warns a pointless comparison of unsigned integer with zero
+      if (b != 0 && a > std::numeric_limits<T>::max() / b) {
+        throw std::overflow_error("Unsigned integer multiplication overflow");
+      }
+    }
+  }
+  return a * b;
+}
+
+template <typename ContainerType>
+auto total_size(const ContainerType& values) {
+  using value_type = KokkosFFT::Impl::base_container_value_type<ContainerType>;
+  value_type init  = 1;
+  static_assert(std::is_integral_v<value_type>,
+                "total_size: Container value type must be an integral type");
+  return std::accumulate(
+      values.begin(), values.end(), init,
+      [](value_type a, value_type b) { return safe_multiply(a, b); });
 }
 
 }  // namespace Impl

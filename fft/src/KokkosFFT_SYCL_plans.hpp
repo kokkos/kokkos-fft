@@ -97,12 +97,9 @@ auto create_plan(const ExecutionSpace& exec_space,
   Kokkos::Profiling::ScopedRegion region("KokkosFFT::create_plan[TPL_oneMKL]");
   auto [in_extents, out_extents, fft_extents, howmany] =
       KokkosFFT::Impl::get_extents(in, out, axes, s, is_inplace);
-  int idist    = std::accumulate(in_extents.begin(), in_extents.end(), 1,
-                                 std::multiplies<>());
-  int odist    = std::accumulate(out_extents.begin(), out_extents.end(), 1,
-                                 std::multiplies<>());
-  int fft_size = std::accumulate(fft_extents.begin(), fft_extents.end(), 1,
-                                 std::multiplies<>());
+  int idist    = total_size(in_extents);
+  int odist    = total_size(out_extents);
+  int fft_size = total_size(fft_extents);
 
   // Create plan
   auto in_strides        = compute_strides<int, std::int64_t>(in_extents);

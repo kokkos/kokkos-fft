@@ -14,6 +14,7 @@
 #include "KokkosFFT_common_types.hpp"
 #include "KokkosFFT_traits.hpp"
 #include "KokkosFFT_asserts.hpp"
+#include "KokkosFFT_utils.hpp"
 #if defined(KOKKOSFFT_ENABLE_TPL_FFTW)
 #include "KokkosFFT_FFTW_Types.hpp"
 #endif
@@ -144,10 +145,8 @@ struct ScopedRocfftPlan {
         get_in_out_array_type(transform_type, direction);
 
     // Compute dist and strides from extents
-    int idist = std::accumulate(in_extents.begin(), in_extents.end(), 1,
-                                std::multiplies<>());
-    int odist = std::accumulate(out_extents.begin(), out_extents.end(), 1,
-                                std::multiplies<>());
+    int idist = total_size(in_extents);
+    int odist = total_size(out_extents);
 
     auto in_strides  = compute_strides<int, std::size_t>(in_extents);
     auto out_strides = compute_strides<int, std::size_t>(out_extents);
