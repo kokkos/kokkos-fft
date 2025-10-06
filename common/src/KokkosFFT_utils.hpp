@@ -257,7 +257,7 @@ T safe_multiply(T a, T b) {
           }
         } else {  // a < 0
           if ((b > 0 && a < std::numeric_limits<T>::min() / b) ||
-              (b < 0 && a != 0 && -a > std::numeric_limits<T>::max() / -b)) {
+              (b < 0 && -a > std::numeric_limits<T>::max() / -b)) {
             throw std::overflow_error("Integer multiplication overflow");
           }
         }
