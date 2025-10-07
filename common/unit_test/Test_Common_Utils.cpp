@@ -461,11 +461,78 @@ void test_total_size() {
   EXPECT_EQ(total_size2, ref_total_size2);
 
   // Failure test with overflow
-  ContainerType1 v3 = {2, 3, std::numeric_limits<IntType>::max()};
+  ContainerType1 v3 = {2, 3, std::numeric_limits<IntType>::max()},
+                 v4 = {1, std::numeric_limits<IntType>::max(),
+                       std::numeric_limits<IntType>::max()},
+                 v5 = {1, std::numeric_limits<IntType>::min(),
+                       std::numeric_limits<IntType>::max()},
+                 v6 = {1, std::numeric_limits<IntType>::max(),
+                       std::numeric_limits<IntType>::min()},
+                 v7 = {1, std::numeric_limits<IntType>::min(),
+                       std::numeric_limits<IntType>::min()};
 
   EXPECT_THROW(
       { [[maybe_unused]] auto total_size3 = KokkosFFT::Impl::total_size(v3); },
       std::overflow_error);
+
+  EXPECT_THROW(
+      { [[maybe_unused]] auto total_size4 = KokkosFFT::Impl::total_size(v4); },
+      std::overflow_error);
+
+  EXPECT_THROW(
+      { [[maybe_unused]] auto total_size5 = KokkosFFT::Impl::total_size(v5); },
+      std::overflow_error);
+
+  EXPECT_THROW(
+      { [[maybe_unused]] auto total_size6 = KokkosFFT::Impl::total_size(v6); },
+      std::overflow_error);
+
+  // We expect underflow
+  auto total_size7 = KokkosFFT::Impl::total_size(v7);
+  EXPECT_EQ(total_size7, 0);
+
+  // Including max still OK
+  ContainerType1 v8       = {1, 2, std::numeric_limits<IntType>::min() / 2};
+  auto total_size8        = KokkosFFT::Impl::total_size(v8);
+  IntType ref_total_size8 = std::numeric_limits<IntType>::min();
+  EXPECT_EQ(total_size8, ref_total_size8);
+
+  if constexpr (std::is_signed_v<IntType>) {
+    // Failure test with overflow
+    ContainerType1 iv0 = {-1, 2, std::numeric_limits<IntType>::max()},
+                   iv1 = {-2, 3, std::numeric_limits<IntType>::min()},
+                   iv2 = {1, std::numeric_limits<IntType>::min(), -2},
+                   iv3 = {1, std::numeric_limits<IntType>::min(), -1},
+                   iv4 = {1, std::numeric_limits<IntType>::max(), -1};
+    EXPECT_THROW(
+        {
+          [[maybe_unused]] auto total_size_i0 =
+              KokkosFFT::Impl::total_size(iv0);
+        },
+        std::overflow_error);
+    EXPECT_THROW(
+        {
+          [[maybe_unused]] auto total_size_i1 =
+              KokkosFFT::Impl::total_size(iv1);
+        },
+        std::overflow_error);
+    EXPECT_THROW(
+        {
+          [[maybe_unused]] auto total_size_i2 =
+              KokkosFFT::Impl::total_size(iv2);
+        },
+        std::overflow_error);
+    EXPECT_THROW(
+        {
+          [[maybe_unused]] auto total_size_i3 =
+              KokkosFFT::Impl::total_size(iv3);
+        },
+        std::overflow_error);
+
+    auto total_size_i4        = KokkosFFT::Impl::total_size(iv4);
+    IntType ref_total_size_i4 = std::numeric_limits<IntType>::min() + 1;
+    EXPECT_EQ(total_size_i4, ref_total_size_i4);
+  }
 }
 
 }  // namespace

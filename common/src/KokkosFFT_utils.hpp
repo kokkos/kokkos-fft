@@ -249,17 +249,21 @@ template <typename T>
 T safe_multiply(T a, T b) {
   if constexpr (std::is_integral_v<T>) {
     if constexpr (std::is_signed_v<T>) {
-      if (a != 0) {
-        if (a > 0) {
-          if ((b > 0 && a > std::numeric_limits<T>::max() / b) ||
-              (b < 0 && b < std::numeric_limits<T>::min() / a)) {
-            throw std::overflow_error("Integer multiplication overflow");
-          }
-        } else {  // a < 0
-          if ((b > 0 && a < std::numeric_limits<T>::min() / b) ||
-              (b < 0 && -a > std::numeric_limits<T>::max() / -b)) {
-            throw std::overflow_error("Integer multiplication overflow");
-          }
+      // Check special cases with std::numeric_limits<T>::min()
+      if ((a == std::numeric_limits<T>::min() && b < 0) ||
+          (b == std::numeric_limits<T>::min() && a < 0)) {
+        throw std::overflow_error("Integer multiplication overflow");
+      }
+
+      if (a > 0) {
+        if ((b > 0 && a > std::numeric_limits<T>::max() / b) ||
+            (b < 0 && b < std::numeric_limits<T>::min() / a)) {
+          throw std::overflow_error("Integer multiplication overflow");
+        }
+      } else if (a < 0) {  // a < 0
+        if ((b > 0 && a < std::numeric_limits<T>::min() / b) ||
+            (b < 0 && a > std::numeric_limits<T>::max() / b)) {
+          throw std::overflow_error("Integer multiplication overflow");
         }
       }
     } else {
@@ -274,8 +278,10 @@ T safe_multiply(T a, T b) {
 
 template <typename ContainerType>
 auto total_size(const ContainerType& values) {
-  using value_type = KokkosFFT::Impl::base_container_value_type<ContainerType>;
-  value_type init  = 1;
+  using value_type =
+      std::remove_cv_t<std::remove_reference_t<decltype(*values.begin())>>;
+
+  value_type init = 1;
   static_assert(std::is_integral_v<value_type>,
                 "total_size: Container value type must be an integral type");
   return std::accumulate(
