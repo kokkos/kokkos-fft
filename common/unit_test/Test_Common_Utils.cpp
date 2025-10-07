@@ -479,17 +479,36 @@ void test_total_size() {
       { [[maybe_unused]] auto total_size4 = KokkosFFT::Impl::total_size(v4); },
       std::overflow_error);
 
-  EXPECT_THROW(
-      { [[maybe_unused]] auto total_size5 = KokkosFFT::Impl::total_size(v5); },
-      std::overflow_error);
+  // We expect overflow
+  if constexpr (std::is_signed_v<IntType>) {
+    EXPECT_THROW(
+        {
+          [[maybe_unused]] auto total_size5 = KokkosFFT::Impl::total_size(v5);
+        },
+        std::overflow_error);
+    EXPECT_THROW(
+        {
+          [[maybe_unused]] auto total_size6 = KokkosFFT::Impl::total_size(v6);
+        },
+        std::overflow_error);
+    EXPECT_THROW(
+        {
+          [[maybe_unused]] auto total_size7 = KokkosFFT::Impl::total_size(v7);
+        },
+        std::overflow_error);
+  } else {
+    // This should be just zero for unsigned case
+    auto total_size5 = KokkosFFT::Impl::total_size(v5);
+    EXPECT_EQ(total_size5, 0);
 
-  EXPECT_THROW(
-      { [[maybe_unused]] auto total_size6 = KokkosFFT::Impl::total_size(v6); },
-      std::overflow_error);
+    // This should be just zero for unsigned case
+    auto total_size6 = KokkosFFT::Impl::total_size(v6);
+    EXPECT_EQ(total_size6, 0);
 
-  // We expect underflow
-  auto total_size7 = KokkosFFT::Impl::total_size(v7);
-  EXPECT_EQ(total_size7, 0);
+    // This should be just zero for unsigned case
+    auto total_size7 = KokkosFFT::Impl::total_size(v7);
+    EXPECT_EQ(total_size7, 0);
+  }
 
   // Including max still OK
   ContainerType1 v8       = {1, 2, std::numeric_limits<IntType>::min() / 2};
