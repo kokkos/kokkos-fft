@@ -20,6 +20,7 @@ option(KokkosFFT_ENABLE_TESTS "Build KokkosFFT tests" OFF)
 option(KokkosFFT_ENABLE_BENCHMARK "Build benchmarks for KokkosFFT" OFF)
 option(KokkosFFT_ENABLE_DOCS "Build KokkosFFT documentaion/website" OFF)
 option(KokkosFFT_ENABLE_TESTING_TOOLS "Enable unit-testing tools" OFF)
+option(KokkosFFT_ENABLE_DISTRIBUTED "Enable KokkosFFT distributed support" OFF)
 
 # Version information
 set(KOKKOSFFT_VERSION ${PROJECT_VERSION})
@@ -160,6 +161,9 @@ set(KokkosFFT_EXPORT_TARGET "${PROJECT_NAME}-Targets")
 
 add_subdirectory(common)
 add_subdirectory(fft)
+if(KokkosFFT_ENABLE_DISTRIBUTED)
+  add_subdirectory(distributed)
+endif()
 if(KokkosFFT_ENABLE_EXAMPLES)
   add_subdirectory(examples)
 endif()
