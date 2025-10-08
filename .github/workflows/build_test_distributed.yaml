@@ -1,0 +1,320 @@
+# SPDX-FileCopyrightText: (C) The kokkos-fft development team, see COPYRIGHT.md file
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
+
+# Build and test Kokkos FFT using Docker and Singularity images. Pre-generated
+# images are pulled from Github registry; they are updated only if the current
+# PR or commit modified the Docker files.
+
+name: CI (distributed)
+
+on:
+  pull_request:
+    branches:
+      - main
+
+env:
+  # Force the use of BuildKit for Docker
+  DOCKER_BUILDKIT: 1
+
+jobs:
+
+  # run typos for spell check
+  spell-check:
+    name: spell check with typos
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
+    - uses: crate-ci/typos@64e4db431eb262bb5c6baa19dce280d78532830c  # v1.37.3
+      with:
+        files: ./cmake/ ./CMakeLists.txt ./docs/ ./README.md ./distributed/
+        config: ./.typos.toml
+
+  # build project
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        backend:
+          - name: clang-tidy
+            image: clang
+            compiler:
+              cxx: clang++
+            cmake_flags:
+              cxx_standard: 17
+              kokkos: -DKokkos_ENABLE_SERIAL=ON
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON -DCMAKE_CXX_CLANG_TIDY="clang-tidy;-warnings-as-errors=*" \
+                          -DKokkosFFT_ENABLE_EXAMPLES=ON -DKokkosFFT_ENABLE_TESTS=ON -DKokkosFFT_ENABLE_DISTRIBUTED=ON 
+              benchmark: OFF
+            cmake_build_type: Debug
+          - name: openmp
+            image: gcc
+            compiler:
+              cxx: g++
+            cmake_flags:
+              cxx_standard: 17
+              kokkos: -DKokkos_ENABLE_OPENMP=ON -DKokkos_ENABLE_SERIAL=ON
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON -DKokkosFFT_ENABLE_EXAMPLES=ON -DKokkosFFT_ENABLE_TESTS=ON \
+                          -DKokkosFFT_ENABLE_DISTRIBUTED=ON
+              benchmark: ON
+            cmake_build_type: Debug
+          - name: threads
+            image: gcc
+            compiler:
+              cxx: g++
+            cmake_flags:
+              cxx_standard: 20
+              kokkos: -DKokkos_ENABLE_THREADS=ON
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON -DKokkosFFT_ENABLE_EXAMPLES=ON -DKokkosFFT_ENABLE_TESTS=ON \
+                          -DKokkosFFT_ENABLE_DISTRIBUTED=ON
+              benchmark: ON
+            cmake_build_type: Release
+          - name: serial
+            image: gcc
+            compiler:
+              cxx: g++
+            cmake_flags:
+              cxx_standard: 17
+              kokkos: -DKokkos_ENABLE_SERIAL=ON
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON -DKokkosFFT_ENABLE_EXAMPLES=ON -DKokkosFFT_ENABLE_TESTS=ON \
+                          -DKokkosFFT_ENABLE_DISTRIBUTED=ON
+              benchmark: ON
+            cmake_build_type: Release
+          - name: cuda
+            image: nvcc
+            compiler:
+              cxx: g++
+            cmake_flags:
+              cxx_standard: 20
+              kokkos: -DKokkos_ENABLE_CUDA=ON -DKokkos_ARCH_AMPERE80=ON -DKokkos_ENABLE_OPENMP=ON -DKokkos_ENABLE_SERIAL=ON
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror" -DKokkosFFT_ENABLE_EXAMPLES=ON -DKokkosFFT_ENABLE_TESTS=ON \
+                          -DKokkosFFT_ENABLE_DISTRIBUTED=ON
+              benchmark: ON
+            cmake_build_type: Release
+          - name: hip
+            image: rocm
+            compiler:
+              cxx: hipcc
+            cmake_flags:
+              cxx_standard: 17
+              kokkos: -DKokkos_ENABLE_HIP=ON -DKokkos_ARCH_AMD_GFX90A=ON -DKokkos_ENABLE_THREADS=ON
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror" -DKokkosFFT_ENABLE_EXAMPLES=ON -DKokkosFFT_ENABLE_TESTS=ON \
+                          -DKokkosFFT_ENABLE_DISTRIBUTED=ON
+              benchmark: ON
+            cmake_build_type: Release
+          - name: rocm
+            image: rocm
+            compiler:
+              cxx: hipcc
+            cmake_flags:
+              cxx_standard: 20
+              kokkos: -DKokkos_ENABLE_HIP=ON -DKokkos_ARCH_AMD_GFX90A=ON
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror" -DKokkosFFT_ENABLE_ROCFFT=ON -DKokkosFFT_ENABLE_EXAMPLES=ON -DKokkosFFT_ENABLE_TESTS=ON \
+                          -DKokkosFFT_ENABLE_DISTRIBUTED=ON
+              benchmark: ON
+            cmake_build_type: Release
+          ## FIXME we cannot build this for some reason
+          ##- name: sycl
+          ##  image: intel
+          ##  compiler:
+          ##    cxx: icpx
+          ##  cmake_flags:
+          ##    # building for Intel PVC was unsuccessful without the proper
+          ##    # device, so for now, we simply generate generic Intel GPU code
+          ##    cxx_standard: 17
+          ##    kokkos: -DKokkos_ENABLE_SYCL=ON -DKokkos_ARCH_INTEL_GEN=ON
+          ##    kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DKokkosFFT_ENABLE_EXAMPLES=ON -DKokkosFFT_ENABLE_TESTS=ON -DKokkosFFT_ENABLE_DISTRIBUTED=ON
+          ##    benchmark: ON
+          ##  cmake_build_type: Release
+        target:
+          - name: native
+            cmake_flags: ""
+          - name: host_device
+            cmake_flags: -DKokkosFFT_ENABLE_FFTW=ON
+        exclude:
+          - backend:
+              name: clang-tidy
+            target:
+              name: host_device
+          - backend:
+              name: openmp
+            target:
+              name: host_device
+          - backend:
+              name: threads
+            target:
+              name: host_device
+          - backend:
+              name: serial
+            target:
+              name: host_device
+
+    steps:
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be  # v1.3.1
+        with:
+          tool-cache: true
+          large-packages: false
+
+      - name: Checkout built branch
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
+        with:
+          submodules: recursive
+
+      - name: Configure
+        run: |
+          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
+            cmake -B build \
+            -DCMAKE_BUILD_TYPE=${{ matrix.backend.cmake_build_type }} \
+            -DCMAKE_CXX_COMPILER=${{ matrix.backend.compiler.cxx }} \
+            -DCMAKE_CXX_STANDARD=${{ matrix.backend.cmake_flags.cxx_standard }} \
+            -DKokkosFFT_ENABLE_BENCHMARK=${{ matrix.backend.cmake_flags.benchmark }} \
+            -DKokkosFFT_ENABLE_INTERNAL_KOKKOS=ON \
+            ${{ matrix.backend.cmake_flags.kokkos }} \
+            ${{ matrix.backend.cmake_flags.kokkos_fft }} \
+            ${{ matrix.target.cmake_flags }}
+
+      - name: Build
+        run: |
+          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
+            cmake --build build -j 2 -- VERBOSE=1
+
+      - name: Prepare artifacts
+        # this is mandatory to preserve execution rights
+        run: tar -cvf tests_${{ matrix.backend.name }}.tar build/
+        if: ${{ matrix.target.name == 'native' }}
+
+      - name: Save artifacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
+        with:
+          name: tests_${{ matrix.backend.name }}
+          path: tests_${{ matrix.backend.name }}.tar
+        if: ${{ matrix.target.name == 'native' }}
+
+      # consume the project in a dummy project
+      # ideally, this part should be executed in a different job using almost
+      # the same `matrix` (minus `target`) as the `build` job; this would
+      # however make a duplicated and error-prone `matrix`, and sharing a
+      # `matrix` between jobs is currently not possible with GitHub Actions
+      # (neither directly, nor using YAML anchors, other options were too
+      # cumbersome when writing this); consequently, this part is just here for
+      # now
+
+      - name: Prepare as subdirectory
+        run: |
+          # prepare kokkos
+          git clone ./tpls/kokkos ./install_test/as_subdirectory/tpls/kokkos
+          # prepare kokkos-fft
+          git clone . ./install_test/as_subdirectory/tpls/kokkos-fft
+
+      - name: Configure and build test project as subdirectory
+        run: |
+          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
+          cmake -B install_test/as_subdirectory/build \
+            -DCMAKE_BUILD_TYPE=${{ matrix.backend.cmake_build_type }} \
+            -DCMAKE_CXX_COMPILER=${{ matrix.backend.compiler.cxx }} \
+            -DCMAKE_CXX_STANDARD=${{ matrix.backend.cmake_flags.cxx_standard }} \
+            ${{ matrix.backend.cmake_flags.kokkos }} \
+            ${{ matrix.backend.cmake_flags.kokkos_fft }} \
+            ${{ matrix.target.cmake_flags }} \
+            install_test/as_subdirectory
+          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
+          cmake --build install_test/as_subdirectory/build
+
+      - name: Configure, build and install Kokkos as library
+        run: |
+          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
+            cmake -B build_kokkos \
+            -DCMAKE_INSTALL_PREFIX=/work/install \
+            -DCMAKE_BUILD_TYPE=${{ matrix.backend.cmake_build_type }} \
+            -DCMAKE_CXX_COMPILER=${{ matrix.backend.compiler.cxx }} \
+            -DCMAKE_CXX_STANDARD=${{ matrix.backend.cmake_flags.cxx_standard }} \
+            ${{ matrix.backend.cmake_flags.kokkos }} \
+            tpls/kokkos
+          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
+            cmake --build build_kokkos -j 4
+          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
+            cmake --install build_kokkos
+
+      - name: Configure, build and install KokkosFFT as library
+        run: |
+          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
+            cmake -B build_kokkos_fft \
+            -DCMAKE_INSTALL_PREFIX=/work/install\
+            -DCMAKE_PREFIX_PATH=/work/install \
+            -DCMAKE_BUILD_TYPE=${{ matrix.backend.cmake_build_type }} \
+            -DCMAKE_CXX_COMPILER=${{ matrix.backend.compiler.cxx }} \
+            -DCMAKE_CXX_STANDARD=${{ matrix.backend.cmake_flags.cxx_standard }} \
+            ${{ matrix.backend.cmake_flags.kokkos_fft }} \
+            ${{ matrix.target.cmake_flags }}
+          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
+            cmake --build build_kokkos_fft -j 4
+          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
+            cmake --install build_kokkos_fft
+
+      - name: Configure and build test project as library
+        run: |
+          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
+            cmake -B install_test/as_library/build \
+            -DCMAKE_BUILD_TYPE=${{ matrix.backend.cmake_build_type }} \
+            -DCMAKE_PREFIX_PATH=/work/install \
+            -DCMAKE_CXX_COMPILER=${{ matrix.backend.compiler.cxx }} \
+            -DCMAKE_CXX_STANDARD=${{ matrix.backend.cmake_flags.cxx_standard }} \
+            install_test/as_library
+          docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
+            cmake --build install_test/as_library/build -j 4
+
+  # test the project
+  test:
+    runs-on: ${{ matrix.backend.runner }}
+    continue-on-error: ${{ matrix.backend.unstable }}
+
+    needs:
+      - build
+
+    strategy:
+      matrix:
+        backend:
+          # run OpenMP tests on Azure server
+          - name: openmp
+            image: gcc
+            runner: ubuntu-latest
+            unstable: false
+          # run Threads tests on Azure server
+          - name: threads
+            image: gcc
+            runner: ubuntu-latest
+            unstable: false
+          # run Serial tests on Azure server
+          - name: serial
+            image: gcc
+            runner: ubuntu-latest
+            unstable: false
+
+    steps:
+      - name: Get artifacts
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5.0.0
+        with:
+          name: tests_${{ matrix.backend.name }}
+
+      - name: Deploy artifacts
+        run: tar -xvf tests_${{ matrix.backend.name }}.tar
+
+      - name: Login in GitHub Containers Repository with Docker
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef  # v3.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run OpenMP/Threads/Serial tests within Docker image
+        run: |
+          docker run \
+            -v $PWD/build:/work/build \
+            -w /work/build \
+            --user $(id -u):$(id -g) \
+            ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
+            /bin/bash -c "export OMPI_MCA_rmaps_base_oversubscribe=1; \
+            export PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe; \
+            ctest --verbose"
