@@ -44,8 +44,7 @@ jobs:
             cmake_flags:
               cxx_standard: 17
               kokkos: -DKokkos_ENABLE_SERIAL=ON
-              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON -DCMAKE_CXX_CLANG_TIDY="clang-tidy;-warnings-as-errors=*" \
-                          -DKokkosFFT_ENABLE_EXAMPLES=ON -DKokkosFFT_ENABLE_TESTS=ON -DKokkosFFT_ENABLE_DISTRIBUTED=ON 
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON -DCMAKE_CXX_CLANG_TIDY="clang-tidy;-warnings-as-errors=*" -DKokkosFFT_ENABLE_EXAMPLES=ON -DKokkosFFT_ENABLE_TESTS=ON -DKokkosFFT_ENABLE_DISTRIBUTED=ON
               benchmark: OFF
             cmake_build_type: Debug
           - name: openmp
@@ -55,8 +54,7 @@ jobs:
             cmake_flags:
               cxx_standard: 17
               kokkos: -DKokkos_ENABLE_OPENMP=ON -DKokkos_ENABLE_SERIAL=ON
-              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON -DKokkosFFT_ENABLE_EXAMPLES=ON -DKokkosFFT_ENABLE_TESTS=ON \
-                          -DKokkosFFT_ENABLE_DISTRIBUTED=ON
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON -DKokkosFFT_ENABLE_EXAMPLES=ON -DKokkosFFT_ENABLE_TESTS=ON -DKokkosFFT_ENABLE_DISTRIBUTED=ON
               benchmark: ON
             cmake_build_type: Debug
           - name: threads
@@ -66,8 +64,7 @@ jobs:
             cmake_flags:
               cxx_standard: 20
               kokkos: -DKokkos_ENABLE_THREADS=ON
-              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON -DKokkosFFT_ENABLE_EXAMPLES=ON -DKokkosFFT_ENABLE_TESTS=ON \
-                          -DKokkosFFT_ENABLE_DISTRIBUTED=ON
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON -DKokkosFFT_ENABLE_EXAMPLES=ON -DKokkosFFT_ENABLE_TESTS=ON -DKokkosFFT_ENABLE_DISTRIBUTED=ON
               benchmark: ON
             cmake_build_type: Release
           - name: serial
@@ -77,8 +74,7 @@ jobs:
             cmake_flags:
               cxx_standard: 17
               kokkos: -DKokkos_ENABLE_SERIAL=ON
-              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON -DKokkosFFT_ENABLE_EXAMPLES=ON -DKokkosFFT_ENABLE_TESTS=ON \
-                          -DKokkosFFT_ENABLE_DISTRIBUTED=ON
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON -DKokkosFFT_ENABLE_EXAMPLES=ON -DKokkosFFT_ENABLE_TESTS=ON -DKokkosFFT_ENABLE_DISTRIBUTED=ON
               benchmark: ON
             cmake_build_type: Release
           - name: cuda
@@ -88,8 +84,7 @@ jobs:
             cmake_flags:
               cxx_standard: 20
               kokkos: -DKokkos_ENABLE_CUDA=ON -DKokkos_ARCH_AMPERE80=ON -DKokkos_ENABLE_OPENMP=ON -DKokkos_ENABLE_SERIAL=ON
-              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror" -DKokkosFFT_ENABLE_EXAMPLES=ON -DKokkosFFT_ENABLE_TESTS=ON \
-                          -DKokkosFFT_ENABLE_DISTRIBUTED=ON
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror" -DKokkosFFT_ENABLE_EXAMPLES=ON -DKokkosFFT_ENABLE_TESTS=ON -DKokkosFFT_ENABLE_DISTRIBUTED=ON
               benchmark: ON
             cmake_build_type: Release
           - name: hip
@@ -99,8 +94,7 @@ jobs:
             cmake_flags:
               cxx_standard: 17
               kokkos: -DKokkos_ENABLE_HIP=ON -DKokkos_ARCH_AMD_GFX90A=ON -DKokkos_ENABLE_THREADS=ON
-              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror" -DKokkosFFT_ENABLE_EXAMPLES=ON -DKokkosFFT_ENABLE_TESTS=ON \
-                          -DKokkosFFT_ENABLE_DISTRIBUTED=ON
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror" -DKokkosFFT_ENABLE_EXAMPLES=ON -DKokkosFFT_ENABLE_TESTS=ON -DKokkosFFT_ENABLE_DISTRIBUTED=ON
               benchmark: ON
             cmake_build_type: Release
           - name: rocm
@@ -110,8 +104,7 @@ jobs:
             cmake_flags:
               cxx_standard: 20
               kokkos: -DKokkos_ENABLE_HIP=ON -DKokkos_ARCH_AMD_GFX90A=ON
-              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror" -DKokkosFFT_ENABLE_ROCFFT=ON -DKokkosFFT_ENABLE_EXAMPLES=ON -DKokkosFFT_ENABLE_TESTS=ON \
-                          -DKokkosFFT_ENABLE_DISTRIBUTED=ON
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror" -DKokkosFFT_ENABLE_ROCFFT=ON -DKokkosFFT_ENABLE_EXAMPLES=ON -DKokkosFFT_ENABLE_TESTS=ON -DKokkosFFT_ENABLE_DISTRIBUTED=ON
               benchmark: ON
             cmake_build_type: Release
           ## FIXME we cannot build this for some reason
