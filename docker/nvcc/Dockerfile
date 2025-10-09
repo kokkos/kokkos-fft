@@ -20,14 +20,13 @@ RUN apt-get update && apt-get install -y \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-ENV FFTWDIR "/usr"
-
 RUN git config --global --add safe.directory "*"
 
 # Install newer CMake manually
 ARG CMAKE_VERSION=3.23.2
 
-ENV CMAKE_DIR=/opt/cmake
+ENV CMAKE_DIR=/opt/cmake \
+    FFTWDIR=/usr
 RUN CMAKE_URL=https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION} && \
     CMAKE_SCRIPT=cmake-${CMAKE_VERSION}-linux-x86_64.sh && \
     CMAKE_SHA256=cmake-${CMAKE_VERSION}-SHA-256.txt && \
@@ -44,7 +43,22 @@ RUN CMAKE_URL=https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSIO
     mkdir -p ${CMAKE_DIR} && \
     sh ${CMAKE_SCRIPT} --skip-license --prefix=${CMAKE_DIR} && \
     rm cmake* ${PUBLIC_KEY_ID}
-ENV PATH=${CMAKE_DIR}/bin:$PATH
+
+# Build a CUDA-enabled OpenMPI. This is probably not necessary for a compile-only test.
+# Install CUDA-aware OpenMPI
+ARG OPENMPI_VERSION=4.1.6
+ARG build_dir=/tmp/build
+
+RUN mkdir -p ${build_dir} && cd ${build_dir} && \
+    wget https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OPENMPI_VERSION}.tar.gz && \
+    tar -xzf openmpi-${OPENMPI_VERSION}.tar.gz && cd openmpi-${OPENMPI_VERSION} && \
+    ./configure --with-cuda --enable-mpi-cxx --prefix=/opt/openmpi && \
+    make -j"$(nproc)" && make install && \
+    ldconfig && \
+    cd / && rm -rf ${build_dir}
+
+ENV PATH=/opt/openmpi/bin:${CMAKE_DIR}/bin:$PATH
+ENV LD_LIBRARY_PATH=/opt/openmpi/lib:$LD_LIBRARY_PATH
 
 WORKDIR /work
 CMD ["bash"]

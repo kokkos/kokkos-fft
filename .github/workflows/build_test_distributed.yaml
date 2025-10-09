@@ -6,7 +6,7 @@
 # images are pulled from Github registry; they are updated only if the current
 # PR or commit modified the Docker files.
 
-name: CI
+name: CI (distributed)
 
 on:
   pull_request:
@@ -18,16 +18,6 @@ env:
   DOCKER_BUILDKIT: 1
 
 jobs:
-  # [TO DO] Modularize the small actions for better readability
-  # of the main workflow file
-  
-  # run linter on the code
-  clang-format-check:
-    uses: ./.github/workflows/__clang-format-check.yaml
-
-  # run cmake format check
-  cmake-format-check:
-    uses: ./.github/workflows/__cmake-format-check.yaml
 
   # run typos for spell check
   spell-check:
@@ -37,7 +27,7 @@ jobs:
     - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
     - uses: crate-ci/typos@64e4db431eb262bb5c6baa19dce280d78532830c  # v1.37.3
       with:
-        files: ./cmake/ ./CMakeLists.txt ./docs/ ./README.md ./common/ ./fft/ ./examples/ ./install_test/ ./testing/ ./distributed/
+        files: ./cmake/ ./CMakeLists.txt ./docs/ ./README.md ./distributed/
         config: ./.typos.toml
 
   # build project
@@ -50,93 +40,94 @@ jobs:
           - name: clang-tidy
             image: clang
             compiler:
-              c: clang
               cxx: clang++
             cmake_flags:
               cxx_standard: 17
               kokkos: -DKokkos_ENABLE_SERIAL=ON
-              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON -DCMAKE_CXX_CLANG_TIDY="clang-tidy;-warnings-as-errors=*"
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON -DCMAKE_CXX_CLANG_TIDY="clang-tidy;-warnings-as-errors=*" -DKokkosFFT_ENABLE_DISTRIBUTED=ON
+              examples: ON
               benchmark: OFF
             cmake_build_type: Debug
           - name: openmp
             image: gcc
             compiler:
-              c: gcc
               cxx: g++
             cmake_flags:
               cxx_standard: 17
               kokkos: -DKokkos_ENABLE_OPENMP=ON -DKokkos_ENABLE_SERIAL=ON
-              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON -DKokkosFFT_ENABLE_DISTRIBUTED=ON
+              examples: ON
               benchmark: ON
             cmake_build_type: Debug
           - name: threads
             image: gcc
             compiler:
-              c: gcc
               cxx: g++
             cmake_flags:
               cxx_standard: 20
               kokkos: -DKokkos_ENABLE_THREADS=ON
-              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON -DKokkosFFT_ENABLE_TESTING_TOOLS=ON
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON -DKokkosFFT_ENABLE_DISTRIBUTED=ON
+              examples: ON
               benchmark: ON
             cmake_build_type: Release
           - name: serial
             image: gcc
             compiler:
-              c: gcc
               cxx: g++
             cmake_flags:
               cxx_standard: 17
               kokkos: -DKokkos_ENABLE_SERIAL=ON
-              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON -DKokkosFFT_ENABLE_DISTRIBUTED=ON
+              examples: ON
               benchmark: ON
             cmake_build_type: Release
           - name: cuda
             image: nvcc
             compiler:
-              c: gcc
               cxx: g++
             cmake_flags:
               cxx_standard: 20
               kokkos: -DKokkos_ENABLE_CUDA=ON -DKokkos_ARCH_AMPERE80=ON -DKokkos_ENABLE_OPENMP=ON -DKokkos_ENABLE_SERIAL=ON
-              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror" -DKokkosFFT_ENABLE_TESTING_TOOLS=ON
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror" -DKokkosFFT_ENABLE_DISTRIBUTED=ON
+              examples: ON
               benchmark: ON
             cmake_build_type: Release
           - name: hip
             image: rocm
             compiler:
-              c: hipcc
               cxx: hipcc
             cmake_flags:
               cxx_standard: 17
               kokkos: -DKokkos_ENABLE_HIP=ON -DKokkos_ARCH_AMD_GFX90A=ON -DKokkos_ENABLE_THREADS=ON
-              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror"
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror" -DKokkosFFT_ENABLE_DISTRIBUTED=ON
+              examples: ON
               benchmark: ON
             cmake_build_type: Release
           - name: rocm
             image: rocm
             compiler:
-              c: hipcc
               cxx: hipcc
             cmake_flags:
               cxx_standard: 20
               kokkos: -DKokkos_ENABLE_HIP=ON -DKokkos_ARCH_AMD_GFX90A=ON
-              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror" -DKokkosFFT_ENABLE_ROCFFT=ON -DKokkosFFT_ENABLE_TESTING_TOOLS=ON
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror" -DKokkosFFT_ENABLE_ROCFFT=ON -DKokkosFFT_ENABLE_DISTRIBUTED=ON
+              examples: ON
               benchmark: ON
             cmake_build_type: Release
-          - name: sycl
-            image: intel
-            compiler:
-              c: icx
-              cxx: icpx
-            cmake_flags:
-              # building for Intel PVC was unsuccessful without the proper
-              # device, so for now, we simply generate generic Intel GPU code
-              cxx_standard: 17
-              kokkos: -DKokkos_ENABLE_SYCL=ON -DKokkos_ARCH_INTEL_GEN=ON
-              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra"
-              benchmark: ON
-            cmake_build_type: Release
+          ## FIXME we cannot build this for some reason
+          ##- name: sycl
+          ##  image: intel
+          ##  compiler:
+          ##    cxx: icpx
+          ##  cmake_flags:
+          ##    # building for Intel PVC was unsuccessful without the proper
+          ##    # device, so for now, we simply generate generic Intel GPU code
+          ##    cxx_standard: 17
+          ##    kokkos: -DKokkos_ENABLE_SYCL=ON -DKokkos_ARCH_INTEL_GEN=ON
+          ##    kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DKokkosFFT_ENABLE_EXAMPLES=ON -DKokkosFFT_ENABLE_TESTS=ON -DKokkosFFT_ENABLE_DISTRIBUTED=ON
+          ##    examples: ON
+          ##    benchmark: ON
+          ##  cmake_build_type: Release
         target:
           - name: native
             cmake_flags: ""
@@ -177,12 +168,11 @@ jobs:
           docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
             cmake -B build \
             -DCMAKE_BUILD_TYPE=${{ matrix.backend.cmake_build_type }} \
-            -DCMAKE_C_COMPILER=${{ matrix.backend.compiler.c }} \
             -DCMAKE_CXX_COMPILER=${{ matrix.backend.compiler.cxx }} \
             -DCMAKE_CXX_STANDARD=${{ matrix.backend.cmake_flags.cxx_standard }} \
-            -DKokkosFFT_ENABLE_EXAMPLES=ON \
-            -DKokkosFFT_ENABLE_BENCHMARK=${{ matrix.backend.cmake_flags.benchmark }} \
             -DKokkosFFT_ENABLE_TESTS=ON \
+            -DKokkosFFT_ENABLE_EXAMPLES=${{ matrix.backend.cmake_flags.examples }} \
+            -DKokkosFFT_ENABLE_BENCHMARK=${{ matrix.backend.cmake_flags.benchmark }} \
             -DKokkosFFT_ENABLE_INTERNAL_KOKKOS=ON \
             ${{ matrix.backend.cmake_flags.kokkos }} \
             ${{ matrix.backend.cmake_flags.kokkos_fft }} \
@@ -191,7 +181,7 @@ jobs:
       - name: Build
         run: |
           docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
-            cmake --build build -j 4
+            cmake --build build -j 2 -- VERBOSE=1
 
       - name: Prepare artifacts
         # this is mandatory to preserve execution rights
@@ -226,7 +216,6 @@ jobs:
           docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
           cmake -B install_test/as_subdirectory/build \
             -DCMAKE_BUILD_TYPE=${{ matrix.backend.cmake_build_type }} \
-            -DCMAKE_C_COMPILER=${{ matrix.backend.compiler.c }} \
             -DCMAKE_CXX_COMPILER=${{ matrix.backend.compiler.cxx }} \
             -DCMAKE_CXX_STANDARD=${{ matrix.backend.cmake_flags.cxx_standard }} \
             ${{ matrix.backend.cmake_flags.kokkos }} \
@@ -242,7 +231,6 @@ jobs:
             cmake -B build_kokkos \
             -DCMAKE_INSTALL_PREFIX=/work/install \
             -DCMAKE_BUILD_TYPE=${{ matrix.backend.cmake_build_type }} \
-            -DCMAKE_C_COMPILER=${{ matrix.backend.compiler.c }} \
             -DCMAKE_CXX_COMPILER=${{ matrix.backend.compiler.cxx }} \
             -DCMAKE_CXX_STANDARD=${{ matrix.backend.cmake_flags.cxx_standard }} \
             ${{ matrix.backend.cmake_flags.kokkos }} \
@@ -259,7 +247,6 @@ jobs:
             -DCMAKE_INSTALL_PREFIX=/work/install\
             -DCMAKE_PREFIX_PATH=/work/install \
             -DCMAKE_BUILD_TYPE=${{ matrix.backend.cmake_build_type }} \
-            -DCMAKE_C_COMPILER=${{ matrix.backend.compiler.c }} \
             -DCMAKE_CXX_COMPILER=${{ matrix.backend.compiler.cxx }} \
             -DCMAKE_CXX_STANDARD=${{ matrix.backend.cmake_flags.cxx_standard }} \
             ${{ matrix.backend.cmake_flags.kokkos_fft }} \
@@ -275,7 +262,6 @@ jobs:
             cmake -B install_test/as_library/build \
             -DCMAKE_BUILD_TYPE=${{ matrix.backend.cmake_build_type }} \
             -DCMAKE_PREFIX_PATH=/work/install \
-            -DCMAKE_C_COMPILER=${{ matrix.backend.compiler.c }} \
             -DCMAKE_CXX_COMPILER=${{ matrix.backend.compiler.cxx }} \
             -DCMAKE_CXX_STANDARD=${{ matrix.backend.cmake_flags.cxx_standard }} \
             install_test/as_library
@@ -293,29 +279,20 @@ jobs:
     strategy:
       matrix:
         backend:
-          # run CUDA tests on Ruche supercomputer with Singularity
-          - name: cuda
-            image: nvcc
-            runner: [self-hosted, cuda]
-            use_singularity: true
-            unstable: true
           # run OpenMP tests on Azure server
           - name: openmp
             image: gcc
             runner: ubuntu-latest
-            use_singularity: false
             unstable: false
           # run Threads tests on Azure server
           - name: threads
             image: gcc
             runner: ubuntu-latest
-            use_singularity: false
             unstable: false
           # run Serial tests on Azure server
           - name: serial
             image: gcc
             runner: ubuntu-latest
-            use_singularity: false
             unstable: false
 
     steps:
@@ -327,43 +304,20 @@ jobs:
       - name: Deploy artifacts
         run: tar -xvf tests_${{ matrix.backend.name }}.tar
 
-      - name: Login in GitHub Containers Repository with Singularity
-        run: |
-          run \
-            -m "singularity/3.8.3/gcc-11.2.0" \
-            -e local \
-            "echo ${{ secrets.GITHUB_TOKEN }} | singularity remote login -u ${{ github.actor }} --password-stdin oras://ghcr.io"
-        if: ${{ matrix.backend.use_singularity }}
-
       - name: Login in GitHub Containers Repository with Docker
         uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef  # v3.6.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-        if: ${{ ! matrix.backend.use_singularity }}
-
-      - name: Pull Singularity image
-        # pulling the image in advance seems necessary as sometimes invoking `singularity run` on the image URL fails because it cannot find ghcr.io
-        run: |
-          run \
-            -m "singularity/3.8.3/gcc-11.2.0" \
-            -e local \
-          singularity pull oras://ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_singularity:latest
-        if: ${{ matrix.backend.use_singularity }}
-
-      - name: Run CUDA tests within Slurm job and Singularity image
-        run: |
-          run \
-            -m "singularity/3.8.3/gcc-11.2.0" \
-            -e gpu \
-            -g a100 \
-            singularity run --nv --bind $PWD/build:/work/build -H /work/build base_${{ matrix.backend.image }}_singularity_latest.sif \
-            ctest --output-on-failure
-        if: ${{ matrix.backend.use_singularity }}
 
       - name: Run OpenMP/Threads/Serial tests within Docker image
         run: |
-          docker run -v $PWD/build:/work/build -w /work/build ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
-          ctest --output-on-failure
-        if: ${{ ! matrix.backend.use_singularity }}
+          docker run \
+            -v $PWD/build:/work/build \
+            -w /work/build \
+            --user $(id -u):$(id -g) \
+            ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
+            /bin/bash -c "export OMPI_MCA_rmaps_base_oversubscribe=1; \
+            export PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe; \
+            ctest --verbose"
