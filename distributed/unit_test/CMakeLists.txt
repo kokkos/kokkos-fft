@@ -10,8 +10,6 @@ set(SOURCES
 add_executable(unit-tests-mpi ${SOURCES})
 
 target_compile_features(unit-tests-mpi PUBLIC cxx_std_17)
-target_compile_options(unit-tests-mpi PUBLIC -std=c++17)
-
 target_link_libraries(unit-tests-mpi PUBLIC GTest::gtest GTest::gmock KokkosFFT::distributed)
 
 # Enable GoogleTest
