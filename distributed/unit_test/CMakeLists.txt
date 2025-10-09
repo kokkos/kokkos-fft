@@ -4,6 +4,7 @@
 
 set(SOURCES
         Test_Main.cpp
+        Test_All2All.cpp
         Test_MPI_Types.cpp
     )
 
