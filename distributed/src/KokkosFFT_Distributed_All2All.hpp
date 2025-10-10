@@ -70,8 +70,10 @@ struct All2All {
     ::MPI_Comm_size(m_comm, &size);
     KOKKOSFFT_THROW_IF(
         (size_send != size) || (size_recv != size),
-        "Extent of dimension to be transposed: " + std::to_string(size_send) +
-            " does not match MPI size: " + std::to_string(size));
+        "Extent of dimension to be transposed of send (" +
+            std::to_string(size_send) + ") or recv (" +
+            std::to_string(size_recv) +
+            ") buffer does not match MPI size: " + std::to_string(size));
 
     // Compute the outermost dimension size
     int send_count = static_cast<int>(send.size()) / size_send;
