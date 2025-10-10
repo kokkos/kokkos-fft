@@ -98,6 +98,35 @@ void test_all2all_view2D(int rank, int nprocs) {
   }
 }
 
+template <typename T, typename LayoutType>
+void test_all2all_view2D_incorrect_proc_size(int nprocs) {
+  using View3DType = Kokkos::View<T***, LayoutType, execution_space>;
+
+  const std::size_t n0 = 16, n1 = 15;
+  const std::size_t n0_local = ((n0 - 1) / nprocs) + 1;
+  const std::size_t n1_local = ((n1 - 1) / nprocs) + 1;
+
+  int n0_buffer = 0, n1_buffer = 0, n2_buffer = 0;
+  // Set incorrect proc size deliberately
+  if constexpr (std::is_same_v<LayoutType, Kokkos::LayoutLeft>) {
+    n0_buffer = n0_local;
+    n1_buffer = n1_local;
+    n2_buffer = nprocs + 1;
+  } else {
+    n0_buffer = nprocs + 1;
+    n1_buffer = n0_local;
+    n2_buffer = n1_local;
+  }
+
+  View3DType send("send", n0_buffer, n1_buffer, n2_buffer),
+      recv("recv", n0_buffer, n1_buffer, n2_buffer);
+
+  execution_space exec;
+  EXPECT_THROW(
+      KokkosFFT::Distributed::Impl::all2all(exec, send, recv, MPI_COMM_WORLD),
+      std::runtime_error);
+}
+
 }  // namespace
 
 TYPED_TEST_SUITE(TestAll2All, test_types);
@@ -106,4 +135,11 @@ TYPED_TEST(TestAll2All, View2D) {
   using float_type  = typename TestFixture::float_type;
   using layout_type = typename TestFixture::layout_type;
   test_all2all_view2D<float_type, layout_type>(this->m_rank, this->m_nprocs);
+}
+
+TYPED_TEST(TestAll2All, View2D_incorrect_proc_size) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+  test_all2all_view2D_incorrect_proc_size<float_type, layout_type>(
+      this->m_nprocs);
 }
