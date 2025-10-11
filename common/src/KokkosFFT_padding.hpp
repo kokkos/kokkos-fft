@@ -49,9 +49,10 @@ auto get_modified_shape(const InViewType in, const OutViewType /* out */,
   }
 
   // Update shapes based on newly given shape
-  for (int i = 0; i < static_cast<int>(DIM); i++) {
-    int non_negative_axis = non_negative_axes.at(i);
-    assert(shape.at(i) > 0);
+  for (std::size_t i = 0; i < DIM; i++) {
+    auto non_negative_axis = non_negative_axes.at(i);
+    KOKKOSFFT_THROW_IF(shape.at(i) <= 0,
+                       "get_modified_shape: shape must be greater than 0");
     modified_shape.at(non_negative_axis) = shape.at(i);
   }
 
@@ -61,7 +62,7 @@ auto get_modified_shape(const InViewType in, const OutViewType /* out */,
   bool is_C2R = is_complex_v<in_value_type> && is_real_v<out_value_type>;
 
   if (is_C2R) {
-    int reshaped_axis                = non_negative_axes.back();
+    auto reshaped_axis               = non_negative_axes.back();
     modified_shape.at(reshaped_axis) = modified_shape.at(reshaped_axis) / 2 + 1;
   }
 

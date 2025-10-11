@@ -32,9 +32,8 @@ bool are_aliasing(const ScalarType1* ptr1, const ScalarType2* ptr2) {
 /// \throws a runtime_error if axis is out of range
 template <typename IntType, std::size_t Rank>
 IntType convert_negative_axis(IntType axis) {
-  static_assert(
-      std::is_integral_v<IntType>,
-      "convert_negative_axis: IntType must be a signed integer type.");
+  static_assert(std::is_integral_v<IntType>,
+                "convert_negative_axis: IntType must be an integral type.");
 
   const IntType rank = static_cast<IntType>(Rank);
   if constexpr (std::is_signed_v<IntType>) {
@@ -56,9 +55,8 @@ IntType convert_negative_axis(IntType axis) {
 /// \throws a runtime_error if any axis is out of range
 template <typename IntType, std::size_t DIM, std::size_t Rank>
 auto convert_negative_axes(const std::array<IntType, DIM>& axes) {
-  static_assert(
-      std::is_integral_v<IntType>,
-      "convert_negative_axes: IntType must be a signed integer type.");
+  static_assert(std::is_integral_v<IntType>,
+                "convert_negative_axes: IntType must be an integral type.");
   std::array<IntType, DIM> non_negative_axes = {};
   try {
     for (std::size_t i = 0; i < axes.size(); i++) {
