@@ -24,16 +24,58 @@ bool are_aliasing(const ScalarType1* ptr1, const ScalarType2* ptr2) {
   return (static_cast<const void*>(ptr1) == static_cast<const void*>(ptr2));
 }
 
+/// \brief Converts an axis in [-rank, rank-1] to [0, rank-1]
+/// \tparam IntType The integer type used for axis
+/// \tparam Rank The rank of the view
+/// \param axis The axis to be converted
+/// \return The converted axis
+/// \throws a runtime_error if axis is out of range
 template <typename IntType, std::size_t Rank>
 IntType convert_negative_axis(IntType axis) {
   static_assert(
-      std::is_integral_v<IntType> && std::is_signed_v<IntType>,
+      std::is_integral_v<IntType>,
       "convert_negative_axis: IntType must be a signed integer type.");
-  const IntType rank = static_cast<IntType>(Rank);
-  KOKKOSFFT_THROW_IF(axis < -rank || axis >= rank,
-                     "Axis must be in [-rank, rank-1]");
 
-  return axis < 0 ? rank + axis : axis;
+  const IntType rank = static_cast<IntType>(Rank);
+  if constexpr (std::is_signed_v<IntType>) {
+    KOKKOSFFT_THROW_IF(axis < -rank || axis >= rank,
+                       "Axis must be in [-rank, rank-1]");
+
+    return axis < 0 ? rank + axis : axis;
+  } else {
+    KOKKOSFFT_THROW_IF(axis >= rank, "Axis must be in [0, rank-1]");
+    return axis;
+  }
+}
+
+/// \brief Converts axes in [-rank, rank-1] to [0, rank-1]
+/// \tparam IntType The integer type used for axis
+/// \tparam Rank The rank of the view
+/// \param axes The axes to be converted
+/// \return The converted axes
+/// \throws a runtime_error if any axis is out of range
+template <typename IntType, std::size_t DIM, std::size_t Rank>
+auto convert_negative_axes(const std::array<IntType, DIM>& axes) {
+  static_assert(
+      std::is_integral_v<IntType>,
+      "convert_negative_axes: IntType must be a signed integer type.");
+  std::array<IntType, DIM> non_negative_axes = {};
+  try {
+    for (std::size_t i = 0; i < axes.size(); i++) {
+      int axis = axes.at(i);
+      auto non_negative_axis =
+          KokkosFFT::Impl::convert_negative_axis<IntType, Rank>(axis);
+      non_negative_axes.at(i) = non_negative_axis;
+    }
+  } catch (std::runtime_error& e) {
+    if constexpr (std::is_signed_v<IntType>) {
+      KOKKOSFFT_THROW_IF(true, "All axes must be in [-rank, rank-1]");
+    } else {
+      KOKKOSFFT_THROW_IF(true, "All axes must be in [0, rank-1]");
+    }
+  }
+
+  return non_negative_axes;
 }
 
 template <typename ViewType>
