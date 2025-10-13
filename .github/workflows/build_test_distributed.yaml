@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
-    - uses: crate-ci/typos@64e4db431eb262bb5c6baa19dce280d78532830c  # v1.37.3
+    - uses: crate-ci/typos@80c8a4945eec0f6d464eaf9e65ed98ef085283d1  # v1.38.1
       with:
         files: ./cmake/ ./CMakeLists.txt ./docs/ ./README.md ./distributed/
         config: ./.typos.toml
