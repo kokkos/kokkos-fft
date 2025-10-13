@@ -59,28 +59,27 @@ struct TestIndexSequence : public ::testing::Test {
 template <typename IntType>
 void test_convert_negative_axis_1d() {
   constexpr std::size_t Rank = 1;
+  IntType axis0 = 0, axis1 = 1;
   IntType converted_axis_0 =
-      KokkosFFT::Impl::convert_negative_axis<IntType, Rank>(IntType(0));
+      KokkosFFT::Impl::convert_negative_axis(axis0, Rank);
 
   IntType ref_converted_axis_0 = 0;
   EXPECT_EQ(converted_axis_0, ref_converted_axis_0);
 
   // Check if errors are correctly raised against invalid axis
   // axis must be in [-1, 1)
-  EXPECT_THROW(
-      ({ KokkosFFT::Impl::convert_negative_axis<IntType, Rank>(IntType(1)); }),
-      std::runtime_error);
+  EXPECT_THROW(({ KokkosFFT::Impl::convert_negative_axis(axis1, Rank); }),
+               std::runtime_error);
 
   if constexpr (std::is_signed_v<IntType>) {
+    IntType axis_minus1 = -1, axis_minus2 = -2;
     IntType converted_axis_minus1 =
-        KokkosFFT::Impl::convert_negative_axis<IntType, Rank>(IntType(-1));
+        KokkosFFT::Impl::convert_negative_axis(axis_minus1, Rank);
     IntType ref_converted_axis_minus1 = 0;
     EXPECT_EQ(converted_axis_minus1, ref_converted_axis_minus1);
 
     EXPECT_THROW(
-        ({
-          KokkosFFT::Impl::convert_negative_axis<IntType, Rank>(IntType(-2));
-        }),
+        ({ KokkosFFT::Impl::convert_negative_axis(axis_minus2, Rank); }),
         std::runtime_error);
   }
 }
@@ -91,41 +90,37 @@ void test_convert_negative_axes_1d() {
   using array_type = std::array<IntType, DIM>;
 
   auto converted_axes_0 =
-      KokkosFFT::Impl::convert_negative_axes<IntType, DIM, Rank>(array_type{0});
+      KokkosFFT::Impl::convert_negative_axes(array_type{0}, Rank);
 
   array_type ref_converted_axes_0 = {0};
   EXPECT_EQ(converted_axes_0, ref_converted_axes_0);
 
   // Check if errors are correctly raised against invalid axis
   // axis must be in [-1, 1)
-  EXPECT_THROW(({
-                 KokkosFFT::Impl::convert_negative_axes<IntType, DIM, Rank>(
-                     array_type{1});
-               }),
-               std::runtime_error);
+  EXPECT_THROW(
+      ({ KokkosFFT::Impl::convert_negative_axes(array_type{1}, Rank); }),
+      std::runtime_error);
 
   if constexpr (std::is_signed_v<IntType>) {
     array_type converted_axes_minus1 =
-        KokkosFFT::Impl::convert_negative_axes<IntType, DIM, Rank>(
-            array_type{-1});
+        KokkosFFT::Impl::convert_negative_axes(array_type{-1}, Rank);
     array_type ref_converted_axes_minus1 = {0};
     EXPECT_EQ(converted_axes_minus1, ref_converted_axes_minus1);
 
-    EXPECT_THROW(({
-                   KokkosFFT::Impl::convert_negative_axes<IntType, DIM, Rank>(
-                       array_type{-2});
-                 }),
-                 std::runtime_error);
+    EXPECT_THROW(
+        ({ KokkosFFT::Impl::convert_negative_axes(array_type{-2}, Rank); }),
+        std::runtime_error);
   }
 }
 
 template <typename IntType>
 void test_convert_negative_axis_2d() {
   constexpr std::size_t Rank = 2;
+  IntType axis0 = 0, axis1 = 1, axis2 = 2;
   IntType converted_axis_0 =
-      KokkosFFT::Impl::convert_negative_axis<IntType, Rank>(IntType(0));
+      KokkosFFT::Impl::convert_negative_axis(axis0, Rank);
   IntType converted_axis_1 =
-      KokkosFFT::Impl::convert_negative_axis<IntType, Rank>(IntType(1));
+      KokkosFFT::Impl::convert_negative_axis(axis1, Rank);
 
   IntType ref_converted_axis_0 = 0;
   IntType ref_converted_axis_1 = 1;
@@ -135,20 +130,18 @@ void test_convert_negative_axis_2d() {
 
   // Check if errors are correctly raised against invalid axis
   // axis must be in [-2, 2)
-  EXPECT_THROW(
-      ({ KokkosFFT::Impl::convert_negative_axis<IntType, Rank>(IntType(2)); }),
-      std::runtime_error);
+  EXPECT_THROW(({ KokkosFFT::Impl::convert_negative_axis(axis2, Rank); }),
+               std::runtime_error);
 
   if constexpr (std::is_signed_v<IntType>) {
+    IntType axis_minus1 = -1, axis_minus3 = -3;
     IntType converted_axis_minus1 =
-        KokkosFFT::Impl::convert_negative_axis<IntType, Rank>(IntType(-1));
+        KokkosFFT::Impl::convert_negative_axis(axis_minus1, Rank);
     IntType ref_converted_axis_minus1 = 1;
     EXPECT_EQ(converted_axis_minus1, ref_converted_axis_minus1);
 
     EXPECT_THROW(
-        ({
-          KokkosFFT::Impl::convert_negative_axis<IntType, Rank>(IntType(-3));
-        }),
+        ({ KokkosFFT::Impl::convert_negative_axis(axis_minus3, Rank); }),
         std::runtime_error);
   }
 }
@@ -160,14 +153,11 @@ void test_convert_negative_axes_2d() {
   using array_2d_type        = std::array<IntType, 2>;
 
   auto converted_axes_0 =
-      KokkosFFT::Impl::convert_negative_axes<IntType, 1, Rank>(
-          array_1d_type{0});
+      KokkosFFT::Impl::convert_negative_axes(array_1d_type{0}, Rank);
   auto converted_axes_1 =
-      KokkosFFT::Impl::convert_negative_axes<IntType, 1, Rank>(
-          array_1d_type{1});
+      KokkosFFT::Impl::convert_negative_axes(array_1d_type{1}, Rank);
   auto converted_axes_01 =
-      KokkosFFT::Impl::convert_negative_axes<IntType, 2, Rank>(
-          array_2d_type{0, 1});
+      KokkosFFT::Impl::convert_negative_axes(array_2d_type{0, 1}, Rank);
 
   array_1d_type ref_converted_axis_0  = {0};
   array_1d_type ref_converted_axis_1  = {1};
@@ -179,41 +169,36 @@ void test_convert_negative_axes_2d() {
 
   // Check if errors are correctly raised against invalid axis
   // axis must be in [-2, 2)
-  EXPECT_THROW(({
-                 KokkosFFT::Impl::convert_negative_axes<IntType, 1, Rank>(
-                     array_1d_type{2});
-               }),
-               std::runtime_error);
+  EXPECT_THROW(
+      ({ KokkosFFT::Impl::convert_negative_axes(array_1d_type{2}, Rank); }),
+      std::runtime_error);
 
   if constexpr (std::is_signed_v<IntType>) {
     array_1d_type ref_converted_axes_minus1  = {1};
     array_2d_type ref_converted_axes_minus21 = {0, 1};
     auto converted_axes_minus1 =
-        KokkosFFT::Impl::convert_negative_axes<IntType, 1, Rank>(
-            array_1d_type{-1});
+        KokkosFFT::Impl::convert_negative_axes(array_1d_type{-1}, Rank);
     auto converted_axes_minus21 =
-        KokkosFFT::Impl::convert_negative_axes<IntType, 2, Rank>(
-            array_2d_type{-2, -1});
+        KokkosFFT::Impl::convert_negative_axes(array_2d_type{-2, -1}, Rank);
     EXPECT_EQ(converted_axes_minus1, ref_converted_axes_minus1);
     EXPECT_EQ(converted_axes_minus21, ref_converted_axes_minus21);
 
-    EXPECT_THROW(({
-                   KokkosFFT::Impl::convert_negative_axes<IntType, 1, Rank>(
-                       array_1d_type{-3});
-                 }),
-                 std::runtime_error);
+    EXPECT_THROW(
+        ({ KokkosFFT::Impl::convert_negative_axes(array_1d_type{-3}, Rank); }),
+        std::runtime_error);
   }
 }
 
 template <typename IntType>
 void test_convert_negative_axis_3d() {
   constexpr std::size_t Rank = 3;
+  IntType axis0 = 0, axis1 = 1, axis2 = 2, axis3 = 3;
   IntType converted_axis_0 =
-      KokkosFFT::Impl::convert_negative_axis<IntType, Rank>(IntType(0));
+      KokkosFFT::Impl::convert_negative_axis(axis0, Rank);
   IntType converted_axis_1 =
-      KokkosFFT::Impl::convert_negative_axis<IntType, Rank>(IntType(1));
+      KokkosFFT::Impl::convert_negative_axis(axis1, Rank);
   IntType converted_axis_2 =
-      KokkosFFT::Impl::convert_negative_axis<IntType, Rank>(IntType(2));
+      KokkosFFT::Impl::convert_negative_axis(axis2, Rank);
 
   IntType ref_converted_axis_0 = 0;
   IntType ref_converted_axis_1 = 1;
@@ -225,15 +210,15 @@ void test_convert_negative_axis_3d() {
 
   // Check if errors are correctly raised against invalid axis
   // axis must be in [-3, 3)
-  EXPECT_THROW(
-      ({ KokkosFFT::Impl::convert_negative_axis<IntType, Rank>(IntType(3)); }),
-      std::runtime_error);
+  EXPECT_THROW(({ KokkosFFT::Impl::convert_negative_axis(axis3, Rank); }),
+               std::runtime_error);
 
   if constexpr (std::is_signed_v<IntType>) {
+    IntType axis_minus1 = -1, axis_minus2 = -2, axis_minus4 = -4;
     IntType converted_axis_minus1 =
-        KokkosFFT::Impl::convert_negative_axis<IntType, Rank>(IntType(-1));
+        KokkosFFT::Impl::convert_negative_axis(axis_minus1, Rank);
     IntType converted_axis_minus2 =
-        KokkosFFT::Impl::convert_negative_axis<IntType, Rank>(IntType(-2));
+        KokkosFFT::Impl::convert_negative_axis(axis_minus2, Rank);
 
     IntType ref_converted_axis_minus1 = 2;
     IntType ref_converted_axis_minus2 = 1;
@@ -242,9 +227,7 @@ void test_convert_negative_axis_3d() {
     EXPECT_EQ(converted_axis_minus2, ref_converted_axis_minus2);
 
     EXPECT_THROW(
-        ({
-          KokkosFFT::Impl::convert_negative_axis<IntType, Rank>(IntType(-4));
-        }),
+        ({ KokkosFFT::Impl::convert_negative_axis(axis_minus4, Rank); }),
         std::runtime_error);
   }
 }
@@ -257,26 +240,19 @@ void test_convert_negative_axes_3d() {
   using array_3d_type        = std::array<IntType, 3>;
 
   auto converted_axes_0 =
-      KokkosFFT::Impl::convert_negative_axes<IntType, 1, Rank>(
-          array_1d_type{0});
+      KokkosFFT::Impl::convert_negative_axes(array_1d_type{0}, Rank);
   auto converted_axes_1 =
-      KokkosFFT::Impl::convert_negative_axes<IntType, 1, Rank>(
-          array_1d_type{1});
+      KokkosFFT::Impl::convert_negative_axes(array_1d_type{1}, Rank);
   auto converted_axes_2 =
-      KokkosFFT::Impl::convert_negative_axes<IntType, 1, Rank>(
-          array_1d_type{2});
+      KokkosFFT::Impl::convert_negative_axes(array_1d_type{2}, Rank);
   auto converted_axes_01 =
-      KokkosFFT::Impl::convert_negative_axes<IntType, 2, Rank>(
-          array_2d_type{0, 1});
+      KokkosFFT::Impl::convert_negative_axes(array_2d_type{0, 1}, Rank);
   auto converted_axes_02 =
-      KokkosFFT::Impl::convert_negative_axes<IntType, 2, Rank>(
-          array_2d_type{0, 2});
+      KokkosFFT::Impl::convert_negative_axes(array_2d_type{0, 2}, Rank);
   auto converted_axes_12 =
-      KokkosFFT::Impl::convert_negative_axes<IntType, 2, Rank>(
-          array_2d_type{1, 2});
+      KokkosFFT::Impl::convert_negative_axes(array_2d_type{1, 2}, Rank);
   auto converted_axes_012 =
-      KokkosFFT::Impl::convert_negative_axes<IntType, 3, Rank>(
-          array_3d_type{0, 1, 2});
+      KokkosFFT::Impl::convert_negative_axes(array_3d_type{0, 1, 2}, Rank);
 
   array_1d_type ref_converted_axes_0   = {0};
   array_1d_type ref_converted_axes_1   = {1};
@@ -296,41 +272,34 @@ void test_convert_negative_axes_3d() {
 
   // Check if errors are correctly raised against invalid axis
   // axis must be in [-3, 3)
-  EXPECT_THROW(({
-                 KokkosFFT::Impl::convert_negative_axes<IntType, 1, Rank>(
-                     array_1d_type{3});
-               }),
-               std::runtime_error);
+  EXPECT_THROW(
+      ({ KokkosFFT::Impl::convert_negative_axes(array_1d_type{3}, Rank); }),
+      std::runtime_error);
 
-  EXPECT_THROW(({
-                 KokkosFFT::Impl::convert_negative_axes<IntType, 2, Rank>(
-                     array_2d_type{3, 1});
-               }),
-               std::runtime_error);
+  EXPECT_THROW(
+      ({
+        KokkosFFT::Impl::convert_negative_axes(array_2d_type{3, 1}, Rank);
+      }),
+      std::runtime_error);
 
-  EXPECT_THROW(({
-                 KokkosFFT::Impl::convert_negative_axes<IntType, 3, Rank>(
-                     array_3d_type{0, 1, 3});
-               }),
-               std::runtime_error);
+  EXPECT_THROW(
+      ({
+        KokkosFFT::Impl::convert_negative_axes(array_3d_type{0, 1, 3}, Rank);
+      }),
+      std::runtime_error);
 
   if constexpr (std::is_signed_v<IntType>) {
     auto converted_axes_minus1 =
-        KokkosFFT::Impl::convert_negative_axes<IntType, 1, Rank>(
-            array_1d_type{-1});
+        KokkosFFT::Impl::convert_negative_axes(array_1d_type{-1}, Rank);
     auto converted_axes_minus2 =
-        KokkosFFT::Impl::convert_negative_axes<IntType, 1, Rank>(
-            array_1d_type{-2});
+        KokkosFFT::Impl::convert_negative_axes(array_1d_type{-2}, Rank);
     auto converted_axes_minus3 =
-        KokkosFFT::Impl::convert_negative_axes<IntType, 1, Rank>(
-            array_1d_type{-3});
+        KokkosFFT::Impl::convert_negative_axes(array_1d_type{-3}, Rank);
 
     auto converted_axes_minus21 =
-        KokkosFFT::Impl::convert_negative_axes<IntType, 2, Rank>(
-            array_2d_type{-2, -1});
+        KokkosFFT::Impl::convert_negative_axes(array_2d_type{-2, -1}, Rank);
     auto converted_axes_minus321 =
-        KokkosFFT::Impl::convert_negative_axes<IntType, 3, Rank>(
-            array_3d_type{-3, -2, -1});
+        KokkosFFT::Impl::convert_negative_axes(array_3d_type{-3, -2, -1}, Rank);
 
     array_1d_type ref_converted_axes_minus1   = {2},
                   ref_converted_axes_minus2   = {1},
@@ -344,25 +313,24 @@ void test_convert_negative_axes_3d() {
     EXPECT_EQ(converted_axes_minus21, ref_converted_axes_minus21);
     EXPECT_EQ(converted_axes_minus321, ref_converted_axes_minus321);
 
-    EXPECT_THROW(({
-                   KokkosFFT::Impl::convert_negative_axes<IntType, 1, Rank>(
-                       array_1d_type{-4});
-                 }),
-                 std::runtime_error);
+    EXPECT_THROW(
+        ({ KokkosFFT::Impl::convert_negative_axes(array_1d_type{-4}, Rank); }),
+        std::runtime_error);
   }
 }
 
 template <typename IntType>
 void test_convert_negative_axis_4d() {
   constexpr std::size_t Rank = 4;
+  IntType axis0 = 0, axis1 = 1, axis2 = 2, axis3 = 3, axis4 = 4;
   IntType converted_axis_0 =
-      KokkosFFT::Impl::convert_negative_axis<IntType, Rank>(IntType(0));
+      KokkosFFT::Impl::convert_negative_axis(axis0, Rank);
   IntType converted_axis_1 =
-      KokkosFFT::Impl::convert_negative_axis<IntType, Rank>(IntType(1));
+      KokkosFFT::Impl::convert_negative_axis(axis1, Rank);
   IntType converted_axis_2 =
-      KokkosFFT::Impl::convert_negative_axis<IntType, Rank>(IntType(2));
+      KokkosFFT::Impl::convert_negative_axis(axis2, Rank);
   IntType converted_axis_3 =
-      KokkosFFT::Impl::convert_negative_axis<IntType, Rank>(IntType(3));
+      KokkosFFT::Impl::convert_negative_axis(axis3, Rank);
 
   IntType ref_converted_axis_0 = 0;
   IntType ref_converted_axis_1 = 1;
@@ -376,17 +344,18 @@ void test_convert_negative_axis_4d() {
 
   // Check if errors are correctly raised against invalid axis
   // axis must be in [-4, 4)
-  EXPECT_THROW(
-      ({ KokkosFFT::Impl::convert_negative_axis<IntType, Rank>(IntType(4)); }),
-      std::runtime_error);
+  EXPECT_THROW(({ KokkosFFT::Impl::convert_negative_axis(axis4, Rank); }),
+               std::runtime_error);
 
   if constexpr (std::is_signed_v<IntType>) {
+    IntType axis_minus1 = -1, axis_minus2 = -2, axis_minus3 = -3,
+            axis_minus5 = -5;
     IntType converted_axis_minus1 =
-        KokkosFFT::Impl::convert_negative_axis<IntType, Rank>(IntType(-1));
+        KokkosFFT::Impl::convert_negative_axis(axis_minus1, Rank);
     IntType converted_axis_minus2 =
-        KokkosFFT::Impl::convert_negative_axis<IntType, Rank>(IntType(-2));
+        KokkosFFT::Impl::convert_negative_axis(axis_minus2, Rank);
     IntType converted_axis_minus3 =
-        KokkosFFT::Impl::convert_negative_axis<IntType, Rank>(IntType(-3));
+        KokkosFFT::Impl::convert_negative_axis(axis_minus3, Rank);
 
     IntType ref_converted_axis_minus1 = 3;
     IntType ref_converted_axis_minus2 = 2;
@@ -397,9 +366,7 @@ void test_convert_negative_axis_4d() {
     EXPECT_EQ(converted_axis_minus3, ref_converted_axis_minus3);
 
     EXPECT_THROW(
-        ({
-          KokkosFFT::Impl::convert_negative_axis<IntType, Rank>(IntType(-5));
-        }),
+        ({ KokkosFFT::Impl::convert_negative_axis(axis_minus5, Rank); }),
         std::runtime_error);
   }
 }
@@ -413,50 +380,35 @@ void test_convert_negative_axes_4d() {
   using array_4d_type        = std::array<IntType, 4>;
 
   auto converted_axes_0 =
-      KokkosFFT::Impl::convert_negative_axes<IntType, 1, Rank>(
-          array_1d_type{0});
+      KokkosFFT::Impl::convert_negative_axes(array_1d_type{0}, Rank);
   auto converted_axes_1 =
-      KokkosFFT::Impl::convert_negative_axes<IntType, 1, Rank>(
-          array_1d_type{1});
+      KokkosFFT::Impl::convert_negative_axes(array_1d_type{1}, Rank);
   auto converted_axes_2 =
-      KokkosFFT::Impl::convert_negative_axes<IntType, 1, Rank>(
-          array_1d_type{2});
+      KokkosFFT::Impl::convert_negative_axes(array_1d_type{2}, Rank);
   auto converted_axes_3 =
-      KokkosFFT::Impl::convert_negative_axes<IntType, 1, Rank>(
-          array_1d_type{3});
+      KokkosFFT::Impl::convert_negative_axes(array_1d_type{3}, Rank);
   auto converted_axes_01 =
-      KokkosFFT::Impl::convert_negative_axes<IntType, 2, Rank>(
-          array_2d_type{0, 1});
+      KokkosFFT::Impl::convert_negative_axes(array_2d_type{0, 1}, Rank);
   auto converted_axes_02 =
-      KokkosFFT::Impl::convert_negative_axes<IntType, 2, Rank>(
-          array_2d_type{0, 2});
+      KokkosFFT::Impl::convert_negative_axes(array_2d_type{0, 2}, Rank);
   auto converted_axes_03 =
-      KokkosFFT::Impl::convert_negative_axes<IntType, 2, Rank>(
-          array_2d_type{0, 3});
+      KokkosFFT::Impl::convert_negative_axes(array_2d_type{0, 3}, Rank);
   auto converted_axes_12 =
-      KokkosFFT::Impl::convert_negative_axes<IntType, 2, Rank>(
-          array_2d_type{1, 2});
+      KokkosFFT::Impl::convert_negative_axes(array_2d_type{1, 2}, Rank);
   auto converted_axes_13 =
-      KokkosFFT::Impl::convert_negative_axes<IntType, 2, Rank>(
-          array_2d_type{1, 3});
+      KokkosFFT::Impl::convert_negative_axes(array_2d_type{1, 3}, Rank);
   auto converted_axes_23 =
-      KokkosFFT::Impl::convert_negative_axes<IntType, 2, Rank>(
-          array_2d_type{2, 3});
+      KokkosFFT::Impl::convert_negative_axes(array_2d_type{2, 3}, Rank);
   auto converted_axes_012 =
-      KokkosFFT::Impl::convert_negative_axes<IntType, 3, Rank>(
-          array_3d_type{0, 1, 2});
+      KokkosFFT::Impl::convert_negative_axes(array_3d_type{0, 1, 2}, Rank);
   auto converted_axes_013 =
-      KokkosFFT::Impl::convert_negative_axes<IntType, 3, Rank>(
-          array_3d_type{0, 1, 3});
+      KokkosFFT::Impl::convert_negative_axes(array_3d_type{0, 1, 3}, Rank);
   auto converted_axes_023 =
-      KokkosFFT::Impl::convert_negative_axes<IntType, 3, Rank>(
-          array_3d_type{0, 2, 3});
+      KokkosFFT::Impl::convert_negative_axes(array_3d_type{0, 2, 3}, Rank);
   auto converted_axes_123 =
-      KokkosFFT::Impl::convert_negative_axes<IntType, 3, Rank>(
-          array_3d_type{1, 2, 3});
+      KokkosFFT::Impl::convert_negative_axes(array_3d_type{1, 2, 3}, Rank);
   auto converted_axes_0123 =
-      KokkosFFT::Impl::convert_negative_axes<IntType, 4, Rank>(
-          array_4d_type{0, 1, 2, 3});
+      KokkosFFT::Impl::convert_negative_axes(array_4d_type{0, 1, 2, 3}, Rank);
 
   array_1d_type ref_converted_axes_0    = {0};
   array_1d_type ref_converted_axes_1    = {1};
@@ -492,50 +444,42 @@ void test_convert_negative_axes_4d() {
 
   // Check if errors are correctly raised against invalid axis
   // axis must be in [-4, 4)
-  EXPECT_THROW(({
-                 KokkosFFT::Impl::convert_negative_axes<IntType, 1, Rank>(
-                     array_1d_type{4});
-               }),
-               std::runtime_error);
+  EXPECT_THROW(
+      ({ KokkosFFT::Impl::convert_negative_axes(array_1d_type{4}, Rank); }),
+      std::runtime_error);
 
-  EXPECT_THROW(({
-                 KokkosFFT::Impl::convert_negative_axes<IntType, 2, Rank>(
-                     array_2d_type{4, 1});
-               }),
-               std::runtime_error);
+  EXPECT_THROW(
+      ({
+        KokkosFFT::Impl::convert_negative_axes(array_2d_type{4, 1}, Rank);
+      }),
+      std::runtime_error);
 
-  EXPECT_THROW(({
-                 KokkosFFT::Impl::convert_negative_axes<IntType, 3, Rank>(
-                     array_3d_type{0, 1, 4});
-               }),
-               std::runtime_error);
+  EXPECT_THROW(
+      ({
+        KokkosFFT::Impl::convert_negative_axes(array_3d_type{0, 1, 4}, Rank);
+      }),
+      std::runtime_error);
 
-  EXPECT_THROW(({
-                 KokkosFFT::Impl::convert_negative_axes<IntType, 4, Rank>(
-                     array_4d_type{0, 1, 2, 4});
-               }),
-               std::runtime_error);
+  EXPECT_THROW(
+      ({
+        KokkosFFT::Impl::convert_negative_axes(array_4d_type{0, 1, 2, 4}, Rank);
+      }),
+      std::runtime_error);
 
   if constexpr (std::is_signed_v<IntType>) {
     auto converted_axes_minus1 =
-        KokkosFFT::Impl::convert_negative_axes<IntType, 1, Rank>(
-            array_1d_type{-1});
+        KokkosFFT::Impl::convert_negative_axes(array_1d_type{-1}, Rank);
     auto converted_axes_minus2 =
-        KokkosFFT::Impl::convert_negative_axes<IntType, 1, Rank>(
-            array_1d_type{-2});
+        KokkosFFT::Impl::convert_negative_axes(array_1d_type{-2}, Rank);
     auto converted_axes_minus3 =
-        KokkosFFT::Impl::convert_negative_axes<IntType, 1, Rank>(
-            array_1d_type{-3});
+        KokkosFFT::Impl::convert_negative_axes(array_1d_type{-3}, Rank);
 
     auto converted_axes_minus21 =
-        KokkosFFT::Impl::convert_negative_axes<IntType, 2, Rank>(
-            array_2d_type{-2, -1});
+        KokkosFFT::Impl::convert_negative_axes(array_2d_type{-2, -1}, Rank);
     auto converted_axes_minus321 =
-        KokkosFFT::Impl::convert_negative_axes<IntType, 3, Rank>(
-            array_3d_type{-3, -2, -1});
-    auto converted_axes_minus4321 =
-        KokkosFFT::Impl::convert_negative_axes<IntType, 4, Rank>(
-            array_4d_type{-4, -3, -2, -1});
+        KokkosFFT::Impl::convert_negative_axes(array_3d_type{-3, -2, -1}, Rank);
+    auto converted_axes_minus4321 = KokkosFFT::Impl::convert_negative_axes(
+        array_4d_type{-4, -3, -2, -1}, Rank);
 
     array_1d_type ref_converted_axis_minus1    = {3},
                   ref_converted_axis_minus2    = {2},
@@ -551,11 +495,9 @@ void test_convert_negative_axes_4d() {
     EXPECT_EQ(converted_axes_minus321, ref_converted_axes_minus321);
     EXPECT_EQ(converted_axes_minus4321, ref_converted_axes_minus4321);
 
-    EXPECT_THROW(({
-                   KokkosFFT::Impl::convert_negative_axes<IntType, 1, Rank>(
-                       array_1d_type{-5});
-                 }),
-                 std::runtime_error);
+    EXPECT_THROW(
+        ({ KokkosFFT::Impl::convert_negative_axes(array_1d_type{-5}, Rank); }),
+        std::runtime_error);
   }
 }
 

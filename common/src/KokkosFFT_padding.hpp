@@ -40,7 +40,7 @@ auto get_modified_shape(const InViewType in, const OutViewType /* out */,
 
   // Convert the input axes to be in the range of [0, rank-1]
   constexpr std::size_t rank = InViewType::rank();
-  auto non_negative_axes     = convert_negative_axes<int, DIM, rank>(axes);
+  auto non_negative_axes     = convert_negative_axes(axes, rank);
 
   using full_shape_type = shape_type<rank>;
   full_shape_type modified_shape;

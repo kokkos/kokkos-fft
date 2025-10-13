@@ -39,8 +39,7 @@ namespace Impl {
 template <typename ViewType, std::size_t DIM = 1>
 auto get_shifts(const ViewType& x, axis_type<DIM> axes, int direction = 1) {
   // Convert the input axes to be in the range of [0, rank-1]
-  auto non_negative_axes =
-      convert_negative_axes<int, DIM, ViewType::rank()>(axes);
+  auto non_negative_axes = convert_negative_axes(axes, ViewType::rank());
 
   // Assert if the elements are overlapped
   constexpr int rank = ViewType::rank();

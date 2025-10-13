@@ -26,43 +26,47 @@ bool are_aliasing(const ScalarType1* ptr1, const ScalarType2* ptr2) {
 
 /// \brief Converts an axis in [-rank, rank-1] to [0, rank-1]
 /// \tparam IntType The integer type used for axis
-/// \tparam Rank The rank of the view
-/// \param axis The axis to be converted
+///
+/// \param[in] axis The axis to be converted
+/// \param[in] rank The rank of the view
 /// \return The converted axis
 /// \throws a runtime_error if axis is out of range
-template <typename IntType, std::size_t Rank>
-IntType convert_negative_axis(IntType axis) {
+template <typename IntType>
+IntType convert_negative_axis(IntType axis, std::size_t rank) {
   static_assert(std::is_integral_v<IntType>,
                 "convert_negative_axis: IntType must be an integral type.");
 
-  const IntType rank = static_cast<IntType>(Rank);
+  const IntType irank = static_cast<IntType>(rank);
   if constexpr (std::is_signed_v<IntType>) {
-    KOKKOSFFT_THROW_IF(axis < -rank || axis >= rank,
+    KOKKOSFFT_THROW_IF(axis < -irank || axis >= irank,
                        "Axis must be in [-rank, rank-1]");
 
-    return axis < 0 ? rank + axis : axis;
+    return axis < 0 ? irank + axis : axis;
   } else {
-    KOKKOSFFT_THROW_IF(axis >= rank, "Axis must be in [0, rank-1]");
+    KOKKOSFFT_THROW_IF(axis >= irank, "Axis must be in [0, rank-1]");
     return axis;
   }
 }
 
 /// \brief Converts axes in [-rank, rank-1] to [0, rank-1]
 /// \tparam IntType The integer type used for axis
-/// \tparam Rank The rank of the view
-/// \param axes The axes to be converted
+/// \tparam DIM The dimensionality of the axes
+///
+/// \param[in] axes The axes to be converted
+/// \param[in] rank The rank of the view
 /// \return The converted axes
 /// \throws a runtime_error if any axis is out of range
-template <typename IntType, std::size_t DIM, std::size_t Rank>
-auto convert_negative_axes(const std::array<IntType, DIM>& axes) {
+template <typename IntType, std::size_t DIM>
+auto convert_negative_axes(const std::array<IntType, DIM>& axes,
+                           std::size_t rank) {
   static_assert(std::is_integral_v<IntType>,
                 "convert_negative_axes: IntType must be an integral type.");
   std::array<IntType, DIM> non_negative_axes = {};
   try {
     for (std::size_t i = 0; i < axes.size(); i++) {
-      int axis = axes.at(i);
+      auto axis = axes.at(i);
       auto non_negative_axis =
-          KokkosFFT::Impl::convert_negative_axis<IntType, Rank>(axis);
+          KokkosFFT::Impl::convert_negative_axis(axis, rank);
       non_negative_axes.at(i) = non_negative_axis;
     }
   } catch (std::runtime_error& e) {
@@ -80,7 +84,7 @@ template <typename ViewType>
 auto convert_negative_shift(const ViewType& view, int shift, int axis) {
   static_assert(Kokkos::is_view_v<ViewType>,
                 "convert_negative_shift: ViewType must be a Kokkos::View.");
-  int non_negative_axis = convert_negative_axis<int, ViewType::rank()>(axis);
+  int non_negative_axis = convert_negative_axis(axis, ViewType::rank());
   int extent            = view.extent(non_negative_axis);
   int shift0 = 0, shift1 = 0, shift2 = extent / 2;
 
@@ -158,7 +162,7 @@ bool are_valid_axes(const ViewType& /*view*/,
     for (std::size_t i = 0; i < DIM; i++) {
       int axis = axes[i];
       non_negative_axes[i] =
-          KokkosFFT::Impl::convert_negative_axis<int, ViewType::rank()>(axis);
+          KokkosFFT::Impl::convert_negative_axis(axis, ViewType::rank());
     }
   } catch (std::runtime_error& e) {
     return false;
