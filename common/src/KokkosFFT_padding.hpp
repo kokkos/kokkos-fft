@@ -33,18 +33,14 @@ auto get_modified_shape(const InViewType in, const OutViewType /* out */,
   KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axes),
                      "input axes are not valid for the view");
 
-  shape_type<DIM> zeros = {0};  // default shape means no crop or pad
+  shape_type<DIM> zeros = {};  // default shape means no crop or pad
   if (shape == zeros) {
     return KokkosFFT::Impl::extract_extents(in);
   }
 
   // Convert the input axes to be in the range of [0, rank-1]
   constexpr std::size_t rank = InViewType::rank();
-  std::vector<int> positive_axes;
-  for (std::size_t i = 0; i < DIM; i++) {
-    int axis = KokkosFFT::Impl::convert_negative_axis<int, rank>(axes.at(i));
-    positive_axes.push_back(axis);
-  }
+  auto non_negative_axes     = convert_negative_axes(axes, rank);
 
   using full_shape_type = shape_type<rank>;
   full_shape_type modified_shape;
@@ -53,10 +49,11 @@ auto get_modified_shape(const InViewType in, const OutViewType /* out */,
   }
 
   // Update shapes based on newly given shape
-  for (int i = 0; i < static_cast<int>(DIM); i++) {
-    int positive_axis = positive_axes.at(i);
-    assert(shape.at(i) > 0);
-    modified_shape.at(positive_axis) = shape.at(i);
+  for (std::size_t i = 0; i < DIM; i++) {
+    auto non_negative_axis = non_negative_axes.at(i);
+    KOKKOSFFT_THROW_IF(shape.at(i) <= 0,
+                       "get_modified_shape: shape must be greater than 0");
+    modified_shape.at(non_negative_axis) = shape.at(i);
   }
 
   using in_value_type  = typename InViewType::non_const_value_type;
@@ -65,7 +62,7 @@ auto get_modified_shape(const InViewType in, const OutViewType /* out */,
   bool is_C2R = is_complex_v<in_value_type> && is_real_v<out_value_type>;
 
   if (is_C2R) {
-    int reshaped_axis                = positive_axes.back();
+    auto reshaped_axis               = non_negative_axes.back();
     modified_shape.at(reshaped_axis) = modified_shape.at(reshaped_axis) / 2 + 1;
   }
 
