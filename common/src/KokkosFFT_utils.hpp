@@ -153,17 +153,13 @@ bool are_valid_axes(const ViewType& /*view*/,
   // Convert the input axes to be in the range of [0, rank-1]
   // int type is chosen for consistency with the rest of the code
   // the axes are defined with int type
-  std::array<int, DIM> non_negative_axes;
+  std::array<IntType, DIM> non_negative_axes = {};
 
-  // In case axis is out of range, 'convert_negative_axis' will throw an
+  // In case axis is out of range, 'convert_negative_axes' will throw an
   // runtime_error and we will return false. Without runtime_error, it is
   // ensured that the 'non_negative_axes' are in the range of [0, rank-1]
   try {
-    for (std::size_t i = 0; i < DIM; i++) {
-      int axis = axes[i];
-      non_negative_axes[i] =
-          KokkosFFT::Impl::convert_negative_axis(axis, ViewType::rank());
-    }
+    non_negative_axes = convert_negative_axes(axes, ViewType::rank());
   } catch (std::runtime_error& e) {
     return false;
   }
