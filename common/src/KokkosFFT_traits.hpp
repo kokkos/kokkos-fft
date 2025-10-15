@@ -297,6 +297,23 @@ template <typename ExecutionSpace>
 inline constexpr bool is_AnyHostSpace_v =
     is_AnyHostSpace<ExecutionSpace>::value;
 
+/// \brief Helper to check if a type has static member functions size() and
+/// index() (e.g., std::vector, std::array, Kokkos::Array, etc.)
+template <typename, typename = void>
+struct has_size_and_index : std::false_type {};
+
+template <typename T>
+struct has_size_and_index<
+    T, std::void_t<
+           decltype(std::declval<const T&>().size()),
+           decltype(std::declval<const T&>()[std::declval<std::size_t>()])>>
+    : std::true_type {};
+
+/// \brief Helper to check if a type has static member functions size() and
+/// index()
+template <typename T>
+inline constexpr bool has_size_and_index_v = has_size_and_index<T>::value;
+
 }  // namespace Impl
 }  // namespace KokkosFFT
 

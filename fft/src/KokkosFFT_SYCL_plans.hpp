@@ -41,17 +41,6 @@ void setup() {
   }();
 }
 
-// Helper to convert the integer type of vectors
-template <typename InType, typename OutType>
-auto convert_int_type(std::vector<InType>& in) -> std::vector<OutType> {
-  std::vector<OutType> out(in.size());
-  std::transform(
-      in.begin(), in.end(), out.begin(),
-      [](const InType v) -> OutType { return static_cast<OutType>(v); });
-
-  return out;
-}
-
 // Helper to compute strides from extents
 // (n0, n1) -> (0, n1, 1)
 // (n0) -> (0, 1)
@@ -104,7 +93,7 @@ auto create_plan(const ExecutionSpace& exec_space,
   // Create plan
   auto in_strides        = compute_strides<int, std::int64_t>(in_extents);
   auto out_strides       = compute_strides<int, std::int64_t>(out_extents);
-  auto int64_fft_extents = convert_int_type<int, std::int64_t>(fft_extents);
+  auto int64_fft_extents = convert_base_int_type<std::int64_t>(fft_extents);
 
   auto fwd_strides = direction == Direction::forward ? in_strides : out_strides;
   auto bwd_strides = direction == Direction::forward ? out_strides : in_strides;
