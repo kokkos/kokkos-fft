@@ -20,6 +20,11 @@ using paired_scalar_types = ::testing::Types<
     std::pair<double, double>, std::pair<double, Kokkos::complex<double>>,
     std::pair<Kokkos::complex<double>, Kokkos::complex<double>>>;
 
+using paired_int_types =
+    ::testing::Types<std::pair<int, int>, std::pair<int, std::size_t>,
+                     std::pair<std::size_t, int>,
+                     std::pair<std::size_t, std::size_t>>;
+
 // Basically the same fixtures, used for labeling tests
 template <typename T>
 struct TestConvertNegativeAxis : public ::testing::Test {
@@ -53,6 +58,12 @@ struct PairedScalarTypes : public ::testing::Test {
 template <typename T>
 struct TestIndexSequence : public ::testing::Test {
   using value_type = T;
+};
+
+template <typename T>
+struct TestConvertBaseTypes : public ::testing::Test {
+  using value_type1 = typename T::first_type;
+  using value_type2 = typename T::second_type;
 };
 
 // Tests for convert_negative_axes over ND views
@@ -868,6 +879,46 @@ void test_total_size() {
   }
 }
 
+template <typename ToContainerType, typename FromContainerType>
+void test_convert_base_int_type() {
+  using From = KokkosFFT::Impl::base_container_value_type<FromContainerType>;
+  using To   = KokkosFFT::Impl::base_container_value_type<ToContainerType>;
+
+  FromContainerType v   = {2, 3, 5};
+  ToContainerType v_ref = {2, 3, 5};
+
+  auto v_converted = KokkosFFT::Impl::convert_base_int_type<To>(v);
+  EXPECT_EQ(v_converted, v_ref);
+
+  if constexpr (std::is_signed_v<From> && std::is_signed_v<To>) {
+    // Same signedness, should be OK
+    FromContainerType v2   = {-2, -3, -5};
+    ToContainerType v2_ref = {-2, -3, -5};
+
+    auto v2_converted = KokkosFFT::Impl::convert_base_int_type<To>(v2);
+    EXPECT_EQ(v2_converted, v2_ref);
+  } else if constexpr (std::is_signed_v<From> && std::is_unsigned_v<To>) {
+    // From signed to unsigned, negative value should raise error
+    FromContainerType v2 = {-2, 3, 5};
+    EXPECT_THROW(
+        {
+          [[maybe_unused]] auto v2_converted =
+              KokkosFFT::Impl::convert_base_int_type<To>(v2);
+        },
+        std::overflow_error);
+  } else if constexpr (std::is_unsigned_v<From>) {
+    // From std::size_t to int, overflow should raise error
+    if (std::numeric_limits<From>::max() > std::numeric_limits<To>::max()) {
+      FromContainerType v2 = {2, 3, std::numeric_limits<From>::max()};
+      EXPECT_THROW(
+          {
+            [[maybe_unused]] auto v2_converted =
+                KokkosFFT::Impl::convert_base_int_type<To>(v2);
+          },
+          std::overflow_error);
+    }
+  }
+}
 }  // namespace
 
 TYPED_TEST_SUITE(TestConvertNegativeAxis, base_int_types);
@@ -876,6 +927,7 @@ TYPED_TEST_SUITE(ConvertNegativeShift, test_types);
 TYPED_TEST_SUITE(ContainerTypes, base_int_types);
 TYPED_TEST_SUITE(PairedScalarTypes, paired_scalar_types);
 TYPED_TEST_SUITE(TestIndexSequence, base_int_types);
+TYPED_TEST_SUITE(TestConvertBaseTypes, paired_int_types);
 
 // Tests for 1D - 4D View
 TYPED_TEST(TestConvertNegativeAxis, 1DView) {
@@ -1068,4 +1120,20 @@ TYPED_TEST(PairedScalarTypes, are_pointers_aliasing) {
   using value_type1 = typename TestFixture::value_type1;
   using value_type2 = typename TestFixture::value_type2;
   test_are_pointers_aliasing<value_type1, value_type2>();
+}
+
+TYPED_TEST(TestConvertBaseTypes, convert_arrays) {
+  using value_type1     = typename TestFixture::value_type1;
+  using value_type2     = typename TestFixture::value_type2;
+  using container_type1 = std::array<value_type1, 3>;
+  using container_type2 = std::array<value_type2, 3>;
+  test_convert_base_int_type<container_type1, container_type2>();
+}
+
+TYPED_TEST(TestConvertBaseTypes, convert_vectors) {
+  using value_type1     = typename TestFixture::value_type1;
+  using value_type2     = typename TestFixture::value_type2;
+  using container_type1 = std::vector<value_type1>;
+  using container_type2 = std::vector<value_type2>;
+  test_convert_base_int_type<container_type1, container_type2>();
 }

@@ -329,6 +329,89 @@ auto total_size(const ContainerType& values) {
       [](value_type a, value_type b) { return safe_multiply(a, b); });
 }
 
+/// \brief Helper to convert the base integral type of a container to another
+/// integral type
+/// \tparam To The target integral type
+/// \tparam ContainerType The container type, must be either one of std::array
+/// or std::vector
+///
+/// \param[in] src The source container
+/// \return A new container with the same type as src but with base integral
+/// type converted to To
+template <typename To, typename ContainerType,
+          std::enable_if_t<is_std_vector_v<ContainerType> ||
+                               is_std_array_v<ContainerType>,
+                           std::nullptr_t> = nullptr>
+auto convert_base_int_type(const ContainerType& src) {
+  using From = KokkosFFT::Impl::base_container_value_type<ContainerType>;
+  static_assert(std::is_integral_v<From>,
+                "convert_base_int_type: Container value type must be an "
+                "integral type");
+  static_assert(std::is_integral_v<To>,
+                "convert_base_int_type: To must be an integral type");
+
+  if constexpr (std::is_same_v<From, To>) {
+    return src;  // no conversion needed
+  } else {
+    // Check convertibility
+    static_assert(std::is_convertible_v<From, To>,
+                  "convert_base_int_type: From must be convertible to To");
+
+    auto safe_conversion = [](const From v) -> To {
+      // Check for overflow or underflow
+      constexpr auto to_min = std::numeric_limits<To>::min();
+      constexpr auto to_max = std::numeric_limits<To>::max();
+
+      if constexpr (std::is_signed_v<From> && std::is_signed_v<To>) {
+        // Both are signed
+        if (v < to_min || v > to_max) {
+          throw std::overflow_error(
+              "convert_base_int_type: Signed-to-signed overflow");
+        }
+      } else if constexpr (std::is_signed_v<From> && std::is_unsigned_v<To>) {
+        // From is signed, To is unsigned
+        if (v < 0) {
+          throw std::overflow_error(
+              "convert_base_int_type: negative value cannot be converted to "
+              "unsigned type");
+        }
+
+        if (static_cast<std::make_unsigned_t<From>>(v) > to_max) {
+          throw std::overflow_error(
+              "convert_base_int_type: Signed-to-unsigned overflow");
+        }
+      } else if constexpr (std::is_unsigned_v<From> && std::is_signed_v<To>) {
+        // From is unsigned, To is signed
+        if (v > static_cast<std::make_unsigned_t<To>>(to_max)) {
+          throw std::overflow_error(
+              "convert_base_int_type: Unsigned-to-signed overflow");
+        }
+      } else {
+        // Both are unsigned
+        if (v > to_max) {
+          throw std::overflow_error(
+              "convert_base_int_type: Unsigned-to-unsigned overflow");
+        }
+      }
+
+      return static_cast<To>(v);
+    };
+
+    if constexpr (is_std_vector_v<ContainerType>) {
+      // Handle std::vector
+      std::vector<To> dst(src.size());
+      std::transform(src.begin(), src.end(), dst.begin(), safe_conversion);
+      return dst;
+    } else if constexpr (is_std_array_v<ContainerType>) {
+      // Handle arrays: std::array
+      constexpr std::size_t N = std::tuple_size_v<ContainerType>;
+      std::array<To, N> dst{};
+      std::transform(src.begin(), src.end(), dst.begin(), safe_conversion);
+      return dst;
+    }
+  }
+}
+
 }  // namespace Impl
 }  // namespace KokkosFFT
 
