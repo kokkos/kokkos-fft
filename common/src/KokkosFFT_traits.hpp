@@ -297,22 +297,25 @@ template <typename ExecutionSpace>
 inline constexpr bool is_AnyHostSpace_v =
     is_AnyHostSpace<ExecutionSpace>::value;
 
-/// \brief Helper to check if a type has static member functions size() and
-/// index() (e.g., std::vector, std::array, Kokkos::Array, etc.)
-template <typename, typename = void>
-struct has_size_and_index : std::false_type {};
+template <typename T>
+struct is_std_vector : std::false_type {};
+
+template <typename T, typename Alloc>
+struct is_std_vector<std::vector<T, Alloc>> : std::true_type {};
+
+/// \brief Helper to check if a type is std::vector
+template <typename T>
+inline constexpr bool is_std_vector_v = is_std_vector<T>::value;
 
 template <typename T>
-struct has_size_and_index<
-    T, std::void_t<
-           decltype(std::declval<const T&>().size()),
-           decltype(std::declval<const T&>()[std::declval<std::size_t>()])>>
-    : std::true_type {};
+struct is_std_array : std::false_type {};
 
-/// \brief Helper to check if a type has static member functions size() and
-/// index()
+template <typename T, std::size_t N>
+struct is_std_array<std::array<T, N>> : std::true_type {};
+
+/// \brief Helper to check if a type is std::array
 template <typename T>
-inline constexpr bool has_size_and_index_v = has_size_and_index<T>::value;
+inline constexpr bool is_std_array_v = is_std_array<T>::value;
 
 }  // namespace Impl
 }  // namespace KokkosFFT

@@ -640,6 +640,26 @@ TYPED_TEST(CompileTestContainerTypes, get_value_type_from_kokkos_array) {
   test_get_container_value_type<value_type, container_type>();
 }
 
+TYPED_TEST(CompileTestContainerTypes, is_std_vector) {
+  using vector_type       = typename TestFixture::vector_type;
+  using std_array_type    = typename TestFixture::std_array_type;
+  using Kokkos_array_type = typename TestFixture::Kokkos_array_type;
+
+  static_assert(KokkosFFT::Impl::is_std_vector_v<vector_type>);
+  static_assert(!KokkosFFT::Impl::is_std_vector_v<std_array_type>);
+  static_assert(!KokkosFFT::Impl::is_std_vector_v<Kokkos_array_type>);
+}
+
+TYPED_TEST(CompileTestContainerTypes, is_std_array) {
+  using vector_type       = typename TestFixture::vector_type;
+  using std_array_type    = typename TestFixture::std_array_type;
+  using Kokkos_array_type = typename TestFixture::Kokkos_array_type;
+
+  static_assert(!KokkosFFT::Impl::is_std_array_v<vector_type>);
+  static_assert(KokkosFFT::Impl::is_std_array_v<std_array_type>);
+  static_assert(!KokkosFFT::Impl::is_std_array_v<Kokkos_array_type>);
+}
+
 TYPED_TEST(CompileTestRealAndComplexTypes, get_real_type) {
   using real_type    = typename TestFixture::real_type;
   using complex_type = typename TestFixture::complex_type;

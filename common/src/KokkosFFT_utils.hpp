@@ -332,14 +332,15 @@ auto total_size(const ContainerType& values) {
 /// \brief Helper to convert the base integral type of a container to another
 /// integral type
 /// \tparam To The target integral type
-/// \tparam ContainerType The container type, must have size() and index
-/// operator
+/// \tparam ContainerType The container type, must be either one of std::array
+/// or std::vector
 ///
 /// \param[in] src The source container
 /// \return A new container with the same type as src but with base integral
 /// type converted to To
 template <typename To, typename ContainerType,
-          std::enable_if_t<has_size_and_index_v<ContainerType>,
+          std::enable_if_t<is_std_vector_v<ContainerType> ||
+                               is_std_array_v<ContainerType>,
                            std::nullptr_t> = nullptr>
 auto convert_base_int_type(const ContainerType& src) {
   using From = KokkosFFT::Impl::base_container_value_type<ContainerType>;
@@ -396,14 +397,13 @@ auto convert_base_int_type(const ContainerType& src) {
       return static_cast<To>(v);
     };
 
-    if constexpr (std::is_same_v<ContainerType, std::vector<From>>) {
+    if constexpr (is_std_vector_v<ContainerType>) {
       // Handle std::vector
       std::vector<To> dst(src.size());
       std::transform(src.begin(), src.end(), dst.begin(), safe_conversion);
       return dst;
-    } else {
+    } else if constexpr (is_std_array_v<ContainerType>) {
       // Handle arrays: std::array
-      // [TO DO] Add support for Kokkos::Array if needed
       constexpr std::size_t N = std::tuple_size_v<ContainerType>;
       std::array<To, N> dst{};
       std::transform(src.begin(), src.end(), dst.begin(), safe_conversion);
