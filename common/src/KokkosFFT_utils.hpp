@@ -80,27 +80,6 @@ auto convert_negative_axes(const std::array<IntType, DIM>& axes,
   return non_negative_axes;
 }
 
-template <typename ViewType>
-auto convert_negative_shift(const ViewType& view, int shift, int axis) {
-  static_assert(Kokkos::is_view_v<ViewType>,
-                "convert_negative_shift: ViewType must be a Kokkos::View.");
-  int non_negative_axis = convert_negative_axis(axis, ViewType::rank());
-  int extent            = view.extent(non_negative_axis);
-  int shift0 = 0, shift1 = 0, shift2 = extent / 2;
-
-  if (shift < 0) {
-    shift0 = -shift + extent % 2;  // add 1 for odd case
-    shift1 = -shift;
-    shift2 = 0;
-  } else if (shift > 0) {
-    shift0 = shift;
-    shift1 = shift + extent % 2;  // add 1 for odd case
-    shift2 = 0;
-  }
-
-  return std::tuple<int, int, int>(shift0, shift1, shift2);
-}
-
 template <typename ContainerType, typename ValueType>
 bool is_found(const ContainerType& values, const ValueType value) {
   using value_type = KokkosFFT::Impl::base_container_value_type<ContainerType>;

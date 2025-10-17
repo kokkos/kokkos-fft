@@ -37,11 +37,6 @@ struct TestConvertNegativeAxes : public ::testing::Test {
 };
 
 template <typename T>
-struct ConvertNegativeShift : public ::testing::Test {
-  using layout_type = T;
-};
-
-template <typename T>
 struct ContainerTypes : public ::testing::Test {
   static constexpr std::size_t rank = 5;
   using value_type                  = T;
@@ -512,62 +507,6 @@ void test_convert_negative_axes_4d() {
   }
 }
 
-// Tests for convert_negative_shift over ND views
-template <typename LayoutType>
-void test_convert_negative_shift_1d() {
-  const int n0_odd = 29, n0_even = 30;
-  const int shift      = 5;
-  using RealView1Dtype = Kokkos::View<double*, LayoutType, execution_space>;
-  RealView1Dtype x_odd("x_odd", n0_odd), x_even("x_even", n0_even);
-
-  auto [shift_5_0_odd, shift_5_1_odd, shift_5_2_odd] =
-      KokkosFFT::Impl::convert_negative_shift(x_odd, shift, 0);
-  auto [shift_5_0_even, shift_5_1_even, shift_5_2_even] =
-      KokkosFFT::Impl::convert_negative_shift(x_even, shift, 0);
-  auto [shift_0_0_odd, shift_0_1_odd, shift_0_2_odd] =
-      KokkosFFT::Impl::convert_negative_shift(x_odd, 0, 0);
-  auto [shift_0_0_even, shift_0_1_even, shift_0_2_even] =
-      KokkosFFT::Impl::convert_negative_shift(x_even, 0, 0);
-  auto [shift_m5_0_odd, shift_m5_1_odd, shift_m5_2_odd] =
-      KokkosFFT::Impl::convert_negative_shift(x_odd, -shift, 0);
-  auto [shift_m5_0_even, shift_m5_1_even, shift_m5_2_even] =
-      KokkosFFT::Impl::convert_negative_shift(x_even, -shift, 0);
-
-  int ref_shift_5_0_odd = shift, ref_shift_5_1_odd = shift + 1,
-      ref_shift_5_2_odd  = 0;
-  int ref_shift_5_0_even = shift, ref_shift_5_1_even = shift,
-      ref_shift_5_2_even = 0;
-  int ref_shift_0_0_odd = 0, ref_shift_0_1_odd = 0,
-      ref_shift_0_2_odd  = n0_odd / 2;
-  int ref_shift_0_0_even = 0, ref_shift_0_1_even = 0,
-      ref_shift_0_2_even = n0_even / 2;
-  int ref_shift_m5_0_odd = shift + 1, ref_shift_m5_1_odd = shift,
-      ref_shift_m5_2_odd  = 0;
-  int ref_shift_m5_0_even = shift, ref_shift_m5_1_even = shift,
-      ref_shift_m5_2_even = 0;
-
-  EXPECT_EQ(shift_5_0_odd, ref_shift_5_0_odd);
-  EXPECT_EQ(shift_5_0_even, ref_shift_5_0_even);
-  EXPECT_EQ(shift_0_0_odd, ref_shift_0_0_odd);
-  EXPECT_EQ(shift_0_0_even, ref_shift_0_0_even);
-  EXPECT_EQ(shift_m5_0_odd, ref_shift_m5_0_odd);
-  EXPECT_EQ(shift_m5_0_even, ref_shift_m5_0_even);
-
-  EXPECT_EQ(shift_5_1_odd, ref_shift_5_1_odd);
-  EXPECT_EQ(shift_5_1_even, ref_shift_5_1_even);
-  EXPECT_EQ(shift_0_1_odd, ref_shift_0_1_odd);
-  EXPECT_EQ(shift_0_1_even, ref_shift_0_1_even);
-  EXPECT_EQ(shift_m5_1_odd, ref_shift_m5_1_odd);
-  EXPECT_EQ(shift_m5_1_even, ref_shift_m5_1_even);
-
-  EXPECT_EQ(shift_5_2_odd, ref_shift_5_2_odd);
-  EXPECT_EQ(shift_5_2_even, ref_shift_5_2_even);
-  EXPECT_EQ(shift_0_2_odd, ref_shift_0_2_odd);
-  EXPECT_EQ(shift_0_2_even, ref_shift_0_2_even);
-  EXPECT_EQ(shift_m5_2_odd, ref_shift_m5_2_odd);
-  EXPECT_EQ(shift_m5_2_even, ref_shift_m5_2_even);
-}
-
 template <typename ContainerType>
 void test_is_found() {
   using IntType   = KokkosFFT::Impl::base_container_value_type<ContainerType>;
@@ -923,7 +862,6 @@ void test_convert_base_int_type() {
 
 TYPED_TEST_SUITE(TestConvertNegativeAxis, base_int_types);
 TYPED_TEST_SUITE(TestConvertNegativeAxes, base_int_types);
-TYPED_TEST_SUITE(ConvertNegativeShift, test_types);
 TYPED_TEST_SUITE(ContainerTypes, base_int_types);
 TYPED_TEST_SUITE(PairedScalarTypes, paired_scalar_types);
 TYPED_TEST_SUITE(TestIndexSequence, base_int_types);
@@ -968,13 +906,6 @@ TYPED_TEST(TestConvertNegativeAxes, 3DView) {
 TYPED_TEST(TestConvertNegativeAxes, 4DView) {
   using value_type = typename TestFixture::value_type;
   test_convert_negative_axes_4d<value_type>();
-}
-
-// Tests for 1D View
-TYPED_TEST(ConvertNegativeShift, 1DView) {
-  using layout_type = typename TestFixture::layout_type;
-
-  test_convert_negative_shift_1d<layout_type>();
 }
 
 TEST(IsTransposeNeeded, 1Dto3D) {
