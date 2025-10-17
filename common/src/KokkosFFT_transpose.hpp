@@ -13,10 +13,11 @@
 namespace KokkosFFT {
 namespace Impl {
 
-template <typename Layout, std::size_t DIM, typename iType, std::size_t FFT_DIM>
-auto get_map_axes(const std::array<iType, FFT_DIM>& axes) {
-  static_assert(std::is_integral_v<iType>,
-                "get_map_axes: iType must be an integral type.");
+template <typename Layout, std::size_t DIM, typename IntType,
+          std::size_t FFT_DIM>
+auto get_map_axes(const std::array<IntType, FFT_DIM>& axes) {
+  static_assert(std::is_integral_v<IntType>,
+                "get_map_axes: IntType must be an integral type.");
   static_assert(
       FFT_DIM >= 1 && FFT_DIM <= DIM,
       "get_map_axes: the Rank of FFT axes must be between 1 and View rank");
@@ -26,13 +27,13 @@ auto get_map_axes(const std::array<iType, FFT_DIM>& axes) {
 
   // how indices are map
   // For 5D View and axes are (2,3), map would be (0, 1, 4, 2, 3)
-  constexpr iType rank = static_cast<iType>(DIM);
-  std::vector<iType> map;
+  constexpr IntType rank = static_cast<IntType>(DIM);
+  std::vector<IntType> map;
   map.reserve(rank);
 
   if (std::is_same_v<Layout, Kokkos::LayoutRight>) {
     // Stack axes not specified by axes (0, 1, 4)
-    for (iType i = 0; i < rank; i++) {
+    for (IntType i = 0; i < rank; i++) {
       if (!is_found(non_negative_axes, i)) {
         map.push_back(i);
       }
@@ -58,20 +59,20 @@ auto get_map_axes(const std::array<iType, FFT_DIM>& axes) {
     }
   }
 
-  using full_axis_type     = std::array<iType, rank>;
+  using full_axis_type     = std::array<IntType, rank>;
   full_axis_type array_map = {}, array_map_inv = {};
   std::copy_n(map.begin(), rank, array_map.begin());
 
   // Construct inverse map
-  for (iType i = 0; i < rank; i++) {
+  for (IntType i = 0; i < rank; i++) {
     array_map_inv.at(i) = get_index(array_map, i);
   }
 
   return std::make_tuple(array_map, array_map_inv);
 }
 
-template <typename ViewType, std::size_t DIM>
-auto get_map_axes(const ViewType& view, axis_type<DIM> axes) {
+template <typename ViewType, std::size_t FFT_DIM>
+auto get_map_axes(const ViewType& view, const axis_type<FFT_DIM>& axes) {
   KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(view, axes),
                      "get_map_axes: input axes are not valid for the view");
   using LayoutType = typename ViewType::array_layout;
