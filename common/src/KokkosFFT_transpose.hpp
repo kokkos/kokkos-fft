@@ -52,7 +52,7 @@ auto get_map_axes(const std::array<IntType, FFT_DIM>& axes) {
     }
 
     // Then stack remaining axes
-    for (iType i = 0; i < rank; i++) {
+    for (IntType i = 0; i < rank; i++) {
       if (!is_found(non_negative_axes, i)) {
         map.push_back(i);
       }
