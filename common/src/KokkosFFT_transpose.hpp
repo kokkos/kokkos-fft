@@ -13,6 +13,18 @@
 namespace KokkosFFT {
 namespace Impl {
 
+/// \brief Mapping axes for transpose. With this mapping,
+/// the input view is transposed into the contiguous order which is expected by
+/// the FFT plan.
+///
+/// \tparam Layout The layout of the input view
+/// \tparam DIM The dimensionality of the input view
+/// \tparam IntType The type of axes
+/// \tparam FFT_DIM The dimensionality of the FFT axes
+///
+/// \param[in] axes Axes over which FFT is performed
+/// \return The mapping axes and inverse mapping axes as a tuple
+/// \throws if axes are not valid for the view
 template <typename Layout, std::size_t DIM, typename IntType,
           std::size_t FFT_DIM>
 auto get_map_axes(const std::array<IntType, FFT_DIM>& axes) {
@@ -71,6 +83,16 @@ auto get_map_axes(const std::array<IntType, FFT_DIM>& axes) {
   return std::make_tuple(array_map, array_map_inv);
 }
 
+/// \brief Mapping axes for transpose. With this mapping,
+/// the input view is transposed into the contiguous order which is expected by
+/// the FFT plan.
+///
+/// \tparam ViewType The type of the input view
+/// \tparam FFT_DIM The dimensionality of the FFT axes
+///
+/// \param[in] axes Axes over which FFT is performed
+/// \return The mapping axes and inverse mapping axes as a tuple
+/// \throws if axes are not valid for the view
 template <typename ViewType, std::size_t FFT_DIM>
 auto get_map_axes(const ViewType& view, const axis_type<FFT_DIM>& axes) {
   KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(view, axes),
@@ -79,6 +101,15 @@ auto get_map_axes(const ViewType& view, const axis_type<FFT_DIM>& axes) {
   return get_map_axes<LayoutType, ViewType::rank()>(axes);
 }
 
+/// \brief Mapping axes for transpose. With this mapping,
+/// the input view is transposed into the contiguous order which is expected by
+/// the FFT plan.
+///
+/// \tparam ViewType The type of the input view
+///
+/// \param[in] axis Axis over which FFT is performed
+/// \return The mapping axes and inverse mapping axes as a tuple
+/// \throws if axes are not valid for the view
 template <typename ViewType>
 auto get_map_axes(const ViewType& view, int axis) {
   return get_map_axes(view, axis_type<1>({axis}));
@@ -155,7 +186,7 @@ struct Transpose {
   /// \param[in] in The input Kokkos view to be transposed.
   /// \param[out] out The output Kokkos view after transpose.
   /// \param[in] map The indices mapping of transpose
-  /// \param[in] exec_space[in] The Kokkos execution space to be used (defaults
+  /// \param[in] exec_space The Kokkos execution space to be used (defaults
   /// to ExecutionSpace()).
   Transpose(const InViewType& in, const OutViewType& out, const ArrayType& map,
             const ExecutionSpace exec_space = ExecutionSpace()) {
