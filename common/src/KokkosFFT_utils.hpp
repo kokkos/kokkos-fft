@@ -391,11 +391,16 @@ auto convert_base_int_type(const ContainerType& src) {
   }
 }
 
-// \brief Helper to compute strides from extents
+// \brief Helper to compute strides from extents.
+// The extents are computed from a LayoutRight View.
+// The computed strides can be considered as view strides
+// in the reversed order.
+//
 // Examples:
-// (n0, n1, n2) -> (1, n2, n1*n2)
-// (n0, n1) -> (1, n1)
-// (n0) -> (1)
+// v0 (n0) -> (v0.stride(0)) or (1)
+// v1 (n0, n1) -> (v1.stride(1), v1.stride(0)) or (1, n1)
+// v2 (n0, n1, n2) -> (v2.stride(2), v2.stride(1), v2.stride(0))
+//                 or (1, n2, n2 * n1)
 /// \tparam ContainerType The container type, must be either one of std::array
 /// or std::vector
 /// \param[in] extents The extents of the data
@@ -405,10 +410,10 @@ template <typename ContainerType,
                                is_std_array_v<ContainerType>,
                            std::nullptr_t> = nullptr>
 auto compute_strides(const ContainerType& extents) {
-  using IntType =
+  using index_type =
       std::remove_cv_t<std::remove_reference_t<decltype(*extents.begin())>>;
-  static_assert(std::is_integral_v<IntType>,
-                "compute_strides: IntType must be an integral type.");
+  static_assert(std::is_integral_v<index_type>,
+                "compute_strides: index_type must be an integral type.");
   KOKKOSFFT_THROW_IF(
       total_size(extents) <= 0,
       "compute_strides: total size of the extents must not be 0");
