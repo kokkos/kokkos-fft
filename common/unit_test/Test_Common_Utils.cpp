@@ -596,6 +596,15 @@ void test_is_out_of_range_value_included() {
   }
 }
 
+template <typename ContainerType>
+void test_compute_strides() {
+  ContainerType v0 = {2, 3, 5}, v1 = {1, 3, 0};
+  ContainerType ref_strides0 = {1, 2, 2 * 3};
+
+  EXPECT_EQ(KokkosFFT::Impl::compute_strides(v0), ref_strides0);
+  EXPECT_THROW(KokkosFFT::Impl::compute_strides(v1), std::runtime_error);
+}
+
 template <typename IntType>
 void test_are_valid_axes() {
   using real_type  = double;
@@ -986,6 +995,17 @@ TYPED_TEST(ContainerTypes, test_total_size_of_array) {
   using container_type1 = std::array<value_type, 3>;
   using container_type2 = std::array<value_type, 1>;
   test_total_size<container_type0, container_type1, container_type2>();
+}
+
+TYPED_TEST(ContainerTypes, test_compute_strides_of_arrays) {
+  using value_type     = typename TestFixture::value_type;
+  using container_type = std::array<value_type, 3>;
+  test_compute_strides<container_type>();
+}
+
+TYPED_TEST(ContainerTypes, test_compute_strides_of_vectors) {
+  using container_type = typename TestFixture::vector_type;
+  test_compute_strides<container_type>();
 }
 
 TYPED_TEST(ContainerTypes, are_valid_axes) {

@@ -391,6 +391,37 @@ auto convert_base_int_type(const ContainerType& src) {
   }
 }
 
+// \brief Helper to compute strides from extents
+// Examples:
+// (n0, n1, n2) -> (1, n0, n0*n1)
+// (n0, n1) -> (1, n0)
+// (n0) -> (1)
+/// \tparam ContainerType The container type, must be either one of std::array
+/// or std::vector
+/// \param[in] extents The extents of the data
+/// \return strides computed from the input data
+template <typename ContainerType,
+          std::enable_if_t<is_std_vector_v<ContainerType> ||
+                               is_std_array_v<ContainerType>,
+                           std::nullptr_t> = nullptr>
+auto compute_strides(const ContainerType& extents) {
+  using IntType =
+      std::remove_cv_t<std::remove_reference_t<decltype(*extents.begin())>>;
+  static_assert(std::is_integral_v<IntType>,
+                "compute_strides: IntType must be an integral type.");
+  KOKKOSFFT_THROW_IF(
+      total_size(extents) <= 0,
+      "compute_strides: total size of the extents must not be 0");
+  ContainerType strides = extents, reversed_extents = extents;
+  std::reverse(reversed_extents.begin(), reversed_extents.end());
+
+  strides.at(0) = 1;
+  for (std::size_t i = 1; i < reversed_extents.size(); i++) {
+    strides.at(i) = reversed_extents.at(i - 1) * strides.at(i - 1);
+  }
+  return strides;
+}
+
 }  // namespace Impl
 }  // namespace KokkosFFT
 
