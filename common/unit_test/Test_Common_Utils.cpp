@@ -620,6 +620,21 @@ void test_reversed() {
   auto out3 = KokkosFFT::Impl::reversed(std::move(v));
   EXPECT_EQ(out2, ref_reversed);
   EXPECT_EQ(out3, ref_reversed);
+
+  // Check behavior of moved-from container
+  if constexpr (KokkosFFT::Impl::is_std_vector_v<ContainerType>) {
+    // For std::vector, after move the container should be empty or in valid but
+    // unspecified state We can only safely check that it's in a valid state
+    // Note: We cannot assume the vector is empty, as the standard only
+    // guarantees valid but unspecified state
+    EXPECT_NO_THROW(v.size()) << "Moved-from vector should be in a valid state";
+  } else {
+    // For std::array with fundamental types, move is equivalent to copy
+    // The original array should retain its values since elements are
+    // fundamental types
+    EXPECT_EQ(v, v_fixed)
+        << "Array with fundamental types should be unchanged after move";
+  }
 }
 
 template <typename IntType>
