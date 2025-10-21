@@ -393,8 +393,8 @@ auto convert_base_int_type(const ContainerType& src) {
 
 // \brief Helper to compute strides from extents
 // Examples:
-// (n0, n1, n2) -> (1, n0, n0*n1)
-// (n0, n1) -> (1, n0)
+// (n0, n1, n2) -> (1, n2, n1*n2)
+// (n0, n1) -> (1, n1)
 // (n0) -> (1)
 /// \tparam ContainerType The container type, must be either one of std::array
 /// or std::vector

@@ -599,7 +599,7 @@ void test_is_out_of_range_value_included() {
 template <typename ContainerType>
 void test_compute_strides() {
   ContainerType v0 = {2, 3, 5}, v1 = {1, 3, 0};
-  ContainerType ref_strides0 = {1, 2, 2 * 3};
+  ContainerType ref_strides0 = {1, 5, 3 * 5};
 
   EXPECT_EQ(KokkosFFT::Impl::compute_strides(v0), ref_strides0);
   EXPECT_THROW(KokkosFFT::Impl::compute_strides(v1), std::runtime_error);
