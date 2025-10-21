@@ -340,8 +340,7 @@ void test_transpose_1d_2dview() {
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
   Kokkos::fill_random(x, random_pool, 1.0);
 
-  auto h_x = Kokkos::create_mirror_view(x);
-  Kokkos::deep_copy(h_x, x);
+  auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
 
   // Transposed views
   axes_type<DIM> default_axes({0, 1});
@@ -364,8 +363,8 @@ void test_transpose_1d_2dview() {
       RealView2Dtype ref("ref", nt0, nt1);
       auto h_ref = Kokkos::create_mirror_view(ref);
       // Filling the transposed View
-      for (int i0 = 0; static_cast<std::size_t>(i0) < h_x.extent(0); i0++) {
-        for (int i1 = 0; static_cast<std::size_t>(i1) < h_x.extent(1); i1++) {
+      for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
+        for (std::size_t i1 = 0; i1 < h_x.extent(1); i1++) {
           h_ref(i1, i0) = h_x(i0, i1);
         }
       }
@@ -395,8 +394,7 @@ void test_transpose_1d_3dview() {
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
   Kokkos::fill_random(x, random_pool, 1.0);
 
-  auto h_x = Kokkos::create_mirror_view(x);
-  Kokkos::deep_copy(h_x, x);
+  auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
 
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2});
@@ -419,12 +417,12 @@ void test_transpose_1d_3dview() {
       RealView3Dtype ref("ref", nt0, nt1, nt2);
       auto h_ref = Kokkos::create_mirror_view(ref);
       // Filling the transposed View
-      for (int i0 = 0; static_cast<std::size_t>(i0) < h_x.extent(0); i0++) {
-        for (int i1 = 0; static_cast<std::size_t>(i1) < h_x.extent(1); i1++) {
-          for (int i2 = 0; static_cast<std::size_t>(i2) < h_x.extent(2); i2++) {
-            int dst_i0 = (map[0] == 1) ? i1 : (map[0] == 2) ? i2 : i0;
-            int dst_i1 = (map[1] == 0) ? i0 : (map[1] == 2) ? i2 : i1;
-            int dst_i2 = (map[2] == 0) ? i0 : (map[2] == 1) ? i1 : i2;
+      for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
+        for (std::size_t i1 = 0; i1 < h_x.extent(1); i1++) {
+          for (std::size_t i2 = 0; i2 < h_x.extent(2); i2++) {
+            std::size_t dst_i0 = (map[0] == 1) ? i1 : (map[0] == 2) ? i2 : i0;
+            std::size_t dst_i1 = (map[1] == 0) ? i0 : (map[1] == 2) ? i2 : i1;
+            std::size_t dst_i2 = (map[2] == 0) ? i0 : (map[2] == 1) ? i1 : i2;
 
             h_ref(dst_i0, dst_i1, dst_i2) = h_x(i0, i1, i2);
           }
@@ -456,8 +454,7 @@ void test_transpose_1d_4dview() {
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
   Kokkos::fill_random(x, random_pool, 1.0);
 
-  auto h_x = Kokkos::create_mirror_view(x);
-  Kokkos::deep_copy(h_x, x);
+  auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
 
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2, 3});
@@ -480,27 +477,26 @@ void test_transpose_1d_4dview() {
       RealView4Dtype ref("ref", nt0, nt1, nt2, nt3);
       auto h_ref = Kokkos::create_mirror_view(ref);
       // Filling the transposed View
-      for (int i0 = 0; static_cast<std::size_t>(i0) < h_x.extent(0); i0++) {
-        for (int i1 = 0; static_cast<std::size_t>(i1) < h_x.extent(1); i1++) {
-          for (int i2 = 0; static_cast<std::size_t>(i2) < h_x.extent(2); i2++) {
-            for (int i3 = 0; static_cast<std::size_t>(i3) < h_x.extent(3);
-                 i3++) {
-              int dst_i0 = (map[0] == 1)   ? i1
-                           : (map[0] == 2) ? i2
-                           : (map[0] == 3) ? i3
-                                           : i0;
-              int dst_i1 = (map[1] == 0)   ? i0
-                           : (map[1] == 2) ? i2
-                           : (map[1] == 3) ? i3
-                                           : i1;
-              int dst_i2 = (map[2] == 0)   ? i0
-                           : (map[2] == 1) ? i1
-                           : (map[2] == 3) ? i3
-                                           : i2;
-              int dst_i3 = (map[3] == 0)   ? i0
-                           : (map[3] == 1) ? i1
-                           : (map[3] == 2) ? i2
-                                           : i3;
+      for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
+        for (std::size_t i1 = 0; i1 < h_x.extent(1); i1++) {
+          for (std::size_t i2 = 0; i2 < h_x.extent(2); i2++) {
+            for (std::size_t i3 = 0; i3 < h_x.extent(3); i3++) {
+              std::size_t dst_i0 = (map[0] == 1)   ? i1
+                                   : (map[0] == 2) ? i2
+                                   : (map[0] == 3) ? i3
+                                                   : i0;
+              std::size_t dst_i1 = (map[1] == 0)   ? i0
+                                   : (map[1] == 2) ? i2
+                                   : (map[1] == 3) ? i3
+                                                   : i1;
+              std::size_t dst_i2 = (map[2] == 0)   ? i0
+                                   : (map[2] == 1) ? i1
+                                   : (map[2] == 3) ? i3
+                                                   : i2;
+              std::size_t dst_i3 = (map[3] == 0)   ? i0
+                                   : (map[3] == 1) ? i1
+                                   : (map[3] == 2) ? i2
+                                                   : i3;
 
               h_ref(dst_i0, dst_i1, dst_i2, dst_i3) = h_x(i0, i1, i2, i3);
             }
@@ -533,8 +529,7 @@ void test_transpose_1d_5dview() {
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
   Kokkos::fill_random(x, random_pool, 1.0);
 
-  auto h_x = Kokkos::create_mirror_view(x);
-  Kokkos::deep_copy(h_x, x);
+  auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
 
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2, 3, 4});
@@ -557,38 +552,36 @@ void test_transpose_1d_5dview() {
       RealView5Dtype ref("ref", nt0, nt1, nt2, nt3, nt4);
       auto h_ref = Kokkos::create_mirror_view(ref);
       // Filling the transposed View
-      for (int i0 = 0; static_cast<std::size_t>(i0) < h_x.extent(0); i0++) {
-        for (int i1 = 0; static_cast<std::size_t>(i1) < h_x.extent(1); i1++) {
-          for (int i2 = 0; static_cast<std::size_t>(i2) < h_x.extent(2); i2++) {
-            for (int i3 = 0; static_cast<std::size_t>(i3) < h_x.extent(3);
-                 i3++) {
-              for (int i4 = 0; static_cast<std::size_t>(i4) < h_x.extent(4);
-                   i4++) {
-                int dst_i0 = (map[0] == 1)   ? i1
-                             : (map[0] == 2) ? i2
-                             : (map[0] == 3) ? i3
-                             : (map[0] == 4) ? i4
-                                             : i0;
-                int dst_i1 = (map[1] == 0)   ? i0
-                             : (map[1] == 2) ? i2
-                             : (map[1] == 3) ? i3
-                             : (map[1] == 4) ? i4
-                                             : i1;
-                int dst_i2 = (map[2] == 0)   ? i0
-                             : (map[2] == 1) ? i1
-                             : (map[2] == 3) ? i3
-                             : (map[2] == 4) ? i4
-                                             : i2;
-                int dst_i3 = (map[3] == 0)   ? i0
-                             : (map[3] == 1) ? i1
-                             : (map[3] == 2) ? i2
-                             : (map[3] == 4) ? i4
-                                             : i3;
-                int dst_i4 = (map[4] == 0)   ? i0
-                             : (map[4] == 1) ? i1
-                             : (map[4] == 2) ? i2
-                             : (map[4] == 3) ? i3
-                                             : i4;
+      for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
+        for (std::size_t i1 = 0; i1 < h_x.extent(1); i1++) {
+          for (std::size_t i2 = 0; i2 < h_x.extent(2); i2++) {
+            for (std::size_t i3 = 0; i3 < h_x.extent(3); i3++) {
+              for (std::size_t i4 = 0; i4 < h_x.extent(4); i4++) {
+                std::size_t dst_i0 = (map[0] == 1)   ? i1
+                                     : (map[0] == 2) ? i2
+                                     : (map[0] == 3) ? i3
+                                     : (map[0] == 4) ? i4
+                                                     : i0;
+                std::size_t dst_i1 = (map[1] == 0)   ? i0
+                                     : (map[1] == 2) ? i2
+                                     : (map[1] == 3) ? i3
+                                     : (map[1] == 4) ? i4
+                                                     : i1;
+                std::size_t dst_i2 = (map[2] == 0)   ? i0
+                                     : (map[2] == 1) ? i1
+                                     : (map[2] == 3) ? i3
+                                     : (map[2] == 4) ? i4
+                                                     : i2;
+                std::size_t dst_i3 = (map[3] == 0)   ? i0
+                                     : (map[3] == 1) ? i1
+                                     : (map[3] == 2) ? i2
+                                     : (map[3] == 4) ? i4
+                                                     : i3;
+                std::size_t dst_i4 = (map[4] == 0)   ? i0
+                                     : (map[4] == 1) ? i1
+                                     : (map[4] == 2) ? i2
+                                     : (map[4] == 3) ? i3
+                                                     : i4;
                 h_ref(dst_i0, dst_i1, dst_i2, dst_i3, dst_i4) =
                     h_x(i0, i1, i2, i3, i4);
               }
@@ -623,8 +616,7 @@ void test_transpose_1d_6dview() {
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
   Kokkos::fill_random(x, random_pool, 1.0);
 
-  auto h_x = Kokkos::create_mirror_view(x);
-  Kokkos::deep_copy(h_x, x);
+  auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
 
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2, 3, 4, 5});
@@ -647,51 +639,48 @@ void test_transpose_1d_6dview() {
       RealView6Dtype ref("ref", nt0, nt1, nt2, nt3, nt4, nt5);
       auto h_ref = Kokkos::create_mirror_view(ref);
       // Filling the transposed View
-      for (int i0 = 0; static_cast<std::size_t>(i0) < h_x.extent(0); i0++) {
-        for (int i1 = 0; static_cast<std::size_t>(i1) < h_x.extent(1); i1++) {
-          for (int i2 = 0; static_cast<std::size_t>(i2) < h_x.extent(2); i2++) {
-            for (int i3 = 0; static_cast<std::size_t>(i3) < h_x.extent(3);
-                 i3++) {
-              for (int i4 = 0; static_cast<std::size_t>(i4) < h_x.extent(4);
-                   i4++) {
-                for (int i5 = 0; static_cast<std::size_t>(i5) < h_x.extent(5);
-                     i5++) {
-                  int dst_i0 = (map[0] == 1)   ? i1
-                               : (map[0] == 2) ? i2
-                               : (map[0] == 3) ? i3
-                               : (map[0] == 4) ? i4
-                               : (map[0] == 5) ? i5
-                                               : i0;
-                  int dst_i1 = (map[1] == 0)   ? i0
-                               : (map[1] == 2) ? i2
-                               : (map[1] == 3) ? i3
-                               : (map[1] == 4) ? i4
-                               : (map[1] == 5) ? i5
-                                               : i1;
-                  int dst_i2 = (map[2] == 0)   ? i0
-                               : (map[2] == 1) ? i1
-                               : (map[2] == 3) ? i3
-                               : (map[2] == 4) ? i4
-                               : (map[2] == 5) ? i5
-                                               : i2;
-                  int dst_i3 = (map[3] == 0)   ? i0
-                               : (map[3] == 1) ? i1
-                               : (map[3] == 2) ? i2
-                               : (map[3] == 4) ? i4
-                               : (map[3] == 5) ? i5
-                                               : i3;
-                  int dst_i4 = (map[4] == 0)   ? i0
-                               : (map[4] == 1) ? i1
-                               : (map[4] == 2) ? i2
-                               : (map[4] == 3) ? i3
-                               : (map[4] == 5) ? i5
-                                               : i4;
-                  int dst_i5 = (map[5] == 0)   ? i0
-                               : (map[5] == 1) ? i1
-                               : (map[5] == 2) ? i2
-                               : (map[5] == 3) ? i3
-                               : (map[5] == 4) ? i4
-                                               : i5;
+      for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
+        for (std::size_t i1 = 0; i1 < h_x.extent(1); i1++) {
+          for (std::size_t i2 = 0; i2 < h_x.extent(2); i2++) {
+            for (std::size_t i3 = 0; i3 < h_x.extent(3); i3++) {
+              for (std::size_t i4 = 0; i4 < h_x.extent(4); i4++) {
+                for (std::size_t i5 = 0; i5 < h_x.extent(5); i5++) {
+                  std::size_t dst_i0 = (map[0] == 1)   ? i1
+                                       : (map[0] == 2) ? i2
+                                       : (map[0] == 3) ? i3
+                                       : (map[0] == 4) ? i4
+                                       : (map[0] == 5) ? i5
+                                                       : i0;
+                  std::size_t dst_i1 = (map[1] == 0)   ? i0
+                                       : (map[1] == 2) ? i2
+                                       : (map[1] == 3) ? i3
+                                       : (map[1] == 4) ? i4
+                                       : (map[1] == 5) ? i5
+                                                       : i1;
+                  std::size_t dst_i2 = (map[2] == 0)   ? i0
+                                       : (map[2] == 1) ? i1
+                                       : (map[2] == 3) ? i3
+                                       : (map[2] == 4) ? i4
+                                       : (map[2] == 5) ? i5
+                                                       : i2;
+                  std::size_t dst_i3 = (map[3] == 0)   ? i0
+                                       : (map[3] == 1) ? i1
+                                       : (map[3] == 2) ? i2
+                                       : (map[3] == 4) ? i4
+                                       : (map[3] == 5) ? i5
+                                                       : i3;
+                  std::size_t dst_i4 = (map[4] == 0)   ? i0
+                                       : (map[4] == 1) ? i1
+                                       : (map[4] == 2) ? i2
+                                       : (map[4] == 3) ? i3
+                                       : (map[4] == 5) ? i5
+                                                       : i4;
+                  std::size_t dst_i5 = (map[5] == 0)   ? i0
+                                       : (map[5] == 1) ? i1
+                                       : (map[5] == 2) ? i2
+                                       : (map[5] == 3) ? i3
+                                       : (map[5] == 4) ? i4
+                                                       : i5;
                   h_ref(dst_i0, dst_i1, dst_i2, dst_i3, dst_i4, dst_i5) =
                       h_x(i0, i1, i2, i3, i4, i5);
                 }
@@ -727,8 +716,7 @@ void test_transpose_1d_7dview() {
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
   Kokkos::fill_random(x, random_pool, 1.0);
 
-  auto h_x = Kokkos::create_mirror_view(x);
-  Kokkos::deep_copy(h_x, x);
+  auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
 
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2, 3, 4, 5, 6});
@@ -751,68 +739,64 @@ void test_transpose_1d_7dview() {
       RealView7Dtype ref("ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6);
       auto h_ref = Kokkos::create_mirror_view(ref);
       // Filling the transposed View
-      for (int i0 = 0; static_cast<std::size_t>(i0) < h_x.extent(0); i0++) {
-        for (int i1 = 0; static_cast<std::size_t>(i1) < h_x.extent(1); i1++) {
-          for (int i2 = 0; static_cast<std::size_t>(i2) < h_x.extent(2); i2++) {
-            for (int i3 = 0; static_cast<std::size_t>(i3) < h_x.extent(3);
-                 i3++) {
-              for (int i4 = 0; static_cast<std::size_t>(i4) < h_x.extent(4);
-                   i4++) {
-                for (int i5 = 0; static_cast<std::size_t>(i5) < h_x.extent(5);
-                     i5++) {
-                  for (int i6 = 0; static_cast<std::size_t>(i6) < h_x.extent(6);
-                       i6++) {
-                    int dst_i0    = (map[0] == 1)   ? i1
-                                    : (map[0] == 2) ? i2
-                                    : (map[0] == 3) ? i3
-                                    : (map[0] == 4) ? i4
-                                    : (map[0] == 5) ? i5
-                                    : (map[0] == 6) ? i6
-                                                    : i0;
-                    int dst_i1    = (map[1] == 0)   ? i0
-                                    : (map[1] == 2) ? i2
-                                    : (map[1] == 3) ? i3
-                                    : (map[1] == 4) ? i4
-                                    : (map[1] == 5) ? i5
-                                    : (map[1] == 6) ? i6
-                                                    : i1;
-                    int dst_i2    = (map[2] == 0)   ? i0
-                                    : (map[2] == 1) ? i1
-                                    : (map[2] == 3) ? i3
-                                    : (map[2] == 4) ? i4
-                                    : (map[2] == 5) ? i5
-                                    : (map[2] == 6) ? i6
-                                                    : i2;
-                    int dst_i3    = (map[3] == 0)   ? i0
-                                    : (map[3] == 1) ? i1
-                                    : (map[3] == 2) ? i2
-                                    : (map[3] == 4) ? i4
-                                    : (map[3] == 5) ? i5
-                                    : (map[3] == 6) ? i6
-                                                    : i3;
-                    int dst_i4    = (map[4] == 0)   ? i0
-                                    : (map[4] == 1) ? i1
-                                    : (map[4] == 2) ? i2
-                                    : (map[4] == 3) ? i3
-                                    : (map[4] == 5) ? i5
-                                    : (map[4] == 6) ? i6
-                                                    : i4;
-                    int dst_i5    = (map[5] == 0)   ? i0
-                                    : (map[5] == 1) ? i1
-                                    : (map[5] == 2) ? i2
-                                    : (map[5] == 3) ? i3
-                                    : (map[5] == 4) ? i4
-                                    : (map[5] == 6) ? i6
-                                                    : i5;
-                    int dst_i6    = (map[6] == 0)   ? i0
-                                    : (map[6] == 1) ? i1
-                                    : (map[6] == 2) ? i2
-                                    : (map[6] == 3) ? i3
-                                    : (map[6] == 4) ? i4
-                                    : (map[6] == 5) ? i5
-                                                    : i6;
+      for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
+        for (std::size_t i1 = 0; i1 < h_x.extent(1); i1++) {
+          for (std::size_t i2 = 0; i2 < h_x.extent(2); i2++) {
+            for (std::size_t i3 = 0; i3 < h_x.extent(3); i3++) {
+              for (std::size_t i4 = 0; i4 < h_x.extent(4); i4++) {
+                for (std::size_t i5 = 0; i5 < h_x.extent(5); i5++) {
+                  for (std::size_t i6 = 0; i6 < h_x.extent(6); i6++) {
+                    std::size_t dst_i0 = (map[0] == 1)   ? i1
+                                         : (map[0] == 2) ? i2
+                                         : (map[0] == 3) ? i3
+                                         : (map[0] == 4) ? i4
+                                         : (map[0] == 5) ? i5
+                                         : (map[0] == 6) ? i6
+                                                         : i0;
+                    std::size_t dst_i1 = (map[1] == 0)   ? i0
+                                         : (map[1] == 2) ? i2
+                                         : (map[1] == 3) ? i3
+                                         : (map[1] == 4) ? i4
+                                         : (map[1] == 5) ? i5
+                                         : (map[1] == 6) ? i6
+                                                         : i1;
+                    std::size_t dst_i2 = (map[2] == 0)   ? i0
+                                         : (map[2] == 1) ? i1
+                                         : (map[2] == 3) ? i3
+                                         : (map[2] == 4) ? i4
+                                         : (map[2] == 5) ? i5
+                                         : (map[2] == 6) ? i6
+                                                         : i2;
+                    std::size_t dst_i3 = (map[3] == 0)   ? i0
+                                         : (map[3] == 1) ? i1
+                                         : (map[3] == 2) ? i2
+                                         : (map[3] == 4) ? i4
+                                         : (map[3] == 5) ? i5
+                                         : (map[3] == 6) ? i6
+                                                         : i3;
+                    std::size_t dst_i4 = (map[4] == 0)   ? i0
+                                         : (map[4] == 1) ? i1
+                                         : (map[4] == 2) ? i2
+                                         : (map[4] == 3) ? i3
+                                         : (map[4] == 5) ? i5
+                                         : (map[4] == 6) ? i6
+                                                         : i4;
+                    std::size_t dst_i5 = (map[5] == 0)   ? i0
+                                         : (map[5] == 1) ? i1
+                                         : (map[5] == 2) ? i2
+                                         : (map[5] == 3) ? i3
+                                         : (map[5] == 4) ? i4
+                                         : (map[5] == 6) ? i6
+                                                         : i5;
+                    std::size_t dst_i6 = (map[6] == 0)   ? i0
+                                         : (map[6] == 1) ? i1
+                                         : (map[6] == 2) ? i2
+                                         : (map[6] == 3) ? i3
+                                         : (map[6] == 4) ? i4
+                                         : (map[6] == 5) ? i5
+                                                         : i6;
                     h_ref(dst_i0, dst_i1, dst_i2, dst_i3, dst_i4, dst_i5,
-                          dst_i6) = h_x(i0, i1, i2, i3, i4, i5, i6);
+                          dst_i6)      = h_x(i0, i1, i2, i3, i4, i5, i6);
                   }
                 }
               }
@@ -847,8 +831,7 @@ void test_transpose_1d_8dview() {
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
   Kokkos::fill_random(x, random_pool, 1.0);
 
-  auto h_x = Kokkos::create_mirror_view(x);
-  Kokkos::deep_copy(h_x, x);
+  auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
 
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2, 3, 4, 5, 6, 7});
@@ -871,83 +854,78 @@ void test_transpose_1d_8dview() {
       RealView8Dtype ref("ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7);
       auto h_ref = Kokkos::create_mirror_view(ref);
       // Filling the transposed View
-      for (int i0 = 0; static_cast<std::size_t>(i0) < h_x.extent(0); i0++) {
-        for (int i1 = 0; static_cast<std::size_t>(i1) < h_x.extent(1); i1++) {
-          for (int i2 = 0; static_cast<std::size_t>(i2) < h_x.extent(2); i2++) {
-            for (int i3 = 0; static_cast<std::size_t>(i3) < h_x.extent(3);
-                 i3++) {
-              for (int i4 = 0; static_cast<std::size_t>(i4) < h_x.extent(4);
-                   i4++) {
-                for (int i5 = 0; static_cast<std::size_t>(i5) < h_x.extent(5);
-                     i5++) {
-                  for (int i6 = 0; static_cast<std::size_t>(i6) < h_x.extent(6);
-                       i6++) {
-                    for (int i7 = 0;
-                         static_cast<std::size_t>(i7) < h_x.extent(7); i7++) {
-                      int dst_i0 = (map[0] == 1)   ? i1
-                                   : (map[0] == 2) ? i2
-                                   : (map[0] == 3) ? i3
-                                   : (map[0] == 4) ? i4
-                                   : (map[0] == 5) ? i5
-                                   : (map[0] == 6) ? i6
-                                   : (map[0] == 7) ? i7
-                                                   : i0;
-                      int dst_i1 = (map[1] == 0)   ? i0
-                                   : (map[1] == 2) ? i2
-                                   : (map[1] == 3) ? i3
-                                   : (map[1] == 4) ? i4
-                                   : (map[1] == 5) ? i5
-                                   : (map[1] == 6) ? i6
-                                   : (map[1] == 7) ? i7
-                                                   : i1;
-                      int dst_i2 = (map[2] == 0)   ? i0
-                                   : (map[2] == 1) ? i1
-                                   : (map[2] == 3) ? i3
-                                   : (map[2] == 4) ? i4
-                                   : (map[2] == 5) ? i5
-                                   : (map[2] == 6) ? i6
-                                   : (map[2] == 7) ? i7
-                                                   : i2;
-                      int dst_i3 = (map[3] == 0)   ? i0
-                                   : (map[3] == 1) ? i1
-                                   : (map[3] == 2) ? i2
-                                   : (map[3] == 4) ? i4
-                                   : (map[3] == 5) ? i5
-                                   : (map[3] == 6) ? i6
-                                   : (map[3] == 7) ? i7
-                                                   : i3;
-                      int dst_i4 = (map[4] == 0)   ? i0
-                                   : (map[4] == 1) ? i1
-                                   : (map[4] == 2) ? i2
-                                   : (map[4] == 3) ? i3
-                                   : (map[4] == 5) ? i5
-                                   : (map[4] == 6) ? i6
-                                   : (map[4] == 7) ? i7
-                                                   : i4;
-                      int dst_i5 = (map[5] == 0)   ? i0
-                                   : (map[5] == 1) ? i1
-                                   : (map[5] == 2) ? i2
-                                   : (map[5] == 3) ? i3
-                                   : (map[5] == 4) ? i4
-                                   : (map[5] == 6) ? i6
-                                   : (map[5] == 7) ? i7
-                                                   : i5;
-                      int dst_i6 = (map[6] == 0)   ? i0
-                                   : (map[6] == 1) ? i1
-                                   : (map[6] == 2) ? i2
-                                   : (map[6] == 3) ? i3
-                                   : (map[6] == 4) ? i4
-                                   : (map[6] == 5) ? i5
-                                   : (map[6] == 7) ? i7
-                                                   : i6;
-                      int dst_i7 = (map[7] == 0)   ? i0
-                                   : (map[7] == 1) ? i1
-                                   : (map[7] == 2) ? i2
-                                   : (map[7] == 3) ? i3
-                                   : (map[7] == 4) ? i4
-                                   : (map[7] == 5) ? i5
-                                   : (map[7] == 6) ? i6
-                                                   : i7;
+      for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
+        for (std::size_t i1 = 0; i1 < h_x.extent(1); i1++) {
+          for (std::size_t i2 = 0; i2 < h_x.extent(2); i2++) {
+            for (std::size_t i3 = 0; i3 < h_x.extent(3); i3++) {
+              for (std::size_t i4 = 0; i4 < h_x.extent(4); i4++) {
+                for (std::size_t i5 = 0; i5 < h_x.extent(5); i5++) {
+                  for (std::size_t i6 = 0; i6 < h_x.extent(6); i6++) {
+                    for (std::size_t i7 = 0; i7 < h_x.extent(7); i7++) {
+                      std::size_t dst_i0 = (map[0] == 1)   ? i1
+                                           : (map[0] == 2) ? i2
+                                           : (map[0] == 3) ? i3
+                                           : (map[0] == 4) ? i4
+                                           : (map[0] == 5) ? i5
+                                           : (map[0] == 6) ? i6
+                                           : (map[0] == 7) ? i7
+                                                           : i0;
+                      std::size_t dst_i1 = (map[1] == 0)   ? i0
+                                           : (map[1] == 2) ? i2
+                                           : (map[1] == 3) ? i3
+                                           : (map[1] == 4) ? i4
+                                           : (map[1] == 5) ? i5
+                                           : (map[1] == 6) ? i6
+                                           : (map[1] == 7) ? i7
+                                                           : i1;
+                      std::size_t dst_i2 = (map[2] == 0)   ? i0
+                                           : (map[2] == 1) ? i1
+                                           : (map[2] == 3) ? i3
+                                           : (map[2] == 4) ? i4
+                                           : (map[2] == 5) ? i5
+                                           : (map[2] == 6) ? i6
+                                           : (map[2] == 7) ? i7
+                                                           : i2;
+                      std::size_t dst_i3 = (map[3] == 0)   ? i0
+                                           : (map[3] == 1) ? i1
+                                           : (map[3] == 2) ? i2
+                                           : (map[3] == 4) ? i4
+                                           : (map[3] == 5) ? i5
+                                           : (map[3] == 6) ? i6
+                                           : (map[3] == 7) ? i7
+                                                           : i3;
+                      std::size_t dst_i4 = (map[4] == 0)   ? i0
+                                           : (map[4] == 1) ? i1
+                                           : (map[4] == 2) ? i2
+                                           : (map[4] == 3) ? i3
+                                           : (map[4] == 5) ? i5
+                                           : (map[4] == 6) ? i6
+                                           : (map[4] == 7) ? i7
+                                                           : i4;
+                      std::size_t dst_i5 = (map[5] == 0)   ? i0
+                                           : (map[5] == 1) ? i1
+                                           : (map[5] == 2) ? i2
+                                           : (map[5] == 3) ? i3
+                                           : (map[5] == 4) ? i4
+                                           : (map[5] == 6) ? i6
+                                           : (map[5] == 7) ? i7
+                                                           : i5;
+                      std::size_t dst_i6 = (map[6] == 0)   ? i0
+                                           : (map[6] == 1) ? i1
+                                           : (map[6] == 2) ? i2
+                                           : (map[6] == 3) ? i3
+                                           : (map[6] == 4) ? i4
+                                           : (map[6] == 5) ? i5
+                                           : (map[6] == 7) ? i7
+                                                           : i6;
+                      std::size_t dst_i7 = (map[7] == 0)   ? i0
+                                           : (map[7] == 1) ? i1
+                                           : (map[7] == 2) ? i2
+                                           : (map[7] == 3) ? i3
+                                           : (map[7] == 4) ? i4
+                                           : (map[7] == 5) ? i5
+                                           : (map[7] == 6) ? i6
+                                                           : i7;
                       h_ref(dst_i0, dst_i1, dst_i2, dst_i3, dst_i4, dst_i5,
                             dst_i6, dst_i7) =
                           h_x(i0, i1, i2, i3, i4, i5, i6, i7);
@@ -986,9 +964,8 @@ void test_transpose_2d_2dview() {
   Kokkos::fill_random(x, random_pool, 1.0);
 
   // Transposed views
-  auto h_x   = Kokkos::create_mirror_view(x);
+  auto h_x   = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
   auto h_ref = Kokkos::create_mirror_view(ref);
-  Kokkos::deep_copy(h_x, x);
 
   for (int i0 = 0; static_cast<std::size_t>(i0) < h_x.extent(0); i0++) {
     for (int i1 = 0; static_cast<std::size_t>(i1) < h_x.extent(1); i1++) {
@@ -1023,8 +1000,7 @@ void test_transpose_2d_3dview() {
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
   Kokkos::fill_random(x, random_pool, 1.0);
 
-  auto h_x = Kokkos::create_mirror_view(x);
-  Kokkos::deep_copy(h_x, x);
+  auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
 
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2});
@@ -1051,13 +1027,12 @@ void test_transpose_2d_3dview() {
         RealView3Dtype ref("ref", nt0, nt1, nt2);
         auto h_ref = Kokkos::create_mirror_view(ref);
         // Filling the transposed View
-        for (int i0 = 0; static_cast<std::size_t>(i0) < h_x.extent(0); i0++) {
-          for (int i1 = 0; static_cast<std::size_t>(i1) < h_x.extent(1); i1++) {
-            for (int i2 = 0; static_cast<std::size_t>(i2) < h_x.extent(2);
-                 i2++) {
-              int dst_i0 = (map[0] == 1) ? i1 : (map[0] == 2) ? i2 : i0;
-              int dst_i1 = (map[1] == 0) ? i0 : (map[1] == 2) ? i2 : i1;
-              int dst_i2 = (map[2] == 0) ? i0 : (map[2] == 1) ? i1 : i2;
+        for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
+          for (std::size_t i1 = 0; i1 < h_x.extent(1); i1++) {
+            for (std::size_t i2 = 0; i2 < h_x.extent(2); i2++) {
+              std::size_t dst_i0 = (map[0] == 1) ? i1 : (map[0] == 2) ? i2 : i0;
+              std::size_t dst_i1 = (map[1] == 0) ? i0 : (map[1] == 2) ? i2 : i1;
+              std::size_t dst_i2 = (map[2] == 0) ? i0 : (map[2] == 1) ? i1 : i2;
 
               h_ref(dst_i0, dst_i1, dst_i2) = h_x(i0, i1, i2);
             }
@@ -1090,8 +1065,7 @@ void test_transpose_2d_4dview() {
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
   Kokkos::fill_random(x, random_pool, 1.0);
 
-  auto h_x = Kokkos::create_mirror_view(x);
-  Kokkos::deep_copy(h_x, x);
+  auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
 
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2, 3});
@@ -1118,28 +1092,26 @@ void test_transpose_2d_4dview() {
         RealView4Dtype ref("ref", nt0, nt1, nt2, nt3);
         auto h_ref = Kokkos::create_mirror_view(ref);
         // Filling the transposed View
-        for (int i0 = 0; static_cast<std::size_t>(i0) < h_x.extent(0); i0++) {
-          for (int i1 = 0; static_cast<std::size_t>(i1) < h_x.extent(1); i1++) {
-            for (int i2 = 0; static_cast<std::size_t>(i2) < h_x.extent(2);
-                 i2++) {
-              for (int i3 = 0; static_cast<std::size_t>(i3) < h_x.extent(3);
-                   i3++) {
-                int dst_i0 = (map[0] == 1)   ? i1
-                             : (map[0] == 2) ? i2
-                             : (map[0] == 3) ? i3
-                                             : i0;
-                int dst_i1 = (map[1] == 0)   ? i0
-                             : (map[1] == 2) ? i2
-                             : (map[1] == 3) ? i3
-                                             : i1;
-                int dst_i2 = (map[2] == 0)   ? i0
-                             : (map[2] == 1) ? i1
-                             : (map[2] == 3) ? i3
-                                             : i2;
-                int dst_i3 = (map[3] == 0)   ? i0
-                             : (map[3] == 1) ? i1
-                             : (map[3] == 2) ? i2
-                                             : i3;
+        for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
+          for (std::size_t i1 = 0; i1 < h_x.extent(1); i1++) {
+            for (std::size_t i2 = 0; i2 < h_x.extent(2); i2++) {
+              for (std::size_t i3 = 0; i3 < h_x.extent(3); i3++) {
+                std::size_t dst_i0 = (map[0] == 1)   ? i1
+                                     : (map[0] == 2) ? i2
+                                     : (map[0] == 3) ? i3
+                                                     : i0;
+                std::size_t dst_i1 = (map[1] == 0)   ? i0
+                                     : (map[1] == 2) ? i2
+                                     : (map[1] == 3) ? i3
+                                                     : i1;
+                std::size_t dst_i2 = (map[2] == 0)   ? i0
+                                     : (map[2] == 1) ? i1
+                                     : (map[2] == 3) ? i3
+                                                     : i2;
+                std::size_t dst_i3 = (map[3] == 0)   ? i0
+                                     : (map[3] == 1) ? i1
+                                     : (map[3] == 2) ? i2
+                                                     : i3;
 
                 h_ref(dst_i0, dst_i1, dst_i2, dst_i3) = h_x(i0, i1, i2, i3);
               }
@@ -1173,8 +1145,7 @@ void test_transpose_2d_5dview() {
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
   Kokkos::fill_random(x, random_pool, 1.0);
 
-  auto h_x = Kokkos::create_mirror_view(x);
-  Kokkos::deep_copy(h_x, x);
+  auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
 
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2, 3, 4});
@@ -1201,39 +1172,36 @@ void test_transpose_2d_5dview() {
         RealView5Dtype ref("ref", nt0, nt1, nt2, nt3, nt4);
         auto h_ref = Kokkos::create_mirror_view(ref);
         // Filling the transposed View
-        for (int i0 = 0; static_cast<std::size_t>(i0) < h_x.extent(0); i0++) {
-          for (int i1 = 0; static_cast<std::size_t>(i1) < h_x.extent(1); i1++) {
-            for (int i2 = 0; static_cast<std::size_t>(i2) < h_x.extent(2);
-                 i2++) {
-              for (int i3 = 0; static_cast<std::size_t>(i3) < h_x.extent(3);
-                   i3++) {
-                for (int i4 = 0; static_cast<std::size_t>(i4) < h_x.extent(4);
-                     i4++) {
-                  int dst_i0 = (map[0] == 1)   ? i1
-                               : (map[0] == 2) ? i2
-                               : (map[0] == 3) ? i3
-                               : (map[0] == 4) ? i4
-                                               : i0;
-                  int dst_i1 = (map[1] == 0)   ? i0
-                               : (map[1] == 2) ? i2
-                               : (map[1] == 3) ? i3
-                               : (map[1] == 4) ? i4
-                                               : i1;
-                  int dst_i2 = (map[2] == 0)   ? i0
-                               : (map[2] == 1) ? i1
-                               : (map[2] == 3) ? i3
-                               : (map[2] == 4) ? i4
-                                               : i2;
-                  int dst_i3 = (map[3] == 0)   ? i0
-                               : (map[3] == 1) ? i1
-                               : (map[3] == 2) ? i2
-                               : (map[3] == 4) ? i4
-                                               : i3;
-                  int dst_i4 = (map[4] == 0)   ? i0
-                               : (map[4] == 1) ? i1
-                               : (map[4] == 2) ? i2
-                               : (map[4] == 3) ? i3
-                                               : i4;
+        for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
+          for (std::size_t i1 = 0; i1 < h_x.extent(1); i1++) {
+            for (std::size_t i2 = 0; i2 < h_x.extent(2); i2++) {
+              for (std::size_t i3 = 0; i3 < h_x.extent(3); i3++) {
+                for (std::size_t i4 = 0; i4 < h_x.extent(4); i4++) {
+                  std::size_t dst_i0 = (map[0] == 1)   ? i1
+                                       : (map[0] == 2) ? i2
+                                       : (map[0] == 3) ? i3
+                                       : (map[0] == 4) ? i4
+                                                       : i0;
+                  std::size_t dst_i1 = (map[1] == 0)   ? i0
+                                       : (map[1] == 2) ? i2
+                                       : (map[1] == 3) ? i3
+                                       : (map[1] == 4) ? i4
+                                                       : i1;
+                  std::size_t dst_i2 = (map[2] == 0)   ? i0
+                                       : (map[2] == 1) ? i1
+                                       : (map[2] == 3) ? i3
+                                       : (map[2] == 4) ? i4
+                                                       : i2;
+                  std::size_t dst_i3 = (map[3] == 0)   ? i0
+                                       : (map[3] == 1) ? i1
+                                       : (map[3] == 2) ? i2
+                                       : (map[3] == 4) ? i4
+                                                       : i3;
+                  std::size_t dst_i4 = (map[4] == 0)   ? i0
+                                       : (map[4] == 1) ? i1
+                                       : (map[4] == 2) ? i2
+                                       : (map[4] == 3) ? i3
+                                                       : i4;
                   h_ref(dst_i0, dst_i1, dst_i2, dst_i3, dst_i4) =
                       h_x(i0, i1, i2, i3, i4);
                 }
@@ -1269,8 +1237,7 @@ void test_transpose_2d_6dview() {
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
   Kokkos::fill_random(x, random_pool, 1.0);
 
-  auto h_x = Kokkos::create_mirror_view(x);
-  Kokkos::deep_copy(h_x, x);
+  auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
 
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2, 3, 4, 5});
@@ -1297,52 +1264,48 @@ void test_transpose_2d_6dview() {
         RealView6Dtype ref("ref", nt0, nt1, nt2, nt3, nt4, nt5);
         auto h_ref = Kokkos::create_mirror_view(ref);
         // Filling the transposed View
-        for (int i0 = 0; static_cast<std::size_t>(i0) < h_x.extent(0); i0++) {
-          for (int i1 = 0; static_cast<std::size_t>(i1) < h_x.extent(1); i1++) {
-            for (int i2 = 0; static_cast<std::size_t>(i2) < h_x.extent(2);
-                 i2++) {
-              for (int i3 = 0; static_cast<std::size_t>(i3) < h_x.extent(3);
-                   i3++) {
-                for (int i4 = 0; static_cast<std::size_t>(i4) < h_x.extent(4);
-                     i4++) {
-                  for (int i5 = 0; static_cast<std::size_t>(i5) < h_x.extent(5);
-                       i5++) {
-                    int dst_i0 = (map[0] == 1)   ? i1
-                                 : (map[0] == 2) ? i2
-                                 : (map[0] == 3) ? i3
-                                 : (map[0] == 4) ? i4
-                                 : (map[0] == 5) ? i5
-                                                 : i0;
-                    int dst_i1 = (map[1] == 0)   ? i0
-                                 : (map[1] == 2) ? i2
-                                 : (map[1] == 3) ? i3
-                                 : (map[1] == 4) ? i4
-                                 : (map[1] == 5) ? i5
-                                                 : i1;
-                    int dst_i2 = (map[2] == 0)   ? i0
-                                 : (map[2] == 1) ? i1
-                                 : (map[2] == 3) ? i3
-                                 : (map[2] == 4) ? i4
-                                 : (map[2] == 5) ? i5
-                                                 : i2;
-                    int dst_i3 = (map[3] == 0)   ? i0
-                                 : (map[3] == 1) ? i1
-                                 : (map[3] == 2) ? i2
-                                 : (map[3] == 4) ? i4
-                                 : (map[3] == 5) ? i5
-                                                 : i3;
-                    int dst_i4 = (map[4] == 0)   ? i0
-                                 : (map[4] == 1) ? i1
-                                 : (map[4] == 2) ? i2
-                                 : (map[4] == 3) ? i3
-                                 : (map[4] == 5) ? i5
-                                                 : i4;
-                    int dst_i5 = (map[5] == 0)   ? i0
-                                 : (map[5] == 1) ? i1
-                                 : (map[5] == 2) ? i2
-                                 : (map[5] == 3) ? i3
-                                 : (map[5] == 4) ? i4
-                                                 : i5;
+        for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
+          for (std::size_t i1 = 0; i1 < h_x.extent(1); i1++) {
+            for (std::size_t i2 = 0; i2 < h_x.extent(2); i2++) {
+              for (std::size_t i3 = 0; i3 < h_x.extent(3); i3++) {
+                for (std::size_t i4 = 0; i4 < h_x.extent(4); i4++) {
+                  for (std::size_t i5 = 0; i5 < h_x.extent(5); i5++) {
+                    std::size_t dst_i0 = (map[0] == 1)   ? i1
+                                         : (map[0] == 2) ? i2
+                                         : (map[0] == 3) ? i3
+                                         : (map[0] == 4) ? i4
+                                         : (map[0] == 5) ? i5
+                                                         : i0;
+                    std::size_t dst_i1 = (map[1] == 0)   ? i0
+                                         : (map[1] == 2) ? i2
+                                         : (map[1] == 3) ? i3
+                                         : (map[1] == 4) ? i4
+                                         : (map[1] == 5) ? i5
+                                                         : i1;
+                    std::size_t dst_i2 = (map[2] == 0)   ? i0
+                                         : (map[2] == 1) ? i1
+                                         : (map[2] == 3) ? i3
+                                         : (map[2] == 4) ? i4
+                                         : (map[2] == 5) ? i5
+                                                         : i2;
+                    std::size_t dst_i3 = (map[3] == 0)   ? i0
+                                         : (map[3] == 1) ? i1
+                                         : (map[3] == 2) ? i2
+                                         : (map[3] == 4) ? i4
+                                         : (map[3] == 5) ? i5
+                                                         : i3;
+                    std::size_t dst_i4 = (map[4] == 0)   ? i0
+                                         : (map[4] == 1) ? i1
+                                         : (map[4] == 2) ? i2
+                                         : (map[4] == 3) ? i3
+                                         : (map[4] == 5) ? i5
+                                                         : i4;
+                    std::size_t dst_i5 = (map[5] == 0)   ? i0
+                                         : (map[5] == 1) ? i1
+                                         : (map[5] == 2) ? i2
+                                         : (map[5] == 3) ? i3
+                                         : (map[5] == 4) ? i4
+                                                         : i5;
                     h_ref(dst_i0, dst_i1, dst_i2, dst_i3, dst_i4, dst_i5) =
                         h_x(i0, i1, i2, i3, i4, i5);
                   }
@@ -1379,8 +1342,7 @@ void test_transpose_2d_7dview() {
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
   Kokkos::fill_random(x, random_pool, 1.0);
 
-  auto h_x = Kokkos::create_mirror_view(x);
-  Kokkos::deep_copy(h_x, x);
+  auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
 
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2, 3, 4, 5, 6});
@@ -1407,69 +1369,64 @@ void test_transpose_2d_7dview() {
         RealView7Dtype ref("ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6);
         auto h_ref = Kokkos::create_mirror_view(ref);
         // Filling the transposed View
-        for (int i0 = 0; static_cast<std::size_t>(i0) < h_x.extent(0); i0++) {
-          for (int i1 = 0; static_cast<std::size_t>(i1) < h_x.extent(1); i1++) {
-            for (int i2 = 0; static_cast<std::size_t>(i2) < h_x.extent(2);
-                 i2++) {
-              for (int i3 = 0; static_cast<std::size_t>(i3) < h_x.extent(3);
-                   i3++) {
-                for (int i4 = 0; static_cast<std::size_t>(i4) < h_x.extent(4);
-                     i4++) {
-                  for (int i5 = 0; static_cast<std::size_t>(i5) < h_x.extent(5);
-                       i5++) {
-                    for (int i6 = 0;
-                         static_cast<std::size_t>(i6) < h_x.extent(6); i6++) {
-                      int dst_i0    = (map[0] == 1)   ? i1
-                                      : (map[0] == 2) ? i2
-                                      : (map[0] == 3) ? i3
-                                      : (map[0] == 4) ? i4
-                                      : (map[0] == 5) ? i5
-                                      : (map[0] == 6) ? i6
-                                                      : i0;
-                      int dst_i1    = (map[1] == 0)   ? i0
-                                      : (map[1] == 2) ? i2
-                                      : (map[1] == 3) ? i3
-                                      : (map[1] == 4) ? i4
-                                      : (map[1] == 5) ? i5
-                                      : (map[1] == 6) ? i6
-                                                      : i1;
-                      int dst_i2    = (map[2] == 0)   ? i0
-                                      : (map[2] == 1) ? i1
-                                      : (map[2] == 3) ? i3
-                                      : (map[2] == 4) ? i4
-                                      : (map[2] == 5) ? i5
-                                      : (map[2] == 6) ? i6
-                                                      : i2;
-                      int dst_i3    = (map[3] == 0)   ? i0
-                                      : (map[3] == 1) ? i1
-                                      : (map[3] == 2) ? i2
-                                      : (map[3] == 4) ? i4
-                                      : (map[3] == 5) ? i5
-                                      : (map[3] == 6) ? i6
-                                                      : i3;
-                      int dst_i4    = (map[4] == 0)   ? i0
-                                      : (map[4] == 1) ? i1
-                                      : (map[4] == 2) ? i2
-                                      : (map[4] == 3) ? i3
-                                      : (map[4] == 5) ? i5
-                                      : (map[4] == 6) ? i6
-                                                      : i4;
-                      int dst_i5    = (map[5] == 0)   ? i0
-                                      : (map[5] == 1) ? i1
-                                      : (map[5] == 2) ? i2
-                                      : (map[5] == 3) ? i3
-                                      : (map[5] == 4) ? i4
-                                      : (map[5] == 6) ? i6
-                                                      : i5;
-                      int dst_i6    = (map[6] == 0)   ? i0
-                                      : (map[6] == 1) ? i1
-                                      : (map[6] == 2) ? i2
-                                      : (map[6] == 3) ? i3
-                                      : (map[6] == 4) ? i4
-                                      : (map[6] == 5) ? i5
-                                                      : i6;
+        for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
+          for (std::size_t i1 = 0; i1 < h_x.extent(1); i1++) {
+            for (std::size_t i2 = 0; i2 < h_x.extent(2); i2++) {
+              for (std::size_t i3 = 0; i3 < h_x.extent(3); i3++) {
+                for (std::size_t i4 = 0; i4 < h_x.extent(4); i4++) {
+                  for (std::size_t i5 = 0; i5 < h_x.extent(5); i5++) {
+                    for (std::size_t i6 = 0; i6 < h_x.extent(6); i6++) {
+                      std::size_t dst_i0 = (map[0] == 1)   ? i1
+                                           : (map[0] == 2) ? i2
+                                           : (map[0] == 3) ? i3
+                                           : (map[0] == 4) ? i4
+                                           : (map[0] == 5) ? i5
+                                           : (map[0] == 6) ? i6
+                                                           : i0;
+                      std::size_t dst_i1 = (map[1] == 0)   ? i0
+                                           : (map[1] == 2) ? i2
+                                           : (map[1] == 3) ? i3
+                                           : (map[1] == 4) ? i4
+                                           : (map[1] == 5) ? i5
+                                           : (map[1] == 6) ? i6
+                                                           : i1;
+                      std::size_t dst_i2 = (map[2] == 0)   ? i0
+                                           : (map[2] == 1) ? i1
+                                           : (map[2] == 3) ? i3
+                                           : (map[2] == 4) ? i4
+                                           : (map[2] == 5) ? i5
+                                           : (map[2] == 6) ? i6
+                                                           : i2;
+                      std::size_t dst_i3 = (map[3] == 0)   ? i0
+                                           : (map[3] == 1) ? i1
+                                           : (map[3] == 2) ? i2
+                                           : (map[3] == 4) ? i4
+                                           : (map[3] == 5) ? i5
+                                           : (map[3] == 6) ? i6
+                                                           : i3;
+                      std::size_t dst_i4 = (map[4] == 0)   ? i0
+                                           : (map[4] == 1) ? i1
+                                           : (map[4] == 2) ? i2
+                                           : (map[4] == 3) ? i3
+                                           : (map[4] == 5) ? i5
+                                           : (map[4] == 6) ? i6
+                                                           : i4;
+                      std::size_t dst_i5 = (map[5] == 0)   ? i0
+                                           : (map[5] == 1) ? i1
+                                           : (map[5] == 2) ? i2
+                                           : (map[5] == 3) ? i3
+                                           : (map[5] == 4) ? i4
+                                           : (map[5] == 6) ? i6
+                                                           : i5;
+                      std::size_t dst_i6 = (map[6] == 0)   ? i0
+                                           : (map[6] == 1) ? i1
+                                           : (map[6] == 2) ? i2
+                                           : (map[6] == 3) ? i3
+                                           : (map[6] == 4) ? i4
+                                           : (map[6] == 5) ? i5
+                                                           : i6;
                       h_ref(dst_i0, dst_i1, dst_i2, dst_i3, dst_i4, dst_i5,
-                            dst_i6) = h_x(i0, i1, i2, i3, i4, i5, i6);
+                            dst_i6)      = h_x(i0, i1, i2, i3, i4, i5, i6);
                     }
                   }
                 }
@@ -1505,8 +1462,7 @@ void test_transpose_2d_8dview() {
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
   Kokkos::fill_random(x, random_pool, 1.0);
 
-  auto h_x = Kokkos::create_mirror_view(x);
-  Kokkos::deep_copy(h_x, x);
+  auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
 
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2, 3, 4, 5, 6, 7});
@@ -1533,84 +1489,78 @@ void test_transpose_2d_8dview() {
         RealView8Dtype ref("ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7);
         auto h_ref = Kokkos::create_mirror_view(ref);
         // Filling the transposed View
-        for (int i0 = 0; static_cast<std::size_t>(i0) < h_x.extent(0); i0++) {
-          for (int i1 = 0; static_cast<std::size_t>(i1) < h_x.extent(1); i1++) {
-            for (int i2 = 0; static_cast<std::size_t>(i2) < h_x.extent(2);
-                 i2++) {
-              for (int i3 = 0; static_cast<std::size_t>(i3) < h_x.extent(3);
-                   i3++) {
-                for (int i4 = 0; static_cast<std::size_t>(i4) < h_x.extent(4);
-                     i4++) {
-                  for (int i5 = 0; static_cast<std::size_t>(i5) < h_x.extent(5);
-                       i5++) {
-                    for (int i6 = 0;
-                         static_cast<std::size_t>(i6) < h_x.extent(6); i6++) {
-                      for (int i7 = 0;
-                           static_cast<std::size_t>(i7) < h_x.extent(7); i7++) {
-                        int dst_i0 = (map[0] == 1)   ? i1
-                                     : (map[0] == 2) ? i2
-                                     : (map[0] == 3) ? i3
-                                     : (map[0] == 4) ? i4
-                                     : (map[0] == 5) ? i5
-                                     : (map[0] == 6) ? i6
-                                     : (map[0] == 7) ? i7
-                                                     : i0;
-                        int dst_i1 = (map[1] == 0)   ? i0
-                                     : (map[1] == 2) ? i2
-                                     : (map[1] == 3) ? i3
-                                     : (map[1] == 4) ? i4
-                                     : (map[1] == 5) ? i5
-                                     : (map[1] == 6) ? i6
-                                     : (map[1] == 7) ? i7
-                                                     : i1;
-                        int dst_i2 = (map[2] == 0)   ? i0
-                                     : (map[2] == 1) ? i1
-                                     : (map[2] == 3) ? i3
-                                     : (map[2] == 4) ? i4
-                                     : (map[2] == 5) ? i5
-                                     : (map[2] == 6) ? i6
-                                     : (map[2] == 7) ? i7
-                                                     : i2;
-                        int dst_i3 = (map[3] == 0)   ? i0
-                                     : (map[3] == 1) ? i1
-                                     : (map[3] == 2) ? i2
-                                     : (map[3] == 4) ? i4
-                                     : (map[3] == 5) ? i5
-                                     : (map[3] == 6) ? i6
-                                     : (map[3] == 7) ? i7
-                                                     : i3;
-                        int dst_i4 = (map[4] == 0)   ? i0
-                                     : (map[4] == 1) ? i1
-                                     : (map[4] == 2) ? i2
-                                     : (map[4] == 3) ? i3
-                                     : (map[4] == 5) ? i5
-                                     : (map[4] == 6) ? i6
-                                     : (map[4] == 7) ? i7
-                                                     : i4;
-                        int dst_i5 = (map[5] == 0)   ? i0
-                                     : (map[5] == 1) ? i1
-                                     : (map[5] == 2) ? i2
-                                     : (map[5] == 3) ? i3
-                                     : (map[5] == 4) ? i4
-                                     : (map[5] == 6) ? i6
-                                     : (map[5] == 7) ? i7
-                                                     : i5;
-                        int dst_i6 = (map[6] == 0)   ? i0
-                                     : (map[6] == 1) ? i1
-                                     : (map[6] == 2) ? i2
-                                     : (map[6] == 3) ? i3
-                                     : (map[6] == 4) ? i4
-                                     : (map[6] == 5) ? i5
-                                     : (map[6] == 7) ? i7
-                                                     : i6;
-                        int dst_i7 = (map[7] == 0)   ? i0
-                                     : (map[7] == 1) ? i1
-                                     : (map[7] == 2) ? i2
-                                     : (map[7] == 3) ? i3
-                                     : (map[7] == 4) ? i4
-                                     : (map[7] == 5) ? i5
-                                     : (map[7] == 6) ? i6
-                                                     : i7;
+        for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
+          for (std::size_t i1 = 0; i1 < h_x.extent(1); i1++) {
+            for (std::size_t i2 = 0; i2 < h_x.extent(2); i2++) {
+              for (std::size_t i3 = 0; i3 < h_x.extent(3); i3++) {
+                for (std::size_t i4 = 0; i4 < h_x.extent(4); i4++) {
+                  for (std::size_t i5 = 0; i5 < h_x.extent(5); i5++) {
+                    for (std::size_t i6 = 0; i6 < h_x.extent(6); i6++) {
+                      for (std::size_t i7 = 0; i7 < h_x.extent(7); i7++) {
+                        std::size_t dst_i0 = (map[0] == 1)   ? i1
+                                             : (map[0] == 2) ? i2
+                                             : (map[0] == 3) ? i3
+                                             : (map[0] == 4) ? i4
+                                             : (map[0] == 5) ? i5
+                                             : (map[0] == 6) ? i6
+                                             : (map[0] == 7) ? i7
+                                                             : i0;
+                        std::size_t dst_i1 = (map[1] == 0)   ? i0
+                                             : (map[1] == 2) ? i2
+                                             : (map[1] == 3) ? i3
+                                             : (map[1] == 4) ? i4
+                                             : (map[1] == 5) ? i5
+                                             : (map[1] == 6) ? i6
+                                             : (map[1] == 7) ? i7
+                                                             : i1;
+                        std::size_t dst_i2 = (map[2] == 0)   ? i0
+                                             : (map[2] == 1) ? i1
+                                             : (map[2] == 3) ? i3
+                                             : (map[2] == 4) ? i4
+                                             : (map[2] == 5) ? i5
+                                             : (map[2] == 6) ? i6
+                                             : (map[2] == 7) ? i7
+                                                             : i2;
+                        std::size_t dst_i3 = (map[3] == 0)   ? i0
+                                             : (map[3] == 1) ? i1
+                                             : (map[3] == 2) ? i2
+                                             : (map[3] == 4) ? i4
+                                             : (map[3] == 5) ? i5
+                                             : (map[3] == 6) ? i6
+                                             : (map[3] == 7) ? i7
+                                                             : i3;
+                        std::size_t dst_i4 = (map[4] == 0)   ? i0
+                                             : (map[4] == 1) ? i1
+                                             : (map[4] == 2) ? i2
+                                             : (map[4] == 3) ? i3
+                                             : (map[4] == 5) ? i5
+                                             : (map[4] == 6) ? i6
+                                             : (map[4] == 7) ? i7
+                                                             : i4;
+                        std::size_t dst_i5 = (map[5] == 0)   ? i0
+                                             : (map[5] == 1) ? i1
+                                             : (map[5] == 2) ? i2
+                                             : (map[5] == 3) ? i3
+                                             : (map[5] == 4) ? i4
+                                             : (map[5] == 6) ? i6
+                                             : (map[5] == 7) ? i7
+                                                             : i5;
+                        std::size_t dst_i6 = (map[6] == 0)   ? i0
+                                             : (map[6] == 1) ? i1
+                                             : (map[6] == 2) ? i2
+                                             : (map[6] == 3) ? i3
+                                             : (map[6] == 4) ? i4
+                                             : (map[6] == 5) ? i5
+                                             : (map[6] == 7) ? i7
+                                                             : i6;
+                        std::size_t dst_i7 = (map[7] == 0)   ? i0
+                                             : (map[7] == 1) ? i1
+                                             : (map[7] == 2) ? i2
+                                             : (map[7] == 3) ? i3
+                                             : (map[7] == 4) ? i4
+                                             : (map[7] == 5) ? i5
+                                             : (map[7] == 6) ? i6
+                                                             : i7;
                         h_ref(dst_i0, dst_i1, dst_i2, dst_i3, dst_i4, dst_i5,
                               dst_i6, dst_i7) =
                             h_x(i0, i1, i2, i3, i4, i5, i6, i7);
@@ -1660,14 +1610,12 @@ void test_transpose_3d_3dview() {
   Kokkos::fill_random(x, random_pool, 1.0);
 
   // Transposed views
-  auto h_x           = Kokkos::create_mirror_view(x);
+  auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
   auto h_ref_axis021 = Kokkos::create_mirror_view(ref_axis021);
   auto h_ref_axis102 = Kokkos::create_mirror_view(ref_axis102);
   auto h_ref_axis120 = Kokkos::create_mirror_view(ref_axis120);
   auto h_ref_axis201 = Kokkos::create_mirror_view(ref_axis201);
   auto h_ref_axis210 = Kokkos::create_mirror_view(ref_axis210);
-
-  Kokkos::deep_copy(h_x, x);
 
   for (int i0 = 0; static_cast<std::size_t>(i0) < h_x.extent(0); i0++) {
     for (int i1 = 0; static_cast<std::size_t>(i1) < h_x.extent(1); i1++) {
@@ -1735,8 +1683,7 @@ void test_transpose_3d_4dview() {
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
   Kokkos::fill_random(x, random_pool, 1.0);
 
-  auto h_x = Kokkos::create_mirror_view(x);
-  Kokkos::deep_copy(h_x, x);
+  auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
 
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2, 3});
@@ -1764,29 +1711,26 @@ void test_transpose_3d_4dview() {
           RealView4Dtype ref("ref", nt0, nt1, nt2, nt3);
           auto h_ref = Kokkos::create_mirror_view(ref);
           // Filling the transposed View
-          for (int i0 = 0; static_cast<std::size_t>(i0) < h_x.extent(0); i0++) {
-            for (int i1 = 0; static_cast<std::size_t>(i1) < h_x.extent(1);
-                 i1++) {
-              for (int i2 = 0; static_cast<std::size_t>(i2) < h_x.extent(2);
-                   i2++) {
-                for (int i3 = 0; static_cast<std::size_t>(i3) < h_x.extent(3);
-                     i3++) {
-                  int dst_i0 = (map[0] == 1)   ? i1
-                               : (map[0] == 2) ? i2
-                               : (map[0] == 3) ? i3
-                                               : i0;
-                  int dst_i1 = (map[1] == 0)   ? i0
-                               : (map[1] == 2) ? i2
-                               : (map[1] == 3) ? i3
-                                               : i1;
-                  int dst_i2 = (map[2] == 0)   ? i0
-                               : (map[2] == 1) ? i1
-                               : (map[2] == 3) ? i3
-                                               : i2;
-                  int dst_i3 = (map[3] == 0)   ? i0
-                               : (map[3] == 1) ? i1
-                               : (map[3] == 2) ? i2
-                                               : i3;
+          for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
+            for (std::size_t i1 = 0; i1 < h_x.extent(1); i1++) {
+              for (std::size_t i2 = 0; i2 < h_x.extent(2); i2++) {
+                for (std::size_t i3 = 0; i3 < h_x.extent(3); i3++) {
+                  std::size_t dst_i0 = (map[0] == 1)   ? i1
+                                       : (map[0] == 2) ? i2
+                                       : (map[0] == 3) ? i3
+                                                       : i0;
+                  std::size_t dst_i1 = (map[1] == 0)   ? i0
+                                       : (map[1] == 2) ? i2
+                                       : (map[1] == 3) ? i3
+                                                       : i1;
+                  std::size_t dst_i2 = (map[2] == 0)   ? i0
+                                       : (map[2] == 1) ? i1
+                                       : (map[2] == 3) ? i3
+                                                       : i2;
+                  std::size_t dst_i3 = (map[3] == 0)   ? i0
+                                       : (map[3] == 1) ? i1
+                                       : (map[3] == 2) ? i2
+                                                       : i3;
 
                   h_ref(dst_i0, dst_i1, dst_i2, dst_i3) = h_x(i0, i1, i2, i3);
                 }
@@ -1821,8 +1765,7 @@ void test_transpose_3d_5dview() {
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
   Kokkos::fill_random(x, random_pool, 1.0);
 
-  auto h_x = Kokkos::create_mirror_view(x);
-  Kokkos::deep_copy(h_x, x);
+  auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
 
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2, 3, 4});
@@ -1851,40 +1794,36 @@ void test_transpose_3d_5dview() {
           RealView5Dtype ref("ref", nt0, nt1, nt2, nt3, nt4);
           auto h_ref = Kokkos::create_mirror_view(ref);
           // Filling the transposed View
-          for (int i0 = 0; static_cast<std::size_t>(i0) < h_x.extent(0); i0++) {
-            for (int i1 = 0; static_cast<std::size_t>(i1) < h_x.extent(1);
-                 i1++) {
-              for (int i2 = 0; static_cast<std::size_t>(i2) < h_x.extent(2);
-                   i2++) {
-                for (int i3 = 0; static_cast<std::size_t>(i3) < h_x.extent(3);
-                     i3++) {
-                  for (int i4 = 0; static_cast<std::size_t>(i4) < h_x.extent(4);
-                       i4++) {
-                    int dst_i0 = (map[0] == 1)   ? i1
-                                 : (map[0] == 2) ? i2
-                                 : (map[0] == 3) ? i3
-                                 : (map[0] == 4) ? i4
-                                                 : i0;
-                    int dst_i1 = (map[1] == 0)   ? i0
-                                 : (map[1] == 2) ? i2
-                                 : (map[1] == 3) ? i3
-                                 : (map[1] == 4) ? i4
-                                                 : i1;
-                    int dst_i2 = (map[2] == 0)   ? i0
-                                 : (map[2] == 1) ? i1
-                                 : (map[2] == 3) ? i3
-                                 : (map[2] == 4) ? i4
-                                                 : i2;
-                    int dst_i3 = (map[3] == 0)   ? i0
-                                 : (map[3] == 1) ? i1
-                                 : (map[3] == 2) ? i2
-                                 : (map[3] == 4) ? i4
-                                                 : i3;
-                    int dst_i4 = (map[4] == 0)   ? i0
-                                 : (map[4] == 1) ? i1
-                                 : (map[4] == 2) ? i2
-                                 : (map[4] == 3) ? i3
-                                                 : i4;
+          for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
+            for (std::size_t i1 = 0; i1 < h_x.extent(1); i1++) {
+              for (std::size_t i2 = 0; i2 < h_x.extent(2); i2++) {
+                for (std::size_t i3 = 0; i3 < h_x.extent(3); i3++) {
+                  for (std::size_t i4 = 0; i4 < h_x.extent(4); i4++) {
+                    std::size_t dst_i0 = (map[0] == 1)   ? i1
+                                         : (map[0] == 2) ? i2
+                                         : (map[0] == 3) ? i3
+                                         : (map[0] == 4) ? i4
+                                                         : i0;
+                    std::size_t dst_i1 = (map[1] == 0)   ? i0
+                                         : (map[1] == 2) ? i2
+                                         : (map[1] == 3) ? i3
+                                         : (map[1] == 4) ? i4
+                                                         : i1;
+                    std::size_t dst_i2 = (map[2] == 0)   ? i0
+                                         : (map[2] == 1) ? i1
+                                         : (map[2] == 3) ? i3
+                                         : (map[2] == 4) ? i4
+                                                         : i2;
+                    std::size_t dst_i3 = (map[3] == 0)   ? i0
+                                         : (map[3] == 1) ? i1
+                                         : (map[3] == 2) ? i2
+                                         : (map[3] == 4) ? i4
+                                                         : i3;
+                    std::size_t dst_i4 = (map[4] == 0)   ? i0
+                                         : (map[4] == 1) ? i1
+                                         : (map[4] == 2) ? i2
+                                         : (map[4] == 3) ? i3
+                                                         : i4;
                     h_ref(dst_i0, dst_i1, dst_i2, dst_i3, dst_i4) =
                         h_x(i0, i1, i2, i3, i4);
                   }
@@ -1921,8 +1860,7 @@ void test_transpose_3d_6dview() {
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
   Kokkos::fill_random(x, random_pool, 1.0);
 
-  auto h_x = Kokkos::create_mirror_view(x);
-  Kokkos::deep_copy(h_x, x);
+  auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
 
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2, 3, 4, 5});
@@ -1951,53 +1889,48 @@ void test_transpose_3d_6dview() {
           RealView6Dtype ref("ref", nt0, nt1, nt2, nt3, nt4, nt5);
           auto h_ref = Kokkos::create_mirror_view(ref);
           // Filling the transposed View
-          for (int i0 = 0; static_cast<std::size_t>(i0) < h_x.extent(0); i0++) {
-            for (int i1 = 0; static_cast<std::size_t>(i1) < h_x.extent(1);
-                 i1++) {
-              for (int i2 = 0; static_cast<std::size_t>(i2) < h_x.extent(2);
-                   i2++) {
-                for (int i3 = 0; static_cast<std::size_t>(i3) < h_x.extent(3);
-                     i3++) {
-                  for (int i4 = 0; static_cast<std::size_t>(i4) < h_x.extent(4);
-                       i4++) {
-                    for (int i5 = 0;
-                         static_cast<std::size_t>(i5) < h_x.extent(5); i5++) {
-                      int dst_i0 = (map[0] == 1)   ? i1
-                                   : (map[0] == 2) ? i2
-                                   : (map[0] == 3) ? i3
-                                   : (map[0] == 4) ? i4
-                                   : (map[0] == 5) ? i5
-                                                   : i0;
-                      int dst_i1 = (map[1] == 0)   ? i0
-                                   : (map[1] == 2) ? i2
-                                   : (map[1] == 3) ? i3
-                                   : (map[1] == 4) ? i4
-                                   : (map[1] == 5) ? i5
-                                                   : i1;
-                      int dst_i2 = (map[2] == 0)   ? i0
-                                   : (map[2] == 1) ? i1
-                                   : (map[2] == 3) ? i3
-                                   : (map[2] == 4) ? i4
-                                   : (map[2] == 5) ? i5
-                                                   : i2;
-                      int dst_i3 = (map[3] == 0)   ? i0
-                                   : (map[3] == 1) ? i1
-                                   : (map[3] == 2) ? i2
-                                   : (map[3] == 4) ? i4
-                                   : (map[3] == 5) ? i5
-                                                   : i3;
-                      int dst_i4 = (map[4] == 0)   ? i0
-                                   : (map[4] == 1) ? i1
-                                   : (map[4] == 2) ? i2
-                                   : (map[4] == 3) ? i3
-                                   : (map[4] == 5) ? i5
-                                                   : i4;
-                      int dst_i5 = (map[5] == 0)   ? i0
-                                   : (map[5] == 1) ? i1
-                                   : (map[5] == 2) ? i2
-                                   : (map[5] == 3) ? i3
-                                   : (map[5] == 4) ? i4
-                                                   : i5;
+          for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
+            for (std::size_t i1 = 0; i1 < h_x.extent(1); i1++) {
+              for (std::size_t i2 = 0; i2 < h_x.extent(2); i2++) {
+                for (std::size_t i3 = 0; i3 < h_x.extent(3); i3++) {
+                  for (std::size_t i4 = 0; i4 < h_x.extent(4); i4++) {
+                    for (std::size_t i5 = 0; i5 < h_x.extent(5); i5++) {
+                      std::size_t dst_i0 = (map[0] == 1)   ? i1
+                                           : (map[0] == 2) ? i2
+                                           : (map[0] == 3) ? i3
+                                           : (map[0] == 4) ? i4
+                                           : (map[0] == 5) ? i5
+                                                           : i0;
+                      std::size_t dst_i1 = (map[1] == 0)   ? i0
+                                           : (map[1] == 2) ? i2
+                                           : (map[1] == 3) ? i3
+                                           : (map[1] == 4) ? i4
+                                           : (map[1] == 5) ? i5
+                                                           : i1;
+                      std::size_t dst_i2 = (map[2] == 0)   ? i0
+                                           : (map[2] == 1) ? i1
+                                           : (map[2] == 3) ? i3
+                                           : (map[2] == 4) ? i4
+                                           : (map[2] == 5) ? i5
+                                                           : i2;
+                      std::size_t dst_i3 = (map[3] == 0)   ? i0
+                                           : (map[3] == 1) ? i1
+                                           : (map[3] == 2) ? i2
+                                           : (map[3] == 4) ? i4
+                                           : (map[3] == 5) ? i5
+                                                           : i3;
+                      std::size_t dst_i4 = (map[4] == 0)   ? i0
+                                           : (map[4] == 1) ? i1
+                                           : (map[4] == 2) ? i2
+                                           : (map[4] == 3) ? i3
+                                           : (map[4] == 5) ? i5
+                                                           : i4;
+                      std::size_t dst_i5 = (map[5] == 0)   ? i0
+                                           : (map[5] == 1) ? i1
+                                           : (map[5] == 2) ? i2
+                                           : (map[5] == 3) ? i3
+                                           : (map[5] == 4) ? i4
+                                                           : i5;
                       h_ref(dst_i0, dst_i1, dst_i2, dst_i3, dst_i4, dst_i5) =
                           h_x(i0, i1, i2, i3, i4, i5);
                     }
@@ -2035,8 +1968,7 @@ void test_transpose_3d_7dview() {
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
   Kokkos::fill_random(x, random_pool, 1.0);
 
-  auto h_x = Kokkos::create_mirror_view(x);
-  Kokkos::deep_copy(h_x, x);
+  auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
 
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2, 3, 4, 5, 6});
@@ -2065,70 +1997,64 @@ void test_transpose_3d_7dview() {
           RealView7Dtype ref("ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6);
           auto h_ref = Kokkos::create_mirror_view(ref);
           // Filling the transposed View
-          for (int i0 = 0; static_cast<std::size_t>(i0) < h_x.extent(0); i0++) {
-            for (int i1 = 0; static_cast<std::size_t>(i1) < h_x.extent(1);
-                 i1++) {
-              for (int i2 = 0; static_cast<std::size_t>(i2) < h_x.extent(2);
-                   i2++) {
-                for (int i3 = 0; static_cast<std::size_t>(i3) < h_x.extent(3);
-                     i3++) {
-                  for (int i4 = 0; static_cast<std::size_t>(i4) < h_x.extent(4);
-                       i4++) {
-                    for (int i5 = 0;
-                         static_cast<std::size_t>(i5) < h_x.extent(5); i5++) {
-                      for (int i6 = 0;
-                           static_cast<std::size_t>(i6) < h_x.extent(6); i6++) {
-                        int dst_i0    = (map[0] == 1)   ? i1
-                                        : (map[0] == 2) ? i2
-                                        : (map[0] == 3) ? i3
-                                        : (map[0] == 4) ? i4
-                                        : (map[0] == 5) ? i5
-                                        : (map[0] == 6) ? i6
-                                                        : i0;
-                        int dst_i1    = (map[1] == 0)   ? i0
-                                        : (map[1] == 2) ? i2
-                                        : (map[1] == 3) ? i3
-                                        : (map[1] == 4) ? i4
-                                        : (map[1] == 5) ? i5
-                                        : (map[1] == 6) ? i6
-                                                        : i1;
-                        int dst_i2    = (map[2] == 0)   ? i0
-                                        : (map[2] == 1) ? i1
-                                        : (map[2] == 3) ? i3
-                                        : (map[2] == 4) ? i4
-                                        : (map[2] == 5) ? i5
-                                        : (map[2] == 6) ? i6
-                                                        : i2;
-                        int dst_i3    = (map[3] == 0)   ? i0
-                                        : (map[3] == 1) ? i1
-                                        : (map[3] == 2) ? i2
-                                        : (map[3] == 4) ? i4
-                                        : (map[3] == 5) ? i5
-                                        : (map[3] == 6) ? i6
-                                                        : i3;
-                        int dst_i4    = (map[4] == 0)   ? i0
-                                        : (map[4] == 1) ? i1
-                                        : (map[4] == 2) ? i2
-                                        : (map[4] == 3) ? i3
-                                        : (map[4] == 5) ? i5
-                                        : (map[4] == 6) ? i6
-                                                        : i4;
-                        int dst_i5    = (map[5] == 0)   ? i0
-                                        : (map[5] == 1) ? i1
-                                        : (map[5] == 2) ? i2
-                                        : (map[5] == 3) ? i3
-                                        : (map[5] == 4) ? i4
-                                        : (map[5] == 6) ? i6
-                                                        : i5;
-                        int dst_i6    = (map[6] == 0)   ? i0
-                                        : (map[6] == 1) ? i1
-                                        : (map[6] == 2) ? i2
-                                        : (map[6] == 3) ? i3
-                                        : (map[6] == 4) ? i4
-                                        : (map[6] == 5) ? i5
-                                                        : i6;
+          for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
+            for (std::size_t i1 = 0; i1 < h_x.extent(1); i1++) {
+              for (std::size_t i2 = 0; i2 < h_x.extent(2); i2++) {
+                for (std::size_t i3 = 0; i3 < h_x.extent(3); i3++) {
+                  for (std::size_t i4 = 0; i4 < h_x.extent(4); i4++) {
+                    for (std::size_t i5 = 0; i5 < h_x.extent(5); i5++) {
+                      for (std::size_t i6 = 0; i6 < h_x.extent(6); i6++) {
+                        std::size_t dst_i0 = (map[0] == 1)   ? i1
+                                             : (map[0] == 2) ? i2
+                                             : (map[0] == 3) ? i3
+                                             : (map[0] == 4) ? i4
+                                             : (map[0] == 5) ? i5
+                                             : (map[0] == 6) ? i6
+                                                             : i0;
+                        std::size_t dst_i1 = (map[1] == 0)   ? i0
+                                             : (map[1] == 2) ? i2
+                                             : (map[1] == 3) ? i3
+                                             : (map[1] == 4) ? i4
+                                             : (map[1] == 5) ? i5
+                                             : (map[1] == 6) ? i6
+                                                             : i1;
+                        std::size_t dst_i2 = (map[2] == 0)   ? i0
+                                             : (map[2] == 1) ? i1
+                                             : (map[2] == 3) ? i3
+                                             : (map[2] == 4) ? i4
+                                             : (map[2] == 5) ? i5
+                                             : (map[2] == 6) ? i6
+                                                             : i2;
+                        std::size_t dst_i3 = (map[3] == 0)   ? i0
+                                             : (map[3] == 1) ? i1
+                                             : (map[3] == 2) ? i2
+                                             : (map[3] == 4) ? i4
+                                             : (map[3] == 5) ? i5
+                                             : (map[3] == 6) ? i6
+                                                             : i3;
+                        std::size_t dst_i4 = (map[4] == 0)   ? i0
+                                             : (map[4] == 1) ? i1
+                                             : (map[4] == 2) ? i2
+                                             : (map[4] == 3) ? i3
+                                             : (map[4] == 5) ? i5
+                                             : (map[4] == 6) ? i6
+                                                             : i4;
+                        std::size_t dst_i5 = (map[5] == 0)   ? i0
+                                             : (map[5] == 1) ? i1
+                                             : (map[5] == 2) ? i2
+                                             : (map[5] == 3) ? i3
+                                             : (map[5] == 4) ? i4
+                                             : (map[5] == 6) ? i6
+                                                             : i5;
+                        std::size_t dst_i6 = (map[6] == 0)   ? i0
+                                             : (map[6] == 1) ? i1
+                                             : (map[6] == 2) ? i2
+                                             : (map[6] == 3) ? i3
+                                             : (map[6] == 4) ? i4
+                                             : (map[6] == 5) ? i5
+                                                             : i6;
                         h_ref(dst_i0, dst_i1, dst_i2, dst_i3, dst_i4, dst_i5,
-                              dst_i6) = h_x(i0, i1, i2, i3, i4, i5, i6);
+                              dst_i6)      = h_x(i0, i1, i2, i3, i4, i5, i6);
                       }
                     }
                   }
@@ -2165,8 +2091,7 @@ void test_transpose_3d_8dview() {
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
   Kokkos::fill_random(x, random_pool, 1.0);
 
-  auto h_x = Kokkos::create_mirror_view(x);
-  Kokkos::deep_copy(h_x, x);
+  auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
 
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2, 3, 4, 5, 6, 7});
@@ -2195,86 +2120,78 @@ void test_transpose_3d_8dview() {
           RealView8Dtype ref("ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7);
           auto h_ref = Kokkos::create_mirror_view(ref);
           // Filling the transposed View
-          for (int i0 = 0; static_cast<std::size_t>(i0) < h_x.extent(0); i0++) {
-            for (int i1 = 0; static_cast<std::size_t>(i1) < h_x.extent(1);
-                 i1++) {
-              for (int i2 = 0; static_cast<std::size_t>(i2) < h_x.extent(2);
-                   i2++) {
-                for (int i3 = 0; static_cast<std::size_t>(i3) < h_x.extent(3);
-                     i3++) {
-                  for (int i4 = 0; static_cast<std::size_t>(i4) < h_x.extent(4);
-                       i4++) {
-                    for (int i5 = 0;
-                         static_cast<std::size_t>(i5) < h_x.extent(5); i5++) {
-                      for (int i6 = 0;
-                           static_cast<std::size_t>(i6) < h_x.extent(6); i6++) {
-                        for (int i7 = 0;
-                             static_cast<std::size_t>(i7) < h_x.extent(7);
-                             i7++) {
-                          int dst_i0 = (map[0] == 1)   ? i1
-                                       : (map[0] == 2) ? i2
-                                       : (map[0] == 3) ? i3
-                                       : (map[0] == 4) ? i4
-                                       : (map[0] == 5) ? i5
-                                       : (map[0] == 6) ? i6
-                                       : (map[0] == 7) ? i7
-                                                       : i0;
-                          int dst_i1 = (map[1] == 0)   ? i0
-                                       : (map[1] == 2) ? i2
-                                       : (map[1] == 3) ? i3
-                                       : (map[1] == 4) ? i4
-                                       : (map[1] == 5) ? i5
-                                       : (map[1] == 6) ? i6
-                                       : (map[1] == 7) ? i7
-                                                       : i1;
-                          int dst_i2 = (map[2] == 0)   ? i0
-                                       : (map[2] == 1) ? i1
-                                       : (map[2] == 3) ? i3
-                                       : (map[2] == 4) ? i4
-                                       : (map[2] == 5) ? i5
-                                       : (map[2] == 6) ? i6
-                                       : (map[2] == 7) ? i7
-                                                       : i2;
-                          int dst_i3 = (map[3] == 0)   ? i0
-                                       : (map[3] == 1) ? i1
-                                       : (map[3] == 2) ? i2
-                                       : (map[3] == 4) ? i4
-                                       : (map[3] == 5) ? i5
-                                       : (map[3] == 6) ? i6
-                                       : (map[3] == 7) ? i7
-                                                       : i3;
-                          int dst_i4 = (map[4] == 0)   ? i0
-                                       : (map[4] == 1) ? i1
-                                       : (map[4] == 2) ? i2
-                                       : (map[4] == 3) ? i3
-                                       : (map[4] == 5) ? i5
-                                       : (map[4] == 6) ? i6
-                                       : (map[4] == 7) ? i7
-                                                       : i4;
-                          int dst_i5 = (map[5] == 0)   ? i0
-                                       : (map[5] == 1) ? i1
-                                       : (map[5] == 2) ? i2
-                                       : (map[5] == 3) ? i3
-                                       : (map[5] == 4) ? i4
-                                       : (map[5] == 6) ? i6
-                                       : (map[5] == 7) ? i7
-                                                       : i5;
-                          int dst_i6 = (map[6] == 0)   ? i0
-                                       : (map[6] == 1) ? i1
-                                       : (map[6] == 2) ? i2
-                                       : (map[6] == 3) ? i3
-                                       : (map[6] == 4) ? i4
-                                       : (map[6] == 5) ? i5
-                                       : (map[6] == 7) ? i7
-                                                       : i6;
-                          int dst_i7 = (map[7] == 0)   ? i0
-                                       : (map[7] == 1) ? i1
-                                       : (map[7] == 2) ? i2
-                                       : (map[7] == 3) ? i3
-                                       : (map[7] == 4) ? i4
-                                       : (map[7] == 5) ? i5
-                                       : (map[7] == 6) ? i6
-                                                       : i7;
+          for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
+            for (std::size_t i1 = 0; i1 < h_x.extent(1); i1++) {
+              for (std::size_t i2 = 0; i2 < h_x.extent(2); i2++) {
+                for (std::size_t i3 = 0; i3 < h_x.extent(3); i3++) {
+                  for (std::size_t i4 = 0; i4 < h_x.extent(4); i4++) {
+                    for (std::size_t i5 = 0; i5 < h_x.extent(5); i5++) {
+                      for (std::size_t i6 = 0; i6 < h_x.extent(6); i6++) {
+                        for (std::size_t i7 = 0; i7 < h_x.extent(7); i7++) {
+                          std::size_t dst_i0 = (map[0] == 1)   ? i1
+                                               : (map[0] == 2) ? i2
+                                               : (map[0] == 3) ? i3
+                                               : (map[0] == 4) ? i4
+                                               : (map[0] == 5) ? i5
+                                               : (map[0] == 6) ? i6
+                                               : (map[0] == 7) ? i7
+                                                               : i0;
+                          std::size_t dst_i1 = (map[1] == 0)   ? i0
+                                               : (map[1] == 2) ? i2
+                                               : (map[1] == 3) ? i3
+                                               : (map[1] == 4) ? i4
+                                               : (map[1] == 5) ? i5
+                                               : (map[1] == 6) ? i6
+                                               : (map[1] == 7) ? i7
+                                                               : i1;
+                          std::size_t dst_i2 = (map[2] == 0)   ? i0
+                                               : (map[2] == 1) ? i1
+                                               : (map[2] == 3) ? i3
+                                               : (map[2] == 4) ? i4
+                                               : (map[2] == 5) ? i5
+                                               : (map[2] == 6) ? i6
+                                               : (map[2] == 7) ? i7
+                                                               : i2;
+                          std::size_t dst_i3 = (map[3] == 0)   ? i0
+                                               : (map[3] == 1) ? i1
+                                               : (map[3] == 2) ? i2
+                                               : (map[3] == 4) ? i4
+                                               : (map[3] == 5) ? i5
+                                               : (map[3] == 6) ? i6
+                                               : (map[3] == 7) ? i7
+                                                               : i3;
+                          std::size_t dst_i4 = (map[4] == 0)   ? i0
+                                               : (map[4] == 1) ? i1
+                                               : (map[4] == 2) ? i2
+                                               : (map[4] == 3) ? i3
+                                               : (map[4] == 5) ? i5
+                                               : (map[4] == 6) ? i6
+                                               : (map[4] == 7) ? i7
+                                                               : i4;
+                          std::size_t dst_i5 = (map[5] == 0)   ? i0
+                                               : (map[5] == 1) ? i1
+                                               : (map[5] == 2) ? i2
+                                               : (map[5] == 3) ? i3
+                                               : (map[5] == 4) ? i4
+                                               : (map[5] == 6) ? i6
+                                               : (map[5] == 7) ? i7
+                                                               : i5;
+                          std::size_t dst_i6 = (map[6] == 0)   ? i0
+                                               : (map[6] == 1) ? i1
+                                               : (map[6] == 2) ? i2
+                                               : (map[6] == 3) ? i3
+                                               : (map[6] == 4) ? i4
+                                               : (map[6] == 5) ? i5
+                                               : (map[6] == 7) ? i7
+                                                               : i6;
+                          std::size_t dst_i7 = (map[7] == 0)   ? i0
+                                               : (map[7] == 1) ? i1
+                                               : (map[7] == 2) ? i2
+                                               : (map[7] == 3) ? i3
+                                               : (map[7] == 4) ? i4
+                                               : (map[7] == 5) ? i5
+                                               : (map[7] == 6) ? i6
+                                                               : i7;
                           h_ref(dst_i0, dst_i1, dst_i2, dst_i3, dst_i4, dst_i5,
                                 dst_i6, dst_i7) =
                               h_x(i0, i1, i2, i3, i4, i5, i6, i7);
