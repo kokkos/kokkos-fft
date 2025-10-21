@@ -148,8 +148,10 @@ struct ScopedRocfftPlan {
     int idist = total_size(in_extents);
     int odist = total_size(out_extents);
 
-    auto in_strides  = compute_strides<int, std::size_t>(in_extents);
-    auto out_strides = compute_strides<int, std::size_t>(out_extents);
+    auto in_strides =
+        convert_base_int_type<std::size_t>(compute_strides(in_extents));
+    auto out_strides =
+        convert_base_int_type<std::size_t>(compute_strides(out_extents));
     auto reversed_fft_extents =
         convert_int_type_and_reverse<int, std::size_t>(fft_extents);
 
@@ -253,25 +255,6 @@ struct ScopedRocfftPlan {
         [](const InType v) -> OutType { return static_cast<OutType>(v); });
 
     std::reverse(out.begin(), out.end());
-    return out;
-  }
-
-  // Helper to compute strides from extents
-  // (n0, n1, n2) -> (1, n0, n0*n1)
-  // (n0, n1) -> (1, n0)
-  // (n0) -> (1)
-  template <typename InType, typename OutType>
-  auto compute_strides(const std::vector<InType> &extents)
-      -> std::vector<OutType> {
-    std::vector<OutType> out = {1};
-    auto reversed_extents    = extents;
-    std::reverse(reversed_extents.begin(), reversed_extents.end());
-
-    for (std::size_t i = 1; i < reversed_extents.size(); i++) {
-      out.push_back(static_cast<OutType>(reversed_extents.at(i - 1)) *
-                    out.at(i - 1));
-    }
-
     return out;
   }
 };
