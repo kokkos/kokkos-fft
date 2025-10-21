@@ -605,6 +605,23 @@ void test_compute_strides() {
   EXPECT_THROW(KokkosFFT::Impl::compute_strides(v1), std::runtime_error);
 }
 
+template <typename ContainerType>
+void test_reversed() {
+  ContainerType v = {2, 3, 5}, v_fixed = {2, 3, 5};
+  ContainerType ref_reversed = {5, 3, 2};
+
+  // Lvalue test
+  auto out = KokkosFFT::Impl::reversed(v);
+  EXPECT_EQ(out, ref_reversed);
+  EXPECT_EQ(v, v_fixed) << "Input container modified in lvalue test";
+
+  // Rvalue test
+  auto out2 = KokkosFFT::Impl::reversed(ContainerType{2, 3, 5});
+  auto out3 = KokkosFFT::Impl::reversed(std::move(v));
+  EXPECT_EQ(out2, ref_reversed);
+  EXPECT_EQ(out3, ref_reversed);
+}
+
 template <typename IntType>
 void test_are_valid_axes() {
   using real_type  = double;
@@ -1006,6 +1023,17 @@ TYPED_TEST(ContainerTypes, test_compute_strides_of_arrays) {
 TYPED_TEST(ContainerTypes, test_compute_strides_of_vectors) {
   using container_type = typename TestFixture::vector_type;
   test_compute_strides<container_type>();
+}
+
+TYPED_TEST(ContainerTypes, test_reversed_of_arrays) {
+  using value_type     = typename TestFixture::value_type;
+  using container_type = std::array<value_type, 3>;
+  test_reversed<container_type>();
+}
+
+TYPED_TEST(ContainerTypes, test_reversed_of_vectors) {
+  using container_type = typename TestFixture::vector_type;
+  test_reversed<container_type>();
 }
 
 TYPED_TEST(ContainerTypes, are_valid_axes) {
