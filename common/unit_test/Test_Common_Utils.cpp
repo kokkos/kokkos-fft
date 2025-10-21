@@ -623,11 +623,12 @@ void test_reversed() {
 
   // Check behavior of moved-from container
   if constexpr (KokkosFFT::Impl::is_std_vector_v<ContainerType>) {
-    // For std::vector, after move the container should be empty or in valid but
-    // unspecified state We can only safely check that it's in a valid state
-    // Note: We cannot assume the vector is empty, as the standard only
-    // guarantees valid but unspecified state
-    EXPECT_NO_THROW(v.size()) << "Moved-from vector should be in a valid state";
+    // The standard only guarantees that v is valid but unspecified.
+    // We can safely check that we can call methods on it:
+    EXPECT_NO_THROW({
+      [[maybe_unused]] auto sz = v.size();
+      v.clear();
+    }) << "Moved-from vector should be in a valid state";
   } else {
     // For std::array with fundamental types, move is equivalent to copy
     // The original array should retain its values since elements are
