@@ -427,6 +427,19 @@ auto compute_strides(const ContainerType& extents) {
   return strides;
 }
 
+/// \brief Returns a reversed copy of the input container
+/// \tparam Container The container type, must support begin() and end()
+/// \param[in,out] c The input container
+/// \return A reversed copy of the input container
+template <typename Container>
+auto reversed(Container&& c) {
+  // Perfect-forward into a new variable (copy or move automatically)
+  auto copy = std::forward<Container>(c);
+
+  std::reverse(copy.begin(), copy.end());
+  return copy;
+}
+
 }  // namespace Impl
 }  // namespace KokkosFFT
 
