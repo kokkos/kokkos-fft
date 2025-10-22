@@ -16,6 +16,11 @@ template <std::size_t DIM>
 using axes_type = std::array<int, DIM>;
 
 using test_types = ::testing::Types<Kokkos::LayoutLeft, Kokkos::LayoutRight>;
+using layout_types =
+    ::testing::Types<std::pair<Kokkos::LayoutLeft, Kokkos::LayoutLeft>,
+                     std::pair<Kokkos::LayoutLeft, Kokkos::LayoutRight>,
+                     std::pair<Kokkos::LayoutRight, Kokkos::LayoutLeft>,
+                     std::pair<Kokkos::LayoutRight, Kokkos::LayoutRight>>;
 
 // Basically the same fixtures, used for labeling tests
 template <typename T>
@@ -24,18 +29,21 @@ struct MapAxes : public ::testing::Test {
 };
 
 template <typename T>
-struct Transpose1D : public ::testing::Test {
-  using layout_type = T;
+struct TestTranspose1D : public ::testing::Test {
+  using layout_type1 = typename T::first_type;
+  using layout_type2 = typename T::second_type;
 };
 
 template <typename T>
-struct Transpose2D : public ::testing::Test {
-  using layout_type = T;
+struct TestTranspose2D : public ::testing::Test {
+  using layout_type1 = typename T::first_type;
+  using layout_type2 = typename T::second_type;
 };
 
 template <typename T>
-struct Transpose3D : public ::testing::Test {
-  using layout_type = T;
+struct TestTranspose3D : public ::testing::Test {
+  using layout_type1 = typename T::first_type;
+  using layout_type2 = typename T::second_type;
 };
 
 // Tests for map axes over ND views
@@ -310,18 +318,17 @@ void test_map_axes3d() {
 
 // Tests for transpose
 // 1D Transpose
-template <typename LayoutType>
+template <typename LayoutType1, typename LayoutType2>
 void test_transpose_1d_1dview() {
   // When transpose is not necessary, we should not call transpose method
-  using RealView1Dtype = Kokkos::View<double*, LayoutType, execution_space>;
-  const int len        = 30;
-  RealView1Dtype x("x", len), ref("ref", len);
-  RealView1Dtype xt("xt", len);
+  using View1DLayout1type = Kokkos::View<double*, LayoutType1, execution_space>;
+  using View1DLayout2type = Kokkos::View<double*, LayoutType2, execution_space>;
+  const int len           = 30;
+  View1DLayout1type x("x", len);
+  View1DLayout2type xt("xt", len);
 
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
   Kokkos::fill_random(x, random_pool, 1.0);
-
-  Kokkos::deep_copy(ref, x);
 
   Kokkos::fence();
 
@@ -330,12 +337,15 @@ void test_transpose_1d_1dview() {
       std::runtime_error);
 }
 
-template <typename LayoutType>
+template <typename LayoutType1, typename LayoutType2>
 void test_transpose_1d_2dview() {
-  using RealView2Dtype = Kokkos::View<double**, LayoutType, execution_space>;
-  constexpr int DIM    = 2;
+  using View2DLayout1type =
+      Kokkos::View<double**, LayoutType1, execution_space>;
+  using View2DLayout2type =
+      Kokkos::View<double**, LayoutType2, execution_space>;
+  constexpr int DIM = 2;
   const int n0 = 3, n1 = 5;
-  RealView2Dtype x("x", n0, n1);
+  View2DLayout1type x("x", n0, n1);
 
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
   Kokkos::fill_random(x, random_pool, 1.0);
@@ -353,14 +363,14 @@ void test_transpose_1d_2dview() {
     }
     auto [nt0, nt1] = out_extents;
 
-    RealView2Dtype xt("xt", nt0, nt1);
+    View2DLayout2type xt("xt", nt0, nt1);
     if (map == default_axes) {
       EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
                                               map),  // xt is identical to x
                    std::runtime_error);
     } else {
       // Transposed Views
-      RealView2Dtype ref("ref", nt0, nt1);
+      View2DLayout2type ref("ref", nt0, nt1);
       auto h_ref = Kokkos::create_mirror_view(ref);
       // Filling the transposed View
       for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
@@ -377,19 +387,22 @@ void test_transpose_1d_2dview() {
       EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
 
       // Inverse (transpose of transpose is identical to the original)
-      RealView2Dtype x_inv("x_inv", n0, n1);
+      View2DLayout1type x_inv("x_inv", n0, n1);
       KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
       EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
     }
   }
 }
 
-template <typename LayoutType>
+template <typename LayoutType1, typename LayoutType2>
 void test_transpose_1d_3dview() {
-  using RealView3Dtype = Kokkos::View<double***, LayoutType, execution_space>;
-  constexpr int DIM    = 3;
+  using View3DLayout1type =
+      Kokkos::View<double***, LayoutType1, execution_space>;
+  using View3DLayout2type =
+      Kokkos::View<double***, LayoutType2, execution_space>;
+  constexpr int DIM = 3;
   const int n0 = 3, n1 = 5, n2 = 8;
-  RealView3Dtype x("x", n0, n1, n2);
+  View3DLayout1type x("x", n0, n1, n2);
 
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
   Kokkos::fill_random(x, random_pool, 1.0);
@@ -407,14 +420,14 @@ void test_transpose_1d_3dview() {
     }
     auto [nt0, nt1, nt2] = out_extents;
 
-    RealView3Dtype xt("xt", nt0, nt1, nt2);
+    View3DLayout2type xt("xt", nt0, nt1, nt2);
     if (map == default_axes) {
       EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
                                               map),  // xt is identical to x
                    std::runtime_error);
     } else {
       // Transposed Views
-      RealView3Dtype ref("ref", nt0, nt1, nt2);
+      View3DLayout2type ref("ref", nt0, nt1, nt2);
       auto h_ref = Kokkos::create_mirror_view(ref);
       // Filling the transposed View
       for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
@@ -437,19 +450,22 @@ void test_transpose_1d_3dview() {
       EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
 
       // Inverse (transpose of transpose is identical to the original)
-      RealView3Dtype x_inv("x_invx", n0, n1, n2);
+      View3DLayout1type x_inv("x_invx", n0, n1, n2);
       KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
       EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
     }
   }
 }
 
-template <typename LayoutType>
+template <typename LayoutType1, typename LayoutType2>
 void test_transpose_1d_4dview() {
-  using RealView4Dtype = Kokkos::View<double****, LayoutType, execution_space>;
-  constexpr int DIM    = 4;
+  using View4DLayout1type =
+      Kokkos::View<double****, LayoutType1, execution_space>;
+  using View4DLayout2type =
+      Kokkos::View<double****, LayoutType2, execution_space>;
+  constexpr int DIM = 4;
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5;
-  RealView4Dtype x("x", n0, n1, n2, n3);
+  View4DLayout1type x("x", n0, n1, n2, n3);
 
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
   Kokkos::fill_random(x, random_pool, 1.0);
@@ -467,14 +483,14 @@ void test_transpose_1d_4dview() {
     }
     auto [nt0, nt1, nt2, nt3] = out_extents;
 
-    RealView4Dtype xt("xt", nt0, nt1, nt2, nt3);
+    View4DLayout2type xt("xt", nt0, nt1, nt2, nt3);
     if (map == default_axes) {
       EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
                                               map),  // xt is identical to x
                    std::runtime_error);
     } else {
       // Transposed Views
-      RealView4Dtype ref("ref", nt0, nt1, nt2, nt3);
+      View4DLayout2type ref("ref", nt0, nt1, nt2, nt3);
       auto h_ref = Kokkos::create_mirror_view(ref);
       // Filling the transposed View
       for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
@@ -512,19 +528,22 @@ void test_transpose_1d_4dview() {
       EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
 
       // Inverse (transpose of transpose is identical to the original)
-      RealView4Dtype x_inv("x_inv", n0, n1, n2, n3);
+      View4DLayout1type x_inv("x_inv", n0, n1, n2, n3);
       KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
       EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
     }
   }
 }
 
-template <typename LayoutType>
+template <typename LayoutType1, typename LayoutType2>
 void test_transpose_1d_5dview() {
-  using RealView5Dtype = Kokkos::View<double*****, LayoutType, execution_space>;
-  constexpr int DIM    = 5;
+  using View5DLayout1type =
+      Kokkos::View<double*****, LayoutType1, execution_space>;
+  using View5DLayout2type =
+      Kokkos::View<double*****, LayoutType2, execution_space>;
+  constexpr int DIM = 5;
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6;
-  RealView5Dtype x("x", n0, n1, n2, n3, n4);
+  View5DLayout1type x("x", n0, n1, n2, n3, n4);
 
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
   Kokkos::fill_random(x, random_pool, 1.0);
@@ -542,14 +561,14 @@ void test_transpose_1d_5dview() {
     }
     auto [nt0, nt1, nt2, nt3, nt4] = out_extents;
 
-    RealView5Dtype xt("xt", nt0, nt1, nt2, nt3, nt4);
+    View5DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4);
     if (map == default_axes) {
       EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
                                               map),  // xt is identical to x
                    std::runtime_error);
     } else {
       // Transposed Views
-      RealView5Dtype ref("ref", nt0, nt1, nt2, nt3, nt4);
+      View5DLayout2type ref("ref", nt0, nt1, nt2, nt3, nt4);
       auto h_ref = Kokkos::create_mirror_view(ref);
       // Filling the transposed View
       for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
@@ -598,20 +617,22 @@ void test_transpose_1d_5dview() {
       EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
 
       // Inverse (transpose of transpose is identical to the original)
-      RealView5Dtype x_inv("x_inv", n0, n1, n2, n3, n4);
+      View5DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4);
       KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
       EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
     }
   }
 }
 
-template <typename LayoutType>
+template <typename LayoutType1, typename LayoutType2>
 void test_transpose_1d_6dview() {
-  using RealView6Dtype =
-      Kokkos::View<double******, LayoutType, execution_space>;
+  using View6DLayout1type =
+      Kokkos::View<double******, LayoutType1, execution_space>;
+  using View6DLayout2type =
+      Kokkos::View<double******, LayoutType2, execution_space>;
   constexpr int DIM = 6;
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6, n5 = 7;
-  RealView6Dtype x("x", n0, n1, n2, n3, n4, n5);
+  View6DLayout1type x("x", n0, n1, n2, n3, n4, n5);
 
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
   Kokkos::fill_random(x, random_pool, 1.0);
@@ -629,14 +650,14 @@ void test_transpose_1d_6dview() {
     }
     auto [nt0, nt1, nt2, nt3, nt4, nt5] = out_extents;
 
-    RealView6Dtype xt("xt", nt0, nt1, nt2, nt3, nt4, nt5);
+    View6DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5);
     if (map == default_axes) {
       EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
                                               map),  // xt is identical to x
                    std::runtime_error);
     } else {
       // Transposed Views
-      RealView6Dtype ref("ref", nt0, nt1, nt2, nt3, nt4, nt5);
+      View6DLayout2type ref("ref", nt0, nt1, nt2, nt3, nt4, nt5);
       auto h_ref = Kokkos::create_mirror_view(ref);
       // Filling the transposed View
       for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
@@ -698,20 +719,22 @@ void test_transpose_1d_6dview() {
       EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
 
       // Inverse (transpose of transpose is identical to the original)
-      RealView6Dtype x_inv("x_inv_x", n0, n1, n2, n3, n4, n5);
+      View6DLayout1type x_inv("x_inv_x", n0, n1, n2, n3, n4, n5);
       KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
       EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
     }
   }
 }
 
-template <typename LayoutType>
+template <typename LayoutType1, typename LayoutType2>
 void test_transpose_1d_7dview() {
-  using RealView7Dtype =
-      Kokkos::View<double*******, LayoutType, execution_space>;
+  using View7DLayout1type =
+      Kokkos::View<double*******, LayoutType1, execution_space>;
+  using View7DLayout2type =
+      Kokkos::View<double*******, LayoutType2, execution_space>;
   constexpr int DIM = 7;
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6, n5 = 7, n6 = 8;
-  RealView7Dtype x("x", n0, n1, n2, n3, n4, n5, n6);
+  View7DLayout1type x("x", n0, n1, n2, n3, n4, n5, n6);
 
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
   Kokkos::fill_random(x, random_pool, 1.0);
@@ -729,14 +752,14 @@ void test_transpose_1d_7dview() {
     }
     auto [nt0, nt1, nt2, nt3, nt4, nt5, nt6] = out_extents;
 
-    RealView7Dtype xt("xt", nt0, nt1, nt2, nt3, nt4, nt5, nt6);
+    View7DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5, nt6);
     if (map == default_axes) {
       EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
                                               map),  // xt is identical to x
                    std::runtime_error);
     } else {
       // Transposed Views
-      RealView7Dtype ref("ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6);
+      View7DLayout2type ref("ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6);
       auto h_ref = Kokkos::create_mirror_view(ref);
       // Filling the transposed View
       for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
@@ -813,20 +836,22 @@ void test_transpose_1d_7dview() {
       EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
 
       // Inverse (transpose of transpose is identical to the original)
-      RealView7Dtype x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6);
+      View7DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6);
       KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
       EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
     }
   }
 }
 
-template <typename LayoutType>
+template <typename LayoutType1, typename LayoutType2>
 void test_transpose_1d_8dview() {
-  using RealView8Dtype =
-      Kokkos::View<double********, LayoutType, execution_space>;
+  using View8DLayout1type =
+      Kokkos::View<double********, LayoutType1, execution_space>;
+  using View8DLayout2type =
+      Kokkos::View<double********, LayoutType2, execution_space>;
   constexpr int DIM = 8;
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6, n5 = 7, n6 = 8, n7 = 9;
-  RealView8Dtype x("x", n0, n1, n2, n3, n4, n5, n6, n7);
+  View8DLayout1type x("x", n0, n1, n2, n3, n4, n5, n6, n7);
 
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
   Kokkos::fill_random(x, random_pool, 1.0);
@@ -844,14 +869,14 @@ void test_transpose_1d_8dview() {
     }
     auto [nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7] = out_extents;
 
-    RealView8Dtype xt("xt", nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7);
+    View8DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7);
     if (map == default_axes) {
       EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
                                               map),  // xt is identical to x
                    std::runtime_error);
     } else {
       // Transposed Views
-      RealView8Dtype ref("ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7);
+      View8DLayout2type ref("ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7);
       auto h_ref = Kokkos::create_mirror_view(ref);
       // Filling the transposed View
       for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
@@ -946,19 +971,23 @@ void test_transpose_1d_8dview() {
       EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
 
       // Inverse (transpose of transpose is identical to the original)
-      RealView8Dtype x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6, n7);
+      View8DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6, n7);
       KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
       EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
     }
   }
 }
 
-template <typename LayoutType>
+template <typename LayoutType1, typename LayoutType2>
 void test_transpose_2d_2dview() {
-  using RealView2Dtype = Kokkos::View<double**, LayoutType, execution_space>;
+  using View2DLayout1type =
+      Kokkos::View<double**, LayoutType1, execution_space>;
+  using View2DLayout2type =
+      Kokkos::View<double**, LayoutType2, execution_space>;
   const int n0 = 3, n1 = 5;
-  RealView2Dtype x("x", n0, n1), x_inv("x_inv", n0, n1), ref("ref", n1, n0);
-  RealView2Dtype xt_axis01("xt_axis01", n0, n1), xt_axis10("xt_axis10", n1, n0);
+  View2DLayout1type x("x", n0, n1), x_inv("x_inv", n0, n1),
+      xt_axis01("xt_axis01", n0, n1);
+  View2DLayout2type xt_axis10("xt_axis10", n1, n0), ref("ref", n1, n0);
 
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
   Kokkos::fill_random(x, random_pool, 1.0);
@@ -990,12 +1019,15 @@ void test_transpose_2d_2dview() {
   EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
 }
 
-template <typename LayoutType>
+template <typename LayoutType1, typename LayoutType2>
 void test_transpose_2d_3dview() {
-  using RealView3Dtype = Kokkos::View<double***, LayoutType, execution_space>;
-  constexpr int DIM    = 3;
+  using View3DLayout1type =
+      Kokkos::View<double***, LayoutType1, execution_space>;
+  using View3DLayout2type =
+      Kokkos::View<double***, LayoutType2, execution_space>;
+  constexpr int DIM = 3;
   const int n0 = 3, n1 = 5, n2 = 8;
-  RealView3Dtype x("x", n0, n1, n2);
+  View3DLayout1type x("x", n0, n1, n2);
 
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
   Kokkos::fill_random(x, random_pool, 1.0);
@@ -1017,14 +1049,14 @@ void test_transpose_2d_3dview() {
       }
       auto [nt0, nt1, nt2] = out_extents;
 
-      RealView3Dtype xt("xt", nt0, nt1, nt2);
+      View3DLayout2type xt("xt", nt0, nt1, nt2);
       if (map == default_axes) {
         EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
                                                 map),  // xt is identical to x
                      std::runtime_error);
       } else {
         // Transposed Views
-        RealView3Dtype ref("ref", nt0, nt1, nt2);
+        View3DLayout2type ref("ref", nt0, nt1, nt2);
         auto h_ref = Kokkos::create_mirror_view(ref);
         // Filling the transposed View
         for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
@@ -1047,7 +1079,7 @@ void test_transpose_2d_3dview() {
         EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
 
         // Inverse (transpose of transpose is identical to the original)
-        RealView3Dtype x_inv("x_inv", n0, n1, n2);
+        View3DLayout1type x_inv("x_inv", n0, n1, n2);
         KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
         EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
       }
@@ -1055,12 +1087,15 @@ void test_transpose_2d_3dview() {
   }
 }
 
-template <typename LayoutType>
+template <typename LayoutType1, typename LayoutType2>
 void test_transpose_2d_4dview() {
-  using RealView4Dtype = Kokkos::View<double****, LayoutType, execution_space>;
-  constexpr int DIM    = 4;
+  using View4DLayout1type =
+      Kokkos::View<double****, LayoutType1, execution_space>;
+  using View4DLayout2type =
+      Kokkos::View<double****, LayoutType2, execution_space>;
+  constexpr int DIM = 4;
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5;
-  RealView4Dtype x("x", n0, n1, n2, n3);
+  View4DLayout1type x("x", n0, n1, n2, n3);
 
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
   Kokkos::fill_random(x, random_pool, 1.0);
@@ -1082,14 +1117,14 @@ void test_transpose_2d_4dview() {
       }
       auto [nt0, nt1, nt2, nt3] = out_extents;
 
-      RealView4Dtype xt("xt", nt0, nt1, nt2, nt3);
+      View4DLayout2type xt("xt", nt0, nt1, nt2, nt3);
       if (map == default_axes) {
         EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
                                                 map),  // xt is identical to x
                      std::runtime_error);
       } else {
         // Transposed Views
-        RealView4Dtype ref("ref", nt0, nt1, nt2, nt3);
+        View4DLayout2type ref("ref", nt0, nt1, nt2, nt3);
         auto h_ref = Kokkos::create_mirror_view(ref);
         // Filling the transposed View
         for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
@@ -1127,7 +1162,7 @@ void test_transpose_2d_4dview() {
         EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
 
         // Inverse (transpose of transpose is identical to the original)
-        RealView4Dtype x_inv("x_inv", n0, n1, n2, n3);
+        View4DLayout1type x_inv("x_inv", n0, n1, n2, n3);
         KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
         EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
       }
@@ -1135,12 +1170,15 @@ void test_transpose_2d_4dview() {
   }
 }
 
-template <typename LayoutType>
+template <typename LayoutType1, typename LayoutType2>
 void test_transpose_2d_5dview() {
-  using RealView5Dtype = Kokkos::View<double*****, LayoutType, execution_space>;
-  constexpr int DIM    = 5;
+  using View5DLayout1type =
+      Kokkos::View<double*****, LayoutType1, execution_space>;
+  using View5DLayout2type =
+      Kokkos::View<double*****, LayoutType2, execution_space>;
+  constexpr int DIM = 5;
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6;
-  RealView5Dtype x("x", n0, n1, n2, n3, n4);
+  View5DLayout1type x("x", n0, n1, n2, n3, n4);
 
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
   Kokkos::fill_random(x, random_pool, 1.0);
@@ -1162,14 +1200,14 @@ void test_transpose_2d_5dview() {
       }
       auto [nt0, nt1, nt2, nt3, nt4] = out_extents;
 
-      RealView5Dtype xt("xt", nt0, nt1, nt2, nt3, nt4);
+      View5DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4);
       if (map == default_axes) {
         EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
                                                 map),  // xt is identical to x
                      std::runtime_error);
       } else {
         // Transposed Views
-        RealView5Dtype ref("ref", nt0, nt1, nt2, nt3, nt4);
+        View5DLayout2type ref("ref", nt0, nt1, nt2, nt3, nt4);
         auto h_ref = Kokkos::create_mirror_view(ref);
         // Filling the transposed View
         for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
@@ -1218,7 +1256,7 @@ void test_transpose_2d_5dview() {
         EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
 
         // Inverse (transpose of transpose is identical to the original)
-        RealView5Dtype x_inv("x_inv", n0, n1, n2, n3, n4);
+        View5DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4);
         KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
         EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
       }
@@ -1226,13 +1264,15 @@ void test_transpose_2d_5dview() {
   }
 }
 
-template <typename LayoutType>
+template <typename LayoutType1, typename LayoutType2>
 void test_transpose_2d_6dview() {
-  using RealView6Dtype =
-      Kokkos::View<double******, LayoutType, execution_space>;
+  using View6DLayout1type =
+      Kokkos::View<double******, LayoutType1, execution_space>;
+  using View6DLayout2type =
+      Kokkos::View<double******, LayoutType2, execution_space>;
   constexpr int DIM = 6;
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6, n5 = 7;
-  RealView6Dtype x("x", n0, n1, n2, n3, n4, n5);
+  View6DLayout1type x("x", n0, n1, n2, n3, n4, n5);
 
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
   Kokkos::fill_random(x, random_pool, 1.0);
@@ -1254,14 +1294,14 @@ void test_transpose_2d_6dview() {
       }
       auto [nt0, nt1, nt2, nt3, nt4, nt5] = out_extents;
 
-      RealView6Dtype xt("xt", nt0, nt1, nt2, nt3, nt4, nt5);
+      View6DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5);
       if (map == default_axes) {
         EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
                                                 map),  // xt is identical to x
                      std::runtime_error);
       } else {
         // Transposed Views
-        RealView6Dtype ref("ref", nt0, nt1, nt2, nt3, nt4, nt5);
+        View6DLayout2type ref("ref", nt0, nt1, nt2, nt3, nt4, nt5);
         auto h_ref = Kokkos::create_mirror_view(ref);
         // Filling the transposed View
         for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
@@ -1323,7 +1363,7 @@ void test_transpose_2d_6dview() {
         EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
 
         // Inverse (transpose of transpose is identical to the original)
-        RealView6Dtype x_inv("x_inv", n0, n1, n2, n3, n4, n5);
+        View6DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5);
         KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
         EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
       }
@@ -1331,13 +1371,15 @@ void test_transpose_2d_6dview() {
   }
 }
 
-template <typename LayoutType>
+template <typename LayoutType1, typename LayoutType2>
 void test_transpose_2d_7dview() {
-  using RealView7Dtype =
-      Kokkos::View<double*******, LayoutType, execution_space>;
+  using View7DLayout1type =
+      Kokkos::View<double*******, LayoutType1, execution_space>;
+  using View7DLayout2type =
+      Kokkos::View<double*******, LayoutType2, execution_space>;
   constexpr int DIM = 7;
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6, n5 = 7, n6 = 8;
-  RealView7Dtype x("x", n0, n1, n2, n3, n4, n5, n6);
+  View7DLayout1type x("x", n0, n1, n2, n3, n4, n5, n6);
 
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
   Kokkos::fill_random(x, random_pool, 1.0);
@@ -1359,14 +1401,14 @@ void test_transpose_2d_7dview() {
       }
       auto [nt0, nt1, nt2, nt3, nt4, nt5, nt6] = out_extents;
 
-      RealView7Dtype xt("xt", nt0, nt1, nt2, nt3, nt4, nt5, nt6);
+      View7DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5, nt6);
       if (map == default_axes) {
         EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
                                                 map),  // xt is identical to x
                      std::runtime_error);
       } else {
         // Transposed Views
-        RealView7Dtype ref("ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6);
+        View7DLayout2type ref("ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6);
         auto h_ref = Kokkos::create_mirror_view(ref);
         // Filling the transposed View
         for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
@@ -1443,7 +1485,7 @@ void test_transpose_2d_7dview() {
         EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
 
         // Inverse (transpose of transpose is identical to the original)
-        RealView7Dtype x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6);
+        View7DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6);
         KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
         EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
       }
@@ -1451,13 +1493,15 @@ void test_transpose_2d_7dview() {
   }
 }
 
-template <typename LayoutType>
+template <typename LayoutType1, typename LayoutType2>
 void test_transpose_2d_8dview() {
-  using RealView8Dtype =
-      Kokkos::View<double********, LayoutType, execution_space>;
+  using View8DLayout1type =
+      Kokkos::View<double********, LayoutType1, execution_space>;
+  using View8DLayout2type =
+      Kokkos::View<double********, LayoutType2, execution_space>;
   constexpr int DIM = 8;
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6, n5 = 7, n6 = 8, n7 = 9;
-  RealView8Dtype x("x", n0, n1, n2, n3, n4, n5, n6, n7);
+  View8DLayout1type x("x", n0, n1, n2, n3, n4, n5, n6, n7);
 
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
   Kokkos::fill_random(x, random_pool, 1.0);
@@ -1479,14 +1523,14 @@ void test_transpose_2d_8dview() {
       }
       auto [nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7] = out_extents;
 
-      RealView8Dtype xt("xt", nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7);
+      View8DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7);
       if (map == default_axes) {
         EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
                                                 map),  // xt is identical to x
                      std::runtime_error);
       } else {
         // Transposed Views
-        RealView8Dtype ref("ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7);
+        View8DLayout2type ref("ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7);
         auto h_ref = Kokkos::create_mirror_view(ref);
         // Filling the transposed View
         for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
@@ -1581,7 +1625,7 @@ void test_transpose_2d_8dview() {
         EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
 
         // Inverse (transpose of transpose is identical to the original)
-        RealView8Dtype x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6, n7);
+        View8DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6, n7);
         KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
         EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
       }
@@ -1589,20 +1633,23 @@ void test_transpose_2d_8dview() {
   }
 }
 
-template <typename LayoutType>
+template <typename LayoutType1, typename LayoutType2>
 void test_transpose_3d_3dview() {
-  using RealView3Dtype = Kokkos::View<double***, LayoutType, execution_space>;
+  using View3DLayout1type =
+      Kokkos::View<double***, LayoutType1, execution_space>;
+  using View3DLayout2type =
+      Kokkos::View<double***, LayoutType2, execution_space>;
   const int n0 = 3, n1 = 5, n2 = 8;
-  RealView3Dtype x("x", n0, n1, n2);
-  RealView3Dtype xt_axis012("xt_axis012", n0, n1, n2),
+  View3DLayout1type x("x", n0, n1, n2);
+  View3DLayout2type xt_axis012("xt_axis012", n0, n1, n2),
       xt_axis021("xt_axis021", n0, n2, n1),
       xt_axis102("xt_axis102", n1, n0, n2),
       xt_axis120("xt_axis120", n1, n2, n0),
       xt_axis201("xt_axis201", n2, n0, n1),
       xt_axis210("xt_axis210", n2, n1, n0);  // views are allocated internally
-  RealView3Dtype ref_axis021("ref_axis021", n0, n2, n1),
-      ref_axis102("ref_axis102", n1, n0, n2);
-  RealView3Dtype ref_axis120("ref_axis120", n1, n2, n0),
+  View3DLayout2type ref_axis021("ref_axis021", n0, n2, n1),
+      ref_axis102("ref_axis102", n1, n0, n2),
+      ref_axis120("ref_axis120", n1, n2, n0),
       ref_axis201("ref_axis201", n2, n0, n1),
       ref_axis210("ref_axis210", n2, n1, n0);
 
@@ -1673,12 +1720,15 @@ void test_transpose_3d_3dview() {
       allclose(execution_space(), xt_axis210, ref_axis210, 1.e-5, 1.e-12));
 }
 
-template <typename LayoutType>
+template <typename LayoutType1, typename LayoutType2>
 void test_transpose_3d_4dview() {
-  using RealView4Dtype = Kokkos::View<double****, LayoutType, execution_space>;
-  constexpr int DIM    = 4;
+  using View4DLayout1type =
+      Kokkos::View<double****, LayoutType1, execution_space>;
+  using View4DLayout2type =
+      Kokkos::View<double****, LayoutType2, execution_space>;
+  constexpr int DIM = 4;
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5;
-  RealView4Dtype x("x", n0, n1, n2, n3);
+  View4DLayout1type x("x", n0, n1, n2, n3);
 
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
   Kokkos::fill_random(x, random_pool, 1.0);
@@ -1701,14 +1751,14 @@ void test_transpose_3d_4dview() {
         }
         auto [nt0, nt1, nt2, nt3] = out_extents;
 
-        RealView4Dtype xt("xt", nt0, nt1, nt2, nt3);
+        View4DLayout2type xt("xt", nt0, nt1, nt2, nt3);
         if (map == default_axes) {
           EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
                                                   map),  // xt is identical to x
                        std::runtime_error);
         } else {
           // Transposed Views
-          RealView4Dtype ref("ref", nt0, nt1, nt2, nt3);
+          View4DLayout2type ref("ref", nt0, nt1, nt2, nt3);
           auto h_ref = Kokkos::create_mirror_view(ref);
           // Filling the transposed View
           for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
@@ -1746,7 +1796,7 @@ void test_transpose_3d_4dview() {
           EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
 
           // Inverse (transpose of transpose is identical to the original)
-          RealView4Dtype x_inv("x_inv", n0, n1, n2, n3);
+          View4DLayout1type x_inv("x_inv", n0, n1, n2, n3);
           KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
           EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
         }
@@ -1755,12 +1805,15 @@ void test_transpose_3d_4dview() {
   }
 }
 
-template <typename LayoutType>
+template <typename LayoutType1, typename LayoutType2>
 void test_transpose_3d_5dview() {
-  using RealView5Dtype = Kokkos::View<double*****, LayoutType, execution_space>;
-  constexpr int DIM    = 5;
+  using View5DLayout1type =
+      Kokkos::View<double*****, LayoutType1, execution_space>;
+  using View5DLayout2type =
+      Kokkos::View<double*****, LayoutType2, execution_space>;
+  constexpr int DIM = 5;
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6;
-  RealView5Dtype x("x", n0, n1, n2, n3, n4);
+  View5DLayout1type x("x", n0, n1, n2, n3, n4);
 
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
   Kokkos::fill_random(x, random_pool, 1.0);
@@ -1784,14 +1837,14 @@ void test_transpose_3d_5dview() {
         }
         auto [nt0, nt1, nt2, nt3, nt4] = out_extents;
 
-        RealView5Dtype xt("xt", nt0, nt1, nt2, nt3, nt4);
+        View5DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4);
         if (map == default_axes) {
           EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
                                                   map),  // xt is identical to x
                        std::runtime_error);
         } else {
           // Transposed Views
-          RealView5Dtype ref("ref", nt0, nt1, nt2, nt3, nt4);
+          View5DLayout2type ref("ref", nt0, nt1, nt2, nt3, nt4);
           auto h_ref = Kokkos::create_mirror_view(ref);
           // Filling the transposed View
           for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
@@ -1840,7 +1893,7 @@ void test_transpose_3d_5dview() {
           EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
 
           // Inverse (transpose of transpose is identical to the original)
-          RealView5Dtype x_inv("x_inv", n0, n1, n2, n3, n4);
+          View5DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4);
           KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
           EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
         }
@@ -1849,13 +1902,15 @@ void test_transpose_3d_5dview() {
   }
 }
 
-template <typename LayoutType>
+template <typename LayoutType1, typename LayoutType2>
 void test_transpose_3d_6dview() {
-  using RealView6Dtype =
-      Kokkos::View<double******, LayoutType, execution_space>;
+  using View6DLayout1type =
+      Kokkos::View<double******, LayoutType1, execution_space>;
+  using View6DLayout2type =
+      Kokkos::View<double******, LayoutType2, execution_space>;
   constexpr int DIM = 6;
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6, n5 = 7;
-  RealView6Dtype x("x", n0, n1, n2, n3, n4, n5);
+  View6DLayout1type x("x", n0, n1, n2, n3, n4, n5);
 
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
   Kokkos::fill_random(x, random_pool, 1.0);
@@ -1879,14 +1934,14 @@ void test_transpose_3d_6dview() {
         }
         auto [nt0, nt1, nt2, nt3, nt4, nt5] = out_extents;
 
-        RealView6Dtype xt("xt", nt0, nt1, nt2, nt3, nt4, nt5);
+        View6DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5);
         if (map == default_axes) {
           EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
                                                   map),  // xt is identical to x
                        std::runtime_error);
         } else {
           // Transposed Views
-          RealView6Dtype ref("ref", nt0, nt1, nt2, nt3, nt4, nt5);
+          View6DLayout2type ref("ref", nt0, nt1, nt2, nt3, nt4, nt5);
           auto h_ref = Kokkos::create_mirror_view(ref);
           // Filling the transposed View
           for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
@@ -1948,7 +2003,7 @@ void test_transpose_3d_6dview() {
           EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
 
           // Inverse (transpose of transpose is identical to the original)
-          RealView6Dtype x_inv("x_inv", n0, n1, n2, n3, n4, n5);
+          View6DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5);
           KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
           EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
         }
@@ -1957,13 +2012,15 @@ void test_transpose_3d_6dview() {
   }
 }
 
-template <typename LayoutType>
+template <typename LayoutType1, typename LayoutType2>
 void test_transpose_3d_7dview() {
-  using RealView7Dtype =
-      Kokkos::View<double*******, LayoutType, execution_space>;
+  using View7DLayout1type =
+      Kokkos::View<double*******, LayoutType1, execution_space>;
+  using View7DLayout2type =
+      Kokkos::View<double*******, LayoutType2, execution_space>;
   constexpr int DIM = 7;
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6, n5 = 7, n6 = 8;
-  RealView7Dtype x("x", n0, n1, n2, n3, n4, n5, n6);
+  View7DLayout1type x("x", n0, n1, n2, n3, n4, n5, n6);
 
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
   Kokkos::fill_random(x, random_pool, 1.0);
@@ -1987,14 +2044,14 @@ void test_transpose_3d_7dview() {
         }
         auto [nt0, nt1, nt2, nt3, nt4, nt5, nt6] = out_extents;
 
-        RealView7Dtype xt("xt", nt0, nt1, nt2, nt3, nt4, nt5, nt6);
+        View7DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5, nt6);
         if (map == default_axes) {
           EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
                                                   map),  // xt is identical to x
                        std::runtime_error);
         } else {
           // Transposed Views
-          RealView7Dtype ref("ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6);
+          View7DLayout2type ref("ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6);
           auto h_ref = Kokkos::create_mirror_view(ref);
           // Filling the transposed View
           for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
@@ -2071,7 +2128,7 @@ void test_transpose_3d_7dview() {
           EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
 
           // Inverse (transpose of transpose is identical to the original)
-          RealView7Dtype x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6);
+          View7DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6);
           KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
           EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
         }
@@ -2080,13 +2137,15 @@ void test_transpose_3d_7dview() {
   }
 }
 
-template <typename LayoutType>
+template <typename LayoutType1, typename LayoutType2>
 void test_transpose_3d_8dview() {
-  using RealView8Dtype =
-      Kokkos::View<double********, LayoutType, execution_space>;
+  using View8DLayout1type =
+      Kokkos::View<double********, LayoutType1, execution_space>;
+  using View8DLayout2type =
+      Kokkos::View<double********, LayoutType2, execution_space>;
   constexpr int DIM = 8;
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6, n5 = 7, n6 = 8, n7 = 9;
-  RealView8Dtype x("x", n0, n1, n2, n3, n4, n5, n6, n7);
+  View8DLayout1type x("x", n0, n1, n2, n3, n4, n5, n6, n7);
 
   Kokkos::Random_XorShift64_Pool<> random_pool(12345);
   Kokkos::fill_random(x, random_pool, 1.0);
@@ -2110,14 +2169,14 @@ void test_transpose_3d_8dview() {
         }
         auto [nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7] = out_extents;
 
-        RealView8Dtype xt("xt", nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7);
+        View8DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7);
         if (map == default_axes) {
           EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
                                                   map),  // xt is identical to x
                        std::runtime_error);
         } else {
           // Transposed Views
-          RealView8Dtype ref("ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7);
+          View8DLayout2type ref("ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7);
           auto h_ref = Kokkos::create_mirror_view(ref);
           // Filling the transposed View
           for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
@@ -2212,7 +2271,7 @@ void test_transpose_3d_8dview() {
           EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
 
           // Inverse (transpose of transpose is identical to the original)
-          RealView8Dtype x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6, n7);
+          View8DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6, n7);
           KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
           EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
         }
@@ -2224,9 +2283,9 @@ void test_transpose_3d_8dview() {
 }  // namespace
 
 TYPED_TEST_SUITE(MapAxes, test_types);
-TYPED_TEST_SUITE(Transpose1D, test_types);
-TYPED_TEST_SUITE(Transpose2D, test_types);
-TYPED_TEST_SUITE(Transpose3D, test_types);
+TYPED_TEST_SUITE(TestTranspose1D, layout_types);
+TYPED_TEST_SUITE(TestTranspose2D, layout_types);
+TYPED_TEST_SUITE(TestTranspose3D, layout_types);
 
 // Tests for 1D View
 TYPED_TEST(MapAxes, 1DView) {
@@ -2249,128 +2308,149 @@ TYPED_TEST(MapAxes, 3DView) {
   test_map_axes3d<layout_type>();
 }
 
-TYPED_TEST(Transpose1D, 1DView) {
-  using layout_type = typename TestFixture::layout_type;
+TYPED_TEST(TestTranspose1D, 1DView) {
+  using layout_type1 = typename TestFixture::layout_type1;
+  using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_1d_1dview<layout_type>();
+  test_transpose_1d_1dview<layout_type1, layout_type2>();
 }
 
-TYPED_TEST(Transpose1D, 2DView) {
-  using layout_type = typename TestFixture::layout_type;
+TYPED_TEST(TestTranspose1D, 2DView) {
+  using layout_type1 = typename TestFixture::layout_type1;
+  using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_1d_2dview<layout_type>();
+  test_transpose_1d_2dview<layout_type1, layout_type2>();
 }
 
-TYPED_TEST(Transpose1D, 3DView) {
-  using layout_type = typename TestFixture::layout_type;
+TYPED_TEST(TestTranspose1D, 3DView) {
+  using layout_type1 = typename TestFixture::layout_type1;
+  using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_1d_3dview<layout_type>();
+  test_transpose_1d_3dview<layout_type1, layout_type2>();
 }
 
-TYPED_TEST(Transpose1D, 4DView) {
-  using layout_type = typename TestFixture::layout_type;
+TYPED_TEST(TestTranspose1D, 4DView) {
+  using layout_type1 = typename TestFixture::layout_type1;
+  using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_1d_4dview<layout_type>();
+  test_transpose_1d_4dview<layout_type1, layout_type2>();
 }
 
-TYPED_TEST(Transpose1D, 5DView) {
-  using layout_type = typename TestFixture::layout_type;
+TYPED_TEST(TestTranspose1D, 5DView) {
+  using layout_type1 = typename TestFixture::layout_type1;
+  using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_1d_5dview<layout_type>();
+  test_transpose_1d_5dview<layout_type1, layout_type2>();
 }
 
-TYPED_TEST(Transpose1D, 6DView) {
-  using layout_type = typename TestFixture::layout_type;
+TYPED_TEST(TestTranspose1D, 6DView) {
+  using layout_type1 = typename TestFixture::layout_type1;
+  using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_1d_6dview<layout_type>();
+  test_transpose_1d_6dview<layout_type1, layout_type2>();
 }
 
-TYPED_TEST(Transpose1D, 7DView) {
-  using layout_type = typename TestFixture::layout_type;
+TYPED_TEST(TestTranspose1D, 7DView) {
+  using layout_type1 = typename TestFixture::layout_type1;
+  using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_1d_7dview<layout_type>();
+  test_transpose_1d_7dview<layout_type1, layout_type2>();
 }
 
-TYPED_TEST(Transpose1D, 8DView) {
-  using layout_type = typename TestFixture::layout_type;
+TYPED_TEST(TestTranspose1D, 8DView) {
+  using layout_type1 = typename TestFixture::layout_type1;
+  using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_1d_8dview<layout_type>();
+  test_transpose_1d_8dview<layout_type1, layout_type2>();
 }
 
-TYPED_TEST(Transpose2D, 2DView) {
-  using layout_type = typename TestFixture::layout_type;
+TYPED_TEST(TestTranspose2D, 2DView) {
+  using layout_type1 = typename TestFixture::layout_type1;
+  using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_2d_2dview<layout_type>();
+  test_transpose_2d_2dview<layout_type1, layout_type2>();
 }
 
-TYPED_TEST(Transpose2D, 3DView) {
-  using layout_type = typename TestFixture::layout_type;
+TYPED_TEST(TestTranspose2D, 3DView) {
+  using layout_type1 = typename TestFixture::layout_type1;
+  using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_2d_3dview<layout_type>();
+  test_transpose_2d_3dview<layout_type1, layout_type2>();
 }
 
-TYPED_TEST(Transpose2D, 4DView) {
-  using layout_type = typename TestFixture::layout_type;
+TYPED_TEST(TestTranspose2D, 4DView) {
+  using layout_type1 = typename TestFixture::layout_type1;
+  using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_2d_4dview<layout_type>();
+  test_transpose_2d_4dview<layout_type1, layout_type2>();
 }
 
-TYPED_TEST(Transpose2D, 5DView) {
-  using layout_type = typename TestFixture::layout_type;
+TYPED_TEST(TestTranspose2D, 5DView) {
+  using layout_type1 = typename TestFixture::layout_type1;
+  using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_2d_5dview<layout_type>();
+  test_transpose_2d_5dview<layout_type1, layout_type2>();
 }
 
-TYPED_TEST(Transpose2D, 6DView) {
-  using layout_type = typename TestFixture::layout_type;
+TYPED_TEST(TestTranspose2D, 6DView) {
+  using layout_type1 = typename TestFixture::layout_type1;
+  using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_2d_6dview<layout_type>();
+  test_transpose_2d_6dview<layout_type1, layout_type2>();
 }
 
-TYPED_TEST(Transpose2D, 7DView) {
-  using layout_type = typename TestFixture::layout_type;
+TYPED_TEST(TestTranspose2D, 7DView) {
+  using layout_type1 = typename TestFixture::layout_type1;
+  using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_2d_7dview<layout_type>();
+  test_transpose_2d_7dview<layout_type1, layout_type2>();
 }
 
-TYPED_TEST(Transpose2D, 8DView) {
-  using layout_type = typename TestFixture::layout_type;
+TYPED_TEST(TestTranspose2D, 8DView) {
+  using layout_type1 = typename TestFixture::layout_type1;
+  using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_2d_8dview<layout_type>();
+  test_transpose_2d_8dview<layout_type1, layout_type2>();
 }
 
-TYPED_TEST(Transpose3D, 3DView) {
-  using layout_type = typename TestFixture::layout_type;
+TYPED_TEST(TestTranspose3D, 3DView) {
+  using layout_type1 = typename TestFixture::layout_type1;
+  using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_3d_3dview<layout_type>();
+  test_transpose_3d_3dview<layout_type1, layout_type2>();
 }
 
-TYPED_TEST(Transpose3D, 4DView) {
-  using layout_type = typename TestFixture::layout_type;
+TYPED_TEST(TestTranspose3D, 4DView) {
+  using layout_type1 = typename TestFixture::layout_type1;
+  using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_3d_4dview<layout_type>();
+  test_transpose_3d_4dview<layout_type1, layout_type2>();
 }
 
-TYPED_TEST(Transpose3D, 5DView) {
-  using layout_type = typename TestFixture::layout_type;
+TYPED_TEST(TestTranspose3D, 5DView) {
+  using layout_type1 = typename TestFixture::layout_type1;
+  using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_3d_5dview<layout_type>();
+  test_transpose_3d_5dview<layout_type1, layout_type2>();
 }
 
-TYPED_TEST(Transpose3D, 6DView) {
-  using layout_type = typename TestFixture::layout_type;
+TYPED_TEST(TestTranspose3D, 6DView) {
+  using layout_type1 = typename TestFixture::layout_type1;
+  using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_3d_6dview<layout_type>();
+  test_transpose_3d_6dview<layout_type1, layout_type2>();
 }
 
-TYPED_TEST(Transpose3D, 7DView) {
-  using layout_type = typename TestFixture::layout_type;
+TYPED_TEST(TestTranspose3D, 7DView) {
+  using layout_type1 = typename TestFixture::layout_type1;
+  using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_3d_7dview<layout_type>();
+  test_transpose_3d_7dview<layout_type1, layout_type2>();
 }
 
-TYPED_TEST(Transpose3D, 8DView) {
-  using layout_type = typename TestFixture::layout_type;
+TYPED_TEST(TestTranspose3D, 8DView) {
+  using layout_type1 = typename TestFixture::layout_type1;
+  using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_3d_8dview<layout_type>();
+  test_transpose_3d_8dview<layout_type1, layout_type2>();
 }
