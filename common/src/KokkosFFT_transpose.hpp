@@ -269,14 +269,17 @@ template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           std::size_t DIM = 1>
 void transpose(const ExecutionSpace& exec_space, const InViewType& in,
                const OutViewType& out, axis_type<DIM> map) {
-  static_assert(
-      KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                              OutViewType>,
-      "transpose: InViewType and OutViewType must have the same base floating "
-      "point "
-      "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
-      "same rank. ExecutionSpace must be accessible to the data in InViewType "
-      "and OutViewType.");
+  static_assert(is_operatable_view_v<ExecutionSpace, InViewType>,
+                "transpose: In View value type must be float, double, "
+                "Kokkos::Complex<float>, or Kokkos::Complex<double>. "
+                "Layout must be either LayoutLeft or LayoutRight. "
+                "ExecutionSpace must be able to access data in ViewType");
+
+  static_assert(is_operatable_view_v<ExecutionSpace, OutViewType>,
+                "transpose: Out View value type must be float, double, "
+                "Kokkos::Complex<float>, or Kokkos::Complex<double>. "
+                "Layout must be either LayoutLeft or LayoutRight. "
+                "ExecutionSpace must be able to access data in ViewType");
 
   static_assert(InViewType::rank() == DIM,
                 "transpose: Rank of View must be equal to Rank of "
