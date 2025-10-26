@@ -1997,9 +1997,8 @@ void test_transpose_3d_3dview() {
         View3DLayout2type xt("xt", nt0, nt1, nt2), ref("ref", nt0, nt1, nt2);
         if (map == default_axes) {
           // FIXME: This triggers test failure in FFT shifts test on Cuda
-          // backend
-          　　  // with Release build
-              continue;
+          // backend with Release build
+          continue;
         } else {
           // Transposed Views
           auto h_ref = Kokkos::create_mirror_view(ref);
