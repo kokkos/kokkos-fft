@@ -327,14 +327,13 @@ void test_transpose_1d_1dview() {
   View1DLayout1type x("x", len);
   View1DLayout2type xt("xt", len);
 
-  Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-  Kokkos::fill_random(x, random_pool, 1.0);
+  execution_space exec;
+  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
+  Kokkos::fill_random(exec, x, random_pool, 1.0);
+  exec.fence();
 
-  Kokkos::fence();
-
-  EXPECT_THROW(
-      KokkosFFT::Impl::transpose(execution_space(), x, xt, axes_type<1>({0})),
-      std::runtime_error);
+  EXPECT_THROW(KokkosFFT::Impl::transpose(exec, x, xt, axes_type<1>({0})),
+               std::runtime_error);
 }
 
 template <typename LayoutType1, typename LayoutType2>
@@ -347,8 +346,10 @@ void test_transpose_1d_2dview() {
   const int n0 = 3, n1 = 5;
   View2DLayout1type x("x", n0, n1);
 
-  Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-  Kokkos::fill_random(x, random_pool, 1.0);
+  execution_space exec;
+  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
+  Kokkos::fill_random(exec, x, random_pool, 1.0);
+  exec.fence();
 
   auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
 
@@ -365,8 +366,7 @@ void test_transpose_1d_2dview() {
 
     View2DLayout2type xt("xt", nt0, nt1);
     if (map == default_axes) {
-      EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                              map),  // xt is identical to x
+      EXPECT_THROW(KokkosFFT::Impl::transpose(exec, x, xt, map),
                    std::runtime_error);
     } else {
       // Transposed Views
@@ -380,16 +380,15 @@ void test_transpose_1d_2dview() {
       }
 
       Kokkos::deep_copy(ref, h_ref);
-      Kokkos::fence();
 
-      KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                 map);  // xt is the transpose of x
-      EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
+      KokkosFFT::Impl::transpose(exec, x, xt, map);
+      EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
 
       // Inverse (transpose of transpose is identical to the original)
       View2DLayout1type x_inv("x_inv", n0, n1);
-      KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
-      EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
+      KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+      EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+      exec.fence();
     }
   }
 }
@@ -404,8 +403,10 @@ void test_transpose_1d_3dview() {
   const int n0 = 3, n1 = 5, n2 = 8;
   View3DLayout1type x("x", n0, n1, n2);
 
-  Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-  Kokkos::fill_random(x, random_pool, 1.0);
+  execution_space exec;
+  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
+  Kokkos::fill_random(exec, x, random_pool, 1.0);
+  exec.fence();
 
   auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
 
@@ -422,8 +423,7 @@ void test_transpose_1d_3dview() {
 
     View3DLayout2type xt("xt", nt0, nt1, nt2);
     if (map == default_axes) {
-      EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                              map),  // xt is identical to x
+      EXPECT_THROW(KokkosFFT::Impl::transpose(exec, x, xt, map),
                    std::runtime_error);
     } else {
       // Transposed Views
@@ -443,16 +443,15 @@ void test_transpose_1d_3dview() {
       }
 
       Kokkos::deep_copy(ref, h_ref);
-      Kokkos::fence();
 
-      KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                 map);  // xt is the transpose of x
-      EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
+      KokkosFFT::Impl::transpose(exec, x, xt, map);
+      EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
 
       // Inverse (transpose of transpose is identical to the original)
       View3DLayout1type x_inv("x_invx", n0, n1, n2);
-      KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
-      EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
+      KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+      EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+      exec.fence();
     }
   }
 }
@@ -467,8 +466,10 @@ void test_transpose_1d_4dview() {
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5;
   View4DLayout1type x("x", n0, n1, n2, n3);
 
-  Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-  Kokkos::fill_random(x, random_pool, 1.0);
+  execution_space exec;
+  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
+  Kokkos::fill_random(exec, x, random_pool, 1.0);
+  exec.fence();
 
   auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
 
@@ -485,8 +486,7 @@ void test_transpose_1d_4dview() {
 
     View4DLayout2type xt("xt", nt0, nt1, nt2, nt3);
     if (map == default_axes) {
-      EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                              map),  // xt is identical to x
+      EXPECT_THROW(KokkosFFT::Impl::transpose(exec, x, xt, map),
                    std::runtime_error);
     } else {
       // Transposed Views
@@ -521,16 +521,15 @@ void test_transpose_1d_4dview() {
       }
 
       Kokkos::deep_copy(ref, h_ref);
-      Kokkos::fence();
 
-      KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                 map);  // xt is the transpose of x
-      EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
+      KokkosFFT::Impl::transpose(exec, x, xt, map);
+      EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
 
       // Inverse (transpose of transpose is identical to the original)
       View4DLayout1type x_inv("x_inv", n0, n1, n2, n3);
-      KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
-      EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
+      KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+      EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+      exec.fence();
     }
   }
 }
@@ -545,8 +544,10 @@ void test_transpose_1d_5dview() {
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6;
   View5DLayout1type x("x", n0, n1, n2, n3, n4);
 
-  Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-  Kokkos::fill_random(x, random_pool, 1.0);
+  execution_space exec;
+  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
+  Kokkos::fill_random(exec, x, random_pool, 1.0);
+  exec.fence();
 
   auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
 
@@ -563,8 +564,7 @@ void test_transpose_1d_5dview() {
 
     View5DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4);
     if (map == default_axes) {
-      EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                              map),  // xt is identical to x
+      EXPECT_THROW(KokkosFFT::Impl::transpose(exec, x, xt, map),
                    std::runtime_error);
     } else {
       // Transposed Views
@@ -610,16 +610,15 @@ void test_transpose_1d_5dview() {
       }
 
       Kokkos::deep_copy(ref, h_ref);
-      Kokkos::fence();
 
-      KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                 map);  // xt is the transpose of x
-      EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
+      KokkosFFT::Impl::transpose(exec, x, xt, map);
+      EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
 
       // Inverse (transpose of transpose is identical to the original)
       View5DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4);
-      KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
-      EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
+      KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+      EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+      exec.fence();
     }
   }
 }
@@ -634,8 +633,10 @@ void test_transpose_1d_6dview() {
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6, n5 = 7;
   View6DLayout1type x("x", n0, n1, n2, n3, n4, n5);
 
-  Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-  Kokkos::fill_random(x, random_pool, 1.0);
+  execution_space exec;
+  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
+  Kokkos::fill_random(exec, x, random_pool, 1.0);
+  exec.fence();
 
   auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
 
@@ -652,8 +653,7 @@ void test_transpose_1d_6dview() {
 
     View6DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5);
     if (map == default_axes) {
-      EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                              map),  // xt is identical to x
+      EXPECT_THROW(KokkosFFT::Impl::transpose(exec, x, xt, map),
                    std::runtime_error);
     } else {
       // Transposed Views
@@ -712,16 +712,15 @@ void test_transpose_1d_6dview() {
       }
 
       Kokkos::deep_copy(ref, h_ref);
-      Kokkos::fence();
 
-      KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                 map);  // xt is the transpose of x
-      EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
+      KokkosFFT::Impl::transpose(exec, x, xt, map);
+      EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
 
       // Inverse (transpose of transpose is identical to the original)
       View6DLayout1type x_inv("x_inv_x", n0, n1, n2, n3, n4, n5);
-      KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
-      EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
+      KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+      EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+      exec.fence();
     }
   }
 }
@@ -736,8 +735,10 @@ void test_transpose_1d_7dview() {
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6, n5 = 7, n6 = 8;
   View7DLayout1type x("x", n0, n1, n2, n3, n4, n5, n6);
 
-  Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-  Kokkos::fill_random(x, random_pool, 1.0);
+  execution_space exec;
+  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
+  Kokkos::fill_random(exec, x, random_pool, 1.0);
+  exec.fence();
 
   auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
 
@@ -754,8 +755,7 @@ void test_transpose_1d_7dview() {
 
     View7DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5, nt6);
     if (map == default_axes) {
-      EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                              map),  // xt is identical to x
+      EXPECT_THROW(KokkosFFT::Impl::transpose(exec, x, xt, map),
                    std::runtime_error);
     } else {
       // Transposed Views
@@ -829,16 +829,15 @@ void test_transpose_1d_7dview() {
       }
 
       Kokkos::deep_copy(ref, h_ref);
-      Kokkos::fence();
 
-      KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                 map);  // xt is the transpose of x
-      EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
+      KokkosFFT::Impl::transpose(exec, x, xt, map);
+      EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
 
       // Inverse (transpose of transpose is identical to the original)
       View7DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6);
-      KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
-      EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
+      KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+      EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+      exec.fence();
     }
   }
 }
@@ -853,8 +852,10 @@ void test_transpose_1d_8dview() {
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6, n5 = 7, n6 = 8, n7 = 9;
   View8DLayout1type x("x", n0, n1, n2, n3, n4, n5, n6, n7);
 
-  Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-  Kokkos::fill_random(x, random_pool, 1.0);
+  execution_space exec;
+  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
+  Kokkos::fill_random(exec, x, random_pool, 1.0);
+  exec.fence();
 
   auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
 
@@ -871,8 +872,7 @@ void test_transpose_1d_8dview() {
 
     View8DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7);
     if (map == default_axes) {
-      EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                              map),  // xt is identical to x
+      EXPECT_THROW(KokkosFFT::Impl::transpose(exec, x, xt, map),
                    std::runtime_error);
     } else {
       // Transposed Views
@@ -964,16 +964,15 @@ void test_transpose_1d_8dview() {
       }
 
       Kokkos::deep_copy(ref, h_ref);
-      Kokkos::fence();
 
-      KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                 map);  // xt is the transpose of x
-      EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
+      KokkosFFT::Impl::transpose(exec, x, xt, map);
+      EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
 
       // Inverse (transpose of transpose is identical to the original)
       View8DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6, n7);
-      KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
-      EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
+      KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+      EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+      exec.fence();
     }
   }
 }
@@ -989,8 +988,10 @@ void test_transpose_2d_2dview() {
       xt_axis01("xt_axis01", n0, n1);
   View2DLayout2type xt_axis10("xt_axis10", n1, n0), ref("ref", n1, n0);
 
-  Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-  Kokkos::fill_random(x, random_pool, 1.0);
+  execution_space exec;
+  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
+  Kokkos::fill_random(exec, x, random_pool, 1.0);
+  exec.fence();
 
   // Transposed views
   auto h_x   = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
@@ -1002,21 +1003,18 @@ void test_transpose_2d_2dview() {
     }
   }
   Kokkos::deep_copy(ref, h_ref);
-  Kokkos::fence();
 
   EXPECT_THROW(
-      KokkosFFT::Impl::transpose(execution_space(), x, xt_axis01,
-                                 axes_type<2>({0, 1})),  // xt is identical to x
+      KokkosFFT::Impl::transpose(exec, x, xt_axis01, axes_type<2>({0, 1})),
       std::runtime_error);
 
-  KokkosFFT::Impl::transpose(execution_space(), x, xt_axis10,
-                             axes_type<2>({1, 0}));  // xt is the transpose of x
-  EXPECT_TRUE(allclose(execution_space(), xt_axis10, ref, 1.e-5, 1.e-12));
+  KokkosFFT::Impl::transpose(exec, x, xt_axis10, axes_type<2>({1, 0}));
+  EXPECT_TRUE(allclose(exec, xt_axis10, ref, 1.e-5, 1.e-12));
 
   // Inverse (transpose of transpose is identical to the original)
-  KokkosFFT::Impl::transpose(execution_space(), xt_axis10, x_inv,
-                             axes_type<2>({1, 0}));  // xt is the transpose of x
-  EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
+  KokkosFFT::Impl::transpose(exec, xt_axis10, x_inv, axes_type<2>({1, 0}));
+  EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+  exec.fence();
 }
 
 template <typename LayoutType1, typename LayoutType2>
@@ -1029,8 +1027,10 @@ void test_transpose_2d_3dview() {
   const int n0 = 3, n1 = 5, n2 = 8;
   View3DLayout1type x("x", n0, n1, n2);
 
-  Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-  Kokkos::fill_random(x, random_pool, 1.0);
+  execution_space exec;
+  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
+  Kokkos::fill_random(exec, x, random_pool, 1.0);
+  exec.fence();
 
   auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
 
@@ -1051,8 +1051,7 @@ void test_transpose_2d_3dview() {
 
       View3DLayout2type xt("xt", nt0, nt1, nt2);
       if (map == default_axes) {
-        EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                                map),  // xt is identical to x
+        EXPECT_THROW(KokkosFFT::Impl::transpose(exec, x, xt, map),
                      std::runtime_error);
       } else {
         // Transposed Views
@@ -1072,16 +1071,15 @@ void test_transpose_2d_3dview() {
         }
 
         Kokkos::deep_copy(ref, h_ref);
-        Kokkos::fence();
 
-        KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                   map);  // xt is the transpose of x
-        EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
+        KokkosFFT::Impl::transpose(exec, x, xt, map);
+        EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
 
         // Inverse (transpose of transpose is identical to the original)
         View3DLayout1type x_inv("x_inv", n0, n1, n2);
-        KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
-        EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
+        KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+        EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+        exec.fence();
       }
     }
   }
@@ -1097,8 +1095,10 @@ void test_transpose_2d_4dview() {
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5;
   View4DLayout1type x("x", n0, n1, n2, n3);
 
-  Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-  Kokkos::fill_random(x, random_pool, 1.0);
+  execution_space exec;
+  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
+  Kokkos::fill_random(exec, x, random_pool, 1.0);
+  exec.fence();
 
   auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
 
@@ -1119,8 +1119,7 @@ void test_transpose_2d_4dview() {
 
       View4DLayout2type xt("xt", nt0, nt1, nt2, nt3);
       if (map == default_axes) {
-        EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                                map),  // xt is identical to x
+        EXPECT_THROW(KokkosFFT::Impl::transpose(exec, x, xt, map),
                      std::runtime_error);
       } else {
         // Transposed Views
@@ -1155,16 +1154,15 @@ void test_transpose_2d_4dview() {
         }
 
         Kokkos::deep_copy(ref, h_ref);
-        Kokkos::fence();
 
-        KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                   map);  // xt is the transpose of x
-        EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
+        KokkosFFT::Impl::transpose(exec, x, xt, map);
+        EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
 
         // Inverse (transpose of transpose is identical to the original)
         View4DLayout1type x_inv("x_inv", n0, n1, n2, n3);
-        KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
-        EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
+        KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+        EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+        exec.fence();
       }
     }
   }
@@ -1180,8 +1178,10 @@ void test_transpose_2d_5dview() {
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6;
   View5DLayout1type x("x", n0, n1, n2, n3, n4);
 
-  Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-  Kokkos::fill_random(x, random_pool, 1.0);
+  execution_space exec;
+  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
+  Kokkos::fill_random(exec, x, random_pool, 1.0);
+  exec.fence();
 
   auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
 
@@ -1202,8 +1202,7 @@ void test_transpose_2d_5dview() {
 
       View5DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4);
       if (map == default_axes) {
-        EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                                map),  // xt is identical to x
+        EXPECT_THROW(KokkosFFT::Impl::transpose(exec, x, xt, map),
                      std::runtime_error);
       } else {
         // Transposed Views
@@ -1249,16 +1248,15 @@ void test_transpose_2d_5dview() {
         }
 
         Kokkos::deep_copy(ref, h_ref);
-        Kokkos::fence();
 
-        KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                   map);  // xt is the transpose of x
-        EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
+        KokkosFFT::Impl::transpose(exec, x, xt, map);
+        EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
 
         // Inverse (transpose of transpose is identical to the original)
         View5DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4);
-        KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
-        EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
+        KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+        EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+        exec.fence();
       }
     }
   }
@@ -1274,8 +1272,10 @@ void test_transpose_2d_6dview() {
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6, n5 = 7;
   View6DLayout1type x("x", n0, n1, n2, n3, n4, n5);
 
-  Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-  Kokkos::fill_random(x, random_pool, 1.0);
+  execution_space exec;
+  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
+  Kokkos::fill_random(exec, x, random_pool, 1.0);
+  exec.fence();
 
   auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
 
@@ -1296,8 +1296,7 @@ void test_transpose_2d_6dview() {
 
       View6DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5);
       if (map == default_axes) {
-        EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                                map),  // xt is identical to x
+        EXPECT_THROW(KokkosFFT::Impl::transpose(exec, x, xt, map),
                      std::runtime_error);
       } else {
         // Transposed Views
@@ -1356,16 +1355,15 @@ void test_transpose_2d_6dview() {
         }
 
         Kokkos::deep_copy(ref, h_ref);
-        Kokkos::fence();
 
-        KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                   map);  // xt is the transpose of x
-        EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
+        KokkosFFT::Impl::transpose(exec, x, xt, map);
+        EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
 
         // Inverse (transpose of transpose is identical to the original)
         View6DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5);
-        KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
-        EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
+        KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+        EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+        exec.fence();
       }
     }
   }
@@ -1381,8 +1379,10 @@ void test_transpose_2d_7dview() {
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6, n5 = 7, n6 = 8;
   View7DLayout1type x("x", n0, n1, n2, n3, n4, n5, n6);
 
-  Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-  Kokkos::fill_random(x, random_pool, 1.0);
+  execution_space exec;
+  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
+  Kokkos::fill_random(exec, x, random_pool, 1.0);
+  exec.fence();
 
   auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
 
@@ -1403,8 +1403,7 @@ void test_transpose_2d_7dview() {
 
       View7DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5, nt6);
       if (map == default_axes) {
-        EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                                map),  // xt is identical to x
+        EXPECT_THROW(KokkosFFT::Impl::transpose(exec, x, xt, map),
                      std::runtime_error);
       } else {
         // Transposed Views
@@ -1478,16 +1477,15 @@ void test_transpose_2d_7dview() {
         }
 
         Kokkos::deep_copy(ref, h_ref);
-        Kokkos::fence();
 
-        KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                   map);  // xt is the transpose of x
-        EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
+        KokkosFFT::Impl::transpose(exec, x, xt, map);
+        EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
 
         // Inverse (transpose of transpose is identical to the original)
         View7DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6);
-        KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
-        EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
+        KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+        EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+        exec.fence();
       }
     }
   }
@@ -1503,8 +1501,10 @@ void test_transpose_2d_8dview() {
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6, n5 = 7, n6 = 8, n7 = 9;
   View8DLayout1type x("x", n0, n1, n2, n3, n4, n5, n6, n7);
 
-  Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-  Kokkos::fill_random(x, random_pool, 1.0);
+  execution_space exec;
+  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
+  Kokkos::fill_random(exec, x, random_pool, 1.0);
+  exec.fence();
 
   auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
 
@@ -1525,8 +1525,7 @@ void test_transpose_2d_8dview() {
 
       View8DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7);
       if (map == default_axes) {
-        EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                                map),  // xt is identical to x
+        EXPECT_THROW(KokkosFFT::Impl::transpose(exec, x, xt, map),
                      std::runtime_error);
       } else {
         // Transposed Views
@@ -1618,16 +1617,15 @@ void test_transpose_2d_8dview() {
         }
 
         Kokkos::deep_copy(ref, h_ref);
-        Kokkos::fence();
 
-        KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                   map);  // xt is the transpose of x
-        EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
+        KokkosFFT::Impl::transpose(exec, x, xt, map);
+        EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
 
         // Inverse (transpose of transpose is identical to the original)
         View8DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6, n7);
-        KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
-        EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
+        KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+        EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+        exec.fence();
       }
     }
   }
@@ -1653,8 +1651,10 @@ void test_transpose_3d_3dview() {
       ref_axis201("ref_axis201", n2, n0, n1),
       ref_axis210("ref_axis210", n2, n1, n0);
 
-  Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-  Kokkos::fill_random(x, random_pool, 1.0);
+  execution_space exec;
+  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
+  Kokkos::fill_random(exec, x, random_pool, 1.0);
+  exec.fence();
 
   // Transposed views
   auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
@@ -1682,42 +1682,36 @@ void test_transpose_3d_3dview() {
   Kokkos::deep_copy(ref_axis201, h_ref_axis201);
   Kokkos::deep_copy(ref_axis210, h_ref_axis210);
 
-  Kokkos::fence();
-
   EXPECT_THROW(KokkosFFT::Impl::transpose(
-                   execution_space(), x, xt_axis012,
+                   exec, x, xt_axis012,
                    axes_type<3>({0, 1, 2})),  // xt is identical to x
                std::runtime_error);
 
   KokkosFFT::Impl::transpose(
-      execution_space(), x, xt_axis021,
+      exec, x, xt_axis021,
       axes_type<3>({0, 2, 1}));  // xt is the transpose of x
-  EXPECT_TRUE(
-      allclose(execution_space(), xt_axis021, ref_axis021, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(exec, xt_axis021, ref_axis021, 1.e-5, 1.e-12));
 
   KokkosFFT::Impl::transpose(
-      execution_space(), x, xt_axis102,
+      exec, x, xt_axis102,
       axes_type<3>({1, 0, 2}));  // xt is the transpose of x
-  EXPECT_TRUE(
-      allclose(execution_space(), xt_axis102, ref_axis102, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(exec, xt_axis102, ref_axis102, 1.e-5, 1.e-12));
 
   KokkosFFT::Impl::transpose(
-      execution_space(), x, xt_axis120,
+      exec, x, xt_axis120,
       axes_type<3>({1, 2, 0}));  // xt is the transpose of x
-  EXPECT_TRUE(
-      allclose(execution_space(), xt_axis120, ref_axis120, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(exec, xt_axis120, ref_axis120, 1.e-5, 1.e-12));
 
   KokkosFFT::Impl::transpose(
-      execution_space(), x, xt_axis201,
+      exec, x, xt_axis201,
       axes_type<3>({2, 0, 1}));  // xt is the transpose of x
-  EXPECT_TRUE(
-      allclose(execution_space(), xt_axis201, ref_axis201, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(exec, xt_axis201, ref_axis201, 1.e-5, 1.e-12));
 
   KokkosFFT::Impl::transpose(
-      execution_space(), x, xt_axis210,
+      exec, x, xt_axis210,
       axes_type<3>({2, 1, 0}));  // xt is the transpose of x
-  EXPECT_TRUE(
-      allclose(execution_space(), xt_axis210, ref_axis210, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(exec, xt_axis210, ref_axis210, 1.e-5, 1.e-12));
+  exec.fence();
 }
 
 template <typename LayoutType1, typename LayoutType2>
@@ -1730,8 +1724,10 @@ void test_transpose_3d_4dview() {
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5;
   View4DLayout1type x("x", n0, n1, n2, n3);
 
-  Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-  Kokkos::fill_random(x, random_pool, 1.0);
+  execution_space exec;
+  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
+  Kokkos::fill_random(exec, x, random_pool, 1.0);
+  exec.fence();
 
   auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
 
@@ -1753,8 +1749,7 @@ void test_transpose_3d_4dview() {
 
         View4DLayout2type xt("xt", nt0, nt1, nt2, nt3);
         if (map == default_axes) {
-          EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                                  map),  // xt is identical to x
+          EXPECT_THROW(KokkosFFT::Impl::transpose(exec, x, xt, map),
                        std::runtime_error);
         } else {
           // Transposed Views
@@ -1789,16 +1784,15 @@ void test_transpose_3d_4dview() {
           }
 
           Kokkos::deep_copy(ref, h_ref);
-          Kokkos::fence();
 
-          KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                     map);  // xt is the transpose of x
-          EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
+          KokkosFFT::Impl::transpose(exec, x, xt, map);
+          EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
 
           // Inverse (transpose of transpose is identical to the original)
           View4DLayout1type x_inv("x_inv", n0, n1, n2, n3);
-          KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
-          EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
+          KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+          EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+          exec.fence();
         }
       }
     }
@@ -1815,8 +1809,10 @@ void test_transpose_3d_5dview() {
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6;
   View5DLayout1type x("x", n0, n1, n2, n3, n4);
 
-  Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-  Kokkos::fill_random(x, random_pool, 1.0);
+  execution_space exec;
+  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
+  Kokkos::fill_random(exec, x, random_pool, 1.0);
+  exec.fence();
 
   auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
 
@@ -1839,8 +1835,7 @@ void test_transpose_3d_5dview() {
 
         View5DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4);
         if (map == default_axes) {
-          EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                                  map),  // xt is identical to x
+          EXPECT_THROW(KokkosFFT::Impl::transpose(exec, x, xt, map),
                        std::runtime_error);
         } else {
           // Transposed Views
@@ -1886,16 +1881,15 @@ void test_transpose_3d_5dview() {
           }
 
           Kokkos::deep_copy(ref, h_ref);
-          Kokkos::fence();
 
-          KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                     map);  // xt is the transpose of x
-          EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
+          KokkosFFT::Impl::transpose(exec, x, xt, map);
+          EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
 
           // Inverse (transpose of transpose is identical to the original)
           View5DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4);
-          KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
-          EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
+          KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+          EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+          exec.fence();
         }
       }
     }
@@ -1912,8 +1906,10 @@ void test_transpose_3d_6dview() {
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6, n5 = 7;
   View6DLayout1type x("x", n0, n1, n2, n3, n4, n5);
 
-  Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-  Kokkos::fill_random(x, random_pool, 1.0);
+  execution_space exec;
+  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
+  Kokkos::fill_random(exec, x, random_pool, 1.0);
+  exec.fence();
 
   auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
 
@@ -1936,8 +1932,7 @@ void test_transpose_3d_6dview() {
 
         View6DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5);
         if (map == default_axes) {
-          EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                                  map),  // xt is identical to x
+          EXPECT_THROW(KokkosFFT::Impl::transpose(exec, x, xt, map),
                        std::runtime_error);
         } else {
           // Transposed Views
@@ -1996,16 +1991,15 @@ void test_transpose_3d_6dview() {
           }
 
           Kokkos::deep_copy(ref, h_ref);
-          Kokkos::fence();
 
-          KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                     map);  // xt is the transpose of x
-          EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
+          KokkosFFT::Impl::transpose(exec, x, xt, map);
+          EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
 
           // Inverse (transpose of transpose is identical to the original)
           View6DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5);
-          KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
-          EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
+          KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+          EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+          exec.fence();
         }
       }
     }
@@ -2022,8 +2016,10 @@ void test_transpose_3d_7dview() {
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6, n5 = 7, n6 = 8;
   View7DLayout1type x("x", n0, n1, n2, n3, n4, n5, n6);
 
-  Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-  Kokkos::fill_random(x, random_pool, 1.0);
+  execution_space exec;
+  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
+  Kokkos::fill_random(exec, x, random_pool, 1.0);
+  exec.fence();
 
   auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
 
@@ -2046,8 +2042,7 @@ void test_transpose_3d_7dview() {
 
         View7DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5, nt6);
         if (map == default_axes) {
-          EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                                  map),  // xt is identical to x
+          EXPECT_THROW(KokkosFFT::Impl::transpose(exec, x, xt, map),
                        std::runtime_error);
         } else {
           // Transposed Views
@@ -2121,16 +2116,15 @@ void test_transpose_3d_7dview() {
           }
 
           Kokkos::deep_copy(ref, h_ref);
-          Kokkos::fence();
 
-          KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                     map);  // xt is the transpose of x
-          EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
+          KokkosFFT::Impl::transpose(exec, x, xt, map);
+          EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
 
           // Inverse (transpose of transpose is identical to the original)
           View7DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6);
-          KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
-          EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
+          KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+          EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+          exec.fence();
         }
       }
     }
@@ -2147,8 +2141,10 @@ void test_transpose_3d_8dview() {
   const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6, n5 = 7, n6 = 8, n7 = 9;
   View8DLayout1type x("x", n0, n1, n2, n3, n4, n5, n6, n7);
 
-  Kokkos::Random_XorShift64_Pool<> random_pool(12345);
-  Kokkos::fill_random(x, random_pool, 1.0);
+  execution_space exec;
+  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
+  Kokkos::fill_random(exec, x, random_pool, 1.0);
+  exec.fence();
 
   auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
 
@@ -2171,8 +2167,7 @@ void test_transpose_3d_8dview() {
 
         View8DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7);
         if (map == default_axes) {
-          EXPECT_THROW(KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                                  map),  // xt is identical to x
+          EXPECT_THROW(KokkosFFT::Impl::transpose(exec, x, xt, map),
                        std::runtime_error);
         } else {
           // Transposed Views
@@ -2264,16 +2259,15 @@ void test_transpose_3d_8dview() {
           }
 
           Kokkos::deep_copy(ref, h_ref);
-          Kokkos::fence();
 
-          KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                     map);  // xt is the transpose of x
-          EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
+          KokkosFFT::Impl::transpose(exec, x, xt, map);
+          EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
 
           // Inverse (transpose of transpose is identical to the original)
           View8DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6, n7);
-          KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
-          EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
+          KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+          EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+          exec.fence();
         }
       }
     }
