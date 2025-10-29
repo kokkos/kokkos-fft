@@ -63,152 +63,32 @@ void make_transposed(const ViewType1& x, const ViewType2& xT,
   auto h_x  = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
   auto h_xT = Kokkos::create_mirror_view(xT);
 
-  if constexpr (ViewType1::rank == 2) {
-    for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
-      for (std::size_t i1 = 0; i1 < h_x.extent(1); i1++) {
-        h_xT(i1, i0) = h_x(i0, i1);
-      }
-    }
-  } else if constexpr (ViewType1::rank == 3) {
-    for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
-      for (std::size_t i1 = 0; i1 < h_x.extent(1); i1++) {
-        for (std::size_t i2 = 0; i2 < h_x.extent(2); i2++) {
-          std::array<std::size_t, 3> dst_indices{i0, i1, i2};
-          std::size_t dst_i0 = dst_indices.at(map.at(0)),
-                      dst_i1 = dst_indices.at(map.at(1)),
-                      dst_i2 = dst_indices.at(map.at(2));
-          if (dst_i0 < h_xT.extent(0) && dst_i1 < h_xT.extent(1) &&
-              dst_i2 < h_xT.extent(2)) {
-            h_xT(dst_i0, dst_i1, dst_i2) = h_x(i0, i1, i2);
-          }
-        }
-      }
-    }
-  } else if constexpr (ViewType1::rank == 4) {
-    for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
-      for (std::size_t i1 = 0; i1 < h_x.extent(1); i1++) {
-        for (std::size_t i2 = 0; i2 < h_x.extent(2); i2++) {
-          for (std::size_t i3 = 0; i3 < h_x.extent(3); i3++) {
-            std::array<std::size_t, 4> dst_indices{i0, i1, i2, i3};
-            std::size_t dst_i0 = dst_indices.at(map.at(0)),
-                        dst_i1 = dst_indices.at(map.at(1)),
-                        dst_i2 = dst_indices.at(map.at(2)),
-                        dst_i3 = dst_indices.at(map.at(3));
-            if (dst_i0 < h_xT.extent(0) && dst_i1 < h_xT.extent(1) &&
-                dst_i2 < h_xT.extent(2) && dst_i3 < h_xT.extent(3)) {
-              h_xT(dst_i0, dst_i1, dst_i2, dst_i3) = h_x(i0, i1, i2, i3);
-            }
-          }
-        }
-      }
-    }
-  } else if constexpr (ViewType1::rank == 5) {
-    for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
-      for (std::size_t i1 = 0; i1 < h_x.extent(1); i1++) {
-        for (std::size_t i2 = 0; i2 < h_x.extent(2); i2++) {
-          for (std::size_t i3 = 0; i3 < h_x.extent(3); i3++) {
-            for (std::size_t i4 = 0; i4 < h_x.extent(4); i4++) {
-              std::array<std::size_t, 5> dst_indices{i0, i1, i2, i3, i4};
-              std::size_t dst_i0 = dst_indices.at(map.at(0)),
-                          dst_i1 = dst_indices.at(map.at(1)),
-                          dst_i2 = dst_indices.at(map.at(2)),
-                          dst_i3 = dst_indices.at(map.at(3)),
-                          dst_i4 = dst_indices.at(map.at(4));
-              if (dst_i0 < h_xT.extent(0) && dst_i1 < h_xT.extent(1) &&
-                  dst_i2 < h_xT.extent(2) && dst_i3 < h_xT.extent(3) &&
-                  dst_i4 < h_xT.extent(4)) {
-                h_xT(dst_i0, dst_i1, dst_i2, dst_i3, dst_i4) =
-                    h_x(i0, i1, i2, i3, i4);
-              }
-            }
-          }
-        }
-      }
-    }
-  } else if constexpr (ViewType1::rank == 6) {
-    for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
-      for (std::size_t i1 = 0; i1 < h_x.extent(1); i1++) {
-        for (std::size_t i2 = 0; i2 < h_x.extent(2); i2++) {
-          for (std::size_t i3 = 0; i3 < h_x.extent(3); i3++) {
-            for (std::size_t i4 = 0; i4 < h_x.extent(4); i4++) {
-              for (std::size_t i5 = 0; i5 < h_x.extent(5); i5++) {
-                std::array<std::size_t, 6> dst_indices{i0, i1, i2, i3, i4, i5};
-                std::size_t dst_i0 = dst_indices.at(map.at(0)),
-                            dst_i1 = dst_indices.at(map.at(1)),
-                            dst_i2 = dst_indices.at(map.at(2)),
-                            dst_i3 = dst_indices.at(map.at(3)),
-                            dst_i4 = dst_indices.at(map.at(4)),
-                            dst_i5 = dst_indices.at(map.at(5));
-                if (dst_i0 < h_xT.extent(0) && dst_i1 < h_xT.extent(1) &&
-                    dst_i2 < h_xT.extent(2) && dst_i3 < h_xT.extent(3) &&
-                    dst_i4 < h_xT.extent(4) && dst_i5 < h_xT.extent(5)) {
-                  h_xT(dst_i0, dst_i1, dst_i2, dst_i3, dst_i4, dst_i5) =
-                      h_x(i0, i1, i2, i3, i4, i5);
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  } else if constexpr (ViewType1::rank == 7) {
-    for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
-      for (std::size_t i1 = 0; i1 < h_x.extent(1); i1++) {
-        for (std::size_t i2 = 0; i2 < h_x.extent(2); i2++) {
-          for (std::size_t i3 = 0; i3 < h_x.extent(3); i3++) {
-            for (std::size_t i4 = 0; i4 < h_x.extent(4); i4++) {
-              for (std::size_t i5 = 0; i5 < h_x.extent(5); i5++) {
-                for (std::size_t i6 = 0; i6 < h_x.extent(6); i6++) {
-                  std::array<std::size_t, 7> dst_indices{i0, i1, i2, i3,
-                                                         i4, i5, i6};
-                  std::size_t dst_i0 = dst_indices.at(map.at(0)),
-                              dst_i1 = dst_indices.at(map.at(1)),
-                              dst_i2 = dst_indices.at(map.at(2)),
-                              dst_i3 = dst_indices.at(map.at(3)),
-                              dst_i4 = dst_indices.at(map.at(4)),
-                              dst_i5 = dst_indices.at(map.at(5)),
-                              dst_i6 = dst_indices.at(map.at(6));
-                  if (dst_i0 < h_xT.extent(0) && dst_i1 < h_xT.extent(1) &&
-                      dst_i2 < h_xT.extent(2) && dst_i3 < h_xT.extent(3) &&
-                      dst_i4 < h_xT.extent(4) && dst_i5 < h_xT.extent(5) &&
-                      dst_i6 < h_xT.extent(6)) {
-                    h_xT(dst_i0, dst_i1, dst_i2, dst_i3, dst_i4, dst_i5,
-                         dst_i6) = h_x(i0, i1, i2, i3, i4, i5, i6);
+  for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
+    for (std::size_t i1 = 0; i1 < h_x.extent(1); i1++) {
+      for (std::size_t i2 = 0; i2 < h_x.extent(2); i2++) {
+        for (std::size_t i3 = 0; i3 < h_x.extent(3); i3++) {
+          for (std::size_t i4 = 0; i4 < h_x.extent(4); i4++) {
+            for (std::size_t i5 = 0; i5 < h_x.extent(5); i5++) {
+              for (std::size_t i6 = 0; i6 < h_x.extent(6); i6++) {
+                for (std::size_t i7 = 0; i7 < h_x.extent(7); i7++) {
+                  std::array<std::size_t, 8> src{i0, i1, i2, i3,
+                                                 i4, i5, i6, i7};
+                  std::array<std::size_t, 8> dst = src;
+                  bool in_bound                  = true;
+                  for (std::size_t i = 0; i < ViewType1::rank; ++i) {
+                    dst.at(i) = src.at(map.at(i));
+                    in_bound &= dst.at(i) < h_xT.extent(i);
                   }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  } else if constexpr (ViewType1::rank == 8) {
-    for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
-      for (std::size_t i1 = 0; i1 < h_x.extent(1); i1++) {
-        for (std::size_t i2 = 0; i2 < h_x.extent(2); i2++) {
-          for (std::size_t i3 = 0; i3 < h_x.extent(3); i3++) {
-            for (std::size_t i4 = 0; i4 < h_x.extent(4); i4++) {
-              for (std::size_t i5 = 0; i5 < h_x.extent(5); i5++) {
-                for (std::size_t i6 = 0; i6 < h_x.extent(6); i6++) {
-                  for (std::size_t i7 = 0; i7 < h_x.extent(7); i7++) {
-                    std::array<std::size_t, 8> dst_indices{i0, i1, i2, i3,
-                                                           i4, i5, i6, i7};
-                    std::size_t dst_i0 = dst_indices.at(map.at(0)),
-                                dst_i1 = dst_indices.at(map.at(1)),
-                                dst_i2 = dst_indices.at(map.at(2)),
-                                dst_i3 = dst_indices.at(map.at(3)),
-                                dst_i4 = dst_indices.at(map.at(4)),
-                                dst_i5 = dst_indices.at(map.at(5)),
-                                dst_i6 = dst_indices.at(map.at(6)),
-                                dst_i7 = dst_indices.at(map.at(7));
-                    if (dst_i0 < h_xT.extent(0) && dst_i1 < h_xT.extent(1) &&
-                        dst_i2 < h_xT.extent(2) && dst_i3 < h_xT.extent(3) &&
-                        dst_i4 < h_xT.extent(4) && dst_i5 < h_xT.extent(5) &&
-                        dst_i6 < h_xT.extent(6) && dst_i7 < h_xT.extent(7)) {
-                      h_xT(dst_i0, dst_i1, dst_i2, dst_i3, dst_i4, dst_i5,
-                           dst_i6, dst_i7) =
-                          h_x(i0, i1, i2, i3, i4, i5, i6, i7);
-                    }
+                  if (in_bound) {
+                    // if i > ViewType1::rank:
+                    //  - dst[i] is 0 since we haven't touched it in the
+                    //  previous loop
+                    //  - src[i] is also 0 because h_x.extent(i) is 1
+                    // => We respect `access` constraints.
+                    h_xT.access(dst[0], dst[1], dst[2], dst[3], dst[4], dst[5],
+                                dst[6], dst[7]) =
+                        h_x.access(src[0], src[1], src[2], src[3], src[4],
+                                   src[5], src[6], src[7]);
                   }
                 }
               }
