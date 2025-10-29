@@ -46,7 +46,14 @@ struct TestTranspose3D : public ::testing::Test {
   using layout_type2 = typename T::second_type;
 };
 
-// Helper function to create a reference after transpose
+/// \brief Helper function to create a reference after transpose
+/// \tparam ViewType1 The type of the input view
+/// \tparam ViewType2 The type of the output view
+/// \tparam DIM The rank of the Views
+///
+/// \param[in] x The input view
+/// \param[out] xT The output view permuted according to map
+/// \param[in] map The map for permutation
 template <typename ViewType1, typename ViewType2, std::size_t DIM>
 void make_transposed(const ViewType1& x, const ViewType2& xT,
                      const KokkosFFT::axis_type<DIM>& map) {
