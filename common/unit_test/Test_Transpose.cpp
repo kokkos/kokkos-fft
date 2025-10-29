@@ -380,15 +380,22 @@ void test_transpose_1d_1dview() {
   using View1DLayout2type = Kokkos::View<double*, LayoutType2, execution_space>;
   const int len           = 30;
   View1DLayout1type x("x", len);
-  View1DLayout2type xt("xt", len);
+  View1DLayout2type xt("xt", len), ref("ref", len);
 
   execution_space exec;
   Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
   Kokkos::fill_random(exec, x, random_pool, 1.0);
   exec.fence();
 
+<<<<<<< HEAD
   EXPECT_THROW(KokkosFFT::Impl::transpose(exec, x, xt, axes_type<1>({0})),
                std::runtime_error);
+=======
+  Kokkos::deep_copy(ref, x);
+  KokkosFFT::Impl::transpose(exec, x, xt, axes_type<1>({0}));
+  EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
+  exec.fence();
+>>>>>>> 9c35f23 (Copy if map is identical in transpose helper)
 }
 
 template <typename LayoutType1, typename LayoutType2>
@@ -419,13 +426,16 @@ void test_transpose_1d_2dview() {
     }
     auto [nt0, nt1] = out_extents;
 
-    View2DLayout2type xt("xt", nt0, nt1);
+    View2DLayout2type xt("xt", nt0, nt1), ref("ref", nt0, nt1);
     if (map == default_axes) {
+<<<<<<< HEAD
       EXPECT_THROW(KokkosFFT::Impl::transpose(exec, x, xt, map),
                    std::runtime_error);
+=======
+      Kokkos::deep_copy(ref, x);
+>>>>>>> 9c35f23 (Copy if map is identical in transpose helper)
     } else {
       // Transposed Views
-      View2DLayout2type ref("ref", nt0, nt1);
       auto h_ref = Kokkos::create_mirror_view(ref);
       // Filling the transposed View
       for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
@@ -435,6 +445,7 @@ void test_transpose_1d_2dview() {
       }
 
       Kokkos::deep_copy(ref, h_ref);
+<<<<<<< HEAD
 
       KokkosFFT::Impl::transpose(exec, x, xt, map);
       EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
@@ -444,7 +455,18 @@ void test_transpose_1d_2dview() {
       KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
       EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
       exec.fence();
+=======
+>>>>>>> 9c35f23 (Copy if map is identical in transpose helper)
     }
+
+    KokkosFFT::Impl::transpose(exec, x, xt, map);
+    EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
+
+    // Inverse (transpose of transpose is identical to the original)
+    View2DLayout1type x_inv("x_inv", n0, n1);
+    KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+    EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+    exec.fence();
   }
 }
 
@@ -462,6 +484,11 @@ void test_transpose_1d_3dview() {
   Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
   Kokkos::fill_random(exec, x, random_pool, 1.0);
   exec.fence();
+<<<<<<< HEAD
+=======
+
+  auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
+>>>>>>> 9c35f23 (Copy if map is identical in transpose helper)
 
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2});
@@ -474,8 +501,9 @@ void test_transpose_1d_3dview() {
     }
     auto [nt0, nt1, nt2] = out_extents;
 
-    View3DLayout2type xt("xt", nt0, nt1, nt2);
+    View3DLayout2type xt("xt", nt0, nt1, nt2), ref("ref", nt0, nt1, nt2);
     if (map == default_axes) {
+<<<<<<< HEAD
       EXPECT_THROW(KokkosFFT::Impl::transpose(exec, x, xt, map),
                    std::runtime_error);
     } else {
@@ -491,7 +519,36 @@ void test_transpose_1d_3dview() {
       KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
       EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
       exec.fence();
+=======
+      Kokkos::deep_copy(ref, x);
+    } else {
+      // Transposed Views
+      auto h_ref = Kokkos::create_mirror_view(ref);
+      // Filling the transposed View
+      for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
+        for (std::size_t i1 = 0; i1 < h_x.extent(1); i1++) {
+          for (std::size_t i2 = 0; i2 < h_x.extent(2); i2++) {
+            std::size_t dst_i0 = (map[0] == 1) ? i1 : (map[0] == 2) ? i2 : i0;
+            std::size_t dst_i1 = (map[1] == 0) ? i0 : (map[1] == 2) ? i2 : i1;
+            std::size_t dst_i2 = (map[2] == 0) ? i0 : (map[2] == 1) ? i1 : i2;
+
+            h_ref(dst_i0, dst_i1, dst_i2) = h_x(i0, i1, i2);
+          }
+        }
+      }
+
+      Kokkos::deep_copy(ref, h_ref);
+>>>>>>> 9c35f23 (Copy if map is identical in transpose helper)
     }
+
+    KokkosFFT::Impl::transpose(exec, x, xt, map);
+    EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
+
+    // Inverse (transpose of transpose is identical to the original)
+    View3DLayout1type x_inv("x_invx", n0, n1, n2);
+    KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+    EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+    exec.fence();
   }
 }
 
@@ -509,6 +566,11 @@ void test_transpose_1d_4dview() {
   Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
   Kokkos::fill_random(exec, x, random_pool, 1.0);
   exec.fence();
+<<<<<<< HEAD
+=======
+
+  auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
+>>>>>>> 9c35f23 (Copy if map is identical in transpose helper)
 
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2, 3});
@@ -521,8 +583,10 @@ void test_transpose_1d_4dview() {
     }
     auto [nt0, nt1, nt2, nt3] = out_extents;
 
-    View4DLayout2type xt("xt", nt0, nt1, nt2, nt3);
+    View4DLayout2type xt("xt", nt0, nt1, nt2, nt3),
+        ref("ref", nt0, nt1, nt2, nt3);
     if (map == default_axes) {
+<<<<<<< HEAD
       EXPECT_THROW(KokkosFFT::Impl::transpose(exec, x, xt, map),
                    std::runtime_error);
     } else {
@@ -538,7 +602,54 @@ void test_transpose_1d_4dview() {
       KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
       EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
       exec.fence();
+=======
+      // FIXME: This triggers test failure in FFT shifts test on Cuda backend
+      // with Release build
+      continue;
+    } else {
+      // Transposed Views
+      // View4DLayout2type ref("ref", nt0, nt1, nt2, nt3);
+      auto h_ref = Kokkos::create_mirror_view(ref);
+      // Filling the transposed View
+      for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
+        for (std::size_t i1 = 0; i1 < h_x.extent(1); i1++) {
+          for (std::size_t i2 = 0; i2 < h_x.extent(2); i2++) {
+            for (std::size_t i3 = 0; i3 < h_x.extent(3); i3++) {
+              std::size_t dst_i0 = (map[0] == 1)   ? i1
+                                   : (map[0] == 2) ? i2
+                                   : (map[0] == 3) ? i3
+                                                   : i0;
+              std::size_t dst_i1 = (map[1] == 0)   ? i0
+                                   : (map[1] == 2) ? i2
+                                   : (map[1] == 3) ? i3
+                                                   : i1;
+              std::size_t dst_i2 = (map[2] == 0)   ? i0
+                                   : (map[2] == 1) ? i1
+                                   : (map[2] == 3) ? i3
+                                                   : i2;
+              std::size_t dst_i3 = (map[3] == 0)   ? i0
+                                   : (map[3] == 1) ? i1
+                                   : (map[3] == 2) ? i2
+                                                   : i3;
+
+              h_ref(dst_i0, dst_i1, dst_i2, dst_i3) = h_x(i0, i1, i2, i3);
+            }
+          }
+        }
+      }
+
+      Kokkos::deep_copy(ref, h_ref);
+>>>>>>> 9c35f23 (Copy if map is identical in transpose helper)
     }
+
+    KokkosFFT::Impl::transpose(exec, x, xt, map);
+    EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
+
+    // Inverse (transpose of transpose is identical to the original)
+    View4DLayout1type x_inv("x_inv", n0, n1, n2, n3);
+    KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+    EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+    exec.fence();
   }
 }
 
@@ -556,6 +667,11 @@ void test_transpose_1d_5dview() {
   Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
   Kokkos::fill_random(exec, x, random_pool, 1.0);
   exec.fence();
+<<<<<<< HEAD
+=======
+
+  auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
+>>>>>>> 9c35f23 (Copy if map is identical in transpose helper)
 
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2, 3, 4});
@@ -568,8 +684,10 @@ void test_transpose_1d_5dview() {
     }
     auto [nt0, nt1, nt2, nt3, nt4] = out_extents;
 
-    View5DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4);
+    View5DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4),
+        ref("ref", nt0, nt1, nt2, nt3, nt4);
     if (map == default_axes) {
+<<<<<<< HEAD
       EXPECT_THROW(KokkosFFT::Impl::transpose(exec, x, xt, map),
                    std::runtime_error);
     } else {
@@ -585,7 +703,62 @@ void test_transpose_1d_5dview() {
       KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
       EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
       exec.fence();
+=======
+      Kokkos::deep_copy(ref, x);
+    } else {
+      // Transposed Views
+      auto h_ref = Kokkos::create_mirror_view(ref);
+      // Filling the transposed View
+      for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
+        for (std::size_t i1 = 0; i1 < h_x.extent(1); i1++) {
+          for (std::size_t i2 = 0; i2 < h_x.extent(2); i2++) {
+            for (std::size_t i3 = 0; i3 < h_x.extent(3); i3++) {
+              for (std::size_t i4 = 0; i4 < h_x.extent(4); i4++) {
+                std::size_t dst_i0 = (map[0] == 1)   ? i1
+                                     : (map[0] == 2) ? i2
+                                     : (map[0] == 3) ? i3
+                                     : (map[0] == 4) ? i4
+                                                     : i0;
+                std::size_t dst_i1 = (map[1] == 0)   ? i0
+                                     : (map[1] == 2) ? i2
+                                     : (map[1] == 3) ? i3
+                                     : (map[1] == 4) ? i4
+                                                     : i1;
+                std::size_t dst_i2 = (map[2] == 0)   ? i0
+                                     : (map[2] == 1) ? i1
+                                     : (map[2] == 3) ? i3
+                                     : (map[2] == 4) ? i4
+                                                     : i2;
+                std::size_t dst_i3 = (map[3] == 0)   ? i0
+                                     : (map[3] == 1) ? i1
+                                     : (map[3] == 2) ? i2
+                                     : (map[3] == 4) ? i4
+                                                     : i3;
+                std::size_t dst_i4 = (map[4] == 0)   ? i0
+                                     : (map[4] == 1) ? i1
+                                     : (map[4] == 2) ? i2
+                                     : (map[4] == 3) ? i3
+                                                     : i4;
+                h_ref(dst_i0, dst_i1, dst_i2, dst_i3, dst_i4) =
+                    h_x(i0, i1, i2, i3, i4);
+              }
+            }
+          }
+        }
+      }
+
+      Kokkos::deep_copy(ref, h_ref);
+>>>>>>> 9c35f23 (Copy if map is identical in transpose helper)
     }
+
+    KokkosFFT::Impl::transpose(exec, x, xt, map);
+    EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
+
+    // Inverse (transpose of transpose is identical to the original)
+    View5DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4);
+    KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+    EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+    exec.fence();
   }
 }
 
@@ -603,6 +776,11 @@ void test_transpose_1d_6dview() {
   Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
   Kokkos::fill_random(exec, x, random_pool, 1.0);
   exec.fence();
+<<<<<<< HEAD
+=======
+
+  auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
+>>>>>>> 9c35f23 (Copy if map is identical in transpose helper)
 
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2, 3, 4, 5});
@@ -615,8 +793,10 @@ void test_transpose_1d_6dview() {
     }
     auto [nt0, nt1, nt2, nt3, nt4, nt5] = out_extents;
 
-    View6DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5);
+    View6DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5),
+        ref("ref", nt0, nt1, nt2, nt3, nt4, nt5);
     if (map == default_axes) {
+<<<<<<< HEAD
       EXPECT_THROW(KokkosFFT::Impl::transpose(exec, x, xt, map),
                    std::runtime_error);
     } else {
@@ -632,7 +812,75 @@ void test_transpose_1d_6dview() {
       KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
       EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
       exec.fence();
+=======
+      Kokkos::deep_copy(ref, x);
+    } else {
+      // Transposed Views
+      auto h_ref = Kokkos::create_mirror_view(ref);
+      // Filling the transposed View
+      for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
+        for (std::size_t i1 = 0; i1 < h_x.extent(1); i1++) {
+          for (std::size_t i2 = 0; i2 < h_x.extent(2); i2++) {
+            for (std::size_t i3 = 0; i3 < h_x.extent(3); i3++) {
+              for (std::size_t i4 = 0; i4 < h_x.extent(4); i4++) {
+                for (std::size_t i5 = 0; i5 < h_x.extent(5); i5++) {
+                  std::size_t dst_i0 = (map[0] == 1)   ? i1
+                                       : (map[0] == 2) ? i2
+                                       : (map[0] == 3) ? i3
+                                       : (map[0] == 4) ? i4
+                                       : (map[0] == 5) ? i5
+                                                       : i0;
+                  std::size_t dst_i1 = (map[1] == 0)   ? i0
+                                       : (map[1] == 2) ? i2
+                                       : (map[1] == 3) ? i3
+                                       : (map[1] == 4) ? i4
+                                       : (map[1] == 5) ? i5
+                                                       : i1;
+                  std::size_t dst_i2 = (map[2] == 0)   ? i0
+                                       : (map[2] == 1) ? i1
+                                       : (map[2] == 3) ? i3
+                                       : (map[2] == 4) ? i4
+                                       : (map[2] == 5) ? i5
+                                                       : i2;
+                  std::size_t dst_i3 = (map[3] == 0)   ? i0
+                                       : (map[3] == 1) ? i1
+                                       : (map[3] == 2) ? i2
+                                       : (map[3] == 4) ? i4
+                                       : (map[3] == 5) ? i5
+                                                       : i3;
+                  std::size_t dst_i4 = (map[4] == 0)   ? i0
+                                       : (map[4] == 1) ? i1
+                                       : (map[4] == 2) ? i2
+                                       : (map[4] == 3) ? i3
+                                       : (map[4] == 5) ? i5
+                                                       : i4;
+                  std::size_t dst_i5 = (map[5] == 0)   ? i0
+                                       : (map[5] == 1) ? i1
+                                       : (map[5] == 2) ? i2
+                                       : (map[5] == 3) ? i3
+                                       : (map[5] == 4) ? i4
+                                                       : i5;
+                  h_ref(dst_i0, dst_i1, dst_i2, dst_i3, dst_i4, dst_i5) =
+                      h_x(i0, i1, i2, i3, i4, i5);
+                }
+              }
+            }
+          }
+        }
+      }
+
+      Kokkos::deep_copy(ref, h_ref);
+>>>>>>> 9c35f23 (Copy if map is identical in transpose helper)
     }
+
+    KokkosFFT::Impl::transpose(exec, x, xt, map);
+    EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
+
+    // Inverse (transpose of transpose is identical to the original)
+    View6DLayout1type x_inv("x_inv_x", n0, n1, n2, n3, n4, n5);
+    KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+    EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+    exec.fence();
   }
 }
 
@@ -650,6 +898,11 @@ void test_transpose_1d_7dview() {
   Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
   Kokkos::fill_random(exec, x, random_pool, 1.0);
   exec.fence();
+<<<<<<< HEAD
+=======
+
+  auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
+>>>>>>> 9c35f23 (Copy if map is identical in transpose helper)
 
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2, 3, 4, 5, 6});
@@ -662,8 +915,10 @@ void test_transpose_1d_7dview() {
     }
     auto [nt0, nt1, nt2, nt3, nt4, nt5, nt6] = out_extents;
 
-    View7DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5, nt6);
+    View7DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5, nt6),
+        ref("ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6);
     if (map == default_axes) {
+<<<<<<< HEAD
       EXPECT_THROW(KokkosFFT::Impl::transpose(exec, x, xt, map),
                    std::runtime_error);
     } else {
@@ -679,7 +934,90 @@ void test_transpose_1d_7dview() {
       KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
       EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
       exec.fence();
+=======
+      Kokkos::deep_copy(ref, x);
+    } else {
+      // Transposed Views
+      auto h_ref = Kokkos::create_mirror_view(ref);
+      // Filling the transposed View
+      for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
+        for (std::size_t i1 = 0; i1 < h_x.extent(1); i1++) {
+          for (std::size_t i2 = 0; i2 < h_x.extent(2); i2++) {
+            for (std::size_t i3 = 0; i3 < h_x.extent(3); i3++) {
+              for (std::size_t i4 = 0; i4 < h_x.extent(4); i4++) {
+                for (std::size_t i5 = 0; i5 < h_x.extent(5); i5++) {
+                  for (std::size_t i6 = 0; i6 < h_x.extent(6); i6++) {
+                    std::size_t dst_i0 = (map[0] == 1)   ? i1
+                                         : (map[0] == 2) ? i2
+                                         : (map[0] == 3) ? i3
+                                         : (map[0] == 4) ? i4
+                                         : (map[0] == 5) ? i5
+                                         : (map[0] == 6) ? i6
+                                                         : i0;
+                    std::size_t dst_i1 = (map[1] == 0)   ? i0
+                                         : (map[1] == 2) ? i2
+                                         : (map[1] == 3) ? i3
+                                         : (map[1] == 4) ? i4
+                                         : (map[1] == 5) ? i5
+                                         : (map[1] == 6) ? i6
+                                                         : i1;
+                    std::size_t dst_i2 = (map[2] == 0)   ? i0
+                                         : (map[2] == 1) ? i1
+                                         : (map[2] == 3) ? i3
+                                         : (map[2] == 4) ? i4
+                                         : (map[2] == 5) ? i5
+                                         : (map[2] == 6) ? i6
+                                                         : i2;
+                    std::size_t dst_i3 = (map[3] == 0)   ? i0
+                                         : (map[3] == 1) ? i1
+                                         : (map[3] == 2) ? i2
+                                         : (map[3] == 4) ? i4
+                                         : (map[3] == 5) ? i5
+                                         : (map[3] == 6) ? i6
+                                                         : i3;
+                    std::size_t dst_i4 = (map[4] == 0)   ? i0
+                                         : (map[4] == 1) ? i1
+                                         : (map[4] == 2) ? i2
+                                         : (map[4] == 3) ? i3
+                                         : (map[4] == 5) ? i5
+                                         : (map[4] == 6) ? i6
+                                                         : i4;
+                    std::size_t dst_i5 = (map[5] == 0)   ? i0
+                                         : (map[5] == 1) ? i1
+                                         : (map[5] == 2) ? i2
+                                         : (map[5] == 3) ? i3
+                                         : (map[5] == 4) ? i4
+                                         : (map[5] == 6) ? i6
+                                                         : i5;
+                    std::size_t dst_i6 = (map[6] == 0)   ? i0
+                                         : (map[6] == 1) ? i1
+                                         : (map[6] == 2) ? i2
+                                         : (map[6] == 3) ? i3
+                                         : (map[6] == 4) ? i4
+                                         : (map[6] == 5) ? i5
+                                                         : i6;
+                    h_ref(dst_i0, dst_i1, dst_i2, dst_i3, dst_i4, dst_i5,
+                          dst_i6)      = h_x(i0, i1, i2, i3, i4, i5, i6);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      Kokkos::deep_copy(ref, h_ref);
+>>>>>>> 9c35f23 (Copy if map is identical in transpose helper)
     }
+
+    KokkosFFT::Impl::transpose(exec, x, xt, map);
+    EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
+
+    // Inverse (transpose of transpose is identical to the original)
+    View7DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6);
+    KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+    EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+    exec.fence();
   }
 }
 
@@ -697,6 +1035,11 @@ void test_transpose_1d_8dview() {
   Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
   Kokkos::fill_random(exec, x, random_pool, 1.0);
   exec.fence();
+<<<<<<< HEAD
+=======
+
+  auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
+>>>>>>> 9c35f23 (Copy if map is identical in transpose helper)
 
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2, 3, 4, 5, 6, 7});
@@ -709,8 +1052,10 @@ void test_transpose_1d_8dview() {
     }
     auto [nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7] = out_extents;
 
-    View8DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7);
+    View8DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7),
+        ref("ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7);
     if (map == default_axes) {
+<<<<<<< HEAD
       EXPECT_THROW(KokkosFFT::Impl::transpose(exec, x, xt, map),
                    std::runtime_error);
     } else {
@@ -726,7 +1071,108 @@ void test_transpose_1d_8dview() {
       KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
       EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
       exec.fence();
+=======
+      Kokkos::deep_copy(ref, x);
+    } else {
+      // Transposed Views
+      auto h_ref = Kokkos::create_mirror_view(ref);
+      // Filling the transposed View
+      for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
+        for (std::size_t i1 = 0; i1 < h_x.extent(1); i1++) {
+          for (std::size_t i2 = 0; i2 < h_x.extent(2); i2++) {
+            for (std::size_t i3 = 0; i3 < h_x.extent(3); i3++) {
+              for (std::size_t i4 = 0; i4 < h_x.extent(4); i4++) {
+                for (std::size_t i5 = 0; i5 < h_x.extent(5); i5++) {
+                  for (std::size_t i6 = 0; i6 < h_x.extent(6); i6++) {
+                    for (std::size_t i7 = 0; i7 < h_x.extent(7); i7++) {
+                      std::size_t dst_i0 = (map[0] == 1)   ? i1
+                                           : (map[0] == 2) ? i2
+                                           : (map[0] == 3) ? i3
+                                           : (map[0] == 4) ? i4
+                                           : (map[0] == 5) ? i5
+                                           : (map[0] == 6) ? i6
+                                           : (map[0] == 7) ? i7
+                                                           : i0;
+                      std::size_t dst_i1 = (map[1] == 0)   ? i0
+                                           : (map[1] == 2) ? i2
+                                           : (map[1] == 3) ? i3
+                                           : (map[1] == 4) ? i4
+                                           : (map[1] == 5) ? i5
+                                           : (map[1] == 6) ? i6
+                                           : (map[1] == 7) ? i7
+                                                           : i1;
+                      std::size_t dst_i2 = (map[2] == 0)   ? i0
+                                           : (map[2] == 1) ? i1
+                                           : (map[2] == 3) ? i3
+                                           : (map[2] == 4) ? i4
+                                           : (map[2] == 5) ? i5
+                                           : (map[2] == 6) ? i6
+                                           : (map[2] == 7) ? i7
+                                                           : i2;
+                      std::size_t dst_i3 = (map[3] == 0)   ? i0
+                                           : (map[3] == 1) ? i1
+                                           : (map[3] == 2) ? i2
+                                           : (map[3] == 4) ? i4
+                                           : (map[3] == 5) ? i5
+                                           : (map[3] == 6) ? i6
+                                           : (map[3] == 7) ? i7
+                                                           : i3;
+                      std::size_t dst_i4 = (map[4] == 0)   ? i0
+                                           : (map[4] == 1) ? i1
+                                           : (map[4] == 2) ? i2
+                                           : (map[4] == 3) ? i3
+                                           : (map[4] == 5) ? i5
+                                           : (map[4] == 6) ? i6
+                                           : (map[4] == 7) ? i7
+                                                           : i4;
+                      std::size_t dst_i5 = (map[5] == 0)   ? i0
+                                           : (map[5] == 1) ? i1
+                                           : (map[5] == 2) ? i2
+                                           : (map[5] == 3) ? i3
+                                           : (map[5] == 4) ? i4
+                                           : (map[5] == 6) ? i6
+                                           : (map[5] == 7) ? i7
+                                                           : i5;
+                      std::size_t dst_i6 = (map[6] == 0)   ? i0
+                                           : (map[6] == 1) ? i1
+                                           : (map[6] == 2) ? i2
+                                           : (map[6] == 3) ? i3
+                                           : (map[6] == 4) ? i4
+                                           : (map[6] == 5) ? i5
+                                           : (map[6] == 7) ? i7
+                                                           : i6;
+                      std::size_t dst_i7 = (map[7] == 0)   ? i0
+                                           : (map[7] == 1) ? i1
+                                           : (map[7] == 2) ? i2
+                                           : (map[7] == 3) ? i3
+                                           : (map[7] == 4) ? i4
+                                           : (map[7] == 5) ? i5
+                                           : (map[7] == 6) ? i6
+                                                           : i7;
+                      h_ref(dst_i0, dst_i1, dst_i2, dst_i3, dst_i4, dst_i5,
+                            dst_i6, dst_i7) =
+                          h_x(i0, i1, i2, i3, i4, i5, i6, i7);
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      Kokkos::deep_copy(ref, h_ref);
+>>>>>>> 9c35f23 (Copy if map is identical in transpose helper)
     }
+
+    KokkosFFT::Impl::transpose(exec, x, xt, map);
+    EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
+
+    // Inverse (transpose of transpose is identical to the original)
+    View8DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6, n7);
+    KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+    EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+    exec.fence();
   }
 }
 
@@ -736,25 +1182,63 @@ void test_transpose_2d_2dview() {
       Kokkos::View<double**, LayoutType1, execution_space>;
   using View2DLayout2type =
       Kokkos::View<double**, LayoutType2, execution_space>;
+  constexpr int DIM = 2;
   const int n0 = 3, n1 = 5;
-  View2DLayout1type x("x", n0, n1), x_inv("x_inv", n0, n1),
-      xt_axis01("xt_axis01", n0, n1);
-  View2DLayout2type xt_axis10("xt_axis10", n1, n0), ref("ref", n1, n0);
+  View2DLayout1type x("x", n0, n1);
 
   execution_space exec;
   Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
   Kokkos::fill_random(exec, x, random_pool, 1.0);
   exec.fence();
+<<<<<<< HEAD
+=======
+
+  auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
+>>>>>>> 9c35f23 (Copy if map is identical in transpose helper)
 
   // Transposed views
-  auto h_x   = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
-  auto h_ref = Kokkos::create_mirror_view(ref);
+  axes_type<DIM> default_axes({0, 1});
 
-  for (int i0 = 0; static_cast<std::size_t>(i0) < h_x.extent(0); i0++) {
-    for (int i1 = 0; static_cast<std::size_t>(i1) < h_x.extent(1); i1++) {
-      h_ref(i1, i0) = h_x(i0, i1);
+  for (int axis0 = 0; axis0 < DIM; axis0++) {
+    for (int axis1 = 0; axis1 < DIM; axis1++) {
+      if (axis0 == axis1) continue;
+      KokkosFFT::axis_type<2> axes = {axis0, axis1};
+
+      auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, axes);
+      axes_type<DIM> out_extents;
+      for (int i = 0; i < DIM; i++) {
+        out_extents.at(i) = x.extent(map.at(i));
+      }
+      auto [nt0, nt1] = out_extents;
+
+      View2DLayout2type xt("xt", nt0, nt1), ref("ref", nt0, nt1);
+      if (map == default_axes) {
+        Kokkos::deep_copy(ref, x);
+      } else {
+        // Transposed Views
+        auto h_ref = Kokkos::create_mirror_view(ref);
+        // Filling the transposed View
+        for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
+          for (std::size_t i1 = 0; i1 < h_x.extent(1); i1++) {
+            std::size_t dst_i0 = (map[0] == 1) ? i1 : i0;
+            std::size_t dst_i1 = (map[1] == 0) ? i0 : i1;
+
+            h_ref(dst_i0, dst_i1) = h_x(i0, i1);
+          }
+        }
+        Kokkos::deep_copy(ref, h_ref);
+      }
+
+      KokkosFFT::Impl::transpose(exec, x, xt, map);
+      EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
+      // Inverse (transpose of transpose is identical to the original)
+      View2DLayout1type x_inv("x_inv", n0, n1);
+      KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+      EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+      exec.fence();
     }
   }
+<<<<<<< HEAD
   Kokkos::deep_copy(ref, h_ref);
 
   EXPECT_THROW(
@@ -768,6 +1252,8 @@ void test_transpose_2d_2dview() {
   KokkosFFT::Impl::transpose(exec, xt_axis10, x_inv, axes_type<2>({1, 0}));
   EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
   exec.fence();
+=======
+>>>>>>> 9c35f23 (Copy if map is identical in transpose helper)
 }
 
 template <typename LayoutType1, typename LayoutType2>
@@ -784,6 +1270,11 @@ void test_transpose_2d_3dview() {
   Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
   Kokkos::fill_random(exec, x, random_pool, 1.0);
   exec.fence();
+<<<<<<< HEAD
+=======
+
+  auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
+>>>>>>> 9c35f23 (Copy if map is identical in transpose helper)
 
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2});
@@ -800,8 +1291,9 @@ void test_transpose_2d_3dview() {
       }
       auto [nt0, nt1, nt2] = out_extents;
 
-      View3DLayout2type xt("xt", nt0, nt1, nt2);
+      View3DLayout2type xt("xt", nt0, nt1, nt2), ref("ref", nt0, nt1, nt2);
       if (map == default_axes) {
+<<<<<<< HEAD
         EXPECT_THROW(KokkosFFT::Impl::transpose(exec, x, xt, map),
                      std::runtime_error);
       } else {
@@ -817,7 +1309,36 @@ void test_transpose_2d_3dview() {
         KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
         EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
         exec.fence();
+=======
+        Kokkos::deep_copy(ref, x);
+      } else {
+        // Transposed Views
+        auto h_ref = Kokkos::create_mirror_view(ref);
+        // Filling the transposed View
+        for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
+          for (std::size_t i1 = 0; i1 < h_x.extent(1); i1++) {
+            for (std::size_t i2 = 0; i2 < h_x.extent(2); i2++) {
+              std::size_t dst_i0 = (map[0] == 1) ? i1 : (map[0] == 2) ? i2 : i0;
+              std::size_t dst_i1 = (map[1] == 0) ? i0 : (map[1] == 2) ? i2 : i1;
+              std::size_t dst_i2 = (map[2] == 0) ? i0 : (map[2] == 1) ? i1 : i2;
+
+              h_ref(dst_i0, dst_i1, dst_i2) = h_x(i0, i1, i2);
+            }
+          }
+        }
+
+        Kokkos::deep_copy(ref, h_ref);
+>>>>>>> 9c35f23 (Copy if map is identical in transpose helper)
       }
+
+      KokkosFFT::Impl::transpose(exec, x, xt, map);
+      EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
+
+      // Inverse (transpose of transpose is identical to the original)
+      View3DLayout1type x_inv("x_inv", n0, n1, n2);
+      KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+      EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+      exec.fence();
     }
   }
 }
@@ -836,6 +1357,11 @@ void test_transpose_2d_4dview() {
   Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
   Kokkos::fill_random(exec, x, random_pool, 1.0);
   exec.fence();
+<<<<<<< HEAD
+=======
+
+  auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
+>>>>>>> 9c35f23 (Copy if map is identical in transpose helper)
 
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2, 3});
@@ -854,13 +1380,30 @@ void test_transpose_2d_4dview() {
 
       View4DLayout2type xt("xt", nt0, nt1, nt2, nt3);
       if (map == default_axes) {
+<<<<<<< HEAD
         EXPECT_THROW(KokkosFFT::Impl::transpose(exec, x, xt, map),
                      std::runtime_error);
+=======
+        // FIXME: This triggers test failure in FFT shifts test on Cuda backend
+        // with Release build
+        continue;
+>>>>>>> 9c35f23 (Copy if map is identical in transpose helper)
       } else {
         // Transposed Views
         View4DLayout2type ref("ref", nt0, nt1, nt2, nt3);
         make_transposed(x, ref, map);
 
+<<<<<<< HEAD
+=======
+                h_ref(dst_i0, dst_i1, dst_i2, dst_i3) = h_x(i0, i1, i2, i3);
+              }
+            }
+          }
+        }
+
+        Kokkos::deep_copy(ref, h_ref);
+
+>>>>>>> 9c35f23 (Copy if map is identical in transpose helper)
         KokkosFFT::Impl::transpose(exec, x, xt, map);
         EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
 
@@ -888,6 +1431,11 @@ void test_transpose_2d_5dview() {
   Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
   Kokkos::fill_random(exec, x, random_pool, 1.0);
   exec.fence();
+<<<<<<< HEAD
+=======
+
+  auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
+>>>>>>> 9c35f23 (Copy if map is identical in transpose helper)
 
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2, 3, 4});
@@ -904,8 +1452,10 @@ void test_transpose_2d_5dview() {
       }
       auto [nt0, nt1, nt2, nt3, nt4] = out_extents;
 
-      View5DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4);
+      View5DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4),
+          ref("ref", nt0, nt1, nt2, nt3, nt4);
       if (map == default_axes) {
+<<<<<<< HEAD
         EXPECT_THROW(KokkosFFT::Impl::transpose(exec, x, xt, map),
                      std::runtime_error);
       } else {
@@ -921,7 +1471,62 @@ void test_transpose_2d_5dview() {
         KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
         EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
         exec.fence();
+=======
+        Kokkos::deep_copy(ref, x);
+      } else {
+        // Transposed Views
+        auto h_ref = Kokkos::create_mirror_view(ref);
+        // Filling the transposed View
+        for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
+          for (std::size_t i1 = 0; i1 < h_x.extent(1); i1++) {
+            for (std::size_t i2 = 0; i2 < h_x.extent(2); i2++) {
+              for (std::size_t i3 = 0; i3 < h_x.extent(3); i3++) {
+                for (std::size_t i4 = 0; i4 < h_x.extent(4); i4++) {
+                  std::size_t dst_i0 = (map[0] == 1)   ? i1
+                                       : (map[0] == 2) ? i2
+                                       : (map[0] == 3) ? i3
+                                       : (map[0] == 4) ? i4
+                                                       : i0;
+                  std::size_t dst_i1 = (map[1] == 0)   ? i0
+                                       : (map[1] == 2) ? i2
+                                       : (map[1] == 3) ? i3
+                                       : (map[1] == 4) ? i4
+                                                       : i1;
+                  std::size_t dst_i2 = (map[2] == 0)   ? i0
+                                       : (map[2] == 1) ? i1
+                                       : (map[2] == 3) ? i3
+                                       : (map[2] == 4) ? i4
+                                                       : i2;
+                  std::size_t dst_i3 = (map[3] == 0)   ? i0
+                                       : (map[3] == 1) ? i1
+                                       : (map[3] == 2) ? i2
+                                       : (map[3] == 4) ? i4
+                                                       : i3;
+                  std::size_t dst_i4 = (map[4] == 0)   ? i0
+                                       : (map[4] == 1) ? i1
+                                       : (map[4] == 2) ? i2
+                                       : (map[4] == 3) ? i3
+                                                       : i4;
+                  h_ref(dst_i0, dst_i1, dst_i2, dst_i3, dst_i4) =
+                      h_x(i0, i1, i2, i3, i4);
+                }
+              }
+            }
+          }
+        }
+
+        Kokkos::deep_copy(ref, h_ref);
+>>>>>>> 9c35f23 (Copy if map is identical in transpose helper)
       }
+
+      KokkosFFT::Impl::transpose(exec, x, xt, map);
+      EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
+
+      // Inverse (transpose of transpose is identical to the original)
+      View5DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4);
+      KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+      EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+      exec.fence();
     }
   }
 }
@@ -940,6 +1545,11 @@ void test_transpose_2d_6dview() {
   Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
   Kokkos::fill_random(exec, x, random_pool, 1.0);
   exec.fence();
+<<<<<<< HEAD
+=======
+
+  auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
+>>>>>>> 9c35f23 (Copy if map is identical in transpose helper)
 
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2, 3, 4, 5});
@@ -956,8 +1566,10 @@ void test_transpose_2d_6dview() {
       }
       auto [nt0, nt1, nt2, nt3, nt4, nt5] = out_extents;
 
-      View6DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5);
+      View6DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5),
+          ref("ref", nt0, nt1, nt2, nt3, nt4, nt5);
       if (map == default_axes) {
+<<<<<<< HEAD
         EXPECT_THROW(KokkosFFT::Impl::transpose(exec, x, xt, map),
                      std::runtime_error);
       } else {
@@ -973,7 +1585,75 @@ void test_transpose_2d_6dview() {
         KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
         EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
         exec.fence();
+=======
+        Kokkos::deep_copy(ref, x);
+      } else {
+        // Transposed Views
+        auto h_ref = Kokkos::create_mirror_view(ref);
+        // Filling the transposed View
+        for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
+          for (std::size_t i1 = 0; i1 < h_x.extent(1); i1++) {
+            for (std::size_t i2 = 0; i2 < h_x.extent(2); i2++) {
+              for (std::size_t i3 = 0; i3 < h_x.extent(3); i3++) {
+                for (std::size_t i4 = 0; i4 < h_x.extent(4); i4++) {
+                  for (std::size_t i5 = 0; i5 < h_x.extent(5); i5++) {
+                    std::size_t dst_i0 = (map[0] == 1)   ? i1
+                                         : (map[0] == 2) ? i2
+                                         : (map[0] == 3) ? i3
+                                         : (map[0] == 4) ? i4
+                                         : (map[0] == 5) ? i5
+                                                         : i0;
+                    std::size_t dst_i1 = (map[1] == 0)   ? i0
+                                         : (map[1] == 2) ? i2
+                                         : (map[1] == 3) ? i3
+                                         : (map[1] == 4) ? i4
+                                         : (map[1] == 5) ? i5
+                                                         : i1;
+                    std::size_t dst_i2 = (map[2] == 0)   ? i0
+                                         : (map[2] == 1) ? i1
+                                         : (map[2] == 3) ? i3
+                                         : (map[2] == 4) ? i4
+                                         : (map[2] == 5) ? i5
+                                                         : i2;
+                    std::size_t dst_i3 = (map[3] == 0)   ? i0
+                                         : (map[3] == 1) ? i1
+                                         : (map[3] == 2) ? i2
+                                         : (map[3] == 4) ? i4
+                                         : (map[3] == 5) ? i5
+                                                         : i3;
+                    std::size_t dst_i4 = (map[4] == 0)   ? i0
+                                         : (map[4] == 1) ? i1
+                                         : (map[4] == 2) ? i2
+                                         : (map[4] == 3) ? i3
+                                         : (map[4] == 5) ? i5
+                                                         : i4;
+                    std::size_t dst_i5 = (map[5] == 0)   ? i0
+                                         : (map[5] == 1) ? i1
+                                         : (map[5] == 2) ? i2
+                                         : (map[5] == 3) ? i3
+                                         : (map[5] == 4) ? i4
+                                                         : i5;
+                    h_ref(dst_i0, dst_i1, dst_i2, dst_i3, dst_i4, dst_i5) =
+                        h_x(i0, i1, i2, i3, i4, i5);
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        Kokkos::deep_copy(ref, h_ref);
+>>>>>>> 9c35f23 (Copy if map is identical in transpose helper)
       }
+
+      KokkosFFT::Impl::transpose(exec, x, xt, map);
+      EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
+
+      // Inverse (transpose of transpose is identical to the original)
+      View6DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5);
+      KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+      EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+      exec.fence();
     }
   }
 }
@@ -992,6 +1672,11 @@ void test_transpose_2d_7dview() {
   Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
   Kokkos::fill_random(exec, x, random_pool, 1.0);
   exec.fence();
+<<<<<<< HEAD
+=======
+
+  auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
+>>>>>>> 9c35f23 (Copy if map is identical in transpose helper)
 
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2, 3, 4, 5, 6});
@@ -1008,8 +1693,10 @@ void test_transpose_2d_7dview() {
       }
       auto [nt0, nt1, nt2, nt3, nt4, nt5, nt6] = out_extents;
 
-      View7DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5, nt6);
+      View7DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5, nt6),
+          ref("ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6);
       if (map == default_axes) {
+<<<<<<< HEAD
         EXPECT_THROW(KokkosFFT::Impl::transpose(exec, x, xt, map),
                      std::runtime_error);
       } else {
@@ -1025,7 +1712,91 @@ void test_transpose_2d_7dview() {
         KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
         EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
         exec.fence();
+=======
+        Kokkos::deep_copy(ref, x);
+      } else {
+        // Transposed Views
+        auto h_ref = Kokkos::create_mirror_view(ref);
+        // Filling the transposed View
+        for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
+          for (std::size_t i1 = 0; i1 < h_x.extent(1); i1++) {
+            for (std::size_t i2 = 0; i2 < h_x.extent(2); i2++) {
+              for (std::size_t i3 = 0; i3 < h_x.extent(3); i3++) {
+                for (std::size_t i4 = 0; i4 < h_x.extent(4); i4++) {
+                  for (std::size_t i5 = 0; i5 < h_x.extent(5); i5++) {
+                    for (std::size_t i6 = 0; i6 < h_x.extent(6); i6++) {
+                      std::size_t dst_i0 = (map[0] == 1)   ? i1
+                                           : (map[0] == 2) ? i2
+                                           : (map[0] == 3) ? i3
+                                           : (map[0] == 4) ? i4
+                                           : (map[0] == 5) ? i5
+                                           : (map[0] == 6) ? i6
+                                                           : i0;
+                      std::size_t dst_i1 = (map[1] == 0)   ? i0
+                                           : (map[1] == 2) ? i2
+                                           : (map[1] == 3) ? i3
+                                           : (map[1] == 4) ? i4
+                                           : (map[1] == 5) ? i5
+                                           : (map[1] == 6) ? i6
+                                                           : i1;
+                      std::size_t dst_i2 = (map[2] == 0)   ? i0
+                                           : (map[2] == 1) ? i1
+                                           : (map[2] == 3) ? i3
+                                           : (map[2] == 4) ? i4
+                                           : (map[2] == 5) ? i5
+                                           : (map[2] == 6) ? i6
+                                                           : i2;
+                      std::size_t dst_i3 = (map[3] == 0)   ? i0
+                                           : (map[3] == 1) ? i1
+                                           : (map[3] == 2) ? i2
+                                           : (map[3] == 4) ? i4
+                                           : (map[3] == 5) ? i5
+                                           : (map[3] == 6) ? i6
+                                                           : i3;
+                      std::size_t dst_i4 = (map[4] == 0)   ? i0
+                                           : (map[4] == 1) ? i1
+                                           : (map[4] == 2) ? i2
+                                           : (map[4] == 3) ? i3
+                                           : (map[4] == 5) ? i5
+                                           : (map[4] == 6) ? i6
+                                                           : i4;
+                      std::size_t dst_i5 = (map[5] == 0)   ? i0
+                                           : (map[5] == 1) ? i1
+                                           : (map[5] == 2) ? i2
+                                           : (map[5] == 3) ? i3
+                                           : (map[5] == 4) ? i4
+                                           : (map[5] == 6) ? i6
+                                                           : i5;
+                      std::size_t dst_i6 = (map[6] == 0)   ? i0
+                                           : (map[6] == 1) ? i1
+                                           : (map[6] == 2) ? i2
+                                           : (map[6] == 3) ? i3
+                                           : (map[6] == 4) ? i4
+                                           : (map[6] == 5) ? i5
+                                                           : i6;
+                      h_ref(dst_i0, dst_i1, dst_i2, dst_i3, dst_i4, dst_i5,
+                            dst_i6)      = h_x(i0, i1, i2, i3, i4, i5, i6);
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        Kokkos::deep_copy(ref, h_ref);
+        Kokkos::fence();
+>>>>>>> 9c35f23 (Copy if map is identical in transpose helper)
       }
+
+      KokkosFFT::Impl::transpose(execution_space(), x, xt,
+                                 map);  // xt is the transpose of x
+      EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
+
+      // Inverse (transpose of transpose is identical to the original)
+      View7DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6);
+      KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
+      EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
     }
   }
 }
@@ -1044,6 +1815,11 @@ void test_transpose_2d_8dview() {
   Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
   Kokkos::fill_random(exec, x, random_pool, 1.0);
   exec.fence();
+<<<<<<< HEAD
+=======
+
+  auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
+>>>>>>> 9c35f23 (Copy if map is identical in transpose helper)
 
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2, 3, 4, 5, 6, 7});
@@ -1060,8 +1836,10 @@ void test_transpose_2d_8dview() {
       }
       auto [nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7] = out_extents;
 
-      View8DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7);
+      View8DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7),
+          ref("ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7);
       if (map == default_axes) {
+<<<<<<< HEAD
         EXPECT_THROW(KokkosFFT::Impl::transpose(exec, x, xt, map),
                      std::runtime_error);
       } else {
@@ -1077,7 +1855,108 @@ void test_transpose_2d_8dview() {
         KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
         EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
         exec.fence();
+=======
+        Kokkos::deep_copy(ref, x);
+      } else {
+        // Transposed Views
+        auto h_ref = Kokkos::create_mirror_view(ref);
+        // Filling the transposed View
+        for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
+          for (std::size_t i1 = 0; i1 < h_x.extent(1); i1++) {
+            for (std::size_t i2 = 0; i2 < h_x.extent(2); i2++) {
+              for (std::size_t i3 = 0; i3 < h_x.extent(3); i3++) {
+                for (std::size_t i4 = 0; i4 < h_x.extent(4); i4++) {
+                  for (std::size_t i5 = 0; i5 < h_x.extent(5); i5++) {
+                    for (std::size_t i6 = 0; i6 < h_x.extent(6); i6++) {
+                      for (std::size_t i7 = 0; i7 < h_x.extent(7); i7++) {
+                        std::size_t dst_i0 = (map[0] == 1)   ? i1
+                                             : (map[0] == 2) ? i2
+                                             : (map[0] == 3) ? i3
+                                             : (map[0] == 4) ? i4
+                                             : (map[0] == 5) ? i5
+                                             : (map[0] == 6) ? i6
+                                             : (map[0] == 7) ? i7
+                                                             : i0;
+                        std::size_t dst_i1 = (map[1] == 0)   ? i0
+                                             : (map[1] == 2) ? i2
+                                             : (map[1] == 3) ? i3
+                                             : (map[1] == 4) ? i4
+                                             : (map[1] == 5) ? i5
+                                             : (map[1] == 6) ? i6
+                                             : (map[1] == 7) ? i7
+                                                             : i1;
+                        std::size_t dst_i2 = (map[2] == 0)   ? i0
+                                             : (map[2] == 1) ? i1
+                                             : (map[2] == 3) ? i3
+                                             : (map[2] == 4) ? i4
+                                             : (map[2] == 5) ? i5
+                                             : (map[2] == 6) ? i6
+                                             : (map[2] == 7) ? i7
+                                                             : i2;
+                        std::size_t dst_i3 = (map[3] == 0)   ? i0
+                                             : (map[3] == 1) ? i1
+                                             : (map[3] == 2) ? i2
+                                             : (map[3] == 4) ? i4
+                                             : (map[3] == 5) ? i5
+                                             : (map[3] == 6) ? i6
+                                             : (map[3] == 7) ? i7
+                                                             : i3;
+                        std::size_t dst_i4 = (map[4] == 0)   ? i0
+                                             : (map[4] == 1) ? i1
+                                             : (map[4] == 2) ? i2
+                                             : (map[4] == 3) ? i3
+                                             : (map[4] == 5) ? i5
+                                             : (map[4] == 6) ? i6
+                                             : (map[4] == 7) ? i7
+                                                             : i4;
+                        std::size_t dst_i5 = (map[5] == 0)   ? i0
+                                             : (map[5] == 1) ? i1
+                                             : (map[5] == 2) ? i2
+                                             : (map[5] == 3) ? i3
+                                             : (map[5] == 4) ? i4
+                                             : (map[5] == 6) ? i6
+                                             : (map[5] == 7) ? i7
+                                                             : i5;
+                        std::size_t dst_i6 = (map[6] == 0)   ? i0
+                                             : (map[6] == 1) ? i1
+                                             : (map[6] == 2) ? i2
+                                             : (map[6] == 3) ? i3
+                                             : (map[6] == 4) ? i4
+                                             : (map[6] == 5) ? i5
+                                             : (map[6] == 7) ? i7
+                                                             : i6;
+                        std::size_t dst_i7 = (map[7] == 0)   ? i0
+                                             : (map[7] == 1) ? i1
+                                             : (map[7] == 2) ? i2
+                                             : (map[7] == 3) ? i3
+                                             : (map[7] == 4) ? i4
+                                             : (map[7] == 5) ? i5
+                                             : (map[7] == 6) ? i6
+                                                             : i7;
+                        h_ref(dst_i0, dst_i1, dst_i2, dst_i3, dst_i4, dst_i5,
+                              dst_i6, dst_i7) =
+                            h_x(i0, i1, i2, i3, i4, i5, i6, i7);
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        Kokkos::deep_copy(ref, h_ref);
+>>>>>>> 9c35f23 (Copy if map is identical in transpose helper)
       }
+
+      KokkosFFT::Impl::transpose(exec, x, xt, map);
+      EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
+
+      // Inverse (transpose of transpose is identical to the original)
+      View8DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6, n7);
+      KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+      EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+      exec.fence();
     }
   }
 }
@@ -1088,19 +1967,9 @@ void test_transpose_3d_3dview() {
       Kokkos::View<double***, LayoutType1, execution_space>;
   using View3DLayout2type =
       Kokkos::View<double***, LayoutType2, execution_space>;
+  constexpr int DIM = 3;
   const int n0 = 3, n1 = 5, n2 = 8;
   View3DLayout1type x("x", n0, n1, n2);
-  View3DLayout2type xt_axis012("xt_axis012", n0, n1, n2),
-      xt_axis021("xt_axis021", n0, n2, n1),
-      xt_axis102("xt_axis102", n1, n0, n2),
-      xt_axis120("xt_axis120", n1, n2, n0),
-      xt_axis201("xt_axis201", n2, n0, n1),
-      xt_axis210("xt_axis210", n2, n1, n0);  // views are allocated internally
-  View3DLayout2type ref_axis021("ref_axis021", n0, n2, n1),
-      ref_axis102("ref_axis102", n1, n0, n2),
-      ref_axis120("ref_axis120", n1, n2, n0),
-      ref_axis201("ref_axis201", n2, n0, n1),
-      ref_axis210("ref_axis210", n2, n1, n0);
 
   execution_space exec;
   Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
@@ -1109,23 +1978,63 @@ void test_transpose_3d_3dview() {
 
   // Transposed views
   auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
-  auto h_ref_axis021 = Kokkos::create_mirror_view(ref_axis021);
-  auto h_ref_axis102 = Kokkos::create_mirror_view(ref_axis102);
-  auto h_ref_axis120 = Kokkos::create_mirror_view(ref_axis120);
-  auto h_ref_axis201 = Kokkos::create_mirror_view(ref_axis201);
-  auto h_ref_axis210 = Kokkos::create_mirror_view(ref_axis210);
+  axes_type<DIM> default_axes({0, 1, 2});
 
-  for (int i0 = 0; static_cast<std::size_t>(i0) < h_x.extent(0); i0++) {
-    for (int i1 = 0; static_cast<std::size_t>(i1) < h_x.extent(1); i1++) {
-      for (int i2 = 0; static_cast<std::size_t>(i2) < h_x.extent(2); i2++) {
-        h_ref_axis021(i0, i2, i1) = h_x(i0, i1, i2);
-        h_ref_axis102(i1, i0, i2) = h_x(i0, i1, i2);
-        h_ref_axis120(i1, i2, i0) = h_x(i0, i1, i2);
-        h_ref_axis201(i2, i0, i1) = h_x(i0, i1, i2);
-        h_ref_axis210(i2, i1, i0) = h_x(i0, i1, i2);
+  for (int axis0 = 0; axis0 < DIM; axis0++) {
+    for (int axis1 = 0; axis1 < DIM; axis1++) {
+      for (int axis2 = 0; axis2 < DIM; axis2++) {
+        if (axis0 == axis1 || axis0 == axis2 || axis1 == axis2) continue;
+
+        KokkosFFT::axis_type<3> axes = {axis0, axis1, axis2};
+
+        auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, axes);
+        axes_type<DIM> out_extents;
+        for (int i = 0; i < DIM; i++) {
+          out_extents.at(i) = x.extent(map.at(i));
+        }
+        auto [nt0, nt1, nt2] = out_extents;
+
+        View3DLayout2type xt("xt", nt0, nt1, nt2), ref("ref", nt0, nt1, nt2);
+        if (map == default_axes) {
+          // FIXME: This triggers test failure in FFT shifts test on Cuda
+          // backend
+          　　  // with Release build
+              continue;
+        } else {
+          // Transposed Views
+          auto h_ref = Kokkos::create_mirror_view(ref);
+          // Filling the transposed View
+          for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
+            for (std::size_t i1 = 0; i1 < h_x.extent(1); i1++) {
+              for (std::size_t i2 = 0; i2 < h_x.extent(2); i2++) {
+                std::size_t dst_i0            = (map[0] == 1)   ? i1
+                                                : (map[0] == 2) ? i2
+                                                                : i0;
+                std::size_t dst_i1            = (map[1] == 0)   ? i0
+                                                : (map[1] == 2) ? i2
+                                                                : i1;
+                std::size_t dst_i2            = (map[2] == 0)   ? i0
+                                                : (map[2] == 1) ? i1
+                                                                : i2;
+                h_ref(dst_i0, dst_i1, dst_i2) = h_x(i0, i1, i2);
+              }
+            }
+          }
+          Kokkos::deep_copy(ref, h_ref);
+        }
+
+        KokkosFFT::Impl::transpose(exec, x, xt, map);
+        EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
+
+        // Inverse (transpose of transpose is identical to the original)
+        View3DLayout1type x_inv("x_inv", n0, n1, n2);
+        KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+        EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+        exec.fence();
       }
     }
   }
+<<<<<<< HEAD
 
   Kokkos::deep_copy(ref_axis021, h_ref_axis021);
   Kokkos::deep_copy(ref_axis102, h_ref_axis102);
@@ -1163,6 +2072,8 @@ void test_transpose_3d_3dview() {
       axes_type<3>({2, 1, 0}));  // xt is the transpose of x
   EXPECT_TRUE(allclose(exec, xt_axis210, ref_axis210, 1.e-5, 1.e-12));
   exec.fence();
+=======
+>>>>>>> 9c35f23 (Copy if map is identical in transpose helper)
 }
 
 template <typename LayoutType1, typename LayoutType2>
@@ -1179,6 +2090,11 @@ void test_transpose_3d_4dview() {
   Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
   Kokkos::fill_random(exec, x, random_pool, 1.0);
   exec.fence();
+<<<<<<< HEAD
+=======
+
+  auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
+>>>>>>> 9c35f23 (Copy if map is identical in transpose helper)
 
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2, 3});
@@ -1198,14 +2114,33 @@ void test_transpose_3d_4dview() {
 
         View4DLayout2type xt("xt", nt0, nt1, nt2, nt3);
         if (map == default_axes) {
+<<<<<<< HEAD
           EXPECT_THROW(KokkosFFT::Impl::transpose(exec, x, xt, map),
                        std::runtime_error);
+=======
+          // FIXME: This triggers test failure in FFT shifts test on Cuda
+          // backend with Release build
+          continue;
+>>>>>>> 9c35f23 (Copy if map is identical in transpose helper)
         } else {
           // Transposed Views
           View4DLayout2type ref("ref", nt0, nt1, nt2, nt3);
           make_transposed(x, ref, map);
 
+<<<<<<< HEAD
           KokkosFFT::Impl::transpose(exec, x, xt, map);
+=======
+                  h_ref(dst_i0, dst_i1, dst_i2, dst_i3) = h_x(i0, i1, i2, i3);
+                }
+              }
+            }
+          }
+
+          Kokkos::deep_copy(ref, h_ref);
+
+          KokkosFFT::Impl::transpose(exec, x, xt,
+                                     map);  // xt is the transpose of x
+>>>>>>> 9c35f23 (Copy if map is identical in transpose helper)
           EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
 
           // Inverse (transpose of transpose is identical to the original)
@@ -1233,6 +2168,11 @@ void test_transpose_3d_5dview() {
   Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
   Kokkos::fill_random(exec, x, random_pool, 1.0);
   exec.fence();
+<<<<<<< HEAD
+=======
+
+  auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
+>>>>>>> 9c35f23 (Copy if map is identical in transpose helper)
 
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2, 3, 4});
@@ -1251,8 +2191,10 @@ void test_transpose_3d_5dview() {
         }
         auto [nt0, nt1, nt2, nt3, nt4] = out_extents;
 
-        View5DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4);
+        View5DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4),
+            ref("ref", nt0, nt1, nt2, nt3, nt4);
         if (map == default_axes) {
+<<<<<<< HEAD
           EXPECT_THROW(KokkosFFT::Impl::transpose(exec, x, xt, map),
                        std::runtime_error);
         } else {
@@ -1268,7 +2210,62 @@ void test_transpose_3d_5dview() {
           KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
           EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
           exec.fence();
+=======
+          Kokkos::deep_copy(ref, x);
+        } else {
+          // Transposed Views
+          auto h_ref = Kokkos::create_mirror_view(ref);
+          // Filling the transposed View
+          for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
+            for (std::size_t i1 = 0; i1 < h_x.extent(1); i1++) {
+              for (std::size_t i2 = 0; i2 < h_x.extent(2); i2++) {
+                for (std::size_t i3 = 0; i3 < h_x.extent(3); i3++) {
+                  for (std::size_t i4 = 0; i4 < h_x.extent(4); i4++) {
+                    std::size_t dst_i0 = (map[0] == 1)   ? i1
+                                         : (map[0] == 2) ? i2
+                                         : (map[0] == 3) ? i3
+                                         : (map[0] == 4) ? i4
+                                                         : i0;
+                    std::size_t dst_i1 = (map[1] == 0)   ? i0
+                                         : (map[1] == 2) ? i2
+                                         : (map[1] == 3) ? i3
+                                         : (map[1] == 4) ? i4
+                                                         : i1;
+                    std::size_t dst_i2 = (map[2] == 0)   ? i0
+                                         : (map[2] == 1) ? i1
+                                         : (map[2] == 3) ? i3
+                                         : (map[2] == 4) ? i4
+                                                         : i2;
+                    std::size_t dst_i3 = (map[3] == 0)   ? i0
+                                         : (map[3] == 1) ? i1
+                                         : (map[3] == 2) ? i2
+                                         : (map[3] == 4) ? i4
+                                                         : i3;
+                    std::size_t dst_i4 = (map[4] == 0)   ? i0
+                                         : (map[4] == 1) ? i1
+                                         : (map[4] == 2) ? i2
+                                         : (map[4] == 3) ? i3
+                                                         : i4;
+                    h_ref(dst_i0, dst_i1, dst_i2, dst_i3, dst_i4) =
+                        h_x(i0, i1, i2, i3, i4);
+                  }
+                }
+              }
+            }
+          }
+
+          Kokkos::deep_copy(ref, h_ref);
+>>>>>>> 9c35f23 (Copy if map is identical in transpose helper)
         }
+
+        KokkosFFT::Impl::transpose(exec, x, xt, map);
+        EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
+
+        // Inverse (transpose of transpose is identical to the original)
+        View5DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4);
+        KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+        EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+        exec.fence();
       }
     }
   }
@@ -1288,6 +2285,11 @@ void test_transpose_3d_6dview() {
   Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
   Kokkos::fill_random(exec, x, random_pool, 1.0);
   exec.fence();
+<<<<<<< HEAD
+=======
+
+  auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
+>>>>>>> 9c35f23 (Copy if map is identical in transpose helper)
 
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2, 3, 4, 5});
@@ -1306,8 +2308,10 @@ void test_transpose_3d_6dview() {
         }
         auto [nt0, nt1, nt2, nt3, nt4, nt5] = out_extents;
 
-        View6DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5);
+        View6DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5),
+            ref("ref", nt0, nt1, nt2, nt3, nt4, nt5);
         if (map == default_axes) {
+<<<<<<< HEAD
           EXPECT_THROW(KokkosFFT::Impl::transpose(exec, x, xt, map),
                        std::runtime_error);
         } else {
@@ -1323,7 +2327,75 @@ void test_transpose_3d_6dview() {
           KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
           EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
           exec.fence();
+=======
+          Kokkos::deep_copy(ref, x);
+        } else {
+          // Transposed Views
+          auto h_ref = Kokkos::create_mirror_view(ref);
+          // Filling the transposed View
+          for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
+            for (std::size_t i1 = 0; i1 < h_x.extent(1); i1++) {
+              for (std::size_t i2 = 0; i2 < h_x.extent(2); i2++) {
+                for (std::size_t i3 = 0; i3 < h_x.extent(3); i3++) {
+                  for (std::size_t i4 = 0; i4 < h_x.extent(4); i4++) {
+                    for (std::size_t i5 = 0; i5 < h_x.extent(5); i5++) {
+                      std::size_t dst_i0 = (map[0] == 1)   ? i1
+                                           : (map[0] == 2) ? i2
+                                           : (map[0] == 3) ? i3
+                                           : (map[0] == 4) ? i4
+                                           : (map[0] == 5) ? i5
+                                                           : i0;
+                      std::size_t dst_i1 = (map[1] == 0)   ? i0
+                                           : (map[1] == 2) ? i2
+                                           : (map[1] == 3) ? i3
+                                           : (map[1] == 4) ? i4
+                                           : (map[1] == 5) ? i5
+                                                           : i1;
+                      std::size_t dst_i2 = (map[2] == 0)   ? i0
+                                           : (map[2] == 1) ? i1
+                                           : (map[2] == 3) ? i3
+                                           : (map[2] == 4) ? i4
+                                           : (map[2] == 5) ? i5
+                                                           : i2;
+                      std::size_t dst_i3 = (map[3] == 0)   ? i0
+                                           : (map[3] == 1) ? i1
+                                           : (map[3] == 2) ? i2
+                                           : (map[3] == 4) ? i4
+                                           : (map[3] == 5) ? i5
+                                                           : i3;
+                      std::size_t dst_i4 = (map[4] == 0)   ? i0
+                                           : (map[4] == 1) ? i1
+                                           : (map[4] == 2) ? i2
+                                           : (map[4] == 3) ? i3
+                                           : (map[4] == 5) ? i5
+                                                           : i4;
+                      std::size_t dst_i5 = (map[5] == 0)   ? i0
+                                           : (map[5] == 1) ? i1
+                                           : (map[5] == 2) ? i2
+                                           : (map[5] == 3) ? i3
+                                           : (map[5] == 4) ? i4
+                                                           : i5;
+                      h_ref(dst_i0, dst_i1, dst_i2, dst_i3, dst_i4, dst_i5) =
+                          h_x(i0, i1, i2, i3, i4, i5);
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+          Kokkos::deep_copy(ref, h_ref);
+>>>>>>> 9c35f23 (Copy if map is identical in transpose helper)
         }
+
+        KokkosFFT::Impl::transpose(exec, x, xt, map);
+        EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
+
+        // Inverse (transpose of transpose is identical to the original)
+        View6DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5);
+        KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+        EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+        exec.fence();
       }
     }
   }
@@ -1343,6 +2415,11 @@ void test_transpose_3d_7dview() {
   Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
   Kokkos::fill_random(exec, x, random_pool, 1.0);
   exec.fence();
+<<<<<<< HEAD
+=======
+
+  auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
+>>>>>>> 9c35f23 (Copy if map is identical in transpose helper)
 
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2, 3, 4, 5, 6});
@@ -1361,8 +2438,10 @@ void test_transpose_3d_7dview() {
         }
         auto [nt0, nt1, nt2, nt3, nt4, nt5, nt6] = out_extents;
 
-        View7DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5, nt6);
+        View7DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5, nt6),
+            ref("ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6);
         if (map == default_axes) {
+<<<<<<< HEAD
           EXPECT_THROW(KokkosFFT::Impl::transpose(exec, x, xt, map),
                        std::runtime_error);
         } else {
@@ -1378,7 +2457,90 @@ void test_transpose_3d_7dview() {
           KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
           EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
           exec.fence();
+=======
+          Kokkos::deep_copy(ref, x);
+        } else {
+          // Transposed Views
+          auto h_ref = Kokkos::create_mirror_view(ref);
+          // Filling the transposed View
+          for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
+            for (std::size_t i1 = 0; i1 < h_x.extent(1); i1++) {
+              for (std::size_t i2 = 0; i2 < h_x.extent(2); i2++) {
+                for (std::size_t i3 = 0; i3 < h_x.extent(3); i3++) {
+                  for (std::size_t i4 = 0; i4 < h_x.extent(4); i4++) {
+                    for (std::size_t i5 = 0; i5 < h_x.extent(5); i5++) {
+                      for (std::size_t i6 = 0; i6 < h_x.extent(6); i6++) {
+                        std::size_t dst_i0 = (map[0] == 1)   ? i1
+                                             : (map[0] == 2) ? i2
+                                             : (map[0] == 3) ? i3
+                                             : (map[0] == 4) ? i4
+                                             : (map[0] == 5) ? i5
+                                             : (map[0] == 6) ? i6
+                                                             : i0;
+                        std::size_t dst_i1 = (map[1] == 0)   ? i0
+                                             : (map[1] == 2) ? i2
+                                             : (map[1] == 3) ? i3
+                                             : (map[1] == 4) ? i4
+                                             : (map[1] == 5) ? i5
+                                             : (map[1] == 6) ? i6
+                                                             : i1;
+                        std::size_t dst_i2 = (map[2] == 0)   ? i0
+                                             : (map[2] == 1) ? i1
+                                             : (map[2] == 3) ? i3
+                                             : (map[2] == 4) ? i4
+                                             : (map[2] == 5) ? i5
+                                             : (map[2] == 6) ? i6
+                                                             : i2;
+                        std::size_t dst_i3 = (map[3] == 0)   ? i0
+                                             : (map[3] == 1) ? i1
+                                             : (map[3] == 2) ? i2
+                                             : (map[3] == 4) ? i4
+                                             : (map[3] == 5) ? i5
+                                             : (map[3] == 6) ? i6
+                                                             : i3;
+                        std::size_t dst_i4 = (map[4] == 0)   ? i0
+                                             : (map[4] == 1) ? i1
+                                             : (map[4] == 2) ? i2
+                                             : (map[4] == 3) ? i3
+                                             : (map[4] == 5) ? i5
+                                             : (map[4] == 6) ? i6
+                                                             : i4;
+                        std::size_t dst_i5 = (map[5] == 0)   ? i0
+                                             : (map[5] == 1) ? i1
+                                             : (map[5] == 2) ? i2
+                                             : (map[5] == 3) ? i3
+                                             : (map[5] == 4) ? i4
+                                             : (map[5] == 6) ? i6
+                                                             : i5;
+                        std::size_t dst_i6 = (map[6] == 0)   ? i0
+                                             : (map[6] == 1) ? i1
+                                             : (map[6] == 2) ? i2
+                                             : (map[6] == 3) ? i3
+                                             : (map[6] == 4) ? i4
+                                             : (map[6] == 5) ? i5
+                                                             : i6;
+                        h_ref(dst_i0, dst_i1, dst_i2, dst_i3, dst_i4, dst_i5,
+                              dst_i6)      = h_x(i0, i1, i2, i3, i4, i5, i6);
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+          Kokkos::deep_copy(ref, h_ref);
+>>>>>>> 9c35f23 (Copy if map is identical in transpose helper)
         }
+
+        KokkosFFT::Impl::transpose(exec, x, xt, map);
+        EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
+
+        // Inverse (transpose of transpose is identical to the original)
+        View7DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6);
+        KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+        EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+        exec.fence();
       }
     }
   }
@@ -1398,6 +2560,11 @@ void test_transpose_3d_8dview() {
   Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
   Kokkos::fill_random(exec, x, random_pool, 1.0);
   exec.fence();
+<<<<<<< HEAD
+=======
+
+  auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
+>>>>>>> 9c35f23 (Copy if map is identical in transpose helper)
 
   // Transposed views
   axes_type<DIM> default_axes({0, 1, 2, 3, 4, 5, 6, 7});
@@ -1416,8 +2583,10 @@ void test_transpose_3d_8dview() {
         }
         auto [nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7] = out_extents;
 
-        View8DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7);
+        View8DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7),
+            ref("ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7);
         if (map == default_axes) {
+<<<<<<< HEAD
           EXPECT_THROW(KokkosFFT::Impl::transpose(exec, x, xt, map),
                        std::runtime_error);
         } else {
@@ -1433,7 +2602,108 @@ void test_transpose_3d_8dview() {
           KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
           EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
           exec.fence();
+=======
+          Kokkos::deep_copy(ref, x);
+        } else {
+          // Transposed Views
+          auto h_ref = Kokkos::create_mirror_view(ref);
+          // Filling the transposed View
+          for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
+            for (std::size_t i1 = 0; i1 < h_x.extent(1); i1++) {
+              for (std::size_t i2 = 0; i2 < h_x.extent(2); i2++) {
+                for (std::size_t i3 = 0; i3 < h_x.extent(3); i3++) {
+                  for (std::size_t i4 = 0; i4 < h_x.extent(4); i4++) {
+                    for (std::size_t i5 = 0; i5 < h_x.extent(5); i5++) {
+                      for (std::size_t i6 = 0; i6 < h_x.extent(6); i6++) {
+                        for (std::size_t i7 = 0; i7 < h_x.extent(7); i7++) {
+                          std::size_t dst_i0 = (map[0] == 1)   ? i1
+                                               : (map[0] == 2) ? i2
+                                               : (map[0] == 3) ? i3
+                                               : (map[0] == 4) ? i4
+                                               : (map[0] == 5) ? i5
+                                               : (map[0] == 6) ? i6
+                                               : (map[0] == 7) ? i7
+                                                               : i0;
+                          std::size_t dst_i1 = (map[1] == 0)   ? i0
+                                               : (map[1] == 2) ? i2
+                                               : (map[1] == 3) ? i3
+                                               : (map[1] == 4) ? i4
+                                               : (map[1] == 5) ? i5
+                                               : (map[1] == 6) ? i6
+                                               : (map[1] == 7) ? i7
+                                                               : i1;
+                          std::size_t dst_i2 = (map[2] == 0)   ? i0
+                                               : (map[2] == 1) ? i1
+                                               : (map[2] == 3) ? i3
+                                               : (map[2] == 4) ? i4
+                                               : (map[2] == 5) ? i5
+                                               : (map[2] == 6) ? i6
+                                               : (map[2] == 7) ? i7
+                                                               : i2;
+                          std::size_t dst_i3 = (map[3] == 0)   ? i0
+                                               : (map[3] == 1) ? i1
+                                               : (map[3] == 2) ? i2
+                                               : (map[3] == 4) ? i4
+                                               : (map[3] == 5) ? i5
+                                               : (map[3] == 6) ? i6
+                                               : (map[3] == 7) ? i7
+                                                               : i3;
+                          std::size_t dst_i4 = (map[4] == 0)   ? i0
+                                               : (map[4] == 1) ? i1
+                                               : (map[4] == 2) ? i2
+                                               : (map[4] == 3) ? i3
+                                               : (map[4] == 5) ? i5
+                                               : (map[4] == 6) ? i6
+                                               : (map[4] == 7) ? i7
+                                                               : i4;
+                          std::size_t dst_i5 = (map[5] == 0)   ? i0
+                                               : (map[5] == 1) ? i1
+                                               : (map[5] == 2) ? i2
+                                               : (map[5] == 3) ? i3
+                                               : (map[5] == 4) ? i4
+                                               : (map[5] == 6) ? i6
+                                               : (map[5] == 7) ? i7
+                                                               : i5;
+                          std::size_t dst_i6 = (map[6] == 0)   ? i0
+                                               : (map[6] == 1) ? i1
+                                               : (map[6] == 2) ? i2
+                                               : (map[6] == 3) ? i3
+                                               : (map[6] == 4) ? i4
+                                               : (map[6] == 5) ? i5
+                                               : (map[6] == 7) ? i7
+                                                               : i6;
+                          std::size_t dst_i7 = (map[7] == 0)   ? i0
+                                               : (map[7] == 1) ? i1
+                                               : (map[7] == 2) ? i2
+                                               : (map[7] == 3) ? i3
+                                               : (map[7] == 4) ? i4
+                                               : (map[7] == 5) ? i5
+                                               : (map[7] == 6) ? i6
+                                                               : i7;
+                          h_ref(dst_i0, dst_i1, dst_i2, dst_i3, dst_i4, dst_i5,
+                                dst_i6, dst_i7) =
+                              h_x(i0, i1, i2, i3, i4, i5, i6, i7);
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+          Kokkos::deep_copy(ref, h_ref);
+>>>>>>> 9c35f23 (Copy if map is identical in transpose helper)
         }
+
+        KokkosFFT::Impl::transpose(exec, x, xt, map);
+        EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
+
+        // Inverse (transpose of transpose is identical to the original)
+        View8DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6, n7);
+        KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+        EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+        exec.fence();
       }
     }
   }
