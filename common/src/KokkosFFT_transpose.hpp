@@ -9,6 +9,7 @@
 #include <tuple>
 #include "KokkosFFT_common_types.hpp"
 #include "KokkosFFT_utils.hpp"
+#include "KokkosFFT_padding.hpp"
 
 namespace KokkosFFT {
 namespace Impl {
@@ -285,8 +286,12 @@ void transpose(const ExecutionSpace& exec_space, const InViewType& in,
                 "transpose: Rank of View must be equal to Rank of "
                 "transpose axes.");
 
-  KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::is_transpose_needed(map),
-                     "transpose: transpose not necessary");
+  if (!is_transpose_needed(map)) {
+    // Just perform deep_copy (Layout may change)
+    KokkosFFT::Impl::crop_or_pad_impl(
+        exec_space, in, out, std::make_index_sequence<InViewType::rank()>{});
+    return;
+  }
 
   Kokkos::Array<int, InViewType::rank()> map_array = to_array(map);
   if ((in.span() >= std::size_t(std::numeric_limits<int>::max())) ||
