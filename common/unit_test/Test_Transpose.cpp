@@ -60,11 +60,6 @@ void make_transposed(const ViewType1& x, const ViewType2& xT,
   static_assert(ViewType1::rank() == DIM && ViewType2::rank() == DIM,
                 "make_transposed: Rank of Views must be equal to Rank of "
                 "transpose axes.");
-
-  // if (!KokkosFFT::Impl::is_transpose_needed(map)) {
-  //   Kokkos::deep_copy(xT, x);
-  //   return;
-  // }
   auto h_x  = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
   auto h_xT = Kokkos::create_mirror_view(xT);
 
