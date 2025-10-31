@@ -145,10 +145,10 @@ struct BoundsCheck {
 /// \tparam ExecutionSpace The type of Kokkos execution space.
 /// \tparam InViewType The input view type
 /// \tparam OutViewType The output view type
-/// \tparam iType The index type used for the view
+/// \tparam IndexType The index type used for the map
 /// \tparam ArgBoundsCheck The bounds check type (default is Off)
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
-          typename iType, typename ArgBoundsCheck = BoundsCheck::Off>
+          typename IndexType, typename ArgBoundsCheck = BoundsCheck::Off>
 struct Transpose {
  private:
   // Since MDRangePolicy is not available for 7D and 8D views, we need to
@@ -169,7 +169,7 @@ struct Transpose {
   auto get_policy(const ExecutionSpace space, const InViewType& x) const {
     if constexpr (InViewType::rank() == 1) {
       using range_policy_type =
-          Kokkos::RangePolicy<ExecutionSpace, Kokkos::IndexType<iType>>;
+          Kokkos::RangePolicy<ExecutionSpace, Kokkos::IndexType<IndexType>>;
       return range_policy_type(space, 0, x.extent(0));
     } else {
       using iterate_type =
@@ -177,7 +177,7 @@ struct Transpose {
                        Kokkos::Iterate::Default>;
       using mdrange_policy_type =
           Kokkos::MDRangePolicy<ExecutionSpace, iterate_type,
-                                Kokkos::IndexType<iType>>;
+                                Kokkos::IndexType<IndexType>>;
       Kokkos::Array<std::size_t, m_rank_truncated> begins = {};
       Kokkos::Array<std::size_t, m_rank_truncated> ends   = {};
       for (std::size_t i = 0; i < m_rank_truncated; ++i) {
@@ -214,22 +214,22 @@ struct Transpose {
     template <typename... IndicesType>
     KOKKOS_INLINE_FUNCTION void operator()(const IndicesType... indices) const {
       if constexpr (InViewType::rank() <= 6) {
-        iType src_indices[InViewType::rank()] = {
-            static_cast<iType>(indices)...};
+        IndexType src_indices[InViewType::rank()] = {
+            static_cast<IndexType>(indices)...};
         transpose_internal(src_indices,
                            std::make_index_sequence<InViewType::rank()>{});
       } else if constexpr (InViewType::rank() == 7) {
-        for (iType i6 = 0; i6 < iType(m_in.extent(6)); i6++) {
-          iType src_indices[InViewType::rank()] = {
-              static_cast<iType>(indices)..., i6};
+        for (IndexType i6 = 0; i6 < IndexType(m_in.extent(6)); i6++) {
+          IndexType src_indices[InViewType::rank()] = {
+              static_cast<IndexType>(indices)..., i6};
           transpose_internal(src_indices,
                              std::make_index_sequence<InViewType::rank()>{});
         }
       } else if constexpr (InViewType::rank() == 8) {
-        for (iType i6 = 0; i6 < iType(m_in.extent(6)); i6++) {
-          for (iType i7 = 0; i7 < iType(m_in.extent(7)); i7++) {
-            iType src_indices[InViewType::rank()] = {
-                static_cast<iType>(indices)..., i6, i7};
+        for (IndexType i6 = 0; i6 < IndexType(m_in.extent(6)); i6++) {
+          for (IndexType i7 = 0; i7 < IndexType(m_in.extent(7)); i7++) {
+            IndexType src_indices[InViewType::rank()] = {
+                static_cast<IndexType>(indices)..., i6, i7};
             transpose_internal(src_indices,
                                std::make_index_sequence<InViewType::rank()>{});
           }
@@ -239,12 +239,13 @@ struct Transpose {
 
     template <std::size_t... Is>
     KOKKOS_INLINE_FUNCTION void transpose_internal(
-        iType src_idx[], std::index_sequence<Is...>) const {
+        IndexType src_idx[], std::index_sequence<Is...>) const {
       if constexpr (std::is_same_v<ArgBoundsCheck, BoundsCheck::On>) {
         // Bounds check
         bool in_bounds = true;
         for (std::size_t i = 0; i < InViewType::rank(); ++i) {
-          if (src_idx[m_map[i]] >= iType(m_out.extent(i))) in_bounds = false;
+          if (src_idx[m_map[i]] >= IndexType(m_out.extent(i)))
+            in_bounds = false;
         }
 
         if (in_bounds) {
