@@ -51,10 +51,10 @@ Kokkos::Iterate get_iteration_order(const ViewType& view) {
 /// \tparam ComparisonOp The binary operation to apply to the elements of the
 /// views.
 /// \tparam Layout The layout type of the Kokkos views.
-/// \tparam iType The integer type used for indexing the view elements.
+/// \tparam IndexType The integer type used for indexing the view elements.
 template <KokkosExecutionSpace ExecutionSpace, KokkosView AViewType,
           KokkosView BViewType, typename ComparisonOp, KokkosLayout Layout,
-          typename iType>
+          typename IndexType>
 struct ViewErrors {
  private:
   // Since MDRangePolicy is not available for 7D and 8D views, we need to
@@ -76,7 +76,7 @@ struct ViewErrors {
   auto get_policy(const ExecutionSpace space, const AViewType a) const {
     if constexpr (AViewType::rank() == 1) {
       using range_policy_type =
-          Kokkos::RangePolicy<ExecutionSpace, Kokkos::IndexType<iType>>;
+          Kokkos::RangePolicy<ExecutionSpace, Kokkos::IndexType<IndexType>>;
       return range_policy_type(space, 0, a.extent(0));
     } else {
       static const Kokkos::Iterate outer_iteration_pattern =
@@ -90,7 +90,7 @@ struct ViewErrors {
                        inner_iteration_pattern>;
       using mdrange_policy_type =
           Kokkos::MDRangePolicy<ExecutionSpace, iterate_type,
-                                Kokkos::IndexType<iType>>;
+                                Kokkos::IndexType<IndexType>>;
       Kokkos::Array<std::size_t, m_rank_truncated> begins = {};
       Kokkos::Array<std::size_t, m_rank_truncated> ends   = {};
       for (std::size_t i = 0; i < m_rank_truncated; ++i) {
@@ -125,7 +125,7 @@ struct ViewErrors {
   template <std::size_t... Idx>
   struct CountErrors<std::index_sequence<Idx...>> {
     template <std::size_t I>
-    using IndicesType = iType;
+    using IndicesType = IndexType;
 
     AViewType m_a;
     BViewType m_b;
@@ -152,15 +152,15 @@ struct ViewErrors {
         bool close = m_op(m_a(indices...), m_b(indices...));
         err += static_cast<std::size_t>(!close);
       } else if constexpr (AViewType::rank() == 7) {
-        for (iType i6 = 0; i6 < iType(m_a.extent(6)); i6++) {
+        for (IndexType i6 = 0; i6 < IndexType(m_a.extent(6)); i6++) {
           auto tmp_a = m_a(indices..., i6);
           auto tmp_b = m_b(indices..., i6);
           bool close = m_op(tmp_a, tmp_b);
           err += static_cast<std::size_t>(!close);
         }
       } else if constexpr (AViewType::rank() == 8) {
-        for (iType i6 = 0; i6 < iType(m_a.extent(6)); i6++) {
-          for (iType i7 = 0; i7 < iType(m_a.extent(7)); i7++) {
+        for (IndexType i6 = 0; i6 < IndexType(m_a.extent(6)); i6++) {
+          for (IndexType i7 = 0; i7 < IndexType(m_a.extent(7)); i7++) {
             auto tmp_a = m_a(indices..., i6, i7);
             auto tmp_b = m_b(indices..., i6, i7);
             bool close = m_op(tmp_a, tmp_b);
@@ -190,10 +190,10 @@ struct ViewErrors {
 /// \tparam ComparisonOp The binary operation to apply to the elements of the
 /// views.
 /// \tparam Layout The memory layout type of the Kokkos views.
-/// \tparam iType The integer type used for indexing the view elements.
+/// \tparam IndexType The integer type used for indexing the view elements.
 template <KokkosExecutionSpace ExecutionSpace, KokkosView AViewType,
           KokkosView BViewType, typename ComparisonOp, KokkosLayout Layout,
-          typename iType>
+          typename IndexType>
 struct FindErrors {
  private:
   // Since MDRangePolicy is not available for 7D and 8D views, we need to
@@ -223,7 +223,7 @@ struct FindErrors {
   auto get_policy(const ExecutionSpace space, const AViewType a) const {
     if constexpr (AViewType::rank() == 1) {
       using range_policy_type =
-          Kokkos::RangePolicy<ExecutionSpace, Kokkos::IndexType<iType>>;
+          Kokkos::RangePolicy<ExecutionSpace, Kokkos::IndexType<IndexType>>;
       return range_policy_type(space, 0, a.extent(0));
     } else {
       static const Kokkos::Iterate outer_iteration_pattern =
@@ -237,7 +237,7 @@ struct FindErrors {
                        inner_iteration_pattern>;
       using mdrange_policy_type =
           Kokkos::MDRangePolicy<ExecutionSpace, iterate_type,
-                                Kokkos::IndexType<iType>>;
+                                Kokkos::IndexType<IndexType>>;
       Kokkos::Array<std::size_t, m_rank_truncated> begins = {};
       Kokkos::Array<std::size_t, m_rank_truncated> ends   = {};
       for (std::size_t i = 0; i < m_rank_truncated; ++i) {
@@ -259,7 +259,7 @@ struct FindErrors {
   ///\param[in] nb_errors The maximum number of errors expected.
   ///\param[in] op The binary operation used for comparison.
   ///\param[in] space The execution space used to launch the parallel kernel.
-  FindErrors(const AViewType& a, const BViewType& b, const iType nb_errors,
+  FindErrors(const AViewType& a, const BViewType& b, const IndexType nb_errors,
              ComparisonOp op, const ExecutionSpace space = ExecutionSpace())
       : m_a_error_pub("a_error", nb_errors),
         m_b_error_pub("b_error", nb_errors),
@@ -276,7 +276,7 @@ struct FindErrors {
   template <std::size_t... Idx>
   struct FindErrorsInternal<std::index_sequence<Idx...>> {
     template <std::size_t I>
-    using IndicesType = iType;
+    using IndicesType = IndexType;
 
     AViewType m_a;
     BViewType m_b;
@@ -330,14 +330,14 @@ struct FindErrors {
           std::size_t count = Kokkos::atomic_fetch_add(m_count.data(), 1);
           m_a_error(count)  = tmp_a;
           m_b_error(count)  = tmp_b;
-          iType error_indices[AViewType::rank()] = {indices...};
+          IndexType error_indices[AViewType::rank()] = {indices...};
           m_loc_error(count, 0) = get_global_idx(error_indices);
           for (std::size_t i = 0; i < AViewType::rank(); i++) {
             m_loc_error(count, i + 1) = error_indices[i];
           }
         }
       } else if constexpr (AViewType::rank() == 7) {
-        for (iType i6 = 0; i6 < iType(m_a.extent(6)); i6++) {
+        for (IndexType i6 = 0; i6 < IndexType(m_a.extent(6)); i6++) {
           auto tmp_a = m_a(indices..., i6);
           auto tmp_b = m_b(indices..., i6);
           bool close = m_op(tmp_a, tmp_b);
@@ -345,7 +345,7 @@ struct FindErrors {
             std::size_t count = Kokkos::atomic_fetch_add(m_count.data(), 1);
             m_a_error(count)  = tmp_a;
             m_b_error(count)  = tmp_b;
-            iType error_indices[AViewType::rank()] = {indices..., i6};
+            IndexType error_indices[AViewType::rank()] = {indices..., i6};
             m_loc_error(count, 0) = get_global_idx(error_indices);
             for (std::size_t i = 0; i < AViewType::rank(); i++) {
               m_loc_error(count, i + 1) = error_indices[i];
@@ -353,8 +353,8 @@ struct FindErrors {
           }
         }
       } else if constexpr (AViewType::rank() == 8) {
-        for (iType i6 = 0; i6 < iType(m_a.extent(6)); i6++) {
-          for (iType i7 = 0; i7 < iType(m_a.extent(7)); i7++) {
+        for (IndexType i6 = 0; i6 < IndexType(m_a.extent(6)); i6++) {
+          for (IndexType i7 = 0; i7 < IndexType(m_a.extent(7)); i7++) {
             auto tmp_a = m_a(indices..., i6, i7);
             auto tmp_b = m_b(indices..., i6, i7);
             bool close = m_op(tmp_a, tmp_b);
@@ -362,7 +362,7 @@ struct FindErrors {
               std::size_t count = Kokkos::atomic_fetch_add(m_count.data(), 1);
               m_a_error(count)  = tmp_a;
               m_b_error(count)  = tmp_b;
-              iType error_indices[AViewType::rank()] = {indices..., i6, i7};
+              IndexType error_indices[AViewType::rank()] = {indices..., i6, i7};
               m_loc_error(count, 0) = get_global_idx(error_indices);
               for (std::size_t i = 0; i < AViewType::rank(); i++) {
                 m_loc_error(count, i + 1) = error_indices[i];
@@ -377,7 +377,7 @@ struct FindErrors {
     ///
     /// \param[in] error_indices The indices of the element in Views
     KOKKOS_INLINE_FUNCTION
-    std::size_t get_global_idx(const iType error_indices[]) const {
+    std::size_t get_global_idx(const IndexType error_indices[]) const {
       std::size_t global_idx = 0;
       std::size_t stride     = 1;
       for (std::size_t d = 0; d < AViewType::rank(); ++d) {

@@ -73,8 +73,8 @@ auto get_shifts(const ViewType& x, axis_type<DIM> axes, int direction = 1) {
 ///
 /// \tparam ExecutionSpace The type of Kokkos execution space.
 /// \tparam ViewType The type of the Kokkos View.
-/// \tparam iType The index type used for the view.
-template <typename ExecutionSpace, typename ViewType, typename iType>
+/// \tparam IndexType The index type used for the view.
+template <typename ExecutionSpace, typename ViewType, typename IndexType>
 struct Roll {
  private:
   // Since MDRangePolicy is not available for 7D and 8D views, we need to
@@ -99,7 +99,7 @@ struct Roll {
   auto get_policy(const ExecutionSpace space, const ViewType& x) const {
     if constexpr (ViewType::rank() == 1) {
       using range_policy_type =
-          Kokkos::RangePolicy<ExecutionSpace, Kokkos::IndexType<iType>>;
+          Kokkos::RangePolicy<ExecutionSpace, Kokkos::IndexType<IndexType>>;
       return range_policy_type(space, 0, x.extent(0));
     } else {
       using iterate_type =
@@ -107,7 +107,7 @@ struct Roll {
                        Kokkos::Iterate::Default>;
       using mdrange_policy_type =
           Kokkos::MDRangePolicy<ExecutionSpace, iterate_type,
-                                Kokkos::IndexType<iType>>;
+                                Kokkos::IndexType<IndexType>>;
       Kokkos::Array<std::size_t, m_rank_truncated> begins = {};
       Kokkos::Array<std::size_t, m_rank_truncated> ends   = {};
       for (std::size_t i = 0; i < m_rank_truncated; ++i) {
@@ -144,23 +144,25 @@ struct Roll {
 
     template <typename... IndicesType>
     KOKKOS_INLINE_FUNCTION void operator()(const IndicesType... indices) const {
-      auto get_dst = [&](iType idx_src, std::size_t axis) {
-        return (idx_src + iType(m_shifts[axis])) % iType(m_x.extent(axis));
+      auto get_dst = [&](IndexType idx_src, std::size_t axis) {
+        return (idx_src + IndexType(m_shifts[axis])) %
+               IndexType(m_x.extent(axis));
       };
 
       if constexpr (ViewType::rank() <= 6) {
-        iType src_idx[ViewType::rank()] = {static_cast<iType>(indices)...};
-        iType dst_idx[ViewType::rank()] = {};
+        IndexType src_idx[ViewType::rank()] = {
+            static_cast<IndexType>(indices)...};
+        IndexType dst_idx[ViewType::rank()] = {};
         for (std::size_t i = 0; i < ViewType::rank(); ++i) {
           dst_idx[i] = get_dst(src_idx[i], i);
         }
         roll_internal(dst_idx, src_idx,
                       std::make_index_sequence<ViewType::rank()>{});
       } else if constexpr (ViewType::rank() == 7) {
-        for (iType i6 = 0; i6 < iType(m_x.extent(6)); i6++) {
-          iType src_idx[ViewType::rank()] = {static_cast<iType>(indices)...,
-                                             i6};
-          iType dst_idx[ViewType::rank()] = {};
+        for (IndexType i6 = 0; i6 < IndexType(m_x.extent(6)); i6++) {
+          IndexType src_idx[ViewType::rank()] = {
+              static_cast<IndexType>(indices)..., i6};
+          IndexType dst_idx[ViewType::rank()] = {};
 
           for (std::size_t i = 0; i < ViewType::rank(); ++i) {
             dst_idx[i] = get_dst(src_idx[i], i);
@@ -169,11 +171,11 @@ struct Roll {
                         std::make_index_sequence<ViewType::rank()>{});
         }
       } else if constexpr (ViewType::rank() == 8) {
-        for (iType i6 = 0; i6 < iType(m_x.extent(6)); i6++) {
-          for (iType i7 = 0; i7 < iType(m_x.extent(7)); i7++) {
-            iType src_idx[ViewType::rank()] = {static_cast<iType>(indices)...,
-                                               i6, i7};
-            iType dst_idx[ViewType::rank()] = {};
+        for (IndexType i6 = 0; i6 < IndexType(m_x.extent(6)); i6++) {
+          for (IndexType i7 = 0; i7 < IndexType(m_x.extent(7)); i7++) {
+            IndexType src_idx[ViewType::rank()] = {
+                static_cast<IndexType>(indices)..., i6, i7};
+            IndexType dst_idx[ViewType::rank()] = {};
 
             for (std::size_t i = 0; i < ViewType::rank(); ++i) {
               dst_idx[i] = get_dst(src_idx[i], i);
@@ -187,7 +189,8 @@ struct Roll {
 
     template <std::size_t... Is>
     KOKKOS_INLINE_FUNCTION void roll_internal(
-        iType dst_idx[], iType src_idx[], std::index_sequence<Is...>) const {
+        IndexType dst_idx[], IndexType src_idx[],
+        std::index_sequence<Is...>) const {
       m_buffer(dst_idx[Is]...) = m_x(src_idx[Is]...);
     }
   };

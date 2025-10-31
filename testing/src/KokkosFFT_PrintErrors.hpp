@@ -51,8 +51,8 @@ auto sort_errors(const AErrorViewType &a_error, const BErrorViewType &b_error,
   // Value: tuple (vector of error idx, a, b)
   using a_value_type     = typename AErrorViewType::non_const_value_type;
   using b_value_type     = typename BErrorViewType::non_const_value_type;
-  using iType            = typename CountViewType::non_const_value_type;
-  using coord_type       = std::vector<iType>;
+  using IndexType        = typename CountViewType::non_const_value_type;
+  using coord_type       = std::vector<IndexType>;
   using error_value_type = std::tuple<coord_type, a_value_type, b_value_type>;
 
   auto h_a_error =
@@ -62,7 +62,7 @@ auto sort_errors(const AErrorViewType &a_error, const BErrorViewType &b_error,
   auto h_loc_error =
       Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), loc_error);
 
-  using error_map_type = std::map<iType, error_value_type>;
+  using error_map_type = std::map<IndexType, error_value_type>;
   error_map_type error_map;
   const std::size_t nb_errors = h_a_error.extent(0);
   const std::size_t nb_errors_displayed =
@@ -70,7 +70,7 @@ auto sort_errors(const AErrorViewType &a_error, const BErrorViewType &b_error,
   const std::size_t rank = h_loc_error.extent(1);
 
   for (std::size_t err = 0; err < nb_errors_displayed; ++err) {
-    iType global_idx = h_loc_error(err, 0);  // global idx -> key
+    IndexType global_idx = h_loc_error(err, 0);  // global idx -> key
 
     coord_type loc;
     for (std::size_t d = 1; d < rank; ++d) {

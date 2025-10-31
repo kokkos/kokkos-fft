@@ -240,10 +240,10 @@ auto extract_extents(const ViewType& view) {
   return extents;
 }
 
-template <typename Layout, typename IntType, std::size_t N>
-Layout create_layout(const std::array<IntType, N>& extents) {
-  static_assert(std::is_integral_v<IntType>,
-                "create_layout: IntType must be an integral type");
+template <typename Layout, typename IndexType, std::size_t N>
+Layout create_layout(const std::array<IndexType, N>& extents) {
+  static_assert(std::is_integral_v<IndexType>,
+                "create_layout: IndexType must be an integral type");
   static_assert(std::is_same_v<Layout, Kokkos::LayoutLeft> ||
                     std::is_same_v<Layout, Kokkos::LayoutRight>,
                 "create_layout: Layout must be either Kokkos::LayoutLeft or "
