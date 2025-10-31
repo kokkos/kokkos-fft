@@ -131,6 +131,11 @@ axis_type<ViewType::rank()> compute_transpose_extents(
   return out_extents;
 }
 
+struct BoundsCheck {
+  struct On {};
+  struct Off {};
+};
+
 /// \brief Transpose functor for out-of-place transpose operations.
 /// This struct implements a functor that applies a transpose on a Kokkos view.
 /// Before FFT, the input view is transposed into the order which is expected by
@@ -140,9 +145,10 @@ axis_type<ViewType::rank()> compute_transpose_extents(
 /// \tparam ExecutionSpace The type of Kokkos execution space.
 /// \tparam InViewType The input view type
 /// \tparam OutViewType The output view type
-/// \tparam iType The index type used for the view.
+/// \tparam iType The index type used for the view
+/// \tparam ArgBoundsCheck The bounds check type (default is Off)
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
-          typename iType>
+          typename iType, typename ArgBoundsCheck = BoundsCheck::Off>
 struct Transpose {
  private:
   // Since MDRangePolicy is not available for 7D and 8D views, we need to
@@ -234,7 +240,19 @@ struct Transpose {
     template <std::size_t... Is>
     KOKKOS_INLINE_FUNCTION void transpose_internal(
         iType src_idx[], std::index_sequence<Is...>) const {
-      m_out(src_idx[m_map[Is]]...) = m_in(src_idx[Is]...);
+      if constexpr (std::is_same_v<ArgBoundsCheck, BoundsCheck::On>) {
+        // Bounds check
+        bool in_bounds = true;
+        for (std::size_t i = 0; i < InViewType::rank(); ++i) {
+          if (src_idx[m_map[i]] >= iType(m_out.extent(i))) in_bounds = false;
+        }
+
+        if (in_bounds) {
+          m_out(src_idx[m_map[Is]]...) = m_in(src_idx[Is]...);
+        }
+      } else {
+        m_out(src_idx[m_map[Is]]...) = m_in(src_idx[Is]...);
+      }
     }
   };
 };
@@ -260,16 +278,20 @@ struct Transpose {
 /// \tparam ExecutionSpace Kokkos execution space type
 /// \tparam InViewType The input view type
 /// \tparam OutViewType The output view type
-/// \tparam DIM         The dimensionality of the map
+/// \tparam IndexType The index type used for the view
 ///
 /// \param[in] exec_space execution space instance
 /// \param[in] in The input view
 /// \param[out] out The output view
 /// \param[in] map The axis map for transpose
+/// \param[in] bounds_check Perform bounds checking on the output view (default:
+/// false)
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
-          std::size_t DIM = 1>
+          typename IndexType>
 void transpose(const ExecutionSpace& exec_space, const InViewType& in,
-               const OutViewType& out, axis_type<DIM> map) {
+               const OutViewType& out,
+               std::array<IndexType, InViewType::rank()> map,
+               bool bounds_check = false) {
   static_assert(is_operatable_view_v<ExecutionSpace, InViewType>,
                 "transpose: In View value type must be float, double, "
                 "Kokkos::Complex<float>, or Kokkos::Complex<double>. "
@@ -282,9 +304,13 @@ void transpose(const ExecutionSpace& exec_space, const InViewType& in,
                 "Layout must be either LayoutLeft or LayoutRight. "
                 "ExecutionSpace must be able to access data in ViewType");
 
-  static_assert(InViewType::rank() == DIM,
-                "transpose: Rank of View must be equal to Rank of "
-                "transpose axes.");
+  static_assert(have_same_rank_v<InViewType, OutViewType>,
+                "transpose: In and Out View must have the same rank.");
+
+  static_assert(
+      have_same_base_floating_point_type_v<InViewType, OutViewType>,
+      "transpose: In and Out View must have the same base floating point "
+      "type.");
 
   if (!is_transpose_needed(map)) {
     // Just perform deep_copy (Layout may change)
@@ -293,16 +319,27 @@ void transpose(const ExecutionSpace& exec_space, const InViewType& in,
     return;
   }
 
-  Kokkos::Array<int, InViewType::rank()> map_array = to_array(map);
+  Kokkos::Array<IndexType, InViewType::rank()> map_array = to_array(map);
   if ((in.span() >= std::size_t(std::numeric_limits<int>::max())) ||
       (out.span() >= std::size_t(std::numeric_limits<int>::max()))) {
-    Transpose<ExecutionSpace, InViewType, OutViewType, int64_t>(
-        in, out, map_array, exec_space);
+    if (bounds_check) {
+      Transpose<ExecutionSpace, InViewType, OutViewType, int64_t,
+                BoundsCheck::On>(in, out, map_array, exec_space);
+    } else {
+      Transpose<ExecutionSpace, InViewType, OutViewType, int64_t,
+                BoundsCheck::Off>(in, out, map_array, exec_space);
+    }
   } else {
-    Transpose<ExecutionSpace, InViewType, OutViewType, int>(in, out, map_array,
-                                                            exec_space);
+    if (bounds_check) {
+      Transpose<ExecutionSpace, InViewType, OutViewType, int, BoundsCheck::On>(
+          in, out, map_array, exec_space);
+    } else {
+      Transpose<ExecutionSpace, InViewType, OutViewType, int, BoundsCheck::Off>(
+          in, out, map_array, exec_space);
+    }
   }
 }
+
 }  // namespace Impl
 }  // namespace KokkosFFT
 
