@@ -131,6 +131,11 @@ axis_type<ViewType::rank()> compute_transpose_extents(
   return out_extents;
 }
 
+struct BoundsCheck {
+  struct On {};
+  struct Off {};
+};
+
 /// \brief Transpose functor for out-of-place transpose operations.
 /// This struct implements a functor that applies a transpose on a Kokkos view.
 /// Before FFT, the input view is transposed into the order which is expected by
@@ -273,7 +278,7 @@ struct Transpose {
 /// \tparam ExecutionSpace Kokkos execution space type
 /// \tparam InViewType The input view type
 /// \tparam OutViewType The output view type
-/// \tparam iType The index type used for the view
+/// \tparam IndexType The index type used for the view
 ///
 /// \param[in] exec_space execution space instance
 /// \param[in] in The input view
@@ -282,10 +287,10 @@ struct Transpose {
 /// \param[in] bounds_check Perform bounds checking on the output view (default:
 /// false)
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
-          typename iType>
+          typename IndexType>
 void transpose(const ExecutionSpace& exec_space, const InViewType& in,
                const OutViewType& out,
-               std::array<iType, InViewType::rank()> map,
+               std::array<IndexType, InViewType::rank()> map,
                bool bounds_check = false) {
   static_assert(is_operatable_view_v<ExecutionSpace, InViewType>,
                 "transpose: In View value type must be float, double, "
@@ -299,6 +304,14 @@ void transpose(const ExecutionSpace& exec_space, const InViewType& in,
                 "Layout must be either LayoutLeft or LayoutRight. "
                 "ExecutionSpace must be able to access data in ViewType");
 
+  static_assert(have_same_rank_v<InViewType, OutViewType>,
+                "transpose: In and Out View must have the same rank.");
+
+  static_assert(
+      have_same_base_floating_point_type_v<InViewType, OutViewType>,
+      "transpose: In and Out View must have the same base floating point "
+      "type.");
+
   if (!is_transpose_needed(map)) {
     // Just perform deep_copy (Layout may change)
     KokkosFFT::Impl::crop_or_pad_impl(
@@ -306,7 +319,7 @@ void transpose(const ExecutionSpace& exec_space, const InViewType& in,
     return;
   }
 
-  Kokkos::Array<iType, InViewType::rank()> map_array = to_array(map);
+  Kokkos::Array<IndexType, InViewType::rank()> map_array = to_array(map);
   if ((in.span() >= std::size_t(std::numeric_limits<int>::max())) ||
       (out.span() >= std::size_t(std::numeric_limits<int>::max()))) {
     if (bounds_check) {
