@@ -507,6 +507,30 @@ void test_convert_negative_axes_4d() {
   }
 }
 
+template <typename IndexType>
+void test_is_transpose_needed() {
+  std::array<IndexType, 1> map1D = {0};
+  EXPECT_FALSE(KokkosFFT::Impl::is_transpose_needed(map1D));
+
+  std::array<IndexType, 2> map2D = {0, 1}, map2D_axis0 = {1, 0};
+  EXPECT_FALSE(KokkosFFT::Impl::is_transpose_needed(map2D));
+  EXPECT_TRUE(KokkosFFT::Impl::is_transpose_needed(map2D_axis0));
+
+  std::array<IndexType, 3> map3D     = {0, 1, 2};
+  std::array<IndexType, 3> map3D_021 = {0, 2, 1};
+  std::array<IndexType, 3> map3D_102 = {1, 0, 2};
+  std::array<IndexType, 3> map3D_120 = {1, 2, 0};
+  std::array<IndexType, 3> map3D_201 = {2, 0, 1};
+  std::array<IndexType, 3> map3D_210 = {2, 1, 0};
+
+  EXPECT_FALSE(KokkosFFT::Impl::is_transpose_needed(map3D));
+  EXPECT_TRUE(KokkosFFT::Impl::is_transpose_needed(map3D_021));
+  EXPECT_TRUE(KokkosFFT::Impl::is_transpose_needed(map3D_102));
+  EXPECT_TRUE(KokkosFFT::Impl::is_transpose_needed(map3D_120));
+  EXPECT_TRUE(KokkosFFT::Impl::is_transpose_needed(map3D_201));
+  EXPECT_TRUE(KokkosFFT::Impl::is_transpose_needed(map3D_210));
+}
+
 template <typename ContainerType>
 void test_is_found() {
   using IntType   = KokkosFFT::Impl::base_container_value_type<ContainerType>;
@@ -950,27 +974,9 @@ TYPED_TEST(TestConvertNegativeAxes, 4DView) {
   test_convert_negative_axes_4d<value_type>();
 }
 
-TEST(IsTransposeNeeded, 1Dto3D) {
-  std::array<int, 1> map1D = {0};
-  EXPECT_FALSE(KokkosFFT::Impl::is_transpose_needed(map1D));
-
-  std::array<int, 2> map2D = {0, 1}, map2D_axis0 = {1, 0};
-  EXPECT_FALSE(KokkosFFT::Impl::is_transpose_needed(map2D));
-  EXPECT_TRUE(KokkosFFT::Impl::is_transpose_needed(map2D_axis0));
-
-  std::array<int, 3> map3D     = {0, 1, 2};
-  std::array<int, 3> map3D_021 = {0, 2, 1};
-  std::array<int, 3> map3D_102 = {1, 0, 2};
-  std::array<int, 3> map3D_120 = {1, 2, 0};
-  std::array<int, 3> map3D_201 = {2, 0, 1};
-  std::array<int, 3> map3D_210 = {2, 1, 0};
-
-  EXPECT_FALSE(KokkosFFT::Impl::is_transpose_needed(map3D));
-  EXPECT_TRUE(KokkosFFT::Impl::is_transpose_needed(map3D_021));
-  EXPECT_TRUE(KokkosFFT::Impl::is_transpose_needed(map3D_102));
-  EXPECT_TRUE(KokkosFFT::Impl::is_transpose_needed(map3D_120));
-  EXPECT_TRUE(KokkosFFT::Impl::is_transpose_needed(map3D_201));
-  EXPECT_TRUE(KokkosFFT::Impl::is_transpose_needed(map3D_210));
+TYPED_TEST(ContainerTypes, is_transpose_needed) {
+  using value_type = typename TestFixture::value_type;
+  test_is_transpose_needed<value_type>();
 }
 
 TYPED_TEST(ContainerTypes, is_found_from_vector) {

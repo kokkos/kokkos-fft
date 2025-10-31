@@ -147,9 +147,18 @@ bool are_valid_axes(const ViewType& /*view*/,
   return is_valid;
 }
 
-template <std::size_t DIM = 1>
-bool is_transpose_needed(const std::array<int, DIM>& map) {
-  std::array<int, DIM> contiguous_map;
+/// \brief Check if transpose is needed or not
+/// If a map is contiguous and in ascending order (e.g. {0, 1, 2}),
+/// we do not need transpose
+/// \tparam IndexType The integer type used for map
+/// \tparam DIM The dimensionality of the axes
+///
+/// \param[in] map The map used for permutation
+template <typename IndexType, std::size_t DIM>
+bool is_transpose_needed(const std::array<IndexType, DIM>& map) {
+  static_assert(std::is_integral_v<IndexType>,
+                "is_transpose_needed: IndexType must be an integral type.");
+  std::array<IndexType, DIM> contiguous_map;
   std::iota(contiguous_map.begin(), contiguous_map.end(), 0);
   return map != contiguous_map;
 }
