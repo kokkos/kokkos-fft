@@ -13,8 +13,7 @@ namespace {
 using execution_space = Kokkos::DefaultExecutionSpace;
 
 template <std::size_t DIM>
-using axes_type = std::array<int, DIM>;
-
+using axes_type  = std::array<int, DIM>;
 using test_types = ::testing::Types<Kokkos::LayoutLeft, Kokkos::LayoutRight>;
 using layout_types =
     ::testing::Types<std::pair<Kokkos::LayoutLeft, Kokkos::LayoutLeft>,
