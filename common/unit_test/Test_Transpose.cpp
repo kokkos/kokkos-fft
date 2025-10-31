@@ -372,7 +372,7 @@ void test_map_axes3d() {
 // Tests for transpose
 // 1D Transpose
 template <typename LayoutType1, typename LayoutType2>
-void test_transpose_1d_1dview() {
+void test_transpose_1d_1dview(bool bounds_check) {
   // When transpose is not necessary, we should not call transpose method
   using View1DLayout1type = Kokkos::View<double*, LayoutType1, execution_space>;
   using View1DLayout2type = Kokkos::View<double*, LayoutType2, execution_space>;
@@ -386,13 +386,13 @@ void test_transpose_1d_1dview() {
   exec.fence();
 
   Kokkos::deep_copy(ref, x);
-  KokkosFFT::Impl::transpose(exec, x, xt, axes_type<1>({0}));
+  KokkosFFT::Impl::transpose(exec, x, xt, axes_type<1>({0}), bounds_check);
   EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
   exec.fence();
 }
 
 template <typename LayoutType1, typename LayoutType2>
-void test_transpose_1d_2dview() {
+void test_transpose_1d_2dview(bool bounds_check) {
   using View2DLayout1type =
       Kokkos::View<double**, LayoutType1, execution_space>;
   using View2DLayout2type =
@@ -417,19 +417,19 @@ void test_transpose_1d_2dview() {
     View2DLayout2type xt("xt", nt0, nt1), ref("ref", nt0, nt1);
     make_transposed(x, ref, map);
 
-    KokkosFFT::Impl::transpose(exec, x, xt, map);
+    KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
     EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
 
     // Inverse (transpose of transpose is identical to the original)
     View2DLayout1type x_inv("x_inv", n0, n1);
-    KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+    KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
     EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
     exec.fence();
   }
 }
 
 template <typename LayoutType1, typename LayoutType2>
-void test_transpose_1d_3dview() {
+void test_transpose_1d_3dview(bool bounds_check) {
   using View3DLayout1type =
       Kokkos::View<double***, LayoutType1, execution_space>;
   using View3DLayout2type =
@@ -454,19 +454,19 @@ void test_transpose_1d_3dview() {
     View3DLayout2type xt("xt", nt0, nt1, nt2), ref("ref", nt0, nt1, nt2);
     make_transposed(x, ref, map);
 
-    KokkosFFT::Impl::transpose(exec, x, xt, map);
+    KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
     EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
 
     // Inverse (transpose of transpose is identical to the original)
     View3DLayout1type x_inv("x_invx", n0, n1, n2);
-    KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+    KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
     EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
     exec.fence();
   }
 }
 
 template <typename LayoutType1, typename LayoutType2>
-void test_transpose_1d_4dview() {
+void test_transpose_1d_4dview(bool bounds_check) {
   using View4DLayout1type =
       Kokkos::View<double****, LayoutType1, execution_space>;
   using View4DLayout2type =
@@ -493,19 +493,19 @@ void test_transpose_1d_4dview() {
         ref("ref", nt0, nt1, nt2, nt3);
     make_transposed(x, ref, map);
 
-    KokkosFFT::Impl::transpose(exec, x, xt, map);
+    KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
     EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
 
     // Inverse (transpose of transpose is identical to the original)
     View4DLayout1type x_inv("x_inv", n0, n1, n2, n3);
-    KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+    KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
     EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
     exec.fence();
   }
 }
 
 template <typename LayoutType1, typename LayoutType2>
-void test_transpose_1d_5dview() {
+void test_transpose_1d_5dview(bool bounds_check) {
   using View5DLayout1type =
       Kokkos::View<double*****, LayoutType1, execution_space>;
   using View5DLayout2type =
@@ -531,19 +531,19 @@ void test_transpose_1d_5dview() {
         ref("ref", nt0, nt1, nt2, nt3, nt4);
     make_transposed(x, ref, map);
 
-    KokkosFFT::Impl::transpose(exec, x, xt, map);
+    KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
     EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
 
     // Inverse (transpose of transpose is identical to the original)
     View5DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4);
-    KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+    KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
     EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
     exec.fence();
   }
 }
 
 template <typename LayoutType1, typename LayoutType2>
-void test_transpose_1d_6dview() {
+void test_transpose_1d_6dview(bool bounds_check) {
   using View6DLayout1type =
       Kokkos::View<double******, LayoutType1, execution_space>;
   using View6DLayout2type =
@@ -569,19 +569,19 @@ void test_transpose_1d_6dview() {
         ref("ref", nt0, nt1, nt2, nt3, nt4, nt5);
     make_transposed(x, ref, map);
 
-    KokkosFFT::Impl::transpose(exec, x, xt, map);
+    KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
     EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
 
     // Inverse (transpose of transpose is identical to the original)
     View6DLayout1type x_inv("x_inv_x", n0, n1, n2, n3, n4, n5);
-    KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+    KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
     EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
     exec.fence();
   }
 }
 
 template <typename LayoutType1, typename LayoutType2>
-void test_transpose_1d_7dview() {
+void test_transpose_1d_7dview(bool bounds_check) {
   using View7DLayout1type =
       Kokkos::View<double*******, LayoutType1, execution_space>;
   using View7DLayout2type =
@@ -607,19 +607,19 @@ void test_transpose_1d_7dview() {
         ref("ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6);
     make_transposed(x, ref, map);
 
-    KokkosFFT::Impl::transpose(exec, x, xt, map);
+    KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
     EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
 
     // Inverse (transpose of transpose is identical to the original)
     View7DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6);
-    KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+    KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
     EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
     exec.fence();
   }
 }
 
 template <typename LayoutType1, typename LayoutType2>
-void test_transpose_1d_8dview() {
+void test_transpose_1d_8dview(bool bounds_check) {
   using View8DLayout1type =
       Kokkos::View<double********, LayoutType1, execution_space>;
   using View8DLayout2type =
@@ -645,19 +645,19 @@ void test_transpose_1d_8dview() {
         ref("ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7);
     make_transposed(x, ref, map);
 
-    KokkosFFT::Impl::transpose(exec, x, xt, map);
+    KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
     EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
 
     // Inverse (transpose of transpose is identical to the original)
     View8DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6, n7);
-    KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+    KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
     EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
     exec.fence();
   }
 }
 
 template <typename LayoutType1, typename LayoutType2>
-void test_transpose_2d_2dview() {
+void test_transpose_2d_2dview(bool bounds_check) {
   using View2DLayout1type =
       Kokkos::View<double**, LayoutType1, execution_space>;
   using View2DLayout2type =
@@ -686,11 +686,11 @@ void test_transpose_2d_2dview() {
       View2DLayout2type xt("xt", nt0, nt1), ref("ref", nt0, nt1);
       make_transposed(x, ref, map);
 
-      KokkosFFT::Impl::transpose(exec, x, xt, map);
+      KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
       EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
       // Inverse (transpose of transpose is identical to the original)
       View2DLayout1type x_inv("x_inv", n0, n1);
-      KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+      KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
       EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
       exec.fence();
     }
@@ -698,7 +698,7 @@ void test_transpose_2d_2dview() {
 }
 
 template <typename LayoutType1, typename LayoutType2>
-void test_transpose_2d_3dview() {
+void test_transpose_2d_3dview(bool bounds_check) {
   using View3DLayout1type =
       Kokkos::View<double***, LayoutType1, execution_space>;
   using View3DLayout2type =
@@ -727,12 +727,12 @@ void test_transpose_2d_3dview() {
       View3DLayout2type xt("xt", nt0, nt1, nt2), ref("ref", nt0, nt1, nt2);
       make_transposed(x, ref, map);
 
-      KokkosFFT::Impl::transpose(exec, x, xt, map);
+      KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
       EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
 
       // Inverse (transpose of transpose is identical to the original)
       View3DLayout1type x_inv("x_inv", n0, n1, n2);
-      KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+      KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
       EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
       exec.fence();
     }
@@ -740,7 +740,7 @@ void test_transpose_2d_3dview() {
 }
 
 template <typename LayoutType1, typename LayoutType2>
-void test_transpose_2d_4dview() {
+void test_transpose_2d_4dview(bool bounds_check) {
   using View4DLayout1type =
       Kokkos::View<double****, LayoutType1, execution_space>;
   using View4DLayout2type =
@@ -771,11 +771,11 @@ void test_transpose_2d_4dview() {
             ref("ref", nt0, nt1, nt2, nt3);
         make_transposed(x, ref, map);
 
-        KokkosFFT::Impl::transpose(exec, x, xt, map);
+        KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
         EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
         // Inverse (transpose of transpose is identical to the original)
         View4DLayout1type x_inv("x_inv", n0, n1, n2, n3);
-        KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+        KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
         EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
         exec.fence();
       }
@@ -784,7 +784,7 @@ void test_transpose_2d_4dview() {
 }
 
 template <typename LayoutType1, typename LayoutType2>
-void test_transpose_2d_5dview() {
+void test_transpose_2d_5dview(bool bounds_check) {
   using View5DLayout1type =
       Kokkos::View<double*****, LayoutType1, execution_space>;
   using View5DLayout2type =
@@ -814,12 +814,12 @@ void test_transpose_2d_5dview() {
           ref("ref", nt0, nt1, nt2, nt3, nt4);
       make_transposed(x, ref, map);
 
-      KokkosFFT::Impl::transpose(exec, x, xt, map);
+      KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
       EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
 
       // Inverse (transpose of transpose is identical to the original)
       View5DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4);
-      KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+      KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
       EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
       exec.fence();
     }
@@ -827,7 +827,7 @@ void test_transpose_2d_5dview() {
 }
 
 template <typename LayoutType1, typename LayoutType2>
-void test_transpose_2d_6dview() {
+void test_transpose_2d_6dview(bool bounds_check) {
   using View6DLayout1type =
       Kokkos::View<double******, LayoutType1, execution_space>;
   using View6DLayout2type =
@@ -857,12 +857,12 @@ void test_transpose_2d_6dview() {
           ref("ref", nt0, nt1, nt2, nt3, nt4, nt5);
       make_transposed(x, ref, map);
 
-      KokkosFFT::Impl::transpose(exec, x, xt, map);
+      KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
       EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
 
       // Inverse (transpose of transpose is identical to the original)
       View6DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5);
-      KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+      KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
       EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
       exec.fence();
     }
@@ -870,7 +870,7 @@ void test_transpose_2d_6dview() {
 }
 
 template <typename LayoutType1, typename LayoutType2>
-void test_transpose_2d_7dview() {
+void test_transpose_2d_7dview(bool bounds_check) {
   using View7DLayout1type =
       Kokkos::View<double*******, LayoutType1, execution_space>;
   using View7DLayout2type =
@@ -900,20 +900,20 @@ void test_transpose_2d_7dview() {
           ref("ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6);
 
       make_transposed(x, ref, map);
-      KokkosFFT::Impl::transpose(execution_space(), x, xt,
-                                 map);  // xt is the transpose of x
+      KokkosFFT::Impl::transpose(execution_space(), x, xt, map, bounds_check);
       EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
 
       // Inverse (transpose of transpose is identical to the original)
       View7DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6);
-      KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv);
+      KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv,
+                                 bounds_check);
       EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
     }
   }
 }
 
 template <typename LayoutType1, typename LayoutType2>
-void test_transpose_2d_8dview() {
+void test_transpose_2d_8dview(bool bounds_check) {
   using View8DLayout1type =
       Kokkos::View<double********, LayoutType1, execution_space>;
   using View8DLayout2type =
@@ -943,12 +943,12 @@ void test_transpose_2d_8dview() {
           ref("ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7);
       make_transposed(x, ref, map);
 
-      KokkosFFT::Impl::transpose(exec, x, xt, map);
+      KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
       EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
 
       // Inverse (transpose of transpose is identical to the original)
       View8DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6, n7);
-      KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+      KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
       EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
       exec.fence();
     }
@@ -956,7 +956,7 @@ void test_transpose_2d_8dview() {
 }
 
 template <typename LayoutType1, typename LayoutType2>
-void test_transpose_3d_3dview() {
+void test_transpose_3d_3dview(bool bounds_check) {
   using View3DLayout1type =
       Kokkos::View<double***, LayoutType1, execution_space>;
   using View3DLayout2type =
@@ -991,12 +991,12 @@ void test_transpose_3d_3dview() {
         View3DLayout2type xt("xt", nt0, nt1, nt2), ref("ref", nt0, nt1, nt2);
         make_transposed(x, ref, map);
 
-        KokkosFFT::Impl::transpose(exec, x, xt, map);
+        KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
         EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
 
         // Inverse (transpose of transpose is identical to the original)
         View3DLayout1type x_inv("x_inv", n0, n1, n2);
-        KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+        KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
         EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
         exec.fence();
       }
@@ -1005,7 +1005,7 @@ void test_transpose_3d_3dview() {
 }
 
 template <typename LayoutType1, typename LayoutType2>
-void test_transpose_3d_4dview() {
+void test_transpose_3d_4dview(bool bounds_check) {
   using View4DLayout1type =
       Kokkos::View<double****, LayoutType1, execution_space>;
   using View4DLayout2type =
@@ -1039,11 +1039,11 @@ void test_transpose_3d_4dview() {
             ref("ref", nt0, nt1, nt2, nt3);
         make_transposed(x, ref, map);
 
-        KokkosFFT::Impl::transpose(exec, x, xt, map);
+        KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
         EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
         // Inverse (transpose of transpose is identical to the original)
         View4DLayout1type x_inv("x_inv", n0, n1, n2, n3);
-        KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+        KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
         EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
         exec.fence();
       }
@@ -1052,7 +1052,7 @@ void test_transpose_3d_4dview() {
 }
 
 template <typename LayoutType1, typename LayoutType2>
-void test_transpose_3d_5dview() {
+void test_transpose_3d_5dview(bool bounds_check) {
   using View5DLayout1type =
       Kokkos::View<double*****, LayoutType1, execution_space>;
   using View5DLayout2type =
@@ -1084,12 +1084,12 @@ void test_transpose_3d_5dview() {
             ref("ref", nt0, nt1, nt2, nt3, nt4);
         make_transposed(x, ref, map);
 
-        KokkosFFT::Impl::transpose(exec, x, xt, map);
+        KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
         EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
 
         // Inverse (transpose of transpose is identical to the original)
         View5DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4);
-        KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+        KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
         EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
         exec.fence();
       }
@@ -1098,7 +1098,7 @@ void test_transpose_3d_5dview() {
 }
 
 template <typename LayoutType1, typename LayoutType2>
-void test_transpose_3d_6dview() {
+void test_transpose_3d_6dview(bool bounds_check) {
   using View6DLayout1type =
       Kokkos::View<double******, LayoutType1, execution_space>;
   using View6DLayout2type =
@@ -1130,12 +1130,12 @@ void test_transpose_3d_6dview() {
             ref("ref", nt0, nt1, nt2, nt3, nt4, nt5);
         make_transposed(x, ref, map);
 
-        KokkosFFT::Impl::transpose(exec, x, xt, map);
+        KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
         EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
 
         // Inverse (transpose of transpose is identical to the original)
         View6DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5);
-        KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+        KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
         EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
         exec.fence();
       }
@@ -1144,7 +1144,7 @@ void test_transpose_3d_6dview() {
 }
 
 template <typename LayoutType1, typename LayoutType2>
-void test_transpose_3d_7dview() {
+void test_transpose_3d_7dview(bool bounds_check) {
   using View7DLayout1type =
       Kokkos::View<double*******, LayoutType1, execution_space>;
   using View7DLayout2type =
@@ -1176,12 +1176,12 @@ void test_transpose_3d_7dview() {
             ref("ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6);
         make_transposed(x, ref, map);
 
-        KokkosFFT::Impl::transpose(exec, x, xt, map);
+        KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
         EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
 
         // Inverse (transpose of transpose is identical to the original)
         View7DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6);
-        KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+        KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
         EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
         exec.fence();
       }
@@ -1190,7 +1190,7 @@ void test_transpose_3d_7dview() {
 }
 
 template <typename LayoutType1, typename LayoutType2>
-void test_transpose_3d_8dview() {
+void test_transpose_3d_8dview(bool bounds_check) {
   using View8DLayout1type =
       Kokkos::View<double********, LayoutType1, execution_space>;
   using View8DLayout2type =
@@ -1222,12 +1222,12 @@ void test_transpose_3d_8dview() {
             ref("ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7);
         make_transposed(x, ref, map);
 
-        KokkosFFT::Impl::transpose(exec, x, xt, map);
+        KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
         EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
 
         // Inverse (transpose of transpose is identical to the original)
         View8DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6, n7);
-        KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv);
+        KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
         EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
         exec.fence();
       }
@@ -1267,21 +1267,42 @@ TYPED_TEST(TestTranspose1D, 1DView) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_1d_1dview<layout_type1, layout_type2>();
+  test_transpose_1d_1dview<layout_type1, layout_type2>(false);
+}
+
+TYPED_TEST(TestTranspose1D, 1DView_with_bounds_check) {
+  using layout_type1 = typename TestFixture::layout_type1;
+  using layout_type2 = typename TestFixture::layout_type2;
+
+  test_transpose_1d_1dview<layout_type1, layout_type2>(true);
 }
 
 TYPED_TEST(TestTranspose1D, 2DView) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_1d_2dview<layout_type1, layout_type2>();
+  test_transpose_1d_2dview<layout_type1, layout_type2>(false);
+}
+
+TYPED_TEST(TestTranspose1D, 2DView_with_bounds_check) {
+  using layout_type1 = typename TestFixture::layout_type1;
+  using layout_type2 = typename TestFixture::layout_type2;
+
+  test_transpose_1d_2dview<layout_type1, layout_type2>(true);
 }
 
 TYPED_TEST(TestTranspose1D, 3DView) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_1d_3dview<layout_type1, layout_type2>();
+  test_transpose_1d_3dview<layout_type1, layout_type2>(false);
+}
+
+TYPED_TEST(TestTranspose1D, 3DView_with_bounds_check) {
+  using layout_type1 = typename TestFixture::layout_type1;
+  using layout_type2 = typename TestFixture::layout_type2;
+
+  test_transpose_1d_3dview<layout_type1, layout_type2>(true);
 }
 
 TYPED_TEST(TestTranspose1D, 4DView) {
@@ -1293,49 +1314,103 @@ TYPED_TEST(TestTranspose1D, 4DView) {
                     "backend with Release build";
   }
 
-  test_transpose_1d_4dview<layout_type1, layout_type2>();
+  test_transpose_1d_4dview<layout_type1, layout_type2>(false);
+}
+
+TYPED_TEST(TestTranspose1D, 4DView_with_bounds_check) {
+  using layout_type1 = typename TestFixture::layout_type1;
+  using layout_type2 = typename TestFixture::layout_type2;
+
+  if constexpr (!std::is_same_v<layout_type1, layout_type2>) {
+    GTEST_SKIP() << "FIXME: This triggers a failure in FFT shifts test on Cuda "
+                    "backend with Release build";
+  }
+
+  test_transpose_1d_4dview<layout_type1, layout_type2>(true);
 }
 
 TYPED_TEST(TestTranspose1D, 5DView) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_1d_5dview<layout_type1, layout_type2>();
+  test_transpose_1d_5dview<layout_type1, layout_type2>(false);
+}
+
+TYPED_TEST(TestTranspose1D, 5DView_with_bounds_check) {
+  using layout_type1 = typename TestFixture::layout_type1;
+  using layout_type2 = typename TestFixture::layout_type2;
+
+  test_transpose_1d_5dview<layout_type1, layout_type2>(true);
 }
 
 TYPED_TEST(TestTranspose1D, 6DView) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_1d_6dview<layout_type1, layout_type2>();
+  test_transpose_1d_6dview<layout_type1, layout_type2>(false);
+}
+
+TYPED_TEST(TestTranspose1D, 6DView_with_bounds_check) {
+  using layout_type1 = typename TestFixture::layout_type1;
+  using layout_type2 = typename TestFixture::layout_type2;
+
+  test_transpose_1d_6dview<layout_type1, layout_type2>(true);
 }
 
 TYPED_TEST(TestTranspose1D, 7DView) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_1d_7dview<layout_type1, layout_type2>();
+  test_transpose_1d_7dview<layout_type1, layout_type2>(false);
+}
+
+TYPED_TEST(TestTranspose1D, 7DView_with_bounds_check) {
+  using layout_type1 = typename TestFixture::layout_type1;
+  using layout_type2 = typename TestFixture::layout_type2;
+
+  test_transpose_1d_7dview<layout_type1, layout_type2>(true);
 }
 
 TYPED_TEST(TestTranspose1D, 8DView) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_1d_8dview<layout_type1, layout_type2>();
+  test_transpose_1d_8dview<layout_type1, layout_type2>(false);
+}
+
+TYPED_TEST(TestTranspose1D, 8DView_with_bounds_check) {
+  using layout_type1 = typename TestFixture::layout_type1;
+  using layout_type2 = typename TestFixture::layout_type2;
+
+  test_transpose_1d_8dview<layout_type1, layout_type2>(true);
 }
 
 TYPED_TEST(TestTranspose2D, 2DView) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_2d_2dview<layout_type1, layout_type2>();
+  test_transpose_2d_2dview<layout_type1, layout_type2>(false);
+}
+
+TYPED_TEST(TestTranspose2D, 2DView_with_bounds_check) {
+  using layout_type1 = typename TestFixture::layout_type1;
+  using layout_type2 = typename TestFixture::layout_type2;
+
+  test_transpose_2d_2dview<layout_type1, layout_type2>(true);
 }
 
 TYPED_TEST(TestTranspose2D, 3DView) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_2d_3dview<layout_type1, layout_type2>();
+  test_transpose_2d_3dview<layout_type1, layout_type2>(false);
+}
+
+TYPED_TEST(TestTranspose2D, 3DView_with_bounds_check) {
+  using layout_type1 = typename TestFixture::layout_type1;
+  using layout_type2 = typename TestFixture::layout_type2;
+
+  test_transpose_2d_3dview<layout_type1, layout_type2>(true);
 }
 
 TYPED_TEST(TestTranspose2D, 4DView) {
@@ -1347,35 +1422,75 @@ TYPED_TEST(TestTranspose2D, 4DView) {
                     "backend with Release build";
   }
 
-  test_transpose_2d_4dview<layout_type1, layout_type2>();
+  test_transpose_2d_4dview<layout_type1, layout_type2>(false);
+}
+
+TYPED_TEST(TestTranspose2D, 4DView_with_bounds_check) {
+  using layout_type1 = typename TestFixture::layout_type1;
+  using layout_type2 = typename TestFixture::layout_type2;
+
+  if constexpr (!std::is_same_v<layout_type1, layout_type2>) {
+    GTEST_SKIP() << "FIXME: This triggers a failure in FFT shifts test on Cuda "
+                    "backend with Release build";
+  }
+
+  test_transpose_2d_4dview<layout_type1, layout_type2>(true);
 }
 
 TYPED_TEST(TestTranspose2D, 5DView) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_2d_5dview<layout_type1, layout_type2>();
+  test_transpose_2d_5dview<layout_type1, layout_type2>(false);
+}
+
+TYPED_TEST(TestTranspose2D, 5DView_with_bounds_check) {
+  using layout_type1 = typename TestFixture::layout_type1;
+  using layout_type2 = typename TestFixture::layout_type2;
+
+  test_transpose_2d_5dview<layout_type1, layout_type2>(true);
 }
 
 TYPED_TEST(TestTranspose2D, 6DView) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_2d_6dview<layout_type1, layout_type2>();
+  test_transpose_2d_6dview<layout_type1, layout_type2>(false);
+}
+
+TYPED_TEST(TestTranspose2D, 6DView_with_bounds_check) {
+  using layout_type1 = typename TestFixture::layout_type1;
+  using layout_type2 = typename TestFixture::layout_type2;
+
+  test_transpose_2d_6dview<layout_type1, layout_type2>(true);
 }
 
 TYPED_TEST(TestTranspose2D, 7DView) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_2d_7dview<layout_type1, layout_type2>();
+  test_transpose_2d_7dview<layout_type1, layout_type2>(false);
+}
+
+TYPED_TEST(TestTranspose2D, 7DView_with_bounds_check) {
+  using layout_type1 = typename TestFixture::layout_type1;
+  using layout_type2 = typename TestFixture::layout_type2;
+
+  test_transpose_2d_7dview<layout_type1, layout_type2>(true);
 }
 
 TYPED_TEST(TestTranspose2D, 8DView) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_2d_8dview<layout_type1, layout_type2>();
+  test_transpose_2d_8dview<layout_type1, layout_type2>(false);
+}
+
+TYPED_TEST(TestTranspose2D, 8DView_with_bounds_check) {
+  using layout_type1 = typename TestFixture::layout_type1;
+  using layout_type2 = typename TestFixture::layout_type2;
+
+  test_transpose_2d_8dview<layout_type1, layout_type2>(true);
 }
 
 TYPED_TEST(TestTranspose3D, 3DView) {
@@ -1387,7 +1502,19 @@ TYPED_TEST(TestTranspose3D, 3DView) {
                     "backend with Release build";
   }
 
-  test_transpose_3d_3dview<layout_type1, layout_type2>();
+  test_transpose_3d_3dview<layout_type1, layout_type2>(false);
+}
+
+TYPED_TEST(TestTranspose3D, 3DView_with_bounds_check) {
+  using layout_type1 = typename TestFixture::layout_type1;
+  using layout_type2 = typename TestFixture::layout_type2;
+
+  if constexpr (!std::is_same_v<layout_type1, layout_type2>) {
+    GTEST_SKIP() << "FIXME: This triggers a failure in FFT shifts test on Cuda "
+                    "backend with Release build";
+  }
+
+  test_transpose_3d_3dview<layout_type1, layout_type2>(true);
 }
 
 TYPED_TEST(TestTranspose3D, 4DView) {
@@ -1399,33 +1526,73 @@ TYPED_TEST(TestTranspose3D, 4DView) {
                     "backend with Release build";
   }
 
-  test_transpose_3d_4dview<layout_type1, layout_type2>();
+  test_transpose_3d_4dview<layout_type1, layout_type2>(false);
+}
+
+TYPED_TEST(TestTranspose3D, 4DView_with_bounds_check) {
+  using layout_type1 = typename TestFixture::layout_type1;
+  using layout_type2 = typename TestFixture::layout_type2;
+
+  if constexpr (!std::is_same_v<layout_type1, layout_type2>) {
+    GTEST_SKIP() << "FIXME: This triggers a failure in FFT shifts test on Cuda "
+                    "backend with Release build";
+  }
+
+  test_transpose_3d_4dview<layout_type1, layout_type2>(true);
 }
 
 TYPED_TEST(TestTranspose3D, 5DView) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_3d_5dview<layout_type1, layout_type2>();
+  test_transpose_3d_5dview<layout_type1, layout_type2>(false);
+}
+
+TYPED_TEST(TestTranspose3D, 5DView_with_bounds_check) {
+  using layout_type1 = typename TestFixture::layout_type1;
+  using layout_type2 = typename TestFixture::layout_type2;
+
+  test_transpose_3d_5dview<layout_type1, layout_type2>(true);
 }
 
 TYPED_TEST(TestTranspose3D, 6DView) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_3d_6dview<layout_type1, layout_type2>();
+  test_transpose_3d_6dview<layout_type1, layout_type2>(false);
+}
+
+TYPED_TEST(TestTranspose3D, 6DView_with_bounds_check) {
+  using layout_type1 = typename TestFixture::layout_type1;
+  using layout_type2 = typename TestFixture::layout_type2;
+
+  test_transpose_3d_6dview<layout_type1, layout_type2>(true);
 }
 
 TYPED_TEST(TestTranspose3D, 7DView) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_3d_7dview<layout_type1, layout_type2>();
+  test_transpose_3d_7dview<layout_type1, layout_type2>(false);
+}
+
+TYPED_TEST(TestTranspose3D, 7DView_with_bounds_check) {
+  using layout_type1 = typename TestFixture::layout_type1;
+  using layout_type2 = typename TestFixture::layout_type2;
+
+  test_transpose_3d_7dview<layout_type1, layout_type2>(true);
 }
 
 TYPED_TEST(TestTranspose3D, 8DView) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_3d_8dview<layout_type1, layout_type2>();
+  test_transpose_3d_8dview<layout_type1, layout_type2>(false);
+}
+
+TYPED_TEST(TestTranspose3D, 8DView_with_bounds_check) {
+  using layout_type1 = typename TestFixture::layout_type1;
+  using layout_type2 = typename TestFixture::layout_type2;
+
+  test_transpose_3d_8dview<layout_type1, layout_type2>(true);
 }
