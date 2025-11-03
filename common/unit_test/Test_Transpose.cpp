@@ -376,18 +376,25 @@ void test_transpose_1d_1dview(bool bounds_check) {
   // When transpose is not necessary, we should not call transpose method
   using View1DLayout1type = Kokkos::View<double*, LayoutType1, execution_space>;
   using View1DLayout2type = Kokkos::View<double*, LayoutType2, execution_space>;
-  const int len           = 30;
+  const int len = 30, perturbation = bounds_check ? -2 : 0;
   View1DLayout1type x("x", len);
-  View1DLayout2type xt("xt", len), ref("ref", len);
+  View1DLayout2type xt("xt", len + perturbation),
+      xt_ref("xt_ref", len + perturbation);
 
   execution_space exec;
   Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
   Kokkos::fill_random(exec, x, random_pool, 1.0);
   exec.fence();
 
-  Kokkos::deep_copy(ref, x);
+  if (bounds_check) {
+    auto sub_x = Kokkos::subview(
+        x, Kokkos::pair<std::size_t, std::size_t>(0, xt_ref.extent(0)));
+    Kokkos::deep_copy(xt_ref, sub_x);
+  } else {
+    Kokkos::deep_copy(xt_ref, x);
+  }
   KokkosFFT::Impl::transpose(exec, x, xt, axes_type<1>({0}), bounds_check);
-  EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
+  EXPECT_TRUE(allclose(exec, xt, xt_ref, 1.e-5, 1.e-12));
   exec.fence();
 }
 
@@ -407,23 +414,36 @@ void test_transpose_1d_2dview(bool bounds_check) {
   exec.fence();
 
   for (int axis0 = 0; axis0 < DIM; axis0++) {
-    auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, axis0);
-    axes_type<DIM> out_extents;
+    auto [map, map_inv]        = KokkosFFT::Impl::get_map_axes(x, axis0);
+    axes_type<DIM> out_extents = {}, perturbations = {1, -1};
     for (int i = 0; i < DIM; i++) {
-      out_extents.at(i) = x.extent(map.at(i));
+      out_extents.at(i) = x.extent_int(map.at(i));
+      if (bounds_check) {
+        // With bounds_check, we can manipulate the output extents to be
+        // different from the input extents.
+        out_extents.at(i) += perturbations.at(i);
+      }
     }
     auto [nt0, nt1] = out_extents;
 
-    View2DLayout2type xt("xt", nt0, nt1), ref("ref", nt0, nt1);
-    make_transposed(x, ref, map);
+    View2DLayout2type xt("xt", nt0, nt1), xt_ref("xt_ref", nt0, nt1);
+    make_transposed(x, xt_ref, map);
 
     KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
-    EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
+    EXPECT_TRUE(allclose(exec, xt, xt_ref, 1.e-5, 1.e-12));
 
     // Inverse (transpose of transpose is identical to the original)
-    View2DLayout1type x_inv("x_inv", n0, n1);
+    View2DLayout1type x_inv("x_inv", n0, n1), x_inv_ref("x_inv_ref", n0, n1);
+    if (bounds_check) {
+      // With bounds_check, we may discard some of the input data,
+      // so the inverse is not identical to the original
+      make_transposed(xt_ref, x_inv_ref, map_inv);
+    } else {
+      Kokkos::deep_copy(x_inv_ref, x);
+    }
+
     KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
-    EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+    EXPECT_TRUE(allclose(exec, x_inv, x_inv_ref, 1.e-5, 1.e-12));
     exec.fence();
   }
 }
@@ -444,23 +464,36 @@ void test_transpose_1d_3dview(bool bounds_check) {
   exec.fence();
 
   for (int axis0 = 0; axis0 < DIM; axis0++) {
-    auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, axis0);
-    axes_type<DIM> out_extents;
+    auto [map, map_inv]        = KokkosFFT::Impl::get_map_axes(x, axis0);
+    axes_type<DIM> out_extents = {}, perturbations = {1, -2, -1};
     for (int i = 0; i < DIM; i++) {
-      out_extents.at(i) = x.extent(map.at(i));
+      out_extents.at(i) = x.extent_int(map.at(i));
+      if (bounds_check) {
+        // With bounds_check, we can manipulate the output extents to be
+        // different from the input extents.
+        out_extents.at(i) += perturbations.at(i);
+      }
     }
     auto [nt0, nt1, nt2] = out_extents;
 
-    View3DLayout2type xt("xt", nt0, nt1, nt2), ref("ref", nt0, nt1, nt2);
-    make_transposed(x, ref, map);
+    View3DLayout2type xt("xt", nt0, nt1, nt2), xt_ref("xt_ref", nt0, nt1, nt2);
+    make_transposed(x, xt_ref, map);
 
     KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
-    EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
+    EXPECT_TRUE(allclose(exec, xt, xt_ref, 1.e-5, 1.e-12));
 
     // Inverse (transpose of transpose is identical to the original)
-    View3DLayout1type x_inv("x_invx", n0, n1, n2);
+    View3DLayout1type x_inv("x_invx", n0, n1, n2),
+        x_inv_ref("x_inv_ref", n0, n1, n2);
+    if (bounds_check) {
+      // With bounds_check, we may discard some of the input data,
+      // so the inverse is not identical to the original
+      make_transposed(xt_ref, x_inv_ref, map_inv);
+    } else {
+      Kokkos::deep_copy(x_inv_ref, x);
+    }
     KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
-    EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+    EXPECT_TRUE(allclose(exec, x_inv, x_inv_ref, 1.e-5, 1.e-12));
     exec.fence();
   }
 }
@@ -483,23 +516,36 @@ void test_transpose_1d_4dview(bool bounds_check) {
   for (int axis0 = 0; axis0 < DIM; axis0++) {
     auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, axis0);
 
-    axes_type<DIM> out_extents;
+    axes_type<DIM> out_extents = {}, perturbations = {1, 0, -1, -3};
     for (int i = 0; i < DIM; i++) {
-      out_extents.at(i) = x.extent(map.at(i));
+      out_extents.at(i) = x.extent_int(map.at(i));
+      if (bounds_check) {
+        // With bounds_check, we can manipulate the output extents to be
+        // different from the input extents.
+        out_extents.at(i) += perturbations.at(i);
+      }
     }
     auto [nt0, nt1, nt2, nt3] = out_extents;
 
     View4DLayout2type xt("xt", nt0, nt1, nt2, nt3),
-        ref("ref", nt0, nt1, nt2, nt3);
-    make_transposed(x, ref, map);
+        xt_ref("xt_ref", nt0, nt1, nt2, nt3);
+    make_transposed(x, xt_ref, map);
 
     KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
-    EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
+    EXPECT_TRUE(allclose(exec, xt, xt_ref, 1.e-5, 1.e-12));
 
     // Inverse (transpose of transpose is identical to the original)
-    View4DLayout1type x_inv("x_inv", n0, n1, n2, n3);
+    View4DLayout1type x_inv("x_inv", n0, n1, n2, n3),
+        x_inv_ref("x_inv_ref", n0, n1, n2, n3);
+    if (bounds_check) {
+      // With bounds_check, we may discard some of the input data,
+      // so the inverse is not identical to the original
+      make_transposed(xt_ref, x_inv_ref, map_inv);
+    } else {
+      Kokkos::deep_copy(x_inv_ref, x);
+    }
     KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
-    EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+    EXPECT_TRUE(allclose(exec, x_inv, x_inv_ref, 1.e-5, 1.e-12));
     exec.fence();
   }
 }
@@ -520,24 +566,37 @@ void test_transpose_1d_5dview(bool bounds_check) {
   exec.fence();
 
   for (int axis0 = 0; axis0 < DIM; axis0++) {
-    auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, axis0);
-    axes_type<DIM> out_extents;
+    auto [map, map_inv]        = KokkosFFT::Impl::get_map_axes(x, axis0);
+    axes_type<DIM> out_extents = {}, perturbations = {1, -1, -1, -3, -2};
     for (int i = 0; i < DIM; i++) {
-      out_extents.at(i) = x.extent(map.at(i));
+      out_extents.at(i) = x.extent_int(map.at(i));
+      if (bounds_check) {
+        // With bounds_check, we can manipulate the output extents to be
+        // different from the input extents.
+        out_extents.at(i) += perturbations.at(i);
+      }
     }
     auto [nt0, nt1, nt2, nt3, nt4] = out_extents;
 
     View5DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4),
-        ref("ref", nt0, nt1, nt2, nt3, nt4);
-    make_transposed(x, ref, map);
+        xt_ref("xt_ref", nt0, nt1, nt2, nt3, nt4);
+    make_transposed(x, xt_ref, map);
 
     KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
-    EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
+    EXPECT_TRUE(allclose(exec, xt, xt_ref, 1.e-5, 1.e-12));
 
     // Inverse (transpose of transpose is identical to the original)
-    View5DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4);
+    View5DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4),
+        x_inv_ref("x_inv_ref", n0, n1, n2, n3, n4);
+    if (bounds_check) {
+      // With bounds_check, we may discard some of the input data,
+      // so the inverse is not identical to the original
+      make_transposed(xt_ref, x_inv_ref, map_inv);
+    } else {
+      Kokkos::deep_copy(x_inv_ref, x);
+    }
     KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
-    EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+    EXPECT_TRUE(allclose(exec, x_inv, x_inv_ref, 1.e-5, 1.e-12));
     exec.fence();
   }
 }
@@ -558,24 +617,37 @@ void test_transpose_1d_6dview(bool bounds_check) {
   exec.fence();
 
   for (int axis0 = 0; axis0 < DIM; axis0++) {
-    auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, axis0);
-    axes_type<DIM> out_extents;
+    auto [map, map_inv]        = KokkosFFT::Impl::get_map_axes(x, axis0);
+    axes_type<DIM> out_extents = {}, perturbations = {0, -1, 1, 1, -2, -1};
     for (int i = 0; i < DIM; i++) {
-      out_extents.at(i) = x.extent(map.at(i));
+      out_extents.at(i) = x.extent_int(map.at(i));
+      if (bounds_check) {
+        // With bounds_check, we can manipulate the output extents to be
+        // different from the input extents.
+        out_extents.at(i) += perturbations.at(i);
+      }
     }
     auto [nt0, nt1, nt2, nt3, nt4, nt5] = out_extents;
 
     View6DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5),
-        ref("ref", nt0, nt1, nt2, nt3, nt4, nt5);
-    make_transposed(x, ref, map);
+        xt_ref("xt_ref", nt0, nt1, nt2, nt3, nt4, nt5);
+    make_transposed(x, xt_ref, map);
 
     KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
-    EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
+    EXPECT_TRUE(allclose(exec, xt, xt_ref, 1.e-5, 1.e-12));
 
     // Inverse (transpose of transpose is identical to the original)
-    View6DLayout1type x_inv("x_inv_x", n0, n1, n2, n3, n4, n5);
+    View6DLayout1type x_inv("x_inv_x", n0, n1, n2, n3, n4, n5),
+        x_inv_ref("x_inv_ref", n0, n1, n2, n3, n4, n5);
+    if (bounds_check) {
+      // With bounds_check, we may discard some of the input data,
+      // so the inverse is not identical to the original
+      make_transposed(xt_ref, x_inv_ref, map_inv);
+    } else {
+      Kokkos::deep_copy(x_inv_ref, x);
+    }
     KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
-    EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+    EXPECT_TRUE(allclose(exec, x_inv, x_inv_ref, 1.e-5, 1.e-12));
     exec.fence();
   }
 }
@@ -596,24 +668,37 @@ void test_transpose_1d_7dview(bool bounds_check) {
   exec.fence();
 
   for (int axis0 = 0; axis0 < DIM; axis0++) {
-    auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, axis0);
-    axes_type<DIM> out_extents;
+    auto [map, map_inv]        = KokkosFFT::Impl::get_map_axes(x, axis0);
+    axes_type<DIM> out_extents = {}, perturbations = {0, -1, 1, 1, -2, -1, 1};
     for (int i = 0; i < DIM; i++) {
-      out_extents.at(i) = x.extent(map.at(i));
+      out_extents.at(i) = x.extent_int(map.at(i));
+      if (bounds_check) {
+        // With bounds_check, we can manipulate the output extents to be
+        // different from the input extents.
+        out_extents.at(i) += perturbations.at(i);
+      }
     }
     auto [nt0, nt1, nt2, nt3, nt4, nt5, nt6] = out_extents;
 
     View7DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5, nt6),
-        ref("ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6);
-    make_transposed(x, ref, map);
+        xt_ref("xt_ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6);
+    make_transposed(x, xt_ref, map);
 
     KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
-    EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
+    EXPECT_TRUE(allclose(exec, xt, xt_ref, 1.e-5, 1.e-12));
 
     // Inverse (transpose of transpose is identical to the original)
-    View7DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6);
+    View7DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6),
+        x_inv_ref("x_inv_ref", n0, n1, n2, n3, n4, n5, n6);
+    if (bounds_check) {
+      // With bounds_check, we may discard some of the input data,
+      // so the inverse is not identical to the original
+      make_transposed(xt_ref, x_inv_ref, map_inv);
+    } else {
+      Kokkos::deep_copy(x_inv_ref, x);
+    }
     KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
-    EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+    EXPECT_TRUE(allclose(exec, x_inv, x_inv_ref, 1.e-5, 1.e-12));
     exec.fence();
   }
 }
@@ -634,24 +719,38 @@ void test_transpose_1d_8dview(bool bounds_check) {
   exec.fence();
 
   for (int axis0 = 0; axis0 < DIM; axis0++) {
-    auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, axis0);
-    axes_type<DIM> out_extents;
+    auto [map, map_inv]          = KokkosFFT::Impl::get_map_axes(x, axis0);
+    axes_type<DIM> out_extents   = {},
+                   perturbations = {0, -1, 1, 1, -2, -1, 1, 1};
     for (int i = 0; i < DIM; i++) {
-      out_extents.at(i) = x.extent(map.at(i));
+      out_extents.at(i) = x.extent_int(map.at(i));
+      if (bounds_check) {
+        // With bounds_check, we can manipulate the output extents to be
+        // different from the input extents.
+        out_extents.at(i) += perturbations.at(i);
+      }
     }
     auto [nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7] = out_extents;
 
     View8DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7),
-        ref("ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7);
-    make_transposed(x, ref, map);
+        xt_ref("xt_ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7);
+    make_transposed(x, xt_ref, map);
 
     KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
-    EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
+    EXPECT_TRUE(allclose(exec, xt, xt_ref, 1.e-5, 1.e-12));
 
     // Inverse (transpose of transpose is identical to the original)
-    View8DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6, n7);
+    View8DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6, n7),
+        x_inv_ref("x_inv_ref", n0, n1, n2, n3, n4, n5, n6, n7);
+    if (bounds_check) {
+      // With bounds_check, we may discard some of the input data,
+      // so the inverse is not identical to the original
+      make_transposed(xt_ref, x_inv_ref, map_inv);
+    } else {
+      Kokkos::deep_copy(x_inv_ref, x);
+    }
     KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
-    EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+    EXPECT_TRUE(allclose(exec, x_inv, x_inv_ref, 1.e-5, 1.e-12));
     exec.fence();
   }
 }
@@ -676,22 +775,34 @@ void test_transpose_2d_2dview(bool bounds_check) {
       if (axis0 == axis1) continue;
       KokkosFFT::axis_type<2> axes = {axis0, axis1};
 
-      auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, axes);
-      axes_type<DIM> out_extents;
+      auto [map, map_inv]        = KokkosFFT::Impl::get_map_axes(x, axes);
+      axes_type<DIM> out_extents = {}, perturbations = {1, -1};
       for (int i = 0; i < DIM; i++) {
-        out_extents.at(i) = x.extent(map.at(i));
+        out_extents.at(i) = x.extent_int(map.at(i));
+        if (bounds_check) {
+          // With bounds_check, we can manipulate the output extents to be
+          // different from the input extents.
+          out_extents.at(i) += perturbations.at(i);
+        }
       }
       auto [nt0, nt1] = out_extents;
 
-      View2DLayout2type xt("xt", nt0, nt1), ref("ref", nt0, nt1);
-      make_transposed(x, ref, map);
+      View2DLayout2type xt("xt", nt0, nt1), xt_ref("xt_ref", nt0, nt1);
+      make_transposed(x, xt_ref, map);
 
       KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
-      EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
+      EXPECT_TRUE(allclose(exec, xt, xt_ref, 1.e-5, 1.e-12));
       // Inverse (transpose of transpose is identical to the original)
-      View2DLayout1type x_inv("x_inv", n0, n1);
+      View2DLayout1type x_inv("x_inv", n0, n1), x_inv_ref("x_inv_ref", n0, n1);
+      if (bounds_check) {
+        // With bounds_check, we may discard some of the input data,
+        // so the inverse is not identical to the original
+        make_transposed(xt_ref, x_inv_ref, map_inv);
+      } else {
+        Kokkos::deep_copy(x_inv_ref, x);
+      }
       KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
-      EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+      EXPECT_TRUE(allclose(exec, x_inv, x_inv_ref, 1.e-5, 1.e-12));
       exec.fence();
     }
   }
@@ -717,23 +828,37 @@ void test_transpose_2d_3dview(bool bounds_check) {
       if (axis0 == axis1) continue;
       KokkosFFT::axis_type<2> axes{axis0, axis1};
 
-      auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, axes);
-      axes_type<DIM> out_extents;
+      auto [map, map_inv]        = KokkosFFT::Impl::get_map_axes(x, axes);
+      axes_type<DIM> out_extents = {}, perturbations = {1, -1, 2};
       for (int i = 0; i < DIM; i++) {
-        out_extents.at(i) = x.extent(map.at(i));
+        out_extents.at(i) = x.extent_int(map.at(i));
+        if (bounds_check) {
+          // With bounds_check, we can manipulate the output extents to be
+          // different from the input extents.
+          out_extents.at(i) += perturbations.at(i);
+        }
       }
       auto [nt0, nt1, nt2] = out_extents;
 
-      View3DLayout2type xt("xt", nt0, nt1, nt2), ref("ref", nt0, nt1, nt2);
-      make_transposed(x, ref, map);
+      View3DLayout2type xt("xt", nt0, nt1, nt2),
+          xt_ref("xt_ref", nt0, nt1, nt2);
+      make_transposed(x, xt_ref, map);
 
       KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
-      EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
+      EXPECT_TRUE(allclose(exec, xt, xt_ref, 1.e-5, 1.e-12));
 
       // Inverse (transpose of transpose is identical to the original)
-      View3DLayout1type x_inv("x_inv", n0, n1, n2);
+      View3DLayout1type x_inv("x_inv", n0, n1, n2),
+          x_inv_ref("x_inv_ref", n0, n1, n2);
+      if (bounds_check) {
+        // With bounds_check, we may discard some of the input data,
+        // so the inverse is not identical to the original
+        make_transposed(xt_ref, x_inv_ref, map_inv);
+      } else {
+        Kokkos::deep_copy(x_inv_ref, x);
+      }
       KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
-      EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+      EXPECT_TRUE(allclose(exec, x_inv, x_inv_ref, 1.e-5, 1.e-12));
       exec.fence();
     }
   }
@@ -761,22 +886,35 @@ void test_transpose_2d_4dview(bool bounds_check) {
 
       auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, axes);
       if (KokkosFFT::Impl::is_transpose_needed(map)) {
-        axes_type<DIM> out_extents;
+        axes_type<DIM> out_extents = {}, perturbations = {1, 0, -1, -3};
         for (int i = 0; i < DIM; i++) {
-          out_extents.at(i) = x.extent(map.at(i));
+          out_extents.at(i) = x.extent_int(map.at(i));
+          if (bounds_check) {
+            // With bounds_check, we can manipulate the output extents to be
+            // different from the input extents.
+            out_extents.at(i) += perturbations.at(i);
+          }
         }
         auto [nt0, nt1, nt2, nt3] = out_extents;
 
         View4DLayout2type xt("xt", nt0, nt1, nt2, nt3),
-            ref("ref", nt0, nt1, nt2, nt3);
-        make_transposed(x, ref, map);
+            xt_ref("xt_ref", nt0, nt1, nt2, nt3);
+        make_transposed(x, xt_ref, map);
 
         KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
-        EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
+        EXPECT_TRUE(allclose(exec, xt, xt_ref, 1.e-5, 1.e-12));
         // Inverse (transpose of transpose is identical to the original)
-        View4DLayout1type x_inv("x_inv", n0, n1, n2, n3);
+        View4DLayout1type x_inv("x_inv", n0, n1, n2, n3),
+            x_inv_ref("x_inv_ref", n0, n1, n2, n3);
+        if (bounds_check) {
+          // With bounds_check, we may discard some of the input data,
+          // so the inverse is not identical to the original
+          make_transposed(xt_ref, x_inv_ref, map_inv);
+        } else {
+          Kokkos::deep_copy(x_inv_ref, x);
+        }
         KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
-        EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+        EXPECT_TRUE(allclose(exec, x_inv, x_inv_ref, 1.e-5, 1.e-12));
         exec.fence();
       }
     }
@@ -803,24 +941,37 @@ void test_transpose_2d_5dview(bool bounds_check) {
       if (axis0 == axis1) continue;
       KokkosFFT::axis_type<2> axes{axis0, axis1};
 
-      auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, axes);
-      axes_type<DIM> out_extents;
+      auto [map, map_inv]        = KokkosFFT::Impl::get_map_axes(x, axes);
+      axes_type<DIM> out_extents = {}, perturbations = {1, -1, -1, -3, -2};
       for (int i = 0; i < DIM; i++) {
-        out_extents.at(i) = x.extent(map.at(i));
+        out_extents.at(i) = x.extent_int(map.at(i));
+        if (bounds_check) {
+          // With bounds_check, we can manipulate the output extents to be
+          // different from the input extents.
+          out_extents.at(i) += perturbations.at(i);
+        }
       }
       auto [nt0, nt1, nt2, nt3, nt4] = out_extents;
 
       View5DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4),
-          ref("ref", nt0, nt1, nt2, nt3, nt4);
-      make_transposed(x, ref, map);
+          xt_ref("xt_ref", nt0, nt1, nt2, nt3, nt4);
+      make_transposed(x, xt_ref, map);
 
       KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
-      EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
+      EXPECT_TRUE(allclose(exec, xt, xt_ref, 1.e-5, 1.e-12));
 
       // Inverse (transpose of transpose is identical to the original)
-      View5DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4);
+      View5DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4),
+          x_inv_ref("x_inv_ref", n0, n1, n2, n3, n4);
+      if (bounds_check) {
+        // With bounds_check, we may discard some of the input data,
+        // so the inverse is not identical to the original
+        make_transposed(xt_ref, x_inv_ref, map_inv);
+      } else {
+        Kokkos::deep_copy(x_inv_ref, x);
+      }
       KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
-      EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+      EXPECT_TRUE(allclose(exec, x_inv, x_inv_ref, 1.e-5, 1.e-12));
       exec.fence();
     }
   }
@@ -846,24 +997,37 @@ void test_transpose_2d_6dview(bool bounds_check) {
       if (axis0 == axis1) continue;
       KokkosFFT::axis_type<2> axes{axis0, axis1};
 
-      auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, axes);
-      axes_type<DIM> out_extents;
+      auto [map, map_inv]        = KokkosFFT::Impl::get_map_axes(x, axes);
+      axes_type<DIM> out_extents = {}, perturbations = {1, -1, -1, 1, -2, -2};
       for (int i = 0; i < DIM; i++) {
-        out_extents.at(i) = x.extent(map.at(i));
+        out_extents.at(i) = x.extent_int(map.at(i));
+        if (bounds_check) {
+          // With bounds_check, we can manipulate the output extents to be
+          // different from the input extents.
+          out_extents.at(i) += perturbations.at(i);
+        }
       }
       auto [nt0, nt1, nt2, nt3, nt4, nt5] = out_extents;
 
       View6DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5),
-          ref("ref", nt0, nt1, nt2, nt3, nt4, nt5);
-      make_transposed(x, ref, map);
+          xt_ref("xt_ref", nt0, nt1, nt2, nt3, nt4, nt5);
+      make_transposed(x, xt_ref, map);
 
       KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
-      EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
+      EXPECT_TRUE(allclose(exec, xt, xt_ref, 1.e-5, 1.e-12));
 
       // Inverse (transpose of transpose is identical to the original)
-      View6DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5);
+      View6DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5),
+          x_inv_ref("x_inv_ref", n0, n1, n2, n3, n4, n5);
+      if (bounds_check) {
+        // With bounds_check, we may discard some of the input data,
+        // so the inverse is not identical to the original
+        make_transposed(xt_ref, x_inv_ref, map_inv);
+      } else {
+        Kokkos::deep_copy(x_inv_ref, x);
+      }
       KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
-      EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+      EXPECT_TRUE(allclose(exec, x_inv, x_inv_ref, 1.e-5, 1.e-12));
       exec.fence();
     }
   }
@@ -889,25 +1053,38 @@ void test_transpose_2d_7dview(bool bounds_check) {
       if (axis0 == axis1) continue;
       KokkosFFT::axis_type<2> axes{axis0, axis1};
 
-      auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, axes);
-      axes_type<DIM> out_extents;
+      auto [map, map_inv]        = KokkosFFT::Impl::get_map_axes(x, axes);
+      axes_type<DIM> out_extents = {}, perturbations = {1, -1, -1, 1, -2, -2};
       for (int i = 0; i < DIM; i++) {
-        out_extents.at(i) = x.extent(map.at(i));
+        out_extents.at(i) = x.extent_int(map.at(i));
+        if (bounds_check) {
+          // With bounds_check, we can manipulate the output extents to be
+          // different from the input extents.
+          out_extents.at(i) += perturbations.at(i);
+        }
       }
       auto [nt0, nt1, nt2, nt3, nt4, nt5, nt6] = out_extents;
 
       View7DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5, nt6),
-          ref("ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6);
+          xt_ref("xt_ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6);
 
-      make_transposed(x, ref, map);
+      make_transposed(x, xt_ref, map);
       KokkosFFT::Impl::transpose(execution_space(), x, xt, map, bounds_check);
-      EXPECT_TRUE(allclose(execution_space(), xt, ref, 1.e-5, 1.e-12));
+      EXPECT_TRUE(allclose(execution_space(), xt, xt_ref, 1.e-5, 1.e-12));
 
       // Inverse (transpose of transpose is identical to the original)
-      View7DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6);
+      View7DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6),
+          x_inv_ref("x_inv_ref", n0, n1, n2, n3, n4, n5, n6);
+      if (bounds_check) {
+        // With bounds_check, we may discard some of the input data,
+        // so the inverse is not identical to the original
+        make_transposed(xt_ref, x_inv_ref, map_inv);
+      } else {
+        Kokkos::deep_copy(x_inv_ref, x);
+      }
       KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv,
                                  bounds_check);
-      EXPECT_TRUE(allclose(execution_space(), x_inv, x, 1.e-5, 1.e-12));
+      EXPECT_TRUE(allclose(execution_space(), x_inv, x_inv_ref, 1.e-5, 1.e-12));
     }
   }
 }
@@ -932,24 +1109,38 @@ void test_transpose_2d_8dview(bool bounds_check) {
       if (axis0 == axis1) continue;
       KokkosFFT::axis_type<2> axes{axis0, axis1};
 
-      auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, axes);
-      axes_type<DIM> out_extents;
+      auto [map, map_inv]          = KokkosFFT::Impl::get_map_axes(x, axes);
+      axes_type<DIM> out_extents   = {},
+                     perturbations = {0, -1, 1, 1, -2, -1, 1, 1};
       for (int i = 0; i < DIM; i++) {
-        out_extents.at(i) = x.extent(map.at(i));
+        out_extents.at(i) = x.extent_int(map.at(i));
+        if (bounds_check) {
+          // With bounds_check, we can manipulate the output extents to be
+          // different from the input extents.
+          out_extents.at(i) += perturbations.at(i);
+        }
       }
       auto [nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7] = out_extents;
 
       View8DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7),
-          ref("ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7);
-      make_transposed(x, ref, map);
+          xt_ref("xt_ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7);
+      make_transposed(x, xt_ref, map);
 
       KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
-      EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
+      EXPECT_TRUE(allclose(exec, xt, xt_ref, 1.e-5, 1.e-12));
 
       // Inverse (transpose of transpose is identical to the original)
-      View8DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6, n7);
+      View8DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6, n7),
+          x_inv_ref("x_inv_ref", n0, n1, n2, n3, n4, n5, n6, n7);
+      if (bounds_check) {
+        // With bounds_check, we may discard some of the input data,
+        // so the inverse is not identical to the original
+        make_transposed(xt_ref, x_inv_ref, map_inv);
+      } else {
+        Kokkos::deep_copy(x_inv_ref, x);
+      }
       KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
-      EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+      EXPECT_TRUE(allclose(exec, x_inv, x_inv_ref, 1.e-5, 1.e-12));
       exec.fence();
     }
   }
@@ -982,22 +1173,36 @@ void test_transpose_3d_3dview(bool bounds_check) {
         // backend with Release build
         if (map == axes_type<DIM>{0, 1, 2}) continue;
 
-        axes_type<DIM> out_extents;
+        axes_type<DIM> out_extents = {}, perturbations = {1, -1, 1};
         for (int i = 0; i < DIM; i++) {
-          out_extents.at(i) = x.extent(map.at(i));
+          out_extents.at(i) = x.extent_int(map.at(i));
+          if (bounds_check) {
+            // With bounds_check, we can manipulate the output extents to be
+            // different from the input extents.
+            out_extents.at(i) += perturbations.at(i);
+          }
         }
         auto [nt0, nt1, nt2] = out_extents;
 
-        View3DLayout2type xt("xt", nt0, nt1, nt2), ref("ref", nt0, nt1, nt2);
-        make_transposed(x, ref, map);
+        View3DLayout2type xt("xt", nt0, nt1, nt2),
+            xt_ref("xt_ref", nt0, nt1, nt2);
+        make_transposed(x, xt_ref, map);
 
         KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
-        EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
+        EXPECT_TRUE(allclose(exec, xt, xt_ref, 1.e-5, 1.e-12));
 
         // Inverse (transpose of transpose is identical to the original)
-        View3DLayout1type x_inv("x_inv", n0, n1, n2);
+        View3DLayout1type x_inv("x_inv", n0, n1, n2),
+            x_inv_ref("x_inv_ref", n0, n1, n2);
+        if (bounds_check) {
+          // With bounds_check, we may discard some of the input data,
+          // so the inverse is not identical to the original
+          make_transposed(xt_ref, x_inv_ref, map_inv);
+        } else {
+          Kokkos::deep_copy(x_inv_ref, x);
+        }
         KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
-        EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+        EXPECT_TRUE(allclose(exec, x_inv, x_inv_ref, 1.e-5, 1.e-12));
         exec.fence();
       }
     }
@@ -1029,22 +1234,35 @@ void test_transpose_3d_4dview(bool bounds_check) {
         // FIXME: This triggers test failure in FFT shifts test on Cuda
         // backend with Release build
         if (map == axes_type<DIM>{0, 1, 2, 3}) continue;
-        axes_type<DIM> out_extents;
+        axes_type<DIM> out_extents = {}, perturbations = {1, -1, 1, -1};
         for (int i = 0; i < DIM; i++) {
-          out_extents.at(i) = x.extent(map.at(i));
+          out_extents.at(i) = x.extent_int(map.at(i));
+          if (bounds_check) {
+            // With bounds_check, we can manipulate the output extents to be
+            // different from the input extents.
+            out_extents.at(i) += perturbations.at(i);
+          }
         }
         auto [nt0, nt1, nt2, nt3] = out_extents;
 
         View4DLayout2type xt("xt", nt0, nt1, nt2, nt3),
-            ref("ref", nt0, nt1, nt2, nt3);
-        make_transposed(x, ref, map);
+            xt_ref("xt_ref", nt0, nt1, nt2, nt3);
+        make_transposed(x, xt_ref, map);
 
         KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
-        EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
+        EXPECT_TRUE(allclose(exec, xt, xt_ref, 1.e-5, 1.e-12));
         // Inverse (transpose of transpose is identical to the original)
-        View4DLayout1type x_inv("x_inv", n0, n1, n2, n3);
+        View4DLayout1type x_inv("x_inv", n0, n1, n2, n3),
+            x_inv_ref("x_inv_ref", n0, n1, n2, n3);
+        if (bounds_check) {
+          // With bounds_check, we may discard some of the input data,
+          // so the inverse is not identical to the original
+          make_transposed(xt_ref, x_inv_ref, map_inv);
+        } else {
+          Kokkos::deep_copy(x_inv_ref, x);
+        }
         KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
-        EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+        EXPECT_TRUE(allclose(exec, x_inv, x_inv_ref, 1.e-5, 1.e-12));
         exec.fence();
       }
     }
@@ -1073,24 +1291,37 @@ void test_transpose_3d_5dview(bool bounds_check) {
 
         KokkosFFT::axis_type<3> axes{axis0, axis1, axis2};
 
-        auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, axes);
-        axes_type<DIM> out_extents;
+        auto [map, map_inv]        = KokkosFFT::Impl::get_map_axes(x, axes);
+        axes_type<DIM> out_extents = {}, perturbations = {1, -1, 1, -1, -1};
         for (int i = 0; i < DIM; i++) {
-          out_extents.at(i) = x.extent(map.at(i));
+          out_extents.at(i) = x.extent_int(map.at(i));
+          if (bounds_check) {
+            // With bounds_check, we can manipulate the output extents to be
+            // different from the input extents.
+            out_extents.at(i) += perturbations.at(i);
+          }
         }
         auto [nt0, nt1, nt2, nt3, nt4] = out_extents;
 
         View5DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4),
-            ref("ref", nt0, nt1, nt2, nt3, nt4);
-        make_transposed(x, ref, map);
+            xt_ref("xt_ref", nt0, nt1, nt2, nt3, nt4);
+        make_transposed(x, xt_ref, map);
 
         KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
-        EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
+        EXPECT_TRUE(allclose(exec, xt, xt_ref, 1.e-5, 1.e-12));
 
         // Inverse (transpose of transpose is identical to the original)
-        View5DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4);
+        View5DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4),
+            x_inv_ref("x_inv_ref", n0, n1, n2, n3, n4);
+        if (bounds_check) {
+          // With bounds_check, we may discard some of the input data,
+          // so the inverse is not identical to the original
+          make_transposed(xt_ref, x_inv_ref, map_inv);
+        } else {
+          Kokkos::deep_copy(x_inv_ref, x);
+        }
         KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
-        EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+        EXPECT_TRUE(allclose(exec, x_inv, x_inv_ref, 1.e-5, 1.e-12));
         exec.fence();
       }
     }
@@ -1119,24 +1350,37 @@ void test_transpose_3d_6dview(bool bounds_check) {
 
         KokkosFFT::axis_type<3> axes{axis0, axis1, axis2};
 
-        auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, axes);
-        axes_type<DIM> out_extents;
+        auto [map, map_inv]        = KokkosFFT::Impl::get_map_axes(x, axes);
+        axes_type<DIM> out_extents = {}, perturbations = {1, -1, 1, -1, -1, -1};
         for (int i = 0; i < DIM; i++) {
-          out_extents.at(i) = x.extent(map.at(i));
+          out_extents.at(i) = x.extent_int(map.at(i));
+          if (bounds_check) {
+            // With bounds_check, we can manipulate the output extents to be
+            // different from the input extents.
+            out_extents.at(i) += perturbations.at(i);
+          }
         }
         auto [nt0, nt1, nt2, nt3, nt4, nt5] = out_extents;
 
         View6DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5),
-            ref("ref", nt0, nt1, nt2, nt3, nt4, nt5);
-        make_transposed(x, ref, map);
+            xt_ref("xt_ref", nt0, nt1, nt2, nt3, nt4, nt5);
+        make_transposed(x, xt_ref, map);
 
         KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
-        EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
+        EXPECT_TRUE(allclose(exec, xt, xt_ref, 1.e-5, 1.e-12));
 
         // Inverse (transpose of transpose is identical to the original)
-        View6DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5);
+        View6DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5),
+            x_inv_ref("x_inv_ref", n0, n1, n2, n3, n4, n5);
+        if (bounds_check) {
+          // With bounds_check, we may discard some of the input data,
+          // so the inverse is not identical to the original
+          make_transposed(xt_ref, x_inv_ref, map_inv);
+        } else {
+          Kokkos::deep_copy(x_inv_ref, x);
+        }
         KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
-        EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+        EXPECT_TRUE(allclose(exec, x_inv, x_inv_ref, 1.e-5, 1.e-12));
         exec.fence();
       }
     }
@@ -1165,24 +1409,38 @@ void test_transpose_3d_7dview(bool bounds_check) {
 
         KokkosFFT::axis_type<3> axes{axis0, axis1, axis2};
 
-        auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, axes);
-        axes_type<DIM> out_extents;
+        auto [map, map_inv]          = KokkosFFT::Impl::get_map_axes(x, axes);
+        axes_type<DIM> out_extents   = {},
+                       perturbations = {1, -1, 1, -1, -1, -1, -1};
         for (int i = 0; i < DIM; i++) {
-          out_extents.at(i) = x.extent(map.at(i));
+          out_extents.at(i) = x.extent_int(map.at(i));
+          if (bounds_check) {
+            // With bounds_check, we can manipulate the output extents to be
+            // different from the input extents.
+            out_extents.at(i) += perturbations.at(i);
+          }
         }
         auto [nt0, nt1, nt2, nt3, nt4, nt5, nt6] = out_extents;
 
         View7DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5, nt6),
-            ref("ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6);
-        make_transposed(x, ref, map);
+            xt_ref("xt_ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6);
+        make_transposed(x, xt_ref, map);
 
         KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
-        EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
+        EXPECT_TRUE(allclose(exec, xt, xt_ref, 1.e-5, 1.e-12));
 
         // Inverse (transpose of transpose is identical to the original)
-        View7DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6);
+        View7DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6),
+            x_inv_ref("x_inv_ref", n0, n1, n2, n3, n4, n5, n6);
+        if (bounds_check) {
+          // With bounds_check, we may discard some of the input data,
+          // so the inverse is not identical to the original
+          make_transposed(xt_ref, x_inv_ref, map_inv);
+        } else {
+          Kokkos::deep_copy(x_inv_ref, x);
+        }
         KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
-        EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+        EXPECT_TRUE(allclose(exec, x_inv, x_inv_ref, 1.e-5, 1.e-12));
         exec.fence();
       }
     }
@@ -1211,24 +1469,39 @@ void test_transpose_3d_8dview(bool bounds_check) {
 
         KokkosFFT::axis_type<3> axes{axis0, axis1, axis2};
 
-        auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, axes);
-        axes_type<DIM> out_extents;
+        auto [map, map_inv]          = KokkosFFT::Impl::get_map_axes(x, axes);
+        axes_type<DIM> out_extents   = {},
+                       perturbations = {0, -1, 1, 1, -2, -1, 1, 1};
         for (int i = 0; i < DIM; i++) {
-          out_extents.at(i) = x.extent(map.at(i));
+          out_extents.at(i) = x.extent_int(map.at(i));
+          if (bounds_check) {
+            // With bounds_check, we can manipulate the output extents to be
+            // different from the input extents.
+            out_extents.at(i) += perturbations.at(i);
+          }
         }
         auto [nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7] = out_extents;
 
         View8DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7),
-            ref("ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7);
-        make_transposed(x, ref, map);
+            xt_ref("xt_ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7);
+        make_transposed(x, xt_ref, map);
 
         KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
-        EXPECT_TRUE(allclose(exec, xt, ref, 1.e-5, 1.e-12));
+        EXPECT_TRUE(allclose(exec, xt, xt_ref, 1.e-5, 1.e-12));
 
         // Inverse (transpose of transpose is identical to the original)
-        View8DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6, n7);
+        View8DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6, n7),
+            x_inv_ref("x_inv_ref", n0, n1, n2, n3, n4, n5, n6, n7);
+        if (bounds_check) {
+          // With bounds_check, we may discard some of the input data,
+          // so the inverse is not identical to the original
+          make_transposed(xt_ref, x_inv_ref, map_inv);
+        } else {
+          Kokkos::deep_copy(x_inv_ref, x);
+        }
+
         KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
-        EXPECT_TRUE(allclose(exec, x_inv, x, 1.e-5, 1.e-12));
+        EXPECT_TRUE(allclose(exec, x_inv, x_inv_ref, 1.e-5, 1.e-12));
         exec.fence();
       }
     }
