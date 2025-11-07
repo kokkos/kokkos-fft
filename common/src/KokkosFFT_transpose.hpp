@@ -145,10 +145,12 @@ struct BoundsCheck {
 /// \tparam ExecutionSpace The type of Kokkos execution space.
 /// \tparam InViewType The input view type
 /// \tparam OutViewType The output view type
-/// \tparam IndexType The index type used for the map
+/// \tparam IndexType The index type used for the loop
+/// \tparam IntType The int type used for the map
 /// \tparam ArgBoundsCheck The bounds check type (default is Off)
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
-          typename IndexType, typename ArgBoundsCheck = BoundsCheck::Off>
+          typename IndexType, typename IntType,
+          typename ArgBoundsCheck = BoundsCheck::Off>
 struct Transpose {
  private:
   // Since MDRangePolicy is not available for 7D and 8D views, we need to
@@ -157,7 +159,7 @@ struct Transpose {
   static constexpr std::size_t m_rank_truncated =
       std::min(InViewType::rank(), std::size_t(6));
 
-  using ArrayType = Kokkos::Array<int, InViewType::rank()>;
+  using ArrayType = Kokkos::Array<IntType, InViewType::rank()>;
 
   /// \brief Retrieves the policy for the parallel execution.
   /// If the view is 1D, a Kokkos::RangePolicy is used. For higher dimensions up
@@ -279,7 +281,7 @@ struct Transpose {
 /// \tparam ExecutionSpace Kokkos execution space type
 /// \tparam InViewType The input view type
 /// \tparam OutViewType The output view type
-/// \tparam IndexType The index type used for the view
+/// \tparam IntType The int type used for the map
 ///
 /// \param[in] exec_space execution space instance
 /// \param[in] in The input view
@@ -288,10 +290,10 @@ struct Transpose {
 /// \param[in] bounds_check Perform bounds checking on the output view (default:
 /// false)
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
-          typename IndexType>
+          typename IntType>
 void transpose(const ExecutionSpace& exec_space, const InViewType& in,
                const OutViewType& out,
-               std::array<IndexType, InViewType::rank()> map,
+               std::array<IntType, InViewType::rank()> map,
                bool bounds_check = false) {
   static_assert(is_operatable_view_v<ExecutionSpace, InViewType>,
                 "transpose: In View value type must be float, double, "
@@ -313,6 +315,9 @@ void transpose(const ExecutionSpace& exec_space, const InViewType& in,
       "transpose: In and Out View must have the same base floating point "
       "type.");
 
+  static_assert(std::is_integral_v<IntType>,
+                "transpose: IntType must be an integral type.");
+
   if (!is_transpose_needed(map)) {
     // Just perform deep_copy (Layout may change)
     KokkosFFT::Impl::crop_or_pad_impl(
@@ -320,23 +325,23 @@ void transpose(const ExecutionSpace& exec_space, const InViewType& in,
     return;
   }
 
-  Kokkos::Array<IndexType, InViewType::rank()> map_array = to_array(map);
+  Kokkos::Array<IntType, InViewType::rank()> map_array = to_array(map);
   if ((in.span() >= std::size_t(std::numeric_limits<int>::max())) ||
       (out.span() >= std::size_t(std::numeric_limits<int>::max()))) {
     if (bounds_check) {
-      Transpose<ExecutionSpace, InViewType, OutViewType, int64_t,
+      Transpose<ExecutionSpace, InViewType, OutViewType, int64_t, IntType,
                 BoundsCheck::On>(in, out, map_array, exec_space);
     } else {
-      Transpose<ExecutionSpace, InViewType, OutViewType, int64_t,
+      Transpose<ExecutionSpace, InViewType, OutViewType, int64_t, IntType,
                 BoundsCheck::Off>(in, out, map_array, exec_space);
     }
   } else {
     if (bounds_check) {
-      Transpose<ExecutionSpace, InViewType, OutViewType, int, BoundsCheck::On>(
-          in, out, map_array, exec_space);
+      Transpose<ExecutionSpace, InViewType, OutViewType, int, IntType,
+                BoundsCheck::On>(in, out, map_array, exec_space);
     } else {
-      Transpose<ExecutionSpace, InViewType, OutViewType, int, BoundsCheck::Off>(
-          in, out, map_array, exec_space);
+      Transpose<ExecutionSpace, InViewType, OutViewType, int, IntType,
+                BoundsCheck::Off>(in, out, map_array, exec_space);
     }
   }
 }
