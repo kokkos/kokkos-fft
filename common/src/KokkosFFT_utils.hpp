@@ -454,10 +454,9 @@ auto reversed(Container&& c) {
 // to avoid dependency on Kokkos implementation details
 template <typename... Layout>
 struct layout_iterate_type_selector {
-  static const Kokkos::Iterate outer_iteration_pattern =
-      Kokkos::Iterate::Default;
-  static const Kokkos::Iterate inner_iteration_pattern =
-      Kokkos::Iterate::Default;
+  static_assert(true,
+                "layout_iterate_type_selector: Layout must be one of "
+                "LayoutLeft, LayoutRight, LayoutStride");
 };
 
 template <>
