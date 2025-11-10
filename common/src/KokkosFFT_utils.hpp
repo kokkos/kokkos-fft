@@ -449,6 +449,36 @@ auto reversed(Container&& c) {
   return copy;
 }
 
+// Copied from Kokkos_Layout.hpp
+// Since this is not publicly exposed, we re-implement it here
+// to avoid dependency on Kokkos implementation details
+template <typename... Layout>
+struct layout_iterate_type_selector {
+  static_assert(true,
+                "layout_iterate_type_selector: Layout must be one of "
+                "LayoutLeft, LayoutRight, LayoutStride");
+};
+
+template <>
+struct layout_iterate_type_selector<Kokkos::LayoutRight> {
+  static const Kokkos::Iterate outer_iteration_pattern = Kokkos::Iterate::Right;
+  static const Kokkos::Iterate inner_iteration_pattern = Kokkos::Iterate::Right;
+};
+
+template <>
+struct layout_iterate_type_selector<Kokkos::LayoutLeft> {
+  static const Kokkos::Iterate outer_iteration_pattern = Kokkos::Iterate::Left;
+  static const Kokkos::Iterate inner_iteration_pattern = Kokkos::Iterate::Left;
+};
+
+template <>
+struct layout_iterate_type_selector<Kokkos::LayoutStride> {
+  static const Kokkos::Iterate outer_iteration_pattern =
+      Kokkos::Iterate::Default;
+  static const Kokkos::Iterate inner_iteration_pattern =
+      Kokkos::Iterate::Default;
+};
+
 }  // namespace Impl
 }  // namespace KokkosFFT
 
