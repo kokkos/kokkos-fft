@@ -421,7 +421,7 @@ void test_transpose_1d_2dview(bool bounds_check) {
       if (bounds_check) {
         // With bounds_check, we can manipulate the output extents to be
         // different from the input extents.
-        out_extents.at(i) += perturbations.at(i);
+        out_extents.at(i) += perturbations.at(map.at(i));
       }
     }
     auto [nt0, nt1] = out_extents;
@@ -471,7 +471,7 @@ void test_transpose_1d_3dview(bool bounds_check) {
       if (bounds_check) {
         // With bounds_check, we can manipulate the output extents to be
         // different from the input extents.
-        out_extents.at(i) += perturbations.at(i);
+        out_extents.at(i) += perturbations.at(map.at(i));
       }
     }
     auto [nt0, nt1, nt2] = out_extents;
@@ -522,7 +522,7 @@ void test_transpose_1d_4dview(bool bounds_check) {
       if (bounds_check) {
         // With bounds_check, we can manipulate the output extents to be
         // different from the input extents.
-        out_extents.at(i) += perturbations.at(i);
+        out_extents.at(i) += perturbations.at(map.at(i));
       }
     }
     auto [nt0, nt1, nt2, nt3] = out_extents;
@@ -573,7 +573,7 @@ void test_transpose_1d_5dview(bool bounds_check) {
       if (bounds_check) {
         // With bounds_check, we can manipulate the output extents to be
         // different from the input extents.
-        out_extents.at(i) += perturbations.at(i);
+        out_extents.at(i) += perturbations.at(map.at(i));
       }
     }
     auto [nt0, nt1, nt2, nt3, nt4] = out_extents;
@@ -624,7 +624,7 @@ void test_transpose_1d_6dview(bool bounds_check) {
       if (bounds_check) {
         // With bounds_check, we can manipulate the output extents to be
         // different from the input extents.
-        out_extents.at(i) += perturbations.at(i);
+        out_extents.at(i) += perturbations.at(map.at(i));
       }
     }
     auto [nt0, nt1, nt2, nt3, nt4, nt5] = out_extents;
@@ -675,7 +675,7 @@ void test_transpose_1d_7dview(bool bounds_check) {
       if (bounds_check) {
         // With bounds_check, we can manipulate the output extents to be
         // different from the input extents.
-        out_extents.at(i) += perturbations.at(i);
+        out_extents.at(i) += perturbations.at(map.at(i));
       }
     }
     auto [nt0, nt1, nt2, nt3, nt4, nt5, nt6] = out_extents;
@@ -727,7 +727,7 @@ void test_transpose_1d_8dview(bool bounds_check) {
       if (bounds_check) {
         // With bounds_check, we can manipulate the output extents to be
         // different from the input extents.
-        out_extents.at(i) += perturbations.at(i);
+        out_extents.at(i) += perturbations.at(map.at(i));
       }
     }
     auto [nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7] = out_extents;
@@ -782,7 +782,7 @@ void test_transpose_2d_2dview(bool bounds_check) {
         if (bounds_check) {
           // With bounds_check, we can manipulate the output extents to be
           // different from the input extents.
-          out_extents.at(i) += perturbations.at(i);
+          out_extents.at(i) += perturbations.at(map.at(i));
         }
       }
       auto [nt0, nt1] = out_extents;
@@ -835,7 +835,7 @@ void test_transpose_2d_3dview(bool bounds_check) {
         if (bounds_check) {
           // With bounds_check, we can manipulate the output extents to be
           // different from the input extents.
-          out_extents.at(i) += perturbations.at(i);
+          out_extents.at(i) += perturbations.at(map.at(i));
         }
       }
       auto [nt0, nt1, nt2] = out_extents;
@@ -892,7 +892,7 @@ void test_transpose_2d_4dview(bool bounds_check) {
           if (bounds_check) {
             // With bounds_check, we can manipulate the output extents to be
             // different from the input extents.
-            out_extents.at(i) += perturbations.at(i);
+            out_extents.at(i) += perturbations.at(map.at(i));
           }
         }
         auto [nt0, nt1, nt2, nt3] = out_extents;
@@ -948,7 +948,7 @@ void test_transpose_2d_5dview(bool bounds_check) {
         if (bounds_check) {
           // With bounds_check, we can manipulate the output extents to be
           // different from the input extents.
-          out_extents.at(i) += perturbations.at(i);
+          out_extents.at(i) += perturbations.at(map.at(i));
         }
       }
       auto [nt0, nt1, nt2, nt3, nt4] = out_extents;
@@ -1004,7 +1004,7 @@ void test_transpose_2d_6dview(bool bounds_check) {
         if (bounds_check) {
           // With bounds_check, we can manipulate the output extents to be
           // different from the input extents.
-          out_extents.at(i) += perturbations.at(i);
+          out_extents.at(i) += perturbations.at(map.at(i));
         }
       }
       auto [nt0, nt1, nt2, nt3, nt4, nt5] = out_extents;
@@ -1060,7 +1060,7 @@ void test_transpose_2d_7dview(bool bounds_check) {
         if (bounds_check) {
           // With bounds_check, we can manipulate the output extents to be
           // different from the input extents.
-          out_extents.at(i) += perturbations.at(i);
+          out_extents.at(i) += perturbations.at(map.at(i));
         }
       }
       auto [nt0, nt1, nt2, nt3, nt4, nt5, nt6] = out_extents;
@@ -1117,7 +1117,7 @@ void test_transpose_2d_8dview(bool bounds_check) {
         if (bounds_check) {
           // With bounds_check, we can manipulate the output extents to be
           // different from the input extents.
-          out_extents.at(i) += perturbations.at(i);
+          out_extents.at(i) += perturbations.at(map.at(i));
         }
       }
       auto [nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7] = out_extents;
@@ -1179,7 +1179,7 @@ void test_transpose_3d_3dview(bool bounds_check) {
           if (bounds_check) {
             // With bounds_check, we can manipulate the output extents to be
             // different from the input extents.
-            out_extents.at(i) += perturbations.at(i);
+            out_extents.at(i) += perturbations.at(map.at(i));
           }
         }
         auto [nt0, nt1, nt2] = out_extents;
@@ -1240,7 +1240,7 @@ void test_transpose_3d_4dview(bool bounds_check) {
           if (bounds_check) {
             // With bounds_check, we can manipulate the output extents to be
             // different from the input extents.
-            out_extents.at(i) += perturbations.at(i);
+            out_extents.at(i) += perturbations.at(map.at(i));
           }
         }
         auto [nt0, nt1, nt2, nt3] = out_extents;
@@ -1298,7 +1298,7 @@ void test_transpose_3d_5dview(bool bounds_check) {
           if (bounds_check) {
             // With bounds_check, we can manipulate the output extents to be
             // different from the input extents.
-            out_extents.at(i) += perturbations.at(i);
+            out_extents.at(i) += perturbations.at(map.at(i));
           }
         }
         auto [nt0, nt1, nt2, nt3, nt4] = out_extents;
@@ -1357,7 +1357,7 @@ void test_transpose_3d_6dview(bool bounds_check) {
           if (bounds_check) {
             // With bounds_check, we can manipulate the output extents to be
             // different from the input extents.
-            out_extents.at(i) += perturbations.at(i);
+            out_extents.at(i) += perturbations.at(map.at(i));
           }
         }
         auto [nt0, nt1, nt2, nt3, nt4, nt5] = out_extents;
@@ -1417,7 +1417,7 @@ void test_transpose_3d_7dview(bool bounds_check) {
           if (bounds_check) {
             // With bounds_check, we can manipulate the output extents to be
             // different from the input extents.
-            out_extents.at(i) += perturbations.at(i);
+            out_extents.at(i) += perturbations.at(map.at(i));
           }
         }
         auto [nt0, nt1, nt2, nt3, nt4, nt5, nt6] = out_extents;
@@ -1477,7 +1477,7 @@ void test_transpose_3d_8dview(bool bounds_check) {
           if (bounds_check) {
             // With bounds_check, we can manipulate the output extents to be
             // different from the input extents.
-            out_extents.at(i) += perturbations.at(i);
+            out_extents.at(i) += perturbations.at(map.at(i));
           }
         }
         auto [nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7] = out_extents;
