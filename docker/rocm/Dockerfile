@@ -19,7 +19,6 @@ RUN apt-get update && apt-get install -y \
         openmpi-bin \
         libopenmpi-dev \
         python3 \
-        gfortran \
         $ADDITIONAL_PACKAGES \
         && \
     apt-get clean && \
