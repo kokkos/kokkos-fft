@@ -15,7 +15,6 @@ jobs:
       matrix:
         backend:
           - name: nvcc
-            compiler: nvcc_wrapper
             image: gcc
             compiler: nvcc_wrapper
             kokkos: +cuda +wrapper cuda_arch=90
