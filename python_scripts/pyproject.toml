@@ -18,7 +18,8 @@ dependencies = [
   "xarray[viz]",
   "matplotlib",
   "joblib",
-  "pylint"
+  "pylint",
+  "crc32c"
 ]
 
 [tool.hatch.build.targets.wheel]
