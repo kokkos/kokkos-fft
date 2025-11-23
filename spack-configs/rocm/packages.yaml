@@ -17,111 +17,139 @@ packages:
     externals:
     - spec: hip@6.4.1
       prefix: /opt/rocm-6.4.1
+    version: [6.4.1]
   hipfft:
     buildable: false
     externals:
     - spec: hipfft@6.4.1
       prefix: /opt/rocm-6.4.1
+    version: [6.4.1]
   hipblas:
     buildable: false
     externals:
     - spec: hipblas@6.4.1
       prefix: /opt/rocm-6.4.1
+    version: [6.4.1]
   hipcub:
     buildable: false
     externals:
     - spec: hipcub@6.4.1
       prefix: /opt/rocm-6.4.1
+    version: [6.4.1]
   hipfort:
     buildable: false
     externals:
     - spec: hipfort@6.4.1
       prefix: /opt/rocm-6.4.1
+    version: [6.4.1]
   hipify-clang:
     buildable: false
     externals:
     - spec: hipify-clang@6.4.1
       prefix: /opt/rocm-6.4.1
+    version: [6.4.1]
   hiprand:
     buildable: false
     externals:
     - spec: hiprand@6.4.1
       prefix: /opt/rocm-6.4.1
+    version: [6.4.1]
   hipsolver:
     buildable: false
     externals:
     - spec: hipsolver@6.4.1
       prefix: /opt/rocm-6.4.1
+    version: [6.4.1]
   hipsparse:
     buildable: false
     externals:
     - spec: hipsparse@6.4.1
       prefix: /opt/rocm-6.4.1
+    version: [6.4.1]
   hsa-rocr-dev:
     buildable: false
     externals:
     - spec: hsa-rocr-dev@6.4.1
       prefix: /opt/rocm-6.4.1
+    version: [6.4.1]
   hsakmt-roct:
     buildable: false
     externals:
     - spec: hsakmt-roct@6.4.1
       prefix: /opt/rocm-6.4.1
+    version: [6.4.1]
   miopen-hip:
     buildable: false
     externals:
     - spec: miopen-hip@6.4.1
       prefix: /opt/rocm-6.4.1
+    version: [6.4.1]
   rccl:
     buildable: false
     externals:
     - spec: rccl@6.4.1
       prefix: /opt/rocm-6.4.1
+    version: [6.4.1]
   rocalution:
     buildable: false
     externals:
     - spec: rocalution@6.4.1
       prefix: /opt/rocm-6.4.1
+    version: [6.4.1]
   rocfft:
     buildable: false
     externals:
     - spec: rocfft@6.4.1
       prefix: /opt/rocm-6.4.1
+    version: [6.4.1]
   rocprim:
     buildable: false
     externals:
     - spec: rocprim@6.4.1
       prefix: /opt/rocm-6.4.1
+    version: [6.4.1]
   rocblas:
     buildable: false
     externals:
     - spec: rocblas@6.4.1
       prefix: /opt/rocm-6.4.1
+    version: [6.4.1]
   roctracer-dev:
     buildable: false
     externals:
     - spec: roctracer-dev@6.4.1
       prefix: /opt/rocm-6.4.1
+    version: [6.4.1]
   rocsparse:
     buildable: false
     externals:
     - spec: rocsparse@6.4.1
       prefix: /opt/rocm-6.4.1
+    version: [6.4.1]
   rocsolver:
     buildable: false
     externals:
     - spec: rocsolver@6.4.1
       prefix: /opt/rocm-6.4.1
+    version: [6.4.1]
+  rocthrust:
+    buildable: false
+    externals:
+    - spec: rocthrust@6.4.1
+      prefix: /opt/rocm-6.4.1
+    version: [6.4.1]
   rocrand:
     buildable: false
     externals:
     - spec: rocrand@6.4.1
       prefix: /opt/rocm-6.4.1
+    version: [6.4.1]
   rocprofiler-dev:
     buildable: false
     externals:
     - spec: rocprofiler-dev@6.4.1
       prefix: /opt/rocm-6.4.1
+    version: [6.4.1]
   python:
     buildable: false
     externals:
