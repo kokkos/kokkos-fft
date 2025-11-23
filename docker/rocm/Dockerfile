@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
-ARG BASE=rocm/dev-ubuntu-24.04:6.4.3-complete
+ARG BASE=rocm/dev-ubuntu-24.04:6.4.1-complete
 FROM $BASE
 
 ARG ADDITIONAL_PACKAGES
@@ -25,10 +25,7 @@ RUN apt-get update && apt-get install -y \
     rm -rf /var/lib/apt/lists/*
 
 ENV FFTWDIR=/usr \
-    CMAKE_DIR=/opt/cmake \
-    PATH=/opt/rocm/bin:$PATH \
-    LD_LIBRARY_PATH=/opt/rocm/hipfft/lib:$LD_LIBRARY_PATH \
-    CMAKE_PREFIX_PATH=/opt/rocm/hip/:/opt/rocm/:$CMAKE_PREFIX_PATH
+    CMAKE_DIR=/opt/cmake
 
 RUN git config --global --add safe.directory "*"
 
