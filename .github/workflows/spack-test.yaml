@@ -25,7 +25,7 @@ jobs:
             compiler: hipcc
             kokkos: +rocm amdgpu_target=gfx90a
             kokkos_fft: device_backend=hipfft
-            spack_path: spack-configs/rocm
+            spack_path: /work/spack-configs/rocm
 
     steps:
       - name: Free Disk Space (Ubuntu)
@@ -47,6 +47,7 @@ jobs:
           docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
           bash -c "source spack/share/spack/setup-env.sh && \
             export SPACK_USER_CONFIG_PATH=${{ matrix.backend.spack_path }} && \
+            ls && \
             spack compiler find && \
             spack spec kokkos-fft ${{ matrix.backend.kokkos_fft }} +tests ^kokkos ${{ matrix.backend.kokkos }} && \
             spack install kokkos-fft ${{ matrix.backend.kokkos_fft }} +tests ^kokkos ${{ matrix.backend.kokkos }} && \
