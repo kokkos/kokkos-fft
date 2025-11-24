@@ -15,10 +15,17 @@ jobs:
       matrix:
         backend:
           - name: nvcc
-            compiler: nvcc_wrapper
             image: gcc
+            compiler: nvcc_wrapper
             kokkos: +cuda +wrapper cuda_arch=90
             kokkos_fft: device_backend=cufft
+            spack_path: ~/.spack/
+          - name: rocm
+            image: rocm
+            compiler: hipcc
+            kokkos: +rocm amdgpu_target=gfx90a
+            kokkos_fft: device_backend=hipfft
+            spack_path: /work/spack-configs/rocm
 
     steps:
       - name: Free Disk Space (Ubuntu)
@@ -33,12 +40,14 @@ jobs:
       - name: Clone and install spack
         run: |
           docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
-          bash -c "git clone --depth=2 --branch=v1.0.1 https://github.com/spack/spack.git"
+          bash -c "git clone --depth=2 --branch=v1.1.0 https://github.com/spack/spack.git"
 
       - name: Configure and build with CMake
         run: |
           docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
           bash -c "source spack/share/spack/setup-env.sh && \
+            export SPACK_USER_CONFIG_PATH=${{ matrix.backend.spack_path }} && \
+            spack compiler find && \
             spack spec kokkos-fft ${{ matrix.backend.kokkos_fft }} +tests ^kokkos ${{ matrix.backend.kokkos }} && \
             spack install kokkos-fft ${{ matrix.backend.kokkos_fft }} +tests ^kokkos ${{ matrix.backend.kokkos }} && \
             spack load kokkos kokkos-fft && \
@@ -71,7 +80,7 @@ jobs:
           docker run -v ${{ github.workspace }}:/work ubuntu:24.04 \
           bash -c "apt update && \
             apt install --yes --no-install-recommends file bzip2 ca-certificates g++ gcc gfortran git gzip lsb-release patch python3 tar unzip xz-utils zstd && \
-            git clone --depth=1 --branch=v1.0.2 https://github.com/spack/spack.git && \
+            git clone --depth=1 --branch=v1.1.0 https://github.com/spack/spack.git && \
             . spack/share/spack/setup-env.sh && \
             spack install intel-oneapi-compilers@2025 && \
             spack spec ${{ matrix.backend.spec }} && \
