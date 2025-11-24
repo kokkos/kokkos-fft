@@ -141,10 +141,10 @@ This way, all the functionalities are executed on A100 GPUs. For installation, d
 kokkos-fft can also be installed with [spack](https://spack.io). For example, the recipe for H100 GPU with cufft is as follows.
 
 ```bash
-git clone --depth=2 --branch=v1.0.1 https://github.com/spack/spack.git
+git clone --depth=2 --branch=v1.1.0 https://github.com/spack/spack.git
 source spack/share/spack/setup-env.sh # For bash
 
-spack install kokkos-fft ^kokkos +cuda +wrapper cuda_arch=90
+spack install kokkos-fft device_backend=cufft ^kokkos +cuda +wrapper cuda_arch=90
 ```
 
 We have two main parameters to Spack:
