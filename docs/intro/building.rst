@@ -23,8 +23,8 @@ However, we have not tested all the listed compilers there and thus recommend th
 * ``nvcc 11.0.0+`` - NVIDIA GPUs
 * ``rocm 5.3.0+`` - AMD GPUs
 
-Install kokkos-fft by CMake
----------------------------
+Install kokkos-fft with CMake
+-----------------------------
 
 Let's assume Kokkos is installed under ``<path/to/kokkos>`` with ``OpenMP`` backend. We build and install kokkos-fft under ``<path/to/kokkos-fft>``.
 
@@ -71,10 +71,10 @@ The code can be built as
           -DCMAKE_PREFIX_PATH="<path/to/kokkos>;<path/to/kokkos-fft>"
     cmake --build build -j 8
 
-Install kokkos-fft by Spack
----------------------------
+Install kokkos-fft with Spack
+-----------------------------
 
-kokkos-fft can also be installed with [spack](https://spack.io). For example, the recipe for H100 GPU with cufft is as follows.
+kokkos-fft can also be installed with [spack](https://spack.io). For example, the recipe for H100 GPU with cufft is as follows:
 
 .. code-block:: bash
 
@@ -83,10 +83,10 @@ kokkos-fft can also be installed with [spack](https://spack.io). For example, th
 
     spack install kokkos-fft device_backend=cufft ^kokkos +cuda +wrapper cuda_arch=90
 
-We have two main parameters to Spack:
+We have two main parameters to configure Spack:
 
 * ``host_backend``: Enable device backend FFT library (``fftw-serial`` or ``fftw-openmp``)
-* ``device_backend``: Enable device backend FFT library (e.g., ``cufft``, ``hipfft``, and ``onemkl``)
+* ``device_backend``: Enable device backend FFT library (``cufft``, ``hipfft``, or ``onemkl``)
 
 The code can be built as
 
