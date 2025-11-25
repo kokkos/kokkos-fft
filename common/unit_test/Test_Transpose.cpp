@@ -415,12 +415,13 @@ void test_transpose_1d_2dview(bool bounds_check) {
 
   for (int axis0 = 0; axis0 < DIM; axis0++) {
     auto [map, map_inv]        = KokkosFFT::Impl::get_map_axes(x, axis0);
-    axes_type<DIM> out_extents = {}, perturbations = {1, -1};
+    axes_type<DIM> out_extents = {};
     for (int i = 0; i < DIM; i++) {
       out_extents.at(i) = x.extent_int(map.at(i));
       if (bounds_check) {
         // With bounds_check, we can manipulate the output extents to be
         // different from the input extents.
+        axes_type<DIM> perturbations = {1, -1};
         out_extents.at(i) += perturbations.at(map.at(i));
       }
     }
@@ -465,12 +466,13 @@ void test_transpose_1d_3dview(bool bounds_check) {
 
   for (int axis0 = 0; axis0 < DIM; axis0++) {
     auto [map, map_inv]        = KokkosFFT::Impl::get_map_axes(x, axis0);
-    axes_type<DIM> out_extents = {}, perturbations = {1, -2, -1};
+    axes_type<DIM> out_extents = {};
     for (int i = 0; i < DIM; i++) {
       out_extents.at(i) = x.extent_int(map.at(i));
       if (bounds_check) {
         // With bounds_check, we can manipulate the output extents to be
         // different from the input extents.
+        axes_type<DIM> perturbations = {1, -2, -1};
         out_extents.at(i) += perturbations.at(map.at(i));
       }
     }
@@ -516,12 +518,13 @@ void test_transpose_1d_4dview(bool bounds_check) {
   for (int axis0 = 0; axis0 < DIM; axis0++) {
     auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, axis0);
 
-    axes_type<DIM> out_extents = {}, perturbations = {1, 0, -1, -3};
+    axes_type<DIM> out_extents = {};
     for (int i = 0; i < DIM; i++) {
       out_extents.at(i) = x.extent_int(map.at(i));
       if (bounds_check) {
         // With bounds_check, we can manipulate the output extents to be
         // different from the input extents.
+        axes_type<DIM> perturbations = {1, 0, -1, -3};
         out_extents.at(i) += perturbations.at(map.at(i));
       }
     }
@@ -567,12 +570,13 @@ void test_transpose_1d_5dview(bool bounds_check) {
 
   for (int axis0 = 0; axis0 < DIM; axis0++) {
     auto [map, map_inv]        = KokkosFFT::Impl::get_map_axes(x, axis0);
-    axes_type<DIM> out_extents = {}, perturbations = {1, -1, -1, -3, -2};
+    axes_type<DIM> out_extents = {};
     for (int i = 0; i < DIM; i++) {
       out_extents.at(i) = x.extent_int(map.at(i));
       if (bounds_check) {
         // With bounds_check, we can manipulate the output extents to be
         // different from the input extents.
+        axes_type<DIM> perturbations = {1, -1, -1, -3, -2};
         out_extents.at(i) += perturbations.at(map.at(i));
       }
     }
@@ -618,12 +622,13 @@ void test_transpose_1d_6dview(bool bounds_check) {
 
   for (int axis0 = 0; axis0 < DIM; axis0++) {
     auto [map, map_inv]        = KokkosFFT::Impl::get_map_axes(x, axis0);
-    axes_type<DIM> out_extents = {}, perturbations = {0, -1, 1, 1, -2, -1};
+    axes_type<DIM> out_extents = {};
     for (int i = 0; i < DIM; i++) {
       out_extents.at(i) = x.extent_int(map.at(i));
       if (bounds_check) {
         // With bounds_check, we can manipulate the output extents to be
         // different from the input extents.
+        axes_type<DIM> perturbations = {0, -1, 1, 1, -2, -1};
         out_extents.at(i) += perturbations.at(map.at(i));
       }
     }
@@ -669,12 +674,13 @@ void test_transpose_1d_7dview(bool bounds_check) {
 
   for (int axis0 = 0; axis0 < DIM; axis0++) {
     auto [map, map_inv]        = KokkosFFT::Impl::get_map_axes(x, axis0);
-    axes_type<DIM> out_extents = {}, perturbations = {0, -1, 1, 1, -2, -1, 1};
+    axes_type<DIM> out_extents = {};
     for (int i = 0; i < DIM; i++) {
       out_extents.at(i) = x.extent_int(map.at(i));
       if (bounds_check) {
         // With bounds_check, we can manipulate the output extents to be
         // different from the input extents.
+        axes_type<DIM> perturbations = {0, -1, 1, 1, -2, -1, 1};
         out_extents.at(i) += perturbations.at(map.at(i));
       }
     }
@@ -719,14 +725,14 @@ void test_transpose_1d_8dview(bool bounds_check) {
   exec.fence();
 
   for (int axis0 = 0; axis0 < DIM; axis0++) {
-    auto [map, map_inv]          = KokkosFFT::Impl::get_map_axes(x, axis0);
-    axes_type<DIM> out_extents   = {},
-                   perturbations = {0, -1, 1, 1, -2, -1, 1, 1};
+    auto [map, map_inv]        = KokkosFFT::Impl::get_map_axes(x, axis0);
+    axes_type<DIM> out_extents = {};
     for (int i = 0; i < DIM; i++) {
       out_extents.at(i) = x.extent_int(map.at(i));
       if (bounds_check) {
         // With bounds_check, we can manipulate the output extents to be
         // different from the input extents.
+        axes_type<DIM> perturbations = {0, -1, 1, 1, -2, -1, 1, 1};
         out_extents.at(i) += perturbations.at(map.at(i));
       }
     }
@@ -776,12 +782,13 @@ void test_transpose_2d_2dview(bool bounds_check) {
       KokkosFFT::axis_type<2> axes = {axis0, axis1};
 
       auto [map, map_inv]        = KokkosFFT::Impl::get_map_axes(x, axes);
-      axes_type<DIM> out_extents = {}, perturbations = {1, -1};
+      axes_type<DIM> out_extents = {};
       for (int i = 0; i < DIM; i++) {
         out_extents.at(i) = x.extent_int(map.at(i));
         if (bounds_check) {
           // With bounds_check, we can manipulate the output extents to be
           // different from the input extents.
+          axes_type<DIM> perturbations = {1, -1};
           out_extents.at(i) += perturbations.at(map.at(i));
         }
       }
@@ -829,12 +836,13 @@ void test_transpose_2d_3dview(bool bounds_check) {
       KokkosFFT::axis_type<2> axes{axis0, axis1};
 
       auto [map, map_inv]        = KokkosFFT::Impl::get_map_axes(x, axes);
-      axes_type<DIM> out_extents = {}, perturbations = {1, -1, 2};
+      axes_type<DIM> out_extents = {};
       for (int i = 0; i < DIM; i++) {
         out_extents.at(i) = x.extent_int(map.at(i));
         if (bounds_check) {
           // With bounds_check, we can manipulate the output extents to be
           // different from the input extents.
+          axes_type<DIM> perturbations = {1, -1, 2};
           out_extents.at(i) += perturbations.at(map.at(i));
         }
       }
@@ -886,12 +894,13 @@ void test_transpose_2d_4dview(bool bounds_check) {
 
       auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, axes);
       if (KokkosFFT::Impl::is_transpose_needed(map)) {
-        axes_type<DIM> out_extents = {}, perturbations = {1, 0, -1, -3};
+        axes_type<DIM> out_extents = {};
         for (int i = 0; i < DIM; i++) {
           out_extents.at(i) = x.extent_int(map.at(i));
           if (bounds_check) {
             // With bounds_check, we can manipulate the output extents to be
             // different from the input extents.
+            axes_type<DIM> perturbations = {1, 0, -1, -3};
             out_extents.at(i) += perturbations.at(map.at(i));
           }
         }
@@ -942,12 +951,13 @@ void test_transpose_2d_5dview(bool bounds_check) {
       KokkosFFT::axis_type<2> axes{axis0, axis1};
 
       auto [map, map_inv]        = KokkosFFT::Impl::get_map_axes(x, axes);
-      axes_type<DIM> out_extents = {}, perturbations = {1, -1, -1, -3, -2};
+      axes_type<DIM> out_extents = {};
       for (int i = 0; i < DIM; i++) {
         out_extents.at(i) = x.extent_int(map.at(i));
         if (bounds_check) {
           // With bounds_check, we can manipulate the output extents to be
           // different from the input extents.
+          axes_type<DIM> perturbations = {1, -1, -1, -3, -2};
           out_extents.at(i) += perturbations.at(map.at(i));
         }
       }
@@ -998,12 +1008,13 @@ void test_transpose_2d_6dview(bool bounds_check) {
       KokkosFFT::axis_type<2> axes{axis0, axis1};
 
       auto [map, map_inv]        = KokkosFFT::Impl::get_map_axes(x, axes);
-      axes_type<DIM> out_extents = {}, perturbations = {1, -1, -1, 1, -2, -2};
+      axes_type<DIM> out_extents = {};
       for (int i = 0; i < DIM; i++) {
         out_extents.at(i) = x.extent_int(map.at(i));
         if (bounds_check) {
           // With bounds_check, we can manipulate the output extents to be
           // different from the input extents.
+          axes_type<DIM> perturbations = {1, -1, -1, 1, -2, -2};
           out_extents.at(i) += perturbations.at(map.at(i));
         }
       }
@@ -1054,12 +1065,13 @@ void test_transpose_2d_7dview(bool bounds_check) {
       KokkosFFT::axis_type<2> axes{axis0, axis1};
 
       auto [map, map_inv]        = KokkosFFT::Impl::get_map_axes(x, axes);
-      axes_type<DIM> out_extents = {}, perturbations = {1, -1, -1, 1, -2, -2};
+      axes_type<DIM> out_extents = {};
       for (int i = 0; i < DIM; i++) {
         out_extents.at(i) = x.extent_int(map.at(i));
         if (bounds_check) {
           // With bounds_check, we can manipulate the output extents to be
           // different from the input extents.
+          axes_type<DIM> perturbations = {1, -1, -1, 1, -2, -2};
           out_extents.at(i) += perturbations.at(map.at(i));
         }
       }
@@ -1109,14 +1121,14 @@ void test_transpose_2d_8dview(bool bounds_check) {
       if (axis0 == axis1) continue;
       KokkosFFT::axis_type<2> axes{axis0, axis1};
 
-      auto [map, map_inv]          = KokkosFFT::Impl::get_map_axes(x, axes);
-      axes_type<DIM> out_extents   = {},
-                     perturbations = {0, -1, 1, 1, -2, -1, 1, 1};
+      auto [map, map_inv]        = KokkosFFT::Impl::get_map_axes(x, axes);
+      axes_type<DIM> out_extents = {};
       for (int i = 0; i < DIM; i++) {
         out_extents.at(i) = x.extent_int(map.at(i));
         if (bounds_check) {
           // With bounds_check, we can manipulate the output extents to be
           // different from the input extents.
+          axes_type<DIM> perturbations = {0, -1, 1, 1, -2, -1, 1, 1};
           out_extents.at(i) += perturbations.at(map.at(i));
         }
       }
@@ -1173,12 +1185,13 @@ void test_transpose_3d_3dview(bool bounds_check) {
         // backend with Release build
         if (map == axes_type<DIM>{0, 1, 2}) continue;
 
-        axes_type<DIM> out_extents = {}, perturbations = {1, -1, 1};
+        axes_type<DIM> out_extents = {};
         for (int i = 0; i < DIM; i++) {
           out_extents.at(i) = x.extent_int(map.at(i));
           if (bounds_check) {
             // With bounds_check, we can manipulate the output extents to be
             // different from the input extents.
+            axes_type<DIM> perturbations = {1, -1, 1};
             out_extents.at(i) += perturbations.at(map.at(i));
           }
         }
@@ -1234,12 +1247,13 @@ void test_transpose_3d_4dview(bool bounds_check) {
         // FIXME: This triggers test failure in FFT shifts test on Cuda
         // backend with Release build
         if (map == axes_type<DIM>{0, 1, 2, 3}) continue;
-        axes_type<DIM> out_extents = {}, perturbations = {1, -1, 1, -1};
+        axes_type<DIM> out_extents = {};
         for (int i = 0; i < DIM; i++) {
           out_extents.at(i) = x.extent_int(map.at(i));
           if (bounds_check) {
             // With bounds_check, we can manipulate the output extents to be
             // different from the input extents.
+            axes_type<DIM> perturbations = {1, -1, 1, -1};
             out_extents.at(i) += perturbations.at(map.at(i));
           }
         }
@@ -1292,12 +1306,13 @@ void test_transpose_3d_5dview(bool bounds_check) {
         KokkosFFT::axis_type<3> axes{axis0, axis1, axis2};
 
         auto [map, map_inv]        = KokkosFFT::Impl::get_map_axes(x, axes);
-        axes_type<DIM> out_extents = {}, perturbations = {1, -1, 1, -1, -1};
+        axes_type<DIM> out_extents = {};
         for (int i = 0; i < DIM; i++) {
           out_extents.at(i) = x.extent_int(map.at(i));
           if (bounds_check) {
             // With bounds_check, we can manipulate the output extents to be
             // different from the input extents.
+            axes_type<DIM> perturbations = {1, -1, 1, -1, -1};
             out_extents.at(i) += perturbations.at(map.at(i));
           }
         }
@@ -1351,12 +1366,13 @@ void test_transpose_3d_6dview(bool bounds_check) {
         KokkosFFT::axis_type<3> axes{axis0, axis1, axis2};
 
         auto [map, map_inv]        = KokkosFFT::Impl::get_map_axes(x, axes);
-        axes_type<DIM> out_extents = {}, perturbations = {1, -1, 1, -1, -1, -1};
+        axes_type<DIM> out_extents = {};
         for (int i = 0; i < DIM; i++) {
           out_extents.at(i) = x.extent_int(map.at(i));
           if (bounds_check) {
             // With bounds_check, we can manipulate the output extents to be
             // different from the input extents.
+            axes_type<DIM> perturbations = {1, -1, 1, -1, -1, -1};
             out_extents.at(i) += perturbations.at(map.at(i));
           }
         }
@@ -1409,14 +1425,15 @@ void test_transpose_3d_7dview(bool bounds_check) {
 
         KokkosFFT::axis_type<3> axes{axis0, axis1, axis2};
 
-        auto [map, map_inv]          = KokkosFFT::Impl::get_map_axes(x, axes);
-        axes_type<DIM> out_extents   = {},
-                       perturbations = {1, -1, 1, -1, -1, -1, -1};
+        auto [map, map_inv]        = KokkosFFT::Impl::get_map_axes(x, axes);
+        axes_type<DIM> out_extents = {};
+
         for (int i = 0; i < DIM; i++) {
           out_extents.at(i) = x.extent_int(map.at(i));
           if (bounds_check) {
             // With bounds_check, we can manipulate the output extents to be
             // different from the input extents.
+            axes_type<DIM> perturbations = {1, -1, 1, -1, -1, -1, -1};
             out_extents.at(i) += perturbations.at(map.at(i));
           }
         }
@@ -1469,14 +1486,14 @@ void test_transpose_3d_8dview(bool bounds_check) {
 
         KokkosFFT::axis_type<3> axes{axis0, axis1, axis2};
 
-        auto [map, map_inv]          = KokkosFFT::Impl::get_map_axes(x, axes);
-        axes_type<DIM> out_extents   = {},
-                       perturbations = {0, -1, 1, 1, -2, -1, 1, 1};
+        auto [map, map_inv]        = KokkosFFT::Impl::get_map_axes(x, axes);
+        axes_type<DIM> out_extents = {};
         for (int i = 0; i < DIM; i++) {
           out_extents.at(i) = x.extent_int(map.at(i));
           if (bounds_check) {
             // With bounds_check, we can manipulate the output extents to be
             // different from the input extents.
+            axes_type<DIM> perturbations = {0, -1, 1, 1, -2, -1, 1, 1};
             out_extents.at(i) += perturbations.at(map.at(i));
           }
         }
