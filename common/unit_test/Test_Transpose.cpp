@@ -393,7 +393,9 @@ void test_transpose_1d_1dview(bool bounds_check) {
   } else {
     Kokkos::deep_copy(xt_ref, x);
   }
-  KokkosFFT::Impl::transpose(exec, x, xt, axes_type<1>({0}), bounds_check);
+
+  using axis_type = std::array<std::size_t, 1>;
+  KokkosFFT::Impl::transpose(exec, x, xt, axis_type{0}, bounds_check);
   EXPECT_TRUE(allclose(exec, xt, xt_ref, 1.e-5, 1.e-12));
   exec.fence();
 }
