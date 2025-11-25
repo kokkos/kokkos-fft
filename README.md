@@ -98,6 +98,7 @@ To use kokkos-fft, we need the following:
 Since kokkos-fft is a header-only library, it is enough to simply add as a subdirectory. It is assumed that kokkos and kokkos-fft are placed under `<project_directory>/tpls`.
 
 Here is an example to use kokkos-fft in the following CMake project.
+
 ```
 ---/
  |
@@ -110,6 +111,7 @@ Here is an example to use kokkos-fft in the following CMake project.
 ```
 
 The `CMakeLists.txt` would be
+
 ```CMake
 cmake_minimum_required(VERSION 3.23)
 project(kokkos-fft-as-subdirectory LANGUAGES CXX)
@@ -122,7 +124,8 @@ target_link_libraries(hello-kokkos-fft PUBLIC Kokkos::kokkos KokkosFFT::fft)
 ```
 
 For compilation, we basically rely on the CMake options for Kokkos. For example, the compile options for A100 GPU is as follows.
-```
+
+```bash
 cmake -B build \
       -DCMAKE_CXX_COMPILER=g++ \
       -DCMAKE_BUILD_TYPE=Release \
@@ -130,7 +133,26 @@ cmake -B build \
       -DKokkos_ARCH_AMPERE80=ON
 cmake --build build -j 8
 ```
-This way, all the functionalities are executed on A100 GPUs. For installation, details are provided in the [documentation](https://kokkosfft.readthedocs.io/en/latest/intro/building.html#install-kokkosfft-as-a-library).
+
+This way, all the functionalities are executed on A100 GPUs. For installation, details are provided in the [documentation](https://kokkosfft.readthedocs.io/en/latest/intro/building.html#install-kokkosfft-by-cmake).
+
+## Spack
+
+kokkos-fft can also be installed with [spack](https://spack.io). For example, the recipe for H100 GPU with cufft is as follows.
+
+```bash
+git clone --depth=2 --branch=v1.1.0 https://github.com/spack/spack.git
+source spack/share/spack/setup-env.sh # For bash
+
+spack install kokkos-fft device_backend=cufft ^kokkos +cuda +wrapper cuda_arch=90
+```
+
+We have two main parameters to configure Spack:
+
+* `host_backend`: Enable device backend FFT library (`fftw-serial` or `fftw-openmp`)
+* `device_backend`: Enable device backend FFT library (`cufft`, `hipfft`, or `onemkl`)
+
+To enable the device library, you need to install kokkos with the corresponding Kokkos backend. See [this page](https://kokkosfft.readthedocs.io/en/latest/intro/building.html#install-kokkosfft-by-spack) for detail.
 
 ## Support
 
