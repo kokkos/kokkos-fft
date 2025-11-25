@@ -147,7 +147,7 @@ source spack/share/spack/setup-env.sh # For bash
 spack install kokkos-fft device_backend=cufft ^kokkos +cuda +wrapper cuda_arch=90
 ```
 
-We have two main parameters to Spack:
+We have two main parameters to configure Spack:
 
 * `host_backend`: Enable device backend FFT library (`fftw-serial` or `fftw-openmp`)
 * `device_backend`: Enable device backend FFT library (`cufft`, `hipfft`, or `onemkl`)
