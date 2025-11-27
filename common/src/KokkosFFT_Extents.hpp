@@ -171,6 +171,140 @@ auto get_extents(const InViewType& in, const OutViewType& out,
 
   return std::make_tuple(in_extents, out_extents, fft_extents, howmany);
 }
+
+/// \brief Compute input, output and fft extents required for FFT
+/// libraries based on the input view, output view, axes and shape.
+/// Extents are converted into Layout Right
+///
+/// \tparam InViewType The input view type
+/// \tparam OutViewType The output view type
+///
+/// \param[in] in Input view
+/// \param[in] out Output view
+/// \param[in] dim The dimensionality of FFT
+/// \param[in] is_inplace  Whether the FFT is inplace or not
+template <typename InViewType, typename OutViewType>
+auto get_extents(const InViewType& in, const OutViewType& out, std::size_t dim,
+                 [[maybe_unused]] bool is_inplace = false) {
+  using in_value_type     = typename InViewType::non_const_value_type;
+  using out_value_type    = typename OutViewType::non_const_value_type;
+  using array_layout_type = typename InViewType::array_layout;
+
+  constexpr std::size_t rank = InViewType::rank;
+  [[maybe_unused]] int inner_most_axis =
+      std::is_same_v<array_layout_type, typename Kokkos::LayoutLeft>
+          ? 0
+          : (rank - 1);
+
+  // Get extents for the inner most axes in LayoutLeft
+  std::vector<int> in_extents_full, out_extents_full, fft_extents_full;
+  for (std::size_t i = 0; i < rank; i++) {
+    auto in_extent  = in.extent(i);
+    auto out_extent = out.extent(i);
+    in_extents_full.push_back(in_extent);
+    out_extents_full.push_back(out_extent);
+
+    // The extent for transform is always equal to the extent
+    // of the extent of real type (R2C or C2R)
+    // For C2C, the in and out extents are the same.
+    // In the end, we can just use the largest extent among in and out extents.
+    auto fft_extent = std::max(in_extent, out_extent);
+    fft_extents_full.push_back(fft_extent);
+  }
+
+  static_assert(!(is_real_v<in_value_type> && is_real_v<out_value_type>),
+                "get_extents: real to real transform is not supported");
+
+  auto mismatched_extents = [&in, &out]() -> std::string {
+    std::string message;
+    message += in.label();
+    message += "(";
+    message += std::to_string(in.extent(0));
+    for (std::size_t r = 1; r < rank; r++) {
+      message += ",";
+      message += std::to_string(in.extent(r));
+    }
+    message += "), ";
+    message += out.label();
+    message += "(";
+    message += std::to_string(out.extent(0));
+    for (std::size_t r = 1; r < rank; r++) {
+      message += ",";
+      message += std::to_string(out.extent(r));
+    }
+    message += ")";
+    return message;
+  };
+
+  for (std::size_t i = 0; i < rank; i++) {
+    // The requirement for inner_most_axis is different for transform type
+    if (static_cast<int>(i) == inner_most_axis) continue;
+    KOKKOSFFT_THROW_IF(in_extents_full.at(i) != out_extents_full.at(i),
+                       "input and output extents must be the same except for "
+                       "the transform axis: " +
+                           mismatched_extents());
+  }
+
+  if constexpr (is_complex_v<in_value_type> && is_complex_v<out_value_type>) {
+    // Then C2C
+    KOKKOSFFT_THROW_IF(
+        in_extents_full.at(inner_most_axis) !=
+            out_extents_full.at(inner_most_axis),
+        "input and output extents must be the same for C2C transform: " +
+            mismatched_extents());
+  }
+
+  if constexpr (is_real_v<in_value_type>) {
+    // Then R2C
+    if (is_inplace) {
+      in_extents_full.at(inner_most_axis) =
+          out_extents_full.at(inner_most_axis) * 2;
+    } else {
+      KOKKOSFFT_THROW_IF(
+          out_extents_full.at(inner_most_axis) !=
+              in_extents_full.at(inner_most_axis) / 2 + 1,
+          "For R2C, the 'output extent' of transform must be equal to "
+          "'input extent'/2 + 1: " +
+              mismatched_extents());
+    }
+  }
+
+  if constexpr (is_real_v<out_value_type>) {
+    // Then C2R
+    if (is_inplace) {
+      out_extents_full.at(inner_most_axis) =
+          in_extents_full.at(inner_most_axis) * 2;
+    } else {
+      KOKKOSFFT_THROW_IF(
+          in_extents_full.at(inner_most_axis) !=
+              out_extents_full.at(inner_most_axis) / 2 + 1,
+          "For C2R, the 'input extent' of transform must be equal to "
+          "'output extent' / 2 + 1: " +
+              mismatched_extents());
+    }
+  }
+
+  if constexpr (std::is_same_v<array_layout_type, Kokkos::LayoutLeft>) {
+    std::reverse(in_extents_full.begin(), in_extents_full.end());
+    std::reverse(out_extents_full.begin(), out_extents_full.end());
+    std::reverse(fft_extents_full.begin(), fft_extents_full.end());
+  }
+
+  // Define subvectors starting from last - dim
+  // Dimensions relevant to FFTs
+  std::vector<int> in_extents(in_extents_full.end() - dim,
+                              in_extents_full.end());
+  std::vector<int> out_extents(out_extents_full.end() - dim,
+                               out_extents_full.end());
+  std::vector<int> fft_extents(fft_extents_full.end() - dim,
+                               fft_extents_full.end());
+
+  auto total_fft_size = total_size(fft_extents_full);
+  auto fft_size       = total_size(fft_extents);
+  auto howmany        = total_fft_size / fft_size;
+
+  return std::make_tuple(in_extents, out_extents, fft_extents, howmany);
+}
 }  // namespace Impl
 }  // namespace KokkosFFT
 

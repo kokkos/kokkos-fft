@@ -51,17 +51,13 @@ struct GetModifiedShape3D : public ::testing::Test {
   using float_type = T;
 };
 
-auto get_c2r_shape(std::size_t len, bool is_C2R) {
-  return is_C2R ? (len / 2 + 1) : len;
-}
-
 template <typename T>
 void test_reshape1D_1DView() {
   const int len = 30, len_pad = 32, len_crop = 28;
   bool is_C2R = !KokkosFFT::Impl::is_complex_v<T>;
 
   View1D<T> x_out("x_out", len);
-  View1D<Kokkos::complex<double>> x_in("x_in", get_c2r_shape(len, is_C2R));
+  View1D<Kokkos::complex<double>> x_in("x_in", get_r2c_shape(len, is_C2R));
 
   auto shape = KokkosFFT::Impl::get_modified_shape(
       x_in, x_out, shape_type<1>{len}, axes_type<1>{-1});
@@ -70,9 +66,9 @@ void test_reshape1D_1DView() {
   auto shape_crop = KokkosFFT::Impl::get_modified_shape(
       x_in, x_out, shape_type<1>{len_crop}, axes_type<1>{-1});
 
-  shape_type<1> ref_shape      = {get_c2r_shape(len, is_C2R)};
-  shape_type<1> ref_shape_pad  = {get_c2r_shape(len_pad, is_C2R)};
-  shape_type<1> ref_shape_crop = {get_c2r_shape(len_crop, is_C2R)};
+  shape_type<1> ref_shape      = {get_r2c_shape(len, is_C2R)};
+  shape_type<1> ref_shape_pad  = {get_r2c_shape(len_pad, is_C2R)};
+  shape_type<1> ref_shape_crop = {get_r2c_shape(len_crop, is_C2R)};
 
   EXPECT_TRUE(shape == ref_shape);
   EXPECT_TRUE(shape_pad == ref_shape_pad);
@@ -90,13 +86,13 @@ void test_reshape1D_2DView() {
   shape_type<2> default_shape({n0, n1});
   for (int axis0 = 0; axis0 < DIM; axis0++) {
     shape_type<2> in_shape = default_shape;
-    in_shape.at(axis0)     = get_c2r_shape(x_out.extent(axis0), is_C2R);
+    in_shape.at(axis0)     = get_r2c_shape(x_out.extent(axis0), is_C2R);
     auto [s0, s1]          = in_shape;
     View2D<Kokkos::complex<double>> x_in("x_in", s0, s1);
     for (int i0 = -1; i0 <= 1; i0++) {
       shape_type<2> ref_shape = default_shape;
       auto n_new              = x_in.extent(axis0) + i0;
-      ref_shape.at(axis0)     = get_c2r_shape(n_new, is_C2R);
+      ref_shape.at(axis0)     = get_r2c_shape(n_new, is_C2R);
 
       auto modified_shape = KokkosFFT::Impl::get_modified_shape(
           x_in, x_out, shape_type<1>{n_new}, axes_type<1>{axis0});
@@ -117,13 +113,13 @@ void test_reshape1D_3DView() {
   shape_type<3> default_shape({n0, n1, n2});
   for (int axis0 = 0; axis0 < DIM; axis0++) {
     shape_type<3> in_shape = default_shape;
-    in_shape.at(axis0)     = get_c2r_shape(x_out.extent(axis0), is_C2R);
+    in_shape.at(axis0)     = get_r2c_shape(x_out.extent(axis0), is_C2R);
     auto [s0, s1, s2]      = in_shape;
     View3D<Kokkos::complex<double>> x_in("x_in", s0, s1, s2);
     for (int i0 = -1; i0 <= 1; i0++) {
       shape_type<3> ref_shape = default_shape;
       auto n_new              = x_in.extent(axis0) + i0;
-      ref_shape.at(axis0)     = get_c2r_shape(n_new, is_C2R);
+      ref_shape.at(axis0)     = get_r2c_shape(n_new, is_C2R);
 
       auto modified_shape = KokkosFFT::Impl::get_modified_shape(
           x_in, x_out, shape_type<1>{n_new}, axes_type<1>{axis0});
@@ -143,13 +139,13 @@ void test_reshape1D_4DView() {
   shape_type<4> default_shape({n0, n1, n2, n3});
   for (int axis0 = 0; axis0 < DIM; axis0++) {
     shape_type<4> in_shape = default_shape;
-    in_shape.at(axis0)     = get_c2r_shape(x_out.extent(axis0), is_C2R);
+    in_shape.at(axis0)     = get_r2c_shape(x_out.extent(axis0), is_C2R);
     auto [s0, s1, s2, s3]  = in_shape;
     View4D<Kokkos::complex<double>> x_in("x_in", s0, s1, s2, s3);
     for (int i0 = -1; i0 <= 1; i0++) {
       shape_type<4> ref_shape = default_shape;
       auto n_new              = x_in.extent(axis0) + i0;
-      ref_shape.at(axis0)     = get_c2r_shape(n_new, is_C2R);
+      ref_shape.at(axis0)     = get_r2c_shape(n_new, is_C2R);
 
       auto modified_shape = KokkosFFT::Impl::get_modified_shape(
           x_in, x_out, shape_type<1>{n_new}, axes_type<1>{axis0});
@@ -170,13 +166,13 @@ void test_reshape1D_5DView() {
 
   for (int axis0 = 0; axis0 < DIM; axis0++) {
     shape_type<5> in_shape    = default_shape;
-    in_shape.at(axis0)        = get_c2r_shape(x_out.extent(axis0), is_C2R);
+    in_shape.at(axis0)        = get_r2c_shape(x_out.extent(axis0), is_C2R);
     auto [s0, s1, s2, s3, s4] = in_shape;
     View5D<Kokkos::complex<double>> x_in("x_in", s0, s1, s2, s3, s4);
     for (int i0 = -1; i0 <= 1; i0++) {
       shape_type<5> ref_shape = default_shape;
       auto n_new              = x_in.extent(axis0) + i0;
-      ref_shape.at(axis0)     = get_c2r_shape(n_new, is_C2R);
+      ref_shape.at(axis0)     = get_r2c_shape(n_new, is_C2R);
 
       auto modified_shape = KokkosFFT::Impl::get_modified_shape(
           x_in, x_out, shape_type<1>{n_new}, axes_type<1>{axis0});
@@ -196,13 +192,13 @@ void test_reshape1D_6DView() {
   shape_type<6> default_shape({n0, n1, n2, n3, n4, n5});
   for (int axis0 = 0; axis0 < DIM; axis0++) {
     shape_type<6> in_shape        = default_shape;
-    in_shape.at(axis0)            = get_c2r_shape(x_out.extent(axis0), is_C2R);
+    in_shape.at(axis0)            = get_r2c_shape(x_out.extent(axis0), is_C2R);
     auto [s0, s1, s2, s3, s4, s5] = in_shape;
     View6D<Kokkos::complex<double>> x_in("x_in", s0, s1, s2, s3, s4, s5);
     for (int i0 = -1; i0 <= 1; i0++) {
       shape_type<6> ref_shape = default_shape;
       auto n_new              = x_in.extent(axis0) + i0;
-      ref_shape.at(axis0)     = get_c2r_shape(n_new, is_C2R);
+      ref_shape.at(axis0)     = get_r2c_shape(n_new, is_C2R);
 
       auto modified_shape = KokkosFFT::Impl::get_modified_shape(
           x_in, x_out, shape_type<1>{n_new}, axes_type<1>{axis0});
@@ -222,13 +218,13 @@ void test_reshape1D_7DView() {
   shape_type<7> default_shape({n0, n1, n2, n3, n4, n5, n6});
   for (int axis0 = 0; axis0 < DIM; axis0++) {
     shape_type<7> in_shape = default_shape;
-    in_shape.at(axis0)     = get_c2r_shape(x_out.extent(axis0), is_C2R);
+    in_shape.at(axis0)     = get_r2c_shape(x_out.extent(axis0), is_C2R);
     auto [s0, s1, s2, s3, s4, s5, s6] = in_shape;
     View7D<Kokkos::complex<double>> x_in("x_in", s0, s1, s2, s3, s4, s5, s6);
     for (int i0 = -1; i0 <= 1; i0++) {
       shape_type<7> ref_shape = default_shape;
       auto n_new              = x_in.extent(axis0) + i0;
-      ref_shape.at(axis0)     = get_c2r_shape(n_new, is_C2R);
+      ref_shape.at(axis0)     = get_r2c_shape(n_new, is_C2R);
 
       auto modified_shape = KokkosFFT::Impl::get_modified_shape(
           x_in, x_out, shape_type<1>{n_new}, axes_type<1>{axis0});
@@ -248,14 +244,14 @@ void test_reshape1D_8DView() {
   shape_type<8> default_shape({n0, n1, n2, n3, n4, n5, n6, n7});
   for (int axis0 = 0; axis0 < DIM; axis0++) {
     shape_type<8> in_shape = default_shape;
-    in_shape.at(axis0)     = get_c2r_shape(x_out.extent(axis0), is_C2R);
+    in_shape.at(axis0)     = get_r2c_shape(x_out.extent(axis0), is_C2R);
     auto [s0, s1, s2, s3, s4, s5, s6, s7] = in_shape;
     View8D<Kokkos::complex<double>> x_in("x_in", s0, s1, s2, s3, s4, s5, s6,
                                          s7);
     for (int i0 = -1; i0 <= 1; i0++) {
       shape_type<8> ref_shape = default_shape;
       auto n_new              = x_in.extent(axis0) + i0;
-      ref_shape.at(axis0)     = get_c2r_shape(n_new, is_C2R);
+      ref_shape.at(axis0)     = get_r2c_shape(n_new, is_C2R);
 
       auto modified_shape = KokkosFFT::Impl::get_modified_shape(
           x_in, x_out, shape_type<1>{n_new}, axes_type<1>{axis0});
@@ -278,7 +274,7 @@ void test_reshape2D_2DView() {
       if (axis0 == axis1) continue;
       axes_type<2> axes({axis0, axis1});
       shape_type<2> in_shape = default_shape;
-      in_shape.at(axis1)     = get_c2r_shape(x_out.extent(axis1), is_C2R);
+      in_shape.at(axis1)     = get_r2c_shape(x_out.extent(axis1), is_C2R);
       auto [s0, s1]          = in_shape;
       View2D<Kokkos::complex<double>> x_in("x_in", s0, s1);
       for (int i0 = -1; i0 <= 1; i0++) {
@@ -287,7 +283,7 @@ void test_reshape2D_2DView() {
           auto n0_new             = x_in.extent(axis0) + i0;
           auto n1_new             = x_in.extent(axis1) + i1;
           ref_shape.at(axis0)     = n0_new;
-          ref_shape.at(axis1)     = get_c2r_shape(n1_new, is_C2R);
+          ref_shape.at(axis1)     = get_r2c_shape(n1_new, is_C2R);
 
           shape_type<2> new_shape = {n0_new, n1_new};
 
@@ -313,7 +309,7 @@ void test_reshape2D_3DView() {
       if (axis0 == axis1) continue;
       axes_type<2> axes({axis0, axis1});
       shape_type<3> in_shape = default_shape;
-      in_shape.at(axis1)     = get_c2r_shape(x_out.extent(axis1), is_C2R);
+      in_shape.at(axis1)     = get_r2c_shape(x_out.extent(axis1), is_C2R);
       auto [s0, s1, s2]      = in_shape;
       View3D<Kokkos::complex<double>> x_in("x_in", s0, s1, s2);
       for (int i0 = -1; i0 <= 1; i0++) {
@@ -322,7 +318,7 @@ void test_reshape2D_3DView() {
           auto n0_new             = x_in.extent(axis0) + i0;
           auto n1_new             = x_in.extent(axis1) + i1;
           ref_shape.at(axis0)     = n0_new;
-          ref_shape.at(axis1)     = get_c2r_shape(n1_new, is_C2R);
+          ref_shape.at(axis1)     = get_r2c_shape(n1_new, is_C2R);
 
           shape_type<2> new_shape = {n0_new, n1_new};
 
@@ -348,7 +344,7 @@ void test_reshape2D_4DView() {
       if (axis0 == axis1) continue;
       axes_type<2> axes({axis0, axis1});
       shape_type<4> in_shape = default_shape;
-      in_shape.at(axis1)     = get_c2r_shape(x_out.extent(axis1), is_C2R);
+      in_shape.at(axis1)     = get_r2c_shape(x_out.extent(axis1), is_C2R);
       auto [s0, s1, s2, s3]  = in_shape;
       View4D<Kokkos::complex<double>> x_in("x_in", s0, s1, s2, s3);
       for (int i0 = -1; i0 <= 1; i0++) {
@@ -357,7 +353,7 @@ void test_reshape2D_4DView() {
           auto n0_new             = x_in.extent(axis0) + i0;
           auto n1_new             = x_in.extent(axis1) + i1;
           ref_shape.at(axis0)     = n0_new;
-          ref_shape.at(axis1)     = get_c2r_shape(n1_new, is_C2R);
+          ref_shape.at(axis1)     = get_r2c_shape(n1_new, is_C2R);
 
           shape_type<2> new_shape = {n0_new, n1_new};
 
@@ -383,7 +379,7 @@ void test_reshape2D_5DView() {
       if (axis0 == axis1) continue;
       axes_type<2> axes({axis0, axis1});
       shape_type<5> in_shape    = default_shape;
-      in_shape.at(axis1)        = get_c2r_shape(x_out.extent(axis1), is_C2R);
+      in_shape.at(axis1)        = get_r2c_shape(x_out.extent(axis1), is_C2R);
       auto [s0, s1, s2, s3, s4] = in_shape;
       View5D<Kokkos::complex<double>> x_in("x_in", s0, s1, s2, s3, s4);
       for (int i0 = -1; i0 <= 1; i0++) {
@@ -392,7 +388,7 @@ void test_reshape2D_5DView() {
           auto n0_new             = x_in.extent(axis0) + i0;
           auto n1_new             = x_in.extent(axis1) + i1;
           ref_shape.at(axis0)     = n0_new;
-          ref_shape.at(axis1)     = get_c2r_shape(n1_new, is_C2R);
+          ref_shape.at(axis1)     = get_r2c_shape(n1_new, is_C2R);
 
           shape_type<2> new_shape = {n0_new, n1_new};
 
@@ -418,7 +414,7 @@ void test_reshape2D_6DView() {
       if (axis0 == axis1) continue;
       axes_type<2> axes({axis0, axis1});
       shape_type<6> in_shape = default_shape;
-      in_shape.at(axis1)     = get_c2r_shape(x_out.extent(axis1), is_C2R);
+      in_shape.at(axis1)     = get_r2c_shape(x_out.extent(axis1), is_C2R);
       auto [s0, s1, s2, s3, s4, s5] = in_shape;
       View6D<Kokkos::complex<double>> x_in("x_in", s0, s1, s2, s3, s4, s5);
       for (int i0 = -1; i0 <= 1; i0++) {
@@ -427,7 +423,7 @@ void test_reshape2D_6DView() {
           auto n0_new             = x_in.extent(axis0) + i0;
           auto n1_new             = x_in.extent(axis1) + i1;
           ref_shape.at(axis0)     = n0_new;
-          ref_shape.at(axis1)     = get_c2r_shape(n1_new, is_C2R);
+          ref_shape.at(axis1)     = get_r2c_shape(n1_new, is_C2R);
 
           shape_type<2> new_shape = {n0_new, n1_new};
 
@@ -453,7 +449,7 @@ void test_reshape2D_7DView() {
       if (axis0 == axis1) continue;
       axes_type<2> axes({axis0, axis1});
       shape_type<7> in_shape = default_shape;
-      in_shape.at(axis1)     = get_c2r_shape(x_out.extent(axis1), is_C2R);
+      in_shape.at(axis1)     = get_r2c_shape(x_out.extent(axis1), is_C2R);
       auto [s0, s1, s2, s3, s4, s5, s6] = in_shape;
       View7D<Kokkos::complex<double>> x_in("x_in", s0, s1, s2, s3, s4, s5, s6);
       for (int i0 = -1; i0 <= 1; i0++) {
@@ -462,7 +458,7 @@ void test_reshape2D_7DView() {
           auto n0_new             = x_in.extent(axis0) + i0;
           auto n1_new             = x_in.extent(axis1) + i1;
           ref_shape.at(axis0)     = n0_new;
-          ref_shape.at(axis1)     = get_c2r_shape(n1_new, is_C2R);
+          ref_shape.at(axis1)     = get_r2c_shape(n1_new, is_C2R);
 
           shape_type<2> new_shape = {n0_new, n1_new};
 
@@ -488,7 +484,7 @@ void test_reshape2D_8DView() {
       if (axis0 == axis1) continue;
       axes_type<2> axes({axis0, axis1});
       shape_type<8> in_shape = default_shape;
-      in_shape.at(axis1)     = get_c2r_shape(x_out.extent(axis1), is_C2R);
+      in_shape.at(axis1)     = get_r2c_shape(x_out.extent(axis1), is_C2R);
       auto [s0, s1, s2, s3, s4, s5, s6, s7] = in_shape;
       View8D<Kokkos::complex<double>> x_in("x_in", s0, s1, s2, s3, s4, s5, s6,
                                            s7);
@@ -498,7 +494,7 @@ void test_reshape2D_8DView() {
           auto n0_new             = x_in.extent(axis0) + i0;
           auto n1_new             = x_in.extent(axis1) + i1;
           ref_shape.at(axis0)     = n0_new;
-          ref_shape.at(axis1)     = get_c2r_shape(n1_new, is_C2R);
+          ref_shape.at(axis1)     = get_r2c_shape(n1_new, is_C2R);
 
           shape_type<2> new_shape = {n0_new, n1_new};
 
@@ -526,7 +522,7 @@ void test_reshape3D_3DView() {
         if (axis0 == axis1 || axis0 == axis2 || axis1 == axis2) continue;
         axes_type<3> axes({axis0, axis1, axis2});
         shape_type<3> in_shape = default_shape;
-        in_shape.at(axis2)     = get_c2r_shape(x_out.extent(axis2), is_C2R);
+        in_shape.at(axis2)     = get_r2c_shape(x_out.extent(axis2), is_C2R);
         auto [s0, s1, s2]      = in_shape;
         View3D<Kokkos::complex<double>> x_in("x_in", s0, s1, s2);
         for (int i0 = -1; i0 <= 1; i0++) {
@@ -539,7 +535,7 @@ void test_reshape3D_3DView() {
 
               ref_shape.at(axis0) = n0_new;
               ref_shape.at(axis1) = n1_new;
-              ref_shape.at(axis2) = get_c2r_shape(n2_new, is_C2R);
+              ref_shape.at(axis2) = get_r2c_shape(n2_new, is_C2R);
 
               shape_type<3> new_shape = {n0_new, n1_new, n2_new};
               auto modified_shape     = KokkosFFT::Impl::get_modified_shape(
@@ -569,7 +565,7 @@ void test_reshape3D_4DView() {
         if (axis0 == axis1 || axis0 == axis2 || axis1 == axis2) continue;
         axes_type<3> axes({axis0, axis1, axis2});
         shape_type<4> in_shape = default_shape;
-        in_shape.at(axis2)     = get_c2r_shape(x_out.extent(axis2), is_C2R);
+        in_shape.at(axis2)     = get_r2c_shape(x_out.extent(axis2), is_C2R);
         auto [s0, s1, s2, s3]  = in_shape;
         View4D<Kokkos::complex<double>> x_in("x_in", s0, s1, s2, s3);
         for (int i0 = -1; i0 <= 1; i0++) {
@@ -582,7 +578,7 @@ void test_reshape3D_4DView() {
 
               ref_shape.at(axis0) = n0_new;
               ref_shape.at(axis1) = n1_new;
-              ref_shape.at(axis2) = get_c2r_shape(n2_new, is_C2R);
+              ref_shape.at(axis2) = get_r2c_shape(n2_new, is_C2R);
 
               shape_type<3> new_shape = {n0_new, n1_new, n2_new};
 
@@ -611,7 +607,7 @@ void test_reshape3D_5DView() {
         if (axis0 == axis1 || axis0 == axis2 || axis1 == axis2) continue;
         axes_type<3> axes({axis0, axis1, axis2});
         shape_type<5> in_shape    = default_shape;
-        in_shape.at(axis2)        = get_c2r_shape(x_out.extent(axis2), is_C2R);
+        in_shape.at(axis2)        = get_r2c_shape(x_out.extent(axis2), is_C2R);
         auto [s0, s1, s2, s3, s4] = in_shape;
         View5D<Kokkos::complex<double>> x_in("x_in", s0, s1, s2, s3, s4);
         for (int i0 = -1; i0 <= 1; i0++) {
@@ -624,7 +620,7 @@ void test_reshape3D_5DView() {
 
               ref_shape.at(axis0) = n0_new;
               ref_shape.at(axis1) = n1_new;
-              ref_shape.at(axis2) = get_c2r_shape(n2_new, is_C2R);
+              ref_shape.at(axis2) = get_r2c_shape(n2_new, is_C2R);
 
               shape_type<3> new_shape = {n0_new, n1_new, n2_new};
 
@@ -653,7 +649,7 @@ void test_reshape3D_6DView() {
         if (axis0 == axis1 || axis0 == axis2 || axis1 == axis2) continue;
         axes_type<3> axes({axis0, axis1, axis2});
         shape_type<6> in_shape = default_shape;
-        in_shape.at(axis2)     = get_c2r_shape(x_out.extent(axis2), is_C2R);
+        in_shape.at(axis2)     = get_r2c_shape(x_out.extent(axis2), is_C2R);
         auto [s0, s1, s2, s3, s4, s5] = in_shape;
         View6D<Kokkos::complex<double>> x_in("x_in", s0, s1, s2, s3, s4, s5);
         for (int i0 = -1; i0 <= 1; i0++) {
@@ -666,7 +662,7 @@ void test_reshape3D_6DView() {
 
               ref_shape.at(axis0) = n0_new;
               ref_shape.at(axis1) = n1_new;
-              ref_shape.at(axis2) = get_c2r_shape(n2_new, is_C2R);
+              ref_shape.at(axis2) = get_r2c_shape(n2_new, is_C2R);
 
               shape_type<3> new_shape = {n0_new, n1_new, n2_new};
 
@@ -695,7 +691,7 @@ void test_reshape3D_7DView() {
         if (axis0 == axis1 || axis0 == axis2 || axis1 == axis2) continue;
         axes_type<3> axes({axis0, axis1, axis2});
         shape_type<7> in_shape = default_shape;
-        in_shape.at(axis2)     = get_c2r_shape(x_out.extent(axis2), is_C2R);
+        in_shape.at(axis2)     = get_r2c_shape(x_out.extent(axis2), is_C2R);
         auto [s0, s1, s2, s3, s4, s5, s6] = in_shape;
         View7D<Kokkos::complex<double>> x_in("x_in", s0, s1, s2, s3, s4, s5,
                                              s6);
@@ -709,7 +705,7 @@ void test_reshape3D_7DView() {
 
               ref_shape.at(axis0) = n0_new;
               ref_shape.at(axis1) = n1_new;
-              ref_shape.at(axis2) = get_c2r_shape(n2_new, is_C2R);
+              ref_shape.at(axis2) = get_r2c_shape(n2_new, is_C2R);
 
               shape_type<3> new_shape = {n0_new, n1_new, n2_new};
 
@@ -737,7 +733,7 @@ void test_reshape3D_8DView() {
         if (axis0 == axis1 || axis0 == axis2 || axis1 == axis2) continue;
         axes_type<3> axes({axis0, axis1, axis2});
         shape_type<8> in_shape = default_shape;
-        in_shape.at(axis2)     = get_c2r_shape(x_out.extent(axis2), is_C2R);
+        in_shape.at(axis2)     = get_r2c_shape(x_out.extent(axis2), is_C2R);
         auto [s0, s1, s2, s3, s4, s5, s6, s7] = in_shape;
         View8D<Kokkos::complex<double>> x_in("x_in", s0, s1, s2, s3, s4, s5, s6,
                                              s7);
@@ -751,7 +747,7 @@ void test_reshape3D_8DView() {
 
               ref_shape.at(axis0) = n0_new;
               ref_shape.at(axis1) = n1_new;
-              ref_shape.at(axis2) = get_c2r_shape(n2_new, is_C2R);
+              ref_shape.at(axis2) = get_r2c_shape(n2_new, is_C2R);
 
               shape_type<3> new_shape = {n0_new, n1_new, n2_new};
 
