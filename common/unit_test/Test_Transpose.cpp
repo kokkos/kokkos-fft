@@ -421,7 +421,7 @@ void test_transpose_1d_2dview(bool bounds_check) {
       if (bounds_check) {
         // With bounds_check, we can manipulate the output extents to be
         // different from the input extents.
-        axes_type<DIM> perturbations = {1, -1};
+        [[maybe_unused]] axes_type<DIM> perturbations{1, -1};
         out_extents.at(i) += perturbations.at(map.at(i));
       }
     }
@@ -472,7 +472,7 @@ void test_transpose_1d_3dview(bool bounds_check) {
       if (bounds_check) {
         // With bounds_check, we can manipulate the output extents to be
         // different from the input extents.
-        axes_type<DIM> perturbations = {1, -2, -1};
+        [[maybe_unused]] axes_type<DIM> perturbations{1, -2, -1};
         out_extents.at(i) += perturbations.at(map.at(i));
       }
     }
@@ -524,7 +524,7 @@ void test_transpose_1d_4dview(bool bounds_check) {
       if (bounds_check) {
         // With bounds_check, we can manipulate the output extents to be
         // different from the input extents.
-        axes_type<DIM> perturbations = {1, 0, -1, -3};
+        [[maybe_unused]] axes_type<DIM> perturbations{1, 0, -1, -3};
         out_extents.at(i) += perturbations.at(map.at(i));
       }
     }
@@ -576,7 +576,7 @@ void test_transpose_1d_5dview(bool bounds_check) {
       if (bounds_check) {
         // With bounds_check, we can manipulate the output extents to be
         // different from the input extents.
-        axes_type<DIM> perturbations = {1, -1, -1, -3, -2};
+        [[maybe_unused]] axes_type<DIM> perturbations{1, -1, -1, -3, -2};
         out_extents.at(i) += perturbations.at(map.at(i));
       }
     }
@@ -628,7 +628,7 @@ void test_transpose_1d_6dview(bool bounds_check) {
       if (bounds_check) {
         // With bounds_check, we can manipulate the output extents to be
         // different from the input extents.
-        axes_type<DIM> perturbations = {0, -1, 1, 1, -2, -1};
+        [[maybe_unused]] axes_type<DIM> perturbations{0, -1, 1, 1, -2, -1};
         out_extents.at(i) += perturbations.at(map.at(i));
       }
     }
@@ -680,7 +680,7 @@ void test_transpose_1d_7dview(bool bounds_check) {
       if (bounds_check) {
         // With bounds_check, we can manipulate the output extents to be
         // different from the input extents.
-        axes_type<DIM> perturbations = {0, -1, 1, 1, -2, -1, 1};
+        [[maybe_unused]] axes_type<DIM> perturbations{0, -1, 1, 1, -2, -1, 1};
         out_extents.at(i) += perturbations.at(map.at(i));
       }
     }
@@ -732,7 +732,8 @@ void test_transpose_1d_8dview(bool bounds_check) {
       if (bounds_check) {
         // With bounds_check, we can manipulate the output extents to be
         // different from the input extents.
-        axes_type<DIM> perturbations = {0, -1, 1, 1, -2, -1, 1, 1};
+        [[maybe_unused]] axes_type<DIM> perturbations{0,  -1, 1, 1,
+                                                      -2, -1, 1, 1};
         out_extents.at(i) += perturbations.at(map.at(i));
       }
     }
@@ -788,7 +789,7 @@ void test_transpose_2d_2dview(bool bounds_check) {
         if (bounds_check) {
           // With bounds_check, we can manipulate the output extents to be
           // different from the input extents.
-          axes_type<DIM> perturbations = {1, -1};
+          [[maybe_unused]] axes_type<DIM> perturbations{1, -1};
           out_extents.at(i) += perturbations.at(map.at(i));
         }
       }
@@ -842,7 +843,7 @@ void test_transpose_2d_3dview(bool bounds_check) {
         if (bounds_check) {
           // With bounds_check, we can manipulate the output extents to be
           // different from the input extents.
-          axes_type<DIM> perturbations = {1, -1, 2};
+          [[maybe_unused]] axes_type<DIM> perturbations{1, -1, 2};
           out_extents.at(i) += perturbations.at(map.at(i));
         }
       }
@@ -900,7 +901,7 @@ void test_transpose_2d_4dview(bool bounds_check) {
           if (bounds_check) {
             // With bounds_check, we can manipulate the output extents to be
             // different from the input extents.
-            axes_type<DIM> perturbations = {1, 0, -1, -3};
+            [[maybe_unused]] axes_type<DIM> perturbations{1, 0, -1, -3};
             out_extents.at(i) += perturbations.at(map.at(i));
           }
         }
@@ -957,7 +958,7 @@ void test_transpose_2d_5dview(bool bounds_check) {
         if (bounds_check) {
           // With bounds_check, we can manipulate the output extents to be
           // different from the input extents.
-          axes_type<DIM> perturbations = {1, -1, -1, -3, -2};
+          [[maybe_unused]] axes_type<DIM> perturbations{1, -1, -1, -3, -2};
           out_extents.at(i) += perturbations.at(map.at(i));
         }
       }
@@ -1014,7 +1015,7 @@ void test_transpose_2d_6dview(bool bounds_check) {
         if (bounds_check) {
           // With bounds_check, we can manipulate the output extents to be
           // different from the input extents.
-          axes_type<DIM> perturbations = {1, -1, -1, 1, -2, -2};
+          [[maybe_unused]] axes_type<DIM> perturbations{1, -1, -1, 1, -2, -2};
           out_extents.at(i) += perturbations.at(map.at(i));
         }
       }
@@ -1071,7 +1072,7 @@ void test_transpose_2d_7dview(bool bounds_check) {
         if (bounds_check) {
           // With bounds_check, we can manipulate the output extents to be
           // different from the input extents.
-          axes_type<DIM> perturbations = {1, -1, -1, 1, -2, -2};
+          [[maybe_unused]] axes_type<DIM> perturbations{1, -1, -1, 1, -2, -2};
           out_extents.at(i) += perturbations.at(map.at(i));
         }
       }
@@ -1128,7 +1129,8 @@ void test_transpose_2d_8dview(bool bounds_check) {
         if (bounds_check) {
           // With bounds_check, we can manipulate the output extents to be
           // different from the input extents.
-          axes_type<DIM> perturbations = {0, -1, 1, 1, -2, -1, 1, 1};
+          [[maybe_unused]] axes_type<DIM> perturbations{0,  -1, 1, 1,
+                                                        -2, -1, 1, 1};
           out_extents.at(i) += perturbations.at(map.at(i));
         }
       }
@@ -1191,7 +1193,7 @@ void test_transpose_3d_3dview(bool bounds_check) {
           if (bounds_check) {
             // With bounds_check, we can manipulate the output extents to be
             // different from the input extents.
-            axes_type<DIM> perturbations = {1, -1, 1};
+            [[maybe_unused]] axes_type<DIM> perturbations{1, -1, 1};
             out_extents.at(i) += perturbations.at(map.at(i));
           }
         }
@@ -1253,7 +1255,7 @@ void test_transpose_3d_4dview(bool bounds_check) {
           if (bounds_check) {
             // With bounds_check, we can manipulate the output extents to be
             // different from the input extents.
-            axes_type<DIM> perturbations = {1, -1, 1, -1};
+            [[maybe_unused]] axes_type<DIM> perturbations{1, -1, 1, -1};
             out_extents.at(i) += perturbations.at(map.at(i));
           }
         }
@@ -1312,7 +1314,7 @@ void test_transpose_3d_5dview(bool bounds_check) {
           if (bounds_check) {
             // With bounds_check, we can manipulate the output extents to be
             // different from the input extents.
-            axes_type<DIM> perturbations = {1, -1, 1, -1, -1};
+            [[maybe_unused]] axes_type<DIM> perturbations{1, -1, 1, -1, -1};
             out_extents.at(i) += perturbations.at(map.at(i));
           }
         }
@@ -1372,7 +1374,7 @@ void test_transpose_3d_6dview(bool bounds_check) {
           if (bounds_check) {
             // With bounds_check, we can manipulate the output extents to be
             // different from the input extents.
-            axes_type<DIM> perturbations = {1, -1, 1, -1, -1, -1};
+            [[maybe_unused]] axes_type<DIM> perturbations{1, -1, 1, -1, -1, -1};
             out_extents.at(i) += perturbations.at(map.at(i));
           }
         }
@@ -1433,7 +1435,8 @@ void test_transpose_3d_7dview(bool bounds_check) {
           if (bounds_check) {
             // With bounds_check, we can manipulate the output extents to be
             // different from the input extents.
-            axes_type<DIM> perturbations = {1, -1, 1, -1, -1, -1, -1};
+            [[maybe_unused]] axes_type<DIM> perturbations{1,  -1, 1, -1,
+                                                          -1, -1, -1};
             out_extents.at(i) += perturbations.at(map.at(i));
           }
         }
@@ -1493,7 +1496,8 @@ void test_transpose_3d_8dview(bool bounds_check) {
           if (bounds_check) {
             // With bounds_check, we can manipulate the output extents to be
             // different from the input extents.
-            axes_type<DIM> perturbations = {0, -1, 1, 1, -2, -1, 1, 1};
+            [[maybe_unused]] axes_type<DIM> perturbations{0,  -1, 1, 1,
+                                                          -2, -1, 1, 1};
             out_extents.at(i) += perturbations.at(map.at(i));
           }
         }
