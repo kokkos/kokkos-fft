@@ -449,6 +449,32 @@ auto reversed(Container&& c) {
   return copy;
 }
 
+/// \brief Convert a std::array to std::vector
+/// \tparam ArrayType The type of the std::array
+/// \param[in, out] arr The input std::array
+/// \return A std::vector containing the elements of the input array
+template <typename ArrayType>
+auto to_vector(ArrayType&& arr) {
+  using array_type = std::decay_t<ArrayType>;
+  static_assert(KokkosFFT::Impl::is_std_array_v<array_type>,
+                "to_vector: Input type must be a std::array");
+
+  using value_type        = typename array_type::value_type;
+  constexpr std::size_t N = std::tuple_size_v<array_type>;
+
+  if constexpr (std::is_rvalue_reference_v<ArrayType&&>) {
+    // Move elements from the rvalue array
+    std::vector<value_type> vec;
+    vec.reserve(N);
+    std::move(arr.begin(), arr.end(), std::back_inserter(vec));
+    return vec;
+  } else {
+    // Copy elements from the lvalue array
+    std::vector<value_type> vec(arr.begin(), arr.end());
+    return vec;
+  }
+}
+
 // Copied from Kokkos_Layout.hpp
 // Since this is not publicly exposed, we re-implement it here
 // to avoid dependency on Kokkos implementation details

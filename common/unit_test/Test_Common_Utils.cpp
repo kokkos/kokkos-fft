@@ -717,6 +717,31 @@ void test_are_valid_axes() {
   }
 }
 
+template <typename iType>
+void test_array_to_vector(iType nprocs) {
+  using vector_type      = std::vector<iType>;
+  using array_type       = std::array<iType, 3>;
+  using const_array_type = const std::array<iType, 3>;
+  array_type arr = {nprocs, 1, 8}, arr_ref = {nprocs, 1, 8};
+  const_array_type carr = {nprocs, 1, 8}, carr_ref = {nprocs, 1, 8};
+  vector_type ref_vec = {nprocs, 1, 8};
+
+  // Test for Lvalue
+  auto vec  = KokkosFFT::Impl::to_vector(arr);
+  auto cvec = KokkosFFT::Impl::to_vector(carr);
+  EXPECT_EQ(vec, ref_vec);
+  EXPECT_EQ(cvec, ref_vec);
+  EXPECT_EQ(arr, arr_ref) << "Input container modified in lvalue test";
+  EXPECT_EQ(carr, carr_ref) << "Input container modified in lvalue test";
+
+  // Test for Rvalue
+  auto vec_tmp  = KokkosFFT::Impl::to_vector(array_type{nprocs, 1, 8});
+  auto vec_move = KokkosFFT::Impl::to_vector(std::move(arr));
+  EXPECT_EQ(vec_tmp, ref_vec);
+  EXPECT_EQ(vec_move, ref_vec);
+  EXPECT_EQ(arr, arr_ref) << "Input container modified in rvalue test";
+}
+
 template <typename ValueType1, typename ValueType2>
 void test_are_pointers_aliasing() {
   using View1 = Kokkos::View<ValueType1*, execution_space>;
@@ -1061,6 +1086,13 @@ TYPED_TEST(ContainerTypes, test_reversed_of_vectors) {
 TYPED_TEST(ContainerTypes, are_valid_axes) {
   using value_type = typename TestFixture::value_type;
   test_are_valid_axes<value_type>();
+}
+
+TYPED_TEST(ContainerTypes, array_to_vector) {
+  using value_type = typename TestFixture::value_type;
+  for (value_type nprocs = 1; nprocs <= 6; ++nprocs) {
+    test_array_to_vector<value_type>(nprocs);
+  }
 }
 
 TEST(ExtractExtents, 1Dto8D) {
