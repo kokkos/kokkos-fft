@@ -76,6 +76,102 @@ struct ScopedCufftPlan {
   }
 };
 
+/// \brief A class that wraps cufft for RAII
+struct ScopedCufftDynPlan {
+ private:
+  cufftHandle m_plan;
+  std::size_t m_workspace_size;
+
+ public:
+  ScopedCufftDynPlan(int nx, cufftType type, int batch) {
+    cufftResult cufft_rt = cufftCreate(&m_plan);
+    KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftCreate failed");
+
+    cufft_rt = cufftSetAutoAllocation(m_plan, 0);
+    KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS,
+                       "cufftSetAutoAllocation failed");
+
+    cufft_rt = cufftMakePlan1d(m_plan, nx, type, batch, &m_workspace_size);
+    KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftMakePlan1d failed");
+  }
+
+  ScopedCufftDynPlan(const std::vector<int> &fft_extents, cufftType type) {
+    cufftResult cufft_rt = cufftCreate(&m_plan);
+    KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftCreate failed");
+
+    cufft_rt = cufftSetAutoAllocation(m_plan, 0);
+    KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS,
+                       "cufftSetAutoAllocation failed");
+
+    if (fft_extents.size() == 2) {
+      auto nx = fft_extents.at(0), ny = fft_extents.at(1);
+      cufft_rt = cufftMakePlan2d(m_plan, nx, ny, type, &m_workspace_size);
+      KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftMakePlan2d failed");
+    } else if (fft_extents.size() == 3) {
+      auto nx = fft_extents.at(0), ny = fft_extents.at(1),
+           nz  = fft_extents.at(2);
+      cufft_rt = cufftMakePlan3d(m_plan, nx, ny, nz, type, &m_workspace_size);
+      KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftMakePlan3d failed");
+    } else {
+      KOKKOSFFT_THROW_IF(true, "FFT dimension can be 2D or 3D only");
+    }
+  }
+
+  ScopedCufftDynPlan(int rank, int *n, int *inembed, int istride, int idist,
+                     int *onembed, int ostride, int odist, cufftType type,
+                     int batch) {
+    cufftResult cufft_rt = cufftCreate(&m_plan);
+    KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftCreate failed");
+
+    cufft_rt = cufftSetAutoAllocation(m_plan, 0);
+    KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS,
+                       "cufftSetAutoAllocation failed");
+
+    cufft_rt =
+        cufftMakePlanMany(m_plan, rank, n, inembed, istride, idist, onembed,
+                          ostride, odist, type, batch, &m_workspace_size);
+    KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftMakePlanMany failed");
+  }
+
+  ~ScopedCufftDynPlan() noexcept {
+    Kokkos::Profiling::ScopedRegion region(
+        "KokkosFFT::cleanup_plan[TPL_cufft]");
+    cufftResult cufft_rt = cufftDestroy(m_plan);
+    if (cufft_rt != CUFFT_SUCCESS) Kokkos::abort("cufftDestroy failed");
+  }
+
+  ScopedCufftDynPlan()                                      = delete;
+  ScopedCufftDynPlan(const ScopedCufftDynPlan &)            = delete;
+  ScopedCufftDynPlan &operator=(const ScopedCufftDynPlan &) = delete;
+  ScopedCufftDynPlan &operator=(ScopedCufftDynPlan &&)      = delete;
+  ScopedCufftDynPlan(ScopedCufftDynPlan &&)                 = delete;
+
+  cufftHandle plan() const noexcept { return m_plan; }
+
+  /// \brief Return the workspace size in Byte
+  /// \return the workspace size in Byte
+  std::size_t workspace_size() const noexcept { return m_workspace_size; }
+
+  template <typename WorkViewType>
+  void set_work_area(const WorkViewType &work) const {
+    using value_type           = typename WorkViewType::non_const_value_type;
+    std::size_t workspace_size = work.size() * sizeof(value_type);
+    KOKKOSFFT_THROW_IF(
+        workspace_size < m_workspace_size,
+        "insufficient work buffer size. buffer size: " +
+            std::to_string(workspace_size) +
+            ", required size: " + std::to_string(m_workspace_size));
+    void *work_area      = static_cast<void *>(work.data());
+    cufftResult cufft_rt = cufftSetWorkArea(m_plan, work_area);
+    KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftSetWorkArea failed");
+  }
+
+  void commit(const Kokkos::Cuda &exec_space) const {
+    cufftResult cufft_rt = cufftSetStream(m_plan, exec_space.cuda_stream());
+    KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftSetStream failed");
+  }
+};
+
 #if defined(KOKKOSFFT_ENABLE_TPL_FFTW)
 template <typename ExecutionSpace>
 struct FFTDataType {
@@ -176,6 +272,14 @@ struct FFTPlanType {
                                   cufft_plan_type, fftw_plan_type>;
 };
 
+template <typename ExecutionSpace, typename T1, typename T2>
+struct FFTDynPlanType {
+  using fftw_plan_type  = ScopedFFTWPlan<ExecutionSpace, T1, T2>;
+  using cufft_plan_type = ScopedCufftDynPlan;
+  using type = std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::Cuda>,
+                                  cufft_plan_type, fftw_plan_type>;
+};
+
 template <typename ExecutionSpace>
 auto direction_type(Direction direction) {
   static constexpr FFTDirectionType FORWARD =
@@ -235,6 +339,11 @@ struct transform_type<ExecutionSpace, Kokkos::complex<T1>,
 template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTPlanType {
   using type = ScopedCufftPlan;
+};
+
+template <typename ExecutionSpace, typename T1, typename T2>
+struct FFTDynPlanType {
+  using type = ScopedCufftDynPlan;
 };
 
 template <typename ExecutionSpace>
