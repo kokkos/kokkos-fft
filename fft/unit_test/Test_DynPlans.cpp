@@ -103,7 +103,6 @@ auto get_in_out_extents(const bool is_R2C) {
 // Tests for execution space
 template <typename ExecutionSpace, typename InValueType, typename OutValueType>
 void test_dynplan_constructible() {
-  using ValueType     = double;
   using InView1DType  = Kokkos::View<InValueType*, ExecutionSpace>;
   using OutView1DType = Kokkos::View<OutValueType*, ExecutionSpace>;
   using DynPlanType =
