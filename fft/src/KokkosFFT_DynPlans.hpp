@@ -44,18 +44,12 @@ class DynPlan {
   //! The real value type of input/output views
   using float_type = base_floating_point_type<in_value_type>;
 
-  //! The layout type of input/output views
-  using layout_type = typename InViewType::array_layout;
-
   //! The type of fft plan
   using fft_plan_type = typename FFTDynPlanType<ExecutionSpace, in_value_type,
                                                 out_value_type>::type;
 
   //! The type of fft size
   using fft_size_type = std::size_t;
-
-  //! The type of map for transpose
-  using map_type = axis_type<InViewType::rank()>;
 
   //! The type of extents of input/output views
   using extents_type = shape_type<InViewType::rank()>;
@@ -70,23 +64,8 @@ class DynPlan {
   //! fft size
   fft_size_type m_fft_size = 1;
 
-  //! maps for forward and backward transpose
-  // map_type m_map, m_map_inv;
-
-  //! whether transpose is needed or not
-  // bool m_is_transpose_needed = false;
-
-  //! whether crop or pad is needed or not
-  // bool m_is_crop_or_pad_needed = false;
-
   //! in-place transform or not
   bool m_is_inplace = false;
-
-  //! axes for fft
-  // axis_type<DIM> m_axes;
-
-  //! Shape of the transformed axis of the output
-  // extents_type m_shape;
 
   //! directions of fft
   KokkosFFT::Direction m_direction;
