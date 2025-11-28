@@ -121,6 +121,14 @@ struct ScopedFFTWPlan {
 
   plan_type plan() const noexcept { return m_plan; }
 
+  /// \brief Return the workspace size in Byte
+  /// For FFTW, we do not need to manage workspace separately
+  /// \return the workspace size in Byte
+  std::size_t workspace_size() const noexcept { return 0; }
+
+  template <typename WorkViewType>
+  void set_work_area(const WorkViewType & /*work*/) const {}
+
  private:
   void init_threads([[maybe_unused]] const ExecutionSpace &exec_space) {
 #if defined(KOKKOS_ENABLE_OPENMP) || defined(KOKKOS_ENABLE_THREADS)
