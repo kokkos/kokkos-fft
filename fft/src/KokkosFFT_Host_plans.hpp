@@ -104,6 +104,51 @@ auto create_plan(const ExecutionSpace& exec_space,
   return fft_size;
 }
 
+// batched transform, over ND Views
+template <typename ExecutionSpace, typename PlanType, typename InViewType,
+          typename OutViewType,
+          std::enable_if_t<is_AnyHostSpace_v<ExecutionSpace>, std::nullptr_t> =
+              nullptr>
+auto create_dynplan(const ExecutionSpace& exec_space,
+                    std::unique_ptr<PlanType>& plan, const InViewType& in,
+                    const OutViewType& out, Direction direction,
+                    std::size_t dim, bool is_inplace) {
+  static_assert(
+      KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
+                                              OutViewType>,
+      "create_plan: InViewType and OutViewType must have the same base "
+      "floating point type (float/double), the same layout "
+      "(LayoutLeft/LayoutRight), "
+      "and the same rank. ExecutionSpace must be accessible to the data in "
+      "InViewType and OutViewType.");
+
+  using in_value_type  = typename InViewType::non_const_value_type;
+  using out_value_type = typename OutViewType::non_const_value_type;
+
+  Kokkos::Profiling::ScopedRegion region("KokkosFFT::create_plan[TPL_fftw]");
+  auto [in_extents, out_extents, fft_extents, howmany] =
+      KokkosFFT::Impl::get_extents(in, out, dim, is_inplace);
+  int idist    = total_size(in_extents);
+  int odist    = total_size(out_extents);
+  int fft_size = total_size(fft_extents);
+
+  auto* idata = reinterpret_cast<typename KokkosFFT::Impl::fft_data_type<
+      ExecutionSpace, in_value_type>::type*>(in.data());
+  auto* odata = reinterpret_cast<typename KokkosFFT::Impl::fft_data_type<
+      ExecutionSpace, out_value_type>::type*>(out.data());
+
+  // For the moment, considering the contiguous layout only
+  int istride = 1, ostride = 1;
+  auto sign = KokkosFFT::Impl::direction_type<ExecutionSpace>(direction);
+
+  plan = std::make_unique<PlanType>(
+      exec_space, fft_extents.size(), fft_extents.data(), howmany, idata,
+      in_extents.data(), istride, idist, odata, out_extents.data(), ostride,
+      odist, sign, FFTW_ESTIMATE);
+
+  return fft_size;
+}
+
 }  // namespace Impl
 }  // namespace KokkosFFT
 
