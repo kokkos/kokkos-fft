@@ -2,7 +2,12 @@
 #
 # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
+# TO DO: Add other backends in separate PRs
+if(KokkosFFT_ENABLE_CUFFT)
+add_executable(unit-tests-kokkos-fft-core Test_Main.cpp Test_Plans.cpp Test_DynPlans.cpp Test_Transform.cpp)
+else()
 add_executable(unit-tests-kokkos-fft-core Test_Main.cpp Test_Plans.cpp Test_Transform.cpp)
+endif()
 
 target_compile_features(unit-tests-kokkos-fft-core PUBLIC cxx_std_17)
 target_link_libraries(unit-tests-kokkos-fft-core PUBLIC KokkosFFT::fft GTest::gtest)

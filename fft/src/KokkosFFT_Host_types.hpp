@@ -30,6 +30,11 @@ struct FFTPlanType {
   using type = ScopedFFTWPlan<ExecutionSpace, T1, T2>;
 };
 
+template <typename ExecutionSpace, typename T1, typename T2>
+struct FFTDynPlanType {
+  using type = ScopedFFTWPlan<ExecutionSpace, T1, T2>;
+};
+
 template <typename ExecutionSpace>
 auto direction_type(Direction direction) {
   return direction == Direction::forward ? FFTW_FORWARD : FFTW_BACKWARD;
