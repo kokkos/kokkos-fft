@@ -2,12 +2,7 @@
 #
 # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
-# TO DO: Add other backends in separate PRs
-if(KokkosFFT_ENABLE_CUFFT)
-add_executable(unit-tests-kokkos-fft-core Test_Main.cpp Test_Plans.cpp Test_DynPlans.cpp Test_Transform.cpp)
-else()
 add_executable(unit-tests-kokkos-fft-core Test_Main.cpp Test_Plans.cpp Test_Transform.cpp)
-endif()
 
 target_compile_features(unit-tests-kokkos-fft-core PUBLIC cxx_std_17)
 target_link_libraries(unit-tests-kokkos-fft-core PUBLIC KokkosFFT::fft GTest::gtest)
@@ -15,3 +10,11 @@ target_link_libraries(unit-tests-kokkos-fft-core PUBLIC KokkosFFT::fft GTest::gt
 # Enable GoogleTest
 include(GoogleTest)
 gtest_discover_tests(unit-tests-kokkos-fft-core PROPERTIES DISCOVERY_TIMEOUT 600 DISCOVERY_MODE PRE_TEST)
+
+if(KokkosFFT_ENABLE_CUFFT)
+  # TO DO: Add other backends in separate PRs
+  add_executable(unit-tests-kokkos-dynfft Test_Main.cpp Test_DynPlans.cpp)
+  target_compile_features(unit-tests-kokkos-dynfft PUBLIC cxx_std_17)
+  target_link_libraries(unit-tests-kokkos-dynfft PUBLIC KokkosFFT::fft GTest::gtest)
+  gtest_discover_tests(unit-tests-kokkos-dynfft PROPERTIES DISCOVERY_TIMEOUT 600 DISCOVERY_MODE PRE_TEST)
+endif()
