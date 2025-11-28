@@ -40,6 +40,45 @@ enum class FFTWTransformType { R2C, D2Z, C2R, Z2D, C2C, Z2Z };
 template <typename ExecutionSpace>
 using TransformType = FFTWTransformType;
 
+// Helper to get input and output array type and direction from transform type
+auto get_in_out_array_type(FFTWTransformType type, Direction direction) {
+  rocfft_array_type in_array_type, out_array_type;
+  rocfft_transform_type fft_direction;
+
+  if (type == FFTWTransformType::C2C || type == FFTWTransformType::Z2Z) {
+    in_array_type  = rocfft_array_type_complex_interleaved;
+    out_array_type = rocfft_array_type_complex_interleaved;
+    fft_direction  = direction == Direction::forward
+                         ? rocfft_transform_type_complex_forward
+                         : rocfft_transform_type_complex_inverse;
+  } else if (type == FFTWTransformType::R2C || type == FFTWTransformType::D2Z) {
+    in_array_type  = rocfft_array_type_real;
+    out_array_type = rocfft_array_type_hermitian_interleaved;
+    fft_direction  = rocfft_transform_type_real_forward;
+  } else if (type == FFTWTransformType::C2R || type == FFTWTransformType::Z2D) {
+    in_array_type  = rocfft_array_type_hermitian_interleaved;
+    out_array_type = rocfft_array_type_real;
+    fft_direction  = rocfft_transform_type_real_inverse;
+  }
+
+  return std::tuple<rocfft_array_type, rocfft_array_type,
+                    rocfft_transform_type>(
+      {in_array_type, out_array_type, fft_direction});
+};
+
+// Helper to convert the integer type of vectors
+template <typename InType, typename OutType>
+auto convert_int_type_and_reverse(const std::vector<InType> &in)
+    -> std::vector<OutType> {
+  std::vector<OutType> out(in.size());
+  std::transform(
+      in.cbegin(), in.cend(), out.begin(),
+      [](const InType v) -> OutType { return static_cast<OutType>(v); });
+
+  std::reverse(out.begin(), out.end());
+  return out;
+}
+
 /// \brief A class that wraps rocfft_plan_description for RAII
 struct ScopedRocfftPlanDescription {
  private:
@@ -72,9 +111,6 @@ struct ScopedRocfftExecutionInfo {
  private:
   rocfft_execution_info m_execution_info;
 
-  //! Internal work buffer
-  void *m_workbuffer = nullptr;
-
  public:
   ScopedRocfftExecutionInfo() {
     // Prepare workbuffer and set execution information
@@ -83,9 +119,6 @@ struct ScopedRocfftExecutionInfo {
                        "rocfft_execution_info_create failed");
   }
   ~ScopedRocfftExecutionInfo() noexcept {
-    if (m_workbuffer != nullptr) {
-      Kokkos::kokkos_free<Kokkos::HIP>(m_workbuffer);
-    }
     rocfft_status status = rocfft_execution_info_destroy(m_execution_info);
     if (status != rocfft_status_success)
       Kokkos::abort("rocfft_execution_info_destroy failed");
@@ -101,7 +134,17 @@ struct ScopedRocfftExecutionInfo {
     return m_execution_info;
   }
 
-  void setup(const Kokkos::HIP &exec_space, std::size_t workbuffersize) {
+  void set_work_area(void *workbuffer, std::size_t workbuffersize) {
+    // Set work buffer
+    if (workbuffersize > 0) {
+      rocfft_status status = rocfft_execution_info_set_work_buffer(
+          m_execution_info, workbuffer, workbuffersize);
+      KOKKOSFFT_THROW_IF(status != rocfft_status_success,
+                         "rocfft_execution_info_set_work_buffer failed");
+    }
+  }
+
+  void commit(const Kokkos::HIP &exec_space) {
     // set stream
     // NOTE: The stream must be of type hipStream_t.
     // It is an error to pass the address of a hipStream_t object.
@@ -110,17 +153,6 @@ struct ScopedRocfftExecutionInfo {
         rocfft_execution_info_set_stream(m_execution_info, stream);
     KOKKOSFFT_THROW_IF(status != rocfft_status_success,
                        "rocfft_execution_info_set_stream failed");
-
-    // Set work buffer
-    if (workbuffersize > 0) {
-      m_workbuffer =
-          Kokkos::kokkos_malloc<Kokkos::HIP>("workbuffer", workbuffersize);
-
-      status = rocfft_execution_info_set_work_buffer(
-          m_execution_info, m_workbuffer, workbuffersize);
-      KOKKOSFFT_THROW_IF(status != rocfft_status_success,
-                         "rocfft_execution_info_set_work_buffer failed");
-    }
   }
 };
 
@@ -133,6 +165,9 @@ struct ScopedRocfftPlan {
                                      ? rocfft_precision_single
                                      : rocfft_precision_double;
   rocfft_plan m_plan;
+  std::size_t m_workspace_size;
+  //! Internal work buffer
+  void *m_workbuffer = nullptr;
   std::unique_ptr<ScopedRocfftExecutionInfo> m_execution_info;
 
  public:
@@ -186,10 +221,17 @@ struct ScopedRocfftPlan {
     );
     KOKKOSFFT_THROW_IF(status != rocfft_status_success,
                        "rocfft_plan_create failed");
+    status = rocfft_plan_get_work_buffer_size(m_plan, &m_workspace_size);
+    KOKKOSFFT_THROW_IF(status != rocfft_status_success,
+                       "rocfft_plan_get_work_buffer_size failed");
+    m_execution_info = std::make_unique<ScopedRocfftExecutionInfo>();
   }
   ~ScopedRocfftPlan() noexcept {
     Kokkos::Profiling::ScopedRegion region(
         "KokkosFFT::cleanup_plan[TPL_rocfft]");
+    if (m_workbuffer != nullptr) {
+      Kokkos::kokkos_free<Kokkos::HIP>(m_workbuffer);
+    }
     rocfft_status status = rocfft_plan_destroy(m_plan);
     if (status != rocfft_status_success)
       Kokkos::abort("rocfft_plan_destroy failed");
@@ -206,56 +248,35 @@ struct ScopedRocfftPlan {
     return m_execution_info->execution_info();
   }
 
-  void commit(const Kokkos::HIP &exec_space) {
-    std::size_t workbuffersize = 0;
-    rocfft_status status =
-        rocfft_plan_get_work_buffer_size(m_plan, &workbuffersize);
-    KOKKOSFFT_THROW_IF(status != rocfft_status_success,
-                       "rocfft_plan_get_work_buffer_size failed");
+  /// \brief Return the workspace size in Byte
+  /// \return the workspace size in Byte
+  std::size_t workspace_size() const noexcept { return m_workspace_size; }
 
-    m_execution_info = std::make_unique<ScopedRocfftExecutionInfo>();
-    m_execution_info->setup(exec_space, workbuffersize);
+  template <typename WorkViewType>
+  void set_work_area(const WorkViewType &work) const {
+    using value_type           = typename WorkViewType::non_const_value_type;
+    std::size_t workspace_size = work.size() * sizeof(value_type);
+    if (workspace_size > 0) {
+      KOKKOSFFT_THROW_IF(
+          workspace_size < m_workspace_size,
+          "insufficient work buffer size. buffer size: " +
+              std::to_string(workspace_size) +
+              ", required size: " + std::to_string(m_workspace_size));
+      void *work_area = static_cast<void *>(work.data());
+      m_execution_info->set_work_area(work_area, workspace_size);
+    }
   }
 
-  // Helper to get input and output array type and direction from transform type
-  auto get_in_out_array_type(FFTWTransformType type, Direction direction) {
-    rocfft_array_type in_array_type, out_array_type;
-    rocfft_transform_type fft_direction;
-
-    if (type == FFTWTransformType::C2C || type == FFTWTransformType::Z2Z) {
-      in_array_type  = rocfft_array_type_complex_interleaved;
-      out_array_type = rocfft_array_type_complex_interleaved;
-      fft_direction  = direction == Direction::forward
-                           ? rocfft_transform_type_complex_forward
-                           : rocfft_transform_type_complex_inverse;
-    } else if (type == FFTWTransformType::R2C ||
-               type == FFTWTransformType::D2Z) {
-      in_array_type  = rocfft_array_type_real;
-      out_array_type = rocfft_array_type_hermitian_interleaved;
-      fft_direction  = rocfft_transform_type_real_forward;
-    } else if (type == FFTWTransformType::C2R ||
-               type == FFTWTransformType::Z2D) {
-      in_array_type  = rocfft_array_type_hermitian_interleaved;
-      out_array_type = rocfft_array_type_real;
-      fft_direction  = rocfft_transform_type_real_inverse;
+  void set_work_area() {
+    if (m_workspace_size > 0) {
+      m_workbuffer =
+          Kokkos::kokkos_malloc<Kokkos::HIP>("workbuffer", m_workspace_size);
+      m_execution_info->set_work_area(m_workbuffer, m_workspace_size);
     }
+  }
 
-    return std::tuple<rocfft_array_type, rocfft_array_type,
-                      rocfft_transform_type>(
-        {in_array_type, out_array_type, fft_direction});
-  };
-
-  // Helper to convert the integer type of vectors
-  template <typename InType, typename OutType>
-  auto convert_int_type_and_reverse(const std::vector<InType> &in)
-      -> std::vector<OutType> {
-    std::vector<OutType> out(in.size());
-    std::transform(
-        in.cbegin(), in.cend(), out.begin(),
-        [](const InType v) -> OutType { return static_cast<OutType>(v); });
-
-    std::reverse(out.begin(), out.end());
-    return out;
+  void commit(const Kokkos::HIP &exec_space) {
+    m_execution_info->commit(exec_space);
   }
 };
 
@@ -319,6 +340,14 @@ struct FFTPlanType {
                                   rocfft_plan_type, fftw_plan_type>;
 };
 
+template <typename ExecutionSpace, typename T1, typename T2>
+struct FFTDynPlanType {
+  using fftw_plan_type   = ScopedFFTWPlan<ExecutionSpace, T1, T2>;
+  using rocfft_plan_type = ScopedRocfftPlan<T1>;
+  using type = std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
+                                  rocfft_plan_type, fftw_plan_type>;
+};
+
 template <typename ExecutionSpace>
 auto direction_type(Direction direction) {
   static constexpr FFTDirectionType FORWARD =
@@ -341,6 +370,11 @@ struct FFTDataType {
 
 template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTPlanType {
+  using type = ScopedRocfftPlan<T1>;
+};
+
+template <typename ExecutionSpace, typename T1, typename T2>
+struct FFTDynPlanType {
   using type = ScopedRocfftPlan<T1>;
 };
 

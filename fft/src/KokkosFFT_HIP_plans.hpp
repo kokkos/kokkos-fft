@@ -184,6 +184,55 @@ auto create_plan(const ExecutionSpace& exec_space,
   return fft_size;
 }
 
+// Interface for dynamic plans
+template <typename ExecutionSpace, typename PlanType, typename InViewType,
+          typename OutViewType,
+          std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
+                           std::nullptr_t> = nullptr>
+auto create_dynplan(const ExecutionSpace& exec_space,
+                    std::unique_ptr<PlanType>& plan, const InViewType& in,
+                    const OutViewType& out, Direction /*direction*/,
+                    std::size_t dim, bool is_inplace) {
+  static_assert(
+      KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
+                                              OutViewType>,
+      "create_plan: InViewType and OutViewType must have the same base "
+      "floating point type (float/double), the same layout "
+      "(LayoutLeft/LayoutRight), "
+      "and the same rank. ExecutionSpace must be accessible to the data in "
+      "InViewType and OutViewType.");
+  using in_value_type  = typename InViewType::non_const_value_type;
+  using out_value_type = typename OutViewType::non_const_value_type;
+
+  Kokkos::Profiling::ScopedRegion region(
+      "KokkosFFT::create_dynplan[TPL_hipfft]");
+  auto type = KokkosFFT::Impl::transform_type<ExecutionSpace, in_value_type,
+                                              out_value_type>::type();
+  auto [in_extents, out_extents, fft_extents, howmany] =
+      KokkosFFT::Impl::get_extents(in, out, dim, is_inplace);
+  int idist    = total_size(in_extents);
+  int odist    = total_size(out_extents);
+  int fft_size = total_size(fft_extents);
+
+  if (dim == 1) {
+    const int nx = fft_extents.at(0);
+    plan         = std::make_unique<PlanType>(nx, type, howmany);
+  } else if (dim == 2 || dim == 3) {
+    if (InViewType::rank() == dim) {
+      plan = std::make_unique<PlanType>(fft_extents, type);
+    } else {
+      int istride = 1, ostride = 1;
+      plan = std::make_unique<PlanType>(
+          fft_extents.size(), fft_extents.data(), in_extents.data(), istride,
+          idist, out_extents.data(), ostride, odist, type, howmany);
+    }
+  }
+
+  plan->commit(exec_space);
+
+  return fft_size;
+}
+
 }  // namespace Impl
 }  // namespace KokkosFFT
 
