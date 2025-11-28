@@ -22,37 +22,31 @@ namespace Impl {
 ///
 /// \tparam InViewType The input view type
 /// \tparam OutViewType The output view type
-/// \tparam DIM         The dimensionality of the axes
 ///
-/// \param in [in] Input view
-/// \param out [in] Output view
-/// \param axes [in] Axes over which the FFT operations are performed.
-/// \param shape [in] The new shape of the input view. If the shape is zero,
-/// no modifications are made.
-/// \param is_inplace [in] Whether the FFT is inplace or not
-template <typename InViewType, typename OutViewType, std::size_t DIM = 1>
+/// \param[in] in Input view
+/// \param[in] out Output view
+/// \param[in] map mapping for permutation
+/// \param[in] axes Axes over which the FFT operations are performed
+/// \param[in] modified_in_shape The new shape of the input view
+/// \param[in] is_inplace Whether the FFT is inplace or not
+template <typename InViewType, typename OutViewType>
 auto get_extents(const InViewType& in, const OutViewType& out,
-                 axis_type<DIM> axes, shape_type<DIM> shape = {},
-                 [[maybe_unused]] bool is_inplace = false) {
+                 const std::vector<int>& map,
+                 [[maybe_unused]] const std::vector<int>& axes,
+                 const std::vector<std::size_t>& modified_in_shape,
+                 [[maybe_unused]] bool is_inplace) {
   using in_value_type     = typename InViewType::non_const_value_type;
   using out_value_type    = typename OutViewType::non_const_value_type;
   using array_layout_type = typename InViewType::array_layout;
 
-  KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axes),
-                     "input axes are not valid for the view");
+  static_assert(!(is_real_v<in_value_type> && is_real_v<out_value_type>),
+                "get_extents: real to real transform is not supported");
 
   constexpr std::size_t rank = InViewType::rank;
   [[maybe_unused]] int inner_most_axis =
       std::is_same_v<array_layout_type, typename Kokkos::LayoutLeft>
           ? 0
           : (rank - 1);
-
-  // index map after transpose over axis
-  auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(in, axes);
-
-  // Get new shape based on shape parameter
-  auto modified_in_shape =
-      KokkosFFT::Impl::get_modified_shape(in, out, shape, axes);
 
   // Get extents for the inner most axes in LayoutRight
   // If we allow the FFT on the layoutLeft, this part should be modified
@@ -71,9 +65,6 @@ auto get_extents(const InViewType& in, const OutViewType& out,
     auto fft_extent = std::max(in_extent, out_extent);
     fft_extents_full.push_back(fft_extent);
   }
-
-  static_assert(!(is_real_v<in_value_type> && is_real_v<out_value_type>),
-                "get_extents: real to real transform is not supported");
 
   auto mismatched_extents = [&in, &out, &axes]() -> std::string {
     std::string message;
@@ -158,6 +149,7 @@ auto get_extents(const InViewType& in, const OutViewType& out,
 
   // Define subvectors starting from last - DIM
   // Dimensions relevant to FFTs
+  const std::size_t DIM = axes.size();
   std::vector<int> in_extents(in_extents_full.end() - DIM,
                               in_extents_full.end());
   std::vector<int> out_extents(out_extents_full.end() - DIM,
@@ -170,6 +162,77 @@ auto get_extents(const InViewType& in, const OutViewType& out,
   auto howmany        = total_fft_size / fft_size;
 
   return std::make_tuple(in_extents, out_extents, fft_extents, howmany);
+}
+
+/// \brief Compute input, output and fft extents required for FFT
+/// libraries based on the input view, output view, axes and shape.
+/// Extents are converted into Layout Right
+///
+/// \tparam InViewType The input view type
+/// \tparam OutViewType The output view type
+/// \tparam DIM         The dimensionality of the axes
+///
+/// \param[in] in Input view
+/// \param[in] out Output view
+/// \param[in] axes Axes over which the FFT operations are performed.
+/// \param[in] shape The new shape of the input view. If the shape is zero,
+/// no modifications are made.
+/// \param[in] is_inplace Whether the FFT is inplace or not
+template <typename InViewType, typename OutViewType, std::size_t DIM = 1>
+auto get_extents(const InViewType& in, const OutViewType& out,
+                 axis_type<DIM> axes, shape_type<DIM> shape = {},
+                 bool is_inplace = false) {
+  KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axes),
+                     "input axes are not valid for the view");
+
+  // index map after transpose over axis
+  [[maybe_unused]] auto [map, map_inv] =
+      KokkosFFT::Impl::get_map_axes(in, axes);
+
+  // Get new shape based on shape parameter
+  auto modified_in_shape =
+      KokkosFFT::Impl::get_modified_shape(in, out, shape, axes);
+
+  auto map_vec               = to_vector(map);
+  auto axes_vec              = to_vector(axes);
+  auto modified_in_shape_vec = to_vector(modified_in_shape);
+
+  return get_extents(in, out, map_vec, axes_vec, modified_in_shape_vec,
+                     is_inplace);
+}
+
+/// \brief Compute input, output and fft extents required for FFT
+/// libraries based on the input view, output view, axes and shape.
+/// Extents are converted into Layout Right
+///
+/// \tparam InViewType The input view type
+/// \tparam OutViewType The output view type
+///
+/// \param[in] in Input view
+/// \param[in] out Output view
+/// \param[in] dim The dimensionality of FFT
+/// \param[in] is_inplace  Whether the FFT is inplace or not
+template <typename InViewType, typename OutViewType>
+auto get_extents(const InViewType& in, const OutViewType& out, std::size_t dim,
+                 bool is_inplace = false) {
+  using LayoutType = typename InViewType::array_layout;
+
+  // Contiguous map (no permutation)
+  std::vector<int> map(InViewType::rank());
+  std::iota(map.begin(), map.end(), 0);
+
+  std::vector<int> axes(dim);
+  if constexpr (std::is_same_v<LayoutType, typename Kokkos::LayoutLeft>) {
+    std::iota(axes.begin(), axes.end(), 0);
+    std::reverse(axes.begin(), axes.end());
+  } else {
+    std::iota(axes.begin(), axes.end(), -dim);
+  }
+
+  auto in_shape     = extract_extents(in);
+  auto in_shape_vec = to_vector(in_shape);
+
+  return get_extents(in, out, map, axes, in_shape_vec, is_inplace);
 }
 }  // namespace Impl
 }  // namespace KokkosFFT
