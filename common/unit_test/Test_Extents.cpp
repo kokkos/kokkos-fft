@@ -37,8 +37,6 @@ struct TestGetDynExtents2D : public ::testing::Test {
 // Tests for extent_after_transform
 template <typename T>
 void test_extent_after_transform() {
-  using float_type      = KokkosFFT::Impl::base_floating_point_type<T>;
-  using complex_type    = Kokkos::complex<float_type>;
   constexpr bool is_R2C = KokkosFFT::Impl::is_real_v<T>;
   const int n0 = 6, n1 = 7;
 
