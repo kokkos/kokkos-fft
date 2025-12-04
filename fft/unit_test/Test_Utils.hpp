@@ -162,8 +162,4 @@ void ifft1(const ExecutionSpace& exec, const ViewType& in,
       });
 }
 
-inline auto get_r2c_shape(std::size_t len, bool is_R2C) {
-  return is_R2C ? (len / 2 + 1) : len;
-}
-
 #endif

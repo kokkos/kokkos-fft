@@ -197,7 +197,7 @@ auto create_dynplan(const ExecutionSpace& exec_space,
   static_assert(
       KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
                                               OutViewType>,
-      "create_plan: InViewType and OutViewType must have the same base "
+      "create_dynplan: InViewType and OutViewType must have the same base "
       "floating point type (float/double), the same layout "
       "(LayoutLeft/LayoutRight), "
       "and the same rank. ExecutionSpace must be accessible to the data in "

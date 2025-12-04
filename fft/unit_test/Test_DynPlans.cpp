@@ -73,17 +73,17 @@ struct TestDynPlans3D : public ::testing::Test {
 
 template <typename LayoutType, std::size_t DIM, std::size_t FFT_DIM>
 auto get_in_out_extents(const bool is_R2C) {
-  std::array<std::size_t, DIM> in_extents = {};
+  std::array<std::size_t, DIM> in_extents{};
   for (std::size_t i = 0; i < in_extents.size(); i++) {
     in_extents.at(i) = i % 2 == 0 ? 6 : 5;
   }
 
-  [[maybe_unused]] int inner_most_axis =
+  int inner_most_axis =
       std::is_same_v<LayoutType, typename Kokkos::LayoutLeft> ? 0 : (DIM - 1);
 
   std::array<std::size_t, DIM> out_extents = in_extents;
-  out_extents.at(inner_most_axis) =
-      get_r2c_shape(in_extents.at(inner_most_axis), is_R2C);
+  out_extents.at(inner_most_axis) = KokkosFFT::Impl::extent_after_transform(
+      in_extents.at(inner_most_axis), is_R2C);
 
   if constexpr (FFT_DIM == 1) {
     return std::make_tuple(in_extents, out_extents, inner_most_axis);

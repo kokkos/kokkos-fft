@@ -13,7 +13,35 @@
 
 #include <algorithm>
 #include <Kokkos_Core.hpp>
-#include "KokkosFFT_Plans.hpp"
+#include "KokkosFFT_default_types.hpp"
+#include "KokkosFFT_traits.hpp"
+#include "KokkosFFT_normalization.hpp"
+#include "KokkosFFT_utils.hpp"
+
+#if defined(KOKKOSFFT_ENABLE_TPL_CUFFT)
+#include "KokkosFFT_Cuda_plans.hpp"
+#include "KokkosFFT_Cuda_transform.hpp"
+#endif
+
+#if defined(KOKKOSFFT_ENABLE_TPL_ROCFFT)
+#include "KokkosFFT_ROCM_plans.hpp"
+#include "KokkosFFT_ROCM_transform.hpp"
+#endif
+
+#if defined(KOKKOSFFT_ENABLE_TPL_HIPFFT)
+#include "KokkosFFT_HIP_plans.hpp"
+#include "KokkosFFT_HIP_transform.hpp"
+#endif
+
+#if defined(KOKKOSFFT_ENABLE_TPL_ONEMKL)
+#include "KokkosFFT_SYCL_plans.hpp"
+#include "KokkosFFT_SYCL_transform.hpp"
+#endif
+
+#if defined(KOKKOSFFT_ENABLE_TPL_FFTW)
+#include "KokkosFFT_Host_plans.hpp"
+#include "KokkosFFT_Host_transform.hpp"
+#endif
 
 namespace KokkosFFT {
 namespace Impl {
@@ -22,7 +50,7 @@ namespace Impl {
 /// FFT dimension is given at runtime.
 ///
 /// This class is used to manage the FFT plan of backend FFT library.
-/// Depending on the input and output Views and axes, appropriate FFT plans are
+/// Depending on the input and output Views and dim, appropriate FFT plans are
 /// created. If there are inconsistency in input and output views, the
 /// compilation would fail.
 ///
@@ -83,27 +111,25 @@ class DynPlan {
   /// \param[in] out Output data
   /// \param[in] direction Direction of FFT (forward/backward)
   /// \param[in] dim The dimensionality of FFT
-  //
   explicit DynPlan(const ExecutionSpace& exec_space, const InViewType& in,
                    const OutViewType& out, KokkosFFT::Direction direction,
                    std::size_t dim)
       : m_exec_space(exec_space), m_direction(direction) {
     static_assert(KokkosFFT::Impl::is_AllowedSpace_v<ExecutionSpace>,
-                  "Plan::Plan: ExecutionSpace is not allowed ");
+                  "DynPlan::DynPlan: ExecutionSpace is not allowed ");
     static_assert(
         KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
                                                 OutViewType>,
-        "Plan::Plan: InViewType and OutViewType must have the same base "
+        "DynPlan::DynPlan: InViewType and OutViewType must have the same base "
         "floating point type (float/double), the same layout "
         "(LayoutLeft/LayoutRight), "
         "and the same rank. ExecutionSpace must be accessible to the data in "
         "InViewType and OutViewType.");
 
     KOKKOSFFT_THROW_IF(dim < 1 || dim > 3,
-                       "DynPlan: only 1D, 2D, and 3D FFTs are supported.");
-    KOKKOSFFT_THROW_IF(
-        dim > InViewType::rank(),
-        "DynPlan: Rank of View must be larger than Rank of FFT.");
+                       "only 1D, 2D, and 3D FFTs are supported.");
+    KOKKOSFFT_THROW_IF(dim > InViewType::rank(),
+                       "Rank of View must be larger than Rank of FFT.");
 
     if constexpr (KokkosFFT::Impl::is_real_v<in_value_type>) {
       KOKKOSFFT_THROW_IF(m_direction != KokkosFFT::Direction::forward,
@@ -197,8 +223,8 @@ class DynPlan {
   ///        pre-defined FFT plan. This raises an error if there is an
   ///        inconsistency between FFT function and plan
   ///
-  /// \param in [in] Input data
-  /// \param out [in] Output data
+  /// \param[in] in Input data
+  /// \param[in] out Output data
   void good(const InViewType& in, const OutViewType& out) const {
     auto in_extents  = KokkosFFT::Impl::extract_extents(in);
     auto out_extents = KokkosFFT::Impl::extract_extents(out);
@@ -211,10 +237,12 @@ class DynPlan {
                        "extents of output View for plan and "
                        "execution are not identical.");
 
-    bool is_inplace = KokkosFFT::Impl::are_aliasing(in.data(), out.data());
-    KOKKOSFFT_THROW_IF(is_inplace != m_is_inplace,
-                       "If the plan is in-place, the input and output Views "
-                       "must be identical.");
+    if (m_is_inplace) {
+      bool is_inplace = KokkosFFT::Impl::are_aliasing(in.data(), out.data());
+      KOKKOSFFT_THROW_IF(!is_inplace,
+                         "If the plan is in-place, the input and output Views "
+                         "must be identical.");
+    }
   }
 };
 
