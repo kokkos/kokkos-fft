@@ -76,6 +76,105 @@ struct ScopedHIPfftPlan {
   }
 };
 
+/// \brief A class that wraps hipfft for RAII
+struct ScopedHIPfftDynPlan {
+ private:
+  hipfftHandle m_plan;
+  std::size_t m_workspace_size;
+
+ public:
+  ScopedHIPfftDynPlan(int nx, hipfftType type, int batch) {
+    hipfftResult hipfft_rt = hipfftCreate(&m_plan);
+    KOKKOSFFT_THROW_IF(hipfft_rt != HIPFFT_SUCCESS, "hipfftCreate failed");
+
+    hipfft_rt = hipfftSetAutoAllocation(m_plan, 0);
+    KOKKOSFFT_THROW_IF(hipfft_rt != HIPFFT_SUCCESS,
+                       "hipfftSetAutoAllocation failed");
+
+    hipfft_rt = hipfftMakePlan1d(m_plan, nx, type, batch, &m_workspace_size);
+    KOKKOSFFT_THROW_IF(hipfft_rt != HIPFFT_SUCCESS, "hipfftMakePlan1d failed");
+  }
+
+  ScopedHIPfftDynPlan(const std::vector<int> &fft_extents, hipfftType type) {
+    hipfftResult hipfft_rt = hipfftCreate(&m_plan);
+    KOKKOSFFT_THROW_IF(hipfft_rt != HIPFFT_SUCCESS, "hipfftCreate failed");
+
+    hipfft_rt = hipfftSetAutoAllocation(m_plan, 0);
+    KOKKOSFFT_THROW_IF(hipfft_rt != HIPFFT_SUCCESS,
+                       "hipfftSetAutoAllocation failed");
+
+    if (fft_extents.size() == 2) {
+      auto nx = fft_extents.at(0), ny = fft_extents.at(1);
+      hipfft_rt = hipfftMakePlan2d(m_plan, nx, ny, type, &m_workspace_size);
+      KOKKOSFFT_THROW_IF(hipfft_rt != HIPFFT_SUCCESS,
+                         "hipfftMakePlan2d failed");
+    } else if (fft_extents.size() == 3) {
+      auto nx = fft_extents.at(0), ny = fft_extents.at(1),
+           nz   = fft_extents.at(2);
+      hipfft_rt = hipfftMakePlan3d(m_plan, nx, ny, nz, type, &m_workspace_size);
+      KOKKOSFFT_THROW_IF(hipfft_rt != HIPFFT_SUCCESS,
+                         "hipfftMakePlan3d failed");
+    } else {
+      KOKKOSFFT_THROW_IF(true, "FFT dimension can be 2D or 3D only");
+    }
+  }
+
+  ScopedHIPfftDynPlan(int rank, int *n, int *inembed, int istride, int idist,
+                      int *onembed, int ostride, int odist, hipfftType type,
+                      int batch) {
+    hipfftResult hipfft_rt = hipfftCreate(&m_plan);
+    KOKKOSFFT_THROW_IF(hipfft_rt != HIPFFT_SUCCESS, "hipfftCreate failed");
+
+    hipfft_rt = hipfftSetAutoAllocation(m_plan, 0);
+    KOKKOSFFT_THROW_IF(hipfft_rt != HIPFFT_SUCCESS,
+                       "hipfftSetAutoAllocation failed");
+
+    hipfft_rt =
+        hipfftMakePlanMany(m_plan, rank, n, inembed, istride, idist, onembed,
+                           ostride, odist, type, batch, &m_workspace_size);
+    KOKKOSFFT_THROW_IF(hipfft_rt != HIPFFT_SUCCESS,
+                       "hipfftMakePlanMany failed");
+  }
+
+  ~ScopedHIPfftDynPlan() noexcept {
+    Kokkos::Profiling::ScopedRegion region(
+        "KokkosFFT::cleanup_plan[TPL_hipfft]");
+    hipfftResult hipfft_rt = hipfftDestroy(m_plan);
+    if (hipfft_rt != HIPFFT_SUCCESS) Kokkos::abort("hipfftDestroy failed");
+  }
+
+  ScopedHIPfftDynPlan()                                       = delete;
+  ScopedHIPfftDynPlan(const ScopedHIPfftDynPlan &)            = delete;
+  ScopedHIPfftDynPlan &operator=(const ScopedHIPfftDynPlan &) = delete;
+  ScopedHIPfftDynPlan &operator=(ScopedHIPfftDynPlan &&)      = delete;
+  ScopedHIPfftDynPlan(ScopedHIPfftDynPlan &&)                 = delete;
+
+  hipfftHandle plan() const noexcept { return m_plan; }
+
+  /// \brief Return the workspace size in Byte
+  /// \return the workspace size in Byte
+  std::size_t workspace_size() const noexcept { return m_workspace_size; }
+
+  template <typename WorkViewType>
+  void set_work_area(const WorkViewType &work) const {
+    using value_type           = typename WorkViewType::non_const_value_type;
+    std::size_t workspace_size = work.size() * sizeof(value_type);
+    KOKKOSFFT_THROW_IF(
+        workspace_size < m_workspace_size,
+        "insufficient work buffer size. buffer size: " +
+            std::to_string(workspace_size) +
+            ", required size: " + std::to_string(m_workspace_size));
+    void *work_area        = static_cast<void *>(work.data());
+    hipfftResult hipfft_rt = hipfftSetWorkArea(m_plan, work_area);
+    KOKKOSFFT_THROW_IF(hipfft_rt != HIPFFT_SUCCESS, "hipfftSetWorkArea failed");
+  }
+
+  void commit(const Kokkos::HIP &exec_space) const {
+    hipfftResult hipfft_rt = hipfftSetStream(m_plan, exec_space.hip_stream());
+    KOKKOSFFT_THROW_IF(hipfft_rt != HIPFFT_SUCCESS, "hipfftSetStream failed");
+  }
+};
+
 #if defined(KOKKOSFFT_ENABLE_TPL_FFTW)
 template <typename ExecutionSpace>
 struct FFTDataType {
@@ -176,6 +275,14 @@ struct FFTPlanType {
                                   hipfft_plan_type, fftw_plan_type>;
 };
 
+template <typename ExecutionSpace, typename T1, typename T2>
+struct FFTDynPlanType {
+  using fftw_plan_type   = ScopedFFTWPlan<ExecutionSpace, T1, T2>;
+  using hipfft_plan_type = ScopedHIPfftDynPlan;
+  using type = std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
+                                  hipfft_plan_type, fftw_plan_type>;
+};
+
 template <typename ExecutionSpace>
 auto direction_type(Direction direction) {
   static constexpr FFTDirectionType FORWARD =
@@ -235,6 +342,11 @@ struct transform_type<ExecutionSpace, Kokkos::complex<T1>,
 template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTPlanType {
   using type = ScopedHIPfftPlan;
+};
+
+template <typename ExecutionSpace, typename T1, typename T2>
+struct FFTDynPlanType {
+  using type = ScopedHIPfftDynPlan;
 };
 
 template <typename ExecutionSpace>
