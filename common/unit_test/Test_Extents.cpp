@@ -34,6 +34,27 @@ struct TestGetDynExtents2D : public ::testing::Test {
   using layout_type = T;
 };
 
+// Tests for extent_after_transform
+template <typename T>
+void test_extent_after_transform() {
+  constexpr bool is_R2C = KokkosFFT::Impl::is_real_v<T>;
+  const int n0 = 6, n1 = 7;
+
+  if constexpr (is_R2C) {
+    auto n0h         = KokkosFFT::Impl::extent_after_transform(n0, is_R2C);
+    auto n1h         = KokkosFFT::Impl::extent_after_transform(n1, is_R2C);
+    const int ref_n0 = n0 / 2 + 1;
+    const int ref_n1 = n1 / 2 + 1;
+    EXPECT_EQ(n0h, ref_n0);
+    EXPECT_EQ(n1h, ref_n1);
+  } else {
+    auto n0h = KokkosFFT::Impl::extent_after_transform(n0, is_R2C);
+    auto n1h = KokkosFFT::Impl::extent_after_transform(n1, is_R2C);
+    EXPECT_EQ(n0h, n0);
+    EXPECT_EQ(n1h, n1);
+  }
+}
+
 // Tests for 1D FFT
 template <typename T, typename LayoutType>
 void test_extents_1d_view_1d(bool is_static = true) {
@@ -47,7 +68,7 @@ void test_extents_1d_view_1d(bool is_static = true) {
   constexpr bool is_R2C = KokkosFFT::Impl::is_real_v<T>;
 
   const int n0  = 6;
-  const int n0h = get_r2c_shape(n0, is_R2C);
+  const int n0h = KokkosFFT::Impl::extent_after_transform(n0, is_R2C);
 
   ViewType xr("xr", n0);
   ComplexViewtype xc("xc", n0h);
@@ -125,7 +146,8 @@ void test_extents_1d_view_2d(bool is_static = true) {
   constexpr bool is_R2C = KokkosFFT::Impl::is_real_v<T>;
 
   const int n0 = 6, n1 = 10;
-  const int n0h = get_r2c_shape(n0, is_R2C), n1h = get_r2c_shape(n1, is_R2C);
+  const int n0h = KokkosFFT::Impl::extent_after_transform(n0, is_R2C),
+            n1h = KokkosFFT::Impl::extent_after_transform(n1, is_R2C);
 
   ViewType xr("xr", n0, n1);
   ComplexViewtype xc_axis0("xc_axis0", n0h, n1), xc_axis1("xc_axis1", n0, n1h);
@@ -255,8 +277,9 @@ void test_extents_1d_view_3d(bool is_static = true) {
   constexpr bool is_R2C = KokkosFFT::Impl::is_real_v<T>;
 
   const int n0 = 6, n1 = 10, n2 = 8;
-  const int n0h = get_r2c_shape(n0, is_R2C), n1h = get_r2c_shape(n1, is_R2C),
-            n2h = get_r2c_shape(n2, is_R2C);
+  const int n0h = KokkosFFT::Impl::extent_after_transform(n0, is_R2C),
+            n1h = KokkosFFT::Impl::extent_after_transform(n1, is_R2C),
+            n2h = KokkosFFT::Impl::extent_after_transform(n2, is_R2C);
 
   ViewType xr("xr", n0, n1, n2);
   ComplexViewtype xc_axis0("xc_axis0", n0h, n1, n2),
@@ -411,7 +434,8 @@ void test_extents_2d_view_2d(bool is_static = true) {
   constexpr bool is_R2C = KokkosFFT::Impl::is_real_v<T>;
 
   const int n0 = 6, n1 = 10;
-  const int n0h = get_r2c_shape(n0, is_R2C), n1h = get_r2c_shape(n1, is_R2C);
+  const int n0h = KokkosFFT::Impl::extent_after_transform(n0, is_R2C),
+            n1h = KokkosFFT::Impl::extent_after_transform(n1, is_R2C);
 
   ViewType xr("xr", n0, n1);
   ComplexViewtype xc_axis0("xc_axis0", n0h, n1), xc_axis1("xc_axis1", n0, n1h);
@@ -555,8 +579,9 @@ void test_extents_2d_view_3d(bool is_static = true) {
   constexpr bool is_R2C = KokkosFFT::Impl::is_real_v<T>;
 
   const int n0 = 6, n1 = 10, n2 = 8;
-  const int n0h = get_r2c_shape(n0, is_R2C), n1h = get_r2c_shape(n1, is_R2C),
-            n2h = get_r2c_shape(n2, is_R2C);
+  const int n0h = KokkosFFT::Impl::extent_after_transform(n0, is_R2C),
+            n1h = KokkosFFT::Impl::extent_after_transform(n1, is_R2C),
+            n2h = KokkosFFT::Impl::extent_after_transform(n2, is_R2C);
 
   ViewType xr("xr", n0, n1, n2);
   ComplexViewtype xc_axis0("xc_axis0", n0h, n1, n2),
@@ -813,6 +838,17 @@ TYPED_TEST_SUITE(TestGetExtents1D, test_types);
 TYPED_TEST_SUITE(TestGetExtents2D, test_types);
 TYPED_TEST_SUITE(TestGetDynExtents1D, test_types);
 TYPED_TEST_SUITE(TestGetDynExtents2D, test_types);
+
+// Get output extent
+TEST(TestGetOutputExtent, R2C) {
+  using float_type = double;
+  test_extent_after_transform<float_type>();
+}
+
+TEST(TestGetOutputExtent, C2C) {
+  using float_type = Kokkos::complex<double>;
+  test_extent_after_transform<float_type>();
+}
 
 // get_extents with static dimension
 TYPED_TEST(TestGetExtents1D, 1DView_R2C) {

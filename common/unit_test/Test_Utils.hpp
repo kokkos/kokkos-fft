@@ -9,10 +9,6 @@
 #include <type_traits>
 #include <Kokkos_Core.hpp>
 
-inline auto get_r2c_shape(std::size_t len, bool is_R2C) {
-  return is_R2C ? (len / 2 + 1) : len;
-}
-
 template <typename ExecutionSpace, typename AViewType, typename BViewType>
 bool allclose(const ExecutionSpace& exec, const AViewType& a,
               const BViewType& b, double rtol = 1.e-5, double atol = 1.e-8) {
