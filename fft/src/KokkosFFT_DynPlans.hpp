@@ -66,8 +66,8 @@ class DynPlan {
       "DynPlan::DynPlan: InViewType and OutViewType must have the same base "
       "floating point type (float/double), the same layout "
       "(LayoutLeft/LayoutRight), "
-      "and the same rank. ExecutionSpace must be accessible to the data in "
-      "InViewType and OutViewType.");
+      "and the same rank. The data in InViewType and OutViewType must be "
+      "accessible from ExecutionSpace.");
 
   //! The type of Kokkos execution pace
   using execSpace = ExecutionSpace;

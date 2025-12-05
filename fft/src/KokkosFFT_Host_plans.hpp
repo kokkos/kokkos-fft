@@ -68,8 +68,8 @@ auto create_plan(const ExecutionSpace& exec_space,
       "create_plan: InViewType and OutViewType must have the same base "
       "floating point type (float/double), the same layout "
       "(LayoutLeft/LayoutRight), "
-      "and the same rank. ExecutionSpace must be accessible to the data in "
-      "InViewType and OutViewType.");
+      "and the same rank. The data in InViewType and OutViewType must be "
+      "accessible from ExecutionSpace.");
 
   static_assert(
       InViewType::rank() >= fft_rank,
@@ -119,8 +119,8 @@ auto create_dynplan(const ExecutionSpace& exec_space,
       "create_plan: InViewType and OutViewType must have the same base "
       "floating point type (float/double), the same layout "
       "(LayoutLeft/LayoutRight), "
-      "and the same rank. ExecutionSpace must be accessible to the data in "
-      "InViewType and OutViewType.");
+      "and the same rank. The data in InViewType and OutViewType must be "
+      "accessible from ExecutionSpace.");
 
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;

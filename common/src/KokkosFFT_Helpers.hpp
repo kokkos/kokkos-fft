@@ -316,7 +316,7 @@ void fftshift(const ExecutionSpace& exec_space, const ViewType& inout,
                 "fftshift: View value type must be float, double, "
                 "Kokkos::Complex<float>, or Kokkos::Complex<double>. "
                 "Layout must be either LayoutLeft or LayoutRight. "
-                "ExecutionSpace must be able to access data in ViewType");
+                "The data in ViewType must be accessible from ExecutionSpace.");
   static_assert(ViewType::rank() >= 1,
                 "fftshift: View rank must be larger than or equal to 1");
 
@@ -347,7 +347,7 @@ void fftshift(const ExecutionSpace& exec_space, const ViewType& inout,
                 "fftshift: View value type must be float, double, "
                 "Kokkos::Complex<float>, or Kokkos::Complex<double>. "
                 "Layout must be either LayoutLeft or LayoutRight. "
-                "ExecutionSpace must be able to access data in ViewType");
+                "The data in ViewType must be accessible from ExecutionSpace.");
   static_assert(ViewType::rank() >= DIM,
                 "fftshift: View rank must be larger than or equal to the Rank "
                 "of FFT axes");
@@ -370,7 +370,7 @@ void ifftshift(const ExecutionSpace& exec_space, const ViewType& inout,
                 "ifftshift: View value type must be float, double, "
                 "Kokkos::Complex<float>, or Kokkos::Complex<double>. "
                 "Layout must be either LayoutLeft or LayoutRight. "
-                "ExecutionSpace must be able to access data in ViewType");
+                "The data in ViewType must be accessible from ExecutionSpace.");
   static_assert(ViewType::rank() >= 1,
                 "ifftshift: View rank must be larger than or equal to 1");
   if (axes) {
@@ -400,7 +400,7 @@ void ifftshift(const ExecutionSpace& exec_space, const ViewType& inout,
                 "ifftshift: View value type must be float, double, "
                 "Kokkos::Complex<float>, or Kokkos::Complex<double>. "
                 "Layout must be either LayoutLeft or LayoutRight. "
-                "ExecutionSpace must be able to access data in ViewType");
+                "The data in ViewType must be accessible from ExecutionSpace.");
   static_assert(ViewType::rank() >= DIM,
                 "ifftshift: View rank must be larger than or equal to the Rank "
                 "of FFT axes");
