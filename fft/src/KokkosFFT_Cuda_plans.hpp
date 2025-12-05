@@ -207,8 +207,10 @@ auto create_dynplan(const ExecutionSpace& exec_space,
 
   Kokkos::Profiling::ScopedRegion region(
       "KokkosFFT::create_dynplan[TPL_cufft]");
-  auto type = KokkosFFT::Impl::transform_type<ExecutionSpace, in_value_type,
-                                              out_value_type>::type();
+
+  const auto type =
+      KokkosFFT::Impl::transform_type<ExecutionSpace, in_value_type,
+                                      out_value_type>::type();
   auto [in_extents, out_extents, fft_extents, howmany] =
       KokkosFFT::Impl::get_extents(in, out, dim, is_inplace);
   int idist    = total_size(in_extents);
@@ -227,6 +229,10 @@ auto create_dynplan(const ExecutionSpace& exec_space,
           fft_extents.size(), fft_extents.data(), in_extents.data(), istride,
           idist, out_extents.data(), ostride, odist, type, howmany);
     }
+  } else {
+    KOKKOSFFT_THROW_IF(true,
+                       "create_dynplan: Only 1D, 2D, and 3D transforms are "
+                       "supported for dynamic plans.");
   }
 
   plan->commit(exec_space);

@@ -153,7 +153,7 @@ struct ScopedCufftDynPlan {
   std::size_t workspace_size() const noexcept { return m_workspace_size; }
 
   template <typename WorkViewType>
-  void set_work_area(const WorkViewType &work) const {
+  void set_work_area(const WorkViewType &work) {
     using value_type           = typename WorkViewType::non_const_value_type;
     std::size_t workspace_size = work.size() * sizeof(value_type);
     KOKKOSFFT_THROW_IF(
@@ -166,7 +166,7 @@ struct ScopedCufftDynPlan {
     KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftSetWorkArea failed");
   }
 
-  void commit(const Kokkos::Cuda &exec_space) const {
+  void commit(const Kokkos::Cuda &exec_space) {
     cufftResult cufft_rt = cufftSetStream(m_plan, exec_space.cuda_stream());
     KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftSetStream failed");
   }

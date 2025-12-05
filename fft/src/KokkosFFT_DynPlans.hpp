@@ -44,22 +44,31 @@
 #endif
 
 namespace KokkosFFT {
-namespace Impl {
 
 /// \brief A class that manages a FFT plan of backend FFT library
 /// FFT dimension is given at runtime.
 ///
 /// This class is used to manage the FFT plan of backend FFT library.
-/// Depending on the input and output Views and dim, appropriate FFT plans are
-/// created. If there are inconsistency in input and output views, the
-/// compilation would fail.
+/// Appropriate FFT plans are created depending on the input and output Views
+/// and a provided FFT dimension. If there are inconsistency in input and output
+/// views, the compilation will fail.
 ///
 /// \tparam ExecutionSpace: The type of Kokkos execution space
 /// \tparam InViewType: Input View type for the fft
 /// \tparam OutViewType: Output View type for the fft
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
 class DynPlan {
- private:
+  static_assert(KokkosFFT::Impl::is_AllowedSpace_v<ExecutionSpace>,
+                "DynPlan::DynPlan: ExecutionSpace is not allowed ");
+  static_assert(
+      KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
+                                              OutViewType>,
+      "DynPlan::DynPlan: InViewType and OutViewType must have the same base "
+      "floating point type (float/double), the same layout "
+      "(LayoutLeft/LayoutRight), "
+      "and the same rank. ExecutionSpace must be accessible to the data in "
+      "InViewType and OutViewType.");
+
   //! The type of Kokkos execution pace
   using execSpace = ExecutionSpace;
 
@@ -70,11 +79,12 @@ class DynPlan {
   using out_value_type = typename OutViewType::non_const_value_type;
 
   //! The real value type of input/output views
-  using float_type = base_floating_point_type<in_value_type>;
+  using float_type = KokkosFFT::Impl::base_floating_point_type<in_value_type>;
 
   //! The type of fft plan
-  using fft_plan_type = typename FFTDynPlanType<ExecutionSpace, in_value_type,
-                                                out_value_type>::type;
+  using fft_plan_type =
+      typename KokkosFFT::Impl::FFTDynPlanType<ExecutionSpace, in_value_type,
+                                               out_value_type>::type;
 
   //! The type of fft size
   using fft_size_type = std::size_t;
@@ -115,17 +125,6 @@ class DynPlan {
                    const OutViewType& out, KokkosFFT::Direction direction,
                    std::size_t dim)
       : m_exec_space(exec_space), m_direction(direction) {
-    static_assert(KokkosFFT::Impl::is_AllowedSpace_v<ExecutionSpace>,
-                  "DynPlan::DynPlan: ExecutionSpace is not allowed ");
-    static_assert(
-        KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                                OutViewType>,
-        "DynPlan::DynPlan: InViewType and OutViewType must have the same base "
-        "floating point type (float/double), the same layout "
-        "(LayoutLeft/LayoutRight), "
-        "and the same rank. ExecutionSpace must be accessible to the data in "
-        "InViewType and OutViewType.");
-
     KOKKOSFFT_THROW_IF(dim < 1 || dim > 3,
                        "only 1D, 2D, and 3D FFTs are supported.");
     KOKKOSFFT_THROW_IF(dim > InViewType::rank(),
@@ -174,17 +173,6 @@ class DynPlan {
   void execute_impl(const InViewType& in, const OutViewType& out,
                     KokkosFFT::Normalization norm =
                         KokkosFFT::Normalization::backward) const {
-    static_assert(
-        KokkosFFT::Impl::are_operatable_views_v<execSpace, InViewType,
-                                                OutViewType>,
-        "DynPlan::execute: InViewType and OutViewType must have the same base "
-        "floating point "
-        "type (float/double), the same layout (LayoutLeft/LayoutRight), and "
-        "the "
-        "same rank. ExecutionSpace must be accessible to the data in "
-        "InViewType "
-        "and OutViewType.");
-
     // sanity check that the plan is consistent with the input/output views
     good(in, out);
     execute_fft(in, out, norm);
@@ -246,12 +234,18 @@ class DynPlan {
   }
 };
 
+/// \brief Returns the minimum size needed to fit any workspace from plans.
+/// \tparam ScalarType The scalar type used to allocate the workspace buffer.
+/// \tparam DynPlans The types of dynamic plans
+///
+/// \param[in] plans the plans whose workspace we are considering.
+/// \returns the minimum size in bytes needed to fit any of the workspace from
+/// plans.
 template <typename ScalarType, class... DynPlans>
-std::size_t get_required_workspace_size(const DynPlans&... plans) {
+std::size_t compute_required_workspace_size(const DynPlans&... plans) {
   return std::max({plans.workspace_size(sizeof(ScalarType))...});
 }
 
-}  // namespace Impl
 }  // namespace KokkosFFT
 
 #endif

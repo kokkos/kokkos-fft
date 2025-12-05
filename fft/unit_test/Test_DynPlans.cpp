@@ -106,7 +106,7 @@ void test_dynplan_constructible() {
   using InView1DType  = Kokkos::View<InValueType*, ExecutionSpace>;
   using OutView1DType = Kokkos::View<OutValueType*, ExecutionSpace>;
   using DynPlanType =
-      KokkosFFT::Impl::DynPlan<ExecutionSpace, InView1DType, OutView1DType>;
+      KokkosFFT::DynPlan<ExecutionSpace, InView1DType, OutView1DType>;
 
 #if defined(KOKKOSFFT_HAS_DEVICE_TPL)
 #if defined(KOKKOSFFT_ENABLE_TPL_FFTW)
@@ -166,21 +166,21 @@ void test_get_required_workspace_size() {
 
   // Calculate with DynPlan
   execution_space exec;
-  KokkosFFT::Impl::DynPlan plan_r2c(exec, u, u_hat,
-                                    KokkosFFT::Direction::forward, FFT_DIM);
-  KokkosFFT::Impl::DynPlan plan_c2r(exec, u_hat, u_inv,
-                                    KokkosFFT::Direction::backward, FFT_DIM);
-  KokkosFFT::Impl::DynPlan plan_c2c(exec, u_hat, u_hat,
-                                    KokkosFFT::Direction::forward, FFT_DIM);
+  KokkosFFT::DynPlan plan_r2c(exec, u, u_hat, KokkosFFT::Direction::forward,
+                              FFT_DIM);
+  KokkosFFT::DynPlan plan_c2r(exec, u_hat, u_inv,
+                              KokkosFFT::Direction::backward, FFT_DIM);
+  KokkosFFT::DynPlan plan_c2c(exec, u_hat, u_hat, KokkosFFT::Direction::forward,
+                              FFT_DIM);
 
   // Using aligned data
   auto workspace_size_r2c =
-      KokkosFFT::Impl::get_required_workspace_size<complex_type>(plan_r2c);
+      KokkosFFT::compute_required_workspace_size<complex_type>(plan_r2c);
   auto workspace_size_r2c_c2r =
-      KokkosFFT::Impl::get_required_workspace_size<complex_type>(plan_r2c,
-                                                                 plan_c2r);
+      KokkosFFT::compute_required_workspace_size<complex_type>(plan_r2c,
+                                                               plan_c2r);
   auto workspace_size =
-      KokkosFFT::Impl::get_required_workspace_size<complex_type>(
+      KokkosFFT::compute_required_workspace_size<complex_type>(
           plan_r2c, plan_c2r, plan_c2c);
 
   // Compute reference
@@ -233,15 +233,14 @@ void test_dynplan() {
   Kokkos::deep_copy(u, u_ref);
 
   // Calculate with DynPlan
-  KokkosFFT::Impl::DynPlan plan_f(exec, u, u_hat, KokkosFFT::Direction::forward,
-                                  FFT_DIM);
-  KokkosFFT::Impl::DynPlan plan_b(exec, u_hat, u_inv,
-                                  KokkosFFT::Direction::backward, FFT_DIM);
+  KokkosFFT::DynPlan plan_f(exec, u, u_hat, KokkosFFT::Direction::forward,
+                            FFT_DIM);
+  KokkosFFT::DynPlan plan_b(exec, u_hat, u_inv, KokkosFFT::Direction::backward,
+                            FFT_DIM);
 
   // Using aligned data
   auto workspace_size =
-      KokkosFFT::Impl::get_required_workspace_size<complex_type>(plan_f,
-                                                                 plan_b);
+      KokkosFFT::compute_required_workspace_size<complex_type>(plan_f, plan_b);
 
   // Allocate a 1D data buffer and set work areas
   using BufferType = Kokkos::View<complex_type*, execution_space>;
