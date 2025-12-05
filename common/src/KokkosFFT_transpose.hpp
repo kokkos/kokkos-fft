@@ -298,17 +298,19 @@ void transpose(const ExecutionSpace& exec_space, const InViewType& in,
                const OutViewType& out,
                std::array<IndexType, InViewType::rank()> map,
                bool bounds_check = false) {
-  static_assert(is_operatable_view_v<ExecutionSpace, InViewType>,
-                "transpose: In View value type must be float, double, "
-                "Kokkos::Complex<float>, or Kokkos::Complex<double>. "
-                "Layout must be either LayoutLeft or LayoutRight. "
-                "ExecutionSpace must be able to access data in ViewType");
+  static_assert(
+      is_operatable_view_v<ExecutionSpace, InViewType>,
+      "transpose: In View value type must be float, double, "
+      "Kokkos::Complex<float>, or Kokkos::Complex<double>. "
+      "Layout must be either LayoutLeft or LayoutRight. "
+      "The data in InViewType must be accessible from ExecutionSpace.");
 
-  static_assert(is_operatable_view_v<ExecutionSpace, OutViewType>,
-                "transpose: Out View value type must be float, double, "
-                "Kokkos::Complex<float>, or Kokkos::Complex<double>. "
-                "Layout must be either LayoutLeft or LayoutRight. "
-                "ExecutionSpace must be able to access data in ViewType");
+  static_assert(
+      is_operatable_view_v<ExecutionSpace, OutViewType>,
+      "transpose: Out View value type must be float, double, "
+      "Kokkos::Complex<float>, or Kokkos::Complex<double>. "
+      "Layout must be either LayoutLeft or LayoutRight. "
+      "The data in OutViewType must be accessible from ExecutionSpace.");
 
   static_assert(have_same_rank_v<InViewType, OutViewType>,
                 "transpose: In and Out View must have the same rank.");

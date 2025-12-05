@@ -67,7 +67,7 @@ void normalize(const ExecutionSpace& exec_space, ViewType& inout,
                 "normalize: View value type must be float, double, "
                 "Kokkos::Complex<float>, or Kokkos::Complex<double>. "
                 "Layout must be either LayoutLeft or LayoutRight. "
-                "ExecutionSpace must be able to access data in ViewType");
+                "The data in ViewType must be accessible from ExecutionSpace.");
   auto [coef, to_normalize] =
       get_coefficients(inout, direction, normalization, fft_size);
   if (to_normalize) normalize_impl(exec_space, inout, coef);

@@ -55,8 +55,8 @@ void fft(const ExecutionSpace& exec_space, const InViewType& in,
                                               OutViewType>,
       "fft: InViewType and OutViewType must have the same base floating point "
       "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
-      "same rank. ExecutionSpace must be accessible to the data in InViewType "
-      "and OutViewType.");
+      "same rank. The data in InViewType and OutViewType must be accessible "
+      "from ExecutionSpace.");
   static_assert(InViewType::rank() >= 1,
                 "fft: View rank must be larger than or equal to 1");
 
@@ -115,8 +115,8 @@ void ifft(const ExecutionSpace& exec_space, const InViewType& in,
                                               OutViewType>,
       "ifft: InViewType and OutViewType must have the same base floating point "
       "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
-      "same rank. ExecutionSpace must be accessible to the data in InViewType "
-      "and OutViewType.");
+      "same rank. The data in InViewType and OutViewType must be accessible "
+      "from ExecutionSpace.");
   static_assert(InViewType::rank() >= 1,
                 "ifft: View rank must be larger than or equal to 1");
 
@@ -151,8 +151,8 @@ void rfft(const ExecutionSpace& exec_space, const InViewType& in,
                                               OutViewType>,
       "rfft: InViewType and OutViewType must have the same base floating point "
       "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
-      "same rank. ExecutionSpace must be accessible to the data in InViewType "
-      "and OutViewType.");
+      "same rank. The data in InViewType and OutViewType must be accessible "
+      "from ExecutionSpace.");
   static_assert(InViewType::rank() >= 1,
                 "rfft: View rank must be larger than or equal to 1");
 
@@ -196,8 +196,8 @@ void irfft(const ExecutionSpace& exec_space, const InViewType& in,
       "irfft: InViewType and OutViewType must have the same base floating "
       "point "
       "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
-      "same rank. ExecutionSpace must be accessible to the data in InViewType "
-      "and OutViewType.");
+      "same rank. The data in InViewType and OutViewType must be accessible "
+      "from ExecutionSpace.");
   static_assert(InViewType::rank() >= 1,
                 "irfft: View rank must be larger than or equal to 1");
 
@@ -240,8 +240,8 @@ void hfft(const ExecutionSpace& exec_space, const InViewType& in,
                                               OutViewType>,
       "hfft: InViewType and OutViewType must have the same base floating point "
       "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
-      "same rank. ExecutionSpace must be accessible to the data in InViewType "
-      "and OutViewType.");
+      "same rank. The data in InViewType and OutViewType must be accessible "
+      "from ExecutionSpace.");
   static_assert(InViewType::rank() >= 1,
                 "hfft: View rank must be larger than or equal to 1");
 
@@ -301,8 +301,8 @@ void ihfft(const ExecutionSpace& exec_space, const InViewType& in,
       "ihfft: InViewType and OutViewType must have the same base floating "
       "point "
       "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
-      "same rank. ExecutionSpace must be accessible to the data in InViewType "
-      "and OutViewType.");
+      "same rank. The data in InViewType and OutViewType must be accessible "
+      "from ExecutionSpace.");
   static_assert(InViewType::rank() >= 1,
                 "ihfft: View rank must be larger than or equal to 1");
 
@@ -347,8 +347,8 @@ void fft2(const ExecutionSpace& exec_space, const InViewType& in,
                                               OutViewType>,
       "fft2: InViewType and OutViewType must have the same base floating point "
       "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
-      "same rank. ExecutionSpace must be accessible to the data in InViewType "
-      "and OutViewType.");
+      "same rank. The data in InViewType and OutViewType must be accessible "
+      "from ExecutionSpace.");
   static_assert(InViewType::rank() >= 2,
                 "fft2: View rank must be larger than or equal to 2");
 
@@ -407,8 +407,8 @@ void ifft2(const ExecutionSpace& exec_space, const InViewType& in,
       "ifft2: InViewType and OutViewType must have the same base floating "
       "point "
       "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
-      "same rank. ExecutionSpace must be accessible to the data in InViewType "
-      "and OutViewType.");
+      "same rank. The data in InViewType and OutViewType must be accessible "
+      "from ExecutionSpace.");
   static_assert(InViewType::rank() >= 2,
                 "ifft2: View rank must be larger than or equal to 2");
 
@@ -443,8 +443,8 @@ void rfft2(const ExecutionSpace& exec_space, const InViewType& in,
       "rfft2: InViewType and OutViewType must have the same base floating "
       "point "
       "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
-      "same rank. ExecutionSpace must be accessible to the data in InViewType "
-      "and OutViewType.");
+      "same rank. The data in InViewType and OutViewType must be accessible "
+      "from ExecutionSpace.");
   static_assert(InViewType::rank() >= 2,
                 "rfft2: View rank must be larger than or equal to 2");
 
@@ -487,8 +487,8 @@ void irfft2(const ExecutionSpace& exec_space, const InViewType& in,
       "irfft2: InViewType and OutViewType must have the same base floating "
       "point "
       "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
-      "same rank. ExecutionSpace must be accessible to the data in InViewType "
-      "and OutViewType.");
+      "same rank. The data in InViewType and OutViewType must be accessible "
+      "from ExecutionSpace.");
   static_assert(InViewType::rank() >= 2,
                 "irfft2: View rank must be larger than or equal to 2");
 
@@ -542,8 +542,8 @@ void fftn(
                                               OutViewType>,
       "fftn: InViewType and OutViewType must have the same base floating point "
       "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
-      "same rank. ExecutionSpace must be accessible to the data in InViewType "
-      "and OutViewType.");
+      "same rank. The data in InViewType and OutViewType must be accessible "
+      "from ExecutionSpace.");
   static_assert(DIM >= 1 && DIM <= KokkosFFT::MAX_FFT_DIM,
                 "fftn: the Rank of FFT axes must be between 1 and MAX_FFT_DIM");
   static_assert(
@@ -615,8 +615,8 @@ void ifftn(
       "ifftn: InViewType and OutViewType must have the same base floating "
       "point "
       "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
-      "same rank. ExecutionSpace must be accessible to the data in InViewType "
-      "and OutViewType.");
+      "same rank. The data in InViewType and OutViewType must be accessible "
+      "from ExecutionSpace.");
   static_assert(
       DIM >= 1 && DIM <= KokkosFFT::MAX_FFT_DIM,
       "ifftn: the Rank of FFT axes must be between 1 and MAX_FFT_DIM");
@@ -665,8 +665,8 @@ void rfftn(
       "rfftn: InViewType and OutViewType must have the same base floating "
       "point "
       "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
-      "same rank. ExecutionSpace must be accessible to the data in InViewType "
-      "and OutViewType.");
+      "same rank. The data in InViewType and OutViewType must be accessible "
+      "from ExecutionSpace.");
   static_assert(
       DIM >= 1 && DIM <= KokkosFFT::MAX_FFT_DIM,
       "rfftn: the Rank of FFT axes must be between 1 and MAX_FFT_DIM");
@@ -723,8 +723,8 @@ void irfftn(
       "irfftn: InViewType and OutViewType must have the same base floating "
       "point "
       "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
-      "same rank. ExecutionSpace must be accessible to the data in InViewType "
-      "and OutViewType.");
+      "same rank. The data in InViewType and OutViewType must be accessible "
+      "from ExecutionSpace.");
   static_assert(
       DIM >= 1 && DIM <= KokkosFFT::MAX_FFT_DIM,
       "irfftn: the Rank of FFT axes must be between 1 and MAX_FFT_DIM");

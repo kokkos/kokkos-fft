@@ -188,8 +188,8 @@ class Plan {
         "Plan::Plan: InViewType and OutViewType must have the same base "
         "floating point type (float/double), the same layout "
         "(LayoutLeft/LayoutRight), "
-        "and the same rank. ExecutionSpace must be accessible to the data in "
-        "InViewType and OutViewType.");
+        "and the same rank. The data in InViewType and OutViewType must be "
+        "accessible from ExecutionSpace.");
     static_assert(
         DIM >= 1 && DIM <= KokkosFFT::MAX_FFT_DIM,
         "Plan::Plan: the Rank of FFT axes must be between 1 and MAX_FFT_DIM");
@@ -246,12 +246,10 @@ class Plan {
         KokkosFFT::Impl::are_operatable_views_v<execSpace, InViewType,
                                                 OutViewType>,
         "Plan::execute: InViewType and OutViewType must have the same base "
-        "floating point "
-        "type (float/double), the same layout (LayoutLeft/LayoutRight), and "
-        "the "
-        "same rank. ExecutionSpace must be accessible to the data in "
-        "InViewType "
-        "and OutViewType.");
+        "floating point type (float/double), the same layout "
+        "(LayoutLeft/LayoutRight), and "
+        "the same rank. The data in InViewType and OutViewType must be "
+        "accessible from ExecutionSpace.");
 
     // sanity check that the plan is consistent with the input/output views
     good(in, out);

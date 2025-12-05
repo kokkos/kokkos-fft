@@ -209,8 +209,8 @@ void conjugate(const ExecutionSpace& exec_space, const InViewType& in,
       "conjugate: InViewType and OutViewType must have the same base floating "
       "point "
       "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
-      "same rank. ExecutionSpace must be accessible to the data in InViewType "
-      "and OutViewType.");
+      "same rank. The data in InViewType and OutViewType must be accessible "
+      "from ExecutionSpace.");
 
   using out_value_type = typename OutViewType::non_const_value_type;
   static_assert(KokkosFFT::Impl::is_complex_v<out_value_type>,

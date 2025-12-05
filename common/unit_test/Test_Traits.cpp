@@ -336,7 +336,7 @@ void test_operatable_view_type() {
     // ExecutionSpace
     static_assert(
         !KokkosFFT::Impl::is_operatable_view_v<ExecutionSpace1, ViewType>,
-        "ExecutionSpace cannot access data in ViewType");
+        "The data in ViewType must be accessible from ExecutionSpace.");
   }
 }
 

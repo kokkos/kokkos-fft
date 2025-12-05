@@ -59,8 +59,8 @@ void crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
       "crop_or_pad: InViewType and OutViewType must have the same base "
       "floating point "
       "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
-      "same rank. ExecutionSpace must be accessible to the data in InViewType "
-      "and OutViewType.");
+      "same rank. The data in InViewType and OutViewType must be accessible "
+      "from ExecutionSpace.");
   crop_or_pad_impl(exec_space, in, out,
                    std::make_index_sequence<InViewType::rank()>{});
 }
