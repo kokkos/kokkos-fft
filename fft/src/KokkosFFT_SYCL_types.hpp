@@ -110,7 +110,7 @@ struct ScopedoneMKLPlan {
   ScopedoneMKLPlan &operator=(ScopedoneMKLPlan &&)      = delete;
   ScopedoneMKLPlan(ScopedoneMKLPlan &&)                 = delete;
 
-  const onemklHandle &plan() noexcept { return m_plan; }
+  const onemklHandle &plan() noexcept const { return m_plan; }
 
   void use_external_workspace() {
     // Use externally allocated workspaces
