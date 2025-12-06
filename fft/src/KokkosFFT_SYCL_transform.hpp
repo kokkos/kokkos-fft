@@ -16,7 +16,7 @@
 namespace KokkosFFT {
 namespace Impl {
 template <typename PlanType>
-void exec_plan(const PlanType& plan, float* idata, std::complex<float>* odata,
+void exec_plan(PlanType& plan, float* idata, std::complex<float>* odata,
                int /*direction*/) {
   Kokkos::Profiling::ScopedRegion region(
       "KokkosFFT::exec_plan[TPL_oneMKLExecR2C]");
@@ -25,7 +25,7 @@ void exec_plan(const PlanType& plan, float* idata, std::complex<float>* odata,
 }
 
 template <typename PlanType>
-void exec_plan(const PlanType& plan, double* idata, std::complex<double>* odata,
+void exec_plan(PlanType& plan, double* idata, std::complex<double>* odata,
                int /*direction*/) {
   Kokkos::Profiling::ScopedRegion region(
       "KokkosFFT::exec_plan[TPL_oneMKLExecD2Z]");
@@ -34,7 +34,7 @@ void exec_plan(const PlanType& plan, double* idata, std::complex<double>* odata,
 }
 
 template <typename PlanType>
-void exec_plan(const PlanType& plan, std::complex<float>* idata, float* odata,
+void exec_plan(PlanType& plan, std::complex<float>* idata, float* odata,
                int /*direction*/) {
   Kokkos::Profiling::ScopedRegion region(
       "KokkosFFT::exec_plan[TPL_oneMKLExecC2R]");
@@ -43,7 +43,7 @@ void exec_plan(const PlanType& plan, std::complex<float>* idata, float* odata,
 }
 
 template <typename PlanType>
-void exec_plan(const PlanType& plan, std::complex<double>* idata, double* odata,
+void exec_plan(PlanType& plan, std::complex<double>* idata, double* odata,
                int /*direction*/) {
   Kokkos::Profiling::ScopedRegion region(
       "KokkosFFT::exec_plan[TPL_oneMKLExecZ2D]");
@@ -52,7 +52,7 @@ void exec_plan(const PlanType& plan, std::complex<double>* idata, double* odata,
 }
 
 template <typename PlanType>
-void exec_plan(const PlanType& plan, std::complex<float>* idata,
+void exec_plan(PlanType& plan, std::complex<float>* idata,
                std::complex<float>* odata, int direction) {
   Kokkos::Profiling::ScopedRegion region(
       "KokkosFFT::exec_plan[TPL_oneMKLExecC2C]");
@@ -64,7 +64,7 @@ void exec_plan(const PlanType& plan, std::complex<float>* idata,
 }
 
 template <typename PlanType>
-void exec_plan(const PlanType& plan, std::complex<double>* idata,
+void exec_plan(PlanType& plan, std::complex<double>* idata,
                std::complex<double>* odata, int direction) {
   Kokkos::Profiling::ScopedRegion region(
       "KokkosFFT::exec_plan[TPL_oneMKLExecZ2Z]");
