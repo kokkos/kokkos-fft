@@ -76,12 +76,11 @@ auto create_plan(const ExecutionSpace& exec_space,
       "create_plan: InViewType and OutViewType must have the same base "
       "floating point type (float/double), the same layout "
       "(LayoutLeft/LayoutRight), "
-      "and the same rank. ExecutionSpace must be accessible to the data in "
-      "InViewType and OutViewType.");
+      "and the same rank. The data in InViewType and OutViewType must be "
+      "accessible from ExecutionSpace.");
 
-  static_assert(
-      InViewType::rank() >= fft_rank,
-      "KokkosFFT::create_plan: Rank of View must be larger than Rank of FFT.");
+  static_assert(InViewType::rank() >= fft_rank,
+                "create_plan: Rank of View must be larger than Rank of FFT.");
 
   Kokkos::Profiling::ScopedRegion region("KokkosFFT::create_plan[TPL_oneMKL]");
   auto [in_extents, out_extents, fft_extents, howmany] =
