@@ -53,14 +53,10 @@ void crop_or_pad_impl(const ExecutionSpace& exec_space, const InViewType& in,
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
 void crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
                  const OutViewType& out) {
-  static_assert(
+  constexpr bool are_operatable =
       KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                              OutViewType>,
-      "crop_or_pad: InViewType and OutViewType must have the same base "
-      "floating point "
-      "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
-      "same rank. The data in InViewType and OutViewType must be accessible "
-      "from ExecutionSpace.");
+                                              OutViewType>;
+  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(are_operatable, "crop_or_pad");
   crop_or_pad_impl(exec_space, in, out,
                    std::make_index_sequence<InViewType::rank()>{});
 }

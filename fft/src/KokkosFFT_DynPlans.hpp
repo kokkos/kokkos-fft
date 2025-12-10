@@ -59,15 +59,11 @@ namespace KokkosFFT {
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
 class DynPlan {
   static_assert(KokkosFFT::Impl::is_AllowedSpace_v<ExecutionSpace>,
-                "DynPlan::DynPlan: ExecutionSpace is not allowed ");
-  static_assert(
+                "DynPlan: ExecutionSpace is not allowed");
+  static constexpr bool are_operatable =
       KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                              OutViewType>,
-      "DynPlan::DynPlan: InViewType and OutViewType must have the same base "
-      "floating point type (float/double), the same layout "
-      "(LayoutLeft/LayoutRight), "
-      "and the same rank. The data in InViewType and OutViewType must be "
-      "accessible from ExecutionSpace.");
+                                              OutViewType>;
+  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(are_operatable, "DynPlan");
 
   //! The type of Kokkos execution pace
   using execSpace = ExecutionSpace;

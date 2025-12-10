@@ -50,13 +50,10 @@ void fft(const ExecutionSpace& exec_space, const InViewType& in,
          const OutViewType& out,
          KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
          int axis = -1, std::optional<std::size_t> n = std::nullopt) {
-  static_assert(
+  constexpr bool are_operatable =
       KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                              OutViewType>,
-      "fft: InViewType and OutViewType must have the same base floating point "
-      "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
-      "same rank. The data in InViewType and OutViewType must be accessible "
-      "from ExecutionSpace.");
+                                              OutViewType>;
+  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(are_operatable, "fft");
   static_assert(InViewType::rank() >= 1,
                 "fft: View rank must be larger than or equal to 1");
 
@@ -110,13 +107,10 @@ void ifft(const ExecutionSpace& exec_space, const InViewType& in,
           const OutViewType& out,
           KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
           int axis = -1, std::optional<std::size_t> n = std::nullopt) {
-  static_assert(
+  constexpr bool are_operatable =
       KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                              OutViewType>,
-      "ifft: InViewType and OutViewType must have the same base floating point "
-      "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
-      "same rank. The data in InViewType and OutViewType must be accessible "
-      "from ExecutionSpace.");
+                                              OutViewType>;
+  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(are_operatable, "ifft");
   static_assert(InViewType::rank() >= 1,
                 "ifft: View rank must be larger than or equal to 1");
 
@@ -146,13 +140,10 @@ void rfft(const ExecutionSpace& exec_space, const InViewType& in,
           const OutViewType& out,
           KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
           int axis = -1, std::optional<std::size_t> n = std::nullopt) {
-  static_assert(
+  constexpr bool are_operatable =
       KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                              OutViewType>,
-      "rfft: InViewType and OutViewType must have the same base floating point "
-      "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
-      "same rank. The data in InViewType and OutViewType must be accessible "
-      "from ExecutionSpace.");
+                                              OutViewType>;
+  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(are_operatable, "rfft");
   static_assert(InViewType::rank() >= 1,
                 "rfft: View rank must be larger than or equal to 1");
 
@@ -190,14 +181,10 @@ void irfft(const ExecutionSpace& exec_space, const InViewType& in,
            const OutViewType& out,
            KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
            int axis = -1, std::optional<std::size_t> n = std::nullopt) {
-  static_assert(
+  constexpr bool are_operatable =
       KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                              OutViewType>,
-      "irfft: InViewType and OutViewType must have the same base floating "
-      "point "
-      "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
-      "same rank. The data in InViewType and OutViewType must be accessible "
-      "from ExecutionSpace.");
+                                              OutViewType>;
+  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(are_operatable, "irfft");
   static_assert(InViewType::rank() >= 1,
                 "irfft: View rank must be larger than or equal to 1");
 
@@ -235,13 +222,10 @@ void hfft(const ExecutionSpace& exec_space, const InViewType& in,
           const OutViewType& out,
           KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
           int axis = -1, std::optional<std::size_t> n = std::nullopt) {
-  static_assert(
+  constexpr bool are_operatable =
       KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                              OutViewType>,
-      "hfft: InViewType and OutViewType must have the same base floating point "
-      "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
-      "same rank. The data in InViewType and OutViewType must be accessible "
-      "from ExecutionSpace.");
+                                              OutViewType>;
+  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(are_operatable, "hfft");
   static_assert(InViewType::rank() >= 1,
                 "hfft: View rank must be larger than or equal to 1");
 
@@ -295,14 +279,10 @@ void ihfft(const ExecutionSpace& exec_space, const InViewType& in,
            const OutViewType& out,
            KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
            int axis = -1, std::optional<std::size_t> n = std::nullopt) {
-  static_assert(
+  constexpr bool are_operatable =
       KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                              OutViewType>,
-      "ihfft: InViewType and OutViewType must have the same base floating "
-      "point "
-      "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
-      "same rank. The data in InViewType and OutViewType must be accessible "
-      "from ExecutionSpace.");
+                                              OutViewType>;
+  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(are_operatable, "ihfft");
   static_assert(InViewType::rank() >= 1,
                 "ihfft: View rank must be larger than or equal to 1");
 
@@ -342,13 +322,10 @@ void fft2(const ExecutionSpace& exec_space, const InViewType& in,
           const OutViewType& out,
           KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
           axis_type<2> axes = {-2, -1}, shape_type<2> s = {}) {
-  static_assert(
+  constexpr bool are_operatable =
       KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                              OutViewType>,
-      "fft2: InViewType and OutViewType must have the same base floating point "
-      "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
-      "same rank. The data in InViewType and OutViewType must be accessible "
-      "from ExecutionSpace.");
+                                              OutViewType>;
+  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(are_operatable, "fft2");
   static_assert(InViewType::rank() >= 2,
                 "fft2: View rank must be larger than or equal to 2");
 
@@ -401,14 +378,10 @@ void ifft2(const ExecutionSpace& exec_space, const InViewType& in,
            const OutViewType& out,
            KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
            axis_type<2> axes = {-2, -1}, shape_type<2> s = {}) {
-  static_assert(
+  constexpr bool are_operatable =
       KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                              OutViewType>,
-      "ifft2: InViewType and OutViewType must have the same base floating "
-      "point "
-      "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
-      "same rank. The data in InViewType and OutViewType must be accessible "
-      "from ExecutionSpace.");
+                                              OutViewType>;
+  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(are_operatable, "ifft2");
   static_assert(InViewType::rank() >= 2,
                 "ifft2: View rank must be larger than or equal to 2");
 
@@ -437,14 +410,10 @@ void rfft2(const ExecutionSpace& exec_space, const InViewType& in,
            const OutViewType& out,
            KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
            axis_type<2> axes = {-2, -1}, shape_type<2> s = {}) {
-  static_assert(
+  constexpr bool are_operatable =
       KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                              OutViewType>,
-      "rfft2: InViewType and OutViewType must have the same base floating "
-      "point "
-      "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
-      "same rank. The data in InViewType and OutViewType must be accessible "
-      "from ExecutionSpace.");
+                                              OutViewType>;
+  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(are_operatable, "rfft2");
   static_assert(InViewType::rank() >= 2,
                 "rfft2: View rank must be larger than or equal to 2");
 
@@ -481,14 +450,10 @@ void irfft2(const ExecutionSpace& exec_space, const InViewType& in,
             const OutViewType& out,
             KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
             axis_type<2> axes = {-2, -1}, shape_type<2> s = {}) {
-  static_assert(
+  constexpr bool are_operatable =
       KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                              OutViewType>,
-      "irfft2: InViewType and OutViewType must have the same base floating "
-      "point "
-      "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
-      "same rank. The data in InViewType and OutViewType must be accessible "
-      "from ExecutionSpace.");
+                                              OutViewType>;
+  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(are_operatable, "irfft2");
   static_assert(InViewType::rank() >= 2,
                 "irfft2: View rank must be larger than or equal to 2");
 
@@ -537,13 +502,10 @@ void fftn(
         KokkosFFT::Impl::index_sequence<int, DIM, -static_cast<int>(DIM)>(),
     KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
     shape_type<DIM> s             = {}) {
-  static_assert(
+  constexpr bool are_operatable =
       KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                              OutViewType>,
-      "fftn: InViewType and OutViewType must have the same base floating point "
-      "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
-      "same rank. The data in InViewType and OutViewType must be accessible "
-      "from ExecutionSpace.");
+                                              OutViewType>;
+  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(are_operatable, "fftn");
   static_assert(DIM >= 1 && DIM <= KokkosFFT::MAX_FFT_DIM,
                 "fftn: the Rank of FFT axes must be between 1 and MAX_FFT_DIM");
   static_assert(
@@ -609,14 +571,10 @@ void ifftn(
         KokkosFFT::Impl::index_sequence<int, DIM, -static_cast<int>(DIM)>(),
     KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
     shape_type<DIM> s             = {}) {
-  static_assert(
+  constexpr bool are_operatable =
       KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                              OutViewType>,
-      "ifftn: InViewType and OutViewType must have the same base floating "
-      "point "
-      "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
-      "same rank. The data in InViewType and OutViewType must be accessible "
-      "from ExecutionSpace.");
+                                              OutViewType>;
+  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(are_operatable, "ifftn");
   static_assert(
       DIM >= 1 && DIM <= KokkosFFT::MAX_FFT_DIM,
       "ifftn: the Rank of FFT axes must be between 1 and MAX_FFT_DIM");
@@ -659,14 +617,10 @@ void rfftn(
         KokkosFFT::Impl::index_sequence<int, DIM, -static_cast<int>(DIM)>(),
     KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
     shape_type<DIM> s             = {}) {
-  static_assert(
+  constexpr bool are_operatable =
       KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                              OutViewType>,
-      "rfftn: InViewType and OutViewType must have the same base floating "
-      "point "
-      "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
-      "same rank. The data in InViewType and OutViewType must be accessible "
-      "from ExecutionSpace.");
+                                              OutViewType>;
+  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(are_operatable, "rfftn");
   static_assert(
       DIM >= 1 && DIM <= KokkosFFT::MAX_FFT_DIM,
       "rfftn: the Rank of FFT axes must be between 1 and MAX_FFT_DIM");
@@ -717,14 +671,10 @@ void irfftn(
         KokkosFFT::Impl::index_sequence<int, DIM, -static_cast<int>(DIM)>(),
     KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
     shape_type<DIM> s             = {}) {
-  static_assert(
+  constexpr bool are_operatable =
       KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                              OutViewType>,
-      "irfftn: InViewType and OutViewType must have the same base floating "
-      "point "
-      "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
-      "same rank. The data in InViewType and OutViewType must be accessible "
-      "from ExecutionSpace.");
+                                              OutViewType>;
+  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(are_operatable, "irfftn");
   static_assert(
       DIM >= 1 && DIM <= KokkosFFT::MAX_FFT_DIM,
       "irfftn: the Rank of FFT axes must be between 1 and MAX_FFT_DIM");

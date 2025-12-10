@@ -203,14 +203,10 @@ inline std::vector<ElementType> arange(const ElementType start,
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
 void conjugate(const ExecutionSpace& exec_space, const InViewType& in,
                OutViewType& out) {
-  static_assert(
+  constexpr bool are_operatable =
       KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                              OutViewType>,
-      "conjugate: InViewType and OutViewType must have the same base floating "
-      "point "
-      "type (float/double), the same layout (LayoutLeft/LayoutRight), and the "
-      "same rank. The data in InViewType and OutViewType must be accessible "
-      "from ExecutionSpace.");
+                                              OutViewType>;
+  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(are_operatable, "conjugate");
 
   using out_value_type = typename OutViewType::non_const_value_type;
   static_assert(KokkosFFT::Impl::is_complex_v<out_value_type>,
