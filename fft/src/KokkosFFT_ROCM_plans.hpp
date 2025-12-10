@@ -54,17 +54,12 @@ auto create_plan(const ExecutionSpace& exec_space,
                  const OutViewType& out, Direction direction,
                  axis_type<fft_rank> axes, shape_type<fft_rank> s,
                  bool is_inplace) {
-  static_assert(
-      KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                              OutViewType>,
-      "create_plan: InViewType and OutViewType must have the same base "
-      "floating point type (float/double), the same layout "
-      "(LayoutLeft/LayoutRight), "
-      "and the same rank. The data in InViewType and OutViewType must be "
-      "accessible from ExecutionSpace.");
-
+  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(
+      (KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
+                                               OutViewType>),
+      "create_plan");
   static_assert(InViewType::rank() >= fft_rank,
-                "KokkosFFT::create_plan: Rank of View must be larger than "
+                "create_plan: Rank of View must be larger than "
                 "Rank of FFT.");
 
   using in_value_type  = typename InViewType::non_const_value_type;

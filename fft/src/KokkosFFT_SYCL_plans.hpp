@@ -70,15 +70,10 @@ auto create_plan(const ExecutionSpace& exec_space,
                  const OutViewType& out, Direction direction,
                  axis_type<fft_rank> axes, shape_type<fft_rank> s,
                  bool is_inplace) {
-  static_assert(
-      KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                              OutViewType>,
-      "create_plan: InViewType and OutViewType must have the same base "
-      "floating point type (float/double), the same layout "
-      "(LayoutLeft/LayoutRight), "
-      "and the same rank. The data in InViewType and OutViewType must be "
-      "accessible from ExecutionSpace.");
-
+  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(
+      (KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
+                                               OutViewType>),
+      "create_plan");
   static_assert(InViewType::rank() >= fft_rank,
                 "create_plan: Rank of View must be larger than Rank of FFT.");
 
@@ -116,14 +111,10 @@ auto create_dynplan(const ExecutionSpace& exec_space,
                     std::unique_ptr<PlanType>& plan, const InViewType& in,
                     const OutViewType& out, Direction direction,
                     std::size_t dim, bool is_inplace) {
-  static_assert(
-      KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                              OutViewType>,
-      "create_dynplan: InViewType and OutViewType must have the same base "
-      "floating point type (float/double), the same layout "
-      "(LayoutLeft/LayoutRight), "
-      "and the same rank. The data in InViewType and OutViewType must be "
-      "accessible from ExecutionSpace.");
+  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(
+      (KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
+                                               OutViewType>),
+      "create_dynplan");
   Kokkos::Profiling::ScopedRegion region(
       "KokkosFFT::create_dynplan[TPL_oneMKL]");
   auto [in_extents, out_extents, fft_extents, howmany] =

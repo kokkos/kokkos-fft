@@ -9,6 +9,14 @@
 #include <sstream>
 #include <string_view>
 
+#define KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(expr, name)             \
+  static_assert(                                                             \
+      (expr), name                                                           \
+      ": InViewType and OutViewType must have the same base floating point " \
+      "type (float/double), the same layout (LayoutLeft/LayoutRight), and "  \
+      "the same rank. The data in InViewType and OutViewType must be "       \
+      "accessible from ExecutionSpace.")
+
 #if defined(__cpp_lib_source_location) && __cpp_lib_source_location >= 201907L
 #include <source_location>
 #define KOKKOSFFT_THROW_IF(expression, msg)                           \

@@ -85,6 +85,18 @@ template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           std::size_t DIM = 1>
 class Plan {
  private:
+  static_assert(KokkosFFT::Impl::is_AllowedSpace_v<ExecutionSpace>,
+                "Plan: ExecutionSpace is not allowed");
+  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(
+      (KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
+                                               OutViewType>),
+      "Plan");
+  static_assert(DIM >= 1 && DIM <= KokkosFFT::MAX_FFT_DIM,
+                "Plan: the Rank of FFT axes must be between 1 and MAX_FFT_DIM");
+  static_assert(InViewType::rank() >= DIM,
+                "Plan: View rank must be larger than or equal to the "
+                "Rank of FFT axes");
+
   //! The type of Kokkos execution pace
   using execSpace = ExecutionSpace;
 
@@ -180,23 +192,6 @@ class Plan {
                 const OutViewType& out, KokkosFFT::Direction direction,
                 axis_type<DIM> axes, shape_type<DIM> s = {})
       : m_exec_space(exec_space), m_axes(axes), m_direction(direction) {
-    static_assert(KokkosFFT::Impl::is_AllowedSpace_v<ExecutionSpace>,
-                  "Plan::Plan: ExecutionSpace is not allowed ");
-    static_assert(
-        KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                                OutViewType>,
-        "Plan::Plan: InViewType and OutViewType must have the same base "
-        "floating point type (float/double), the same layout "
-        "(LayoutLeft/LayoutRight), "
-        "and the same rank. The data in InViewType and OutViewType must be "
-        "accessible from ExecutionSpace.");
-    static_assert(
-        DIM >= 1 && DIM <= KokkosFFT::MAX_FFT_DIM,
-        "Plan::Plan: the Rank of FFT axes must be between 1 and MAX_FFT_DIM");
-    static_assert(InViewType::rank() >= DIM,
-                  "Plan::Plan: View rank must be larger than or equal to the "
-                  "Rank of FFT axes");
-
     KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, m_axes),
                        "axes are invalid for in/out views");
     if constexpr (KokkosFFT::Impl::is_real_v<in_value_type>) {
@@ -242,15 +237,6 @@ class Plan {
   void execute_impl(const InViewType& in, const OutViewType& out,
                     KokkosFFT::Normalization norm =
                         KokkosFFT::Normalization::backward) const {
-    static_assert(
-        KokkosFFT::Impl::are_operatable_views_v<execSpace, InViewType,
-                                                OutViewType>,
-        "Plan::execute: InViewType and OutViewType must have the same base "
-        "floating point type (float/double), the same layout "
-        "(LayoutLeft/LayoutRight), and "
-        "the same rank. The data in InViewType and OutViewType must be "
-        "accessible from ExecutionSpace.");
-
     // sanity check that the plan is consistent with the input/output views
     good(in, out);
 
