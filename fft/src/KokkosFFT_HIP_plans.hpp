@@ -166,6 +166,56 @@ auto create_plan(const ExecutionSpace& exec_space,
   return fft_size;
 }
 
+// Interface for dynamic plans
+template <typename ExecutionSpace, typename PlanType, typename InViewType,
+          typename OutViewType,
+          std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
+                           std::nullptr_t> = nullptr>
+auto create_dynplan(const ExecutionSpace& exec_space,
+                    std::unique_ptr<PlanType>& plan, const InViewType& in,
+                    const OutViewType& out, Direction /*direction*/,
+                    std::size_t dim, bool is_inplace) {
+  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(
+      (KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
+                                               OutViewType>),
+      "create_dynplan");
+  using in_value_type  = typename InViewType::non_const_value_type;
+  using out_value_type = typename OutViewType::non_const_value_type;
+
+  Kokkos::Profiling::ScopedRegion region(
+      "KokkosFFT::create_dynplan[TPL_hipfft]");
+  const auto type =
+      KokkosFFT::Impl::transform_type<ExecutionSpace, in_value_type,
+                                      out_value_type>::type();
+  auto [in_extents, out_extents, fft_extents, howmany] =
+      KokkosFFT::Impl::get_extents(in, out, dim, is_inplace);
+  int idist    = total_size(in_extents);
+  int odist    = total_size(out_extents);
+  int fft_size = total_size(fft_extents);
+
+  if (dim == 1) {
+    const int nx = fft_extents.at(0);
+    plan         = std::make_unique<PlanType>(nx, type, howmany);
+  } else if (dim == 2 || dim == 3) {
+    if (InViewType::rank() == dim) {
+      plan = std::make_unique<PlanType>(fft_extents, type);
+    } else {
+      int istride = 1, ostride = 1;
+      plan = std::make_unique<PlanType>(
+          fft_extents.size(), fft_extents.data(), in_extents.data(), istride,
+          idist, out_extents.data(), ostride, odist, type, howmany);
+    }
+  } else {
+    KOKKOSFFT_THROW_IF(true,
+                       "create_dynplan: Only 1D, 2D, and 3D transforms are "
+                       "supported for dynamic plans.");
+  }
+
+  plan->commit(exec_space);
+
+  return fft_size;
+}
+
 }  // namespace Impl
 }  // namespace KokkosFFT
 

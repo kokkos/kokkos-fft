@@ -11,7 +11,7 @@ target_link_libraries(unit-tests-kokkos-fft-core PUBLIC KokkosFFT::fft GTest::gt
 include(GoogleTest)
 gtest_discover_tests(unit-tests-kokkos-fft-core PROPERTIES DISCOVERY_TIMEOUT 600 DISCOVERY_MODE PRE_TEST)
 
-if(KokkosFFT_ENABLE_CUFFT OR KokkosFFT_ENABLE_ONEMKL)
+if(KokkosFFT_ENABLE_CUFFT OR KokkosFFT_ENABLE_ONEMKL OR KokkosFFT_ENABLE_HIPFFT)
   # TO DO: Add other backends in separate PRs
   add_executable(unit-tests-kokkos-dynfft Test_Main.cpp Test_DynPlans.cpp)
   target_compile_features(unit-tests-kokkos-dynfft PUBLIC cxx_std_17)
