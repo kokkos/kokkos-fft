@@ -203,10 +203,10 @@ inline std::vector<ElementType> arange(const ElementType start,
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
 void conjugate(const ExecutionSpace& exec_space, const InViewType& in,
                OutViewType& out) {
-  constexpr bool are_operatable =
-      KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                              OutViewType>;
-  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(are_operatable, "conjugate");
+  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(
+      (KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
+                                               OutViewType>),
+      "conjugate");
 
   using out_value_type = typename OutViewType::non_const_value_type;
   static_assert(KokkosFFT::Impl::is_complex_v<out_value_type>,

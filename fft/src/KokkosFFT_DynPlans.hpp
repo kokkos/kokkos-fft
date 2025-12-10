@@ -60,10 +60,10 @@ template <typename ExecutionSpace, typename InViewType, typename OutViewType>
 class DynPlan {
   static_assert(KokkosFFT::Impl::is_AllowedSpace_v<ExecutionSpace>,
                 "DynPlan: ExecutionSpace is not allowed");
-  static constexpr bool are_operatable =
-      KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                              OutViewType>;
-  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(are_operatable, "DynPlan");
+  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(
+      (KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
+                                               OutViewType>),
+      "DynPlan");
 
   //! The type of Kokkos execution pace
   using execSpace = ExecutionSpace;

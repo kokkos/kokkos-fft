@@ -53,10 +53,10 @@ void crop_or_pad_impl(const ExecutionSpace& exec_space, const InViewType& in,
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
 void crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
                  const OutViewType& out) {
-  constexpr bool are_operatable =
-      KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                              OutViewType>;
-  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(are_operatable, "crop_or_pad");
+  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(
+      (KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
+                                               OutViewType>),
+      "crop_or_pad");
   crop_or_pad_impl(exec_space, in, out,
                    std::make_index_sequence<InViewType::rank()>{});
 }

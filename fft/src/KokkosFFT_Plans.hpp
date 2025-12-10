@@ -87,10 +87,10 @@ class Plan {
  private:
   static_assert(KokkosFFT::Impl::is_AllowedSpace_v<ExecutionSpace>,
                 "Plan: ExecutionSpace is not allowed");
-  static constexpr bool are_operatable =
-      KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                              OutViewType>;
-  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(are_operatable, "Plan");
+  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(
+      (KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
+                                               OutViewType>),
+      "Plan");
   static_assert(DIM >= 1 && DIM <= KokkosFFT::MAX_FFT_DIM,
                 "Plan: the Rank of FFT axes must be between 1 and MAX_FFT_DIM");
   static_assert(InViewType::rank() >= DIM,

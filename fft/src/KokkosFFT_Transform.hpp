@@ -50,10 +50,10 @@ void fft(const ExecutionSpace& exec_space, const InViewType& in,
          const OutViewType& out,
          KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
          int axis = -1, std::optional<std::size_t> n = std::nullopt) {
-  constexpr bool are_operatable =
-      KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                              OutViewType>;
-  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(are_operatable, "fft");
+  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(
+      (KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
+                                               OutViewType>),
+      "fft");
   static_assert(InViewType::rank() >= 1,
                 "fft: View rank must be larger than or equal to 1");
 
@@ -107,10 +107,10 @@ void ifft(const ExecutionSpace& exec_space, const InViewType& in,
           const OutViewType& out,
           KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
           int axis = -1, std::optional<std::size_t> n = std::nullopt) {
-  constexpr bool are_operatable =
-      KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                              OutViewType>;
-  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(are_operatable, "ifft");
+  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(
+      (KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
+                                               OutViewType>),
+      "ifft");
   static_assert(InViewType::rank() >= 1,
                 "ifft: View rank must be larger than or equal to 1");
 
@@ -140,10 +140,10 @@ void rfft(const ExecutionSpace& exec_space, const InViewType& in,
           const OutViewType& out,
           KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
           int axis = -1, std::optional<std::size_t> n = std::nullopt) {
-  constexpr bool are_operatable =
-      KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                              OutViewType>;
-  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(are_operatable, "rfft");
+  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(
+      (KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
+                                               OutViewType>),
+      "rfft");
   static_assert(InViewType::rank() >= 1,
                 "rfft: View rank must be larger than or equal to 1");
 
@@ -181,10 +181,10 @@ void irfft(const ExecutionSpace& exec_space, const InViewType& in,
            const OutViewType& out,
            KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
            int axis = -1, std::optional<std::size_t> n = std::nullopt) {
-  constexpr bool are_operatable =
-      KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                              OutViewType>;
-  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(are_operatable, "irfft");
+  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(
+      (KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
+                                               OutViewType>),
+      "irfft");
   static_assert(InViewType::rank() >= 1,
                 "irfft: View rank must be larger than or equal to 1");
 
@@ -222,10 +222,10 @@ void hfft(const ExecutionSpace& exec_space, const InViewType& in,
           const OutViewType& out,
           KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
           int axis = -1, std::optional<std::size_t> n = std::nullopt) {
-  constexpr bool are_operatable =
-      KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                              OutViewType>;
-  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(are_operatable, "hfft");
+  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(
+      (KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
+                                               OutViewType>),
+      "hfft");
   static_assert(InViewType::rank() >= 1,
                 "hfft: View rank must be larger than or equal to 1");
 
@@ -279,10 +279,10 @@ void ihfft(const ExecutionSpace& exec_space, const InViewType& in,
            const OutViewType& out,
            KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
            int axis = -1, std::optional<std::size_t> n = std::nullopt) {
-  constexpr bool are_operatable =
-      KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                              OutViewType>;
-  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(are_operatable, "ihfft");
+  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(
+      (KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
+                                               OutViewType>),
+      "ihfft");
   static_assert(InViewType::rank() >= 1,
                 "ihfft: View rank must be larger than or equal to 1");
 
@@ -322,10 +322,10 @@ void fft2(const ExecutionSpace& exec_space, const InViewType& in,
           const OutViewType& out,
           KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
           axis_type<2> axes = {-2, -1}, shape_type<2> s = {}) {
-  constexpr bool are_operatable =
-      KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                              OutViewType>;
-  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(are_operatable, "fft2");
+  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(
+      (KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
+                                               OutViewType>),
+      "fft2");
   static_assert(InViewType::rank() >= 2,
                 "fft2: View rank must be larger than or equal to 2");
 
@@ -378,10 +378,10 @@ void ifft2(const ExecutionSpace& exec_space, const InViewType& in,
            const OutViewType& out,
            KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
            axis_type<2> axes = {-2, -1}, shape_type<2> s = {}) {
-  constexpr bool are_operatable =
-      KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                              OutViewType>;
-  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(are_operatable, "ifft2");
+  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(
+      (KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
+                                               OutViewType>),
+      "ifft2");
   static_assert(InViewType::rank() >= 2,
                 "ifft2: View rank must be larger than or equal to 2");
 
@@ -410,10 +410,10 @@ void rfft2(const ExecutionSpace& exec_space, const InViewType& in,
            const OutViewType& out,
            KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
            axis_type<2> axes = {-2, -1}, shape_type<2> s = {}) {
-  constexpr bool are_operatable =
-      KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                              OutViewType>;
-  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(are_operatable, "rfft2");
+  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(
+      (KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
+                                               OutViewType>),
+      "rfft2");
   static_assert(InViewType::rank() >= 2,
                 "rfft2: View rank must be larger than or equal to 2");
 
@@ -450,10 +450,10 @@ void irfft2(const ExecutionSpace& exec_space, const InViewType& in,
             const OutViewType& out,
             KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
             axis_type<2> axes = {-2, -1}, shape_type<2> s = {}) {
-  constexpr bool are_operatable =
-      KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                              OutViewType>;
-  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(are_operatable, "irfft2");
+  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(
+      (KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
+                                               OutViewType>),
+      "irfft2");
   static_assert(InViewType::rank() >= 2,
                 "irfft2: View rank must be larger than or equal to 2");
 
@@ -502,10 +502,10 @@ void fftn(
         KokkosFFT::Impl::index_sequence<int, DIM, -static_cast<int>(DIM)>(),
     KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
     shape_type<DIM> s             = {}) {
-  constexpr bool are_operatable =
-      KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                              OutViewType>;
-  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(are_operatable, "fftn");
+  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(
+      (KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
+                                               OutViewType>),
+      "fftn");
   static_assert(DIM >= 1 && DIM <= KokkosFFT::MAX_FFT_DIM,
                 "fftn: the Rank of FFT axes must be between 1 and MAX_FFT_DIM");
   static_assert(
@@ -571,10 +571,10 @@ void ifftn(
         KokkosFFT::Impl::index_sequence<int, DIM, -static_cast<int>(DIM)>(),
     KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
     shape_type<DIM> s             = {}) {
-  constexpr bool are_operatable =
-      KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                              OutViewType>;
-  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(are_operatable, "ifftn");
+  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(
+      (KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
+                                               OutViewType>),
+      "ifftn");
   static_assert(
       DIM >= 1 && DIM <= KokkosFFT::MAX_FFT_DIM,
       "ifftn: the Rank of FFT axes must be between 1 and MAX_FFT_DIM");
@@ -617,10 +617,10 @@ void rfftn(
         KokkosFFT::Impl::index_sequence<int, DIM, -static_cast<int>(DIM)>(),
     KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
     shape_type<DIM> s             = {}) {
-  constexpr bool are_operatable =
-      KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                              OutViewType>;
-  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(are_operatable, "rfftn");
+  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(
+      (KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
+                                               OutViewType>),
+      "rfftn");
   static_assert(
       DIM >= 1 && DIM <= KokkosFFT::MAX_FFT_DIM,
       "rfftn: the Rank of FFT axes must be between 1 and MAX_FFT_DIM");
@@ -671,10 +671,10 @@ void irfftn(
         KokkosFFT::Impl::index_sequence<int, DIM, -static_cast<int>(DIM)>(),
     KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward,
     shape_type<DIM> s             = {}) {
-  constexpr bool are_operatable =
-      KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                              OutViewType>;
-  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(are_operatable, "irfftn");
+  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(
+      (KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
+                                               OutViewType>),
+      "irfftn");
   static_assert(
       DIM >= 1 && DIM <= KokkosFFT::MAX_FFT_DIM,
       "irfftn: the Rank of FFT axes must be between 1 and MAX_FFT_DIM");
