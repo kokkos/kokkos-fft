@@ -9,6 +9,7 @@
 #include "KokkosFFT_utils.hpp"
 #include "KokkosFFT_Helpers.hpp"
 #include "KokkosFFT_Plans.hpp"
+#include "KokkosFFT_DynPlans.hpp"
 #include "KokkosFFT_Transform.hpp"
 
 #endif
