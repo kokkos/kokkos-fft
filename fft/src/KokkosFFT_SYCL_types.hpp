@@ -59,7 +59,7 @@ struct ScopedoneMKLPlan {
   using onemklHandle = oneapi::mkl::dft::descriptor<prec, dom>;
 
   onemklHandle m_plan;
-  std::size_t m_workspace_size;
+  std::size_t m_workspace_size = 0;
 
  public:
   ScopedoneMKLPlan(const std::vector<std::int64_t> &lengths,
@@ -135,17 +135,19 @@ struct ScopedoneMKLPlan {
   std::size_t workspace_size() const noexcept { return m_workspace_size; }
 
   template <typename WorkViewType>
-  void set_work_area(const WorkViewType &work) {
+  void set_work_area([[maybe_unused]] const WorkViewType &work) {
     using value_type           = typename WorkViewType::non_const_value_type;
     std::size_t workspace_size = work.size() * sizeof(value_type);
-    KOKKOSFFT_THROW_IF(
-        workspace_size < m_workspace_size,
-        "insufficient work buffer size. buffer size: " +
-            std::to_string(workspace_size) +
-            ", required size: " + std::to_string(m_workspace_size));
-    floating_point_type *work_area =
-        reinterpret_cast<floating_point_type *>(work.data());
-    m_plan.set_workspace(work_area);
+    if (m_workspace_size > 0) {
+      KOKKOSFFT_THROW_IF(
+          workspace_size < m_workspace_size,
+          "insufficient work buffer size. buffer size: " +
+              std::to_string(workspace_size) +
+              ", required size: " + std::to_string(m_workspace_size));
+      floating_point_type *work_area =
+          reinterpret_cast<floating_point_type *>(work.data());
+      m_plan.set_workspace(work_area);
+    }
   }
 
   void commit(const Kokkos::SYCL &exec_space) {
