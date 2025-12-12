@@ -8,6 +8,7 @@ add_executable(
   Test_Common_Utils.cpp
   Test_Traits.cpp
   Test_Normalization.cpp
+  Test_Mapping.cpp
   Test_Transpose.cpp
   Test_Extents.cpp
   Test_Padding.cpp
