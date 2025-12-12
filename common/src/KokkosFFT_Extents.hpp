@@ -13,7 +13,7 @@
 #include "KokkosFFT_traits.hpp"
 #include "KokkosFFT_asserts.hpp"
 #include "KokkosFFT_utils.hpp"
-#include "KokkosFFT_transpose.hpp"
+#include "KokkosFFT_Mapping.hpp"
 
 namespace KokkosFFT {
 namespace Impl {
