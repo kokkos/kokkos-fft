@@ -9,7 +9,6 @@
 #include <tuple>
 #include "KokkosFFT_common_types.hpp"
 #include "KokkosFFT_utils.hpp"
-#include "KokkosFFT_Mapping.hpp"
 #include "KokkosFFT_padding.hpp"
 
 namespace KokkosFFT {

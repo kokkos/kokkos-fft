@@ -7,7 +7,6 @@
 
 #include <vector>
 #include <tuple>
-#include <iostream>
 #include <numeric>
 #include "KokkosFFT_common_types.hpp"
 #include "KokkosFFT_asserts.hpp"
@@ -37,11 +36,11 @@ auto get_map_axes(const std::array<IntType, FFT_DIM>& axes) {
       FFT_DIM >= 1 && FFT_DIM <= DIM,
       "get_map_axes: the Rank of FFT axes must be between 1 and View rank");
 
-  // Convert the input axes to be in the range of [0, rank-1]
+  // Convert the input axes to be in the range [0, rank-1]
   auto non_negative_axes = convert_negative_axes(axes, DIM);
 
-  // how indices are map
-  // For 5D View and axes are (2,3), map would be (0, 1, 4, 2, 3)
+  // How indices are mapped
+  // For 5D View and axes (2,3), the map would be (0, 1, 4, 2, 3)
   constexpr IntType rank = static_cast<IntType>(DIM);
   std::vector<IntType> map;
   map.reserve(rank);

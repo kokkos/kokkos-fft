@@ -6,6 +6,7 @@
 #include <random>
 #include <gtest/gtest.h>
 #include <Kokkos_Random.hpp>
+#include "KokkosFFT_Mapping.hpp"
 #include "KokkosFFT_transpose.hpp"
 #include "Test_Utils.hpp"
 
