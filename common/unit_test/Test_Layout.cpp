@@ -70,7 +70,10 @@ void test_create_layout() {
     for (std::size_t i = 0; i < max_rank; ++i) {
       extents.at(i) = static_cast<IndexType>(i + 1);
     }
-    auto layout = KokkosFFT::Impl::create_layout<LayoutType>(extents);
+    auto layout       = KokkosFFT::Impl::create_layout<LayoutType>(extents);
+    using layout_type = decltype(layout);
+    testing::StaticAssertTypeEq<typename layout_type::array_layout,
+                                LayoutType>();
     for (std::size_t i = 0; i < max_rank; ++i) {
       EXPECT_EQ(layout.dimension[i], extents.at(i));
     }
