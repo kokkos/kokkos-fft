@@ -24,14 +24,18 @@ struct layout_iterate_type_selector {
 
 template <>
 struct layout_iterate_type_selector<Kokkos::LayoutRight> {
-  static constexpr Kokkos::Iterate outer_iteration_pattern = Kokkos::Iterate::Right;
-  static constexpr Kokkos::Iterate inner_iteration_pattern = Kokkos::Iterate::Right;
+  static constexpr Kokkos::Iterate outer_iteration_pattern =
+      Kokkos::Iterate::Right;
+  static constexpr Kokkos::Iterate inner_iteration_pattern =
+      Kokkos::Iterate::Right;
 };
 
 template <>
 struct layout_iterate_type_selector<Kokkos::LayoutLeft> {
-  static constexpr Kokkos::Iterate outer_iteration_pattern = Kokkos::Iterate::Left;
-  static constexpr Kokkos::Iterate inner_iteration_pattern = Kokkos::Iterate::Left;
+  static constexpr Kokkos::Iterate outer_iteration_pattern =
+      Kokkos::Iterate::Left;
+  static constexpr Kokkos::Iterate inner_iteration_pattern =
+      Kokkos::Iterate::Left;
 };
 
 template <>
