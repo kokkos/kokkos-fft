@@ -88,7 +88,7 @@ TYPED_TEST(CompileTestLayoutIterate, LayoutIterateTypeSelector) {
   test_layout_iterate_type_selector<layout_type>();
 }
 
-// Tests for 1D View
+// Test create layout for 1D to 8D
 TYPED_TEST(TestCreateLayout, 1Dto8D) {
   using index_type  = typename TestFixture::index_type;
   using layout_type = typename TestFixture::layout_type;
