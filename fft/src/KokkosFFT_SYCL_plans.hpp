@@ -135,14 +135,11 @@ auto create_dynplan(const ExecutionSpace& exec_space,
   plan = std::make_unique<PlanType>(
       int64_fft_extents, in_strides, out_strides, max_idist, max_odist,
       static_cast<std::int64_t>(howmany), direction, is_inplace);
-
-  // FIXME external_workspace capability does not work properly
-  // plan->use_external_workspace();
+  plan->use_external_workspace();
   plan->commit(exec_space);
 
   // We can get the workspace size after commit
-  // FIXME external_workspace capability does not work properly
-  // plan->set_workspace_size();
+  plan->set_workspace_size();
 
   return fft_size;
 }
