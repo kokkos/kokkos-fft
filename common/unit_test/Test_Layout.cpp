@@ -64,19 +64,59 @@ void test_layout_iterate_type_selector() {
 
 template <typename IndexType, typename LayoutType>
 void test_create_layout() {
-  constexpr std::size_t max_rank = 8;
-  for (std::size_t rank = 1; rank <= max_rank; ++rank) {
-    std::array<IndexType, max_rank> extents;
-    for (std::size_t i = 0; i < max_rank; ++i) {
-      extents.at(i) = static_cast<IndexType>(i + 1);
-    }
-    auto layout       = KokkosFFT::Impl::create_layout<LayoutType>(extents);
-    using layout_type = decltype(layout);
-    testing::StaticAssertTypeEq<typename layout_type::array_layout,
-                                LayoutType>();
-    for (std::size_t i = 0; i < max_rank; ++i) {
-      EXPECT_EQ(layout.dimension[i], extents.at(i));
-    }
+  std::size_t n1 = 1, n2 = 1, n3 = 2, n4 = 3, n5 = 5, n6 = 8, n7 = 13, n8 = 21;
+
+  std::array<std::size_t, 1> ref_extents1D = {n1};
+  std::array<std::size_t, 2> ref_extents2D = {n1, n2};
+  std::array<std::size_t, 3> ref_extents3D = {n1, n2, n3};
+  std::array<std::size_t, 4> ref_extents4D = {n1, n2, n3, n4};
+  std::array<std::size_t, 5> ref_extents5D = {n1, n2, n3, n4, n5};
+  std::array<std::size_t, 6> ref_extents6D = {n1, n2, n3, n4, n5, n6};
+  std::array<std::size_t, 7> ref_extents7D = {n1, n2, n3, n4, n5, n6, n7};
+  std::array<std::size_t, 8> ref_extents8D = {n1, n2, n3, n4, n5, n6, n7, n8};
+
+  auto layout1 = KokkosFFT::Impl::create_layout<LayoutType>(ref_extents1D);
+  auto layout2 = KokkosFFT::Impl::create_layout<LayoutType>(ref_extents2D);
+  auto layout3 = KokkosFFT::Impl::create_layout<LayoutType>(ref_extents3D);
+  auto layout4 = KokkosFFT::Impl::create_layout<LayoutType>(ref_extents4D);
+  auto layout5 = KokkosFFT::Impl::create_layout<LayoutType>(ref_extents5D);
+  auto layout6 = KokkosFFT::Impl::create_layout<LayoutType>(ref_extents6D);
+  auto layout7 = KokkosFFT::Impl::create_layout<LayoutType>(ref_extents7D);
+  auto layout8 = KokkosFFT::Impl::create_layout<LayoutType>(ref_extents8D);
+
+  using layout_type = decltype(layout1);
+  testing::StaticAssertTypeEq<typename layout_type::array_layout, LayoutType>();
+
+  for (std::size_t i = 0; i < ref_extents1D.size(); ++i) {
+    EXPECT_EQ(layout1.dimension[i], ref_extents1D.at(i));
+  }
+
+  for (std::size_t i = 0; i < ref_extents2D.size(); ++i) {
+    EXPECT_EQ(layout2.dimension[i], ref_extents2D.at(i));
+  }
+
+  for (std::size_t i = 0; i < ref_extents3D.size(); ++i) {
+    EXPECT_EQ(layout3.dimension[i], ref_extents3D.at(i));
+  }
+
+  for (std::size_t i = 0; i < ref_extents4D.size(); ++i) {
+    EXPECT_EQ(layout4.dimension[i], ref_extents4D.at(i));
+  }
+
+  for (std::size_t i = 0; i < ref_extents5D.size(); ++i) {
+    EXPECT_EQ(layout5.dimension[i], ref_extents5D.at(i));
+  }
+
+  for (std::size_t i = 0; i < ref_extents6D.size(); ++i) {
+    EXPECT_EQ(layout6.dimension[i], ref_extents6D.at(i));
+  }
+
+  for (std::size_t i = 0; i < ref_extents7D.size(); ++i) {
+    EXPECT_EQ(layout7.dimension[i], ref_extents7D.at(i));
+  }
+
+  for (std::size_t i = 0; i < ref_extents8D.size(); ++i) {
+    EXPECT_EQ(layout8.dimension[i], ref_extents8D.at(i));
   }
 }
 
