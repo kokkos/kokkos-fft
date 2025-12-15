@@ -57,11 +57,10 @@ auto create_plan(const ExecutionSpace& exec_space,
   auto [in_extents, out_extents, fft_extents, howmany] =
       KokkosFFT::Impl::get_extents(in, out, axes, s, is_inplace);
   const int nx = fft_extents.at(0);
-  int fft_size = total_size(fft_extents);
   plan         = std::make_unique<PlanType>(nx, type, howmany);
   plan->commit(exec_space);
 
-  return fft_size;
+  return fft_extents;
 }
 
 // 2D transform
@@ -87,11 +86,10 @@ auto create_plan(const ExecutionSpace& exec_space,
   [[maybe_unused]] auto [in_extents, out_extents, fft_extents, howmany] =
       KokkosFFT::Impl::get_extents(in, out, axes, s, is_inplace);
   const int nx = fft_extents.at(0), ny = fft_extents.at(1);
-  int fft_size = total_size(fft_extents);
-  plan         = std::make_unique<PlanType>(nx, ny, type);
+  plan = std::make_unique<PlanType>(nx, ny, type);
   plan->commit(exec_space);
 
-  return fft_size;
+  return fft_extents;
 }
 
 // 3D transform
@@ -119,11 +117,10 @@ auto create_plan(const ExecutionSpace& exec_space,
 
   const int nx = fft_extents.at(0), ny = fft_extents.at(1),
             nz = fft_extents.at(2);
-  int fft_size = total_size(fft_extents);
   plan         = std::make_unique<PlanType>(nx, ny, nz, type);
   plan->commit(exec_space);
 
-  return fft_size;
+  return fft_extents;
 }
 
 // batched transform, over ND Views
@@ -153,9 +150,8 @@ auto create_plan(const ExecutionSpace& exec_space,
                                       out_value_type>::type();
   auto [in_extents, out_extents, fft_extents, howmany] =
       KokkosFFT::Impl::get_extents(in, out, axes, s, is_inplace);
-  int idist    = total_size(in_extents);
-  int odist    = total_size(out_extents);
-  int fft_size = total_size(fft_extents);
+  int idist = total_size(in_extents);
+  int odist = total_size(out_extents);
 
   // For the moment, considering the contiguous layout only
   int istride = 1, ostride = 1;
@@ -164,7 +160,7 @@ auto create_plan(const ExecutionSpace& exec_space,
                                     odist, type, howmany);
   plan->commit(exec_space);
 
-  return fft_size;
+  return fft_extents;
 }
 
 // Interface for dynamic plans
@@ -191,9 +187,8 @@ auto create_dynplan(const ExecutionSpace& exec_space,
                                       out_value_type>::type();
   auto [in_extents, out_extents, fft_extents, howmany] =
       KokkosFFT::Impl::get_extents(in, out, dim, is_inplace);
-  int idist    = total_size(in_extents);
-  int odist    = total_size(out_extents);
-  int fft_size = total_size(fft_extents);
+  int idist = total_size(in_extents);
+  int odist = total_size(out_extents);
 
   if (dim == 1) {
     const int nx = fft_extents.at(0);
@@ -215,7 +210,7 @@ auto create_dynplan(const ExecutionSpace& exec_space,
 
   plan->commit(exec_space);
 
-  return fft_size;
+  return fft_extents;
 }
 
 }  // namespace Impl
