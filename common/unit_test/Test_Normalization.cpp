@@ -55,7 +55,7 @@ auto get_extents_and_coef(bool sqrt = false) {
     auto temp = sqrt ? extent / 10 : extent;
     coef *= (RealType{1} / static_cast<RealType>(temp));
   }
-  return std::make_tuple(extents, coef);
+  return std::make_pair(extents, coef);
 }
 
 /// \brief A test function to check the normalization_coefficient

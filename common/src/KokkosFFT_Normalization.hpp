@@ -6,6 +6,7 @@
 #define KOKKOSFFT_NORMALIZATION_HPP
 
 #include <array>
+#include <cmath>
 #include <numeric>
 #include <tuple>
 #include "KokkosFFT_common_types.hpp"
@@ -36,6 +37,11 @@ void normalize_impl(const ExecutionSpace& exec_space, ViewType& inout,
 }
 
 /// \brief Internal function to compute the normalization coefficient 1/N
+/// First try to compute N and compute 1/N, if it overflows we use the
+/// following formula
+/// N = N0 * N1 * ... = prod_{i} N_i
+/// log N = log (N0 * N1 * ...) = sum_{i} log N_i
+/// 1/N = exp(-1 * log N) = exp(-1 * sum_{i} log N_i)
 /// \tparam RealType: The floating point precision type for normalization
 /// \tparam ContainerType: The type of container for extents
 ///
@@ -49,14 +55,30 @@ constexpr RealType one_over_N(const ContainerType& extents) {
                 "one_over_N: RealType must be a floating_point type");
   static_assert(std::is_integral_v<value_type>,
                 "one_over_N: value_type must be an integral type.");
-  return std::accumulate(extents.begin(), extents.end(), RealType{1},
-                         [](RealType acc, value_type e) {
-                           return acc *
-                                  (RealType{1} / static_cast<RealType>(e));
-                         });
+  bool overflow = false;
+  value_type N  = 1;
+  for (auto e : extents) {
+    if (N > std::numeric_limits<value_type>::max() / e) {
+      overflow = true;
+      break;
+    }
+    N *= e;
+  }
+  if (!overflow) {
+    return RealType{1} / static_cast<RealType>(N);
+  } else {
+    RealType log_N =
+        std::accumulate(extents.begin(), extents.end(), RealType{0},
+                        [](RealType acc, value_type e) {
+                          return acc + std::log(static_cast<RealType>(e));
+                        });
+    return std::exp(-log_N);
+  }
 }
 
 /// \brief Internal function to compute the normalization coefficient 1/sqrt(N)
+/// First try to compute N and compute 1/sqrt(N), if it overflows we use the
+/// following formula
 /// N = N0 * N1 * ... = prod_{i} N_i
 /// log N = log (N0 * N1 * ...) = sum_{i} log N_i
 /// log (1/sqrt(N)) = log (N^{-1/2}) = -1/2 * log N
@@ -74,14 +96,27 @@ constexpr RealType one_over_sqrt_N(const ContainerType& extents) {
                 "one_over_sqrt_N: RealType must be a floating_point type");
   static_assert(std::is_integral_v<value_type>,
                 "one_over_sqrt_N: value_type must be an integral type.");
+  bool overflow = false;
+  value_type N  = 1;
+  for (auto e : extents) {
+    if (N > std::numeric_limits<value_type>::max() / e) {
+      overflow = true;
+      break;
+    }
+    N *= e;
+  }
 
-  RealType log_N =
-      std::accumulate(extents.begin(), extents.end(), RealType{0},
-                      [](RealType acc, value_type e) {
-                        return acc + std::log(static_cast<RealType>(e));
-                      });
+  if (!overflow) {
+    return RealType{1} / std::sqrt(static_cast<RealType>(N));
+  } else {
+    RealType log_N =
+        std::accumulate(extents.begin(), extents.end(), RealType{0},
+                        [](RealType acc, value_type e) {
+                          return acc + std::log(static_cast<RealType>(e));
+                        });
 
-  return std::exp(-RealType{0.5} * log_N);
+    return std::exp(-RealType{0.5} * log_N);
+  }
 }
 
 /// \brief Get the normalization coefficient and whether to normalize
@@ -128,7 +163,7 @@ auto get_coefficients(Direction direction, Normalization normalization,
     default:  // No normalization
       break;
   };
-  return std::make_tuple(coef, to_normalize);
+  return std::make_pair(coef, to_normalize);
 }
 
 /// \brief 1/N normalization for FFTs
