@@ -22,12 +22,8 @@ using test_types =
 
 // Basically the same fixtures, used for labeling tests
 template <typename T>
-struct CompileTestLayoutIterate : public ::testing::Test {
+struct TestLayoutIterate : public ::testing::Test {
   using layout_type = T;
-
-  virtual void SetUp() {
-    GTEST_SKIP() << "Skipping all tests for this fixture";
-  }
 };
 
 template <typename T>
@@ -122,11 +118,11 @@ void test_create_layout() {
 
 }  // namespace
 
-TYPED_TEST_SUITE(CompileTestLayoutIterate, layout_types);
+TYPED_TEST_SUITE(TestLayoutIterate, layout_types);
 TYPED_TEST_SUITE(TestCreateLayout, test_types);
 
 // Tests for layout_iterate_type_selector
-TYPED_TEST(CompileTestLayoutIterate, LayoutIterateTypeSelector) {
+TYPED_TEST(TestLayoutIterate, LayoutIterateTypeSelector) {
   using layout_type = typename TestFixture::layout_type;
   test_layout_iterate_type_selector<layout_type>();
 }
