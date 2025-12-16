@@ -78,10 +78,7 @@ auto create_plan(const ExecutionSpace& exec_space,
   plan->commit(exec_space);
   plan->set_work_area();
 
-  // Calculate the total size of the FFT
-  int fft_size = total_size(fft_extents);
-
-  return fft_size;
+  return fft_extents;
 }
 
 // batched transform, over ND Views
@@ -113,10 +110,7 @@ auto create_dynplan(const ExecutionSpace& exec_space,
                                     howmany, direction, is_inplace);
   plan->commit(exec_space);
 
-  // Calculate the total size of the FFT
-  int fft_size = total_size(fft_extents);
-
-  return fft_size;
+  return fft_extents;
 }
 
 }  // namespace Impl

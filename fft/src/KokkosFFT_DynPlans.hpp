@@ -15,7 +15,7 @@
 #include <Kokkos_Core.hpp>
 #include "KokkosFFT_default_types.hpp"
 #include "KokkosFFT_traits.hpp"
-#include "KokkosFFT_normalization.hpp"
+#include "KokkosFFT_Normalization.hpp"
 #include "KokkosFFT_utils.hpp"
 
 #if defined(KOKKOSFFT_ENABLE_TPL_CUFFT)
@@ -82,8 +82,11 @@ class DynPlan {
       typename KokkosFFT::Impl::FFTDynPlanType<ExecutionSpace, in_value_type,
                                                out_value_type>::type;
 
-  //! The type of fft size
-  using fft_size_type = std::size_t;
+  //! The type of extents of fft
+  using fft_extents_type = std::vector<int>;
+
+  //! The real value type for normalization
+  using normalization_float_type = double;
 
   //! The type of extents of input/output views
   using extents_type = shape_type<InViewType::rank()>;
@@ -95,8 +98,8 @@ class DynPlan {
   //! Dynamically allocatable fft plan.
   std::unique_ptr<fft_plan_type> m_plan;
 
-  //! fft size
-  fft_size_type m_fft_size = 1;
+  //! fft extents
+  fft_extents_type m_fft_extents;
 
   //! in-place transform or not
   bool m_is_inplace = false;
@@ -142,8 +145,8 @@ class DynPlan {
     m_out_extents = KokkosFFT::Impl::extract_extents(out);
     m_is_inplace  = KokkosFFT::Impl::are_aliasing(in.data(), out.data());
     KokkosFFT::Impl::setup<ExecutionSpace, float_type>();
-    m_fft_size = KokkosFFT::Impl::create_dynplan(exec_space, m_plan, in, out,
-                                                 direction, dim, m_is_inplace);
+    m_fft_extents = KokkosFFT::Impl::create_dynplan(
+        exec_space, m_plan, in, out, direction, dim, m_is_inplace);
   }
 
   ~DynPlan() noexcept = default;
@@ -194,13 +197,13 @@ class DynPlan {
         // normalization
         Kokkos::View<out_value_type*, execSpace> out_tmp(out.data(),
                                                          in.size() * 2);
-        KokkosFFT::Impl::normalize(m_exec_space, out_tmp, m_direction, norm,
-                                   m_fft_size);
+        KokkosFFT::Impl::normalize<normalization_float_type>(
+            m_exec_space, out_tmp, m_direction, norm, m_fft_extents);
         return;
       }
     }
-    KokkosFFT::Impl::normalize(m_exec_space, out, m_direction, norm,
-                               m_fft_size);
+    KokkosFFT::Impl::normalize<normalization_float_type>(
+        m_exec_space, out, m_direction, norm, m_fft_extents);
   }
 
   /// \brief Sanity check of the plan used to call FFT interface with
