@@ -7,6 +7,7 @@ add_executable(
   Test_Main.cpp
   Test_Common_Utils.cpp
   Test_Traits.cpp
+  Test_Layout.cpp
   Test_Normalization.cpp
   Test_Mapping.cpp
   Test_Transpose.cpp

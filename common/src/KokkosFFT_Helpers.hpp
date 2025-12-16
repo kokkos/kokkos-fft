@@ -8,6 +8,7 @@
 #include <Kokkos_Core.hpp>
 #include "KokkosFFT_common_types.hpp"
 #include "KokkosFFT_traits.hpp"
+#include "KokkosFFT_Layout.hpp"
 #include "KokkosFFT_utils.hpp"
 
 namespace KokkosFFT {

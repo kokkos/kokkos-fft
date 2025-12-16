@@ -10,6 +10,7 @@
 #include "KokkosFFT_common_types.hpp"
 #include "KokkosFFT_utils.hpp"
 #include "KokkosFFT_padding.hpp"
+#include "KokkosFFT_Layout.hpp"
 
 namespace KokkosFFT {
 namespace Impl {
