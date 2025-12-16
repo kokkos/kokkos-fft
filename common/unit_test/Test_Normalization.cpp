@@ -7,6 +7,7 @@
 #include <Kokkos_Random.hpp>
 #include "KokkosFFT_traits.hpp"
 #include "KokkosFFT_utils.hpp"
+#include "KokkosFFT_Layout.hpp"
 #include "KokkosFFT_Normalization.hpp"
 #include "Test_Utils.hpp"
 
