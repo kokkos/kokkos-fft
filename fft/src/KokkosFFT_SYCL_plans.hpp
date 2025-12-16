@@ -80,9 +80,8 @@ auto create_plan(const ExecutionSpace& exec_space,
   Kokkos::Profiling::ScopedRegion region("KokkosFFT::create_plan[TPL_oneMKL]");
   auto [in_extents, out_extents, fft_extents, howmany] =
       KokkosFFT::Impl::get_extents(in, out, axes, s, is_inplace);
-  int idist    = total_size(in_extents);
-  int odist    = total_size(out_extents);
-  int fft_size = total_size(fft_extents);
+  int idist = total_size(in_extents);
+  int odist = total_size(out_extents);
 
   // Create plan
   auto in_strides        = compute_strides<int, std::int64_t>(in_extents);
@@ -98,7 +97,7 @@ auto create_plan(const ExecutionSpace& exec_space,
       static_cast<std::int64_t>(howmany), direction, is_inplace);
   plan->commit(exec_space);
 
-  return fft_size;
+  return fft_extents;
 }
 
 // batched transform, over ND Views
@@ -119,9 +118,8 @@ auto create_dynplan(const ExecutionSpace& exec_space,
       "KokkosFFT::create_dynplan[TPL_oneMKL]");
   auto [in_extents, out_extents, fft_extents, howmany] =
       KokkosFFT::Impl::get_extents(in, out, dim, is_inplace);
-  int idist    = total_size(in_extents);
-  int odist    = total_size(out_extents);
-  int fft_size = total_size(fft_extents);
+  int idist = total_size(in_extents);
+  int odist = total_size(out_extents);
 
   // Create plan
   auto in_strides        = compute_strides<int, std::int64_t>(in_extents);
@@ -141,7 +139,7 @@ auto create_dynplan(const ExecutionSpace& exec_space,
   // We can get the workspace size after commit
   plan->set_workspace_size();
 
-  return fft_size;
+  return fft_extents;
 }
 
 }  // namespace Impl

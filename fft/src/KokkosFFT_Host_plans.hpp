@@ -76,9 +76,8 @@ auto create_plan(const ExecutionSpace& exec_space,
   const int rank = fft_rank;
   auto [in_extents, out_extents, fft_extents, howmany] =
       KokkosFFT::Impl::get_extents(in, out, axes, s, is_inplace);
-  int idist    = total_size(in_extents);
-  int odist    = total_size(out_extents);
-  int fft_size = total_size(fft_extents);
+  int idist = total_size(in_extents);
+  int odist = total_size(out_extents);
 
   auto* idata = reinterpret_cast<typename KokkosFFT::Impl::fft_data_type<
       ExecutionSpace, in_value_type>::type*>(in.data());
@@ -95,7 +94,7 @@ auto create_plan(const ExecutionSpace& exec_space,
                                     idist, odata, out_extents.data(), ostride,
                                     odist, sign, FFTW_ESTIMATE);
 
-  return fft_size;
+  return fft_extents;
 }
 
 // batched transform, over ND Views
@@ -117,9 +116,8 @@ auto create_dynplan(const ExecutionSpace& exec_space,
   Kokkos::Profiling::ScopedRegion region("KokkosFFT::create_dynplan[TPL_fftw]");
   auto [in_extents, out_extents, fft_extents, howmany] =
       KokkosFFT::Impl::get_extents(in, out, dim, is_inplace);
-  int idist    = total_size(in_extents);
-  int odist    = total_size(out_extents);
-  int fft_size = total_size(fft_extents);
+  int idist = total_size(in_extents);
+  int odist = total_size(out_extents);
 
   auto* idata = reinterpret_cast<typename KokkosFFT::Impl::fft_data_type<
       ExecutionSpace, in_value_type>::type*>(in.data());
@@ -135,7 +133,7 @@ auto create_dynplan(const ExecutionSpace& exec_space,
       in_extents.data(), istride, idist, odata, out_extents.data(), ostride,
       odist, sign, FFTW_ESTIMATE);
 
-  return fft_size;
+  return fft_extents;
 }
 
 }  // namespace Impl
