@@ -144,7 +144,6 @@ auto create_plan(const ExecutionSpace& exec_space,
   using out_value_type = typename OutViewType::non_const_value_type;
 
   Kokkos::Profiling::ScopedRegion region("KokkosFFT::create_plan[TPL_cufft]");
-  const int rank = fft_rank;
   constexpr auto type =
       KokkosFFT::Impl::transform_type<ExecutionSpace, in_value_type,
                                       out_value_type>::type();
@@ -153,11 +152,15 @@ auto create_plan(const ExecutionSpace& exec_space,
   int idist = total_size(in_extents);
   int odist = total_size(out_extents);
 
+  auto int_in_extents  = convert_base_int_type<int>(in_extents);
+  auto int_out_extents = convert_base_int_type<int>(out_extents);
+  auto int_fft_extents = convert_base_int_type<int>(fft_extents);
+
   // For the moment, considering the contiguous layout only
   int istride = 1, ostride = 1;
-  plan = std::make_unique<PlanType>(rank, fft_extents.data(), in_extents.data(),
-                                    istride, idist, out_extents.data(), ostride,
-                                    odist, type, howmany);
+  plan = std::make_unique<PlanType>(
+      int_fft_extents.size(), int_fft_extents.data(), int_in_extents.data(),
+      istride, idist, int_out_extents.data(), ostride, odist, type, howmany);
   plan->commit(exec_space);
 
   return fft_extents;
@@ -194,13 +197,17 @@ auto create_dynplan(const ExecutionSpace& exec_space,
     const int nx = fft_extents.at(0);
     plan         = std::make_unique<PlanType>(nx, type, howmany);
   } else if (dim == 2 || dim == 3) {
+    auto int_fft_extents = convert_base_int_type<int>(fft_extents);
     if (InViewType::rank() == dim) {
-      plan = std::make_unique<PlanType>(fft_extents, type);
+      plan = std::make_unique<PlanType>(int_fft_extents, type);
     } else {
+      auto int_in_extents  = convert_base_int_type<int>(in_extents);
+      auto int_out_extents = convert_base_int_type<int>(out_extents);
       int istride = 1, ostride = 1;
       plan = std::make_unique<PlanType>(
-          fft_extents.size(), fft_extents.data(), in_extents.data(), istride,
-          idist, out_extents.data(), ostride, odist, type, howmany);
+          int_fft_extents.size(), int_fft_extents.data(), int_in_extents.data(),
+          istride, idist, int_out_extents.data(), ostride, odist, type,
+          howmany);
     }
   } else {
     KOKKOSFFT_THROW_IF(true,

@@ -67,19 +67,19 @@ void test_extents_1d_view_1d(bool is_static = true) {
 
   constexpr bool is_R2C = KokkosFFT::Impl::is_real_v<T>;
 
-  const int n0  = 6;
-  const int n0h = KokkosFFT::Impl::extent_after_transform(n0, is_R2C);
+  const std::size_t n0  = 6;
+  const std::size_t n0h = KokkosFFT::Impl::extent_after_transform(n0, is_R2C);
 
   ViewType xr("xr", n0);
   ComplexViewtype xc("xc", n0h);
   ComplexViewtype xcin("xcin", n0), xcout("xcout", n0);
 
-  std::vector<int> ref_in_extents = {n0}, ref_out_extents = {n0h},
-                   ref_fft_extents = {n0};
-  int ref_howmany                  = 1;
+  std::vector<std::size_t> ref_in_extents = {n0}, ref_out_extents = {n0h},
+                           ref_fft_extents = {n0};
+  std::size_t ref_howmany                  = 1;
 
-  std::vector<int> in_extents(1), out_extents(1), fft_extents(1);
-  int howmany;
+  std::vector<std::size_t> in_extents(1), out_extents(1), fft_extents(1);
+  std::size_t howmany;
 
   // R2C or C2C
   if (is_static) {
@@ -145,24 +145,24 @@ void test_extents_1d_view_2d(bool is_static = true) {
 
   constexpr bool is_R2C = KokkosFFT::Impl::is_real_v<T>;
 
-  const int n0 = 6, n1 = 10;
-  const int n0h = KokkosFFT::Impl::extent_after_transform(n0, is_R2C),
-            n1h = KokkosFFT::Impl::extent_after_transform(n1, is_R2C);
+  const std::size_t n0 = 6, n1 = 10;
+  const std::size_t n0h = KokkosFFT::Impl::extent_after_transform(n0, is_R2C),
+                    n1h = KokkosFFT::Impl::extent_after_transform(n1, is_R2C);
 
   ViewType xr("xr", n0, n1);
   ComplexViewtype xc_axis0("xc_axis0", n0h, n1), xc_axis1("xc_axis1", n0, n1h);
   ComplexViewtype xcin("xcin", n0, n1), xcout("xcout", n0, n1);
 
-  [[maybe_unused]] std::vector<int> ref_in_extents_axis0  = {n0},
-                                    ref_out_extents_axis0 = {n0h},
-                                    ref_fft_extents_axis0 = {n0},
-                                    ref_in_extents_axis1  = {n1},
-                                    ref_out_extents_axis1 = {n1h},
-                                    ref_fft_extents_axis1 = {n1};
-  [[maybe_unused]] int ref_howmany_axis0 = n1, ref_howmany_axis1 = n0;
+  [[maybe_unused]] std::vector<std::size_t> ref_in_extents_axis0  = {n0},
+                                            ref_out_extents_axis0 = {n0h},
+                                            ref_fft_extents_axis0 = {n0},
+                                            ref_in_extents_axis1  = {n1},
+                                            ref_out_extents_axis1 = {n1h},
+                                            ref_fft_extents_axis1 = {n1};
+  [[maybe_unused]] std::size_t ref_howmany_axis0 = n1, ref_howmany_axis1 = n0;
 
-  std::vector<int> in_extents(1), out_extents(1), fft_extents(1);
-  int howmany;
+  std::vector<std::size_t> in_extents(1), out_extents(1), fft_extents(1);
+  std::size_t howmany;
 
   // R2C or C2C
   if (is_static) {
@@ -276,30 +276,31 @@ void test_extents_1d_view_3d(bool is_static = true) {
 
   constexpr bool is_R2C = KokkosFFT::Impl::is_real_v<T>;
 
-  const int n0 = 6, n1 = 10, n2 = 8;
-  const int n0h = KokkosFFT::Impl::extent_after_transform(n0, is_R2C),
-            n1h = KokkosFFT::Impl::extent_after_transform(n1, is_R2C),
-            n2h = KokkosFFT::Impl::extent_after_transform(n2, is_R2C);
+  const std::size_t n0 = 6, n1 = 10, n2 = 8;
+  const std::size_t n0h = KokkosFFT::Impl::extent_after_transform(n0, is_R2C),
+                    n1h = KokkosFFT::Impl::extent_after_transform(n1, is_R2C),
+                    n2h = KokkosFFT::Impl::extent_after_transform(n2, is_R2C);
 
   ViewType xr("xr", n0, n1, n2);
   ComplexViewtype xc_axis0("xc_axis0", n0h, n1, n2),
       xc_axis1("xc_axis1", n0, n1h, n2), xc_axis2("xc_axis2", n0, n1, n2h);
   ComplexViewtype xcin("xcin", n0, n1, n2), xcout("xcout", n0, n1, n2);
 
-  [[maybe_unused]] std::vector<int> ref_in_extents_axis0  = {n0},
-                                    ref_out_extents_axis0 = {n0h},
-                                    ref_fft_extents_axis0 = {n0},
-                                    ref_in_extents_axis1  = {n1},
-                                    ref_out_extents_axis1 = {n1h},
-                                    ref_fft_extents_axis1 = {n1},
-                                    ref_in_extents_axis2  = {n2},
-                                    ref_out_extents_axis2 = {n2h},
-                                    ref_fft_extents_axis2 = {n2};
-  [[maybe_unused]] int ref_howmany_axis0 = n1 * n2, ref_howmany_axis1 = n0 * n2,
-                       ref_howmany_axis2 = n0 * n1;
+  [[maybe_unused]] std::vector<std::size_t> ref_in_extents_axis0  = {n0},
+                                            ref_out_extents_axis0 = {n0h},
+                                            ref_fft_extents_axis0 = {n0},
+                                            ref_in_extents_axis1  = {n1},
+                                            ref_out_extents_axis1 = {n1h},
+                                            ref_fft_extents_axis1 = {n1},
+                                            ref_in_extents_axis2  = {n2},
+                                            ref_out_extents_axis2 = {n2h},
+                                            ref_fft_extents_axis2 = {n2};
+  [[maybe_unused]] std::size_t ref_howmany_axis0                  = n1 * n2,
+                               ref_howmany_axis1                  = n0 * n2,
+                               ref_howmany_axis2                  = n0 * n1;
 
-  std::vector<int> in_extents(1), out_extents(1), fft_extents(1);
-  int howmany;
+  std::vector<std::size_t> in_extents(1), out_extents(1), fft_extents(1);
+  std::size_t howmany;
 
   // R2C or C2C
   if (is_static) {
@@ -433,24 +434,24 @@ void test_extents_2d_view_2d(bool is_static = true) {
 
   constexpr bool is_R2C = KokkosFFT::Impl::is_real_v<T>;
 
-  const int n0 = 6, n1 = 10;
-  const int n0h = KokkosFFT::Impl::extent_after_transform(n0, is_R2C),
-            n1h = KokkosFFT::Impl::extent_after_transform(n1, is_R2C);
+  const std::size_t n0 = 6, n1 = 10;
+  const std::size_t n0h = KokkosFFT::Impl::extent_after_transform(n0, is_R2C),
+                    n1h = KokkosFFT::Impl::extent_after_transform(n1, is_R2C);
 
   ViewType xr("xr", n0, n1);
   ComplexViewtype xc_axis0("xc_axis0", n0h, n1), xc_axis1("xc_axis1", n0, n1h);
   ComplexViewtype xcin("xcin", n0, n1), xcout("xcout", n0, n1);
 
-  [[maybe_unused]] std::vector<int> ref_in_extents_axes01  = {n0, n1},
-                                    ref_out_extents_axes01 = {n0, n1h},
-                                    ref_fft_extents_axes01 = {n0, n1},
-                                    ref_in_extents_axes10  = {n1, n0},
-                                    ref_out_extents_axes10 = {n1, n0h},
-                                    ref_fft_extents_axes10 = {n1, n0};
-  int ref_howmany                                          = 1;
+  [[maybe_unused]] std::vector<std::size_t> ref_in_extents_axes01  = {n0, n1},
+                                            ref_out_extents_axes01 = {n0, n1h},
+                                            ref_fft_extents_axes01 = {n0, n1},
+                                            ref_in_extents_axes10  = {n1, n0},
+                                            ref_out_extents_axes10 = {n1, n0h},
+                                            ref_fft_extents_axes10 = {n1, n0};
+  std::size_t ref_howmany                                          = 1;
 
-  std::vector<int> in_extents(2), out_extents(2), fft_extents(2);
-  int howmany;
+  std::vector<std::size_t> in_extents(2), out_extents(2), fft_extents(2);
+  std::size_t howmany;
 
   // R2C or C2C
   if (is_static) {
@@ -578,40 +579,40 @@ void test_extents_2d_view_3d(bool is_static = true) {
 
   constexpr bool is_R2C = KokkosFFT::Impl::is_real_v<T>;
 
-  const int n0 = 6, n1 = 10, n2 = 8;
-  const int n0h = KokkosFFT::Impl::extent_after_transform(n0, is_R2C),
-            n1h = KokkosFFT::Impl::extent_after_transform(n1, is_R2C),
-            n2h = KokkosFFT::Impl::extent_after_transform(n2, is_R2C);
+  const std::size_t n0 = 6, n1 = 10, n2 = 8;
+  const std::size_t n0h = KokkosFFT::Impl::extent_after_transform(n0, is_R2C),
+                    n1h = KokkosFFT::Impl::extent_after_transform(n1, is_R2C),
+                    n2h = KokkosFFT::Impl::extent_after_transform(n2, is_R2C);
 
   ViewType xr("xr", n0, n1, n2);
   ComplexViewtype xc_axis0("xc_axis0", n0h, n1, n2),
       xc_axis1("xc_axis1", n0, n1h, n2), xc_axis2("xc_axis2", n0, n1, n2h);
   ComplexViewtype xcin("xcin", n0, n1, n2), xcout("xcout", n0, n1, n2);
 
-  [[maybe_unused]] std::vector<int> ref_in_extents_axes01  = {n0, n1},
-                                    ref_out_extents_axes01 = {n0, n1h},
-                                    ref_fft_extents_axes01 = {n0, n1},
-                                    ref_in_extents_axes02  = {n0, n2},
-                                    ref_out_extents_axes02 = {n0, n2h},
-                                    ref_fft_extents_axes02 = {n0, n2},
-                                    ref_in_extents_axes10  = {n1, n0},
-                                    ref_out_extents_axes10 = {n1, n0h},
-                                    ref_fft_extents_axes10 = {n1, n0},
-                                    ref_in_extents_axes12  = {n1, n2},
-                                    ref_out_extents_axes12 = {n1, n2h},
-                                    ref_fft_extents_axes12 = {n1, n2},
-                                    ref_in_extents_axes20  = {n2, n0},
-                                    ref_out_extents_axes20 = {n2, n0h},
-                                    ref_fft_extents_axes20 = {n2, n0},
-                                    ref_in_extents_axes21  = {n2, n1},
-                                    ref_out_extents_axes21 = {n2, n1h},
-                                    ref_fft_extents_axes21 = {n2, n1};
-  [[maybe_unused]] int ref_howmany_axes01 = n2, ref_howmany_axes02 = n1,
-                       ref_howmany_axes10 = n2, ref_howmany_axes12 = n0,
-                       ref_howmany_axes20 = n1, ref_howmany_axes21 = n0;
+  [[maybe_unused]] std::vector<std::size_t> ref_in_extents_axes01  = {n0, n1},
+                                            ref_out_extents_axes01 = {n0, n1h},
+                                            ref_fft_extents_axes01 = {n0, n1},
+                                            ref_in_extents_axes02  = {n0, n2},
+                                            ref_out_extents_axes02 = {n0, n2h},
+                                            ref_fft_extents_axes02 = {n0, n2},
+                                            ref_in_extents_axes10  = {n1, n0},
+                                            ref_out_extents_axes10 = {n1, n0h},
+                                            ref_fft_extents_axes10 = {n1, n0},
+                                            ref_in_extents_axes12  = {n1, n2},
+                                            ref_out_extents_axes12 = {n1, n2h},
+                                            ref_fft_extents_axes12 = {n1, n2},
+                                            ref_in_extents_axes20  = {n2, n0},
+                                            ref_out_extents_axes20 = {n2, n0h},
+                                            ref_fft_extents_axes20 = {n2, n0},
+                                            ref_in_extents_axes21  = {n2, n1},
+                                            ref_out_extents_axes21 = {n2, n1h},
+                                            ref_fft_extents_axes21 = {n2, n1};
+  [[maybe_unused]] std::size_t ref_howmany_axes01 = n2, ref_howmany_axes02 = n1,
+                               ref_howmany_axes10 = n2, ref_howmany_axes12 = n0,
+                               ref_howmany_axes20 = n1, ref_howmany_axes21 = n0;
 
-  std::vector<int> in_extents(2), out_extents(2), fft_extents(2);
-  int howmany;
+  std::vector<std::size_t> in_extents(2), out_extents(2), fft_extents(2);
+  std::size_t howmany;
 
   // R2C or C2C
   if (is_static) {

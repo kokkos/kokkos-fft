@@ -114,14 +114,14 @@ auto get_extents(const InViewType& in, const OutViewType& out,
                 "get_extents: real to real transform is not supported");
 
   constexpr std::size_t rank = InViewType::rank;
-  [[maybe_unused]] int inner_most_axis =
+  [[maybe_unused]] std::size_t inner_most_axis =
       std::is_same_v<array_layout_type, typename Kokkos::LayoutLeft>
           ? 0
           : (rank - 1);
 
   // Get extents for the inner most axes in LayoutRight
   // If we allow the FFT on the layoutLeft, this part should be modified
-  std::vector<int> in_extents_full, out_extents_full, fft_extents_full;
+  std::vector<std::size_t> in_extents_full, out_extents_full, fft_extents_full;
   for (std::size_t i = 0; i < rank; i++) {
     auto idx        = map.at(i);
     auto in_extent  = modified_in_shape.at(idx);
@@ -166,7 +166,7 @@ auto get_extents(const InViewType& in, const OutViewType& out,
 
   for (std::size_t i = 0; i < rank; i++) {
     // The requirement for inner_most_axis is different for transform type
-    if (static_cast<int>(i) == inner_most_axis) continue;
+    if (i == inner_most_axis) continue;
     KOKKOSFFT_THROW_IF(in_extents_full.at(i) != out_extents_full.at(i),
                        "input and output extents must be the same except for "
                        "the transform axis: " +
@@ -221,16 +221,15 @@ auto get_extents(const InViewType& in, const OutViewType& out,
   // Define subvectors starting from last - DIM
   // Dimensions relevant to FFTs
   const std::size_t DIM = axes.size();
-  std::vector<int> in_extents(in_extents_full.end() - DIM,
-                              in_extents_full.end());
-  std::vector<int> out_extents(out_extents_full.end() - DIM,
-                               out_extents_full.end());
-  std::vector<int> fft_extents(fft_extents_full.end() - DIM,
-                               fft_extents_full.end());
-
-  auto total_fft_size = total_size(fft_extents_full);
-  auto fft_size       = total_size(fft_extents);
-  auto howmany        = total_fft_size / fft_size;
+  std::vector<std::size_t> in_extents(in_extents_full.end() - DIM,
+                                      in_extents_full.end());
+  std::vector<std::size_t> out_extents(out_extents_full.end() - DIM,
+                                       out_extents_full.end());
+  std::vector<std::size_t> fft_extents(fft_extents_full.end() - DIM,
+                                       fft_extents_full.end());
+  std::vector<std::size_t> batch_extents(fft_extents_full.begin(),
+                                         fft_extents_full.end() - DIM);
+  auto howmany = total_size(batch_extents);
 
   return std::make_tuple(in_extents, out_extents, fft_extents, howmany);
 }

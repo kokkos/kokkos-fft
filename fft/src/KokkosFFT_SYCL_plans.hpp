@@ -80,12 +80,12 @@ auto create_plan(const ExecutionSpace& exec_space,
   Kokkos::Profiling::ScopedRegion region("KokkosFFT::create_plan[TPL_oneMKL]");
   auto [in_extents, out_extents, fft_extents, howmany] =
       KokkosFFT::Impl::get_extents(in, out, axes, s, is_inplace);
-  int idist = total_size(in_extents);
-  int odist = total_size(out_extents);
+  std::int64_t idist = total_size(in_extents);
+  std::int64_t odist = total_size(out_extents);
 
   // Create plan
-  auto in_strides        = compute_strides<int, std::int64_t>(in_extents);
-  auto out_strides       = compute_strides<int, std::int64_t>(out_extents);
+  auto in_strides  = compute_strides<std::size_t, std::int64_t>(in_extents);
+  auto out_strides = compute_strides<std::size_t, std::int64_t>(out_extents);
   auto int64_fft_extents = convert_base_int_type<std::int64_t>(fft_extents);
 
   // In oneMKL, the distance is always defined based on R2C transform
@@ -118,12 +118,12 @@ auto create_dynplan(const ExecutionSpace& exec_space,
       "KokkosFFT::create_dynplan[TPL_oneMKL]");
   auto [in_extents, out_extents, fft_extents, howmany] =
       KokkosFFT::Impl::get_extents(in, out, dim, is_inplace);
-  int idist = total_size(in_extents);
-  int odist = total_size(out_extents);
+  std::int64_t idist = total_size(in_extents);
+  std::int64_t odist = total_size(out_extents);
 
   // Create plan
-  auto in_strides        = compute_strides<int, std::int64_t>(in_extents);
-  auto out_strides       = compute_strides<int, std::int64_t>(out_extents);
+  auto in_strides  = compute_strides<std::size_t, std::int64_t>(in_extents);
+  auto out_strides = compute_strides<std::size_t, std::int64_t>(out_extents);
   auto int64_fft_extents = convert_base_int_type<std::int64_t>(fft_extents);
 
   // In oneMKL, the distance is always defined based on R2C transform

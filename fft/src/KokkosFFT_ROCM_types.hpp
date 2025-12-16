@@ -172,23 +172,21 @@ struct ScopedRocfftPlan {
 
  public:
   ScopedRocfftPlan(const FFTWTransformType transform_type,
-                   const std::vector<int> &in_extents,
-                   const std::vector<int> &out_extents,
-                   const std::vector<int> &fft_extents, int howmany,
-                   Direction direction, bool is_inplace) {
+                   const std::vector<std::size_t> &in_extents,
+                   const std::vector<std::size_t> &out_extents,
+                   const std::vector<std::size_t> &fft_extents,
+                   std::size_t howmany, Direction direction, bool is_inplace) {
     auto [in_array_type, out_array_type, fft_direction] =
         get_in_out_array_type(transform_type, direction);
 
     // Compute dist and strides from extents
-    int idist = total_size(in_extents);
-    int odist = total_size(out_extents);
+    std::size_t idist = total_size(in_extents);
+    std::size_t odist = total_size(out_extents);
 
-    auto in_strides =
-        convert_base_int_type<std::size_t>(compute_strides(in_extents));
-    auto out_strides =
-        convert_base_int_type<std::size_t>(compute_strides(out_extents));
+    auto in_strides  = compute_strides(in_extents);
+    auto out_strides = compute_strides(out_extents);
     auto reversed_fft_extents =
-        convert_int_type_and_reverse<int, std::size_t>(fft_extents);
+        convert_int_type_and_reverse<std::size_t, std::size_t>(fft_extents);
 
     // Create a plan description
     ScopedRocfftPlanDescription scoped_description;
