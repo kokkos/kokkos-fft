@@ -73,11 +73,12 @@ auto create_plan(const ExecutionSpace& exec_space,
   using out_value_type = typename OutViewType::non_const_value_type;
 
   Kokkos::Profiling::ScopedRegion region("KokkosFFT::create_plan[TPL_fftw]");
-  const int rank = fft_rank;
   auto [in_extents, out_extents, fft_extents, howmany] =
       KokkosFFT::Impl::get_extents(in, out, axes, s, is_inplace);
-  int idist = total_size(in_extents);
-  int odist = total_size(out_extents);
+
+  using index_type = typename FFTIndexType<ExecutionSpace>;
+  index_type idist = total_size(in_extents);
+  index_type odist = total_size(out_extents);
 
   auto* idata = reinterpret_cast<typename KokkosFFT::Impl::fft_data_type<
       ExecutionSpace, in_value_type>::type*>(in.data());
@@ -85,17 +86,17 @@ auto create_plan(const ExecutionSpace& exec_space,
       ExecutionSpace, out_value_type>::type*>(out.data());
 
   // For the moment, considering the contiguous layout only
-  int istride = 1, ostride = 1;
-  auto int_in_extents  = convert_base_int_type<int>(in_extents);
-  auto int_out_extents = convert_base_int_type<int>(out_extents);
-  auto int_fft_extents = convert_base_int_type<int>(fft_extents);
+  index_type istride = 1, ostride = 1;
+  auto int_in_extents  = convert_base_int_type<index_type>(in_extents);
+  auto int_out_extents = convert_base_int_type<index_type>(out_extents);
+  auto int_fft_extents = convert_base_int_type<index_type>(fft_extents);
   [[maybe_unused]] auto sign =
       KokkosFFT::Impl::direction_type<ExecutionSpace>(direction);
 
   plan = std::make_unique<PlanType>(
-      exec_space, rank, int_fft_extents.data(), howmany, idata,
-      int_in_extents.data(), istride, idist, odata, int_out_extents.data(),
-      ostride, odist, sign, FFTW_ESTIMATE);
+      exec_space, int_fft_extents.size(), int_fft_extents.data(), howmany,
+      idata, int_in_extents.data(), istride, idist, odata,
+      int_out_extents.data(), ostride, odist, sign, FFTW_ESTIMATE);
 
   return fft_extents;
 }
@@ -119,8 +120,10 @@ auto create_dynplan(const ExecutionSpace& exec_space,
   Kokkos::Profiling::ScopedRegion region("KokkosFFT::create_dynplan[TPL_fftw]");
   auto [in_extents, out_extents, fft_extents, howmany] =
       KokkosFFT::Impl::get_extents(in, out, dim, is_inplace);
-  int idist = total_size(in_extents);
-  int odist = total_size(out_extents);
+
+  using index_type = typename FFTIndexType<ExecutionSpace>;
+  index_type idist = total_size(in_extents);
+  index_type odist = total_size(out_extents);
 
   auto* idata = reinterpret_cast<typename KokkosFFT::Impl::fft_data_type<
       ExecutionSpace, in_value_type>::type*>(in.data());
@@ -128,10 +131,10 @@ auto create_dynplan(const ExecutionSpace& exec_space,
       ExecutionSpace, out_value_type>::type*>(out.data());
 
   // For the moment, considering the contiguous layout only
-  int istride = 1, ostride = 1;
-  auto int_in_extents  = convert_base_int_type<int>(in_extents);
-  auto int_out_extents = convert_base_int_type<int>(out_extents);
-  auto int_fft_extents = convert_base_int_type<int>(fft_extents);
+  index_type istride = 1, ostride = 1;
+  auto int_in_extents  = convert_base_int_type<index_type>(in_extents);
+  auto int_out_extents = convert_base_int_type<index_type>(out_extents);
+  auto int_fft_extents = convert_base_int_type<index_type>(fft_extents);
   auto sign = KokkosFFT::Impl::direction_type<ExecutionSpace>(direction);
 
   plan = std::make_unique<PlanType>(

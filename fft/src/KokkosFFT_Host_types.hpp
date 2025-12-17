@@ -22,6 +22,9 @@ struct FFTDataType {
 template <typename ExecutionSpace>
 using TransformType = FFTWTransformType;
 
+template <typename ExecutionSpace>
+using FFTIndexType = int;
+
 template <typename ExecutionSpace, typename T1, typename T2>
 using transform_type = fftw_transform_type<T1, T2>;
 

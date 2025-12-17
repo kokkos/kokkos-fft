@@ -330,6 +330,14 @@ struct FFTDataType {
                          std::complex<double>, fftw_complex>;
 };
 
+/// \brief The index type used in backend FFT plan
+/// rocFFT and FFTW use std::size_t and int as index type
+/// \tparam ExecutionSpace The type of Kokkos execution space
+template <typename ExecutionSpace>
+using FFTIndexType =
+    std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>, std::size_t,
+                       int>;
+
 template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTPlanType {
   using fftw_plan_type   = ScopedFFTWPlan<ExecutionSpace, T1, T2>;
@@ -365,6 +373,9 @@ struct FFTDataType {
   using complex64  = std::complex<float>;
   using complex128 = std::complex<double>;
 };
+
+template <typename ExecutionSpace>
+using FFTIndexType = std::size_t;
 
 template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTPlanType {
