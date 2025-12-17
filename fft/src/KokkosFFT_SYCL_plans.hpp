@@ -91,8 +91,8 @@ auto create_plan(const ExecutionSpace& exec_space,
   auto int64_fft_extents = convert_base_int_type<index_type>(fft_extents);
 
   // In oneMKL, the distance is always defined based on R2C transform
-  index_type max_idist = static_cast<index_type>(std::max(idist, odist));
-  index_type max_odist = static_cast<index_type>(std::min(idist, odist));
+  // idist is the larger one, and odist is the smaller one
+  auto [max_odist, max_idist] = std::minmax({idist, odist});
 
   plan = std::make_unique<PlanType>(
       int64_fft_extents, in_strides, out_strides, max_idist, max_odist,
@@ -131,8 +131,8 @@ auto create_dynplan(const ExecutionSpace& exec_space,
   auto int64_fft_extents = convert_base_int_type<index_type>(fft_extents);
 
   // In oneMKL, the distance is always defined based on R2C transform
-  index_type max_idist = static_cast<index_type>(std::max(idist, odist));
-  index_type max_odist = static_cast<index_type>(std::min(idist, odist));
+  // idist is the larger one, and odist is the smaller one
+  auto [max_odist, max_idist] = std::minmax({idist, odist});
 
   plan = std::make_unique<PlanType>(
       int64_fft_extents, in_strides, out_strides, max_idist, max_odist,
