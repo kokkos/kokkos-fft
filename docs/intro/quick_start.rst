@@ -20,7 +20,7 @@ If CMake fails to find a backend FFT library, see :doc:`How to find fft librarie
 Requirements
 ------------
 
-kokkos-fft requires ``Kokkos 4.5+`` and dedicated compilers for CPUs or GPUs.
+kokkos-fft requires ``Kokkos 4.6+`` and dedicated compilers for CPUs or GPUs.
 It employs ``CMake 3.22+`` for building.
 
 Here are list of compilers we frequently use for testing. 
