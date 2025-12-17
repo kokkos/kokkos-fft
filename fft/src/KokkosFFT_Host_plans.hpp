@@ -76,7 +76,7 @@ auto create_plan(const ExecutionSpace& exec_space,
   auto [in_extents, out_extents, fft_extents, howmany] =
       KokkosFFT::Impl::get_extents(in, out, axes, s, is_inplace);
 
-  using index_type = typename FFTIndexType<ExecutionSpace>;
+  using index_type = FFTIndexType<ExecutionSpace>;
   index_type idist = total_size(in_extents);
   index_type odist = total_size(out_extents);
 
@@ -121,7 +121,7 @@ auto create_dynplan(const ExecutionSpace& exec_space,
   auto [in_extents, out_extents, fft_extents, howmany] =
       KokkosFFT::Impl::get_extents(in, out, dim, is_inplace);
 
-  using index_type = typename FFTIndexType<ExecutionSpace>;
+  using index_type = FFTIndexType<ExecutionSpace>;
   index_type idist = total_size(in_extents);
   index_type odist = total_size(out_extents);
 
