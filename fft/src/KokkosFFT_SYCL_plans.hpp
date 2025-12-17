@@ -80,21 +80,23 @@ auto create_plan(const ExecutionSpace& exec_space,
   Kokkos::Profiling::ScopedRegion region("KokkosFFT::create_plan[TPL_oneMKL]");
   auto [in_extents, out_extents, fft_extents, howmany] =
       KokkosFFT::Impl::get_extents(in, out, axes, s, is_inplace);
-  int idist = total_size(in_extents);
-  int odist = total_size(out_extents);
+
+  using index_type = FFTIndexType<Kokkos::Experimental::SYCL>;
+  index_type idist = total_size(in_extents);
+  index_type odist = total_size(out_extents);
 
   // Create plan
-  auto in_strides        = compute_strides<int, std::int64_t>(in_extents);
-  auto out_strides       = compute_strides<int, std::int64_t>(out_extents);
-  auto int64_fft_extents = convert_base_int_type<std::int64_t>(fft_extents);
+  auto in_strides  = compute_strides<std::size_t, index_type>(in_extents);
+  auto out_strides = compute_strides<std::size_t, index_type>(out_extents);
+  auto int64_fft_extents = convert_base_int_type<index_type>(fft_extents);
 
   // In oneMKL, the distance is always defined based on R2C transform
-  std::int64_t max_idist = static_cast<std::int64_t>(std::max(idist, odist));
-  std::int64_t max_odist = static_cast<std::int64_t>(std::min(idist, odist));
+  // idist is the larger one, and odist is the smaller one
+  auto [max_odist, max_idist] = std::minmax({idist, odist});
 
   plan = std::make_unique<PlanType>(
       int64_fft_extents, in_strides, out_strides, max_idist, max_odist,
-      static_cast<std::int64_t>(howmany), direction, is_inplace);
+      static_cast<index_type>(howmany), direction, is_inplace);
   plan->commit(exec_space);
 
   return fft_extents;
@@ -118,21 +120,23 @@ auto create_dynplan(const ExecutionSpace& exec_space,
       "KokkosFFT::create_dynplan[TPL_oneMKL]");
   auto [in_extents, out_extents, fft_extents, howmany] =
       KokkosFFT::Impl::get_extents(in, out, dim, is_inplace);
-  int idist = total_size(in_extents);
-  int odist = total_size(out_extents);
+
+  using index_type = FFTIndexType<Kokkos::Experimental::SYCL>;
+  index_type idist = total_size(in_extents);
+  index_type odist = total_size(out_extents);
 
   // Create plan
-  auto in_strides        = compute_strides<int, std::int64_t>(in_extents);
-  auto out_strides       = compute_strides<int, std::int64_t>(out_extents);
-  auto int64_fft_extents = convert_base_int_type<std::int64_t>(fft_extents);
+  auto in_strides  = compute_strides<std::size_t, index_type>(in_extents);
+  auto out_strides = compute_strides<std::size_t, index_type>(out_extents);
+  auto int64_fft_extents = convert_base_int_type<index_type>(fft_extents);
 
   // In oneMKL, the distance is always defined based on R2C transform
-  std::int64_t max_idist = static_cast<std::int64_t>(std::max(idist, odist));
-  std::int64_t max_odist = static_cast<std::int64_t>(std::min(idist, odist));
+  // idist is the larger one, and odist is the smaller one
+  auto [max_odist, max_idist] = std::minmax({idist, odist});
 
   plan = std::make_unique<PlanType>(
       int64_fft_extents, in_strides, out_strides, max_idist, max_odist,
-      static_cast<std::int64_t>(howmany), direction, is_inplace);
+      static_cast<index_type>(howmany), direction, is_inplace);
   plan->use_external_workspace();
   plan->commit(exec_space);
 

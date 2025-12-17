@@ -194,6 +194,12 @@ using TransformType =
     std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::Cuda>, cufftType,
                        FFTWTransformType>;
 
+/// \brief The index type used in backend FFT plan
+/// Both cuFFT and FFTW use int as index type
+/// \tparam ExecutionSpace The type of Kokkos execution space
+template <typename ExecutionSpace>
+using FFTIndexType = int;
+
 template <typename ExecutionSpace, typename T1, typename T2>
 struct transform_type {
   static_assert(std::is_same_v<T1, T2>,
@@ -301,6 +307,9 @@ struct FFTDataType {
 
 template <typename ExecutionSpace>
 using TransformType = cufftType;
+
+template <typename ExecutionSpace>
+using FFTIndexType = int;
 
 template <typename ExecutionSpace, typename T1, typename T2>
 struct transform_type {

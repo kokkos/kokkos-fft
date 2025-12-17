@@ -83,7 +83,7 @@ class DynPlan {
                                                out_value_type>::type;
 
   //! The type of extents of fft
-  using fft_extents_type = std::vector<int>;
+  using fft_extents_type = std::vector<std::size_t>;
 
   //! The real value type for normalization
   using normalization_float_type = double;
