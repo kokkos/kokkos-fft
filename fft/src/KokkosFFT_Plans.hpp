@@ -17,6 +17,7 @@
 #include "KokkosFFT_transpose.hpp"
 #include "KokkosFFT_Normalization.hpp"
 #include "KokkosFFT_padding.hpp"
+#include "KokkosFFT_Layout.hpp"
 #include "KokkosFFT_utils.hpp"
 
 #if defined(KOKKOSFFT_ENABLE_TPL_CUFFT)

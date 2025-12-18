@@ -5,6 +5,7 @@
 #include <gtest/gtest.h>
 #include <Kokkos_Random.hpp>
 #include "KokkosFFT_utils.hpp"
+#include "KokkosFFT_Layout.hpp"
 #include "KokkosFFT_Plans.hpp"
 #include "KokkosFFT_DynPlans.hpp"
 #include "KokkosFFT_Transform.hpp"
