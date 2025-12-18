@@ -7,7 +7,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "Kokkos-FFT-python"
+name = "kokkos-fft-python"
 version = "1.0"
 readme = "../README.md"
 requires-python = ">=3.8"
