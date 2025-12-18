@@ -15,6 +15,8 @@ namespace Impl {
 // Copied from Kokkos_Layout.hpp
 // Since this is not publicly exposed, we re-implement it here
 // to avoid dependency on Kokkos implementation details
+// Note: Kokkos::default_inner_direction and Kokkos::default_outer_direction
+// are publicly exposed
 template <typename... Layout>
 struct layout_iterate_type_selector {
   static_assert(true,
