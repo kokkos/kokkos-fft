@@ -35,14 +35,14 @@ For kokkos version, we need the followings (for the latest requirements, see [RE
    
 * `CMake 3.22+`
 * `Kokkos 4.6+`
-* `gcc 8.3.0+` (CPUs)
-* `IntelLLVM 2023.0.0+` (CPUs, Intel GPUs)
-* `nvcc 11.0.0+` (NVIDIA GPUs)
-* `rocm 5.3.0+` (AMD GPUs)
+* `gcc 10.4.0+` (CPUs)
+* `IntelLLVM 2024.2.1+` (CPUs, Intel GPUs)
+* `nvcc 12.2.0+` (NVIDIA GPUs)
+* `rocm 6.3.0+` (AMD GPUs)
 
 For python version, we need the followings:
 
-* `python 3.8+`
+* `python 3.10+`
 * `numpy`
 * `matplotlib`
 * `xarray[io]`, `xarray[viz]`

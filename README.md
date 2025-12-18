@@ -18,6 +18,7 @@ kokkos-fft implements local interfaces between [Kokkos](https://github.com/kokko
 A key concept is that **"As easy as numpy, as fast as vendor libraries"**. Accordingly, our API follows the API by [numpy.fft](https://numpy.org/doc/stable/reference/routines.fft.html) with minor differences. A fft library dedicated to Kokkos Device backend (e.g. [cufft](https://developer.nvidia.com/cufft) for CUDA backend) is automatically used. If something is wrong with runtime values (say `View` extents), it will raise runtime errors (C++ `std::runtime_error`). See [documentations](https://kokkosfft.readthedocs.io/) for more information.
 
 Here is an example for 1D real to complex transform with `rfft` in kokkos-fft.
+
 ```C++
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Complex.hpp>
@@ -48,6 +49,7 @@ x_hat = np.fft.rfft(x)
 There are two major differences: [`execution_space`](https://kokkos.org/kokkos-core-wiki/API/core/execution_spaces.html) argument and output value (`x_hat`) is an argument of API (not returned value from API). As imagined, kokkos-fft only accepts [Kokkos Views](https://kokkos.org/kokkos-core-wiki/API/core/View.html) as input data. The accessibilities of Views from `execution_space` are statically checked (compilation errors if not accessible).
 
 Depending on a View dimension, it automatically uses the batched plans as follows
+
 ```C++
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Complex.hpp>
@@ -80,21 +82,29 @@ x_hat = np.fft.rfft(x, axis=-1)
 In this example, the 1D batched `rfft` over 2D View along `axis -1` is executed. Some basic examples are found in [examples](examples).
 
 ## Using kokkos-fft
+
 For the moment, there are two ways to use kokkos-fft: including as a subdirectory in CMake project or installing as a library. First of all, you need to clone this repo.
+
 ```bash
 git clone --recursive https://github.com/kokkos/kokkos-fft.git
 ```
 
 ### Prerequisites
+
 To use kokkos-fft, we need the following:
+
 * `CMake 3.22+`
 * `Kokkos 4.6+`
-* `gcc 8.3.0+` (CPUs)
-* `IntelLLVM 2023.0.0+` (CPUs, Intel GPUs)
-* `nvcc 11.0.0+` (NVIDIA GPUs)
-* `rocm 5.3.0+` (AMD GPUs)
+* `gcc 10.4.0+` (CPUs)
+* `IntelLLVM 2024.2.1+` (CPUs, Intel GPUs)
+* `nvcc 12.2.0+` (NVIDIA GPUs)
+* `rocm 6.3.0+` (AMD GPUs)
+
+> [!WARNING]
+> A compatible C++ compiler that supports at least C++20 is necessary
 
 ### CMake
+
 Since kokkos-fft is a header-only library, it is enough to simply add as a subdirectory. It is assumed that kokkos and kokkos-fft are placed under `<project_directory>/tpls`.
 
 Here is an example to use kokkos-fft in the following CMake project.
