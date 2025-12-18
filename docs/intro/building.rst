@@ -58,13 +58,13 @@ The `CMakeLists.txt` would be
 .. code-block:: CMake
 
     cmake_minimum_required(VERSION 3.23)
-    project(Kokkos-FFT-as-library LANGUAGES CXX)
+    project(kokkos-fft-as-library LANGUAGES CXX)
 
     find_package(Kokkos CONFIG REQUIRED)
     find_package(KokkosFFT CONFIG REQUIRED)
 
-    add_executable(hello-Kokkos-FFT hello.cpp)
-    target_link_libraries(hello-Kokkos-FFT PUBLIC Kokkos::kokkos KokkosFFT::fft)
+    add_executable(hello-kokkos-fft hello.cpp)
+    target_link_libraries(hello-kokkos-fft PUBLIC Kokkos::kokkos KokkosFFT::fft)
 
 The code can be built as
 
@@ -85,7 +85,7 @@ Kokkos-FFT can also be installed with [spack](https://spack.io). For example, th
     git clone --depth=2 --branch=v1.1.0 https://github.com/spack/spack.git
     source spack/share/spack/setup-env.sh # For bash
 
-    spack install Kokkos-FFT device_backend=cufft ^kokkos +cuda +wrapper cuda_arch=90
+    spack install kokkos-fft device_backend=cufft ^kokkos +cuda +wrapper cuda_arch=90
 
 We have two main parameters to configure Spack:
 
@@ -96,7 +96,7 @@ The code can be built as
 
 .. code-block:: bash
 
-    spack load kokkos Kokkos-FFT
+    spack load kokkos kokkos-fft
     cmake -B build
     cmake --build build -j 8
 

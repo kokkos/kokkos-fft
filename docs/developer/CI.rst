@@ -6,7 +6,7 @@ CI (Continuous Integration)
 ===========================
 
 Our CI system is designed to automate testing and ensure that every change meets our coding styles. 
-If you are familiar with github actions, you may find our workflow `here <https://github.com/kokkos/Kokkos-FFT/blob/main/.github/workflows/build_test.yaml>`_.
+If you are familiar with github actions, you may find our workflow `here <https://github.com/kokkos/kokkos-fft/blob/main/.github/workflows/build_test.yaml>`_.
 The CI process includes:
 
 - **Linting and Style Checks:** Verifying that the code follows to our style guidelines.
@@ -62,7 +62,7 @@ Build Verification
 ------------------
 
 Compilation tests are performed inside containers for each backend including NVIDIA, AMD and Intel GPUs
-(see `Dockerfiles <https://github.com/kokkos/Kokkos-FFT/tree/main/docker>`_).
+(see `Dockerfiles <https://github.com/kokkos/kokkos-fft/tree/main/docker>`_).
 These images are useful to develop locally particularly when you are interested in modifying the
 backend specific codes. In other word, if you develop and test your code inside these containers, 
 your PR will likely to pass our CI. For each backend, we test to compile a simple test code by using Kokkos-FFT as CMake subdirectory or installed library. 

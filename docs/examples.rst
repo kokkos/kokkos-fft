@@ -8,10 +8,10 @@ Examples
 ========
 
 There are some `examples
-<https://github.com/kokkos/Kokkos-FFT/tree/main/examples>`_ in the
+<https://github.com/kokkos/kokkos-fft/tree/main/examples>`_ in the
 Kokkos-FFT repository. Most of the examples include Kokkos and numpy implementations.
 For example, `01_1DFFT
-<https://github.com/kokkos/Kokkos-FFT/tree/main/examples/01_1DFFT>`_ includes,
+<https://github.com/kokkos/kokkos-fft/tree/main/examples/01_1DFFT>`_ includes,
 
 .. code-block:: bash
 

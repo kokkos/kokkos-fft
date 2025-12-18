@@ -20,6 +20,6 @@ Please cite the following article when using Kokkos-FFT in your work.
      number = {111},
      pages = {8391},
      author = {Asahi, Yuuichi and Padioleau, Thomas and Zehner, Paul and Bigot, Julien and Lebrun-Grandie, Damien},
-     title = {Kokkos-FFT: A shared-memory FFT for the Kokkos ecosystem},
+     title = {kokkos-fft: A shared-memory FFT for the Kokkos ecosystem},
      journal = {Journal of Open Source Software}
    }

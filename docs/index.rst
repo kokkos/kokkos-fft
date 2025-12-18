@@ -15,7 +15,7 @@ We are inclined to implement the `numpy.fft <https://numpy.org/doc/stable/refere
 A key concept is that *"As easy as numpy, as fast as vendor libraries"*. Accordingly, our API follows the API by ``numpy.fft`` with minor differences. 
 A FFT library dedicated to Kokkos Device backend (e.g. cufft for CUDA backend) is automatically used. 
 
-Kokkos-FFT is open source and available on `GitHub <https://github.com/kokkos/Kokkos-FFT>`_.
+Kokkos-FFT is open source and available on `GitHub <https://github.com/kokkos/kokkos-fft>`_.
 
 Here is an example for 1D real to complex transform with ``rfft`` in Kokkos-FFT.
 

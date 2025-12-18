@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
 add_executable(
-  unit-tests-Kokkos-FFT-common
+  unit-tests-kokkos-fft-common
   Test_Main.cpp
   Test_Common_Utils.cpp
   Test_Traits.cpp
@@ -16,10 +16,10 @@ add_executable(
   Test_Helpers.cpp
 )
 
-target_compile_features(unit-tests-Kokkos-FFT-common PUBLIC cxx_std_17)
+target_compile_features(unit-tests-kokkos-fft-common PUBLIC cxx_std_17)
 
-target_link_libraries(unit-tests-Kokkos-FFT-common PUBLIC common GTest::gtest)
+target_link_libraries(unit-tests-kokkos-fft-common PUBLIC common GTest::gtest)
 
 # Enable GoogleTest
 include(GoogleTest)
-gtest_discover_tests(unit-tests-Kokkos-FFT-common PROPERTIES DISCOVERY_TIMEOUT 600 DISCOVERY_MODE PRE_TEST)
+gtest_discover_tests(unit-tests-kokkos-fft-common PROPERTIES DISCOVERY_TIMEOUT 600 DISCOVERY_MODE PRE_TEST)

@@ -12,22 +12,22 @@ Followings are the steps to contribute the project:
    First open issues or ask questions on the Kokkos slack channel.
 
 #. **Fork the Repository:**
-   Click the "Fork" button on our `repo <https://github.com/kokkos/Kokkos-FFT>`_ to create your own copy.
+   Click the "Fork" button on our `repo <https://github.com/kokkos/kokkos-fft>`_ to create your own copy.
 
 #. **Clone Your Fork:**  
    Clone the repository to your local machine with submodules.
 
    .. code-block:: bash
 
-      git clone --recursive https://github.com/<your-username>/Kokkos-FFT.git
+      git clone --recursive https://github.com/<your-username>/kokkos-fft.git
 
 #. **Add the Upstream Remote:**  
    Set the original repository as the ``upstream`` remote to keep your fork up to date:
 
    .. code-block:: bash
 
-      cd Kokkos-FFT
-      git remote add upstream https://github.com/kokkos/Kokkos-FFT.git   
+      cd kokkos-fft
+      git remote add upstream https://github.com/kokkos/kokkos-fft.git   
 
 #. **Create a New Branch:**
    Create a new branch for your feature or bug fix with a descriptive name:
@@ -70,7 +70,7 @@ Followings are the steps to contribute the project:
       git push --force-with-lease origin <feature-name>
 
 #. **Open a Pull Request:**  
-   On `GitHub <https://github.com/kokkos/Kokkos-FFT>`_, open a PR from your branch to the original repository's ``main`` branch.
+   On `GitHub <https://github.com/kokkos/kokkos-fft>`_, open a PR from your branch to the original repository's ``main`` branch.
    Include a detailed description of your changes and reference any related issues.
 
 #. **Participate in the Code Review:**  
