@@ -1,4 +1,4 @@
-.. SPDX-FileCopyrightText: (C) The kokkos-fft development team, see COPYRIGHT.md file
+.. SPDX-FileCopyrightText: (C) The Kokkos-FFT development team, see COPYRIGHT.md file
 ..
 .. SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
@@ -7,7 +7,7 @@
 FFT on host and device
 ======================
 
-kokkos-fft
+Kokkos-FFT
 ----------
 
 .. literalinclude:: ../../examples/05_1DFFT_HOST_DEVICE/05_1DFFT_HOST_DEVICE.cpp

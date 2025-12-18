@@ -1,4 +1,4 @@
-.. SPDX-FileCopyrightText: (C) The kokkos-fft development team, see COPYRIGHT.md file
+.. SPDX-FileCopyrightText: (C) The Kokkos-FFT development team, see COPYRIGHT.md file
 ..
 .. SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
@@ -9,7 +9,7 @@ Examples
 
 There are some `examples
 <https://github.com/kokkos/kokkos-fft/tree/main/examples>`_ in the
-kokkos-fft repository. Most of the examples include Kokkos and numpy implementations.
+Kokkos-FFT repository. Most of the examples include Kokkos and numpy implementations.
 For example, `01_1DFFT
 <https://github.com/kokkos/kokkos-fft/tree/main/examples/01_1DFFT>`_ includes,
 
@@ -19,7 +19,7 @@ For example, `01_1DFFT
      |
      └──01_1DFFT/
         |--CMakeLists.txt
-        |--01_1DFFT.cpp (kokkos-fft version)
+        |--01_1DFFT.cpp (Kokkos-FFT version)
         └──numpy_1DFFT.py (numpy version)
 
 Please find the examples from following links.

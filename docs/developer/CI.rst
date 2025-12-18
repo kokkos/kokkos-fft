@@ -1,4 +1,4 @@
-.. SPDX-FileCopyrightText: (C) The kokkos-fft development team, see COPYRIGHT.md file
+.. SPDX-FileCopyrightText: (C) The Kokkos-FFT development team, see COPYRIGHT.md file
 ..
 .. SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
@@ -26,7 +26,7 @@ We have four CIs for formatting: ``reuse``, ``clang-format``, ``cmake-format`` a
 
    .. code-block:: CMake
 
-     # SPDX-FileCopyrightText: (C) The kokkos-fft development team, see COPYRIGHT.md files
+     # SPDX-FileCopyrightText: (C) The Kokkos-FFT development team, see COPYRIGHT.md files
      #
      # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
      
@@ -65,7 +65,7 @@ Compilation tests are performed inside containers for each backend including NVI
 (see `Dockerfiles <https://github.com/kokkos/kokkos-fft/tree/main/docker>`_).
 These images are useful to develop locally particularly when you are interested in modifying the
 backend specific codes. In other word, if you develop and test your code inside these containers, 
-your PR will likely to pass our CI. For each backend, we test to compile a simple test code by using kokkos-fft as CMake subdirectory or installed library. 
+your PR will likely to pass our CI. For each backend, we test to compile a simple test code by using Kokkos-FFT as CMake subdirectory or installed library. 
 
 Unit tests
 ----------

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: (C) The kokkos-fft development team, see COPYRIGHT.md file
+# SPDX-FileCopyrightText: (C) The Kokkos-FFT development team, see COPYRIGHT.md file
 #
 # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
@@ -218,7 +218,7 @@ jobs:
         run: |
           # prepare kokkos
           git clone ./tpls/kokkos ./install_test/as_subdirectory/tpls/kokkos
-          # prepare kokkos-fft
+          # prepare Kokkos-FFT
           git clone . ./install_test/as_subdirectory/tpls/kokkos-fft
 
       - name: Configure and build test project as subdirectory

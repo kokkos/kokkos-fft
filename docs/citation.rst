@@ -1,13 +1,13 @@
-.. SPDX-FileCopyrightText: (C) The kokkos-fft development team, see COPYRIGHT.md file
+.. SPDX-FileCopyrightText: (C) The Kokkos-FFT development team, see COPYRIGHT.md file
 ..
 .. SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
 .. _citation:
 
-Citing kokkos-fft
+Citing Kokkos-FFT
 =================
 
-Please cite the following article when using kokkos-fft in your work.
+Please cite the following article when using Kokkos-FFT in your work.
 
 ::
 

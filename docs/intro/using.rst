@@ -1,20 +1,20 @@
-.. SPDX-FileCopyrightText: (C) The kokkos-fft development team, see COPYRIGHT.md file
+.. SPDX-FileCopyrightText: (C) The Kokkos-FFT development team, see COPYRIGHT.md file
 ..
 .. SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
 .. _using:
 
-Using kokkos-fft
+Using Kokkos-FFT
 ================
 
-This section describes how to use kokkos-fft in practice. 
+This section describes how to use Kokkos-FFT in practice. 
 We also explain some tips to use it efficiently.
 
 Brief introduction
 ------------------
 
-Most of the numpy.fft APIs (``numpy.fft.<function_name>``) are available in kokkos-fft (``KokkosFFT::<function_name>``) on the Kokkos device.
-In fact, these are the only APIs available in kokkos-fft (see :doc:`API reference<../api_reference>` for detail). kokkos-fft support 1D to 3D FFT over chosen axes.
+Most of the numpy.fft APIs (``numpy.fft.<function_name>``) are available in Kokkos-FFT (``KokkosFFT::<function_name>``) on the Kokkos device.
+In fact, these are the only APIs available in Kokkos-FFT (see :doc:`API reference<../api_reference>` for detail). Kokkos-FFT support 1D to 3D FFT over chosen axes.
 Inside FFT APIs, we first create a FFT plan for a backend FFT library based on the Views and chosen axes.
 Then, we execute the FFT using the created plan on the given Views. Then, we may perform normalization based on the users' choice. 
 Finally, we destroy the plan. Depending on the View Layout and chosen axes, we may need transpose operations to make data contiguous.
@@ -98,7 +98,7 @@ Memory consmpution
 ------------------
 
 In order to support FFT over arbitral axes, 
-kokkos-fft performs transpose operations internally and apply FFT on contiguous data.
+Kokkos-FFT performs transpose operations internally and apply FFT on contiguous data.
 For size ``n`` input, this requires internal buffers of size ``2n`` in addition to the buffers used by FFT library. 
 Performance overhead from transpose may be not critical but memory consumptions are problematic. 
 If memory consumption matters, it is recommended to make data contiguous so that transpose is not performed. 
@@ -122,7 +122,7 @@ The following listing shows examples with and without transpose operation.
 Reuse FFT plan
 --------------
 
-Apart from the basic APIs, kokkos-fft offers the capability to create a FFT plan wrapping the FFT plans of backend libraries.
+Apart from the basic APIs, Kokkos-FFT offers the capability to create a FFT plan wrapping the FFT plans of backend libraries.
 We can reuse the FFT plan created once to perform FFTs multiple times on different data given that they have the same properties.
 In some backend, FFT plan creation leads to some overhead, wherein we need this functionality (see :doc:`minimum working example<../samples/06_1DFFT_reuse_plans>`).
 The following listing shows an example to reuse the FFT plan.
@@ -203,7 +203,7 @@ The following listing shows examples of axes parameters with negative or positiv
 Inplace transform
 -----------------
 
-Inplace transform is supported in kokkos-fft in case transpose or reshape is not needed. 
+Inplace transform is supported in Kokkos-FFT in case transpose or reshape is not needed. 
 For standard FFTs, we can just use the same input and output Views. For real FFTs, we need to use a single complex View and make 
 an unmanaged View which is an alias to the complex View. In addition, we need to pay attention to the extents of a real View,
 which should define the shape of the transform, not the reinterpreted shape of the complex View (see :doc:`minimum working example<../samples/08_inplace_FFT>`). 

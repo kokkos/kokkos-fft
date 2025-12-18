@@ -1,4 +1,4 @@
-.. SPDX-FileCopyrightText: (C) The kokkos-fft development team, see COPYRIGHT.md file
+.. SPDX-FileCopyrightText: (C) The Kokkos-FFT development team, see COPYRIGHT.md file
 ..
 .. SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
@@ -7,7 +7,7 @@
 API Reference
 =============
 
-This section documents the public user interface of ``kokkos-fft``. 
+This section documents the public user interface of ``Kokkos-FFT``. 
 APIs are defined in ``KokkosFFT`` namespace and implementation details are defined in ``KokkosFFT::Impl`` namespace. 
 Thus, it is highly discouraged for users to access functions in ``KokkosFFT::Impl`` namespace. 
 Except for ``KokkosFFT::Plan``, there are corresponding functions in ``numpy.fft`` as shown below.
@@ -27,7 +27,7 @@ FFT Plan
    :header-rows: 1
 
    * - Description
-     - ``kokkos-fft``
+     - ``Kokkos-FFT``
      - ``numpy.fft``
    * - A class that manages a FFT plan of backend FFT library
      - :doc:`api/plan/plan`
@@ -55,7 +55,7 @@ Standard FFTs
    :header-rows: 1
 
    * - Description
-     - ``kokkos-fft``
+     - ``Kokkos-FFT``
      - ``numpy.fft``
    * - One dimensional FFT in forward direction
      - :doc:`api/standard/fft`
@@ -95,7 +95,7 @@ Real FFTs
    :header-rows: 1
 
    * - Description
-     - ``kokkos-fft``
+     - ``Kokkos-FFT``
      - ``numpy.fft``
    * - One dimensional FFT for real input
      - :doc:`api/real/rfft`
@@ -132,7 +132,7 @@ Hermitian FFTs
    :header-rows: 1
 
    * - Description
-     - ``kokkos-fft``
+     - ``Kokkos-FFT``
      - ``numpy.fft``
    * - One dimensional FFT of a signal that has Hermitian symmetry
      - :doc:`api/hermitian/hfft`
@@ -158,7 +158,7 @@ Helper routines
    :header-rows: 1
 
    * - Description
-     - ``kokkos-fft``
+     - ``Kokkos-FFT``
      - ``numpy.fft``
    * - Return the DFT sample frequencies
      - :doc:`api/helper/fftfreq`
@@ -188,7 +188,7 @@ Enums
    :header-rows: 1
 
    * - Description
-     - ``kokkos-fft``
+     - ``Kokkos-FFT``
    * - Tag to specify when and how to normalize
      - :doc:`api/enums/normalization`
    * - Tag to specify FFT direction
