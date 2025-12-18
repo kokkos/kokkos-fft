@@ -18,10 +18,14 @@ Compiler versions
 kokkos-fft relies on quite basic functionalities of Kokkos, and thus it is supposed to work with compilers used for `Kokkos <https://kokkos.org/kokkos-core-wiki/get-started/requirements.html>`_.
 However, we have not tested all the listed compilers there and thus recommend the following compilers which we use frequently for testing.
 
-* ``gcc 8.3.0+`` - CPUs
-* ``IntelLLVM 2023.0.0+`` - CPUs, Intel GPUs
-* ``nvcc 11.0.0+`` - NVIDIA GPUs
-* ``rocm 5.3.0+`` - AMD GPUs
+* ``gcc 10.4.0+`` - CPUs
+* ``IntelLLVM 2024.2.1+`` - CPUs, Intel GPUs
+* ``nvcc 12.2.0+`` - NVIDIA GPUs
+* ``rocm 6.3.0+`` - AMD GPUs
+
+.. note::
+
+   A compatible C++ compiler that supports at least C++20 is necessary.
 
 Install kokkos-fft with CMake
 -----------------------------
