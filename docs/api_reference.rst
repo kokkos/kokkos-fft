@@ -14,7 +14,7 @@ Except for ``KokkosFFT::Plan``, there are corresponding functions in ``numpy.fft
 
 .. note::
 
-   ``KokkosFFT::<subnamespace>`` are subject to changes which are considered as experimental features or implemententaion details.
+   For the moment, APIs under ``KokkosFFT::distributed`` and ``KokkosFFT::testing`` are subject to changes without warnings which are considered as experimental features.
 
 FFT Plan
 --------
