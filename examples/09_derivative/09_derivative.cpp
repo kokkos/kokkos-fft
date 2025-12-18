@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: (C) The kokkos-fft development team, see COPYRIGHT.md file
+// SPDX-FileCopyrightText: (C) The Kokkos-FFT development team, see COPYRIGHT.md file
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
@@ -158,7 +158,7 @@ void compute_derivative(const int nx, const int ny, const int nz,
                        point2D_type{{ny, nx / 2 + 1}},
                        tile2D_type{{TILE0, TILE1}});
 
-  // kokkos-fft plans
+  // Kokkos-FFT plans
   KokkosFFT::Plan r2c_plan(exec, u, u_hat, KokkosFFT::Direction::forward,
                            KokkosFFT::axis_type<2>({-2, -1}));
   KokkosFFT::Plan c2r_plan(exec, u_hat, u, KokkosFFT::Direction::backward,

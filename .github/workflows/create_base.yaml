@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: (C) The kokkos-fft development team, see COPYRIGHT.md file
+# SPDX-FileCopyrightText: (C) The Kokkos-FFT development team, see COPYRIGHT.md file
 #
 # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
@@ -82,20 +82,20 @@ jobs:
       - name: Build Docker image
         run: |
           docker build \
-            -t ghcr.io/kokkos/kokkos-fft/base_${{ matrix.image.name }}:latest \
-            --cache-from ghcr.io/kokkos/kokkos-fft/base_${{ matrix.image.name }}:latest \
+            -t ghcr.io/kokkos/Kokkos-FFT/base_${{ matrix.image.name }}:latest \
+            --cache-from ghcr.io/kokkos/Kokkos-FFT/base_${{ matrix.image.name }}:latest \
             --build-arg BUILDKIT_INLINE_CACHE=1 \
             --progress=plain \
             docker/${{ matrix.image.name }}
 
       - name: Push Docker image
-        run: docker push ghcr.io/kokkos/kokkos-fft/base_${{ matrix.image.name }}:latest
+        run: docker push ghcr.io/kokkos/Kokkos-FFT/base_${{ matrix.image.name }}:latest
         if: ${{ github.event != 'pull_request' }}
 
       - name: Convert Docker image to Singularity
-        run: singularity build base.sif docker://ghcr.io/kokkos/kokkos-fft/base_${{ matrix.image.name }}:latest
+        run: singularity build base.sif docker://ghcr.io/kokkos/Kokkos-FFT/base_${{ matrix.image.name }}:latest
         if: ${{ matrix.image.use_singularity && github.event != 'pull_request' }}
 
       - name: Push Singularity image
-        run: singularity push base.sif oras://ghcr.io/kokkos/kokkos-fft/base_${{ matrix.image.name }}_singularity:latest
+        run: singularity push base.sif oras://ghcr.io/kokkos/Kokkos-FFT/base_${{ matrix.image.name }}_singularity:latest
         if: ${{ matrix.image.use_singularity && github.event != 'pull_request' }}

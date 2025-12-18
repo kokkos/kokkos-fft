@@ -1,4 +1,4 @@
-.. SPDX-FileCopyrightText: (C) The kokkos-fft development team, see COPYRIGHT.md file
+.. SPDX-FileCopyrightText: (C) The Kokkos-FFT development team, see COPYRIGHT.md file
 ..
 .. SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
@@ -7,7 +7,7 @@
 Two dimensional FFT
 ===================
 
-kokkos-fft
+Kokkos-FFT
 ----------
 
 .. literalinclude:: ../../examples/02_2DFFT/02_2DFFT.cpp

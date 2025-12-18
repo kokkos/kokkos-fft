@@ -1,13 +1,13 @@
-.. SPDX-FileCopyrightText: (C) The kokkos-fft development team, see COPYRIGHT.md file
+.. SPDX-FileCopyrightText: (C) The Kokkos-FFT development team, see COPYRIGHT.md file
 ..
 .. SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
 .. _citation:
 
-Citing kokkos-fft
+Citing Kokkos-FFT
 =================
 
-Please cite the following article when using kokkos-fft in your work.
+Please cite the following article when using Kokkos-FFT in your work.
 
 ::
 
@@ -20,6 +20,6 @@ Please cite the following article when using kokkos-fft in your work.
      number = {111},
      pages = {8391},
      author = {Asahi, Yuuichi and Padioleau, Thomas and Zehner, Paul and Bigot, Julien and Lebrun-Grandie, Damien},
-     title = {kokkos-fft: A shared-memory FFT for the Kokkos ecosystem},
+     title = {Kokkos-FFT: A shared-memory FFT for the Kokkos ecosystem},
      journal = {Journal of Open Source Software}
    }

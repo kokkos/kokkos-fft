@@ -1,4 +1,4 @@
-.. SPDX-FileCopyrightText: (C) The kokkos-fft development team, see COPYRIGHT.md file
+.. SPDX-FileCopyrightText: (C) The Kokkos-FFT development team, see COPYRIGHT.md file
 ..
 .. SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
@@ -6,7 +6,7 @@ CI (Continuous Integration)
 ===========================
 
 Our CI system is designed to automate testing and ensure that every change meets our coding styles. 
-If you are familiar with github actions, you may find our workflow `here <https://github.com/kokkos/kokkos-fft/blob/main/.github/workflows/build_test.yaml>`_.
+If you are familiar with github actions, you may find our workflow `here <https://github.com/kokkos/Kokkos-FFT/blob/main/.github/workflows/build_test.yaml>`_.
 The CI process includes:
 
 - **Linting and Style Checks:** Verifying that the code follows to our style guidelines.
@@ -26,7 +26,7 @@ We have four CIs for formatting: ``reuse``, ``clang-format``, ``cmake-format`` a
 
    .. code-block:: CMake
 
-     # SPDX-FileCopyrightText: (C) The kokkos-fft development team, see COPYRIGHT.md files
+     # SPDX-FileCopyrightText: (C) The Kokkos-FFT development team, see COPYRIGHT.md files
      #
      # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
      
@@ -62,10 +62,10 @@ Build Verification
 ------------------
 
 Compilation tests are performed inside containers for each backend including NVIDIA, AMD and Intel GPUs
-(see `Dockerfiles <https://github.com/kokkos/kokkos-fft/tree/main/docker>`_).
+(see `Dockerfiles <https://github.com/kokkos/Kokkos-FFT/tree/main/docker>`_).
 These images are useful to develop locally particularly when you are interested in modifying the
 backend specific codes. In other word, if you develop and test your code inside these containers, 
-your PR will likely to pass our CI. For each backend, we test to compile a simple test code by using kokkos-fft as CMake subdirectory or installed library. 
+your PR will likely to pass our CI. For each backend, we test to compile a simple test code by using Kokkos-FFT as CMake subdirectory or installed library. 
 
 Unit tests
 ----------

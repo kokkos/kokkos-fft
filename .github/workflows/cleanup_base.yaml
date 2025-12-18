@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: (C) The kokkos-fft development team, see COPYRIGHT.md file
+# SPDX-FileCopyrightText: (C) The Kokkos-FFT development team, see COPYRIGHT.md file
 #
 # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
@@ -26,9 +26,9 @@ jobs:
           organization: kokkos
           type: container
           names: |
-            kokkos-fft/base_nvcc
-            kokkos-fft/base_nvcc_singularity
-            kokkos-fft/base_rocm
-            kokkos-fft/base_gcc
-            kokkos-fft/base_clang
-            kokkos-fft/base_intel
+            Kokkos-FFT/base_nvcc
+            Kokkos-FFT/base_nvcc_singularity
+            Kokkos-FFT/base_rocm
+            Kokkos-FFT/base_gcc
+            Kokkos-FFT/base_clang
+            Kokkos-FFT/base_intel

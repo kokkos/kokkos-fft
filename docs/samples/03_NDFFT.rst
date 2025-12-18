@@ -1,4 +1,4 @@
-.. SPDX-FileCopyrightText: (C) The kokkos-fft development team, see COPYRIGHT.md file
+.. SPDX-FileCopyrightText: (C) The Kokkos-FFT development team, see COPYRIGHT.md file
 ..
 .. SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
@@ -7,7 +7,7 @@
 N-dimensional FFT
 =================
 
-kokkos-fft
+Kokkos-FFT
 ----------
 
 .. literalinclude:: ../../examples/03_NDFFT/03_NDFFT.cpp
