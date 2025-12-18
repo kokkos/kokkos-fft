@@ -10,6 +10,8 @@ SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
 **Documentation:**
 
+- Rename kokkos-fft to Kokkos-FFT[\#388](https://github.com/kokkos/kokkos-fft/pull/388)
+- Align prerequisites with Kokkos 5.0[\#387](https://github.com/kokkos/kokkos-fft/pull/387)
 - Add docstring to get_map_axes[\#340](https://github.com/kokkos/kokkos-fft/pull/340)
 - Add a link to JOSS paper [\#304](https://github.com/kokkos/kokkos-fft/pull/304)
 
@@ -27,6 +29,7 @@ SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 - Update to kokkos4.6 [\#385](https://github.com/kokkos/kokkos-fft/pull/385)
 - use std::size_t to manipulate extents [\#384](https://github.com/kokkos/kokkos-fft/pull/384)
 - Refactor normalization and unit-tests [\#381](https://github.com/kokkos/kokkos-fft/pull/381)
+- Introduce layout header [\#380](https://github.com/kokkos/kokkos-fft/pull/380)
 - Move get_map_axes into KokkosFFT_Mapping.hpp [\#377](https://github.com/kokkos/kokkos-fft/pull/377)
 - Expose DynPlans [\#376](https://github.com/kokkos/kokkos-fft/pull/376)
 - Add dynamic plan for SYCL backend [\#373](https://github.com/kokkos/kokkos-fft/pull/373)
