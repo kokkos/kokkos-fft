@@ -40,22 +40,25 @@ SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 - Add dynamic plan for CUDA backend [\#366](https://github.com/kokkos/kokkos-fft/pull/366)
 - Add extents test for dynamic rank case [\#364](https://github.com/kokkos/kokkos-fft/pull/364)
 - Improve iteration pattern in transpose [\#355](https://github.com/kokkos/kokkos-fft/pull/355)
-- Testing transpose with bound checks [\#352](https://github.com/kokkos/kokkos-fft/pull/352)
 - Rename iType to IndexType to align with mdspan convention [\#351](https://github.com/kokkos/kokkos-fft/pull/351)
+- Copy if map is identical in transpose helper [\#345](https://github.com/kokkos/kokkos-fft/pull/345)
+- Make transpose helper to work on Views with different layout [\#344](https://github.com/kokkos/kokkos-fft/pull/344)
+- Introduce safe transpose [\#339](https://github.com/kokkos/kokkos-fft/pull/339)
+- Fix the underflow/overflow behavior in total_size function [\#331](https://github.com/kokkos/kokkos-fft/pull/331)
+
+**Internal Changes:**
+
+- Testing transpose with bound checks [\#352](https://github.com/kokkos/kokkos-fft/pull/352)
 - Allow is_transpose_needed to work on std::size_t based array [\#350](https://github.com/kokkos/kokkos-fft/pull/350)
 - Introduce a helper to make a reference for transposed view [\#349](https://github.com/kokkos/kokkos-fft/pull/349)
 - Use execution space instance in Transpose Unit tests [\#348](https://github.com/kokkos/kokkos-fft/pull/348)
-- Copy if map is identical in transpose helper [\#345](https://github.com/kokkos/kokkos-fft/pull/345)
-- Make transpose helper to work on Views with different layout [\#344](https://github.com/kokkos/kokkos-fft/pull/344)
 - Introduce helper function to wrap std::reverse [\#343](https://github.com/kokkos/kokkos-fft/pull/343)
 - Make compute_strides function a public function [\#342](https://github.com/kokkos/kokkos-fft/pull/342)
 - Use std::size_t in transpose test [\#341](https://github.com/kokkos/kokkos-fft/pull/341)
-- Introduce safe transpose [\#339](https://github.com/kokkos/kokkos-fft/pull/339)
 - Extract the core logic of get_map_axes helper [\#337](https://github.com/kokkos/kokkos-fft/pull/337)
 - Add base type convert helper of containers [\#336](https://github.com/kokkos/kokkos-fft/pull/336)
 - Add base type convert helper of containers [\#336](https://github.com/kokkos/kokkos-fft/pull/336)
 - Improve convert negative axis to work on containers [\#334](https://github.com/kokkos/kokkos-fft/pull/334)
-- Fix the underflow/overflow behavior in total_size function [\#331](https://github.com/kokkos/kokkos-fft/pull/331)
 - Add product helper [\#328](https://github.com/kokkos/kokkos-fft/pull/328)
 
 **Bug fix:**
