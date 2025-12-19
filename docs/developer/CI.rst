@@ -90,7 +90,7 @@ For Intel GPUs (Intel PVC), you can test locally in the following way.
       cmake --build build -j 8
       cd build && ctest --output-on-failure
 
-Here is the summary of our compile and run tests for each backend. For GPU backends, we compile with and without ``KokkosFFT_ENABLE_HOST_AND_DEVICE`` option (see :doc:`CMake options<../intro/building>`).
+Here is the summary of our compile and run tests for each backend. For GPU backends, we compile with and without ``KokkosFFT_ENABLE_FFTW`` option (see :doc:`CMake options<../intro/building>`).
 
 .. list-table:: Test summary
    :widths: 15 15 15 15 15 15
@@ -127,7 +127,7 @@ Here is the summary of our compile and run tests for each backend. For GPU backe
      - x (Aazure)
      - x (Aazure)
    * - cuda
-     - gcc, 17
+     - gcc, 20
      - ``Kokkos_ENABLE_CUDA``
      -
      - x (Aazure)
