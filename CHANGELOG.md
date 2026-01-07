@@ -27,28 +27,24 @@ SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 **General Enhancement:**
 
 - Update to kokkos4.6 [\#385](https://github.com/kokkos/kokkos-fft/pull/385)
-- use std::size_t to manipulate extents [\#384](https://github.com/kokkos/kokkos-fft/pull/384)
+- Use std::size_t to manipulate extents [\#384](https://github.com/kokkos/kokkos-fft/pull/384)
 - Refactor normalization and unit-tests [\#381](https://github.com/kokkos/kokkos-fft/pull/381)
+- Expose DynPlans [\#376](https://github.com/kokkos/kokkos-fft/pull/376)
+- Rephrase the static assertion message regarding data accessibility [\#370](https://github.com/kokkos/kokkos-fft/pull/370)
+
+**Internal Changes:**
+
 - Introduce layout header [\#380](https://github.com/kokkos/kokkos-fft/pull/380)
 - Move get_map_axes into KokkosFFT_Mapping.hpp [\#377](https://github.com/kokkos/kokkos-fft/pull/377)
-- Expose DynPlans [\#376](https://github.com/kokkos/kokkos-fft/pull/376)
 - Add dynamic plan for SYCL backend [\#373](https://github.com/kokkos/kokkos-fft/pull/373)
 - Add dynamic plan for ROCM backend [\#372](https://github.com/kokkos/kokkos-fft/pull/372)
 - Add dynamic plan for HIPFFT backend [\#371](https://github.com/kokkos/kokkos-fft/pull/371)
-- Rephrase the static assertion message regarding data accessibility [\#370](https://github.com/kokkos/kokkos-fft/pull/370)
 - Rename ger_r2c_extent and make it public [\#369](https://github.com/kokkos/kokkos-fft/pull/369)
 - Add dynamic plan for CUDA backend [\#366](https://github.com/kokkos/kokkos-fft/pull/366)
 - Add extents test for dynamic rank case [\#364](https://github.com/kokkos/kokkos-fft/pull/364)
 - Improve iteration pattern in transpose [\#355](https://github.com/kokkos/kokkos-fft/pull/355)
-- Rename iType to IndexType to align with mdspan convention [\#351](https://github.com/kokkos/kokkos-fft/pull/351)
-- Copy if map is identical in transpose helper [\#345](https://github.com/kokkos/kokkos-fft/pull/345)
-- Make transpose helper to work on Views with different layout [\#344](https://github.com/kokkos/kokkos-fft/pull/344)
-- Introduce safe transpose [\#339](https://github.com/kokkos/kokkos-fft/pull/339)
-- Fix the underflow/overflow behavior in total_size function [\#331](https://github.com/kokkos/kokkos-fft/pull/331)
-
-**Internal Changes:**
-
 - Testing transpose with bound checks [\#352](https://github.com/kokkos/kokkos-fft/pull/352)
+- Rename iType to IndexType to align with mdspan convention [\#351](https://github.com/kokkos/kokkos-fft/pull/351)
 - Allow is_transpose_needed to work on std::size_t based array [\#350](https://github.com/kokkos/kokkos-fft/pull/350)
 - Introduce a helper to make a reference for transposed view [\#349](https://github.com/kokkos/kokkos-fft/pull/349)
 - Use execution space instance in Transpose Unit tests [\#348](https://github.com/kokkos/kokkos-fft/pull/348)
