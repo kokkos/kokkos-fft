@@ -46,31 +46,6 @@
 #endif
 
 namespace KokkosFFT {
-namespace Impl {
-#if defined(KOKKOSFFT_HAS_DEVICE_TPL)
-#if defined(KOKKOSFFT_ENABLE_TPL_FFTW)
-// Backend libraries are available from all the execution spaces
-template <typename ExecutionSpace>
-struct is_AllowedSpace : std::true_type {};
-#else
-// Only device backend library is available
-template <typename ExecutionSpace>
-struct is_AllowedSpace
-    : std::is_same<ExecutionSpace, Kokkos::DefaultExecutionSpace> {};
-#endif
-#else
-// Only host backend library is available
-template <typename ExecutionSpace>
-struct is_AllowedSpace : is_AnyHostSpace<ExecutionSpace> {};
-#endif
-
-/// \brief Helper to check if the ExecutionSpace is allowed to construct a plan
-template <typename ExecutionSpace>
-inline constexpr bool is_AllowedSpace_v =
-    is_AllowedSpace<ExecutionSpace>::value;
-
-}  // namespace Impl
-
 /// \brief A class that manages a FFT plan of backend FFT library.
 ///
 /// This class is used to manage the FFT plan of backend FFT library.
