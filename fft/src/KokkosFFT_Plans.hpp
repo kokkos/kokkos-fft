@@ -61,7 +61,7 @@ template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           std::size_t DIM = 1>
 class Plan {
  private:
-  static_assert(KokkosFFT::Impl::is_AllowedSpace_v<ExecutionSpace>,
+  static_assert(KokkosFFT::Impl::is_allowed_space_v<ExecutionSpace>,
                 "Plan: ExecutionSpace is not allowed");
   KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(
       (KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,

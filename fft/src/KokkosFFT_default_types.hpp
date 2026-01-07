@@ -56,23 +56,24 @@ struct fft_data_type<ExecutionSpace, Kokkos::complex<T>> {
 #if defined(KOKKOSFFT_ENABLE_TPL_FFTW)
 // Backend libraries are available from all the execution spaces
 template <typename ExecutionSpace>
-struct is_AllowedSpace : std::true_type {};
+struct is_allowed_space : std::true_type {};
 #else
 // Only device backend library is available
 template <typename ExecutionSpace>
-struct is_AllowedSpace
+struct is_allowed_space
     : std::is_same<ExecutionSpace, Kokkos::DefaultExecutionSpace> {};
 #endif
 #else
 // Only host backend library is available
 template <typename ExecutionSpace>
-struct is_AllowedSpace : is_AnyHostSpace<ExecutionSpace> {};
+struct is_allowed_space : is_AnyHostSpace<ExecutionSpace> {};
 #endif
 
-/// \brief Helper to check if the ExecutionSpace is allowed to construct a plan
+/// \brief Helper to check if the backend FFT library corresponding to
+/// ExecutionSpace is available or not
 template <typename ExecutionSpace>
-inline constexpr bool is_AllowedSpace_v =
-    is_AllowedSpace<ExecutionSpace>::value;
+inline constexpr bool is_allowed_space_v =
+    is_allowed_space<ExecutionSpace>::value;
 
 }  // namespace Impl
 }  // namespace KokkosFFT
