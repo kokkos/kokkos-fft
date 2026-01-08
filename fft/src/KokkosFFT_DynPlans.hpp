@@ -54,13 +54,13 @@ namespace KokkosFFT {
 /// views, the compilation will fail.
 ///
 /// \tparam ExecutionSpace: The type of Kokkos execution space
-/// \tparam InViewType: Input View type for the fft
-/// \tparam OutViewType: Output View type for the fft
+/// \tparam InViewType: Input View type for the FFT
+/// \tparam OutViewType: Output View type for the FFT
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
 class DynPlan {
   static_assert(
       KokkosFFT::Impl::is_allowed_space_v<ExecutionSpace>,
-      "DynPlan: Backend fft library is not available for the ExecutionSpace");
+      "DynPlan: Backend FFT library is not available for the ExecutionSpace");
   KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(
       (KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
                                                OutViewType>),
@@ -78,12 +78,12 @@ class DynPlan {
   //! The real value type of input/output views
   using float_type = KokkosFFT::Impl::base_floating_point_type<in_value_type>;
 
-  //! The type of fft plan
+  //! The type of FFT plan
   using fft_plan_type =
       typename KokkosFFT::Impl::FFTDynPlanType<ExecutionSpace, in_value_type,
                                                out_value_type>::type;
 
-  //! The type of extents of fft
+  //! The type of extents of FFT
   using fft_extents_type = std::vector<std::size_t>;
 
   //! The real value type for normalization
@@ -96,16 +96,16 @@ class DynPlan {
   //! Execution space
   execSpace m_exec_space;
 
-  //! Dynamically allocatable fft plan.
+  //! Dynamically allocatable FFT plan.
   std::unique_ptr<fft_plan_type> m_plan;
 
-  //! fft extents
+  //! FFT extents
   fft_extents_type m_fft_extents;
 
   //! in-place transform or not
   bool m_is_inplace = false;
 
-  //! directions of fft
+  //! directions of FFT
   KokkosFFT::Direction m_direction;
 
   ///@{
