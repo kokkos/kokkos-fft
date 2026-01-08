@@ -58,8 +58,9 @@ namespace KokkosFFT {
 /// \tparam OutViewType: Output View type for the fft
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
 class DynPlan {
-  static_assert(KokkosFFT::Impl::is_allowed_space_v<ExecutionSpace>,
-                "DynPlan: ExecutionSpace is not allowed");
+  static_assert(
+      KokkosFFT::Impl::is_allowed_space_v<ExecutionSpace>,
+      "DynPlan: Backend fft library is not available for the ExecutionSpace");
   KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(
       (KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
                                                OutViewType>),
