@@ -293,6 +293,7 @@ struct is_AnyHostSpace
                     std::is_same_v<ExecutionSpace,
                                    Kokkos::DefaultHostExecutionSpace>> {};
 #else
+template <typename ExecutionSpace>
 struct is_AnyHostSpace
     : std::integral_constant<
           bool,
