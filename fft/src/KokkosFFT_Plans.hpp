@@ -46,31 +46,6 @@
 #endif
 
 namespace KokkosFFT {
-namespace Impl {
-#if defined(KOKKOSFFT_HAS_DEVICE_TPL)
-#if defined(KOKKOSFFT_ENABLE_TPL_FFTW)
-// Backend libraries are available from all the execution spaces
-template <typename ExecutionSpace>
-struct is_AllowedSpace : std::true_type {};
-#else
-// Only device backend library is available
-template <typename ExecutionSpace>
-struct is_AllowedSpace
-    : std::is_same<ExecutionSpace, Kokkos::DefaultExecutionSpace> {};
-#endif
-#else
-// Only host backend library is available
-template <typename ExecutionSpace>
-struct is_AllowedSpace : is_AnyHostSpace<ExecutionSpace> {};
-#endif
-
-/// \brief Helper to check if the ExecutionSpace is allowed to construct a plan
-template <typename ExecutionSpace>
-inline constexpr bool is_AllowedSpace_v =
-    is_AllowedSpace<ExecutionSpace>::value;
-
-}  // namespace Impl
-
 /// \brief A class that manages a FFT plan of backend FFT library.
 ///
 /// This class is used to manage the FFT plan of backend FFT library.
@@ -79,15 +54,16 @@ inline constexpr bool is_AllowedSpace_v =
 /// compilation would fail.
 ///
 /// \tparam ExecutionSpace: The type of Kokkos execution space
-/// \tparam InViewType: Input View type for the fft
-/// \tparam OutViewType: Output View type for the fft
-/// \tparam DIM: The dimensionality of the fft
+/// \tparam InViewType: Input View type for the FFT
+/// \tparam OutViewType: Output View type for the FFT
+/// \tparam DIM: The dimensionality of the FFT
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           std::size_t DIM = 1>
 class Plan {
  private:
-  static_assert(KokkosFFT::Impl::is_AllowedSpace_v<ExecutionSpace>,
-                "Plan: ExecutionSpace is not allowed");
+  static_assert(
+      KokkosFFT::Impl::is_allowed_space_v<ExecutionSpace>,
+      "Plan: Backend FFT library is not available for the ExecutionSpace");
   KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(
       (KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
                                                OutViewType>),
@@ -113,12 +89,12 @@ class Plan {
   //! The layout type of input/output views
   using layout_type = typename InViewType::array_layout;
 
-  //! The type of fft plan
+  //! The type of FFT plan
   using fft_plan_type =
       typename KokkosFFT::Impl::FFTPlanType<ExecutionSpace, in_value_type,
                                             out_value_type>::type;
 
-  //! The type of extents of fft
+  //! The type of extents of FFT
   using fft_extents_type = std::vector<std::size_t>;
 
   //! The real value type for normalization
@@ -134,10 +110,10 @@ class Plan {
   //! Execution space
   execSpace m_exec_space;
 
-  //! Dynamically allocatable fft plan.
+  //! Dynamically allocatable FFT plan.
   std::unique_ptr<fft_plan_type> m_plan;
 
-  //! fft extents
+  //! FFT extents
   fft_extents_type m_fft_extents;
 
   //! maps for forward and backward transpose
@@ -152,13 +128,13 @@ class Plan {
   //! in-place transform or not
   bool m_is_inplace = false;
 
-  //! axes for fft
+  //! axes for FFT
   axis_type<DIM> m_axes;
 
   //! Shape of the transformed axis of the output
   extents_type m_shape;
 
-  //! directions of fft
+  //! directions of FFT
   KokkosFFT::Direction m_direction;
 
   ///@{

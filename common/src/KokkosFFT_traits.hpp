@@ -285,11 +285,20 @@ struct complex_view_type {
   using type = Kokkos::View<complex_type*, array_layout_type, ExecutionSpace>;
 };
 
+#if defined(KOKKOS_ENABLE_SERIAL)
 template <typename ExecutionSpace>
 struct is_AnyHostSpace
     : std::integral_constant<
-          bool, Kokkos::SpaceAccessibility<ExecutionSpace,
-                                           Kokkos::HostSpace>::accessible> {};
+          bool, std::is_same_v<ExecutionSpace, Kokkos::Serial> ||
+                    std::is_same_v<ExecutionSpace,
+                                   Kokkos::DefaultHostExecutionSpace>> {};
+#else
+template <typename ExecutionSpace>
+struct is_AnyHostSpace
+    : std::integral_constant<
+          bool,
+          std::is_same_v<ExecutionSpace, Kokkos::DefaultHostExecutionSpace>> {};
+#endif
 
 /// \brief Helper to check if the ExecutionSpace is one of the enabled
 /// HostExecutionSpaces

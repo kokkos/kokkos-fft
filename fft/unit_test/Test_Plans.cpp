@@ -64,13 +64,13 @@ void test_allowed_exec_space() {
 #if defined(KOKKOSFFT_ENABLE_TPL_FFTW)
   // A plan can be constructible from Kokkos::DefaultExecutionSpace,
   // Kokkos::DefaultHostExecutionSpace or Kokkos::Serial (if enabled)
-  static_assert(KokkosFFT::Impl::is_AllowedSpace_v<ExecutionSpace>);
+  static_assert(KokkosFFT::Impl::is_allowed_space_v<ExecutionSpace>);
 #else
   // Only device backend library is available
   if constexpr (std::is_same_v<ExecutionSpace, Kokkos::DefaultExecutionSpace>) {
-    static_assert(KokkosFFT::Impl::is_AllowedSpace_v<ExecutionSpace>);
+    static_assert(KokkosFFT::Impl::is_allowed_space_v<ExecutionSpace>);
   } else {
-    static_assert(!KokkosFFT::Impl::is_AllowedSpace_v<ExecutionSpace>);
+    static_assert(!KokkosFFT::Impl::is_allowed_space_v<ExecutionSpace>);
   }
 #endif
 #else
@@ -80,13 +80,13 @@ void test_allowed_exec_space() {
     defined(KOKKOS_ENABLE_SYCL)
   // A plan can only be constructible from HostSpace
   if constexpr (std::is_same_v<ExecutionSpace, Kokkos::DefaultExecutionSpace>) {
-    static_assert(!KokkosFFT::Impl::is_AllowedSpace_v<ExecutionSpace>);
+    static_assert(!KokkosFFT::Impl::is_allowed_space_v<ExecutionSpace>);
   } else {
-    static_assert(KokkosFFT::Impl::is_AllowedSpace_v<ExecutionSpace>);
+    static_assert(KokkosFFT::Impl::is_allowed_space_v<ExecutionSpace>);
   }
 #else
   // A plan can be constructible from HostSpace
-  static_assert(KokkosFFT::Impl::is_AllowedSpace_v<ExecutionSpace>);
+  static_assert(KokkosFFT::Impl::is_allowed_space_v<ExecutionSpace>);
 #endif
 #endif
 }
