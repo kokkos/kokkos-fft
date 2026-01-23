@@ -34,6 +34,7 @@ SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
 **Internal Changes:**
 
+- Define is_AllowedSpace in default_types.hpp [\#390](https://github.com/kokkos/kokkos-fft/pull/390)
 - Introduce layout header [\#380](https://github.com/kokkos/kokkos-fft/pull/380)
 - Move get_map_axes into KokkosFFT_Mapping.hpp [\#377](https://github.com/kokkos/kokkos-fft/pull/377)
 - Add dynamic plan for SYCL backend [\#373](https://github.com/kokkos/kokkos-fft/pull/373)
