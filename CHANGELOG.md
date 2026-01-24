@@ -32,6 +32,12 @@ SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 - Expose DynPlans [\#376](https://github.com/kokkos/kokkos-fft/pull/376)
 - Rephrase the static assertion message regarding data accessibility [\#370](https://github.com/kokkos/kokkos-fft/pull/370)
 
+**Bug fix:**
+
+- Add const in order to suppress warnings by nvcc [\#365](https://github.com/kokkos/kokkos-fft/pull/365)
+- Interpret the array of perturbations relative to the original array [\#357](https://github.com/kokkos/kokkos-fft/pull/357)
+- Use the new name of a Kokkos option [\#322](https://github.com/kokkos/kokkos-fft/pull/322)
+
 **Internal Changes:**
 
 - Define is_AllowedSpace in default_types.hpp [\#390](https://github.com/kokkos/kokkos-fft/pull/390)
@@ -57,12 +63,6 @@ SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 - Add base type convert helper of containers [\#336](https://github.com/kokkos/kokkos-fft/pull/336)
 - Improve convert negative axis to work on containers [\#334](https://github.com/kokkos/kokkos-fft/pull/334)
 - Add product helper [\#328](https://github.com/kokkos/kokkos-fft/pull/328)
-
-**Bug fix:**
-
-- Add const in order to suppress warnings by nvcc [\#365](https://github.com/kokkos/kokkos-fft/pull/365)
-- Interpret the array of perturbations relative to the original array [\#357](https://github.com/kokkos/kokkos-fft/pull/357)
-- Use the new name of a Kokkos option [\#322](https://github.com/kokkos/kokkos-fft/pull/322)
 
 ## [0.4.0](https://github.com/kokkos/kokkos-fft/tree/0.4.0) (2025-07-29)
 
