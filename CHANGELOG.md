@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
 # Change Log
 
-## [1.0.0](https://github.com/kokkos/kokkos-fft/tree/1.0.0) (2026-01-26)
+## [1.0.0](https://github.com/kokkos/kokkos-fft/releases/tag/v1.0.0) (2026-01-26)
 
 **Documentation:**
 
@@ -64,7 +64,7 @@ SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 - Improve convert negative axis to work on containers [\#334](https://github.com/kokkos/kokkos-fft/pull/334)
 - Add product helper [\#328](https://github.com/kokkos/kokkos-fft/pull/328)
 
-## [0.4.0](https://github.com/kokkos/kokkos-fft/tree/0.4.0) (2025-07-29)
+## [0.4.0](https://github.com/kokkos/kokkos-fft/releases/tag/v0.4.0) (2025-07-29)
 
 **Documentation:**
 
@@ -96,7 +96,7 @@ SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
 **Bug fix:**
 
-## [0.3.0](https://github.com/kokkos/kokkos-fft/tree/0.3.0) (2025-04-16)
+## [0.3.0](https://github.com/kokkos/kokkos-fft/releases/tag/v0.3.0) (2025-04-16)
 
 **Documentation:**
 
