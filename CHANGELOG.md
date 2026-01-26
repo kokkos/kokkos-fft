@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
 # Change Log
 
-## [1.0.0](https://github.com/kokkos/kokkos-fft/tree/1.0.0) (2025-12-18)
+## [1.0.0](https://github.com/kokkos/kokkos-fft/tree/1.0.0) (2026-01-26)
 
 **Documentation:**
 
