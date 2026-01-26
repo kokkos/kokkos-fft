@@ -118,9 +118,6 @@ if one of the device backend is enabled.
    * - 
      - Description
      - Default
-   * - ``KokkosFFT_ENABLE_HOST_AND_DEVICE``
-     - Enable FFT on both host and device.
-     - OFF
    * - ``KokkosFFT_ENABLE_INTERNAL_KOKKOS``
      - Build internal Kokkos instead of relying on external one.
      - OFF
@@ -151,8 +148,7 @@ if one of the device backend is enabled.
 
 .. note::
 
-   ``KokkosFFT_ENABLE_HOST_AND_DEVICE`` has been deprecated since 0.3.0 and will be removed in the future.
-   To enable Kokkos-FFT on both host and device, set ``KokkosFFT_ENABLE_FFTW=ON`` instead of setting ``KokkosFFT_ENABLE_HOST_AND_DEVICE=ON``.
+   To enable Kokkos-FFT on both host and device, set ``KokkosFFT_ENABLE_FFTW=ON``.
    Multiple device tpls cannot be enabled at the same time. In addition, at least one tpl must be enabled to configure.
    For example, it is allowed to set ``KokkosFFT_ENABLE_CUFFT=OFF`` even if ``Kokkos_ENABLE_CUDA=ON`` as long as ``KokkosFFT_ENABLE_FFTW=ON``.
 
@@ -162,7 +158,7 @@ Kokkos backends
 Kokkos-FFT requires ``Kokkos 4.6+``. For the moment, we support following backends for CPUs and GPUs.
 A FFT library dedicated to Kokkos Device backend (e.g. cufft for CUDA backend) is automatically used. 
 If CMake fails to find a backend FFT library, see :doc:`How to find fft libraries?<../finding_libraries>`.
-We may support experimental backends like ``OPENMPTARGET`` in the future.
+We may support experimental backends like ``OPENACC`` in the future.
  
 .. list-table:: ``Host backend``
    :widths: 25 50 25

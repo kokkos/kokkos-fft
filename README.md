@@ -11,9 +11,6 @@ SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 [![docs](https://readthedocs.org/projects/kokkosfft/badge/?version=latest)](https://kokkosfft.readthedocs.io/en/latest/?badge=latest)
 [![DOI](https://joss.theoj.org/papers/10.21105/joss.08391/status.svg)](https://doi.org/10.21105/joss.08391)
 
-> [!WARNING]
-> EXPERIMENTAL FFT interfaces for Kokkos C++ Performance Portability Programming EcoSystem
-
 Kokkos-FFT implements local interfaces between [Kokkos](https://github.com/kokkos/kokkos) and de facto standard FFT libraries, including [FFTW](http://www.fftw.org), [cufft](https://developer.nvidia.com/cufft), [hipfft](https://github.com/ROCm/hipFFT) ([rocfft](https://github.com/ROCm/rocFFT)), and [oneMKL](https://www.intel.com/content/www/us/en/developer/tools/oneapi/onemkl.html). "Local" means not using MPI, or running within a single MPI process without knowing about MPI. We are inclined to implement the [numpy.fft](https://numpy.org/doc/stable/reference/routines.fft.html)-like interfaces adapted for [Kokkos](https://github.com/kokkos/kokkos).
 A key concept is that **"As easy as numpy, as fast as vendor libraries"**. Accordingly, our API follows the API by [numpy.fft](https://numpy.org/doc/stable/reference/routines.fft.html) with minor differences. A fft library dedicated to Kokkos Device backend (e.g. [cufft](https://developer.nvidia.com/cufft) for CUDA backend) is automatically used. If something is wrong with runtime values (say `View` extents), it will raise runtime errors (C++ `std::runtime_error`). See [documentations](https://kokkosfft.readthedocs.io/) for more information.
 
@@ -84,6 +81,7 @@ In this example, the 1D batched `rfft` over 2D View along `axis -1` is executed.
 ## Using Kokkos-FFT
 
 For the moment, there are two ways to use Kokkos-FFT: including as a subdirectory in CMake project or installing as a library. First of all, you need to clone this repo.
+
 ```bash
 git clone --recursive https://github.com/kokkos/kokkos-fft.git
 ```
@@ -102,6 +100,7 @@ To use Kokkos-FFT, we need the following:
 > A compatible C++ compiler that supports at least C++20 is necessary
 
 ### CMake
+
 Since Kokkos-FFT is a header-only library, it is enough to simply add as a subdirectory. It is assumed that kokkos and Kokkos-FFT are placed under `<project_directory>/tpls`.
 
 Here is an example to use Kokkos-FFT in the following CMake project.

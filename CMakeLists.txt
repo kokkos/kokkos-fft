@@ -7,13 +7,12 @@ cmake_minimum_required(VERSION 3.22)
 set(KOKKOSFFT_TOP_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Set project
-project(KokkosFFT VERSION 0.4.0 LANGUAGES CXX)
+project(KokkosFFT VERSION 1.0.0 LANGUAGES CXX)
 
 # Add cmake helpers
 list(PREPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # Options
-option(KokkosFFT_ENABLE_HOST_AND_DEVICE "Enable FFT on both host and device" OFF)
 option(KokkosFFT_ENABLE_INTERNAL_KOKKOS "Build internal Kokkos instead of relying on external one" OFF)
 option(KokkosFFT_ENABLE_EXAMPLES "Build KokkosFFT examples" OFF)
 option(KokkosFFT_ENABLE_TESTS "Build KokkosFFT tests" OFF)
@@ -44,11 +43,7 @@ endif()
 # Device specific options
 set(KokkosFFT_TO_ENABLE_FFTW ON)
 if(Kokkos_ENABLE_CUDA OR Kokkos_ENABLE_HIP OR Kokkos_ENABLE_SYCL)
-  if(KokkosFFT_ENABLE_HOST_AND_DEVICE)
-    message(WARNING "KokkosFFT_ENABLE_HOST_AND_DEVICE is deprecated. Please enable FFTW explicitly with -DKokkosFFT_ENABLE_FFTW=ON")
-  else()
-    set(KokkosFFT_TO_ENABLE_FFTW OFF)
-  endif()
+  set(KokkosFFT_TO_ENABLE_FFTW OFF)
 endif()
 
 option(KokkosFFT_ENABLE_FFTW "Enable fftw as a KokkosFFT backend on CPUs" ${KokkosFFT_TO_ENABLE_FFTW})

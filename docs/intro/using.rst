@@ -76,7 +76,7 @@ since we have not tested with static shaped Views. In addition, we have not test
 
 * DataType: ``float``, ``double``, ``Kokkos::complex<float>``, ``Kokkos::complex<double>``
 * LayoutType: ``Kokkos::LayoutLeft``, ``Kokkos::LayoutRight``
-* MemorySpace: ``Kokkos::DefaultExecutionSpace::memory_space``, ``Kokkos::DefaultHostExecutionSpace::memory_space`` (available if targeting CPU or ``KokkosFFT_ENABLE_HOST_AND_DEVICE`` is enabled.)
+* MemorySpace: ``Kokkos::DefaultExecutionSpace::memory_space``, ``Kokkos::DefaultHostExecutionSpace::memory_space`` (available if targeting CPU or ``KokkosFFT_ENABLE_FFTW`` is enabled.)
 
 .. note::
 
