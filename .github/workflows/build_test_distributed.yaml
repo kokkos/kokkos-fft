@@ -114,20 +114,19 @@ jobs:
               examples: ON
               benchmark: ON
             cmake_build_type: Release
-          ## FIXME we cannot build this for some reason
-          ##- name: sycl
-          ##  image: intel
-          ##  compiler:
-          ##    cxx: icpx
-          ##  cmake_flags:
-          ##    # building for Intel PVC was unsuccessful without the proper
-          ##    # device, so for now, we simply generate generic Intel GPU code
-          ##    cxx_standard: 17
-          ##    kokkos: -DKokkos_ENABLE_SYCL=ON -DKokkos_ARCH_INTEL_GEN=ON
-          ##    kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DKokkosFFT_ENABLE_EXAMPLES=ON -DKokkosFFT_ENABLE_TESTS=ON -DKokkosFFT_ENABLE_DISTRIBUTED=ON
-          ##    examples: ON
-          ##    benchmark: ON
-          ##  cmake_build_type: Release
+          - name: sycl
+            image: intel
+            compiler:
+              cxx: icpx
+            cmake_flags:
+              # building for Intel PVC was unsuccessful without the proper
+              # device, so for now, we simply generate generic Intel GPU code
+              cxx_standard: 17
+              kokkos: -DKokkos_ENABLE_SYCL=ON -DKokkos_ARCH_INTEL_GEN=ON
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DKokkosFFT_ENABLE_DISTRIBUTED=ON
+              examples: ON
+              benchmark: ON
+            cmake_build_type: Release
         target:
           - name: native
             cmake_flags: ""
