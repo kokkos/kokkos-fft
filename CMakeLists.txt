@@ -188,7 +188,7 @@ configure_package_config_file(
 )
 
 write_basic_package_version_file(
-  ${CMAKE_CURRENT_BINARY_DIR}/KokkosFFTConfigVersion.cmake VERSION ${KokkosFFT_VERSION} COMPATIBILITY SameMajorVersion
+  ${CMAKE_CURRENT_BINARY_DIR}/KokkosFFTConfigVersion.cmake VERSION ${KokkosFFT_VERSION} COMPATIBILITY AnyNewerVersion
 )
 
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/KokkosFFTConfig.cmake ${CMAKE_CURRENT_BINARY_DIR}/KokkosFFTConfigVersion.cmake
