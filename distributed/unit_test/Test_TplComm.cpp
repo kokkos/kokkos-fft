@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: (C) The Kokkos-FFT development team, see COPYRIGHT.md file
+//
+// SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
+
 #include <gtest/gtest.h>
 #include <Kokkos_Core.hpp>
 #include "KokkosFFT_Distributed_All2All.hpp"

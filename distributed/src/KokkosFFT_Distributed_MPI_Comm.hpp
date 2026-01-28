@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: (C) The Kokkos-FFT development team, see COPYRIGHT.md file
+//
+// SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
+
 #ifndef KOKKOSFFT_DISTRIBUTED_MPI_COMM_HPP
 #define KOKKOSFFT_DISTRIBUTED_MPI_COMM_HPP
 
