@@ -4,8 +4,9 @@
 
 set(SOURCES
         Test_Main.cpp
-        Test_All2All.cpp
+        Test_TplComm.cpp
         Test_MPI_Types.cpp
+        Test_All2All.cpp
     )
 
 add_executable(unit-tests-mpi ${SOURCES})
