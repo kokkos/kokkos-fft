@@ -40,8 +40,8 @@ namespace Impl {
 /// \param[in] axis    The axis to be merged/split
 template <typename LayoutType, typename ContainerType, typename iType,
           std::size_t DIM>
-auto permute_map_by_axes(const std::array<iType, DIM>& src_map,
-                         const ContainerType& axes) {
+std::array<iType, DIM> permute_map_by_axes(
+    const std::array<iType, DIM>& src_map, const ContainerType& axes) {
   using value_type =
       std::remove_cv_t<std::remove_reference_t<decltype(*axes.begin())>>;
   static_assert(std::is_same_v<value_type, iType>,
@@ -49,7 +49,7 @@ auto permute_map_by_axes(const std::array<iType, DIM>& src_map,
 
   std::vector<iType> map;
   map.reserve(DIM);
-  if (std::is_same_v<LayoutType, Kokkos::LayoutRight>) {
+  if constexpr (std::is_same_v<LayoutType, Kokkos::LayoutRight>) {
     for (auto src_idx : src_map) {
       if (!KokkosFFT::Impl::is_found(axes, src_idx)) {
         map.push_back(src_idx);
@@ -73,8 +73,8 @@ auto permute_map_by_axes(const std::array<iType, DIM>& src_map,
     }
   }
 
-  using full_axis_type   = std::array<iType, DIM>;
-  full_axis_type dst_map = {};
+  using full_axis_type = std::array<iType, DIM>;
+  full_axis_type dst_map{};
   std::copy_n(map.begin(), DIM, dst_map.begin());
 
   return dst_map;
