@@ -3,12 +3,13 @@
 # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
 set(SOURCES
-        Test_Main.cpp
-        Test_TplComm.cpp
-        Test_MPI_Types.cpp
-        Test_All2All.cpp
-        Test_Types.cpp
-    )
+    Test_Main.cpp
+    Test_TplComm.cpp
+    Test_MPI_Types.cpp
+    Test_All2All.cpp
+    Test_Types.cpp
+    Test_Mapping.cpp
+)
 
 add_executable(unit-tests-mpi ${SOURCES})
 
