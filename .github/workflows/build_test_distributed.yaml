@@ -170,6 +170,7 @@ jobs:
             -DCMAKE_CXX_COMPILER=${{ matrix.backend.compiler.cxx }} \
             -DCMAKE_CXX_STANDARD=${{ matrix.backend.cmake_flags.cxx_standard }} \
             -DKokkosFFT_ENABLE_TESTS=ON \
+            -DKokkosFFT_ENABLE_TESTS_DISTRIBUTED_ONLY=ON \
             -DKokkosFFT_ENABLE_EXAMPLES=${{ matrix.backend.cmake_flags.examples }} \
             -DKokkosFFT_ENABLE_BENCHMARK=${{ matrix.backend.cmake_flags.benchmark }} \
             -DKokkosFFT_ENABLE_INTERNAL_KOKKOS=ON \

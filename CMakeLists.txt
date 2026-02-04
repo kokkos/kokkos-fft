@@ -20,6 +20,7 @@ option(KokkosFFT_ENABLE_BENCHMARK "Build benchmarks for KokkosFFT" OFF)
 option(KokkosFFT_ENABLE_DOCS "Build KokkosFFT documentaion/website" OFF)
 option(KokkosFFT_ENABLE_TESTING_TOOLS "Enable unit-testing tools" OFF)
 option(KokkosFFT_ENABLE_DISTRIBUTED "Enable KokkosFFT distributed support" OFF)
+option(KokkosFFT_ENABLE_TESTS_DISTRIBUTED_ONLY "Enable KokkosFFT distributed tests only" OFF)
 
 # Version information
 set(KOKKOSFFT_VERSION ${PROJECT_VERSION})
