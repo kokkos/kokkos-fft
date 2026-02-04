@@ -104,38 +104,38 @@ struct BlockInfo {
   //! The idx of the transpose or FFT block in the plan
   std::size_t m_block_idx = 0;
 
-  void print() const {
-    std::cout << "BlockInfo Attributes:" << std::endl;
+  std::ostream& print(std::ostream& os) const {
+    os << "BlockInfo Attributes:\n";
 
-    auto print_array = [](const char* name, const auto& arr) {
-      std::cout << "  " << name << ": {";
+    auto print_array = [](std::ostream& os, const char* name, const auto& arr) {
+      os << "  " << name << ": {";
       for (std::size_t i = 0; i < arr.size(); ++i) {
-        std::cout << arr[i] << (i < arr.size() - 1 ? ", " : "");
+        os << arr[i] << (i < arr.size() - 1 ? ", " : "");
       }
-      std::cout << "}" << std::endl;
+      os << "} \n";
     };
 
-    print_array("m_in_topology", m_in_topology);
-    print_array("m_out_topology", m_out_topology);
-    print_array("m_in_extents", m_in_extents);
-    print_array("m_out_extents", m_out_extents);
-    print_array("m_buffer_extents", m_buffer_extents);
-    print_array("m_in_map", m_in_map);
-    print_array("m_out_map", m_out_map);
+    print_array(os, "m_in_topology", m_in_topology);
+    print_array(os, "m_out_topology", m_out_topology);
+    print_array(os, "m_in_extents", m_in_extents);
+    print_array(os, "m_out_extents", m_out_extents);
+    print_array(os, "m_buffer_extents", m_buffer_extents);
+    print_array(os, "m_in_map", m_in_map);
+    print_array(os, "m_out_map", m_out_map);
 
-    std::cout << "  m_in_axis: " << m_in_axis << std::endl;
-    std::cout << "  m_out_axis: " << m_out_axis << std::endl;
-    std::cout << "  m_fft_dim: " << m_fft_dim << std::endl;
-    std::cout << "  m_comm_axis: " << m_comm_axis << std::endl;
+    os << "  m_in_axis: " << m_in_axis << "\n";
+    os << "  m_out_axis: " << m_out_axis << "\n";
+    os << "  m_fft_dim: " << m_fft_dim << "\n";
+    os << "  m_comm_axis: " << m_comm_axis << "\n";
 
-    std::cout << "  m_block_type: ";
+    os << "  m_block_type: ";
     switch (m_block_type) {
-      case BlockType::Transpose: std::cout << "Transpose"; break;
-      case BlockType::FFT: std::cout << "FFT"; break;
-      default: std::cout << "Unknown"; break;
+      case BlockType::Transpose: os << "Transpose"; break;
+      case BlockType::FFT: os << "FFT"; break;
+      default: os << "Unknown"; break;
     }
-    std::cout << std::endl;
-    std::cout << "  m_block_idx: " << m_block_idx << std::endl;
+    os << "\n m_block_idx: " << m_block_idx << "\n";
+    return os;
   }
 
   bool operator==(const BlockInfo& other) const {
@@ -153,6 +153,11 @@ struct BlockInfo {
 
   bool operator!=(const BlockInfo& other) const { return !(*this == other); }
 };
+
+template <std::size_t DIM>
+std::ostream& operator<<(std::ostream& os, const BlockInfo<DIM>& block_info) {
+  return block_info.print(os);
+}
 
 }  // namespace Impl
 
