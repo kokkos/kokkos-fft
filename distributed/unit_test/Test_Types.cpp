@@ -433,16 +433,19 @@ TYPED_TEST(TestTopology, comparison_operators) {
 
   // Less than
   EXPECT_FALSE(topology1 < topology2);
-  EXPECT_TRUE(topology1 < topology3 || topology3 < topology1);
+  EXPECT_TRUE(topology1 < topology3);
 
   // Less than or equal
   EXPECT_TRUE(topology1 <= topology2);
+  EXPECT_FALSE(topology3 <= topology2);
 
   // Greater than
   EXPECT_FALSE(topology1 > topology2);
+  EXPECT_TRUE(topology3 > topology2);
 
   // Greater than or equal
   EXPECT_TRUE(topology1 >= topology2);
+  EXPECT_FALSE(topology1 >= topology3);
 }
 
 // Test array() method
@@ -573,24 +576,23 @@ TEST(TestTopologySpecial, large_topology) {
   EXPECT_FALSE(large_topology.empty());
 }
 
-// Test constexpr functionality (C++20 or above)
-// Before C++20, std::initializer_list could not be used in constexpr contexts
-// TEST(TestTopologyConstexpr, constexpr_operations) {
-//  constexpr KokkosFFT::Distributed::Topology<int, 3> topology{1, 2, 3};
-//
-//  static_assert(topology.size() == 3);
-//  static_assert(!topology.empty());
-//  static_assert(topology.max_size() == 3);
-//
-//  // These should compile as constexpr
-//  constexpr auto size = topology.size();
-//  constexpr auto empty = topology.empty();
-//  constexpr auto max_size = topology.max_size();
-//
-//  EXPECT_EQ(size, 3);
-//  EXPECT_FALSE(empty);
-//  EXPECT_EQ(max_size, 3);
-//}
+// Test constexpr operations
+TEST(TestTopologyConstexpr, constexpr_operations) {
+  constexpr KokkosFFT::Distributed::Topology<int, 3> topology{1, 2, 3};
+
+  static_assert(topology.size() == 3);
+  static_assert(!topology.empty());
+  static_assert(topology.max_size() == 3);
+
+  // These should compile as constexpr
+  constexpr auto size     = topology.size();
+  constexpr auto empty    = topology.empty();
+  constexpr auto max_size = topology.max_size();
+
+  EXPECT_EQ(size, 3);
+  EXPECT_FALSE(empty);
+  EXPECT_EQ(max_size, 3);
+}
 
 // Test range-based for loop
 TYPED_TEST(TestTopology, range_based_for_loop) {

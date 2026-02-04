@@ -63,7 +63,6 @@ template <std::size_t DIM>
 struct BlockInfo {
   using map_type            = std::array<std::size_t, DIM>;
   using extents_type        = std::array<std::size_t, DIM>;
-  using axes_type           = std::vector<std::size_t>;
   using buffer_extents_type = std::array<std::size_t, DIM + 1>;
 
   //! The input topology
@@ -130,14 +129,12 @@ struct BlockInfo {
     std::cout << "  m_comm_axis: " << m_comm_axis << std::endl;
 
     std::cout << "  m_block_type: ";
-    if (m_block_type == BlockType::Transpose)
-      std::cout << "Transpose";
-    else if (m_block_type == BlockType::FFT)
-      std::cout << "FFT";
-    else
-      std::cout << "Unknown";
+    switch (m_block_type) {
+      case BlockType::Transpose: std::cout << "Transpose"; break;
+      case BlockType::FFT: std::cout << "FFT"; break;
+      default: std::cout << "Unknown"; break;
+    }
     std::cout << std::endl;
-
     std::cout << "  m_block_idx: " << m_block_idx << std::endl;
   }
 
@@ -204,7 +201,7 @@ class Topology {
   /// \brief Constructor from initializer list
   /// \param[in] init The initializer list containing exactly N elements
   /// \throws std::length_error if initializer list size != N
-  constexpr Topology(std::initializer_list<T> init) {
+  constexpr Topology(std::initializer_list<T> init) : m_data{} {
     if (init.size() != N) {
       throw std::length_error("Initializer list size must match array size");
     }
