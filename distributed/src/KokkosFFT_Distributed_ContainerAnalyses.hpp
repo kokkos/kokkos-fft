@@ -75,12 +75,11 @@ auto extract_different_value_set(const ContainerType& a,
   KOKKOSFFT_THROW_IF(a.size() != b.size(),
                      "Containers must have the same size.");
 
-  std::vector<value_type> diffs;
+  std::set<value_type> diffs;
   for (std::size_t i = 0; i < a.size(); ++i) {
-    diffs.push_back(a.at(i));
-    diffs.push_back(b.at(i));
+    diffs.insert({a.at(i), b.at(i)});
   }
-  return std::set<value_type>(diffs.begin(), diffs.end());
+  return diffs;
 }
 
 /// \brief Extract the indices where the values are not ones
