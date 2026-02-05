@@ -145,7 +145,9 @@ bool has_identical_non_ones(const ContainerType& non_ones) {
                 "integral type");
 
   // If there are less than 2 non-one elements, return false
-  return non_ones.size() == 2 && (*(non_ones.cbegin()) == *(non_ones.cend()));
+  if (count_non_ones(non_ones) < 2) return false;
+  return (non_ones.size() == 2 &&
+          std::set<value_type>(non_ones.begin(), non_ones.end()).size() == 1);
 }
 
 /// \brief Swap two elements in an array and return a new array
