@@ -89,7 +89,8 @@ auto extract_different_value_set(const ContainerType& a,
 ///
 /// \param[in] a The first array
 /// \param[in] b The second array
-/// \return A vector of indices where the one of the values are not ones
+/// \return A vector containing the indices where the value from a or b is not
+/// one
 template <typename ContainerType>
 auto extract_non_one_indices(const ContainerType& a, const ContainerType& b) {
   using value_type = std::remove_cv_t<std::remove_reference_t<decltype(a[0])>>;
@@ -144,12 +145,7 @@ bool has_identical_non_ones(const ContainerType& non_ones) {
                 "integral type");
 
   // If there are less than 2 non-one elements, return false
-  if (count_non_ones(non_ones) < 2) return false;
-  if (non_ones.size() == 2 &&
-      std::set<value_type>(non_ones.begin(), non_ones.end()).size() == 1) {
-    return true;
-  }
-  return false;
+  return non_ones.size() == 2 && (*(non_ones.cbegin()) == *(non_ones.cend()));
 }
 
 /// \brief Swap two elements in an array and return a new array
@@ -170,7 +166,12 @@ ContainerType swap_elements(const ContainerType& arr, iType i, iType j) {
   return result;
 }
 
-/// \brief Merge two topologies into one
+/// \brief Merge two topologies into one if they are convertible pencils
+/// Examples
+/// convertible: in_topology = {1, px, py} and out_topology = {px, 1, py}
+/// in_topology can be converted into out_topology by exchaning 0th and 1st dims
+/// non-convertible: in_topology = {1, px, py} and out_topology = {py, 1, px}
+/// in_topology can not be converted into out_topology by a single exchange
 /// \tparam ContainerType The type of the container (e.g., std::array,
 /// std::vector)
 ///
@@ -193,6 +194,7 @@ auto merge_topology(const ContainerType& in_topology,
   auto mismatched_extents = [](ContainerType in_topology,
                                ContainerType out_topology) -> std::string {
     std::string message;
+    message = "Input and output topologies must differ exactly two positions: ";
     message += "in_topology (";
     message += std::to_string(in_topology.at(0));
     for (std::size_t r = 1; r < in_topology.size(); r++) {
@@ -212,16 +214,14 @@ auto merge_topology(const ContainerType& in_topology,
 
   // Check if two topologies are two convertible pencils
   auto diff_indices = extract_different_indices(in_topology, out_topology);
-  KOKKOSFFT_THROW_IF(
-      diff_indices.size() != 2,
-      "Input and output topologies must differ exactly two positions: " +
-          mismatched_extents(in_topology, out_topology));
+  KOKKOSFFT_THROW_IF(diff_indices.size() != 2,
+                     mismatched_extents(in_topology, out_topology));
 
-  ContainerType topology = in_topology;
+  ContainerType merged_topology = in_topology;
   for (std::size_t i = 0; i < in_topology.size(); i++) {
-    topology.at(i) = std::max(in_topology.at(i), out_topology.at(i));
+    merged_topology.at(i) = std::max(in_topology.at(i), out_topology.at(i));
   }
-  return topology;
+  return merged_topology;
 }
 
 /// \brief Get the non-one extent where the two topologies differ
@@ -251,7 +251,7 @@ auto diff_topology(const ContainerType& in_topology,
   auto diff_indices = extract_different_indices(in_topology, out_topology);
   KOKKOSFFT_THROW_IF(
       diff_indices.size() != 1,
-      "Input and output topologies must differ exactly one positions.");
+      "Input and output topologies must differ at exactly one position.");
   auto diff_idx = diff_indices.at(0);
 
   // Returning the non-one extent
