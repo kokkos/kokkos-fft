@@ -170,8 +170,9 @@ ContainerType swap_elements(const ContainerType& arr, iType i, iType j) {
 /// Examples
 /// convertible: in_topology = {1, px, py} and out_topology = {px, 1, py}
 /// in_topology can be converted into out_topology by exchanging 0th and 1st
-/// dims non-convertible: in_topology = {1, px, py} and out_topology = {py, 1,
-/// px} in_topology can not be converted into out_topology by a single exchange
+/// dims. This returns the merged topology {px, px, py}
+/// non-convertible: in_topology = {1, px, py} and out_topology = {py, 1, px}
+/// in_topology can not be converted into out_topology by a single exchange
 /// \tparam ContainerType The type of the container (e.g., std::array,
 /// std::vector)
 ///
