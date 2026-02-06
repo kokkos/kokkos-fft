@@ -5,6 +5,7 @@
 [default.extend-words]
 # Don't correct these word (parts)
 iy = "iy"
+iz = "iz"
 ND = "ND"
 SAV = "SAV"
 arange = "arange"
