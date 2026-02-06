@@ -9,6 +9,7 @@ set(SOURCES
     Test_All2All.cpp
     Test_Types.cpp
     Test_Mapping.cpp
+    Test_ContainerAnalyses.cpp
 )
 
 add_executable(unit-tests-mpi ${SOURCES})
