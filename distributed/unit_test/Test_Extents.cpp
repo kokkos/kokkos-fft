@@ -32,13 +32,13 @@ void test_buffer_extents() {
   extents_type extents{n0, n1, n2, n3};
 
   // X-pencil
-  topology_type topology0 = {1, p0, p1, 1};
+  topology_type topology0{1, p0, p1, 1};
 
   // Y-pencil
-  topology_type topology1 = {p0, 1, p1, 1};
+  topology_type topology1{p0, 1, p1, 1};
 
   // Z-pencil
-  topology_type topology2 = {p0, p1, 1, 1};
+  topology_type topology2{p0, p1, 1, 1};
 
   buffer_extents_type ref_buffer_01, ref_buffer_12;
   if (std::is_same_v<LayoutType, Kokkos::LayoutLeft>) {
@@ -53,20 +53,20 @@ void test_buffer_extents() {
                      (n2 - 1) / p1 + 1, n3};
   }
 
-  buffer_extents_type buffer_01 =
+  auto buffer_01 =
       KokkosFFT::Distributed::Impl::compute_buffer_extents<LayoutType>(
           extents, topology0, topology1);
-  buffer_extents_type buffer_12 =
+  auto buffer_12 =
       KokkosFFT::Distributed::Impl::compute_buffer_extents<LayoutType>(
           extents, topology1, topology2);
 
   EXPECT_TRUE(buffer_01 == ref_buffer_01);
   EXPECT_TRUE(buffer_12 == ref_buffer_12);
 
-  // In valid, because you cannot go from X to Z in one exchange
+  // Invalid, because you cannot go from X to Z in one exchange
   EXPECT_THROW(
       {
-        [[maybe_unused]] buffer_extents_type buffer_02 =
+        [[maybe_unused]] auto buffer_02 =
             KokkosFFT::Distributed::Impl::compute_buffer_extents<LayoutType>(
                 extents, topology0, topology2);
       },
@@ -77,8 +77,8 @@ template <typename ContainerType, typename iType>
 void test_compute_mapped_extents(iType nprocs) {
   using extents_type   = std::array<iType, 3>;
   extents_type extents = {nprocs, 3, 8};
-  ContainerType map012 = {0, 1, 2}, map021 = {0, 2, 1}, map102 = {1, 0, 2},
-                map120 = {1, 2, 0}, map201 = {2, 0, 1}, map210 = {2, 1, 0};
+  ContainerType map012{0, 1, 2}, map021{0, 2, 1}, map102{1, 0, 2},
+      map120{1, 2, 0}, map201{2, 0, 1}, map210{2, 1, 0};
   auto mapped_extents012 =
       KokkosFFT::Distributed::Impl::compute_mapped_extents(extents, map012);
   auto mapped_extents021 =
@@ -92,12 +92,10 @@ void test_compute_mapped_extents(iType nprocs) {
   auto mapped_extents210 =
       KokkosFFT::Distributed::Impl::compute_mapped_extents(extents, map210);
 
-  extents_type ref_mapped_extents012 = {nprocs, 3, 8},
-               ref_mapped_extents021 = {nprocs, 8, 3},
-               ref_mapped_extents102 = {3, nprocs, 8},
-               ref_mapped_extents120 = {3, 8, nprocs},
-               ref_mapped_extents201 = {8, nprocs, 3},
-               ref_mapped_extents210 = {8, 3, nprocs};
+  extents_type ref_mapped_extents012{nprocs, 3, 8},
+      ref_mapped_extents021{nprocs, 8, 3}, ref_mapped_extents102{3, nprocs, 8},
+      ref_mapped_extents120{3, 8, nprocs}, ref_mapped_extents201{8, nprocs, 3},
+      ref_mapped_extents210{8, 3, nprocs};
 
   EXPECT_EQ(mapped_extents012, ref_mapped_extents012);
   EXPECT_EQ(mapped_extents021, ref_mapped_extents021);
@@ -109,10 +107,10 @@ void test_compute_mapped_extents(iType nprocs) {
 
 template <typename ContainerType, typename iType>
 void test_compute_fft_extents(iType nprocs) {
-  using extents_type      = std::array<iType, 3>;
-  extents_type in_extents = {nprocs, 3, 8}, out_extents = {nprocs, 3, 5};
-  ContainerType map012 = {0, 1, 2}, map021 = {0, 2, 1}, map102 = {1, 0, 2},
-                map120 = {1, 2, 0}, map201 = {2, 0, 1}, map210 = {2, 1, 0};
+  using extents_type = std::array<iType, 3>;
+  extents_type in_extents{nprocs, 3, 8}, out_extents{nprocs, 3, 5};
+  ContainerType map012{0, 1, 2}, map021{0, 2, 1}, map102{1, 0, 2},
+      map120{1, 2, 0}, map201{2, 0, 1}, map210{2, 1, 0};
   auto fft_extents012 = KokkosFFT::Distributed::Impl::compute_fft_extents(
       in_extents, out_extents, map012);
   auto fft_extents021 = KokkosFFT::Distributed::Impl::compute_fft_extents(
@@ -126,12 +124,10 @@ void test_compute_fft_extents(iType nprocs) {
   auto fft_extents210 = KokkosFFT::Distributed::Impl::compute_fft_extents(
       in_extents, out_extents, map210);
 
-  extents_type ref_fft_extents012 = {nprocs, 3, 8},
-               ref_fft_extents021 = {nprocs, 8, 3},
-               ref_fft_extents102 = {3, nprocs, 8},
-               ref_fft_extents120 = {3, 8, nprocs},
-               ref_fft_extents201 = {8, nprocs, 3},
-               ref_fft_extents210 = {8, 3, nprocs};
+  extents_type ref_fft_extents012{nprocs, 3, 8},
+      ref_fft_extents021{nprocs, 8, 3}, ref_fft_extents102{3, nprocs, 8},
+      ref_fft_extents120{3, 8, nprocs}, ref_fft_extents201{8, nprocs, 3},
+      ref_fft_extents210{8, 3, nprocs};
 
   EXPECT_EQ(fft_extents012, ref_fft_extents012);
   EXPECT_EQ(fft_extents021, ref_fft_extents021);
