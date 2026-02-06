@@ -47,6 +47,8 @@ auto compute_padded_extents(const std::array<std::size_t, DIM> &extents,
 /// Buffer View (p0, n0/p0, n1/p0, n2/p1, n3)
 ///
 /// \tparam LayoutType The layout type of the view (e.g., Kokkos::LayoutRight).
+/// \tparam ContainerType The type of the container (e.g., std::array,
+/// std::vector)
 /// \tparam iType The integer type used for extents and topology.
 /// \tparam DIM The number of dimensions of the extents.
 ///
@@ -57,10 +59,17 @@ auto compute_padded_extents(const std::array<std::size_t, DIM> &extents,
 /// the output data.
 /// \return A buffer extents of the view needed for the pencil
 /// transformation.
-template <typename LayoutType, typename iType, std::size_t DIM>
+template <typename LayoutType, typename ContainerType, typename iType,
+          std::size_t DIM>
 auto compute_buffer_extents(const std::array<iType, DIM> &extents,
-                            const std::array<iType, DIM> &in_topology,
-                            const std::array<iType, DIM> &out_topology) {
+                            const ContainerType &in_topology,
+                            const ContainerType &out_topology) {
+  using value_type =
+      std::remove_cv_t<std::remove_reference_t<decltype(in_topology[0])>>;
+  static_assert(
+      std::is_integral_v<value_type> && std::is_same_v<value_type, iType>,
+      "compute_buffer_extents: Container value type must be an "
+      "integral type and same as iType");
   std::array<iType, DIM + 1> buffer_extents;
   auto merged_topology = merge_topology(in_topology, out_topology);
   auto p0 = diff_topology(merged_topology, in_topology);  // return 1 or p0
@@ -77,41 +86,6 @@ auto compute_buffer_extents(const std::array<iType, DIM> &extents,
     buffer_extents.back() = p0;
   }
   return buffer_extents;
-}
-
-/// \brief Calculate the buffer extents based on the global extents,
-/// the in-topology, and the out-topology.
-///
-/// Example
-/// Global View extents (n0, n1, n2, n3)
-/// in-topology = {1, p0, p1, 1} // X-pencil
-/// out-topology = {p0, 1, p1, 1} // Y-pencil
-/// Buffer View (p0, n0/p0, n1/p0, n2/p1, n3)
-///
-/// \tparam LayoutType The layout type of the view (e.g., Kokkos::LayoutRight).
-/// \tparam iType The integer type used for extents and topology.
-/// \tparam DIM The number of dimensions of the extents.
-/// \tparam InLayoutType The layout type of the in-topology (e.g.,
-/// Kokkos::LayoutRight).
-/// \tparam OutLayoutType The layout type of the out-topology (e.g.,
-/// Kokkos::LayoutRight).
-///
-/// \param[in] extents Extents of the global View.
-/// \param[in] in_topology A topology representing the distribution of the input
-/// data.
-/// \param[in] out_topology A topology representing the distribution of
-/// the output data.
-/// \return A buffer extents of the view needed for the pencil
-/// transformation.
-template <typename LayoutType, typename iType, std::size_t DIM = 1,
-          typename InLayoutType  = Kokkos::LayoutRight,
-          typename OutLayoutType = Kokkos::LayoutRight>
-auto compute_buffer_extents(
-    const std::array<iType, DIM> &extents,
-    const Topology<iType, DIM, InLayoutType> &in_topology,
-    const Topology<iType, DIM, OutLayoutType> &out_topology) {
-  return compute_buffer_extents<LayoutType>(extents, in_topology.array(),
-                                            out_topology.array());
 }
 
 /// \brief Calculate the permuted extents based on the map
