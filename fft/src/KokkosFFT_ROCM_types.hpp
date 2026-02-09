@@ -15,6 +15,7 @@
 #include "KokkosFFT_traits.hpp"
 #include "KokkosFFT_asserts.hpp"
 #include "KokkosFFT_utils.hpp"
+#include "KokkosFFT_ROCM_asserts.hpp"
 #if defined(KOKKOSFFT_ENABLE_TPL_FFTW)
 #include "KokkosFFT_FFTW_Types.hpp"
 #endif

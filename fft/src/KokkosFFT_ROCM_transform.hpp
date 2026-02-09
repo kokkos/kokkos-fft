@@ -10,6 +10,7 @@
 #include <Kokkos_Profiling_ScopedRegion.hpp>
 #include "KokkosFFT_asserts.hpp"
 #include "KokkosFFT_ROCM_types.hpp"
+#include "KokkosFFT_ROCM_asserts.hpp"
 
 namespace KokkosFFT {
 namespace Impl {
