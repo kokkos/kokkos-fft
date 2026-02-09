@@ -5,8 +5,8 @@
 #ifndef KOKKOSFFT_CUDA_ASSERTS_HPP
 #define KOKKOSFFT_CUDA_ASSERTS_HPP
 
-#include <string>
 #include <stdexcept>
+#include <string_view>
 #include <cufft.h>
 #include <Kokkos_Core.hpp>
 #include "KokkosFFT_asserts.hpp"
@@ -29,7 +29,7 @@
 namespace KokkosFFT {
 namespace Impl {
 
-inline std::string cufft_result_to_string(cufftResult result) {
+inline std::string_view cufft_result_to_string(cufftResult result) {
   switch (result) {
     case CUFFT_SUCCESS: return "CUFFT_SUCCESS";
     case CUFFT_INVALID_PLAN: return "CUFFT_INVALID_PLAN";
