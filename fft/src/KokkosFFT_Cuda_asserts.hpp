@@ -8,7 +8,6 @@
 #include <stdexcept>
 #include <string_view>
 #include <cufft.h>
-#include <Kokkos_Core.hpp>
 #include "KokkosFFT_asserts.hpp"
 
 #if defined(__cpp_lib_source_location) && __cpp_lib_source_location >= 201907L
@@ -20,7 +19,6 @@
       std::source_location::current().function_name(),          \
       std::source_location::current().column())
 #else
-#include <cstdlib>
 #define KOKKOSFFT_CHECK_CUFFT_CALL(call)                             \
   KokkosFFT::Impl::check_cufft_call(call, #call, __FILE__, __LINE__, \
                                     __FUNCTION__)
