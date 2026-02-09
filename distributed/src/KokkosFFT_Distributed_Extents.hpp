@@ -20,6 +20,8 @@ namespace Impl {
 /// Example, if the first FFT dimension is the 2nd dimension
 /// in extents (real): (8, 7, 8)
 /// out extents (complex): (8, 7, 5)
+/// axes: (0, 1, 2)
+/// FFT is operated from 2nd axis, so we have
 /// padded extents (real): (8, 7, 10)
 ///
 /// \tparam DIM The number of dimensions of the extents.
@@ -50,7 +52,7 @@ auto compute_padded_extents(const std::array<std::size_t, DIM> &extents,
 /// \tparam LayoutType The layout type of the buffer view (e.g.,
 /// Kokkos::LayoutRight).
 /// \tparam iType The integer type used for extents and topology.
-///\tparam DIM The number of dimensions of the extents.
+/// \tparam DIM The number of dimensions of the extents.
 ///
 /// \param[in] extents Extents of the global View.
 /// \param[in] in_topology A topology representing the distribution of the input
@@ -67,7 +69,7 @@ auto compute_buffer_extents(const std::array<iType, DIM> &extents,
                     std::is_same_v<LayoutType, Kokkos::LayoutRight>,
                 "compute_buffer_extents: We only accept LayoutLeft or "
                 "LayoutRight for the buffer View.");
-  std::array<iType, DIM + 1> buffer_extents;
+  std::array<iType, DIM + 1> buffer_extents{};
   auto merged_topology = merge_topology(in_topology, out_topology);
   auto p0 = diff_topology(merged_topology, in_topology);  // return 1 or p0
   if constexpr (std::is_same_v<LayoutType, Kokkos::LayoutRight>) {
@@ -144,10 +146,9 @@ auto compute_mapped_extents(const std::array<iType, DIM> &extents,
   static_assert(std::is_integral_v<value_type>,
                 "compute_mapped_extents: Map container value type must be an "
                 "integral type");
-  KOKKOSFFT_THROW_IF(
-      map.size() != DIM,
-      "compute_mapped_extents: extents size must be equal to map size.");
-  std::array<iType, DIM> mapped_extents;
+  KOKKOSFFT_THROW_IF(map.size() != DIM,
+                     "extents size must be equal to map size.");
+  std::array<iType, DIM> mapped_extents{};
   std::transform(
       map.begin(), map.end(), mapped_extents.begin(),
       [&](std::size_t mapped_idx) { return extents.at(mapped_idx); });
@@ -162,6 +163,8 @@ auto compute_mapped_extents(const std::array<iType, DIM> &extents,
 /// Example
 /// in extents: (8, 7, 8)
 /// out extents: (8, 7, 5)
+/// axes: (0, 1, 2)
+/// FFT is operated from 2nd axis, so we have
 /// fft extents: (8, 7, 8)
 ///
 /// \tparam iType The integer type used for extents
@@ -170,6 +173,7 @@ auto compute_mapped_extents(const std::array<iType, DIM> &extents,
 ///
 /// \param[in] in_extents Extents of the global input View.
 /// \param[in] out_extents Extents of the global output View.
+/// \param[in] axes Axes of the transform
 /// \return A extents of the permuted view
 template <typename iType, std::size_t DIM, std::size_t FFT_DIM>
 auto compute_fft_extents(const std::array<iType, DIM> &in_extents,
@@ -185,7 +189,7 @@ auto compute_fft_extents(const std::array<iType, DIM> &in_extents,
       "compute_fft_extents: View rank must be larger than or equal to "
       "the Rank of FFT axes");
 
-  std::array<iType, FFT_DIM> fft_extents;
+  std::array<iType, FFT_DIM> fft_extents{};
   std::transform(axes.begin(), axes.end(), fft_extents.begin(),
                  [&](iType axis) {
                    return std::max(in_extents.at(axis), out_extents.at(axis));
