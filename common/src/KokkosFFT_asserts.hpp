@@ -35,6 +35,21 @@
 namespace KokkosFFT {
 namespace Impl {
 
+inline std::stringstream error_info(const char* file_name, int line,
+                                    const char* function_name,
+                                    const int column = -1) {
+  std::stringstream ss("file: ");
+  if (column == -1) {
+    // For C++ 17
+    ss << file_name << '(' << line << ") `" << function_name << "`: ";
+  } else {
+    // For C++ 20 and later
+    ss << file_name << '(' << line << ':' << column << ") `" << function_name
+       << "`: ";
+  }
+  return ss;
+}
+
 inline void check_precondition(const bool expression,
                                const std::string_view& msg,
                                const char* file_name, int line,
@@ -42,17 +57,8 @@ inline void check_precondition(const bool expression,
                                const int column = -1) {
   // Quick return if possible
   if (!expression) return;
-
-  std::stringstream ss("file: ");
-  if (column == -1) {
-    // For C++ 17
-    ss << file_name << '(' << line << ") `" << function_name << "`: " << msg
-       << '\n';
-  } else {
-    // For C++ 20 and later
-    ss << file_name << '(' << line << ':' << column << ") `" << function_name
-       << "`: " << msg << '\n';
-  }
+  auto ss = error_info(file_name, line, function_name, column);
+  ss << msg << '\n';
   throw std::runtime_error(ss.str());
 }
 
