@@ -61,6 +61,21 @@ inline void check_precondition(const bool expression,
   throw std::runtime_error(ss.str());
 }
 
+template <typename FFTStatusType, typename ResultToStringFunc>
+void check_fft_call(FFTStatusType status, const char* command_name,
+                    FFTStatusType status_success,
+                    ResultToStringFunc result_to_string, const char* file_name,
+                    int line, const char* function_name,
+                    const int column = -1) {
+  if (status != status_success) {
+    auto ss = error_info(file_name, line, function_name, column);
+    ss << "\n"
+       << command_name << " failed with error code " << status << " ("
+       << result_to_string(status) << ")\n";
+    throw std::runtime_error(ss.str());
+  }
+}
+
 }  // namespace Impl
 }  // namespace KokkosFFT
 
