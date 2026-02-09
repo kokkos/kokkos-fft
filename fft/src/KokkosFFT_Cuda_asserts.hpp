@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
-#ifndef KOKKOSFFT_CUDA_ASSERT_HPP
-#define KOKKOSFFT_CUDA_ASSERT_HPP
+#ifndef KOKKOSFFT_CUDA_ASSERTS_HPP
+#define KOKKOSFFT_CUDA_ASSERTS_HPP
 
 #include <string>
 #include <cufft.h>
