@@ -10,6 +10,7 @@ set(SOURCES
     Test_Types.cpp
     Test_Mapping.cpp
     Test_ContainerAnalyses.cpp
+    Test_Extents.cpp
 )
 
 add_executable(unit-tests-mpi ${SOURCES})
