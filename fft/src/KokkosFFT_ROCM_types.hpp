@@ -86,9 +86,7 @@ struct ScopedRocfftPlanDescription {
 
  public:
   ScopedRocfftPlanDescription() {
-    rocfft_status status = rocfft_plan_description_create(&m_description);
-    KOKKOSFFT_THROW_IF(status != rocfft_status_success,
-                       "rocfft_plan_description_create failed");
+    KOKKOSFFT_CHECK_ROCFFT_CALL(rocfft_plan_description_create(&m_description));
   }
   ~ScopedRocfftPlanDescription() noexcept {
     rocfft_status status = rocfft_plan_description_destroy(m_description);
@@ -114,9 +112,8 @@ struct ScopedRocfftExecutionInfo {
  public:
   ScopedRocfftExecutionInfo() {
     // Prepare workbuffer and set execution information
-    rocfft_status status = rocfft_execution_info_create(&m_execution_info);
-    KOKKOSFFT_THROW_IF(status != rocfft_status_success,
-                       "rocfft_execution_info_create failed");
+    KOKKOSFFT_CHECK_ROCFFT_CALL(
+        rocfft_execution_info_create(&m_execution_info));
   }
   ~ScopedRocfftExecutionInfo() noexcept {
     rocfft_status status = rocfft_execution_info_destroy(m_execution_info);
@@ -137,10 +134,8 @@ struct ScopedRocfftExecutionInfo {
   void set_work_area(void *workbuffer, std::size_t workbuffersize) {
     // Set work buffer
     if (workbuffersize > 0) {
-      rocfft_status status = rocfft_execution_info_set_work_buffer(
-          m_execution_info, workbuffer, workbuffersize);
-      KOKKOSFFT_THROW_IF(status != rocfft_status_success,
-                         "rocfft_execution_info_set_work_buffer failed");
+      KOKKOSFFT_CHECK_ROCFFT_CALL(rocfft_execution_info_set_work_buffer(
+          m_execution_info, workbuffer, workbuffersize));
     }
   }
 
@@ -149,10 +144,8 @@ struct ScopedRocfftExecutionInfo {
     // NOTE: The stream must be of type hipStream_t.
     // It is an error to pass the address of a hipStream_t object.
     hipStream_t stream = exec_space.hip_stream();
-    rocfft_status status =
-        rocfft_execution_info_set_stream(m_execution_info, stream);
-    KOKKOSFFT_THROW_IF(status != rocfft_status_success,
-                       "rocfft_execution_info_set_stream failed");
+    KOKKOSFFT_CHECK_ROCFFT_CALL(
+        rocfft_execution_info_set_stream(m_execution_info, stream));
   }
 };
 
@@ -190,7 +183,7 @@ struct ScopedRocfftPlan {
 
     // Create a plan description
     ScopedRocfftPlanDescription scoped_description;
-    rocfft_status status = rocfft_plan_description_set_data_layout(
+    KOKKOSFFT_CHECK_ROCFFT_CALL(rocfft_plan_description_set_data_layout(
         scoped_description.description(),  // description handle
         in_array_type,                     // input array type
         out_array_type,                    // output array type
@@ -201,27 +194,23 @@ struct ScopedRocfftPlan {
         idist,                             // input batch distance
         out_strides.size(),                // output stride length
         out_strides.data(),                // output stride data
-        odist);                            // output batch distance
-
-    KOKKOSFFT_THROW_IF(status != rocfft_status_success,
-                       "rocfft_plan_description_set_data_layout failed");
+        odist));
 
     // inplace or Out-of-place transform
     const rocfft_result_placement place =
         is_inplace ? rocfft_placement_inplace : rocfft_placement_notinplace;
 
     // Create a plan
-    status = rocfft_plan_create(&m_plan, place, fft_direction, m_precision,
-                                reversed_fft_extents.size(),  // Dimension
-                                reversed_fft_extents.data(),  // Lengths
-                                howmany,  // Number of transforms
-                                scoped_description.description()  // Description
-    );
-    KOKKOSFFT_THROW_IF(status != rocfft_status_success,
-                       "rocfft_plan_create failed");
-    status = rocfft_plan_get_work_buffer_size(m_plan, &m_workspace_size);
-    KOKKOSFFT_THROW_IF(status != rocfft_status_success,
-                       "rocfft_plan_get_work_buffer_size failed");
+    KOKKOSFFT_CHECK_ROCFFT_CALL(rocfft_plan_create(
+        &m_plan, place, fft_direction, m_precision,
+        reversed_fft_extents.size(),      // Dimension
+        reversed_fft_extents.data(),      // Lengths
+        howmany,                          // Number of transforms
+        scoped_description.description()  // Description
+        ));
+
+    KOKKOSFFT_CHECK_ROCFFT_CALL(
+        rocfft_plan_get_work_buffer_size(m_plan, &m_workspace_size));
     m_execution_info = std::make_unique<ScopedRocfftExecutionInfo>();
   }
   ~ScopedRocfftPlan() noexcept {
