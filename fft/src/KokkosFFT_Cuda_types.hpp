@@ -10,6 +10,7 @@
 #include <Kokkos_Profiling_ScopedRegion.hpp>
 #include "KokkosFFT_common_types.hpp"
 #include "KokkosFFT_asserts.hpp"
+#include "KokkosFFT_Cuda_asserts.hpp"
 
 #if defined(KOKKOSFFT_ENABLE_TPL_FFTW)
 #include "KokkosFFT_FFTW_Types.hpp"
@@ -33,27 +34,23 @@ struct ScopedCufftPlan {
 
  public:
   ScopedCufftPlan(int nx, cufftType type, int batch) {
-    cufftResult cufft_rt = cufftPlan1d(&m_plan, nx, type, batch);
-    KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftPlan1d failed");
+    KOKKOSFFT_CHECK_CUFFT_CALL(cufftPlan1d(&m_plan, nx, type, batch));
   }
 
   ScopedCufftPlan(int nx, int ny, cufftType type) {
-    cufftResult cufft_rt = cufftPlan2d(&m_plan, nx, ny, type);
-    KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftPlan2d failed");
+    KOKKOSFFT_CHECK_CUFFT_CALL(cufftPlan2d(&m_plan, nx, ny, type));
   }
 
   ScopedCufftPlan(int nx, int ny, int nz, cufftType type) {
-    cufftResult cufft_rt = cufftPlan3d(&m_plan, nx, ny, nz, type);
-    KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftPlan3d failed");
+    KOKKOSFFT_CHECK_CUFFT_CALL(cufftPlan3d(&m_plan, nx, ny, nz, type));
   }
 
   ScopedCufftPlan(int rank, int *n, int *inembed, int istride, int idist,
                   int *onembed, int ostride, int odist, cufftType type,
                   int batch) {
-    cufftResult cufft_rt =
-        cufftPlanMany(&m_plan, rank, n, inembed, istride, idist, onembed,
-                      ostride, odist, type, batch);
-    KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftPlanMany failed");
+    KOKKOSFFT_CHECK_CUFFT_CALL(cufftPlanMany(&m_plan, rank, n, inembed, istride,
+                                             idist, onembed, ostride, odist,
+                                             type, batch));
   }
 
   ~ScopedCufftPlan() noexcept {
@@ -71,8 +68,8 @@ struct ScopedCufftPlan {
 
   cufftHandle plan() const noexcept { return m_plan; }
   void commit(const Kokkos::Cuda &exec_space) const {
-    cufftResult cufft_rt = cufftSetStream(m_plan, exec_space.cuda_stream());
-    KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftSetStream failed");
+    KOKKOSFFT_CHECK_CUFFT_CALL(
+        cufftSetStream(m_plan, exec_space.cuda_stream()));
   }
 };
 
@@ -84,34 +81,25 @@ struct ScopedCufftDynPlan {
 
  public:
   ScopedCufftDynPlan(int nx, cufftType type, int batch) {
-    cufftResult cufft_rt = cufftCreate(&m_plan);
-    KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftCreate failed");
-
-    cufft_rt = cufftSetAutoAllocation(m_plan, 0);
-    KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS,
-                       "cufftSetAutoAllocation failed");
-
-    cufft_rt = cufftMakePlan1d(m_plan, nx, type, batch, &m_workspace_size);
-    KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftMakePlan1d failed");
+    KOKKOSFFT_CHECK_CUFFT_CALL(cufftCreate(&m_plan));
+    KOKKOSFFT_CHECK_CUFFT_CALL(cufftSetAutoAllocation(m_plan, 0));
+    KOKKOSFFT_CHECK_CUFFT_CALL(
+        cufftMakePlan1d(m_plan, nx, type, batch, &m_workspace_size));
   }
 
   ScopedCufftDynPlan(const std::vector<int> &fft_extents, cufftType type) {
-    cufftResult cufft_rt = cufftCreate(&m_plan);
-    KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftCreate failed");
-
-    cufft_rt = cufftSetAutoAllocation(m_plan, 0);
-    KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS,
-                       "cufftSetAutoAllocation failed");
+    KOKKOSFFT_CHECK_CUFFT_CALL(cufftCreate(&m_plan));
+    KOKKOSFFT_CHECK_CUFFT_CALL(cufftSetAutoAllocation(m_plan, 0));
 
     if (fft_extents.size() == 2) {
       auto nx = fft_extents.at(0), ny = fft_extents.at(1);
-      cufft_rt = cufftMakePlan2d(m_plan, nx, ny, type, &m_workspace_size);
-      KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftMakePlan2d failed");
+      KOKKOSFFT_CHECK_CUFFT_CALL(
+          cufftMakePlan2d(m_plan, nx, ny, type, &m_workspace_size));
     } else if (fft_extents.size() == 3) {
       auto nx = fft_extents.at(0), ny = fft_extents.at(1),
-           nz  = fft_extents.at(2);
-      cufft_rt = cufftMakePlan3d(m_plan, nx, ny, nz, type, &m_workspace_size);
-      KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftMakePlan3d failed");
+           nz = fft_extents.at(2);
+      KOKKOSFFT_CHECK_CUFFT_CALL(
+          cufftMakePlan3d(m_plan, nx, ny, nz, type, &m_workspace_size));
     } else {
       KOKKOSFFT_THROW_IF(true, "FFT dimension can be 2D or 3D only");
     }
@@ -120,17 +108,11 @@ struct ScopedCufftDynPlan {
   ScopedCufftDynPlan(int rank, int *n, int *inembed, int istride, int idist,
                      int *onembed, int ostride, int odist, cufftType type,
                      int batch) {
-    cufftResult cufft_rt = cufftCreate(&m_plan);
-    KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftCreate failed");
-
-    cufft_rt = cufftSetAutoAllocation(m_plan, 0);
-    KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS,
-                       "cufftSetAutoAllocation failed");
-
-    cufft_rt =
+    KOKKOSFFT_CHECK_CUFFT_CALL(cufftCreate(&m_plan));
+    KOKKOSFFT_CHECK_CUFFT_CALL(cufftSetAutoAllocation(m_plan, 0));
+    KOKKOSFFT_CHECK_CUFFT_CALL(
         cufftMakePlanMany(m_plan, rank, n, inembed, istride, idist, onembed,
-                          ostride, odist, type, batch, &m_workspace_size);
-    KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftMakePlanMany failed");
+                          ostride, odist, type, batch, &m_workspace_size));
   }
 
   ~ScopedCufftDynPlan() noexcept {
@@ -161,14 +143,14 @@ struct ScopedCufftDynPlan {
         "insufficient work buffer size. buffer size: " +
             std::to_string(workspace_size) +
             ", required size: " + std::to_string(m_workspace_size));
-    void *work_area      = static_cast<void *>(work.data());
-    cufftResult cufft_rt = cufftSetWorkArea(m_plan, work_area);
-    KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftSetWorkArea failed");
+    void *work_area = static_cast<void *>(work.data());
+
+    KOKKOSFFT_CHECK_CUFFT_CALL(cufftSetWorkArea(m_plan, work_area));
   }
 
   void commit(const Kokkos::Cuda &exec_space) {
-    cufftResult cufft_rt = cufftSetStream(m_plan, exec_space.cuda_stream());
-    KOKKOSFFT_THROW_IF(cufft_rt != CUFFT_SUCCESS, "cufftSetStream failed");
+    KOKKOSFFT_CHECK_CUFFT_CALL(
+        cufftSetStream(m_plan, exec_space.cuda_stream()));
   }
 };
 
