@@ -51,6 +51,8 @@ void test_bin_mapping(iType N, iType nbins, const std::vector<iType>& ref_start,
   EXPECT_EQ(length, ref_length);
 }
 
+#define KOKKOSFFT_OUT_OF_BOUNDS -1
+
 /// \brief Test merge_indices function
 /// \tparam iType Integer type for indices
 /// \param[in] size Size of the index range to test
@@ -71,7 +73,7 @@ void test_merge_indices(iType size, const std::vector<iType>& start,
           idx, start.at(i), length.at(i), axis0, axis1);
 
       if (idx >= length.at(i)) {
-        EXPECT_EQ(merged_idx_00, -1);
+        EXPECT_EQ(merged_idx_00, KOKKOSFFT_OUT_OF_BOUNDS);
       } else {
         auto ref_merged_idx_00 = idx + start.at(i);
         EXPECT_EQ(merged_idx_00, ref_merged_idx_00);
@@ -81,6 +83,8 @@ void test_merge_indices(iType size, const std::vector<iType>& start,
     }
   }
 }
+
+#undef KOKKOSFFT_OUT_OF_BOUNDS
 
 /// \brief Test pack function for 2D View
 /// \tparam T Type of the data (float or double)
