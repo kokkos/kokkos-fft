@@ -51,8 +51,6 @@ void test_bin_mapping(iType N, iType nbins, const std::vector<iType>& ref_start,
   EXPECT_EQ(length, ref_length);
 }
 
-#define KOKKOSFFT_OUT_OF_BOUNDS -1
-
 /// \brief Test merge_indices function
 /// \tparam iType Integer type for indices
 /// \param[in] size Size of the index range to test
@@ -73,7 +71,8 @@ void test_merge_indices(iType size, const std::vector<iType>& start,
           idx, start.at(i), length.at(i), axis0, axis1);
 
       if (idx >= length.at(i)) {
-        EXPECT_EQ(merged_idx_00, KOKKOSFFT_OUT_OF_BOUNDS);
+        EXPECT_EQ(merged_idx_00,
+                  KokkosFFT::Distributed::Impl::OutOfBounds_v<iType>);
       } else {
         auto ref_merged_idx_00 = idx + start.at(i);
         EXPECT_EQ(merged_idx_00, ref_merged_idx_00);
@@ -83,8 +82,6 @@ void test_merge_indices(iType size, const std::vector<iType>& start,
     }
   }
 }
-
-#undef KOKKOSFFT_OUT_OF_BOUNDS
 
 /// \brief Test pack function for 2D View
 /// \tparam T Type of the data (float or double)
@@ -221,7 +218,7 @@ void test_pack_view2D(std::size_t rank, std::size_t nprocs, int order = 0) {
   auto h_send_t1 =
       Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), send_t1);
 
-  T epsilon = std::numeric_limits<T>::epsilon() * 100;
+  T epsilon = std::numeric_limits<T>::epsilon() * 10;
 
   // Check send_t0 is correct
   for (std::size_t i2 = 0; i2 < send_t0.extent(2); i2++) {
@@ -510,7 +507,7 @@ void test_pack_view3D(std::size_t rank, std::size_t nprocs, int order = 0) {
   auto h_send_t21 =
       Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), send_t21);
 
-  T epsilon = std::numeric_limits<T>::epsilon() * 100;
+  T epsilon = std::numeric_limits<T>::epsilon() * 10;
 
   // Check send_t01 is correct
   for (std::size_t i3 = 0; i3 < send_t01.extent(3); i3++) {

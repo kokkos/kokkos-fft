@@ -11,13 +11,18 @@
 #include <KokkosFFT.hpp>
 #include "KokkosFFT_Distributed_Mapping.hpp"
 
-#if !defined(KOKKOSFFT_OUT_OF_BOUNDS)
-#define KOKKOSFFT_OUT_OF_BOUNDS -1
-#endif
-
 namespace KokkosFFT {
 namespace Distributed {
 namespace Impl {
+
+template <typename T>
+struct OutOfBounds {
+  static_assert(std::is_signed_v<T>, "OutOfBounds: T must be a signed integer");
+  static constexpr auto value = T(-1);
+};
+
+template <typename T>
+inline constexpr auto OutOfBounds_v = OutOfBounds<T>::value;
 
 /// \brief Helper function to compute the start index and length of a bin
 /// when dividing a range [0, N) into `nbins` bins. The `ibin`-th bin
@@ -66,7 +71,7 @@ KOKKOS_INLINE_FUNCTION iType merge_indices(iType idx, iType start, iType extent,
   static_assert(std::is_signed_v<iType>,
                 "merge_indices: iType must be a signed integer");
   if (axis == merged_axis) {
-    return idx >= extent ? KOKKOSFFT_OUT_OF_BOUNDS : idx + start;
+    return idx >= extent ? OutOfBounds_v<iType> : idx + start;
   } else {
     return idx;
   }
@@ -225,7 +230,7 @@ struct Pack {
             merge_indices(dst_idx[Is + 1], start, extent, Is, m_axis)...};
         for (std::size_t i = 0; i < DstViewType::rank() - 1; ++i) {
           if (src_indices[m_map[i]] >= iType(m_src_extents[i]) ||
-              src_indices[m_map[i]] == KOKKOSFFT_OUT_OF_BOUNDS) {
+              src_indices[m_map[i]] == OutOfBounds_v<iType>) {
             // Quick return for out-of-bounds
             return ValueType(0);
           }
@@ -239,7 +244,7 @@ struct Pack {
             merge_indices(dst_idx[Is], start, extent, Is, m_axis)...};
         for (std::size_t i = 0; i < DstViewType::rank() - 1; ++i) {
           if (src_indices[m_map[i]] >= iType(m_src_extents[i]) ||
-              src_indices[m_map[i]] == KOKKOSFFT_OUT_OF_BOUNDS) {
+              src_indices[m_map[i]] == OutOfBounds_v<iType>) {
             // Quick return for out-of-bounds
             return ValueType(0);
           }
@@ -394,7 +399,7 @@ struct Unpack {
             merge_indices(src_idx[Is + 1], start, extent, Is, m_axis)...};
         for (std::size_t i = 0; i < SrcViewType::rank() - 1; ++i) {
           if (dst_indices[m_map[i]] >= iType(m_dst_extents[i]) ||
-              dst_indices[m_map[i]] == KOKKOSFFT_OUT_OF_BOUNDS) {
+              dst_indices[m_map[i]] == OutOfBounds_v<iType>) {
             // Quick return for out-of-bounds
             return;
           }
@@ -408,7 +413,7 @@ struct Unpack {
             merge_indices(src_idx[Is], start, extent, Is, m_axis)...};
         for (std::size_t i = 0; i < SrcViewType::rank() - 1; ++i) {
           if (dst_indices[m_map[i]] >= iType(m_dst_extents[i]) ||
-              dst_indices[m_map[i]] == KOKKOSFFT_OUT_OF_BOUNDS) {
+              dst_indices[m_map[i]] == OutOfBounds_v<iType>) {
             // Quick return for out-of-bounds
             return;
           }
@@ -501,7 +506,5 @@ void unpack(const ExecutionSpace& exec_space, const SrcViewType& src,
 }  // namespace Impl
 }  // namespace Distributed
 }  // namespace KokkosFFT
-
-#undef KOKKOSFFT_OUT_OF_BOUNDS
 
 #endif

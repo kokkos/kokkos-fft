@@ -169,7 +169,7 @@ void test_unpack_view2D(std::size_t rank, std::size_t nprocs, int order = 0) {
   auto h_u_p_t1_ref =
       Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), u_p_t1_ref);
 
-  T epsilon = std::numeric_limits<T>::epsilon() * 100;
+  T epsilon = std::numeric_limits<T>::epsilon() * 10;
 
   // Check u_p_t0 is correct
   for (std::size_t i1 = 0; i1 < u_p_t0.extent(1); i1++) {
@@ -480,7 +480,7 @@ void test_unpack_view3D(std::size_t rank, std::size_t nprocs, int order = 0) {
   auto h_u_p_t2_ref =
       Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), u_p_t2_ref);
 
-  T epsilon = std::numeric_limits<T>::epsilon() * 100;
+  T epsilon = std::numeric_limits<T>::epsilon() * 10;
 
   // Check u_p_t0 is correct
   for (std::size_t i2 = 0; i2 < u_p_t0_ref.extent(2); i2++) {
