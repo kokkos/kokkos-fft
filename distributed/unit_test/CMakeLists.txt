@@ -11,6 +11,7 @@ set(SOURCES
     Test_Mapping.cpp
     Test_ContainerAnalyses.cpp
     Test_Extents.cpp
+    Test_MPI_Extents.cpp
     Test_Pack.cpp
     Test_Unpack.cpp
 )
