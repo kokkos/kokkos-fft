@@ -6,8 +6,10 @@
 #define KOKKOSFFT_DISTRIBUTED_MPI_EXTENTS_HPP
 
 #include <type_traits>
-#include <mpi.h>
+#include <string_view>
+#include <string>
 #include <vector>
+#include <mpi.h>
 #include <Kokkos_Core.hpp>
 #include <KokkosFFT.hpp>
 #include "KokkosFFT_Distributed_Types.hpp"
@@ -19,8 +21,8 @@ namespace Distributed {
 namespace Impl {
 
 /// \brief Compute the global extents of the distributed View
-/// LayoutRight
-/// E.g. Topology (1, 2, 4)
+/// Examples:
+///  - with LayoutRight and Topology (1, 2, 4)
 ///      rank0: (0, 0)
 ///      rank1: (0, 1)
 ///      rank2: (0, 2)
@@ -29,8 +31,8 @@ namespace Impl {
 ///      rank5: (1, 1)
 ///      rank6: (1, 2)
 ///      rank7: (1, 3)
-/// LayoutLeft
-/// E.g. Topology (1, 2, 4)
+///
+/// - with LayoutLeftout and Topology (1, 2, 4)
 ///      rank0: (0, 0)
 ///      rank1: (1, 0)
 ///      rank2: (0, 1)
@@ -48,7 +50,7 @@ namespace Impl {
 /// \param[in] comm The MPI communicator
 /// \return The global extents of the distributed View
 template <typename ViewType, typename LayoutType = Kokkos::LayoutRight>
-auto compute_global_extents(
+std::array<std::size_t, ViewType::rank()> compute_global_extents(
     const ViewType &v,
     const Topology<std::size_t, ViewType::rank(), LayoutType> &topology,
     MPI_Comm comm) {
@@ -60,10 +62,10 @@ auto compute_global_extents(
   MPI_Datatype mpi_data_type = mpi_datatype_v<std::size_t>;
 
   // Data are stored as
-  // rank0: extents
-  // rank1: extents
+  // rank0: extents0
+  // rank1: extents1
   // ...
-  // rankn:
+  // rankn: extentsn
   MPI_Allgather(extents.data(), extents.size(), mpi_data_type,
                 gathered_extents.data(), extents.size(), mpi_data_type, comm);
 
@@ -102,6 +104,7 @@ auto compute_global_extents(
 }
 
 /// \brief Compute the global extents of the distributed View
+/// Overload using a std::array for the topology
 /// \tparam ViewType The Kokkos View type
 /// \param[in] v The Kokkos View
 /// \param[in] topology The topology representing the distribution of the data
@@ -117,18 +120,21 @@ auto compute_global_extents(
 
 /// \brief Compute the local extents for the next block given the current rank
 /// and layout (compile time version)
-// Data are stored as
-// rank0: extents
-// rank1: extents
-// ...
-// rankn:
+/// Examples:
+/// Global extents: (X, Y, Z)
+/// Next Topology: (n, 1, 1)
+/// Map: (0, 1, 2)
+/// Next Extents: (X/n, Y, Z) or (X/n+1, Y, Z) if X is not divisible by n
+/// The first X % n GPUs each own (X/n+1)*Y*Z elements and the remaining GPUs
+/// each own (X/n)*Y*Z elements.
+///
 /// \tparam DIM Number of dimensions
 /// \tparam LayoutType Layout type for the Input Topology (default is
 /// Kokkos::LayoutRight)
-/// \param[in] extents Extents of the current block
-/// \param[in] topology Topology of the current block
-/// \param[in] map Map of the current block
-/// \param[in] rank Current rank
+/// \param[in] extents Global extents
+/// \param[in] topology Topology of the next block
+/// \param[in] map Map of the next block
+/// \param[in] rank MPI rank
 /// \return The local extents for the next block
 template <std::size_t DIM, typename LayoutType = Kokkos::LayoutRight>
 auto compute_next_extents(
@@ -162,16 +168,11 @@ auto compute_next_extents(
 
 /// \brief Compute the local extents for the next block given the current rank
 /// and layout (run time version)
-// Data are stored as
-// rank0: extents
-// rank1: extents
-// ...
-// rankn:
 /// \tparam DIM Number of dimensions
-/// \param[in] extents Extents of the current block
-/// \param[in] topology Topology of the current block
-/// \param[in] map Map of the current block
-/// \param[in] rank Current rank
+/// \param[in] extents Global extents
+/// \param[in] topology Topology of the next block
+/// \param[in] map Map of the next block
+/// \param[in] rank MPI rank
 /// \param[in] is_layout_right Layout type for the Input Topology (default is
 /// true)
 /// \return The local extents for the next block
@@ -225,7 +226,7 @@ auto compute_global_min(const ContainerType &values, MPI_Comm comm) {
 }
 
 /// \brief Check if input and output views have valid extents for the given
-/// axes, FFT topologies, and MPI communicator.
+/// axes, FFT type, and topologies
 ///
 /// Compute the global extents of the local input and output views and check if
 /// they satisfy the requirements for each transform type:
@@ -259,7 +260,7 @@ auto compute_global_min(const ContainerType &values, MPI_Comm comm) {
 /// \throws std::runtime_error if the axes are not valid for the input view
 /// or if the extents do not satisfy the requirements for each transform type
 template <typename InViewType, typename OutViewType, typename SizeType,
-          std::size_t DIM = 1, typename InLayoutType = Kokkos::LayoutRight,
+          std::size_t DIM, typename InLayoutType = Kokkos::LayoutRight,
           typename OutLayoutType = Kokkos::LayoutRight>
 bool are_valid_extents(
     const InViewType &in, const OutViewType &out,
@@ -294,9 +295,9 @@ bool are_valid_extents(
   auto in_extents  = compute_mapped_extents(gin_extents, map);
   auto out_extents = compute_mapped_extents(gout_extents, map);
 
-  auto mismatched_extents = [&in, &out, &in_extents,
-                             &out_extents]() -> std::string {
-    std::string message;
+  auto mismatched_extents = [&in, &out, &in_extents, &out_extents](
+                                std::string_view msg) -> std::string {
+    std::string message(msg);
     message += in.label();
     message += "(";
     message += std::to_string(in_extents.at(0));
@@ -319,10 +320,11 @@ bool are_valid_extents(
   for (std::size_t i = 0; i < rank; i++) {
     // The requirement for inner_most_axis is different for transform type
     if (i == inner_most_axis) continue;
-    KOKKOSFFT_THROW_IF(in_extents.at(i) != out_extents.at(i),
-                       "input and output extents must be the same except for "
-                       "the transform axis: " +
-                           mismatched_extents());
+    KOKKOSFFT_THROW_IF(
+        in_extents.at(i) != out_extents.at(i),
+        mismatched_extents(
+            "input and output extents must be the same except for "
+            "the transform axis: "));
   }
 
   if constexpr (KokkosFFT::Impl::is_complex_v<in_value_type> &&
@@ -330,8 +332,8 @@ bool are_valid_extents(
     // Then C2C
     KOKKOSFFT_THROW_IF(
         in_extents.at(inner_most_axis) != out_extents.at(inner_most_axis),
-        "input and output extents must be the same for C2C transform: " +
-            mismatched_extents());
+        mismatched_extents(
+            "input and output extents must be the same for C2C transform: "));
   }
 
   if constexpr (KokkosFFT::Impl::is_real_v<in_value_type>) {
@@ -339,9 +341,8 @@ bool are_valid_extents(
     KOKKOSFFT_THROW_IF(
         out_extents.at(inner_most_axis) !=
             in_extents.at(inner_most_axis) / 2 + 1,
-        "For R2C, the 'output extent' of transform must be equal to "
-        "'input extent'/2 + 1: " +
-            mismatched_extents());
+        mismatched_extents("For R2C, the 'output extent' of transform must be "
+                           "equal to 'input extent'/2 + 1: "));
   }
 
   if constexpr (KokkosFFT::Impl::is_real_v<out_value_type>) {
@@ -349,15 +350,15 @@ bool are_valid_extents(
     KOKKOSFFT_THROW_IF(
         in_extents.at(inner_most_axis) !=
             out_extents.at(inner_most_axis) / 2 + 1,
-        "For C2R, the 'input extent' of transform must be equal to "
-        "'output extent' / 2 + 1: " +
-            mismatched_extents());
+        mismatched_extents("For C2R, the 'input extent' of transform must be "
+                           "equal to 'output extent' / 2 + 1: "));
   }
   return true;
 }
 
 /// \brief Check if input and output views have valid extents for the given
-/// axes, FFT topologies, and MPI communicator.
+/// axes, FFT type, and topologies
+/// Overload using a std::array for the topologies
 ///
 /// Compute the global extents of the local input and output views and check if
 /// they satisfy the requirements for each transform type:
@@ -401,6 +402,19 @@ bool are_valid_extents(
 }  // namespace Impl
 
 /// \brief Convert rank to coordinate based on the given topology
+/// Examples:
+///  - with LayoutRight and Topology (2, 2)
+///      rank0: (0, 0)
+///      rank1: (0, 1)
+///      rank2: (1, 0)
+///      rank3: (1, 1)
+///
+/// - with LayoutLeftout and Topology (2, 2)
+///      rank0: (0, 0)
+///      rank1: (1, 0)
+///      rank2: (0, 1)
+///      rank3: (1, 1)
+///
 /// \tparam DIM Number of dimensions
 /// \tparam LayoutType Layout type for the Topology (default is
 /// Kokkos::LayoutRight)
@@ -434,6 +448,7 @@ auto rank_to_coord(const Topology<std::size_t, DIM, LayoutType> &topology,
 }
 
 /// \brief Convert rank to coordinate based on the given topology
+/// Overload using a std::array for the topology
 /// \tparam DIM Number of dimensions
 /// \param[in] topology Topology of the distributed data
 /// \param[in] rank MPI rank
@@ -445,6 +460,13 @@ auto rank_to_coord(const std::array<std::size_t, DIM> &topology,
 }
 
 /// \brief Compute the local extents and starts of the distributed View
+/// Examples:
+/// Global extents: (10, Y, Z)
+/// Topology: (3, 1, 1)
+/// Local Extents:
+/// (4, Y, Z), (3, Y, Z), (3, Y, Z)
+/// Local Starts:
+/// (0, 0, 0), (4, 0, 0), (7, 0, 0)
 /// \tparam DIM Number of dimensions
 /// \tparam LayoutType Layout type for the Topology (default is
 /// Kokkos::LayoutRight)
@@ -490,10 +512,10 @@ auto compute_local_extents(
   MPI_Datatype mpi_data_type = Impl::mpi_datatype_v<std::size_t>;
 
   // Data are stored as
-  // rank0: extents
-  // rank1: extents
+  // rank0: extents0
+  // rank1: extents1
   // ...
-  // rankn:
+  // rankn: extentsn
   MPI_Allgather(local_extents.data(), local_extents.size(), mpi_data_type,
                 gathered_extents.data(), local_extents.size(), mpi_data_type,
                 comm);
@@ -516,6 +538,7 @@ auto compute_local_extents(
 }
 
 /// \brief Compute the local extents and starts of the distributed View
+/// Overload using a std::array for the topologies
 /// \tparam DIM Number of dimensions
 /// \param[in] extents Extents of the global View
 /// \param[in] topology Topology of the data distribution
