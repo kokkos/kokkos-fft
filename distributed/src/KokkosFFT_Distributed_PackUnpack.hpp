@@ -9,7 +9,6 @@
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Profiling_ScopedRegion.hpp>
 #include <KokkosFFT.hpp>
-#include "KokkosFFT_Distributed_Mapping.hpp"
 
 namespace KokkosFFT {
 namespace Distributed {
