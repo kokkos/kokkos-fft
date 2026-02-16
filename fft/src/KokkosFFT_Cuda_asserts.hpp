@@ -12,16 +12,18 @@
 
 #if defined(__cpp_lib_source_location) && __cpp_lib_source_location >= 201907L
 #include <source_location>
-#define KOKKOSFFT_CHECK_CUFFT_CALL(call)                        \
-  KokkosFFT::Impl::check_cufft_call(                            \
-      call, #call, std::source_location::current().file_name(), \
-      std::source_location::current().line(),                   \
-      std::source_location::current().function_name(),          \
+#define KOKKOSFFT_CHECK_CUFFT_CALL(call)                                   \
+  KokkosFFT::Impl::check_fft_call(                                         \
+      call, #call, CUFFT_SUCCESS, KokkosFFT::Impl::cufft_result_to_string, \
+      std::source_location::current().file_name(),                         \
+      std::source_location::current().line(),                              \
+      std::source_location::current().function_name(),                     \
       std::source_location::current().column())
 #else
-#define KOKKOSFFT_CHECK_CUFFT_CALL(call)                             \
-  KokkosFFT::Impl::check_cufft_call(call, #call, __FILE__, __LINE__, \
-                                    __FUNCTION__)
+#define KOKKOSFFT_CHECK_CUFFT_CALL(call)                                   \
+  KokkosFFT::Impl::check_fft_call(call, #call, CUFFT_SUCCESS,              \
+                                  KokkosFFT::Impl::cufft_result_to_string, \
+                                  __FILE__, __LINE__, __FUNCTION__)
 #endif
 
 namespace KokkosFFT {
@@ -50,19 +52,6 @@ inline std::string_view cufft_result_to_string(cufftResult result) {
     default: return "UNKNOWN_CUFFT_ERROR";
   }
 }
-
-inline void check_cufft_call(cufftResult command, const char* command_name,
-                             const char* file_name, int line,
-                             const char* function_name, const int column = -1) {
-  if (command) {
-    auto ss = error_info(file_name, line, function_name, column);
-    ss << "\n"
-       << command_name << " failed with error code " << command << " ("
-       << cufft_result_to_string(command) << ")\n";
-    throw std::runtime_error(ss.str());
-  }
-}
-
 }  // namespace Impl
 }  // namespace KokkosFFT
 
