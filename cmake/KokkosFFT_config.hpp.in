@@ -14,8 +14,11 @@
 /* FFTW */
 #cmakedefine KOKKOSFFT_ENABLE_TPL_FFTW
 
-/* CUFFT */
+/* cuFFT */
 #cmakedefine KOKKOSFFT_ENABLE_TPL_CUFFT
+
+/* cuFFTMp */
+#cmakedefine KOKKOSFFT_ENABLE_TPL_CUFFTMP
 
 /* ROCFFT */
 #cmakedefine KOKKOSFFT_ENABLE_TPL_ROCFFT
