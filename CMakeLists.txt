@@ -187,6 +187,7 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/fft/src/KokkosFFT_config.hpp ${CMAKE_C
 )
 
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindFFTW.cmake ${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindcuFFTMp.cmake
+              ${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindNVSHMEM.cmake
         DESTINATION ${INSTALL_LIBDIR}
 )
 

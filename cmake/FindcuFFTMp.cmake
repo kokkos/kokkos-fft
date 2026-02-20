@@ -19,7 +19,6 @@
 if (cuFFTMp_FOUND)
   return()
 endif()
-project(FindCUFFTMP NONE)
 
 # Allow override via cuFFTMp_ROOT
 set(_cuFFTMp_ROOT
@@ -34,6 +33,7 @@ find_path(cuFFTMp_INCLUDE_DIRS
     ${_cuFFTMp_ROOT}/include
     ${CUDA_TOOLKIT_ROOT_DIR}/include
     $ENV{CUDA_HOME}/include
+    $ENV{NVHPC_ROOT}/math_libs/include
   PATH_SUFFIXES cufftmp
 )
 
@@ -45,6 +45,7 @@ find_library(cuFFTMp_LIBRARIES
     ${_cuFFTMp_ROOT}/lib64
     ${CUDA_TOOLKIT_ROOT_DIR}/lib64
     $ENV{CUDA_HOME}/lib64
+    $ENV{NVHPC_ROOT}/math_libs/lib64
 )
 
 # Try to extract version from header if found

@@ -31,6 +31,7 @@ find_path(NVSHMEM_INCLUDE_DIR
     ${_nvshmem_root}/include
     /usr/local/include
     /usr/include
+    $ENV{NVHPC_ROOT}/comm_libs/nvshmem/include
 )
 
 # Find library
@@ -43,6 +44,7 @@ find_library(NVSHMEM_LIBRARY
     /usr/local/lib64
     /usr/lib
     /usr/lib64
+    $ENV{NVHPC_ROOT}/comm_libs/nvshmem/lib
 )
 
 # Optionally, try pkg-config
