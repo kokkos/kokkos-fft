@@ -186,7 +186,9 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/fft/src/KokkosFFT_config.hpp ${CMAKE_C
         DESTINATION ${INSTALL_INCLUDEDIR}
 )
 
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindFFTW.cmake DESTINATION ${INSTALL_LIBDIR})
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindFFTW.cmake ${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindcuFFTMp.cmake
+        DESTINATION ${INSTALL_LIBDIR}
+)
 
 configure_package_config_file(
   cmake/KokkosFFTConfig.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/KokkosFFTConfig.cmake

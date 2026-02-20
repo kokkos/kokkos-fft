@@ -12,7 +12,11 @@ list(INSERT CMAKE_MODULE_PATH 0 "${PACKAGE_PREFIX_DIR}/@LIBDIR@")
 find_dependency(Kokkos)
 
 if(@KokkosFFT_ENABLE_CUFFT@)
-  find_dependency(CUDAToolkit COMPONENTS cufft)
+  if(@KokkosFFT_ENABLE_CUFFTMP@)
+    find_dependency(cuFFTMp MODULE)
+  else()
+    find_dependency(CUDAToolkit COMPONENTS cufft)
+  endif()
 endif()
 
 if(@KokkosFFT_ENABLE_ROCFFT@)
