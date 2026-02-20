@@ -51,12 +51,17 @@ option(KokkosFFT_ENABLE_FFTW "Enable fftw as a KokkosFFT backend on CPUs" ${Kokk
 option(KokkosFFT_ENABLE_CUFFT "Enable cufft as a KokkosFFT backend on NVIDIA GPUs" ${Kokkos_ENABLE_CUDA})
 option(KokkosFFT_ENABLE_ROCFFT "Enable rocfft as a KokkosFFT backend on AMD GPUs" OFF)
 option(KokkosFFT_ENABLE_ONEMKL "Enable onemkl as a KokkosFFT backend on Intel GPUs" ${Kokkos_ENABLE_SYCL})
+option(KokkosFFT_ENABLE_CUFFTMP "Enable cuFFTMp as a KokkosFFT::Distributed backend on NVIDIA GPUs" OFF)
 
 set(KokkosFFT_TO_ENABLE_HIPFFT ${Kokkos_ENABLE_HIP})
 if(KokkosFFT_ENABLE_ROCFFT)
   set(KokkosFFT_TO_ENABLE_HIPFFT OFF)
 endif()
 option(KokkosFFT_ENABLE_HIPFFT "Enable hipfft as a KokkosFFT backend on AMD GPUs" ${KokkosFFT_TO_ENABLE_HIPFFT})
+
+if(KokkosFFT_ENABLE_CUFFTMP AND NOT(KokkosFFT_ENABLE_DISTRIBUTED AND KokkosFFT_ENABLE_CUFFT))
+  message(FATAL_ERROR "Error: To enable cuFFTMp, you need to enable KokkosFFT_ENABLE_CUFFT and KokkosFFT_ENABLE_DISTRIBUTED")
+endif()
 
 # Check if multiple device tpls are not enabled
 set(ENABLED_DEVICE_TPLS "")
@@ -181,7 +186,10 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/fft/src/KokkosFFT_config.hpp ${CMAKE_C
         DESTINATION ${INSTALL_INCLUDEDIR}
 )
 
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindFFTW.cmake DESTINATION ${INSTALL_LIBDIR})
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindFFTW.cmake ${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindcuFFTMp.cmake
+              ${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindNVSHMEM.cmake
+        DESTINATION ${INSTALL_LIBDIR}
+)
 
 configure_package_config_file(
   cmake/KokkosFFTConfig.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/KokkosFFTConfig.cmake
