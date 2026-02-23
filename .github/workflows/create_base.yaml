@@ -17,14 +17,13 @@ on:
   schedule:
     - cron: "0 1 2 * *" # every 2nd of the month at 1am UTC
   push:
-  ## FIXME force re-generation of base images
-  #   branches:
-  #     - 'main'
-  #   paths:
-  #     - 'docker/**/Dockerfile'
-  # pull_request:
-  #   paths:
-  #     - 'docker/**/Dockerfile'
+    branches:
+      - 'main'
+    paths:
+      - 'docker/**/Dockerfile'
+  pull_request:
+    paths:
+      - 'docker/**/Dockerfile'
   workflow_dispatch:
 
 env:
