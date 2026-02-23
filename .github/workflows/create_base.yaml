@@ -67,8 +67,8 @@ jobs:
         env:
           APPTAINER_VERSION: 1.4.4
         run: |
-          wget https://github.com/apptainer/apptainer/releases/download/v${{ env.APPTAINER_VERSION }}/apptainer-${{ env.APPTAINER_VERSION }}-jammy_amd64.deb
-          sudo apt-get install ./apptainer-ce_${{ env.APPTAINER_VERSION }}-jammy_amd64.deb
+          wget https://github.com/apptainer/apptainer/releases/download/v${{ env.APPTAINER_VERSION }}/apptainer_${{ env.APPTAINER_VERSION }}_amd64.deb
+          sudo apt-get install ./apptainer_${{ env.APPTAINER_VERSION }}_amd64.deb
 
       - name: Login in GitHub Containers Repository with Docker
         uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9  # v3.7.0
