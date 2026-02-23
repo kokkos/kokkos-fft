@@ -3,12 +3,12 @@
 # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
 # Generate base images for each compiler environment. Images are stored on
-# Github registry as Docker format inconditionnaly and as Singularity format
+# Github registry as Docker format inconditionnaly and as Apptainer format
 # only if requested. Docker images are used for building Kokkos FFT, while
-# Singularity images are used for test execution on the righteous hardware.
+# Apptainer images are used for test execution on the righteous hardware.
 # It runs once month, on any push on `main` if Docker files are changed, and
 # mannualy.
-# It also runs on pull requests, but then the Singularity image is not created,
+# It also runs on pull requests, but then the Apptainer image is not created,
 # and no images are pushed to the registry.
 
 name: Create base images
@@ -42,15 +42,15 @@ jobs:
       matrix:
         image:
           - name: gcc
-            use_singularity: false
+            use_apptainer: false
           - name: clang
-            use_singularity: false
+            use_apptainer: false
           - name: nvcc
-            use_singularity: true
+            use_apptainer: true
           - name: rocm
-            use_singularity: false
+            use_apptainer: false
           - name: intel
-            use_singularity: false
+            use_apptainer: false
 
     steps:
       - name: Free Disk Space (Ubuntu)
@@ -62,12 +62,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
 
-      - name: Get Singularity
+      - name: Get Apptainer
         env:
-          SINGULARITY_VERSION: 3.11.2
+          APPTAINER_VERSION: 1.4.4
         run: |
-          wget https://github.com/sylabs/singularity/releases/download/v${{ env.SINGULARITY_VERSION }}/singularity-ce_${{ env.SINGULARITY_VERSION }}-jammy_amd64.deb
-          sudo apt-get install ./singularity-ce_${{ env.SINGULARITY_VERSION }}-jammy_amd64.deb
+          wget https://github.com/apptainer/apptainer/releases/download/v${{ env.APPTAINER_VERSION }}/apptainer-${{ env.APPTAINER_VERSION }}-jammy_amd64.deb
+          sudo apt-get install ./apptainer-ce_${{ env.APPTAINER_VERSION }}-jammy_amd64.deb
 
       - name: Login in GitHub Containers Repository with Docker
         uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9  # v3.7.0
@@ -76,8 +76,8 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Login in GitHub Containers Repository with Singularity
-        run: echo ${{ secrets.GITHUB_TOKEN }} | singularity remote login -u ${{ github.actor }} --password-stdin oras://ghcr.io
+      - name: Login in GitHub Containers Repository with Apptainer
+        run: echo ${{ secrets.GITHUB_TOKEN }} | apptainer remote login -u ${{ github.actor }} --password-stdin oras://ghcr.io
 
       - name: Build Docker image
         run: |
@@ -92,10 +92,10 @@ jobs:
         run: docker push ghcr.io/kokkos/kokkos-fft/base_${{ matrix.image.name }}:latest
         if: ${{ github.event != 'pull_request' }}
 
-      - name: Convert Docker image to Singularity
-        run: singularity build base.sif docker://ghcr.io/kokkos/kokkos-fft/base_${{ matrix.image.name }}:latest
-        if: ${{ matrix.image.use_singularity && github.event != 'pull_request' }}
+      - name: Convert Docker image to Apptainer
+        run: apptainer build base.sif docker://ghcr.io/kokkos/kokkos-fft/base_${{ matrix.image.name }}:latest
+        if: ${{ matrix.image.use_apptainer && github.event != 'pull_request' }}
 
-      - name: Push Singularity image
-        run: singularity push base.sif oras://ghcr.io/kokkos/kokkos-fft/base_${{ matrix.image.name }}_singularity:latest
-        if: ${{ matrix.image.use_singularity && github.event != 'pull_request' }}
+      - name: Push Apptainer image
+        run: apptainer push base.sif oras://ghcr.io/kokkos/kokkos-fft/base_${{ matrix.image.name }}_apptainer:latest
+        if: ${{ matrix.image.use_apptainer && github.event != 'pull_request' }}
