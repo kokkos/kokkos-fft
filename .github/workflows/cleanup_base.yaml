@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
-# Clean old Docker and Singularity images that are too old periodically or
+# Clean old Docker and Apptainer images that are too old periodically or
 # manually.
 
 name: Cleanup base images
@@ -27,7 +27,7 @@ jobs:
           type: container
           names: |
             kokkos-fft/base_nvcc
-            kokkos-fft/base_nvcc_singularity
+            kokkos-fft/base_nvcc_apptainer
             kokkos-fft/base_rocm
             kokkos-fft/base_gcc
             kokkos-fft/base_clang
