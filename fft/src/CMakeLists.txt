@@ -8,8 +8,13 @@ target_link_libraries(fft INTERFACE common Kokkos::kokkos)
 
 # find and link libraries based on KOKKOSFFT_TPL_LIST
 if("CUFFT" IN_LIST KOKKOSFFT_TPL_LIST)
-  find_package(CUDAToolkit REQUIRED COMPONENTS cufft)
-  target_link_libraries(fft INTERFACE CUDA::cufft)
+  if(KokkosFFT_ENABLE_CUFFTMP)
+    find_package(cuFFTMp REQUIRED)
+    target_link_libraries(fft INTERFACE cuFFTMp::cuFFTMp)
+  else()
+    find_package(CUDAToolkit REQUIRED COMPONENTS cufft)
+    target_link_libraries(fft INTERFACE CUDA::cufft)
+  endif()
 endif()
 
 if("ROCFFT" IN_LIST KOKKOSFFT_TPL_LIST)

@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
-# Build and test Kokkos FFT using Docker and Singularity images. Pre-generated
+# Build and test Kokkos FFT using Docker and Apptainer images. Pre-generated
 # images are pulled from Github registry; they are updated only if the current
 # PR or commit modified the Docker files.
 
@@ -35,7 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
-    - uses: crate-ci/typos@78bc6fb2c0d734235d57a2d6b9de923cc325ebdd  # v1.43.4
+    - uses: crate-ci/typos@57b11c6b7e54c402ccd9cda953f1072ec4f78e33  # v1.43.5
       with:
         files: ./cmake/ ./CMakeLists.txt ./docs/ ./README.md ./common/ ./fft/ ./examples/ ./install_test/ ./testing/ ./distributed/
         config: ./.typos.toml
@@ -287,35 +287,38 @@ jobs:
     runs-on: ${{ matrix.backend.runner }}
     continue-on-error: ${{ matrix.backend.unstable }}
 
+    env:
+      APPTAINER_MODULE: "apptainer/1.4.4/gcc-15.1.0"
+
     needs:
       - build
 
     strategy:
       matrix:
         backend:
-          # run CUDA tests on Ruche supercomputer with Singularity
+          # run CUDA tests on Ruche supercomputer with Apptainer
           - name: cuda
             image: nvcc
             runner: [self-hosted, cuda]
-            use_singularity: true
+            use_apptainer: true
             unstable: true
           # run OpenMP tests on Azure server
           - name: openmp
             image: gcc
             runner: ubuntu-latest
-            use_singularity: false
+            use_apptainer: false
             unstable: false
           # run Threads tests on Azure server
           - name: threads
             image: gcc
             runner: ubuntu-latest
-            use_singularity: false
+            use_apptainer: false
             unstable: false
           # run Serial tests on Azure server
           - name: serial
             image: gcc
             runner: ubuntu-latest
-            use_singularity: false
+            use_apptainer: false
             unstable: false
 
     steps:
@@ -327,13 +330,13 @@ jobs:
       - name: Deploy artifacts
         run: tar -xvf tests_${{ matrix.backend.name }}.tar
 
-      - name: Login in GitHub Containers Repository with Singularity
+      - name: Login in GitHub Containers Repository with Apptainer
         run: |
           run \
-            -m "singularity/3.8.3/gcc-11.2.0" \
+            -m "${{ env.APPTAINER_MODULE }}" \
             -e local \
-            "echo ${{ secrets.GITHUB_TOKEN }} | singularity remote login -u ${{ github.actor }} --password-stdin oras://ghcr.io"
-        if: ${{ matrix.backend.use_singularity }}
+            "echo ${{ secrets.GITHUB_TOKEN }} | apptainer remote login -u ${{ github.actor }} --password-stdin oras://ghcr.io"
+        if: ${{ matrix.backend.use_apptainer }}
 
       - name: Login in GitHub Containers Repository with Docker
         uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9  # v3.7.0
@@ -341,29 +344,29 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-        if: ${{ ! matrix.backend.use_singularity }}
+        if: ${{ ! matrix.backend.use_apptainer }}
 
-      - name: Pull Singularity image
-        # pulling the image in advance seems necessary as sometimes invoking `singularity run` on the image URL fails because it cannot find ghcr.io
+      - name: Pull Apptainer image
+        # pulling the image in advance seems necessary as sometimes invoking `apptainer run` on the image URL fails because it cannot find ghcr.io
         run: |
           run \
-            -m "singularity/3.8.3/gcc-11.2.0" \
+            -m "${{ env.APPTAINER_MODULE }}" \
             -e local \
-          singularity pull oras://ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_singularity:latest
-        if: ${{ matrix.backend.use_singularity }}
+          apptainer pull oras://ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}_apptainer:latest
+        if: ${{ matrix.backend.use_apptainer }}
 
-      - name: Run CUDA tests within Slurm job and Singularity image
+      - name: Run CUDA tests within Slurm job and Apptainer image
         run: |
           run \
-            -m "singularity/3.8.3/gcc-11.2.0" \
+            -m "${{ env.APPTAINER_MODULE }}" \
             -e gpu \
             -g a100 \
-            singularity run --nv --bind $PWD/build:/work/build -H /work/build base_${{ matrix.backend.image }}_singularity_latest.sif \
+            apptainer run --nv --bind $PWD/build:/work/build -H /work/build base_${{ matrix.backend.image }}_apptainer_latest.sif \
             ctest --output-on-failure
-        if: ${{ matrix.backend.use_singularity }}
+        if: ${{ matrix.backend.use_apptainer }}
 
       - name: Run OpenMP/Threads/Serial tests within Docker image
         run: |
           docker run -v $PWD/build:/work/build -w /work/build ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
           ctest --output-on-failure
-        if: ${{ ! matrix.backend.use_singularity }}
+        if: ${{ ! matrix.backend.use_apptainer }}
