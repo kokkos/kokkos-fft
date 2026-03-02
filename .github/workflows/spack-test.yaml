@@ -79,7 +79,7 @@ jobs:
         run: |
           docker run -v ${{ github.workspace }}:/work ubuntu:24.04 \
           bash -c "apt update && \
-            apt install --yes --no-install-recommends file bzip2 ca-certificates g++ gcc gfortran git gzip lsb-release patch python3 tar unzip xz-utils zstd && \
+            apt install --yes --no-install-recommends file bzip2 ca-certificates g++ gcc git gzip lsb-release patch python3 tar unzip xz-utils zstd && \
             git clone --depth=1 --branch=v1.1.0 https://github.com/spack/spack.git && \
             . spack/share/spack/setup-env.sh && \
             spack install intel-oneapi-compilers@2025 && \
