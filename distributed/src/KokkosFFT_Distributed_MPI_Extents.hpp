@@ -19,28 +19,94 @@
 namespace KokkosFFT {
 namespace Distributed {
 namespace Impl {
+/// \brief Accumulate extents of the distributed View
+///
+/// E.g. Global extents (5, 11, 19)
+/// Topology (1, 2, 4), LayoutRight
+///             Coords | Extents   | Accumulated Extents
+///      rank0: (0, 0) | (5, 6, 5) | (0, 0, 0)
+///      rank1: (0, 1) | (5, 6, 5) | (0, 0, 5)
+///      rank2: (0, 2) | (5, 6, 5) | (0, 0, 10)
+///      rank3: (0, 3) | (5, 6, 4) | (0, 0, 15)
+///      rank4: (1, 0) | (5, 5, 5) | (0, 6, 0)
+///      rank5: (1, 1) | (5, 5, 5) | (0, 6, 5)
+///      rank6: (1, 2) | (5, 5, 5) | (0, 6, 10)
+///      rank7: (1, 3) | (5, 5, 4) | (0, 6, 15)
+///      max:   (2, 4) | -         | (0, 11, 19)
+/// max is used to compute the global extents of the distributed View
+///
+/// E.g. Topology (1, 2, 4), LayoutLeft
+///             Coords | Extents   | Accumulated Extents
+///      rank0: (0, 0) | (5, 6, 5) | (0, 0, 0)
+///      rank1: (1, 0) | (5, 5, 5) | (0, 6, 0)
+///      rank2: (0, 1) | (5, 6, 5) | (0, 0, 5)
+///      rank3: (1, 1) | (5, 5, 5) | (0, 6, 5)
+///      rank4: (0, 2) | (5, 6, 5) | (0, 0, 10)
+///      rank5: (1, 2) | (5, 5, 5) | (0, 6, 10)
+///      rank6: (0, 3) | (5, 6, 4) | (0, 0, 15)
+///      rank7: (1, 3) | (5, 5, 4) | (0, 6, 15)
+///      max:   (2, 4) | -         | (0, 11, 19)
+/// max is used to compute the global extents of the distributed View
+///
+/// \tparam DIM Number of dimensions
+/// \tparam LayoutType The layout type of the Topology (default is
+/// Kokkos::LayoutRight)
+/// \param[in] extents Extents of the distributed View
+/// \param[in] topology The topology representing the distribution of the data
+/// \param[in] coords The coordinates of the current rank in the topology
+/// \param[in] comm The MPI communicator
+/// \return The global extents of the distributed View
+template <std::size_t DIM, typename LayoutType = Kokkos::LayoutRight>
+auto accumulate_extents(const std::array<std::size_t, DIM> &extents,
+                        const Topology<std::size_t, DIM, LayoutType> &topology,
+                        const std::array<std::size_t, DIM> &coords,
+                        MPI_Comm comm) {
+  auto total_size = KokkosFFT::Impl::total_size(topology);
+
+  std::vector<std::size_t> gathered_extents(DIM * total_size);
+  MPI_Datatype mpi_data_type = mpi_datatype_v<std::size_t>;
+
+  // Data are stored as
+  // rank0: extents0
+  // rank1: extents1
+  // ...
+  // rankn: extentsn
+  MPI_Allgather(extents.data(), extents.size(), mpi_data_type,
+                gathered_extents.data(), extents.size(), mpi_data_type, comm);
+
+  std::array<std::size_t, DIM> accumulated_extents{};
+  if constexpr (std::is_same_v<LayoutType, Kokkos::LayoutRight>) {
+    std::size_t stride = total_size;
+    for (std::size_t i = 0; i < topology.size(); i++) {
+      std::size_t sum = 0;
+      stride /= topology.at(i);
+      auto coord = coords.at(i);
+      for (std::size_t j = 0; j < coord; j++) {
+        sum += gathered_extents.at(i + extents.size() * stride * j);
+      }
+      accumulated_extents.at(i) = sum;
+    }
+  } else {
+    std::size_t stride = 1;
+    for (std::size_t i = 0; i < topology.size(); i++) {
+      std::size_t sum = 0;
+      auto coord      = coords.at(i);
+      for (std::size_t j = 0; j < coord; j++) {
+        sum += gathered_extents.at(i + extents.size() * stride * j);
+      }
+      stride *= topology.at(i);
+      accumulated_extents.at(i) = sum;
+    }
+  }
+  return accumulated_extents;
+}
 
 /// \brief Compute the global extents of the distributed View
 /// Examples:
-///  - with LayoutRight and Topology (1, 2, 4)
-///      rank0: (0, 0)
-///      rank1: (0, 1)
-///      rank2: (0, 2)
-///      rank3: (0, 3)
-///      rank4: (1, 0)
-///      rank5: (1, 1)
-///      rank6: (1, 2)
-///      rank7: (1, 3)
-///
-/// - with LayoutLeftout and Topology (1, 2, 4)
-///      rank0: (0, 0)
-///      rank1: (1, 0)
-///      rank2: (0, 1)
-///      rank3: (1, 1)
-///      rank4: (0, 2)
-///      rank5: (1, 2)
-///      rank6: (0, 3)
-///      rank7: (1, 3)
+///   Global extents (5, 11, 19), Topology (1, 2, 4)
+///   accumulate_extents would return (0, 11, 19)
+///   The first dimension is not distributed, so the global extent is the same
+///   as the local
 ///
 /// \tparam ViewType The Kokkos View type
 /// \tparam LayoutType The layout type of the Topology (default is
@@ -54,50 +120,13 @@ std::array<std::size_t, ViewType::rank()> compute_global_extents(
     const ViewType &v,
     const Topology<std::size_t, ViewType::rank(), LayoutType> &topology,
     MPI_Comm comm) {
-  auto extents    = KokkosFFT::Impl::extract_extents(v);
-  auto total_size = KokkosFFT::Impl::total_size(topology);
+  auto extents = KokkosFFT::Impl::extract_extents(v);
+  auto global_extents =
+      accumulate_extents(extents, topology, topology.array(), comm);
 
-  std::vector<std::size_t> gathered_extents(ViewType::rank() * total_size);
-  std::array<std::size_t, ViewType::rank()> global_extents{};
-  MPI_Datatype mpi_data_type = mpi_datatype_v<std::size_t>;
-
-  // Data are stored as
-  // rank0: extents0
-  // rank1: extents1
-  // ...
-  // rankn: extentsn
-  MPI_Allgather(extents.data(), extents.size(), mpi_data_type,
-                gathered_extents.data(), extents.size(), mpi_data_type, comm);
-
-  if constexpr (std::is_same_v<LayoutType, Kokkos::LayoutRight>) {
-    std::size_t stride = total_size;
-    for (std::size_t i = 0; i < topology.size(); i++) {
-      if (topology.at(i) == 1) {
-        global_extents.at(i) = extents.at(i);
-      } else {
-        // Maybe better to check that the shape is something like
-        // n, n, n, n_remain
-        std::size_t sum = 0;
-        stride /= topology.at(i);
-        for (std::size_t j = 0; j < topology.at(i); j++) {
-          sum += gathered_extents.at(i + extents.size() * stride * j);
-        }
-        global_extents.at(i) = sum;
-      }
-    }
-  } else {
-    std::size_t stride = 1;
-    for (std::size_t i = 0; i < topology.size(); i++) {
-      if (topology.at(i) == 1) {
-        global_extents.at(i) = extents.at(i);
-      } else {
-        std::size_t sum = 0;
-        for (std::size_t j = 0; j < topology.at(i); j++) {
-          sum += gathered_extents.at(i + extents.size() * stride * j);
-        }
-        stride *= topology.at(i);
-        global_extents.at(i) = sum;
-      }
+  for (std::size_t i = 0; i < topology.size(); i++) {
+    if (topology.at(i) == 1) {
+      global_extents.at(i) = extents.at(i);
     }
   }
   return global_extents;
@@ -118,13 +147,45 @@ auto compute_global_extents(
       v, Topology<std::size_t, ViewType::rank()>(topology), comm);
 }
 
-/// \brief Compute the local extents for the next block given the current rank
-/// and layout (compile time version)
-/// Examples:
-/// Global extents: (X, Y, Z)
-/// Next Topology: (n, 1, 1)
-/// Map: (0, 1, 2)
-/// Next Extents: (X/n, Y, Z) or (X/n+1, Y, Z) if X is not divisible by n
+/// \brief Compute the starts of the MPI rank from the extents of the
+/// distributed View and the topology of the data distribution
+/// \tparam DIM Number of dimensions
+/// \tparam LayoutType Layout type for the Topology (default is
+/// Kokkos::LayoutRight)
+/// \param[in] extents Extents of the distributed View
+/// \param[in] topology Topology of the data distribution
+/// \param[in] comm MPI communicator
+/// \return starts of the distributed View
+template <std::size_t DIM, typename LayoutType = Kokkos::LayoutRight>
+auto compute_local_starts(
+    const std::array<std::size_t, DIM> &extents,
+    const Topology<std::size_t, DIM, LayoutType> &topology, MPI_Comm comm) {
+  int rank;
+  ::MPI_Comm_rank(comm, &rank);
+  std::array<std::size_t, DIM> coords =
+      rank_to_coord(topology, static_cast<std::size_t>(rank));
+  return accumulate_extents(extents, topology, coords, comm);
+}
+
+/// \brief Compute the starts of the MPI rank from the extents of the
+/// distributed View and the topology of the data distribution
+/// \tparam DIM Number of dimensions
+/// \param[in] extents Extents of the distributed View
+/// \param[in] topology Topology of the data distribution
+/// \param[in] comm MPI communicator
+/// \return starts of the distributed View
+template <std::size_t DIM>
+auto compute_local_starts(const std::array<std::size_t, DIM> &extents,
+                          const std::array<std::size_t, DIM> &topology,
+                          MPI_Comm comm) {
+  return compute_local_starts(extents, Topology<std::size_t, DIM>(topology),
+                              comm);
+}
+
+/// \brief Compute the local extents from the global extents, topology, map, and
+/// rank (compile time version)
+/// Examples: Global extents: (X, Y, Z) Topology: (n, 1, 1) Map: (0, 1, 2)
+/// Local Extents: (X/n, Y, Z) or (X/n+1, Y, Z) if X is not divisible by n
 /// The first X % n GPUs each own (X/n+1)*Y*Z elements and the remaining GPUs
 /// each own (X/n)*Y*Z elements.
 ///
@@ -132,21 +193,21 @@ auto compute_global_extents(
 /// \tparam LayoutType Layout type for the Input Topology (default is
 /// Kokkos::LayoutRight)
 /// \param[in] extents Global extents
-/// \param[in] topology Topology of the next block
-/// \param[in] map Map of the next block
+/// \param[in] topology Topology of the MPI rank
+/// \param[in] map Map of the MPI rank
 /// \param[in] rank MPI rank
-/// \return The local extents for the next block
+/// \return The local extents for the MPI rank
 template <std::size_t DIM, typename LayoutType = Kokkos::LayoutRight>
-auto compute_next_extents(
+auto compute_local_extents(
     const std::array<std::size_t, DIM> &extents,
     const Topology<std::size_t, DIM, LayoutType> &topology,
     const std::array<std::size_t, DIM> &map, std::size_t rank) {
-  std::array<std::size_t, DIM> local_extents{}, next_extents{};
+  std::array<std::size_t, DIM> local_extents{}, mapped_extents{};
   std::copy(extents.begin(), extents.end(), local_extents.begin());
 
   auto coords = rank_to_coord(topology, rank);
   for (std::size_t i = 0; i < extents.size(); i++) {
-    if (topology.at(i) != 1) {
+    if (topology.at(i) > 1) {
       std::size_t n = extents.at(i);
       std::size_t t = topology.at(i);
 
@@ -160,34 +221,31 @@ auto compute_next_extents(
 
   for (std::size_t i = 0; i < extents.size(); i++) {
     std::size_t mapped_idx = map.at(i);
-    next_extents.at(i)     = local_extents.at(mapped_idx);
+    mapped_extents.at(i)   = local_extents.at(mapped_idx);
   }
 
-  return next_extents;
+  return mapped_extents;
 }
 
-/// \brief Compute the local extents for the next block given the current rank
-/// and layout (run time version)
+/// \brief Compute the local extents from the global extents, topology, map, and
+/// rank (run time version)
 /// \tparam DIM Number of dimensions
 /// \param[in] extents Global extents
-/// \param[in] topology Topology of the next block
-/// \param[in] map Map of the next block
+/// \param[in] topology Topology of the MPI rank
+/// \param[in] map Map of the MPI rank
 /// \param[in] rank MPI rank
-/// \param[in] is_layout_right Layout type for the Input Topology (default is
-/// true)
-/// \return The local extents for the next block
-/// \throws std::runtime_error if the total size of next extents is 0
+/// \return The local extents for the MPI rank
 template <std::size_t DIM>
-auto compute_next_extents(const std::array<std::size_t, DIM> &extents,
-                          const std::array<std::size_t, DIM> &topology,
-                          const std::array<std::size_t, DIM> &map,
-                          std::size_t rank, bool is_layout_right = true) {
+auto compute_local_extents(const std::array<std::size_t, DIM> &extents,
+                           const std::array<std::size_t, DIM> &topology,
+                           const std::array<std::size_t, DIM> &map,
+                           std::size_t rank, bool is_layout_right = true) {
   if (is_layout_right) {
-    return compute_next_extents(
+    return compute_local_extents(
         extents, Topology<std::size_t, DIM, Kokkos::LayoutRight>(topology), map,
         rank);
   } else {
-    return compute_next_extents(
+    return compute_local_extents(
         extents, Topology<std::size_t, DIM, Kokkos::LayoutLeft>(topology), map,
         rank);
   }
@@ -475,64 +533,17 @@ auto rank_to_coord(const std::array<std::size_t, DIM> &topology,
 /// \param[in] comm MPI communicator
 /// \return A tuple of local extents and starts of the distributed View
 template <std::size_t DIM, typename LayoutType = Kokkos::LayoutRight>
-auto compute_local_extents(
+auto compute_local_extents_and_starts(
     const std::array<std::size_t, DIM> &extents,
     const Topology<std::size_t, DIM, LayoutType> &topology, MPI_Comm comm) {
-  // Check that topology includes two or less non-one elements
-  std::array<std::size_t, DIM> local_extents{};
-  std::array<std::size_t, DIM> local_starts{};
-  std::copy(extents.begin(), extents.end(), local_extents.begin());
-  auto total_size = KokkosFFT::Impl::total_size(topology);
-
-  int rank, nprocs;
+  int rank;
   ::MPI_Comm_rank(comm, &rank);
-  ::MPI_Comm_size(comm, &nprocs);
 
-  KOKKOSFFT_THROW_IF(total_size != static_cast<std::size_t>(nprocs),
-                     "topology size must be identical to mpi size.");
-
-  std::array<std::size_t, DIM> coords =
-      rank_to_coord(topology, static_cast<std::size_t>(rank));
-
-  for (std::size_t i = 0; i < extents.size(); i++) {
-    if (topology.at(i) != 1) {
-      std::size_t n = extents.at(i);
-      std::size_t t = topology.at(i);
-
-      std::size_t quotient  = n / t;
-      std::size_t remainder = n % t;
-
-      // Distribute the remainder acrocss the first few elements
-      local_extents.at(i) =
-          (coords.at(i) < remainder) ? quotient + 1 : quotient;
-    }
-  }
-
-  std::vector<std::size_t> gathered_extents(DIM * total_size);
-  MPI_Datatype mpi_data_type = Impl::mpi_datatype_v<std::size_t>;
-
-  // Data are stored as
-  // rank0: extents0
-  // rank1: extents1
-  // ...
-  // rankn: extentsn
-  MPI_Allgather(local_extents.data(), local_extents.size(), mpi_data_type,
-                gathered_extents.data(), local_extents.size(), mpi_data_type,
-                comm);
-
-  std::size_t stride = total_size;
-  for (std::size_t i = 0; i < topology.size(); i++) {
-    if (topology.at(i) != 1) {
-      // Maybe better to check that the shape is something like
-      // n, n, n, n_remain
-      std::size_t sum = 0;
-      stride /= topology.at(i);
-      for (std::size_t j = 0; j < coords.at(i); j++) {
-        sum += gathered_extents.at(i + extents.size() * stride * j);
-      }
-      local_starts.at(i) = sum;
-    }
-  }
+  auto identity_map  = KokkosFFT::Impl::index_sequence<std::size_t, DIM, 0>();
+  auto local_extents = KokkosFFT::Distributed::Impl::compute_local_extents(
+      extents, topology, identity_map, rank);
+  auto local_starts = KokkosFFT::Distributed::Impl::compute_local_starts(
+      local_extents, topology, comm);
 
   return std::make_tuple(local_extents, local_starts);
 }
@@ -545,11 +556,11 @@ auto compute_local_extents(
 /// \param[in] comm MPI communicator
 /// \return A tuple of local extents and starts of the distributed View
 template <std::size_t DIM>
-auto compute_local_extents(const std::array<std::size_t, DIM> &extents,
-                           const std::array<std::size_t, DIM> &topology,
-                           MPI_Comm comm) {
-  return compute_local_extents(extents, Topology<std::size_t, DIM>(topology),
-                               comm);
+auto compute_local_extents_and_starts(
+    const std::array<std::size_t, DIM> &extents,
+    const std::array<std::size_t, DIM> &topology, MPI_Comm comm) {
+  return compute_local_extents_and_starts(
+      extents, Topology<std::size_t, DIM>(topology), comm);
 }
 
 }  // namespace Distributed
