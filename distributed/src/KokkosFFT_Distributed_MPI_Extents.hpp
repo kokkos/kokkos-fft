@@ -522,7 +522,8 @@ auto rank_to_coord(const Topology<std::size_t, DIM, LayoutType> &topology,
 /// Overload using a std::array for the topology
 /// \tparam DIM Number of dimensions
 /// \tparam LayoutType Layout type for the Topology (default is
-/// Kokkos::LayoutRight) \param[in] topology Topology of the distributed data
+/// Kokkos::LayoutRight)
+/// \param[in] topology Topology of the distributed data
 /// \param[in] rank MPI rank
 /// \return The coordinate corresponding to the given rank
 template <std::size_t DIM, typename LayoutType = Kokkos::LayoutRight>
@@ -566,7 +567,8 @@ auto compute_local_extents_and_starts(
 /// Overload using a std::array for the topologies
 /// \tparam DIM Number of dimensions
 /// \tparam LayoutType Layout type for the Topology (default is
-/// Kokkos::LayoutRight) \param[in] extents Extents of the global View
+/// Kokkos::LayoutRight)
+/// \param[in] extents Extents of the global View
 /// \param[in] topology Topology of the data distribution
 /// \param[in] comm MPI communicator
 /// \return A tuple of local extents and starts of the distributed View
