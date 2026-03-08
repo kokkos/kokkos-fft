@@ -6,7 +6,6 @@
 #define KOKKOSFFT_DISTRIBUTED_BLOCK_HPP
 
 #include <Kokkos_Core.hpp>
-#include <Kokkos_Profiling_ScopedRegion.hpp>
 #include <KokkosFFT.hpp>
 #include "KokkosFFT_Distributed_PackUnpack.hpp"
 #include "KokkosFFT_Distributed_All2All.hpp"
@@ -89,8 +88,6 @@ class TransBlock {
     using buffer_view_type = Kokkos::View<buffer_data_type, LayoutType,
                                           typename ViewType::execution_space>;
 
-    Kokkos::Profiling::ScopedRegion region(
-        "KokkosFFT::Distributed::TransBlock");
     // Making unmanaged views from meta data
     buffer_view_type send_buffer(
         reinterpret_cast<value_type*>(send.data()),
