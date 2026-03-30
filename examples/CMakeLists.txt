@@ -14,3 +14,6 @@ if(KOKKOSFFT_HAS_DEFAULT_BACKEND)
   add_subdirectory(10_HasegawaWakatani)
 endif()
 add_subdirectory(05_1DFFT_HOST_DEVICE)
+
+# Documentations
+add_subdirectory(docs)
