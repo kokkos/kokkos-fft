@@ -12,7 +12,7 @@
 int main(int argc, char* argv[]) {
   Kokkos::ScopeGuard guard(argc, argv);
   using ExecutionSpace = Kokkos::DefaultExecutionSpace;
-  using View1D = Kokkos::View<Kokkos::complex<double>*, ExecutionSpace>;
+  using View1D         = Kokkos::View<Kokkos::complex<double>*, ExecutionSpace>;
 
   const int n0 = 4;
 
