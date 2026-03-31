@@ -3,7 +3,7 @@
 .. SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
 Kokkos-FFT documentation
-=======================================
+========================
 
 Kokkos-FFT implements local interfaces between `Kokkos <https://kokkos.org>`_ 
 and de facto standard FFT libraries, 
