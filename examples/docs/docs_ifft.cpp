@@ -19,10 +19,10 @@ int main(int argc, char* argv[]) {
 
   View1D x("x", n0), x_hat("x_hat", n0);
   auto h_x = Kokkos::create_mirror_view(x);
-  h_x(0) = Kokkos::complex<double>(10, 0);
-  h_x(1) = Kokkos::complex<double>(-2, 2);
-  h_x(2) = Kokkos::complex<double>(-2, 0);
-  h_x(3) = Kokkos::complex<double>(-2, -2);
+  h_x(0)   = Kokkos::complex<double>(10, 0);
+  h_x(1)   = Kokkos::complex<double>(-2, 2);
+  h_x(2)   = Kokkos::complex<double>(-2, 0);
+  h_x(3)   = Kokkos::complex<double>(-2, -2);
   Kokkos::deep_copy(x, h_x);
 
   ExecutionSpace exec;
