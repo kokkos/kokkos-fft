@@ -6,3 +6,11 @@ KokkosFFT::ifft2
 ----------------
 
 .. doxygenfunction:: KokkosFFT::ifft2(const ExecutionSpace& exec_space, const InViewType& in, const OutViewType& out, KokkosFFT::Normalization, axis_type<2> axes, shape_type<2> s)
+
+Examples
+========
+
+.. literalinclude:: ../../../examples/docs/docs_ifft2.cpp
+  :language: c++
+  :linenos:
+  :lines: 5-
