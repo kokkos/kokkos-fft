@@ -10,3 +10,11 @@ KokkosFFT::fft2
 .. note::
 
    For the real input, we internally convert it to complex and perform ``fft2`` on it.
+
+Examples
+========
+
+.. literalinclude:: ../../../examples/docs/docs_fft2.cpp
+  :language: c++
+  :linenos:
+  :lines: 5-
