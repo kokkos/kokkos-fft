@@ -19,12 +19,13 @@
 int main(int argc, char* argv[]) {
   Kokkos::ScopeGuard guard(argc, argv);
   using ExecutionSpace = Kokkos::DefaultExecutionSpace;
-  using View2D         = Kokkos::View<Kokkos::complex<double>**, Kokkos::LayoutRight, ExecutionSpace>;
+  using View2D = Kokkos::View<Kokkos::complex<double>**, Kokkos::LayoutRight,
+                              ExecutionSpace>;
 
   const int n0 = 4, n1 = 3;
 
   View2D x("x", n0, n1), x_hat("x_hat", n0, n1);
-  auto h_x = Kokkos::create_mirror_view(x);
+  auto h_x  = Kokkos::create_mirror_view(x);
   h_x(0, 0) = Kokkos::complex<double>(78, 0);
   h_x(0, 1) = Kokkos::complex<double>(-6, 3.46410162);
   h_x(0, 2) = Kokkos::complex<double>(-6, -3.46410162);
