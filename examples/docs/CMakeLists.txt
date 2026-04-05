@@ -4,3 +4,6 @@
 
 add_executable(docs_fft docs_fft.cpp)
 target_link_libraries(docs_fft PUBLIC KokkosFFT::fft)
+
+add_executable(docs_ifft docs_ifft.cpp)
+target_link_libraries(docs_ifft PUBLIC KokkosFFT::fft)
