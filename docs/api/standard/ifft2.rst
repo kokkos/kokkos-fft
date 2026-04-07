@@ -10,6 +10,9 @@ KokkosFFT::ifft2
 Examples
 ========
 
+In this example, we use the 2D View with `LayoutRight` to avoid the internal transpose. 
+This allows `ifft2` to perform 2D FFT on the outermost dimension without transpose.
+
 .. literalinclude:: ../../../examples/docs/docs_ifft2.cpp
   :language: c++
   :linenos:
