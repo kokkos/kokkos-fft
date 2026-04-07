@@ -10,3 +10,23 @@ KokkosFFT::fft2
 .. note::
 
    For the real input, we internally convert it to complex and perform ``fft2`` on it.
+
+Examples
+========
+
+In this example, we use the 2D View with `LayoutRight` to avoid the internal transpose. 
+This allows `fft2` to perform 2D FFT on the outermost dimension without transpose.
+
+.. literalinclude:: ../../../examples/docs/docs_fft2.cpp
+  :language: c++
+  :linenos:
+  :lines: 5-
+
+Expected output:
+
+.. code::
+
+ (78,0) (-6,3.4641) (-6,-3.4641)
+ (-18,18) (0,0) (0,0)
+ (-18,0) (0,0) (0,0)
+ (-18,-18) (0,0) (0,0)
