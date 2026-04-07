@@ -197,9 +197,9 @@ class Plan {
                        "Please use out-of-place transform.");
 
     Impl::setup<ExecutionSpace, float_type>();
-    bool is_truely_inplace = m_is_inplace && !m_is_transpose_needed;
+    bool is_truly_inplace = m_is_inplace && !m_is_transpose_needed;
     m_fft_extents = Impl::create_plan(exec_space, m_plan, in, out, direction,
-                                      axes, s, is_truely_inplace);
+                                      axes, s, is_truly_inplace);
   }
 
   ~Plan() noexcept = default;
