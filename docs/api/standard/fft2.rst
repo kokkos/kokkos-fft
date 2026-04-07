@@ -21,3 +21,12 @@ This allows `fft2` to perform 2D FFT on the outermost dimension without transpos
   :language: c++
   :linenos:
   :lines: 5-
+
+Expected output:
+
+.. code::
+
+ (78,0) (-6,3.4641) (-6,-3.4641)
+ (-18,18) (0,0) (0,0)
+ (-18,0) (0,0) (0,0)
+ (-18,-18) (0,0) (0,0)

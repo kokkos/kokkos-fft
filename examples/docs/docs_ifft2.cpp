@@ -41,9 +41,11 @@ int main(int argc, char* argv[]) {
       Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x_hat);
   for (int i = 0; i < n0; ++i) {
     for (int j = 0; j < n1; ++j) {
-      std::cout << h_x_hat(i, j) << std::endl;
+      std::cout << " " << h_x_hat(i, j);
     }
+    if (i < n0 - 1) std::cout << "\n";
   }
+  std::cout << std::endl;
 
   return 0;
 }
