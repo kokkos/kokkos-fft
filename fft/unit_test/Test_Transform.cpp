@@ -1692,8 +1692,6 @@ void test_fft2_2dfft_2dview_inplace(T atol) {
   KokkosFFT::fft2(exec, x, x_hat, KokkosFFT::Normalization::backward, axes);
   KokkosFFT::ifft2(exec, x_hat, inv_x_hat, KokkosFFT::Normalization::backward,
                    axes);
-
-  exec.fence();
   EXPECT_TRUE(allclose(exec, inv_x_hat, x_ref, 1.e-5, atol));
   exec.fence();
 
@@ -1703,8 +1701,6 @@ void test_fft2_2dfft_2dview_inplace(T atol) {
   // Out-of-place transforms (reference)
   KokkosFFT::rfft2(exec, xr_ref, xr_hat_ref, KokkosFFT::Normalization::backward,
                    axes);
-
-  exec.fence();
   EXPECT_TRUE(allclose(exec, xr_hat, xr_hat_ref, 1.e-5, atol));
   exec.fence();
 
@@ -1717,7 +1713,6 @@ void test_fft2_2dfft_2dview_inplace(T atol) {
   // Out-of-place transforms (reference)
   KokkosFFT::irfft2(exec, xr_hat_ref, inv_xr_hat_ref,
                     KokkosFFT::Normalization::backward, axes);
-
   exec.fence();
   auto sub_inv_xr_hat_padded = Kokkos::subview(inv_xr_hat_padded, Kokkos::ALL,
                                                Kokkos::pair<int, int>(0, n1));

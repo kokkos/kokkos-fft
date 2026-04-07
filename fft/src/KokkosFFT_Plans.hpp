@@ -241,7 +241,9 @@ class Plan {
       ManageableOutViewType const out_T(
           "out_T", Impl::create_layout<LayoutType>(
                        Impl::compute_transpose_extents(out, m_map)));
-
+      InViewType in_padded   = in_tmp;
+      OutViewType out_padded = out;
+      bool is_inpadded = false, is_outpadded = false;
       if (m_is_inplace) {
         // It is ensured that both in_value_type and out_value_type cannot be
         // real at the same time
@@ -255,18 +257,21 @@ class Plan {
             m_out_extents, m_in_extents, non_negative_axes,
             Impl::is_real_v<out_value_type>);
 
-        InViewType in_padded(
-            in_tmp.data(), Impl::create_layout<LayoutType>(in_padded_extents));
-        OutViewType out_padded(
-            out.data(), Impl::create_layout<LayoutType>(out_padded_extents));
-        Impl::transpose(m_exec_space, in_padded, in_T, m_map);
-        execute_fft(in_T, out_T, norm);
-        Impl::transpose(m_exec_space, out_T, out_padded, m_map_inv);
-      } else {
-        Impl::transpose(m_exec_space, in_tmp, in_T, m_map);
-        execute_fft(in_T, out_T, norm);
-        Impl::transpose(m_exec_space, out_T, out, m_map_inv);
+        if (in_padded_extents != m_in_extents) {
+          in_padded =
+              InViewType(in_tmp.data(),
+                         Impl::create_layout<LayoutType>(in_padded_extents));
+          is_inpadded = true;
+        }
+        if (out_padded_extents != m_out_extents) {
+          out_padded = OutViewType(
+              out.data(), Impl::create_layout<LayoutType>(out_padded_extents));
+          is_outpadded = true;
+        }
       }
+      Impl::transpose(m_exec_space, in_padded, in_T, m_map, is_inpadded);
+      execute_fft(in_T, out_T, norm);
+      Impl::transpose(m_exec_space, out_T, out_padded, m_map_inv, is_outpadded);
     } else {
       execute_fft(in_tmp, out, norm);
     }
@@ -287,7 +292,7 @@ class Plan {
 
     if constexpr (Impl::is_complex_v<in_value_type> &&
                   Impl::is_real_v<out_value_type>) {
-      if (m_is_inplace) {
+      if (m_is_inplace && !m_is_transpose_needed) {
         // For the in-place Complex to Real transform, the output must be
         // reshaped to fit the original size (in.size() * 2) for correct
         // normalization
