@@ -13,3 +13,9 @@ target_link_libraries(docs_fft2 PUBLIC KokkosFFT::fft)
 
 add_executable(docs_ifft2 docs_ifft2.cpp)
 target_link_libraries(docs_ifft2 PUBLIC KokkosFFT::fft)
+
+add_executable(docs_fftn docs_fftn.cpp)
+target_link_libraries(docs_fftn PUBLIC KokkosFFT::fft)
+
+add_executable(docs_ifftn docs_ifftn.cpp)
+target_link_libraries(docs_ifftn PUBLIC KokkosFFT::fft)
