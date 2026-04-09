@@ -250,18 +250,20 @@ class Plan {
         constexpr std::size_t rank = InViewType::rank();
         auto non_negative_axes     = Impl::convert_base_int_type<std::size_t>(
             Impl::convert_negative_axes(m_axes, rank));
-        auto in_padded_extents = Impl::compute_padded_extents<in_value_type>(
-            m_in_extents, non_negative_axes);
-        auto out_padded_extents = Impl::compute_padded_extents<out_value_type>(
-            m_out_extents, non_negative_axes);
 
-        if (in_padded_extents != m_in_extents) {
+        if constexpr (Impl::is_real_v<in_value_type> &&
+                      Impl::is_complex_v<out_value_type>) {
+          auto in_padded_extents = Impl::compute_padded_extents<in_value_type>(
+              m_out_extents, non_negative_axes);
           in_padded =
               InViewType(in_tmp.data(),
                          Impl::create_layout<LayoutType>(in_padded_extents));
           to_bounds_check = true;
-        }
-        if (out_padded_extents != m_out_extents) {
+        } else if constexpr (Impl::is_complex_v<in_value_type> &&
+                             Impl::is_real_v<out_value_type>) {
+          auto out_padded_extents =
+              Impl::compute_padded_extents<out_value_type>(m_in_extents,
+                                                           non_negative_axes);
           out_padded = OutViewType(
               out.data(), Impl::create_layout<LayoutType>(out_padded_extents));
         }
