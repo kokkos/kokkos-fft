@@ -7,7 +7,7 @@
 #include <Kokkos_Complex.hpp>
 #include <KokkosFFT.hpp>
 
-/// \brief Example of fftn usage in documentation
+/// \brief Example of ifftn usage in documentation
 /// x = [[[78, -6],
 ///       [-12, 0]],
 ///      [[-24+13.85640646j, 0],
