@@ -142,6 +142,11 @@ class Plan {
   extents_type m_in_extents, m_out_extents;
   ///@}
 
+  ///@{
+  //! extents of input/output views after mapping
+  extents_type m_in_mapped_extents, m_out_mapped_extents;
+  ///@}
+
  public:
   /// \brief Constructor for one-dimensional FFT
   ///
@@ -171,7 +176,11 @@ class Plan {
   explicit Plan(const ExecutionSpace& exec_space, const InViewType& in,
                 const OutViewType& out, KokkosFFT::Direction direction,
                 axis_type<DIM> axes, shape_type<DIM> s = {})
-      : m_exec_space(exec_space), m_axes(axes), m_direction(direction) {
+      : m_exec_space(exec_space),
+        m_axes(axes),
+        m_direction(direction),
+        m_in_extents(Impl::extract_extents(in)),
+        m_out_extents(Impl::extract_extents(out)) {
     KOKKOSFFT_THROW_IF(!Impl::are_valid_axes(in, m_axes),
                        "axes are invalid for in/out views");
     if constexpr (Impl::is_real_v<in_value_type>) {
@@ -186,8 +195,6 @@ class Plan {
                          "with forward direction.");
     }
 
-    m_in_extents               = Impl::extract_extents(in);
-    m_out_extents              = Impl::extract_extents(out);
     std::tie(m_map, m_map_inv) = Impl::get_map_axes(in, axes);
     m_is_transpose_needed      = Impl::is_transpose_needed(m_map);
     m_shape                    = Impl::get_modified_shape(in, out, s, m_axes);
@@ -196,6 +203,12 @@ class Plan {
     KOKKOSFFT_THROW_IF(m_is_inplace && m_is_crop_or_pad_needed,
                        "In-place transform is not supported with reshape. "
                        "Please use out-of-place transform.");
+
+    if (m_is_transpose_needed) {
+      auto in_tmp_extents = m_is_crop_or_pad_needed ? m_shape : m_in_extents;
+      m_in_mapped_extents = Impl::compute_mapped_extents(in_tmp_extents, m_map);
+      m_out_mapped_extents = Impl::compute_mapped_extents(m_out_extents, m_map);
+    }
 
     Impl::setup<ExecutionSpace, float_type>();
     bool is_truly_inplace = m_is_inplace && !m_is_transpose_needed;
@@ -235,14 +248,12 @@ class Plan {
     }
 
     if (m_is_transpose_needed) {
-      using LayoutType    = typename ManageableInViewType::array_layout;
-      auto in_tmp_extents = Impl::extract_extents(in_tmp);
+      using LayoutType = typename ManageableInViewType::array_layout;
       ManageableInViewType const in_T(
-          "in_T", Impl::create_layout<LayoutType>(
-                      Impl::compute_mapped_extents(in_tmp_extents, m_map)));
+          "in_T", Impl::create_layout<LayoutType>(m_in_mapped_extents));
       ManageableOutViewType const out_T(
-          "out_T", Impl::create_layout<LayoutType>(
-                       Impl::compute_mapped_extents(m_out_extents, m_map)));
+          "out_T", Impl::create_layout<LayoutType>(m_out_mapped_extents));
+
       InViewType in_padded   = in_tmp;
       OutViewType out_padded = out;
       bool to_bounds_check   = false;
@@ -253,16 +264,14 @@ class Plan {
         auto non_negative_axes     = Impl::convert_base_int_type<std::size_t>(
             Impl::convert_negative_axes(m_axes, rank));
 
-        if constexpr (Impl::is_real_v<in_value_type> &&
-                      Impl::is_complex_v<out_value_type>) {
+        if constexpr (Impl::is_real_v<in_value_type>) {
           auto in_padded_extents = Impl::compute_padded_extents<in_value_type>(
               m_out_extents, non_negative_axes);
           in_padded =
               InViewType(in_tmp.data(),
                          Impl::create_layout<LayoutType>(in_padded_extents));
           to_bounds_check = true;
-        } else if constexpr (Impl::is_complex_v<in_value_type> &&
-                             Impl::is_real_v<out_value_type>) {
+        } else if constexpr (Impl::is_real_v<out_value_type>) {
           auto out_padded_extents =
               Impl::compute_padded_extents<out_value_type>(m_in_extents,
                                                            non_negative_axes);
