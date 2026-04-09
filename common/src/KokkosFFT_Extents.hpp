@@ -96,15 +96,18 @@ auto get_modified_shape(const InViewType in, const OutViewType /* out */,
 /// FFT is operated from 2nd axis, so we have
 /// padded extents (real): (8, 7, 10)
 ///
-/// if input is complex, then just return extents
+/// if ValueType is complex, then just return extents
 ///
-/// \tparam ValueType The value type of the input view
+/// \tparam ValueType The type used to determine whether padding is required;
+/// real types are padded, while complex types return extents unchanged
 /// \tparam iType The integer type used for extents
-/// \tparam DIM The number of dimensions of the extents.
-/// \tparam FFT_DIM The number of dimensions of the FFT.
+/// \tparam DIM The number of dimensions of the extents
+/// \tparam FFT_DIM The number of dimensions of the FFT
 ///
-/// \param[in] extents Extents of the View
+/// \param[in] extents Extents to be padded if ValueType is real
 /// \param[in] axes Axes of the transform
+/// \return Padded extents if ValueType is real, otherwise returns extents
+/// unchanged
 template <typename ValueType, typename iType, std::size_t DIM,
           std::size_t FFT_DIM>
 auto compute_padded_extents(const std::array<iType, DIM>& extents,
