@@ -83,17 +83,14 @@ void test_padded_extents() {
   extents3D_type in_extents3{n0, n1, n2}, out_extents3_ax0{n0h, n1, n2},
       out_extents3_ax1{n0, n1h, n2}, out_extents3_ax2{n0, n1, n2h};
 
-  axes1D_type ax0{0}, ax1{1}, ax2{2};
-  axes2D_type ax01{0, 1}, ax02{0, 2}, ax10{1, 0}, ax12{1, 2}, ax20{2, 0},
-      ax21{2, 1};
+  axes1D_type ax0{0};
+  axes2D_type ax01{0, 1}, ax10{1, 0};
   axes3D_type ax012{0, 1, 2}, ax021{0, 2, 1}, ax102{1, 0, 2}, ax120{1, 2, 0},
       ax201{2, 0, 1}, ax210{2, 1, 0};
 
-  std::vector<axes1D_type> all1D_axes{ax0};
-  std::vector<axes2D_type> all2D_axes{ax01, ax10};
-  std::vector<axes3D_type> all3D_axes{ax012, ax021, ax102, ax120, ax201, ax210};
-
   if constexpr (is_R2C) {
+    axes1D_type ax1{1}, ax2{2};
+    axes2D_type ax02{0, 2}, ax12{1, 2}, ax20{2, 0}, ax21{2, 1};
     auto ref_padded_extents1     = out_extents1;
     auto ref_padded_extents2_ax0 = out_extents2_ax0;
     auto ref_padded_extents2_ax1 = out_extents2_ax1;
