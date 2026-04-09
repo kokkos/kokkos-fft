@@ -232,6 +232,34 @@ void test_compute_mapped_extents(iType n) {
   EXPECT_EQ(mapped_extents120, ref_mapped_extents120);
   EXPECT_EQ(mapped_extents201, ref_mapped_extents201);
   EXPECT_EQ(mapped_extents210, ref_mapped_extents210);
+
+  // Check if errors are correctly raised against invalid map
+  ContainerType overlapped_map{0, 1, 1};
+  EXPECT_THROW(
+      {
+        [[maybe_unused]] auto extents011 =
+            KokkosFFT::Impl::compute_mapped_extents(extents, overlapped_map);
+      },
+      std::runtime_error);
+
+  // Check if errors are correctly raised against out-of-range map
+  ContainerType invalid_map{0, 1, 3};
+  EXPECT_THROW(
+      {
+        [[maybe_unused]] auto extents013 =
+            KokkosFFT::Impl::compute_mapped_extents(extents, invalid_map);
+      },
+      std::runtime_error);
+
+  if constexpr (std::is_signed_v<iType>) {
+    ContainerType negative_map{-1, 0, 1};
+    EXPECT_THROW(
+        {
+          [[maybe_unused]] auto extents_neg =
+              KokkosFFT::Impl::compute_mapped_extents(extents, negative_map);
+        },
+        std::runtime_error);
+  }
 }
 
 // Tests for 1D FFT
