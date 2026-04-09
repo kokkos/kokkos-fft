@@ -243,35 +243,32 @@ class Plan {
                        Impl::compute_transpose_extents(out, m_map)));
       InViewType in_padded   = in_tmp;
       OutViewType out_padded = out;
-      bool is_inpadded = false, is_outpadded = false;
+      bool to_bounds_check   = false;
       if (m_is_inplace) {
         // It is ensured that both in_value_type and out_value_type cannot be
         // real at the same time
         constexpr std::size_t rank = InViewType::rank();
         auto non_negative_axes     = Impl::convert_base_int_type<std::size_t>(
             Impl::convert_negative_axes(m_axes, rank));
-        auto in_padded_extents = Impl::compute_padded_extents(
-            m_in_extents, m_out_extents, non_negative_axes,
-            Impl::is_real_v<in_value_type>);
-        auto out_padded_extents = Impl::compute_padded_extents(
-            m_out_extents, m_in_extents, non_negative_axes,
-            Impl::is_real_v<out_value_type>);
+        auto in_padded_extents = Impl::compute_padded_extents<in_value_type>(
+            m_in_extents, non_negative_axes);
+        auto out_padded_extents = Impl::compute_padded_extents<out_value_type>(
+            m_out_extents, non_negative_axes);
 
         if (in_padded_extents != m_in_extents) {
           in_padded =
               InViewType(in_tmp.data(),
                          Impl::create_layout<LayoutType>(in_padded_extents));
-          is_inpadded = true;
+          to_bounds_check = true;
         }
         if (out_padded_extents != m_out_extents) {
           out_padded = OutViewType(
               out.data(), Impl::create_layout<LayoutType>(out_padded_extents));
-          is_outpadded = true;
         }
       }
-      Impl::transpose(m_exec_space, in_padded, in_T, m_map, is_inpadded);
+      Impl::transpose(m_exec_space, in_padded, in_T, m_map, to_bounds_check);
       execute_fft(in_T, out_T, norm);
-      Impl::transpose(m_exec_space, out_T, out_padded, m_map_inv, is_outpadded);
+      Impl::transpose(m_exec_space, out_T, out_padded, m_map_inv);
     } else {
       execute_fft(in_tmp, out, norm);
     }

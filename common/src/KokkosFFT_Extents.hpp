@@ -96,22 +96,19 @@ auto get_modified_shape(const InViewType in, const OutViewType /* out */,
 /// FFT is operated from 2nd axis, so we have
 /// padded extents (real): (8, 7, 10)
 ///
-/// if input is complex, then just return in_extents
+/// if input is complex, then just return extents
 ///
+/// \tparam ValueType The value type of the input view
 /// \tparam iType The integer type used for extents
 /// \tparam DIM The number of dimensions of the extents.
 /// \tparam FFT_DIM The number of dimensions of the FFT.
 ///
-/// \param[in] in_extents Extents of the input View
-/// \param[in] out_extents Extents of the output View
+/// \param[in] extents Extents of the View
 /// \param[in] axes Axes of the transform
-/// \param[in] is_R2C Whether it is real to complex or not
-/// \return A extents of the padded view
-template <typename iType, std::size_t DIM, std::size_t FFT_DIM>
-auto compute_padded_extents(const std::array<iType, DIM>& in_extents,
-                            const std::array<iType, DIM>& out_extents,
-                            const std::array<iType, FFT_DIM>& axes,
-                            bool is_R2C) {
+template <typename ValueType, typename iType, std::size_t DIM,
+          std::size_t FFT_DIM>
+auto compute_padded_extents(const std::array<iType, DIM>& extents,
+                            const std::array<iType, FFT_DIM>& axes) {
   static_assert(std::is_integral_v<iType>,
                 "compute_padded_extents: iType must be an integral type");
   static_assert(
@@ -122,9 +119,9 @@ auto compute_padded_extents(const std::array<iType, DIM>& in_extents,
       "compute_padded_extents: View rank must be larger than or equal to "
       "the Rank of FFT axes");
 
-  if (!is_R2C) return in_extents;
+  if constexpr (is_complex_v<ValueType>) return extents;
 
-  std::array<iType, DIM> padded_extents = out_extents;
+  std::array<iType, DIM> padded_extents = extents;
   auto last_axis                        = axes.back();
   padded_extents.at(last_axis) *= 2;
 

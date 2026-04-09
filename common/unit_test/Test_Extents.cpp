@@ -77,11 +77,10 @@ void test_padded_extents() {
               n1h = KokkosFFT::Impl::extent_after_transform(n1, is_R2C),
               n2h = KokkosFFT::Impl::extent_after_transform(n2, is_R2C);
 
-  extents1D_type in_extents1{n0}, out_extents1{n0h};
-  extents2D_type in_extents2{n0, n1}, out_extents2_ax0{n0h, n1},
-      out_extents2_ax1{n0, n1h};
-  extents3D_type in_extents3{n0, n1, n2}, out_extents3_ax0{n0h, n1, n2},
-      out_extents3_ax1{n0, n1h, n2}, out_extents3_ax2{n0, n1, n2h};
+  extents1D_type out_extents1{n0h};
+  extents2D_type out_extents2_ax0{n0h, n1}, out_extents2_ax1{n0, n1h};
+  extents3D_type out_extents3_ax0{n0h, n1, n2}, out_extents3_ax1{n0, n1h, n2},
+      out_extents3_ax2{n0, n1, n2h};
 
   axes1D_type ax0{0};
   axes2D_type ax01{0, 1}, ax10{1, 0};
@@ -105,53 +104,53 @@ void test_padded_extents() {
     ref_padded_extents3_ax1.at(1) *= 2;
     ref_padded_extents3_ax2.at(2) *= 2;
 
-    auto padded_extents1 = KokkosFFT::Impl::compute_padded_extents(
-        in_extents1, out_extents1, ax0, is_R2C);
+    auto padded_extents1 =
+        KokkosFFT::Impl::compute_padded_extents<T>(out_extents1, ax0);
     EXPECT_EQ(padded_extents1, ref_padded_extents1);
 
-    auto padded_extents2_ax0 = KokkosFFT::Impl::compute_padded_extents(
-        in_extents2, out_extents2_ax0, ax0, is_R2C);
-    auto padded_extents2_ax1 = KokkosFFT::Impl::compute_padded_extents(
-        in_extents2, out_extents2_ax1, ax1, is_R2C);
-    auto padded_extents2_ax01 = KokkosFFT::Impl::compute_padded_extents(
-        in_extents2, out_extents2_ax1, ax01, is_R2C);
-    auto padded_extents2_ax10 = KokkosFFT::Impl::compute_padded_extents(
-        in_extents2, out_extents2_ax0, ax10, is_R2C);
+    auto padded_extents2_ax0 =
+        KokkosFFT::Impl::compute_padded_extents<T>(out_extents2_ax0, ax0);
+    auto padded_extents2_ax1 =
+        KokkosFFT::Impl::compute_padded_extents<T>(out_extents2_ax1, ax1);
+    auto padded_extents2_ax01 =
+        KokkosFFT::Impl::compute_padded_extents<T>(out_extents2_ax1, ax01);
+    auto padded_extents2_ax10 =
+        KokkosFFT::Impl::compute_padded_extents<T>(out_extents2_ax0, ax10);
     EXPECT_EQ(padded_extents2_ax0, ref_padded_extents2_ax0);
     EXPECT_EQ(padded_extents2_ax1, ref_padded_extents2_ax1);
     EXPECT_EQ(padded_extents2_ax01, ref_padded_extents2_ax1);
     EXPECT_EQ(padded_extents2_ax10, ref_padded_extents2_ax0);
 
-    auto padded_extents3_ax0 = KokkosFFT::Impl::compute_padded_extents(
-        in_extents3, out_extents3_ax0, ax0, is_R2C);
-    auto padded_extents3_ax1 = KokkosFFT::Impl::compute_padded_extents(
-        in_extents3, out_extents3_ax1, ax1, is_R2C);
-    auto padded_extents3_ax2 = KokkosFFT::Impl::compute_padded_extents(
-        in_extents3, out_extents3_ax2, ax2, is_R2C);
-    auto padded_extents3_ax01 = KokkosFFT::Impl::compute_padded_extents(
-        in_extents3, out_extents3_ax1, ax01, is_R2C);
-    auto padded_extents3_ax02 = KokkosFFT::Impl::compute_padded_extents(
-        in_extents3, out_extents3_ax2, ax02, is_R2C);
-    auto padded_extents3_ax10 = KokkosFFT::Impl::compute_padded_extents(
-        in_extents3, out_extents3_ax0, ax10, is_R2C);
-    auto padded_extents3_ax12 = KokkosFFT::Impl::compute_padded_extents(
-        in_extents3, out_extents3_ax2, ax12, is_R2C);
-    auto padded_extents3_ax20 = KokkosFFT::Impl::compute_padded_extents(
-        in_extents3, out_extents3_ax0, ax20, is_R2C);
-    auto padded_extents3_ax21 = KokkosFFT::Impl::compute_padded_extents(
-        in_extents3, out_extents3_ax1, ax21, is_R2C);
-    auto padded_extents3_ax012 = KokkosFFT::Impl::compute_padded_extents(
-        in_extents3, out_extents3_ax2, ax012, is_R2C);
-    auto padded_extents3_ax021 = KokkosFFT::Impl::compute_padded_extents(
-        in_extents3, out_extents3_ax1, ax021, is_R2C);
-    auto padded_extents3_ax102 = KokkosFFT::Impl::compute_padded_extents(
-        in_extents3, out_extents3_ax2, ax102, is_R2C);
-    auto padded_extents3_ax120 = KokkosFFT::Impl::compute_padded_extents(
-        in_extents3, out_extents3_ax0, ax120, is_R2C);
-    auto padded_extents3_ax201 = KokkosFFT::Impl::compute_padded_extents(
-        in_extents3, out_extents3_ax1, ax201, is_R2C);
-    auto padded_extents3_ax210 = KokkosFFT::Impl::compute_padded_extents(
-        in_extents3, out_extents3_ax0, ax210, is_R2C);
+    auto padded_extents3_ax0 =
+        KokkosFFT::Impl::compute_padded_extents<T>(out_extents3_ax0, ax0);
+    auto padded_extents3_ax1 =
+        KokkosFFT::Impl::compute_padded_extents<T>(out_extents3_ax1, ax1);
+    auto padded_extents3_ax2 =
+        KokkosFFT::Impl::compute_padded_extents<T>(out_extents3_ax2, ax2);
+    auto padded_extents3_ax01 =
+        KokkosFFT::Impl::compute_padded_extents<T>(out_extents3_ax1, ax01);
+    auto padded_extents3_ax02 =
+        KokkosFFT::Impl::compute_padded_extents<T>(out_extents3_ax2, ax02);
+    auto padded_extents3_ax10 =
+        KokkosFFT::Impl::compute_padded_extents<T>(out_extents3_ax0, ax10);
+    auto padded_extents3_ax12 =
+        KokkosFFT::Impl::compute_padded_extents<T>(out_extents3_ax2, ax12);
+    auto padded_extents3_ax20 =
+        KokkosFFT::Impl::compute_padded_extents<T>(out_extents3_ax0, ax20);
+    auto padded_extents3_ax21 =
+        KokkosFFT::Impl::compute_padded_extents<T>(out_extents3_ax1, ax21);
+    auto padded_extents3_ax012 =
+        KokkosFFT::Impl::compute_padded_extents<T>(out_extents3_ax2, ax012);
+    auto padded_extents3_ax021 =
+        KokkosFFT::Impl::compute_padded_extents<T>(out_extents3_ax1, ax021);
+    auto padded_extents3_ax102 =
+        KokkosFFT::Impl::compute_padded_extents<T>(out_extents3_ax2, ax102);
+    auto padded_extents3_ax120 =
+        KokkosFFT::Impl::compute_padded_extents<T>(out_extents3_ax0, ax120);
+    auto padded_extents3_ax201 =
+        KokkosFFT::Impl::compute_padded_extents<T>(out_extents3_ax1, ax201);
+    auto padded_extents3_ax210 =
+        KokkosFFT::Impl::compute_padded_extents<T>(out_extents3_ax0, ax210);
     EXPECT_EQ(padded_extents3_ax0, ref_padded_extents3_ax0);
     EXPECT_EQ(padded_extents3_ax1, ref_padded_extents3_ax1);
     EXPECT_EQ(padded_extents3_ax2, ref_padded_extents3_ax2);
@@ -175,30 +174,30 @@ void test_padded_extents() {
                                         ax120, ax201, ax210};
 
     for (auto axes1D : all_axes1D) {
-      auto padded_extents1 = KokkosFFT::Impl::compute_padded_extents(
-          in_extents1, out_extents1, axes1D, is_R2C);
-      EXPECT_EQ(padded_extents1, in_extents1);
+      auto padded_extents1 =
+          KokkosFFT::Impl::compute_padded_extents<T>(out_extents1, axes1D);
+      EXPECT_EQ(padded_extents1, out_extents1);
     }
 
     for (auto axes2D : all_axes2D) {
-      auto padded_extents2_ax0 = KokkosFFT::Impl::compute_padded_extents(
-          in_extents2, out_extents2_ax0, axes2D, is_R2C);
-      auto padded_extents2_ax1 = KokkosFFT::Impl::compute_padded_extents(
-          in_extents2, out_extents2_ax1, axes2D, is_R2C);
-      EXPECT_EQ(padded_extents2_ax0, in_extents2);
-      EXPECT_EQ(padded_extents2_ax1, in_extents2);
+      auto padded_extents2_ax0 =
+          KokkosFFT::Impl::compute_padded_extents<T>(out_extents2_ax0, axes2D);
+      auto padded_extents2_ax1 =
+          KokkosFFT::Impl::compute_padded_extents<T>(out_extents2_ax1, axes2D);
+      EXPECT_EQ(padded_extents2_ax0, out_extents2_ax0);
+      EXPECT_EQ(padded_extents2_ax1, out_extents2_ax1);
     }
 
     for (auto axes3D : all_axes3D) {
-      auto padded_extents3_ax0 = KokkosFFT::Impl::compute_padded_extents(
-          in_extents3, out_extents3_ax0, axes3D, is_R2C);
-      auto padded_extents3_ax1 = KokkosFFT::Impl::compute_padded_extents(
-          in_extents3, out_extents3_ax1, axes3D, is_R2C);
-      auto padded_extents3_ax2 = KokkosFFT::Impl::compute_padded_extents(
-          in_extents3, out_extents3_ax2, axes3D, is_R2C);
-      EXPECT_EQ(padded_extents3_ax0, in_extents3);
-      EXPECT_EQ(padded_extents3_ax1, in_extents3);
-      EXPECT_EQ(padded_extents3_ax2, in_extents3);
+      auto padded_extents3_ax0 =
+          KokkosFFT::Impl::compute_padded_extents<T>(out_extents3_ax0, axes3D);
+      auto padded_extents3_ax1 =
+          KokkosFFT::Impl::compute_padded_extents<T>(out_extents3_ax1, axes3D);
+      auto padded_extents3_ax2 =
+          KokkosFFT::Impl::compute_padded_extents<T>(out_extents3_ax2, axes3D);
+      EXPECT_EQ(padded_extents3_ax0, out_extents3_ax0);
+      EXPECT_EQ(padded_extents3_ax1, out_extents3_ax1);
+      EXPECT_EQ(padded_extents3_ax2, out_extents3_ax2);
     }
   }
 }
