@@ -14,7 +14,13 @@ KokkosFFT::fft
 Examples
 ========
 
-.. literalinclude:: ../../../examples/docs/docs_fft.cpp
+.. literalinclude:: ../../../examples/docs/standard/docs_fft.cpp
   :language: c++
   :linenos:
   :lines: 5-
+
+Expected output:
+
+.. code::
+
+ (10,0) (-2,2) (-2,0) (-2,-2)

@@ -30,8 +30,9 @@ int main(int argc, char* argv[]) {
   auto h_x_hat =
       Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x_hat);
   for (int i = 0; i < n0; ++i) {
-    std::cout << h_x_hat(i) << std::endl;
+    std::cout << " " << h_x_hat(i);
   }
+  std::cout << std::endl;
 
   return 0;
 }

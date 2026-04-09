@@ -13,7 +13,7 @@ Examples
 In this example, we use the 3D View with `LayoutRight` to avoid the internal transpose. 
 This allows `ifftn` to perform 3D FFT on the outermost dimension without transpose.
 
-.. literalinclude:: ../../../examples/docs/docs_ifftn.cpp
+.. literalinclude:: ../../../examples/docs/standard/docs_ifftn.cpp
   :language: c++
   :linenos:
   :lines: 5-

@@ -10,7 +10,13 @@ KokkosFFT::ifft
 Examples
 ========
 
-.. literalinclude:: ../../../examples/docs/docs_ifft.cpp
+.. literalinclude:: ../../../examples/docs/standard/docs_ifft.cpp
   :language: c++
   :linenos:
   :lines: 5-
+
+Expected output:
+
+.. code::
+
+ (1,0) (2,0) (3,0) (4,0)
