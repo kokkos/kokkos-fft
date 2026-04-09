@@ -102,8 +102,8 @@ auto get_modified_shape(const InViewType in, const OutViewType /* out */,
 /// \tparam DIM The number of dimensions of the extents.
 /// \tparam FFT_DIM The number of dimensions of the FFT.
 ///
-/// \param[in] extents Extents of the input View
-/// \param[in] extents Extents of the output View
+/// \param[in] in_extents Extents of the input View
+/// \param[in] out_extents Extents of the output View
 /// \param[in] axes Axes of the transform
 /// \param[in] is_R2C Whether it is real to complex or not
 /// \return A extents of the padded view
