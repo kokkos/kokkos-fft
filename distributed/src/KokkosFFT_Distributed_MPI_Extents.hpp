@@ -356,8 +356,8 @@ bool are_valid_extents(
   auto gin_extents  = compute_global_extents(in, in_topology, comm);
   auto gout_extents = compute_global_extents(out, out_topology, comm);
 
-  auto in_extents  = compute_mapped_extents(gin_extents, map);
-  auto out_extents = compute_mapped_extents(gout_extents, map);
+  auto in_extents  = KokkosFFT::Impl::compute_mapped_extents(gin_extents, map);
+  auto out_extents = KokkosFFT::Impl::compute_mapped_extents(gout_extents, map);
 
   auto mismatched_extents = [&in, &out, &in_extents, &out_extents](
                                 std::string_view msg) -> std::string {

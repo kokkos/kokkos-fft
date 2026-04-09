@@ -234,13 +234,14 @@ class Plan {
     }
 
     if (m_is_transpose_needed) {
-      using LayoutType = typename ManageableInViewType::array_layout;
+      using LayoutType    = typename ManageableInViewType::array_layout;
+      auto in_tmp_extents = Impl::extract_extents(in_tmp);
       ManageableInViewType const in_T(
           "in_T", Impl::create_layout<LayoutType>(
-                      Impl::compute_transpose_extents(in_tmp, m_map)));
+                      Impl::compute_mapped_extents(in_tmp_extents, m_map)));
       ManageableOutViewType const out_T(
           "out_T", Impl::create_layout<LayoutType>(
-                       Impl::compute_transpose_extents(out, m_map)));
+                       Impl::compute_mapped_extents(m_out_extents, m_map)));
       InViewType in_padded   = in_tmp;
       OutViewType out_padded = out;
       bool to_bounds_check   = false;

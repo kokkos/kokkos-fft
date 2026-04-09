@@ -16,7 +16,7 @@ using test_types = ::testing::Types<Kokkos::LayoutLeft, Kokkos::LayoutRight>;
 
 // Basically the same fixtures, used for labeling tests
 template <typename T>
-struct TestPaddedExtents : public ::testing::Test {
+struct TestExtents : public ::testing::Test {
   using value_type = T;
 };
 
@@ -200,6 +200,38 @@ void test_padded_extents() {
       EXPECT_EQ(padded_extents3_ax2, out_extents3_ax2);
     }
   }
+}
+
+// Tests for mapped extents
+template <typename ContainerType, typename iType>
+void test_compute_mapped_extents(iType n) {
+  using extents_type = std::array<iType, 3>;
+  extents_type extents{n, 3, 8};
+  ContainerType map012{0, 1, 2}, map021{0, 2, 1}, map102{1, 0, 2},
+      map120{1, 2, 0}, map201{2, 0, 1}, map210{2, 1, 0};
+  auto mapped_extents012 =
+      KokkosFFT::Impl::compute_mapped_extents(extents, map012);
+  auto mapped_extents021 =
+      KokkosFFT::Impl::compute_mapped_extents(extents, map021);
+  auto mapped_extents102 =
+      KokkosFFT::Impl::compute_mapped_extents(extents, map102);
+  auto mapped_extents120 =
+      KokkosFFT::Impl::compute_mapped_extents(extents, map120);
+  auto mapped_extents201 =
+      KokkosFFT::Impl::compute_mapped_extents(extents, map201);
+  auto mapped_extents210 =
+      KokkosFFT::Impl::compute_mapped_extents(extents, map210);
+
+  extents_type ref_mapped_extents012{n, 3, 8}, ref_mapped_extents021{n, 8, 3},
+      ref_mapped_extents102{3, n, 8}, ref_mapped_extents120{3, 8, n},
+      ref_mapped_extents201{8, n, 3}, ref_mapped_extents210{8, 3, n};
+
+  EXPECT_EQ(mapped_extents012, ref_mapped_extents012);
+  EXPECT_EQ(mapped_extents021, ref_mapped_extents021);
+  EXPECT_EQ(mapped_extents102, ref_mapped_extents102);
+  EXPECT_EQ(mapped_extents120, ref_mapped_extents120);
+  EXPECT_EQ(mapped_extents201, ref_mapped_extents201);
+  EXPECT_EQ(mapped_extents210, ref_mapped_extents210);
 }
 
 // Tests for 1D FFT
@@ -982,7 +1014,7 @@ void test_extents_2d_view_3d(bool is_static = true) {
 
 }  // namespace
 
-TYPED_TEST_SUITE(TestPaddedExtents, test_int_types);
+TYPED_TEST_SUITE(TestExtents, test_int_types);
 TYPED_TEST_SUITE(TestGetExtents1D, test_types);
 TYPED_TEST_SUITE(TestGetExtents2D, test_types);
 TYPED_TEST_SUITE(TestGetDynExtents1D, test_types);
@@ -1000,16 +1032,33 @@ TEST(TestGetOutputExtent, C2C) {
 }
 
 // Padded extents
-TYPED_TEST(TestPaddedExtents, R2C) {
+TYPED_TEST(TestExtents, R2C) {
   using float_type = double;
   using int_type   = typename TestFixture::value_type;
   test_padded_extents<float_type, int_type>();
 }
 
-TYPED_TEST(TestPaddedExtents, C2C) {
+TYPED_TEST(TestExtents, C2C) {
   using float_type = Kokkos::complex<double>;
   using int_type   = typename TestFixture::value_type;
   test_padded_extents<float_type, int_type>();
+}
+
+// Mapped extents
+TYPED_TEST(TestExtents, mapped_extents_of_vector) {
+  using value_type  = typename TestFixture::value_type;
+  using vector_type = std::vector<value_type>;
+  for (value_type n = 1; n <= 6; ++n) {
+    test_compute_mapped_extents<vector_type, value_type>(n);
+  }
+}
+
+TYPED_TEST(TestExtents, mapped_extents_of_array) {
+  using value_type = typename TestFixture::value_type;
+  using array_type = std::array<value_type, 3>;
+  for (value_type n = 1; n <= 6; ++n) {
+    test_compute_mapped_extents<array_type, value_type>(n);
+  }
 }
 
 // get_extents with static dimension

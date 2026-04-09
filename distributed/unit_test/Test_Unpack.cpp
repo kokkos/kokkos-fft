@@ -69,23 +69,21 @@ void test_unpack_view2D(std::size_t rank, std::size_t nprocs, int order = 0) {
   SrcView2DType u_t0(
       "u_t0", KokkosFFT::Impl::create_layout<LayoutType>(local_extents_t0)),
       u_p_t0("u_p_t0", KokkosFFT::Impl::create_layout<LayoutType>(
-                           KokkosFFT::Distributed::Impl::compute_mapped_extents(
+                           KokkosFFT::Impl::compute_mapped_extents(
                                local_extents_t0, dst_map))),
-      u_p_t0_ref("u_p_t0_ref",
-                 KokkosFFT::Impl::create_layout<LayoutType>(
-                     KokkosFFT::Distributed::Impl::compute_mapped_extents(
-                         local_extents_t0, dst_map)));
+      u_p_t0_ref("u_p_t0_ref", KokkosFFT::Impl::create_layout<LayoutType>(
+                                   KokkosFFT::Impl::compute_mapped_extents(
+                                       local_extents_t0, dst_map)));
 
   // Data in Topology 1 (Y-pencil): original and permuted data
   SrcView2DType u_t1(
       "u_t1", KokkosFFT::Impl::create_layout<LayoutType>(local_extents_t1)),
       u_p_t1("u_p_t1", KokkosFFT::Impl::create_layout<LayoutType>(
-                           KokkosFFT::Distributed::Impl::compute_mapped_extents(
+                           KokkosFFT::Impl::compute_mapped_extents(
                                local_extents_t1, dst_map))),
-      u_p_t1_ref("u_p_t1_ref",
-                 KokkosFFT::Impl::create_layout<LayoutType>(
-                     KokkosFFT::Distributed::Impl::compute_mapped_extents(
-                         local_extents_t1, dst_map)));
+      u_p_t1_ref("u_p_t1_ref", KokkosFFT::Impl::create_layout<LayoutType>(
+                                   KokkosFFT::Impl::compute_mapped_extents(
+                                       local_extents_t1, dst_map)));
 
   // Buffers
   auto buffer_extents =
@@ -239,50 +237,41 @@ void test_unpack_view3D(std::size_t rank, std::size_t nprocs, int order = 0) {
   // Data in Topology 0 (Z-slab): original and permuted data
   SrcView3DType u_t0(
       "u_t0", KokkosFFT::Impl::create_layout<LayoutType>(local_extents_t0)),
-      u_p_t0_01("u_p_t0_01",
-                KokkosFFT::Impl::create_layout<LayoutType>(
-                    KokkosFFT::Distributed::Impl::compute_mapped_extents(
-                        local_extents_t0, dst_map))),
-      u_p_t0_02("u_p_t0_02",
-                KokkosFFT::Impl::create_layout<LayoutType>(
-                    KokkosFFT::Distributed::Impl::compute_mapped_extents(
-                        local_extents_t0, dst_map))),
-      u_p_t0_ref("u_p_t0_ref",
-                 KokkosFFT::Impl::create_layout<LayoutType>(
-                     KokkosFFT::Distributed::Impl::compute_mapped_extents(
-                         local_extents_t0, dst_map)));
+      u_p_t0_01("u_p_t0_01", KokkosFFT::Impl::create_layout<LayoutType>(
+                                 KokkosFFT::Impl::compute_mapped_extents(
+                                     local_extents_t0, dst_map))),
+      u_p_t0_02("u_p_t0_02", KokkosFFT::Impl::create_layout<LayoutType>(
+                                 KokkosFFT::Impl::compute_mapped_extents(
+                                     local_extents_t0, dst_map))),
+      u_p_t0_ref("u_p_t0_ref", KokkosFFT::Impl::create_layout<LayoutType>(
+                                   KokkosFFT::Impl::compute_mapped_extents(
+                                       local_extents_t0, dst_map)));
 
   // Data in Topology 1 (Y-slab): original and permuted data
   SrcView3DType u_t1(
       "u_t1", KokkosFFT::Impl::create_layout<LayoutType>(local_extents_t1)),
-      u_p_t1_10("u_p_t1_10",
-                KokkosFFT::Impl::create_layout<LayoutType>(
-                    KokkosFFT::Distributed::Impl::compute_mapped_extents(
-                        local_extents_t1, dst_map))),
-      u_p_t1_12("u_p_t1_12",
-                KokkosFFT::Impl::create_layout<LayoutType>(
-                    KokkosFFT::Distributed::Impl::compute_mapped_extents(
-                        local_extents_t1, dst_map))),
-      u_p_t1_ref("u_p_t1_ref",
-                 KokkosFFT::Impl::create_layout<LayoutType>(
-                     KokkosFFT::Distributed::Impl::compute_mapped_extents(
-                         local_extents_t1, dst_map)));
+      u_p_t1_10("u_p_t1_10", KokkosFFT::Impl::create_layout<LayoutType>(
+                                 KokkosFFT::Impl::compute_mapped_extents(
+                                     local_extents_t1, dst_map))),
+      u_p_t1_12("u_p_t1_12", KokkosFFT::Impl::create_layout<LayoutType>(
+                                 KokkosFFT::Impl::compute_mapped_extents(
+                                     local_extents_t1, dst_map))),
+      u_p_t1_ref("u_p_t1_ref", KokkosFFT::Impl::create_layout<LayoutType>(
+                                   KokkosFFT::Impl::compute_mapped_extents(
+                                       local_extents_t1, dst_map)));
 
   // Data in Topology 2 (X-slab): original and permuted data
   SrcView3DType u_t2(
       "u_t2", KokkosFFT::Impl::create_layout<LayoutType>(local_extents_t2)),
-      u_p_t2_20("u_p_t2_20",
-                KokkosFFT::Impl::create_layout<LayoutType>(
-                    KokkosFFT::Distributed::Impl::compute_mapped_extents(
-                        local_extents_t2, dst_map))),
-      u_p_t2_21("u_p_t2_21",
-                KokkosFFT::Impl::create_layout<LayoutType>(
-                    KokkosFFT::Distributed::Impl::compute_mapped_extents(
-                        local_extents_t2, dst_map))),
-      u_p_t2_ref("u_p_t2_ref",
-                 KokkosFFT::Impl::create_layout<LayoutType>(
-                     KokkosFFT::Distributed::Impl::compute_mapped_extents(
-                         local_extents_t2, dst_map)));
+      u_p_t2_20("u_p_t2_20", KokkosFFT::Impl::create_layout<LayoutType>(
+                                 KokkosFFT::Impl::compute_mapped_extents(
+                                     local_extents_t2, dst_map))),
+      u_p_t2_21("u_p_t2_21", KokkosFFT::Impl::create_layout<LayoutType>(
+                                 KokkosFFT::Impl::compute_mapped_extents(
+                                     local_extents_t2, dst_map))),
+      u_p_t2_ref("u_p_t2_ref", KokkosFFT::Impl::create_layout<LayoutType>(
+                                   KokkosFFT::Impl::compute_mapped_extents(
+                                       local_extents_t2, dst_map)));
 
   // Buffers
   auto buffer_extents_t01 =

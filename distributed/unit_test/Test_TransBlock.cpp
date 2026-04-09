@@ -48,8 +48,7 @@ template <typename Layout, typename IndexType, typename MapIndexType,
           std::size_t N>
 Layout create_mapped_layout(const std::array<IndexType, N>& extents,
                             const std::array<MapIndexType, N>& map) {
-  auto mapped_extents =
-      KokkosFFT::Distributed::Impl::compute_mapped_extents(extents, map);
+  auto mapped_extents = KokkosFFT::Impl::compute_mapped_extents(extents, map);
   return KokkosFFT::Impl::create_layout<Layout>(mapped_extents);
 }
 
