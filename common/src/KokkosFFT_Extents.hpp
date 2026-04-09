@@ -146,6 +146,8 @@ auto compute_padded_extents(const std::array<iType, DIM>& extents,
 /// \param[in] map A map representing how the data is permuted
 /// \return A extents of the permuted view
 /// \throws std::runtime_error if the size of map is not equal to DIM
+/// or if map has duplicate values or if map has values out of the range [0,
+/// DIM)
 template <typename ContainerType, typename iType, std::size_t DIM>
 auto compute_mapped_extents(const std::array<iType, DIM>& extents,
                             const ContainerType& map) {

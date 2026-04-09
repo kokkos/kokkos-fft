@@ -4,6 +4,7 @@
 
 #include <gtest/gtest.h>
 #include <Kokkos_Core.hpp>
+#include "KokkosFFT_Extents.hpp"
 #include "KokkosFFT_Distributed_PackUnpack.hpp"
 #include "KokkosFFT_Distributed_Extents.hpp"
 #include "Test_Utils.hpp"

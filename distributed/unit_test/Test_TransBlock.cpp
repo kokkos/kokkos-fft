@@ -6,6 +6,7 @@
 #include <gtest/gtest.h>
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Random.hpp>
+#include "KokkosFFT_Extents.hpp"
 #include "KokkosFFT_Distributed_TransBlock.hpp"
 #include "KokkosFFT_Distributed_MPI_Extents.hpp"
 #include "KokkosFFT_Distributed_Extents.hpp"
