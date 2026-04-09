@@ -8,7 +8,7 @@
 #include <KokkosFFT.hpp>
 
 /// \brief Example of fftn usage in documentation
-/// x= [[[1, 2],
+/// x = [[[1, 2],
 ///      [3, 4]],
 ///     [[5, 6],
 ///      [7, 8]],
