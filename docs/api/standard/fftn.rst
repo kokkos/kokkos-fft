@@ -17,7 +17,7 @@ Examples
 In this example, we use the 3D View with `LayoutRight` to avoid the internal transpose. 
 This allows `fftn` to perform 3D FFT on the outermost dimension without transpose.
 
-.. literalinclude:: ../../../examples/docs/docs_fftn.cpp
+.. literalinclude:: ../../../examples/docs/standard/docs_fftn.cpp
   :language: c++
   :linenos:
   :lines: 5-
