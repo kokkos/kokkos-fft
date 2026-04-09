@@ -146,8 +146,8 @@ auto compute_padded_extents(const std::array<iType, DIM>& extents,
 /// \param[in] map A map representing how the data is permuted
 /// \return A extents of the permuted view
 /// \throws std::runtime_error if the size of map is not equal to DIM
-/// or if map has duplicate values or if map has values out of the range [0,
-/// DIM)
+/// or if map has duplicate values or if map has values out of the range
+/// [0, DIM)
 template <typename ContainerType, typename iType, std::size_t DIM>
 auto compute_mapped_extents(const std::array<iType, DIM>& extents,
                             const ContainerType& map) {
@@ -163,14 +163,11 @@ auto compute_mapped_extents(const std::array<iType, DIM>& extents,
 
   auto safe_permute = [&extents](const value_type& mapped_idx) -> iType {
     if constexpr (std::is_signed_v<value_type>) {
-      KOKKOSFFT_THROW_IF(mapped_idx < 0,
-                         "map entries must be in [0, "
-                         "DIM)");
+      KOKKOSFFT_THROW_IF(mapped_idx < 0, "map entries must be in [0, DIM)");
     }
     auto non_negative_mapped_idx = static_cast<std::size_t>(mapped_idx);
     KOKKOSFFT_THROW_IF(non_negative_mapped_idx >= DIM,
-                       "map entries must be in [0, "
-                       "DIM)");
+                       "map entries must be in [0, DIM)");
     return extents.at(non_negative_mapped_idx);
   };
   std::array<iType, DIM> mapped_extents{};
