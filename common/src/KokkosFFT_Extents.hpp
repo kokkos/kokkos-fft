@@ -87,6 +87,50 @@ auto get_modified_shape(const InViewType in, const OutViewType /* out */,
   return modified_shape;
 }
 
+/// \brief Compute padded extents from the extents in Fourier space
+///
+/// Example, if the first FFT dimension is the 2nd dimension
+/// in extents (real): (8, 7, 8)
+/// out extents (complex): (8, 7, 5)
+/// axes: (0, 1, 2)
+/// FFT is operated from 2nd axis, so we have
+/// padded extents (real): (8, 7, 10)
+///
+/// if ValueType is complex, then just return extents
+///
+/// \tparam ValueType The type used to determine whether padding is required;
+/// real types are padded, while complex types return extents unchanged
+/// \tparam iType The integer type used for extents
+/// \tparam DIM The number of dimensions of the extents
+/// \tparam FFT_DIM The number of dimensions of the FFT
+///
+/// \param[in] extents Extents to be padded if ValueType is real
+/// \param[in] axes Axes of the transform
+/// \return Padded extents if ValueType is real, otherwise returns extents
+/// unchanged
+template <typename ValueType, typename iType, std::size_t DIM,
+          std::size_t FFT_DIM>
+auto compute_padded_extents(const std::array<iType, DIM>& extents,
+                            const std::array<iType, FFT_DIM>& axes) {
+  static_assert(std::is_integral_v<iType>,
+                "compute_padded_extents: iType must be an integral type");
+  static_assert(
+      FFT_DIM >= 1 && FFT_DIM <= KokkosFFT::MAX_FFT_DIM,
+      "compute_padded_extents: the Rank of FFT axes must be between 1 and 3");
+  static_assert(
+      DIM >= FFT_DIM,
+      "compute_padded_extents: View rank must be larger than or equal to "
+      "the Rank of FFT axes");
+
+  if constexpr (is_complex_v<ValueType>) return extents;
+
+  std::array<iType, DIM> padded_extents = extents;
+  auto last_axis                        = axes.back();
+  padded_extents.at(last_axis) *= 2;
+
+  return padded_extents;
+}
+
 /// \brief Compute input, output and fft extents required for FFT
 /// libraries based on the input view, output view, axes and shape.
 /// Extents are converted into Layout Right

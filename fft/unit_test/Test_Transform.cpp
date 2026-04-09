@@ -1647,7 +1647,7 @@ void test_fft2_2dfft_2dview_shape(T atol = 1.0e-12) {
 }
 
 template <typename T, typename LayoutType>
-void test_fft2_2dfft_2dview_inplace([[maybe_unused]] T atol = 1.0e-12) {
+void test_fft2_2dfft_2dview_inplace(T atol) {
   const int n0 = 4, n1 = 6;
   using RealView2DType = Kokkos::View<T**, LayoutType, execution_space>;
   using ComplexView2DType =
@@ -1688,58 +1688,37 @@ void test_fft2_2dfft_2dview_inplace([[maybe_unused]] T atol = 1.0e-12) {
   using axes_type = KokkosFFT::axis_type<2>;
   axes_type axes  = {-2, -1};
 
-  if constexpr (std::is_same_v<LayoutType, Kokkos::LayoutLeft>) {
-    // in-place transforms are not supported if transpose is needed
-    EXPECT_THROW(KokkosFFT::fft2(exec, x, x_hat,
-                                 KokkosFFT::Normalization::backward, axes),
-                 std::runtime_error);
-    EXPECT_THROW(KokkosFFT::ifft2(exec, x_hat, inv_x_hat,
-                                  KokkosFFT::Normalization::backward, axes),
-                 std::runtime_error);
-    EXPECT_THROW(KokkosFFT::rfft2(exec, xr, xr_hat,
-                                  KokkosFFT::Normalization::backward, axes),
-                 std::runtime_error);
-    EXPECT_THROW(KokkosFFT::irfft2(exec, xr_hat, inv_xr_hat,
-                                   KokkosFFT::Normalization::backward, axes),
-                 std::runtime_error);
-  } else {
-    // Identity tests for complex transforms
-    KokkosFFT::fft2(exec, x, x_hat, KokkosFFT::Normalization::backward, axes);
-    KokkosFFT::ifft2(exec, x_hat, inv_x_hat, KokkosFFT::Normalization::backward,
-                     axes);
+  // Identity tests for complex transforms
+  KokkosFFT::fft2(exec, x, x_hat, KokkosFFT::Normalization::backward, axes);
+  KokkosFFT::ifft2(exec, x_hat, inv_x_hat, KokkosFFT::Normalization::backward,
+                   axes);
+  EXPECT_TRUE(allclose(exec, inv_x_hat, x_ref, 1.e-5, atol));
+  exec.fence();
 
-    Kokkos::fence();
-    EXPECT_TRUE(allclose(exec, inv_x_hat, x_ref, 1.e-5, atol));
+  // In-place transforms
+  KokkosFFT::rfft2(exec, xr, xr_hat, KokkosFFT::Normalization::backward, axes);
 
-    // In-place transforms
-    KokkosFFT::rfft2(exec, xr, xr_hat, KokkosFFT::Normalization::backward,
-                     axes);
+  // Out-of-place transforms (reference)
+  KokkosFFT::rfft2(exec, xr_ref, xr_hat_ref, KokkosFFT::Normalization::backward,
+                   axes);
+  EXPECT_TRUE(allclose(exec, xr_hat, xr_hat_ref, 1.e-5, atol));
+  exec.fence();
 
-    // Out-of-place transforms (reference)
-    KokkosFFT::rfft2(exec, xr_ref, xr_hat_ref,
-                     KokkosFFT::Normalization::backward, axes);
+  // In-place transforms
+  Kokkos::fill_random(exec, xr_hat, random_pool, z);
+  Kokkos::deep_copy(xr_hat_ref, xr_hat);
+  KokkosFFT::irfft2(exec, xr_hat, inv_xr_hat,
+                    KokkosFFT::Normalization::backward, axes);
 
-    Kokkos::fence();
-    EXPECT_TRUE(allclose(exec, xr_hat, xr_hat_ref, 1.e-5, atol));
+  // Out-of-place transforms (reference)
+  KokkosFFT::irfft2(exec, xr_hat_ref, inv_xr_hat_ref,
+                    KokkosFFT::Normalization::backward, axes);
+  exec.fence();
+  auto sub_inv_xr_hat_padded = Kokkos::subview(inv_xr_hat_padded, Kokkos::ALL,
+                                               Kokkos::pair<int, int>(0, n1));
+  Kokkos::deep_copy(inv_xr_hat_unpadded, sub_inv_xr_hat_padded);
 
-    // In-place transforms
-    Kokkos::fill_random(exec, xr_hat, random_pool, z);
-    Kokkos::deep_copy(xr_hat_ref, xr_hat);
-    KokkosFFT::irfft2(exec, xr_hat, inv_xr_hat,
-                      KokkosFFT::Normalization::backward, axes);
-
-    // Out-of-place transforms (reference)
-    KokkosFFT::irfft2(exec, xr_hat_ref, inv_xr_hat_ref,
-                      KokkosFFT::Normalization::backward, axes);
-
-    Kokkos::fence();
-    auto sub_inv_xr_hat_padded = Kokkos::subview(inv_xr_hat_padded, Kokkos::ALL,
-                                                 Kokkos::pair<int, int>(0, n1));
-    Kokkos::deep_copy(inv_xr_hat_unpadded, sub_inv_xr_hat_padded);
-
-    EXPECT_TRUE(
-        allclose(exec, inv_xr_hat_unpadded, inv_xr_hat_ref, 1.e-5, atol));
-  }
+  EXPECT_TRUE(allclose(exec, inv_xr_hat_unpadded, inv_xr_hat_ref, 1.e-5, atol));
   exec.fence();
 }
 
@@ -3478,7 +3457,8 @@ TYPED_TEST(FFT2D, 2DFFT_2DView_inplace) {
   using float_type  = typename TestFixture::float_type;
   using layout_type = typename TestFixture::layout_type;
 
-  test_fft2_2dfft_2dview_inplace<float_type, layout_type>();
+  float_type atol = std::is_same_v<float_type, float> ? 1.0e-5 : 1.0e-12;
+  test_fft2_2dfft_2dview_inplace<float_type, layout_type>(atol);
 }
 
 // batched fft2 on 3D Views

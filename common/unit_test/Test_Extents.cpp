@@ -11,9 +11,15 @@
 
 namespace {
 using execution_space = Kokkos::DefaultExecutionSpace;
+using test_int_types  = ::testing::Types<int, std::size_t>;
 using test_types = ::testing::Types<Kokkos::LayoutLeft, Kokkos::LayoutRight>;
 
 // Basically the same fixtures, used for labeling tests
+template <typename T>
+struct TestPaddedExtents : public ::testing::Test {
+  using value_type = T;
+};
+
 template <typename T>
 struct TestGetExtents1D : public ::testing::Test {
   using layout_type = T;
@@ -52,6 +58,147 @@ void test_extent_after_transform() {
     auto n1h = KokkosFFT::Impl::extent_after_transform(n1, is_R2C);
     EXPECT_EQ(n0h, n0);
     EXPECT_EQ(n1h, n1);
+  }
+}
+
+// Tests for padded_extents
+template <typename T, typename iType>
+void test_padded_extents() {
+  using extents1D_type = std::array<iType, 1>;
+  using extents2D_type = std::array<iType, 2>;
+  using extents3D_type = std::array<iType, 3>;
+  using axes1D_type    = std::array<iType, 1>;
+  using axes2D_type    = std::array<iType, 2>;
+  using axes3D_type    = std::array<iType, 3>;
+
+  constexpr bool is_R2C = KokkosFFT::Impl::is_real_v<T>;
+  const iType n0 = 5, n1 = 6, n2 = 7;
+  const iType n0h = KokkosFFT::Impl::extent_after_transform(n0, is_R2C),
+              n1h = KokkosFFT::Impl::extent_after_transform(n1, is_R2C),
+              n2h = KokkosFFT::Impl::extent_after_transform(n2, is_R2C);
+
+  extents1D_type out_extents1{n0h};
+  extents2D_type out_extents2_ax0{n0h, n1}, out_extents2_ax1{n0, n1h};
+  extents3D_type out_extents3_ax0{n0h, n1, n2}, out_extents3_ax1{n0, n1h, n2},
+      out_extents3_ax2{n0, n1, n2h};
+
+  axes1D_type ax0{0};
+  axes2D_type ax01{0, 1}, ax10{1, 0};
+  axes3D_type ax012{0, 1, 2}, ax021{0, 2, 1}, ax102{1, 0, 2}, ax120{1, 2, 0},
+      ax201{2, 0, 1}, ax210{2, 1, 0};
+
+  if constexpr (is_R2C) {
+    axes1D_type ax1{1}, ax2{2};
+    axes2D_type ax02{0, 2}, ax12{1, 2}, ax20{2, 0}, ax21{2, 1};
+    auto ref_padded_extents1     = out_extents1;
+    auto ref_padded_extents2_ax0 = out_extents2_ax0;
+    auto ref_padded_extents2_ax1 = out_extents2_ax1;
+    auto ref_padded_extents3_ax0 = out_extents3_ax0;
+    auto ref_padded_extents3_ax1 = out_extents3_ax1;
+    auto ref_padded_extents3_ax2 = out_extents3_ax2;
+
+    ref_padded_extents1.at(0) *= 2;
+    ref_padded_extents2_ax0.at(0) *= 2;
+    ref_padded_extents2_ax1.at(1) *= 2;
+    ref_padded_extents3_ax0.at(0) *= 2;
+    ref_padded_extents3_ax1.at(1) *= 2;
+    ref_padded_extents3_ax2.at(2) *= 2;
+
+    auto padded_extents1 =
+        KokkosFFT::Impl::compute_padded_extents<T>(out_extents1, ax0);
+    EXPECT_EQ(padded_extents1, ref_padded_extents1);
+
+    auto padded_extents2_ax0 =
+        KokkosFFT::Impl::compute_padded_extents<T>(out_extents2_ax0, ax0);
+    auto padded_extents2_ax1 =
+        KokkosFFT::Impl::compute_padded_extents<T>(out_extents2_ax1, ax1);
+    auto padded_extents2_ax01 =
+        KokkosFFT::Impl::compute_padded_extents<T>(out_extents2_ax1, ax01);
+    auto padded_extents2_ax10 =
+        KokkosFFT::Impl::compute_padded_extents<T>(out_extents2_ax0, ax10);
+    EXPECT_EQ(padded_extents2_ax0, ref_padded_extents2_ax0);
+    EXPECT_EQ(padded_extents2_ax1, ref_padded_extents2_ax1);
+    EXPECT_EQ(padded_extents2_ax01, ref_padded_extents2_ax1);
+    EXPECT_EQ(padded_extents2_ax10, ref_padded_extents2_ax0);
+
+    auto padded_extents3_ax0 =
+        KokkosFFT::Impl::compute_padded_extents<T>(out_extents3_ax0, ax0);
+    auto padded_extents3_ax1 =
+        KokkosFFT::Impl::compute_padded_extents<T>(out_extents3_ax1, ax1);
+    auto padded_extents3_ax2 =
+        KokkosFFT::Impl::compute_padded_extents<T>(out_extents3_ax2, ax2);
+    auto padded_extents3_ax01 =
+        KokkosFFT::Impl::compute_padded_extents<T>(out_extents3_ax1, ax01);
+    auto padded_extents3_ax02 =
+        KokkosFFT::Impl::compute_padded_extents<T>(out_extents3_ax2, ax02);
+    auto padded_extents3_ax10 =
+        KokkosFFT::Impl::compute_padded_extents<T>(out_extents3_ax0, ax10);
+    auto padded_extents3_ax12 =
+        KokkosFFT::Impl::compute_padded_extents<T>(out_extents3_ax2, ax12);
+    auto padded_extents3_ax20 =
+        KokkosFFT::Impl::compute_padded_extents<T>(out_extents3_ax0, ax20);
+    auto padded_extents3_ax21 =
+        KokkosFFT::Impl::compute_padded_extents<T>(out_extents3_ax1, ax21);
+    auto padded_extents3_ax012 =
+        KokkosFFT::Impl::compute_padded_extents<T>(out_extents3_ax2, ax012);
+    auto padded_extents3_ax021 =
+        KokkosFFT::Impl::compute_padded_extents<T>(out_extents3_ax1, ax021);
+    auto padded_extents3_ax102 =
+        KokkosFFT::Impl::compute_padded_extents<T>(out_extents3_ax2, ax102);
+    auto padded_extents3_ax120 =
+        KokkosFFT::Impl::compute_padded_extents<T>(out_extents3_ax0, ax120);
+    auto padded_extents3_ax201 =
+        KokkosFFT::Impl::compute_padded_extents<T>(out_extents3_ax1, ax201);
+    auto padded_extents3_ax210 =
+        KokkosFFT::Impl::compute_padded_extents<T>(out_extents3_ax0, ax210);
+    EXPECT_EQ(padded_extents3_ax0, ref_padded_extents3_ax0);
+    EXPECT_EQ(padded_extents3_ax1, ref_padded_extents3_ax1);
+    EXPECT_EQ(padded_extents3_ax2, ref_padded_extents3_ax2);
+    EXPECT_EQ(padded_extents3_ax01, ref_padded_extents3_ax1);
+    EXPECT_EQ(padded_extents3_ax02, ref_padded_extents3_ax2);
+    EXPECT_EQ(padded_extents3_ax10, ref_padded_extents3_ax0);
+    EXPECT_EQ(padded_extents3_ax12, ref_padded_extents3_ax2);
+    EXPECT_EQ(padded_extents3_ax20, ref_padded_extents3_ax0);
+    EXPECT_EQ(padded_extents3_ax21, ref_padded_extents3_ax1);
+    EXPECT_EQ(padded_extents3_ax012, ref_padded_extents3_ax2);
+    EXPECT_EQ(padded_extents3_ax021, ref_padded_extents3_ax1);
+    EXPECT_EQ(padded_extents3_ax102, ref_padded_extents3_ax2);
+    EXPECT_EQ(padded_extents3_ax120, ref_padded_extents3_ax0);
+    EXPECT_EQ(padded_extents3_ax201, ref_padded_extents3_ax1);
+    EXPECT_EQ(padded_extents3_ax210, ref_padded_extents3_ax0);
+  } else {
+    // For complex data, just return the input
+    std::vector<axes1D_type> all_axes1D{ax0};
+    std::vector<axes2D_type> all_axes2D{ax01, ax10};
+    std::vector<axes3D_type> all_axes3D{ax012, ax021, ax102,
+                                        ax120, ax201, ax210};
+
+    for (auto axes1D : all_axes1D) {
+      auto padded_extents1 =
+          KokkosFFT::Impl::compute_padded_extents<T>(out_extents1, axes1D);
+      EXPECT_EQ(padded_extents1, out_extents1);
+    }
+
+    for (auto axes2D : all_axes2D) {
+      auto padded_extents2_ax0 =
+          KokkosFFT::Impl::compute_padded_extents<T>(out_extents2_ax0, axes2D);
+      auto padded_extents2_ax1 =
+          KokkosFFT::Impl::compute_padded_extents<T>(out_extents2_ax1, axes2D);
+      EXPECT_EQ(padded_extents2_ax0, out_extents2_ax0);
+      EXPECT_EQ(padded_extents2_ax1, out_extents2_ax1);
+    }
+
+    for (auto axes3D : all_axes3D) {
+      auto padded_extents3_ax0 =
+          KokkosFFT::Impl::compute_padded_extents<T>(out_extents3_ax0, axes3D);
+      auto padded_extents3_ax1 =
+          KokkosFFT::Impl::compute_padded_extents<T>(out_extents3_ax1, axes3D);
+      auto padded_extents3_ax2 =
+          KokkosFFT::Impl::compute_padded_extents<T>(out_extents3_ax2, axes3D);
+      EXPECT_EQ(padded_extents3_ax0, out_extents3_ax0);
+      EXPECT_EQ(padded_extents3_ax1, out_extents3_ax1);
+      EXPECT_EQ(padded_extents3_ax2, out_extents3_ax2);
+    }
   }
 }
 
@@ -835,6 +982,7 @@ void test_extents_2d_view_3d(bool is_static = true) {
 
 }  // namespace
 
+TYPED_TEST_SUITE(TestPaddedExtents, test_int_types);
 TYPED_TEST_SUITE(TestGetExtents1D, test_types);
 TYPED_TEST_SUITE(TestGetExtents2D, test_types);
 TYPED_TEST_SUITE(TestGetDynExtents1D, test_types);
@@ -849,6 +997,19 @@ TEST(TestGetOutputExtent, R2C) {
 TEST(TestGetOutputExtent, C2C) {
   using float_type = Kokkos::complex<double>;
   test_extent_after_transform<float_type>();
+}
+
+// Padded extents
+TYPED_TEST(TestPaddedExtents, R2C) {
+  using float_type = double;
+  using int_type   = typename TestFixture::value_type;
+  test_padded_extents<float_type, int_type>();
+}
+
+TYPED_TEST(TestPaddedExtents, C2C) {
+  using float_type = Kokkos::complex<double>;
+  using int_type   = typename TestFixture::value_type;
+  test_padded_extents<float_type, int_type>();
 }
 
 // get_extents with static dimension

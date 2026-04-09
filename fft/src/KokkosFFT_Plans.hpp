@@ -62,11 +62,10 @@ template <typename ExecutionSpace, typename InViewType, typename OutViewType,
 class Plan {
  private:
   static_assert(
-      KokkosFFT::Impl::is_allowed_space_v<ExecutionSpace>,
+      Impl::is_allowed_space_v<ExecutionSpace>,
       "Plan: Backend FFT library is not available for the ExecutionSpace");
   KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(
-      (KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                               OutViewType>),
+      (Impl::are_operatable_views_v<ExecutionSpace, InViewType, OutViewType>),
       "Plan");
   static_assert(DIM >= 1 && DIM <= KokkosFFT::MAX_FFT_DIM,
                 "Plan: the Rank of FFT axes must be between 1 and MAX_FFT_DIM");
@@ -84,15 +83,15 @@ class Plan {
   using out_value_type = typename OutViewType::non_const_value_type;
 
   //! The real value type of input/output views
-  using float_type = KokkosFFT::Impl::base_floating_point_type<in_value_type>;
+  using float_type = Impl::base_floating_point_type<in_value_type>;
 
   //! The layout type of input/output views
   using layout_type = typename InViewType::array_layout;
 
   //! The type of FFT plan
   using fft_plan_type =
-      typename KokkosFFT::Impl::FFTPlanType<ExecutionSpace, in_value_type,
-                                            out_value_type>::type;
+      typename Impl::FFTPlanType<ExecutionSpace, in_value_type,
+                                 out_value_type>::type;
 
   //! The type of extents of FFT
   using fft_extents_type = std::vector<std::size_t>;
@@ -172,38 +171,35 @@ class Plan {
                 const OutViewType& out, KokkosFFT::Direction direction,
                 axis_type<DIM> axes, shape_type<DIM> s = {})
       : m_exec_space(exec_space), m_axes(axes), m_direction(direction) {
-    KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, m_axes),
+    KOKKOSFFT_THROW_IF(!Impl::are_valid_axes(in, m_axes),
                        "axes are invalid for in/out views");
-    if constexpr (KokkosFFT::Impl::is_real_v<in_value_type>) {
+    if constexpr (Impl::is_real_v<in_value_type>) {
       KOKKOSFFT_THROW_IF(m_direction != KokkosFFT::Direction::forward,
                          "real to complex transform is constructed "
                          "with backward direction.");
     }
 
-    if constexpr (KokkosFFT::Impl::is_real_v<out_value_type>) {
+    if constexpr (Impl::is_real_v<out_value_type>) {
       KOKKOSFFT_THROW_IF(m_direction != KokkosFFT::Direction::backward,
                          "complex to real transform is constructed "
                          "with forward direction.");
     }
 
-    m_in_extents               = KokkosFFT::Impl::extract_extents(in);
-    m_out_extents              = KokkosFFT::Impl::extract_extents(out);
-    std::tie(m_map, m_map_inv) = KokkosFFT::Impl::get_map_axes(in, axes);
-    m_is_transpose_needed      = KokkosFFT::Impl::is_transpose_needed(m_map);
-    m_shape = KokkosFFT::Impl::get_modified_shape(in, out, s, m_axes);
-    m_is_crop_or_pad_needed =
-        KokkosFFT::Impl::is_crop_or_pad_needed(in, m_shape);
-    m_is_inplace = KokkosFFT::Impl::are_aliasing(in.data(), out.data());
-    KOKKOSFFT_THROW_IF(m_is_inplace && m_is_transpose_needed,
-                       "In-place transform is not supported with transpose. "
-                       "Please use out-of-place transform.");
+    m_in_extents               = Impl::extract_extents(in);
+    m_out_extents              = Impl::extract_extents(out);
+    std::tie(m_map, m_map_inv) = Impl::get_map_axes(in, axes);
+    m_is_transpose_needed      = Impl::is_transpose_needed(m_map);
+    m_shape                    = Impl::get_modified_shape(in, out, s, m_axes);
+    m_is_crop_or_pad_needed    = Impl::is_crop_or_pad_needed(in, m_shape);
+    m_is_inplace               = Impl::are_aliasing(in.data(), out.data());
     KOKKOSFFT_THROW_IF(m_is_inplace && m_is_crop_or_pad_needed,
                        "In-place transform is not supported with reshape. "
                        "Please use out-of-place transform.");
 
-    KokkosFFT::Impl::setup<ExecutionSpace, float_type>();
-    m_fft_extents = KokkosFFT::Impl::create_plan(
-        exec_space, m_plan, in, out, direction, axes, s, m_is_inplace);
+    Impl::setup<ExecutionSpace, float_type>();
+    bool is_truly_inplace = m_is_inplace && !m_is_transpose_needed;
+    m_fft_extents = Impl::create_plan(exec_space, m_plan, in, out, direction,
+                                      axes, s, is_truly_inplace);
   }
 
   ~Plan() noexcept = default;
@@ -221,17 +217,17 @@ class Plan {
     good(in, out);
 
     using ManageableInViewType =
-        typename KokkosFFT::Impl::manageable_view_type<InViewType>::type;
+        typename Impl::manageable_view_type<InViewType>::type;
     using ManageableOutViewType =
-        typename KokkosFFT::Impl::manageable_view_type<OutViewType>::type;
+        typename Impl::manageable_view_type<OutViewType>::type;
 
     ManageableInViewType in_s;
     InViewType in_tmp;
     if (m_is_crop_or_pad_needed) {
       using LayoutType = typename ManageableInViewType::array_layout;
-      in_s             = ManageableInViewType(
-          "in_s", KokkosFFT::Impl::create_layout<LayoutType>(m_shape));
-      KokkosFFT::Impl::crop_or_pad(m_exec_space, in, in_s);
+      in_s             = ManageableInViewType("in_s",
+                                              Impl::create_layout<LayoutType>(m_shape));
+      Impl::crop_or_pad(m_exec_space, in, in_s);
       in_tmp = in_s;
     } else {
       in_tmp = in;
@@ -240,19 +236,41 @@ class Plan {
     if (m_is_transpose_needed) {
       using LayoutType = typename ManageableInViewType::array_layout;
       ManageableInViewType const in_T(
-          "in_T",
-          KokkosFFT::Impl::create_layout<LayoutType>(
-              KokkosFFT::Impl::compute_transpose_extents(in_tmp, m_map)));
+          "in_T", Impl::create_layout<LayoutType>(
+                      Impl::compute_transpose_extents(in_tmp, m_map)));
       ManageableOutViewType const out_T(
-          "out_T", KokkosFFT::Impl::create_layout<LayoutType>(
-                       KokkosFFT::Impl::compute_transpose_extents(out, m_map)));
+          "out_T", Impl::create_layout<LayoutType>(
+                       Impl::compute_transpose_extents(out, m_map)));
+      InViewType in_padded   = in_tmp;
+      OutViewType out_padded = out;
+      bool to_bounds_check   = false;
+      if (m_is_inplace) {
+        // It is ensured that both in_value_type and out_value_type cannot be
+        // real at the same time
+        constexpr std::size_t rank = InViewType::rank();
+        auto non_negative_axes     = Impl::convert_base_int_type<std::size_t>(
+            Impl::convert_negative_axes(m_axes, rank));
 
-      KokkosFFT::Impl::transpose(m_exec_space, in_tmp, in_T, m_map);
-      KokkosFFT::Impl::transpose(m_exec_space, out, out_T, m_map);
-
+        if constexpr (Impl::is_real_v<in_value_type> &&
+                      Impl::is_complex_v<out_value_type>) {
+          auto in_padded_extents = Impl::compute_padded_extents<in_value_type>(
+              m_out_extents, non_negative_axes);
+          in_padded =
+              InViewType(in_tmp.data(),
+                         Impl::create_layout<LayoutType>(in_padded_extents));
+          to_bounds_check = true;
+        } else if constexpr (Impl::is_complex_v<in_value_type> &&
+                             Impl::is_real_v<out_value_type>) {
+          auto out_padded_extents =
+              Impl::compute_padded_extents<out_value_type>(m_in_extents,
+                                                           non_negative_axes);
+          out_padded = OutViewType(
+              out.data(), Impl::create_layout<LayoutType>(out_padded_extents));
+        }
+      }
+      Impl::transpose(m_exec_space, in_padded, in_T, m_map, to_bounds_check);
       execute_fft(in_T, out_T, norm);
-
-      KokkosFFT::Impl::transpose(m_exec_space, out_T, out, m_map_inv);
+      Impl::transpose(m_exec_space, out_T, out_padded, m_map_inv);
     } else {
       execute_fft(in_tmp, out, norm);
     }
@@ -261,30 +279,31 @@ class Plan {
  private:
   void execute_fft(const InViewType& in, const OutViewType& out,
                    KokkosFFT::Normalization norm) const {
-    auto* idata = reinterpret_cast<typename KokkosFFT::Impl::fft_data_type<
-        execSpace, in_value_type>::type*>(in.data());
-    auto* odata = reinterpret_cast<typename KokkosFFT::Impl::fft_data_type<
-        execSpace, out_value_type>::type*>(out.data());
+    auto* idata = reinterpret_cast<
+        typename Impl::fft_data_type<execSpace, in_value_type>::type*>(
+        in.data());
+    auto* odata = reinterpret_cast<
+        typename Impl::fft_data_type<execSpace, out_value_type>::type*>(
+        out.data());
 
-    auto const direction =
-        KokkosFFT::Impl::direction_type<execSpace>(m_direction);
-    KokkosFFT::Impl::exec_plan(*m_plan, idata, odata, direction);
+    auto const direction = Impl::direction_type<execSpace>(m_direction);
+    Impl::exec_plan(*m_plan, idata, odata, direction);
 
-    if constexpr (KokkosFFT::Impl::is_complex_v<in_value_type> &&
-                  KokkosFFT::Impl::is_real_v<out_value_type>) {
-      if (m_is_inplace) {
+    if constexpr (Impl::is_complex_v<in_value_type> &&
+                  Impl::is_real_v<out_value_type>) {
+      if (m_is_inplace && !m_is_transpose_needed) {
         // For the in-place Complex to Real transform, the output must be
         // reshaped to fit the original size (in.size() * 2) for correct
         // normalization
         Kokkos::View<out_value_type*, execSpace> out_tmp(out.data(),
                                                          in.size() * 2);
-        KokkosFFT::Impl::normalize<normalization_float_type>(
+        Impl::normalize<normalization_float_type>(
             m_exec_space, out_tmp, m_direction, norm, m_fft_extents);
         return;
       }
     }
-    KokkosFFT::Impl::normalize<normalization_float_type>(
-        m_exec_space, out, m_direction, norm, m_fft_extents);
+    Impl::normalize<normalization_float_type>(m_exec_space, out, m_direction,
+                                              norm, m_fft_extents);
   }
 
   /// \brief Sanity check of the plan used to call FFT interface with
@@ -294,8 +313,8 @@ class Plan {
   /// \param in [in] Input data
   /// \param out [in] Output data
   void good(const InViewType& in, const OutViewType& out) const {
-    auto in_extents  = KokkosFFT::Impl::extract_extents(in);
-    auto out_extents = KokkosFFT::Impl::extract_extents(out);
+    auto in_extents  = Impl::extract_extents(in);
+    auto out_extents = Impl::extract_extents(out);
 
     KOKKOSFFT_THROW_IF(in_extents != m_in_extents,
                        "extents of input View for plan and "
@@ -305,7 +324,7 @@ class Plan {
                        "extents of output View for plan and "
                        "execution are not identical.");
 
-    bool is_inplace = KokkosFFT::Impl::are_aliasing(in.data(), out.data());
+    bool is_inplace = Impl::are_aliasing(in.data(), out.data());
     KOKKOSFFT_THROW_IF(is_inplace != m_is_inplace,
                        "If the plan is in-place, the input and output Views "
                        "must be identical.");
