@@ -6,6 +6,7 @@
 #include <gtest/gtest.h>
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Random.hpp>
+#include "KokkosFFT_Extents.hpp"
 #include "KokkosFFT_Distributed_TransBlock.hpp"
 #include "KokkosFFT_Distributed_MPI_Extents.hpp"
 #include "KokkosFFT_Distributed_Extents.hpp"
@@ -48,8 +49,7 @@ template <typename Layout, typename IndexType, typename MapIndexType,
           std::size_t N>
 Layout create_mapped_layout(const std::array<IndexType, N>& extents,
                             const std::array<MapIndexType, N>& map) {
-  auto mapped_extents =
-      KokkosFFT::Distributed::Impl::compute_mapped_extents(extents, map);
+  auto mapped_extents = KokkosFFT::Impl::compute_mapped_extents(extents, map);
   return KokkosFFT::Impl::create_layout<Layout>(mapped_extents);
 }
 

@@ -4,6 +4,7 @@
 
 #include <memory>
 #include <random>
+#include <iostream>
 #include <filesystem>
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Complex.hpp>

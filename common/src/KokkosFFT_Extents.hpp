@@ -7,7 +7,7 @@
 
 #include <vector>
 #include <tuple>
-#include <iostream>
+#include <algorithm>
 #include <numeric>
 #include "KokkosFFT_common_types.hpp"
 #include "KokkosFFT_traits.hpp"
@@ -129,6 +129,51 @@ auto compute_padded_extents(const std::array<iType, DIM>& extents,
   padded_extents.at(last_axis) *= 2;
 
   return padded_extents;
+}
+
+/// \brief Calculate the permuted extents based on the map
+///
+/// Example
+/// View extents: (n0, n1, n2, n3)
+/// map: (0, 2, 3, 1)
+/// Next extents: (n0, n2, n3, n1)
+///
+/// \tparam ContainerType The container type
+/// \tparam iType The integer type used for extents
+/// \tparam DIM The number of dimensions of the extents.
+///
+/// \param[in] extents Extents of the View.
+/// \param[in] map A map representing how the data is permuted
+/// \return A extents of the permuted view
+/// \throws std::runtime_error if the size of map is not equal to DIM
+/// or if map has duplicate values or if map has values out of the range
+/// [0, DIM)
+template <typename ContainerType, typename iType, std::size_t DIM>
+auto compute_mapped_extents(const std::array<iType, DIM>& extents,
+                            const ContainerType& map) {
+  using value_type = std::remove_cv_t<
+      std::remove_reference_t<typename ContainerType::value_type>>;
+  static_assert(std::is_integral_v<value_type>,
+                "compute_mapped_extents: Map container value type must be an "
+                "integral type");
+  KOKKOSFFT_THROW_IF(map.size() != DIM,
+                     "extents size must be equal to map size.");
+  KOKKOSFFT_THROW_IF(has_duplicate_values(map),
+                     "map must not have duplicate values.");
+
+  auto safe_permute = [&extents](const value_type& mapped_idx) -> iType {
+    if constexpr (std::is_signed_v<value_type>) {
+      KOKKOSFFT_THROW_IF(mapped_idx < 0, "map entries must be in [0, DIM)");
+    }
+    auto non_negative_mapped_idx = static_cast<std::size_t>(mapped_idx);
+    KOKKOSFFT_THROW_IF(non_negative_mapped_idx >= DIM,
+                       "map entries must be in [0, DIM)");
+    return extents.at(non_negative_mapped_idx);
+  };
+  std::array<iType, DIM> mapped_extents{};
+  std::transform(map.begin(), map.end(), mapped_extents.begin(), safe_permute);
+
+  return mapped_extents;
 }
 
 /// \brief Compute input, output and fft extents required for FFT

@@ -5,6 +5,7 @@
 #include <vector>
 #include <gtest/gtest.h>
 #include <Kokkos_Core.hpp>
+#include "KokkosFFT_Extents.hpp"
 #include "KokkosFFT_Distributed_PackUnpack.hpp"
 #include "KokkosFFT_Distributed_Extents.hpp"
 #include "Test_Utils.hpp"
@@ -128,14 +129,14 @@ void test_pack_view2D(std::size_t rank, std::size_t nprocs, int order = 0) {
   SrcView2DType u_t0(
       "u_t0", KokkosFFT::Impl::create_layout<LayoutType>(local_extents_t0)),
       u_p_t0("u_p_t0", KokkosFFT::Impl::create_layout<LayoutType>(
-                           KokkosFFT::Distributed::Impl::compute_mapped_extents(
+                           KokkosFFT::Impl::compute_mapped_extents(
                                local_extents_t0, src_map)));
 
   // Data in Topology 1 (Y-pencil): original and permuted data
   SrcView2DType u_t1(
       "u_t1", KokkosFFT::Impl::create_layout<LayoutType>(local_extents_t1)),
       u_p_t1("u_p_t1", KokkosFFT::Impl::create_layout<LayoutType>(
-                           KokkosFFT::Distributed::Impl::compute_mapped_extents(
+                           KokkosFFT::Impl::compute_mapped_extents(
                                local_extents_t1, src_map)));
 
   // Buffers
@@ -295,21 +296,21 @@ void test_pack_view3D(std::size_t rank, std::size_t nprocs, int order = 0) {
   SrcView3DType u_t0(
       "u_t0", KokkosFFT::Impl::create_layout<LayoutType>(local_extents_t0)),
       u_p_t0("u_p_t0", KokkosFFT::Impl::create_layout<LayoutType>(
-                           KokkosFFT::Distributed::Impl::compute_mapped_extents(
+                           KokkosFFT::Impl::compute_mapped_extents(
                                local_extents_t0, src_map)));
 
   // Data in Topology 1 (Y-slab): original and permuted data
   SrcView3DType u_t1(
       "u_t1", KokkosFFT::Impl::create_layout<LayoutType>(local_extents_t1)),
       u_p_t1("u_p_t1", KokkosFFT::Impl::create_layout<LayoutType>(
-                           KokkosFFT::Distributed::Impl::compute_mapped_extents(
+                           KokkosFFT::Impl::compute_mapped_extents(
                                local_extents_t1, src_map)));
 
   // Data in Topology 2 (X-slab): original and permuted data
   SrcView3DType u_t2(
       "u_t2", KokkosFFT::Impl::create_layout<LayoutType>(local_extents_t2)),
       u_p_t2("u_p_t2", KokkosFFT::Impl::create_layout<LayoutType>(
-                           KokkosFFT::Distributed::Impl::compute_mapped_extents(
+                           KokkosFFT::Impl::compute_mapped_extents(
                                local_extents_t2, src_map)));
 
   // Buffers
