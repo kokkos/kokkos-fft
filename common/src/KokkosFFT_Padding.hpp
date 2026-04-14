@@ -45,7 +45,7 @@ void crop_or_pad_impl(const ExecutionSpace& exec_space, const SrcViewType& src,
 
   extents_type extents{};
   for (std::size_t i = 0; i < rank; i++) {
-    extents.at(i) = std::min(src.extent(i), dst.extent(i));
+    extents[i] = std::min(src.extent(i), dst.extent(i));
   }
 
   auto sub_src = Kokkos::subview(
