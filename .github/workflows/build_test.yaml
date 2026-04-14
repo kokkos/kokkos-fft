@@ -361,7 +361,7 @@ jobs:
             -m "${{ env.APPTAINER_MODULE }}" \
             -e gpu \
             -g a100 \
-            apptainer run --nv --bind $PWD/build:/work/build -H /work/build base_${{ matrix.backend.image }}_apptainer_latest.sif \
+            apptainer exec --nv --bind $PWD/build:/work/build --pwd /work/build base_${{ matrix.backend.image }}_apptainer_latest.sif \
             ctest --output-on-failure
         if: ${{ matrix.backend.use_apptainer }}
 
