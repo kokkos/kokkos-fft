@@ -1,0 +1,59 @@
+# SPDX-FileCopyrightText: (C) The Kokkos-FFT development team, see COPYRIGHT.md file
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
+
+.common-setup:
+  stage: test
+  variables:
+    OMP_NUM_THREADS: "8"
+    OMP_PLACES: "cores"
+    OMP_PROC_BIND: "close"
+  before_script:
+    - if [ ${CI_PIPELINE_SOURCE} == "schedule" ]; then
+        export CDASH_MODEL="Nightly";
+        export BUILD_TYPE="Debug";
+      elif [ ${CI_COMMIT_REF_NAME} == "develop" ]; then
+        export CDASH_MODEL="Continuous";
+        export BUILD_TYPE="Release";
+      else
+        export CDASH_MODEL="Experimental";
+        export BUILD_TYPE="RelWithDebInfo";
+        export GITHUB_PR_ID=$(echo ${CI_COMMIT_BRANCH} | cut -d \_ -f 1 | cut -c 3-);
+      fi
+  after_script:
+    - sed -n "s/[0-9]*:[ ]\[[ ]*OK \] \([^ ]*\) (\([0-9]*\) ms)/\2 \1/p" test_results.txt | sort -nr | head
+
+AMD-MI300A:
+  extends: .common-setup
+  tags: [uo-gpu, odyssey, amd-mi300]
+  image: rocm/dev-ubuntu-24.04:6.2.4-complete
+  script:
+    - apt-get update && apt-get install -y libgtest-dev cmake git
+    - git clone https://github.com/kokkos/kokkos.git
+    - cmake -S kokkos
+            -B kokkos_build
+            -D CMAKE_PREFIX_PATH=/opt/rocm-6.2.4
+            -DCMAKE_INSTALL_PREFIX=kokkos_install
+            -DCMAKE_CXX_COMPILER=hipcc
+            -DKokkos_ENABLE_HIP=ON
+            -DKokkos_ENABLE_HIP_RELOCATABLE_DEVICE_CODE=ON
+            -DKokkos_ARCH_AMD_GFX942_APU=ON
+            -DKokkos_ARCH_ZEN4=ON
+    - cmake --build kokkos_build --parallel
+    - cmake --install kokkos_build --prefix kokkos_install
+    - cmake -B build
+            -DCMAKE_BUILD_TYPE=${BUILD_TYPE}
+            -DCMAKE_VERBOSE_MAKEFILE=OFF
+            -DSITE="gitlab.spack.io"
+            -DKokkos_ROOT=kokkos_install
+            -DKokkosFFT_ENABLE_EXAMPLES=ON
+            -DKokkosFFT_ENABLE_TESTS=ON
+            -DCMAKE_CXX_FLAGS="-Wall -Wextra"
+            -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
+    - ctest -V --test-dir build -D ${CDASH_MODEL} --output-junit result_mi300a.xml
+  artifacts:
+    when: always
+    paths:
+      - result_mi300a.xml
+    reports:
+      junit: result_mi300a.xml
