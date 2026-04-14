@@ -12,20 +12,30 @@
 #include <Kokkos_Core.hpp>
 #include "KokkosFFT_common_types.hpp"
 #include "KokkosFFT_asserts.hpp"
+#include "KokkosFFT_traits.hpp"
 
 namespace KokkosFFT {
 namespace Impl {
-/// \brief Partially copy the input view to the output view to pad or crop the
-/// input view to the output view.
-/// \tparam ExecutionSpace The type of Kokkos execution space.
-/// \tparam InViewType The input view type
-/// \tparam OutViewType The output view type
-/// \tparam Is The index sequence for the dimensions of the view
+/// \brief Crop or pad the input view into the output view by copying the
+/// overlapping region (the per-dimension minimum of both extents).
 ///
-/// \param[in] exec_space execution space instance
-/// \param[in] in The input view
-/// \param[in,out] out The output view
-/// \param[in] Is The index sequence for the dimensions of the view
+/// For every dimension \c i the copied range is
+/// <tt>[0, min(in.extent(i), out.extent(i)))</tt>.
+/// If \p out is larger than \p in in some dimension the extra elements retain
+/// their previous values (typically zero after construction).
+///
+/// \tparam ExecutionSpace Kokkos execution space type
+/// \tparam InViewType     Type of the source Kokkos::View
+/// \tparam OutViewType    Type of the destination Kokkos::View
+/// \tparam Is             Non-type parameter pack of \c std::size_t indices
+/// (<tt>0, 1, …, rank-1</tt>), deduced from the \c std::index_sequence tag
+/// argument and used to expand per-dimension subview ranges at compile time
+///
+/// \param[in]     exec_space Kokkos execution space instance
+/// \param[in]     in         Source view to copy from
+/// \param[in,out] out        Destination view to copy into
+/// \param[in]     (unnamed)  \c std::index_sequence<Is...> tag that carries the
+/// index pack; pass \c std::make_index_sequence<rank>{}
 template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           std::size_t... Is>
 void crop_or_pad_impl(const ExecutionSpace& exec_space, const InViewType& in,
@@ -45,17 +55,19 @@ void crop_or_pad_impl(const ExecutionSpace& exec_space, const InViewType& in,
   Kokkos::deep_copy(exec_space, sub_out, sub_in);
 }
 
-/// \brief Crop or pad the input view to the output view.
-/// This function partially copies the input view to the output view to pad or
-/// crop the input view to the output view. The extents of the copied region are
-/// determined by the minimum of the extents of the input and output views.
-/// \tparam ExecutionSpace The type of Kokkos execution space.
-/// \tparam InViewType The input view type
-/// \tparam OutViewType The output view type
+/// \brief Crop or pad the input view into the output view.
 ///
-/// \param[in] exec_space execution space instance
-/// \param[in] in The input view
-/// \param[in,out] out The output view
+/// Delegates to \c crop_or_pad_impl by automatically generating the index
+/// sequence from the view rank. For every dimension \c i the copied range is
+/// <tt>[0, min(in.extent(i), out.extent(i)))</tt>.
+///
+/// \tparam ExecutionSpace Kokkos execution space type
+/// \tparam InViewType     Type of the source Kokkos::View
+/// \tparam OutViewType    Type of the destination Kokkos::View
+///
+/// \param[in]     exec_space Kokkos execution space instance
+/// \param[in]     in         Source view to copy from
+/// \param[in,out] out        Destination view to copy into
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
 void crop_or_pad(const ExecutionSpace& exec_space, const InViewType& in,
                  const OutViewType& out) {
