@@ -17,7 +17,7 @@
 #include "KokkosFFT_transpose.hpp"
 #include "KokkosFFT_Extents.hpp"
 #include "KokkosFFT_Normalization.hpp"
-#include "KokkosFFT_padding.hpp"
+#include "KokkosFFT_Padding.hpp"
 #include "KokkosFFT_Layout.hpp"
 #include "KokkosFFT_utils.hpp"
 
@@ -198,7 +198,7 @@ class Plan {
     std::tie(m_map, m_map_inv) = Impl::get_map_axes(in, axes);
     m_is_transpose_needed      = Impl::is_transpose_needed(m_map);
     m_shape                    = Impl::get_modified_shape(in, out, s, m_axes);
-    m_is_crop_or_pad_needed    = Impl::is_crop_or_pad_needed(in, m_shape);
+    m_is_crop_or_pad_needed    = m_in_extents != m_shape;
     m_is_inplace               = Impl::are_aliasing(in.data(), out.data());
     KOKKOSFFT_THROW_IF(m_is_inplace && m_is_crop_or_pad_needed,
                        "In-place transform is not supported with reshape. "
