@@ -178,7 +178,7 @@ CI enforces REUSE compliance — every file must have copyright and license info
 | Class members | `m_` prefix | `m_in_topology`, `m_plan` |
 | Template params | PascalCase | `ExecutionSpace`, `InViewType`, `DIM` |
 | Enums | PascalCase | `Normalization`, `Direction` |
-| Enum values | PascalCase | `Normalization::forward`, `Direction::backward` |
+| Enum values | snake_case | `Normalization::forward`, `Direction::backward` |
 | Macros | UPPER_SNAKE_CASE | `KOKKOSFFT_THROW_IF`, `KOKKOSFFT_ENABLE_TPL_CUFFT` |
 | Files | PascalCase_Component.hpp | `KokkosFFT_Padding.hpp` |
 
