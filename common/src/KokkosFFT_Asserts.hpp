@@ -71,14 +71,15 @@ inline std::stringstream error_info(const char* file_name, int line,
 /// detailed source location information and the provided error message.
 ///
 /// Example:
-/// \code{cpp}
+/// \code{.cpp}
 /// KOKKOSFFT_THROW_IF(true, "An error occurred");
 /// // throws std::runtime_error with message:
-/// // "example.cpp(10) `main`: An error occurred"
+/// // "file: example.cpp(10) `main`: An error occurred"
 /// \endcode
 ///
 /// \param[in] expression The boolean expression representing the precondition
-/// to check \param[in] msg The error message to include in the exception
+/// to check
+/// \param[in] msg The error message to include in the exception
 /// \param[in] file_name The name of the source file where the error occurs
 /// \param[in] line The line number in the source file where the error occurs
 /// \param[in] function_name The name of the function where the error occurs
@@ -108,7 +109,7 @@ inline void check_precondition(const bool expression,
 /// \code{cpp}
 /// KOKKOSFFT_CHECK_CUFFT_CALL(cufftPlan1d(&plan, n, CUFFT_R2C, batch));
 /// // On failure, throws std::runtime_error with message:
-/// // "example.cpp(10) `main`:
+/// // "file: example.cpp(10) `main`:
 /// //  cufftPlan1d(&plan, n, CUFFT_R2C, batch) failed with error code 1
 /// (CUFFT_INVALID_PLAN)"
 /// \endcode
