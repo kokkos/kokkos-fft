@@ -6,7 +6,7 @@
 #include <Kokkos_Random.hpp>
 #include <random>
 #include "KokkosFFT_Extents.hpp"
-#include "KokkosFFT_padding.hpp"
+#include "KokkosFFT_Padding.hpp"
 #include "Test_Utils.hpp"
 
 namespace {
@@ -916,58 +916,6 @@ TYPED_TEST(GetModifiedShape3D, 7DView) {
 TYPED_TEST(GetModifiedShape3D, 8DView) {
   using float_type = typename TestFixture::float_type;
   test_reshape3D_8DView<float_type>();
-}
-
-TEST(IsCropOrPadNeeded, 1DView) {
-  const int len = 30, len_pad = 32, len_crop = 28;
-  View1D<double> x("x", len);
-
-  EXPECT_FALSE(KokkosFFT::Impl::is_crop_or_pad_needed(x, shape_type<1>{len}));
-  EXPECT_TRUE(
-      KokkosFFT::Impl::is_crop_or_pad_needed(x, shape_type<1>{len_pad}));
-  EXPECT_TRUE(
-      KokkosFFT::Impl::is_crop_or_pad_needed(x, shape_type<1>{len_crop}));
-}
-
-TEST(IsCropOrPadNeeded, 2DView) {
-  const int n0 = 30, n1 = 15;
-  View2D<double> x("x", n0, n1);
-
-  for (int i0 = -1; i0 <= 1; i0++) {
-    for (int i1 = -1; i1 <= 1; i1++) {
-      std::size_t n0_new = static_cast<std::size_t>(n0 + i0);
-      std::size_t n1_new = static_cast<std::size_t>(n1 + i1);
-
-      shape_type<2> shape_new = {n0_new, n1_new};
-      if (i0 == 0 && i1 == 0) {
-        EXPECT_FALSE(KokkosFFT::Impl::is_crop_or_pad_needed(x, shape_new));
-      } else {
-        EXPECT_TRUE(KokkosFFT::Impl::is_crop_or_pad_needed(x, shape_new));
-      }
-    }
-  }
-}
-
-TEST(IsCropOrPadNeeded, 3DView) {
-  const int n0 = 30, n1 = 15, n2 = 8;
-  View3D<double> x("x", n0, n1, n2);
-
-  for (int i0 = -1; i0 <= 1; i0++) {
-    for (int i1 = -1; i1 <= 1; i1++) {
-      for (int i2 = -1; i2 <= 1; i2++) {
-        std::size_t n0_new = static_cast<std::size_t>(n0 + i0);
-        std::size_t n1_new = static_cast<std::size_t>(n1 + i1);
-        std::size_t n2_new = static_cast<std::size_t>(n2 + i2);
-
-        shape_type<3> shape_new = {n0_new, n1_new, n2_new};
-        if (i0 == 0 && i1 == 0 && i2 == 0) {
-          EXPECT_FALSE(KokkosFFT::Impl::is_crop_or_pad_needed(x, shape_new));
-        } else {
-          EXPECT_TRUE(KokkosFFT::Impl::is_crop_or_pad_needed(x, shape_new));
-        }
-      }
-    }
-  }
 }
 
 TEST(CropOrPad1D, 1DView) {
