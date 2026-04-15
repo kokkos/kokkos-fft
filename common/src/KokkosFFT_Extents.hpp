@@ -11,7 +11,7 @@
 #include <numeric>
 #include "KokkosFFT_common_types.hpp"
 #include "KokkosFFT_traits.hpp"
-#include "KokkosFFT_asserts.hpp"
+#include "KokkosFFT_Asserts.hpp"
 #include "KokkosFFT_utils.hpp"
 #include "KokkosFFT_Mapping.hpp"
 

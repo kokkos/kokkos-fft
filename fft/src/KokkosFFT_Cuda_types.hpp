@@ -9,7 +9,7 @@
 #include <Kokkos_Abort.hpp>
 #include <Kokkos_Profiling_ScopedRegion.hpp>
 #include "KokkosFFT_common_types.hpp"
-#include "KokkosFFT_asserts.hpp"
+#include "KokkosFFT_Asserts.hpp"
 #include "KokkosFFT_Cuda_asserts.hpp"
 
 #if defined(KOKKOSFFT_ENABLE_TPL_FFTW)

@@ -13,7 +13,7 @@
 #include <Kokkos_Profiling_ScopedRegion.hpp>
 #include "KokkosFFT_common_types.hpp"
 #include "KokkosFFT_traits.hpp"
-#include "KokkosFFT_asserts.hpp"
+#include "KokkosFFT_Asserts.hpp"
 #include "KokkosFFT_utils.hpp"
 #include "KokkosFFT_ROCM_asserts.hpp"
 #if defined(KOKKOSFFT_ENABLE_TPL_FFTW)

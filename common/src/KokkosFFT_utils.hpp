@@ -12,7 +12,7 @@
 #include <numeric>
 #include <stdexcept>
 #include <limits>
-#include "KokkosFFT_asserts.hpp"
+#include "KokkosFFT_Asserts.hpp"
 #include "KokkosFFT_traits.hpp"
 #include "KokkosFFT_common_types.hpp"
 

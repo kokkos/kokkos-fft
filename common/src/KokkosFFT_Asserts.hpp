@@ -34,6 +34,22 @@
 namespace KokkosFFT {
 namespace Impl {
 
+/// \brief Generates a formatted error message with source location information.
+///
+/// Produces a stringstream containing file name, line number, and function
+/// name, used internally for exceptions thrown by KokkosFFT.
+///
+/// Example:
+/// \code{cpp}
+/// auto ss = error_info("example.cpp", 10, "main");
+/// \endcode
+///
+/// \param[in] file_name The name of the source file where the error occurs
+/// \param[in] line The line number in the source file where the error occurs
+/// \param[in] function_name The name of the function where the error occurs
+/// \param[in] column The column number in the source file where the error
+/// occurs (default: -1)
+/// \return A stringstream containing the formatted error message
 inline std::stringstream error_info(const char* file_name, int line,
                                     const char* function_name,
                                     const int column = -1) {
@@ -49,6 +65,26 @@ inline std::stringstream error_info(const char* file_name, int line,
   return ss;
 }
 
+/// \brief Checks a precondition and throws an exception if it is not met.
+///
+/// When \p expression evaluates to true, throws a std::runtime_error with
+/// detailed source location information and the provided error message.
+///
+/// Example:
+/// \code{cpp}
+/// KOKKOSFFT_THROW_IF(true, "An error occurred");
+/// // throws std::runtime_error with message:
+/// // "example.cpp(10) `main`: An error occurred"
+/// \endcode
+///
+/// \param[in] expression The boolean expression representing the precondition
+/// to check \param[in] msg The error message to include in the exception
+/// \param[in] file_name The name of the source file where the error occurs
+/// \param[in] line The line number in the source file where the error occurs
+/// \param[in] function_name The name of the function where the error occurs
+/// \param[in] column The column number in the source file where the error
+/// occurs (default: -1)
+/// \throws std::runtime_error if \p expression is true
 inline void check_precondition(const bool expression,
                                const std::string_view& msg,
                                const char* file_name, int line,
@@ -61,6 +97,36 @@ inline void check_precondition(const bool expression,
   throw std::runtime_error(ss.str());
 }
 
+/// \brief Checks the return status of an FFT library call and throws on
+/// failure.
+///
+/// Validates the status returned by an FFT library call (cuFFT, hipFFT, or
+/// rocFFT) and throws a std::runtime_error with detailed error information if
+/// it does not indicate success.
+///
+/// Example:
+/// \code{cpp}
+/// KOKKOSFFT_CHECK_CUFFT_CALL(cufftPlan1d(&plan, n, CUFFT_R2C, batch));
+/// // On failure, throws std::runtime_error with message:
+/// // "example.cpp(10) `main`:
+/// //  cufftPlan1d(&plan, n, CUFFT_R2C, batch) failed with error code 1
+/// (CUFFT_INVALID_PLAN)"
+/// \endcode
+///
+/// \tparam FFTStatusType The type of the FFT library status code
+/// \tparam ResultToStringFunc The type of the function converting a status code
+/// to a string
+///
+/// \param[in] status The return status of the FFT library call
+/// \param[in] command_name The string representation of the FFT library call
+/// \param[in] status_success The status value indicating a successful call
+/// \param[in] result_to_string A function that converts the status to a string
+/// \param[in] file_name The name of the source file where the error occurs
+/// \param[in] line The line number in the source file where the error occurs
+/// \param[in] function_name The name of the function where the error occurs
+/// \param[in] column The column number in the source file where the error
+/// occurs (default: -1)
+/// \throws std::runtime_error if \p status does not equal \p status_success
 template <typename FFTStatusType, typename ResultToStringFunc>
 void check_fft_call(FFTStatusType status, const char* command_name,
                     FFTStatusType status_success,
