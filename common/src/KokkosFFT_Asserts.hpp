@@ -40,7 +40,7 @@ namespace Impl {
 /// name, used internally for exceptions thrown by KokkosFFT.
 ///
 /// Example:
-/// \code{cpp}
+/// \code{.cpp}
 /// auto ss = error_info("example.cpp", 10, "main");
 /// \endcode
 ///
@@ -106,7 +106,7 @@ inline void check_precondition(const bool expression,
 /// it does not indicate success.
 ///
 /// Example:
-/// \code{cpp}
+/// \code{.cpp}
 /// KOKKOSFFT_CHECK_CUFFT_CALL(cufftPlan1d(&plan, n, CUFFT_R2C, batch));
 /// // On failure, throws std::runtime_error with message:
 /// // "file: example.cpp(10) `main`:
