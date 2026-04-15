@@ -40,9 +40,9 @@ Kokkos-FFT is a header-only C++ library providing FFT (Fast Fourier Transform) i
 
 ### Prerequisites
 
-The project uses CMake and relies on Kokkos being available either externally or via the internal submodule (`KokkosFFT_ENABLE_INTERNAL_KOKKOS=ON`). For CPU builds, FFTW3 is needed. For GPU builds, the corresponding vendor FFT library is required.
+The project uses CMake and relies on Kokkos being available either externally or via the internal submodule (`KokkosFFT_ENABLE_INTERNAL_KOKKOS=ON`). Note: `KokkosFFT_ENABLE_INTERNAL_KOKKOS=ON` is mainly intended for developers and CI — it is not optimal for end users, who should prefer linking against an externally installed Kokkos. For CPU builds, FFTW3 is needed. For GPU builds, the corresponding vendor FFT library is required.
 
-### Build Commands (CPU with OpenMP)
+### Build Commands for CI (CPU with OpenMP)
 
 ```bash
 cmake -B build \
@@ -56,7 +56,7 @@ cmake -B build \
 cmake --build build -j $(nproc)
 ```
 
-### Build Commands (CPU with Serial backend, minimal)
+### Build Commands for CI (CPU with Serial backend, minimal)
 
 ```bash
 cmake -B build \
@@ -285,3 +285,23 @@ int main(int argc, char* argv[]) {
 - **REUSE compliance**: Every new file needs SPDX license headers or CI will fail.
 - **View compatibility**: Input/output views must share the same base floating-point type, layout, and rank. This is enforced at compile time via `KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE`.
 - **KOKKOSFFT_THROW_IF semantics**: The macro throws when the condition is **true** (true-to-throw), which is the opposite of a traditional assert.
+
+## Critical Rules
+
+### ❌ NEVER:
+1. In-source builds
+2. Commit without license headers (REUSE fails)
+3. Commit unformatted code (clang-format fails)
+4. Modify `tpls/` files (third-party)
+5. Reorder includes (SortIncludes disabled intentionally)
+
+### ✅ ALWAYS:
+1. Build: `mkdir build && cd build` (separate directory)
+2. Test with `-Werror`: `-DCMAKE_CXX_FLAGS="-Werror"`
+3. Enable backend (SERIAL auto-enabled if none)
+4. Run tests: `ctest --output-on-failure`
+5. PR to `main`
+
+---
+
+**Trust these instructions.** Search codebase only if info incomplete/incorrect.
