@@ -286,6 +286,14 @@ int main(int argc, char* argv[]) {
 - **View compatibility**: Input/output views must share the same base floating-point type, layout, and rank. This is enforced at compile time via `KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE`.
 - **KOKKOSFFT_THROW_IF semantics**: The macro throws when the condition is **true** (true-to-throw), which is the opposite of a traditional assert.
 
+## Security
+
+- **No secrets in code**: Never commit credentials, API keys, tokens, or passwords into source code or configuration files.
+- **No sensitive data exposure**: Never share sensitive repository data (code, credentials, internal configurations) with third-party systems.
+- **No new vulnerabilities**: Validate that changes do not introduce security vulnerabilities (e.g., buffer overflows, unvalidated inputs, unsafe memory access).
+- **Dependency vigilance**: Review new dependencies for known vulnerabilities before adding them. Do not add unnecessary dependencies.
+- **Respect copyright**: Do not generate or commit copyrighted content. All contributions must comply with the project's MIT OR Apache-2.0 WITH LLVM-exception licensing.
+
 ## Critical Rules
 
 ### ❌ NEVER:
@@ -294,6 +302,8 @@ int main(int argc, char* argv[]) {
 3. Commit unformatted code (clang-format fails)
 4. Modify `tpls/` files (third-party)
 5. Reorder includes (SortIncludes disabled intentionally)
+6. Commit secrets, credentials, or API keys into the repository
+7. Introduce code with known security vulnerabilities
 
 ### ✅ ALWAYS:
 1. Build: `mkdir build && cd build` (separate directory)
@@ -301,6 +311,7 @@ int main(int argc, char* argv[]) {
 3. Enable backend (SERIAL auto-enabled if none)
 4. Run tests: `ctest --output-on-failure`
 5. PR to `main`
+6. Validate changes do not introduce security vulnerabilities
 
 ---
 
