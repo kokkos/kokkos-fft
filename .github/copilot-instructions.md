@@ -319,6 +319,17 @@ int main(int argc, char* argv[]) {
 5. PR to `main`
 6. Validate changes do not introduce security vulnerabilities
 
+## Detailed Instructions
+
+For specific types of tasks, follow the detailed instructions in the corresponding file:
+
+- **C++ code** (`.hpp`, `.cpp`): See [`.github/instructions/cpp-instructions.md`](.github/instructions/cpp-instructions.md)
+- **CMake files** (`CMakeLists.txt`, `*.cmake`): See [`.github/instructions/cmake-instructions.md`](.github/instructions/cmake-instructions.md)
+- **Documentation** (`.rst`, `.md`, docs configuration): See [`.github/instructions/docs-instructions.md`](.github/instructions/docs-instructions.md)
+- **Python code** (`.py`): See [`.github/instructions/python-instructions.md`](.github/instructions/python-instructions.md)
+- **CI/CD workflows** (`.yaml` in `.github/workflows/`): See [`.github/instructions/ci-instructions.md`](.github/instructions/ci-instructions.md)
+- **Tests** (`Test_*.cpp`): See [`.github/instructions/tests-instructions.md`](.github/instructions/tests-instructions.md)
+
 ---
 
 **Trust these instructions.** Search codebase only if info incomplete/incorrect.
