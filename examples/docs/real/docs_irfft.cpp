@@ -7,7 +7,7 @@
 #include <Kokkos_Complex.hpp>
 #include <KokkosFFT.hpp>
 
-/// \brief Example of ifft usage in documentation
+/// \brief Example of irfft usage in documentation
 /// x_hat = [10, -2+2j, -2]
 /// x = [1, 2, 3, 4]
 int main(int argc, char* argv[]) {
