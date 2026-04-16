@@ -8,7 +8,7 @@
 #include <complex>
 #include <rocfft/rocfft.h>
 #include <Kokkos_Profiling_ScopedRegion.hpp>
-#include "KokkosFFT_asserts.hpp"
+#include "KokkosFFT_Asserts.hpp"
 #include "KokkosFFT_ROCM_types.hpp"
 #include "KokkosFFT_ROCM_asserts.hpp"
 

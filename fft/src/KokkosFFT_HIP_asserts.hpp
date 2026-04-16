@@ -8,7 +8,7 @@
 #include <stdexcept>
 #include <string_view>
 #include <hipfft/hipfft.h>
-#include "KokkosFFT_asserts.hpp"
+#include "KokkosFFT_Asserts.hpp"
 
 #if defined(__cpp_lib_source_location) && __cpp_lib_source_location >= 201907L
 #include <source_location>

@@ -11,7 +11,7 @@
 #include <tuple>
 #include <Kokkos_Core.hpp>
 #include "KokkosFFT_common_types.hpp"
-#include "KokkosFFT_asserts.hpp"
+#include "KokkosFFT_Asserts.hpp"
 #include "KokkosFFT_traits.hpp"
 
 namespace KokkosFFT {

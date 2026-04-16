@@ -9,7 +9,7 @@
 #include "KokkosFFT_ROCM_types.hpp"
 #include "KokkosFFT_Extents.hpp"
 #include "KokkosFFT_traits.hpp"
-#include "KokkosFFT_asserts.hpp"
+#include "KokkosFFT_Asserts.hpp"
 #include "KokkosFFT_utils.hpp"
 
 namespace KokkosFFT {
