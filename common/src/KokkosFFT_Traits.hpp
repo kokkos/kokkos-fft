@@ -5,6 +5,9 @@
 #ifndef KOKKOSFFT_TRAITS_HPP
 #define KOKKOSFFT_TRAITS_HPP
 
+#include <type_traits>
+#include <array>
+#include <vector>
 #include <Kokkos_Core.hpp>
 
 namespace KokkosFFT {

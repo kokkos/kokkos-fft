@@ -6,7 +6,7 @@
 #include <Kokkos_Random.hpp>
 #include <vector>
 #include "KokkosFFT_Extents.hpp"
-#include "KokkosFFT_traits.hpp"
+#include "KokkosFFT_Traits.hpp"
 #include "Test_Utils.hpp"
 
 namespace {

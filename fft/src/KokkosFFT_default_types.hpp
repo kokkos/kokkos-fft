@@ -14,6 +14,7 @@ static_assert(false,
 #endif
 
 #include "KokkosFFT_config.hpp"
+#include "KokkosFFT_Traits.hpp"
 
 #if defined(KOKKOSFFT_ENABLE_TPL_CUFFT)
 #define KOKKOSFFT_HAS_DEVICE_TPL

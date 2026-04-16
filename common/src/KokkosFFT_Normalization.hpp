@@ -10,7 +10,7 @@
 #include <numeric>
 #include <tuple>
 #include "KokkosFFT_common_types.hpp"
-#include "KokkosFFT_traits.hpp"
+#include "KokkosFFT_Traits.hpp"
 
 namespace KokkosFFT {
 namespace Impl {
