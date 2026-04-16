@@ -13,7 +13,7 @@
 #include <stdexcept>
 #include <limits>
 #include "KokkosFFT_Asserts.hpp"
-#include "KokkosFFT_traits.hpp"
+#include "KokkosFFT_Traits.hpp"
 #include "KokkosFFT_common_types.hpp"
 
 namespace KokkosFFT {
