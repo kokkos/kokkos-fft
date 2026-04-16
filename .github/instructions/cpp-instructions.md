@@ -122,7 +122,7 @@ void function_name(const ExecutionSpace& exec_space,
 ## Error Handling
 
 - **Runtime errors**: Use `KOKKOSFFT_THROW_IF(condition, "message")` which throws `std::runtime_error`. The condition is **true-to-throw** (throws when expression evaluates to true).
-- **Compile-time checks**: Use `KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(InViewType, OutViewType, "name")` for view compatibility validation.
+- **Compile-time checks**: Use `KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(InViewType, OutViewType, "name")` for view compatibility validation in binary operations. For other compile time checks, use `static_assert`. Make sure that the function name is appropriately embedded in the error messages.
 - **FFT backend errors**: Use `KokkosFFT::Impl::check_fft_call()` for vendor FFT return code checking.
 - Do not use raw `throw` or `assert` — use the project macros instead.
 
@@ -136,7 +136,8 @@ void function_name(const ExecutionSpace& exec_space,
 - Use `Kokkos::View<>` for all data containers.
 - Supported layouts: `Kokkos::LayoutLeft` and `Kokkos::LayoutRight`.
 - Use `Kokkos::parallel_for`, `Kokkos::parallel_reduce` with appropriate policies (`RangePolicy`, `MDRangePolicy`, `TeamPolicy`).
-- Use `KOKKOS_LAMBDA` or `KOKKOS_CLASS_LAMBDA` for parallel kernels.
+- Use `KOKKOS_LAMBDA` for parallel kernels.
+- Pass an execution space instance (`Kokkos::ExecutionSpace`) to functions if available. This encourages the asynchronous mechanism in Kokkos.
 - Use `Kokkos::deep_copy()` for data transfer between host and device.
 - Use `Kokkos::create_mirror_view()` for host-accessible copies.
 
@@ -192,7 +193,7 @@ constexpr std::size_t MAX_FFT_DIM = 3;
 ## Things to Avoid
 
 - Do not modify files under `tpls/` (third-party libraries).
-- Do not use `std::complex` — use `Kokkos::complex`.
+- Do not use `std::complex` — use `Kokkos::complex` unless the backend library explicitly uses `std::complex` to represent their complex data.
 - Do not use C-style casts — use C++ casts.
 - Do not use `typedef` — use `using`.
 - Do not use `NULL` — use `nullptr`.

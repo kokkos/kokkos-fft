@@ -12,6 +12,7 @@ These instructions apply when creating, modifying, or reviewing CMake files (`CM
 
 - **Minimum required**: CMake 3.22.
 - Use features available in CMake 3.22+. Do not use features from newer versions without updating the minimum.
+- When updating the CMake minimum version, update the descriptions in documentation and instruction files (including this file) as well
 
 ## License Headers
 
@@ -90,7 +91,7 @@ endif()
 ```
 
 - Support both external Kokkos (`find_package`) and internal submodule (`add_subdirectory`).
-- Always check for the required Kokkos version (currently 4.6.0).
+- Always check for the required Kokkos version.
 - Use `kokkos_check()` to verify required Kokkos options.
 
 ## Backend (TPL) Management
@@ -196,6 +197,32 @@ Use the `pad_string()` utility from `KokkosFFT_utils.cmake` for aligned status o
 ```cmake
 pad_string(label "Option Name" 30)
 message(STATUS "${label}: ${value}")
+```
+
+## Helper Functions
+
+- Helper functions must be defined in `*.cmake` files under the `cmake/` directory.
+- Use `snake_case` for function names.
+- Add docstrings as comments above the function explaining purpose, parameters, and usage.
+- Example:
+
+```cmake
+# Pad a string with spaces to a given length for aligned status output.
+#
+# Parameters:
+#   output_string - variable name to store the padded result
+#   input_string  - the string to pad
+#   length        - the desired total length
+function(pad_string output_string input_string length)
+    string(LENGTH "${input_string}" input_length)
+    math(EXPR pad_length "${length} - ${input_length}")
+    if(pad_length GREATER 0)
+        string(REPEAT " " ${pad_length} padding)
+    else()
+        set(padding "")
+    endif()
+    set(${output_string} "${input_string}${padding}" PARENT_SCOPE)
+endfunction()
 ```
 
 ## Things to Avoid

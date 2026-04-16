@@ -193,7 +193,7 @@ For enums:
 2. Create a new `.rst` file in the appropriate `docs/api/<category>/` subdirectory.
 3. Use `doxygenfunction`, `doxygenclass`, or `doxygenenum` directives to pull in the documentation.
 4. Add the new `.rst` file to the appropriate `toctree` in `docs/api_reference.rst` or a parent document.
-5. Include a code example if applicable, either inline or via `literalinclude`.
+5. Include a code example if applicable via `literalinclude`. Make sure that the included examples are placed under `examples/docs` and compiled in CI.
 
 ## Spell Checking
 

@@ -315,8 +315,8 @@ cd build && ctest --output-on-failure
 
 - Do not create new `Test_Main.cpp` files — use the existing one per module.
 - Do not use `ASSERT_*` when `EXPECT_*` suffices — keep tests running after non-critical failures.
-- Do not skip testing both `float` and `double` precisions.
+- Do not skip testing both `float` and `double` precisions if precisions matter for the tested operations.
 - Do not skip testing both `LayoutLeft` and `LayoutRight` layouts.
-- Do not use raw `new`/`delete` in tests — use Kokkos views.
+- Do not use raw `new`/`delete` in tests — use `Kokkos::Views`.
 - Do not hardcode magic numbers — use named constants with descriptive names.
 - Do not modify `tpls/googletest/` files.
