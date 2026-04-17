@@ -5,9 +5,7 @@
 #ifndef KOKKOSFFT_MDOPERATIONS_HPP
 #define KOKKOSFFT_MDOPERATIONS_HPP
 
-#include <algorithm>
 #include <Kokkos_Core.hpp>
-#include "KokkosFFT_Traits.hpp"
 #include "KokkosFFT_Layout.hpp"
 
 namespace KokkosFFT {
@@ -18,13 +16,15 @@ namespace Impl {
 /// MDRangePolicy
 ///
 /// \tparam IndexType The type of index to be used in the policy (e.g., int,
-/// std::size_t) \tparam ExecutionSpace The Kokkos execution space to be used
-/// for the policy \tparam ViewType The type of the Kokkos view for which the
-/// policy is being created \param[in] space The Kokkos execution space used to
-/// launch the parallel reduction. \param[in] x The Kokkos view to be used for
-/// determining the policy. \return A Kokkos execution policy (either
-/// RangePolicy or MDRangePolicy) to loop over the elements of the view (up to
-/// 6D).
+/// std::size_t)
+/// \tparam ExecutionSpace The Kokkos execution space to be used for the policy
+/// \tparam ViewType The type of the Kokkos view for which the policy is being
+/// created
+/// \param[in] space The Kokkos execution space used to launch the parallel
+/// reduction.
+/// \param[in] x The Kokkos view to be used for determining the policy.
+/// \return A Kokkos execution policy (either RangePolicy or MDRangePolicy) to
+/// loop over the elements of the view (up to 6D).
 template <typename IndexType, typename ExecutionSpace, typename ViewType>
 auto get_mdpolicy(const ExecutionSpace& space, const ViewType& x) {
   constexpr std::size_t rank_truncated =
