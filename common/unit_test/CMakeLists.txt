@@ -10,6 +10,7 @@ add_executable(
   Test_Layout.cpp
   Test_Normalization.cpp
   Test_Mapping.cpp
+  Test_MDOperations.cpp
   Test_Transpose.cpp
   Test_Extents.cpp
   Test_Padding.cpp
