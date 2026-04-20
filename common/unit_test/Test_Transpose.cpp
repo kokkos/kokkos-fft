@@ -2,10 +2,10 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
-#include <algorithm>
-#include <random>
+#include <utility>
 #include <gtest/gtest.h>
 #include <Kokkos_Random.hpp>
+#include "KokkosFFT_common_types.hpp"
 #include "KokkosFFT_Mapping.hpp"
 #include "KokkosFFT_Transpose.hpp"
 #include "Test_Utils.hpp"

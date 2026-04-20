@@ -8,7 +8,7 @@
 #include <array>
 #include <limits>
 #include <numeric>
-#include <tuple>
+#include <utility>
 #include <type_traits>
 #include <Kokkos_Core.hpp>
 #include "KokkosFFT_common_types.hpp"
