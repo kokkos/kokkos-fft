@@ -9,6 +9,7 @@
 #include "KokkosFFT_common_types.hpp"
 #include "KokkosFFT_Traits.hpp"
 #include "KokkosFFT_Layout.hpp"
+#include "KokkosFFT_MDOperations.hpp"
 #include "KokkosFFT_utils.hpp"
 
 namespace KokkosFFT {
@@ -78,45 +79,11 @@ auto get_shifts(const ViewType& x, axis_type<DIM> axes, int direction = 1) {
 template <typename ExecutionSpace, typename ViewType, typename IndexType>
 struct Roll {
  private:
-  // Since MDRangePolicy is not available for 7D and 8D views, we need to
-  // handle them separately. We can use a 6D MDRangePolicy and iterate over
-  // the last two dimensions in the operator() function.
-  static constexpr std::size_t m_rank_truncated =
-      std::min(ViewType::rank(), std::size_t(6));
-
   using ArrayType          = Kokkos::Array<std::size_t, ViewType::rank()>;
   using LayoutType         = typename ViewType::array_layout;
   using ManageableViewType = typename manageable_view_type<ViewType>::type;
 
   ManageableViewType m_tmp;
-
-  /// \brief Retrieves the policy for the parallel execution.
-  /// If the view is 1D, a Kokkos::RangePolicy is used. For higher dimensions up
-  /// to 6D, a Kokkos::MDRangePolicy is used. For 7D and 8D views, we use 6D
-  /// MDRangePolicy
-  /// \param[in] space The Kokkos execution space used to launch the parallel
-  /// reduction.
-  /// \param[in] x The Kokkos view to be used for determining the policy.
-  auto get_policy(const ExecutionSpace space, const ViewType& x) const {
-    if constexpr (ViewType::rank() == 1) {
-      using range_policy_type =
-          Kokkos::RangePolicy<ExecutionSpace, Kokkos::IndexType<IndexType>>;
-      return range_policy_type(space, 0, x.extent(0));
-    } else {
-      using iterate_type =
-          Kokkos::Rank<m_rank_truncated, Kokkos::Iterate::Default,
-                       Kokkos::Iterate::Default>;
-      using mdrange_policy_type =
-          Kokkos::MDRangePolicy<ExecutionSpace, iterate_type,
-                                Kokkos::IndexType<IndexType>>;
-      Kokkos::Array<std::size_t, m_rank_truncated> begins = {};
-      Kokkos::Array<std::size_t, m_rank_truncated> ends   = {};
-      for (std::size_t i = 0; i < m_rank_truncated; ++i) {
-        ends[i] = x.extent(i);
-      }
-      return mdrange_policy_type(space, begins, ends);
-    }
-  }
 
  public:
   /// \brief Constructor for the Roll functor.
@@ -128,8 +95,10 @@ struct Roll {
   Roll(const ViewType& x, const ArrayType& shifts,
        const ExecutionSpace exec_space = ExecutionSpace())
       : m_tmp("tmp", create_layout<LayoutType>(extract_extents(x))) {
-    Kokkos::parallel_for("KokkosFFT::roll", get_policy(exec_space, x),
-                         RollInternal(x, m_tmp, shifts));
+    Kokkos::parallel_for(
+        "KokkosFFT::roll",
+        KokkosFFT::Impl::get_mdpolicy<IndexType>(exec_space, x),
+        RollInternal(x, m_tmp, shifts));
     Kokkos::deep_copy(exec_space, x, m_tmp);
   }
 

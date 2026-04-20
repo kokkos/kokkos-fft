@@ -11,6 +11,7 @@
 #include "KokkosFFT_utils.hpp"
 #include "KokkosFFT_Padding.hpp"
 #include "KokkosFFT_Layout.hpp"
+#include "KokkosFFT_MDOperations.hpp"
 
 namespace KokkosFFT {
 namespace Impl {
@@ -34,46 +35,7 @@ template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           typename IndexType, typename ArgBoundsCheck = BoundsCheck::Off>
 struct Transpose {
  private:
-  // Since MDRangePolicy is not available for 7D and 8D views, we need to
-  // handle them separately. We can use a 6D MDRangePolicy and iterate over
-  // the last two dimensions in the operator() function.
-  static constexpr std::size_t m_rank_truncated =
-      std::min(InViewType::rank(), std::size_t(6));
-
   using ArrayType = Kokkos::Array<int, InViewType::rank()>;
-
-  /// \brief Retrieves the policy for the parallel execution.
-  /// If the view is 1D, a Kokkos::RangePolicy is used. For higher dimensions up
-  /// to 6D, a Kokkos::MDRangePolicy is used. For 7D and 8D views, we use 6D
-  /// MDRangePolicy
-  /// \param[in] space The Kokkos execution space used to launch the parallel
-  /// reduction.
-  /// \param[in] x The Kokkos view to be used for determining the policy.
-  auto get_policy(const ExecutionSpace space, const InViewType& x) const {
-    if constexpr (InViewType::rank() == 1) {
-      using range_policy_type =
-          Kokkos::RangePolicy<ExecutionSpace, Kokkos::IndexType<IndexType>>;
-      return range_policy_type(space, 0, x.extent(0));
-    } else {
-      using LayoutType = typename InViewType::array_layout;
-      static const Kokkos::Iterate outer_iteration_pattern =
-          layout_iterate_type_selector<LayoutType>::outer_iteration_pattern;
-      static const Kokkos::Iterate inner_iteration_pattern =
-          layout_iterate_type_selector<LayoutType>::inner_iteration_pattern;
-      using iterate_type =
-          Kokkos::Rank<m_rank_truncated, outer_iteration_pattern,
-                       inner_iteration_pattern>;
-      using mdrange_policy_type =
-          Kokkos::MDRangePolicy<ExecutionSpace, iterate_type,
-                                Kokkos::IndexType<IndexType>>;
-      Kokkos::Array<std::size_t, m_rank_truncated> begins = {};
-      Kokkos::Array<std::size_t, m_rank_truncated> ends   = {};
-      for (std::size_t i = 0; i < m_rank_truncated; ++i) {
-        ends[i] = x.extent(i);
-      }
-      return mdrange_policy_type(space, begins, ends);
-    }
-  }
 
  public:
   /// \brief Constructor for the Transpose functor.
@@ -85,8 +47,10 @@ struct Transpose {
   /// to ExecutionSpace()).
   Transpose(const InViewType& in, const OutViewType& out, const ArrayType& map,
             const ExecutionSpace exec_space = ExecutionSpace()) {
-    Kokkos::parallel_for("KokkosFFT::transpose", get_policy(exec_space, in),
-                         TransposeInternal(in, out, map));
+    Kokkos::parallel_for(
+        "KokkosFFT::transpose",
+        KokkosFFT::Impl::get_mdpolicy<IndexType>(exec_space, in),
+        TransposeInternal(in, out, map));
   }
 
   /// \brief Helper functor to perform the transpose operation
