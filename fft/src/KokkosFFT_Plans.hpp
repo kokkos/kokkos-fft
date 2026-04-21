@@ -14,7 +14,7 @@
 #include <Kokkos_Core.hpp>
 #include "KokkosFFT_default_types.hpp"
 #include "KokkosFFT_Traits.hpp"
-#include "KokkosFFT_transpose.hpp"
+#include "KokkosFFT_Transpose.hpp"
 #include "KokkosFFT_Asserts.hpp"
 #include "KokkosFFT_Extents.hpp"
 #include "KokkosFFT_Normalization.hpp"

@@ -5,8 +5,12 @@
 #ifndef KOKKOSFFT_TRANSPOSE_HPP
 #define KOKKOSFFT_TRANSPOSE_HPP
 
+#include <array>
+#include <limits>
 #include <numeric>
-#include <tuple>
+#include <utility>
+#include <type_traits>
+#include <Kokkos_Core.hpp>
 #include "KokkosFFT_common_types.hpp"
 #include "KokkosFFT_utils.hpp"
 #include "KokkosFFT_Padding.hpp"
@@ -19,6 +23,23 @@ struct BoundsCheck {
   struct On {};
   struct Off {};
 };
+
+/// \brief Check if transpose is needed or not
+/// If a map is contiguous and in ascending order (e.g. {0, 1, 2}),
+/// we do not need transpose
+/// \tparam IndexType The integer type used for map
+/// \tparam DIM The dimensionality of the axes
+///
+/// \param[in] map The map used for permutation
+/// \return true if transpose is needed, false otherwise
+template <typename IndexType, std::size_t DIM>
+bool is_transpose_needed(const std::array<IndexType, DIM>& map) {
+  static_assert(std::is_integral_v<IndexType>,
+                "is_transpose_needed: IndexType must be an integral type.");
+  std::array<IndexType, DIM> contiguous_map;
+  std::iota(contiguous_map.begin(), contiguous_map.end(), 0);
+  return map != contiguous_map;
+}
 
 /// \brief Transpose functor for out-of-place transpose operations.
 /// This struct implements a functor that applies a transpose on a Kokkos view.
@@ -94,18 +115,14 @@ struct Transpose {
         IndexType src_idx[], std::index_sequence<Is...>) const {
       if constexpr (std::is_same_v<ArgBoundsCheck, BoundsCheck::On>) {
         // Bounds check
-        bool in_bounds = true;
         for (std::size_t i = 0; i < InViewType::rank(); ++i) {
-          if (src_idx[m_map[i]] >= IndexType(m_out.extent(i)))
-            in_bounds = false;
+          if (src_idx[m_map[i]] >= IndexType(m_out.extent(i))) {
+            // Quick return for out-of-bounds
+            return;
+          }
         }
-
-        if (in_bounds) {
-          m_out(src_idx[m_map[Is]]...) = m_in(src_idx[Is]...);
-        }
-      } else {
-        m_out(src_idx[m_map[Is]]...) = m_in(src_idx[Is]...);
       }
+      m_out(src_idx[m_map[Is]]...) = m_in(src_idx[Is]...);
     }
   };
 };

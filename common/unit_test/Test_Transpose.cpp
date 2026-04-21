@@ -2,12 +2,12 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
-#include <algorithm>
-#include <random>
+#include <utility>
 #include <gtest/gtest.h>
 #include <Kokkos_Random.hpp>
+#include "KokkosFFT_common_types.hpp"
 #include "KokkosFFT_Mapping.hpp"
-#include "KokkosFFT_transpose.hpp"
+#include "KokkosFFT_Transpose.hpp"
 #include "Test_Utils.hpp"
 
 namespace {
@@ -15,6 +15,10 @@ using execution_space = Kokkos::DefaultExecutionSpace;
 
 template <std::size_t DIM>
 using axes_type = std::array<int, DIM>;
+
+// Int like types
+using int_types = ::testing::Types<int, std::size_t>;
+
 using layout_types =
     ::testing::Types<std::pair<Kokkos::LayoutLeft, Kokkos::LayoutLeft>,
                      std::pair<Kokkos::LayoutLeft, Kokkos::LayoutRight>,
@@ -22,6 +26,11 @@ using layout_types =
                      std::pair<Kokkos::LayoutRight, Kokkos::LayoutRight>>;
 
 // Basically the same fixtures, used for labeling tests
+template <typename T>
+struct TestIsTransposeNeeded : public ::testing::Test {
+  using value_type = T;
+};
+
 template <typename T>
 struct TestTranspose1D : public ::testing::Test {
   using layout_type1 = typename T::first_type;
@@ -92,6 +101,27 @@ void make_transposed(const ViewType1& x, const ViewType2& xT,
     }
   }
   Kokkos::deep_copy(xT, h_xT);
+}
+
+template <typename IndexType>
+void test_is_transpose_needed() {
+  std::array<IndexType, 1> map1D{0};
+  EXPECT_FALSE(KokkosFFT::Impl::is_transpose_needed(map1D));
+
+  std::array<IndexType, 2> map2D{0, 1}, map2D_axis0{1, 0};
+  EXPECT_FALSE(KokkosFFT::Impl::is_transpose_needed(map2D));
+  EXPECT_TRUE(KokkosFFT::Impl::is_transpose_needed(map2D_axis0));
+
+  std::array<IndexType, 3> map3D{0, 1, 2}, map3D_021{0, 2, 1},
+      map3D_102{1, 0, 2}, map3D_120{1, 2, 0}, map3D_201{2, 0, 1},
+      map3D_210{2, 1, 0};
+
+  EXPECT_FALSE(KokkosFFT::Impl::is_transpose_needed(map3D));
+  EXPECT_TRUE(KokkosFFT::Impl::is_transpose_needed(map3D_021));
+  EXPECT_TRUE(KokkosFFT::Impl::is_transpose_needed(map3D_102));
+  EXPECT_TRUE(KokkosFFT::Impl::is_transpose_needed(map3D_120));
+  EXPECT_TRUE(KokkosFFT::Impl::is_transpose_needed(map3D_201));
+  EXPECT_TRUE(KokkosFFT::Impl::is_transpose_needed(map3D_210));
 }
 
 // Tests for transpose
@@ -1252,9 +1282,16 @@ void test_transpose_3d_8dview(bool bounds_check) {
 
 }  // namespace
 
+TYPED_TEST_SUITE(TestIsTransposeNeeded, int_types);
+
 TYPED_TEST_SUITE(TestTranspose1D, layout_types);
 TYPED_TEST_SUITE(TestTranspose2D, layout_types);
 TYPED_TEST_SUITE(TestTranspose3D, layout_types);
+
+TYPED_TEST(TestIsTransposeNeeded, is_transpose_needed) {
+  using value_type = typename TestFixture::value_type;
+  test_is_transpose_needed<value_type>();
+}
 
 TYPED_TEST(TestTranspose1D, 1DView) {
   using layout_type1 = typename TestFixture::layout_type1;
