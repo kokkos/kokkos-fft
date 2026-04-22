@@ -5,6 +5,7 @@
 #ifndef KOKKOSFFT_TRANSFORM_HPP
 #define KOKKOSFFT_TRANSFORM_HPP
 
+#include <limits>
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Profiling_ScopedRegion.hpp>
 #include "KokkosFFT_Traits.hpp"
@@ -256,8 +257,17 @@ void hfft(const ExecutionSpace& exec_space, const InViewType& in,
     Kokkos::deep_copy(cin, in);
     irfft(exec_space, cin, out, new_norm, axis, n);
   } else {
-    InViewType in_conj;
-    KokkosFFT::Impl::conjugate(exec_space, in, in_conj);
+    InViewType in_conj("in_conj", in.layout());
+    Kokkos::deep_copy(in_conj, in);
+    if (in_conj.span() >= std::size_t(std::numeric_limits<int>::max())) {
+      KokkosFFT::Impl::md_unary_operation<int64_t>(
+          "KokkosFFT::conjugate", exec_space, in_conj,
+          KokkosFFT::Impl::Conjugate());
+    } else {
+      KokkosFFT::Impl::md_unary_operation<int>("KokkosFFT::conjugate",
+                                               exec_space, in_conj,
+                                               KokkosFFT::Impl::Conjugate());
+    }
     irfft(exec_space, in_conj, out, new_norm, axis, n);
   }
 }
@@ -298,10 +308,14 @@ void ihfft(const ExecutionSpace& exec_space, const InViewType& in,
   KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(in, axis_type<1>({axis})),
                      "axes are invalid for in/out views");
   auto new_norm = KokkosFFT::Impl::swap_direction(norm);
-  OutViewType out_conj;
   rfft(exec_space, in, out, new_norm, axis, n);
-  KokkosFFT::Impl::conjugate(exec_space, out, out_conj);
-  Kokkos::deep_copy(exec_space, out, out_conj);
+  if (out.span() >= std::size_t(std::numeric_limits<int>::max())) {
+    KokkosFFT::Impl::md_unary_operation<int64_t>(
+        "KokkosFFT::conjugate", exec_space, out, KokkosFFT::Impl::Conjugate());
+  } else {
+    KokkosFFT::Impl::md_unary_operation<int>("KokkosFFT::conjugate", exec_space,
+                                             out, KokkosFFT::Impl::Conjugate());
+  }
 }
 
 // 2D FFT
