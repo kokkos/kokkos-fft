@@ -184,30 +184,6 @@ inline std::vector<ElementType> arange(const ElementType start,
   return result;
 }
 
-template <typename ExecutionSpace, typename InViewType, typename OutViewType>
-void conjugate(const ExecutionSpace& exec_space, const InViewType& in,
-               OutViewType& out) {
-  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(
-      (KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                               OutViewType>),
-      "conjugate");
-
-  using out_value_type = typename OutViewType::non_const_value_type;
-  static_assert(KokkosFFT::Impl::is_complex_v<out_value_type>,
-                "conjugate: OutViewType must be complex");
-  std::size_t size = in.size();
-  out              = OutViewType("out", in.layout());
-
-  auto* in_data  = in.data();
-  auto* out_data = out.data();
-
-  Kokkos::parallel_for(
-      "KokkosFFT::conjugate",
-      Kokkos::RangePolicy<ExecutionSpace, Kokkos::IndexType<std::size_t>>(
-          exec_space, 0, size),
-      KOKKOS_LAMBDA(std::size_t i) { out_data[i] = Kokkos::conj(in_data[i]); });
-}
-
 template <typename ViewType>
 auto extract_extents(const ViewType& view) {
   static_assert(Kokkos::is_view_v<ViewType>,
