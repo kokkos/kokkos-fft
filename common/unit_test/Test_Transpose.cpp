@@ -7,6 +7,7 @@
 #include <Kokkos_Random.hpp>
 #include "KokkosFFT_common_types.hpp"
 #include "KokkosFFT_Mapping.hpp"
+#include "KokkosFFT_Extents.hpp"
 #include "KokkosFFT_Transpose.hpp"
 #include "Test_Utils.hpp"
 
@@ -49,48 +50,117 @@ struct TestTranspose3D : public ::testing::Test {
   using layout_type2 = typename T::second_type;
 };
 
+/// \brief Helper function to test md_unary_operation for 1D-8D
+/// \tparam IntType The integer type for extents
+/// \tparam DIM The rank of the extents
+///
+/// \return An extents for a given rank, with values {3, 5, 3, 5, ...}
+template <typename IntType, std::size_t DIM>
+auto get_extents() {
+  std::array<IntType, DIM> extents{};
+  for (std::size_t i = 0; i < extents.size(); i++) {
+    extents.at(i) = i % 2 == 0 ? 3 : 5;
+  }
+  return extents;
+}
+
+/// \brief Helper function to compute the output extents for transpose based on
+/// the input extents and map
+/// \tparam ContainerType The type of the map container
+/// \tparam IntType The integer type for extents
+/// \tparam DIM The rank of the extents
+///
+/// \param[in] extents The input extents
+/// \param[in] map The map for permutation
+/// \param[in] bounds_check Whether to perturb the output extents to trigger
+/// out-of-bounds access
+/// \return A permuted extents based on the input extents and map.
+/// If bounds_check is true, the output extents are perturbed by +/- 1
+/// to trigger out-of-bounds access
+template <typename ContainerType, typename IntType, std::size_t DIM>
+auto get_out_extents(const std::array<IntType, DIM>& extents,
+                     const ContainerType& map, bool bounds_check) {
+  auto out_extents = KokkosFFT::Impl::compute_mapped_extents(extents, map);
+
+  if (bounds_check) {
+    for (std::size_t i = 0; i < out_extents.size(); i++) {
+      // Perturb the output extents to trigger out-of-bounds access if we
+      // accidentally use the input extents instead of the output extents.
+      IntType perturbation = i % 2 == 0 ? 1 : -1;
+      out_extents.at(i) += perturbation;
+    }
+  }
+  return out_extents;
+}
+
+/// \brief Helper function to create a reference after transpose, with given
+/// source and destination indices
+/// \tparam InViewType The type of the input view
+/// \tparam OutViewType The type of the output view
+/// \tparam DIM The rank of the Views
+/// \tparam Is The index sequence for unpacking
+///
+/// \param[in] x The input view
+/// \param[out] xT The output view
+/// \param[in] src_idx The source indices
+/// \param[in] dst_idx The destination indices
+template <typename InViewType, typename OutViewType, std::size_t DIM,
+          std::size_t... Is>
+void make_transposed_internal(const InViewType& x, const OutViewType& xT,
+                              const std::array<std::size_t, DIM>& src_idx,
+                              const std::array<std::size_t, DIM>& dst_idx,
+                              std::index_sequence<Is...>) {
+  xT(dst_idx[Is]...) = x(src_idx[Is]...);
+}
+
 /// \brief Helper function to create a reference after transpose
-/// \tparam ViewType1 The type of the input view
-/// \tparam ViewType2 The type of the output view
+/// \tparam InViewType The type of the input view
+/// \tparam OutViewType The type of the output view
 /// \tparam DIM The rank of the Views
 ///
 /// \param[in] x The input view
 /// \param[out] xT The output view permuted according to map
 /// \param[in] map The map for permutation
-template <typename ViewType1, typename ViewType2, std::size_t DIM>
-void make_transposed(const ViewType1& x, const ViewType2& xT,
+template <typename InViewType, typename OutViewType, std::size_t DIM>
+void make_transposed(const InViewType& x, const OutViewType& xT,
                      const KokkosFFT::axis_type<DIM>& map) {
-  static_assert(ViewType1::rank() == DIM && ViewType2::rank() == DIM,
+  static_assert(InViewType::rank() == DIM && OutViewType::rank() == DIM,
                 "make_transposed: Rank of Views must be equal to Rank of "
                 "transpose axes.");
   auto h_x  = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x);
   auto h_xT = Kokkos::create_mirror_view(xT);
 
-  for (std::size_t i0 = 0; i0 < h_x.extent(0); i0++) {
-    for (std::size_t i1 = 0; i1 < h_x.extent(1); i1++) {
-      for (std::size_t i2 = 0; i2 < h_x.extent(2); i2++) {
-        for (std::size_t i3 = 0; i3 < h_x.extent(3); i3++) {
-          for (std::size_t i4 = 0; i4 < h_x.extent(4); i4++) {
-            for (std::size_t i5 = 0; i5 < h_x.extent(5); i5++) {
-              for (std::size_t i6 = 0; i6 < h_x.extent(6); i6++) {
-                for (std::size_t i7 = 0; i7 < h_x.extent(7); i7++) {
-                  std::array<std::size_t, 8> src{i0, i1, i2, i3,
-                                                 i4, i5, i6, i7};
-                  std::array<std::size_t, 8> dst = src;
-                  bool in_bound                  = true;
-                  for (std::size_t i = 0; i < ViewType1::rank; ++i) {
+  const std::size_t n0 = InViewType::rank() > 0 ? h_x.extent(0) : 1;
+  const std::size_t n1 = InViewType::rank() > 1 ? h_x.extent(1) : 1;
+  const std::size_t n2 = InViewType::rank() > 2 ? h_x.extent(2) : 1;
+  const std::size_t n3 = InViewType::rank() > 3 ? h_x.extent(3) : 1;
+  const std::size_t n4 = InViewType::rank() > 4 ? h_x.extent(4) : 1;
+  const std::size_t n5 = InViewType::rank() > 5 ? h_x.extent(5) : 1;
+  const std::size_t n6 = InViewType::rank() > 6 ? h_x.extent(6) : 1;
+  const std::size_t n7 = InViewType::rank() > 7 ? h_x.extent(7) : 1;
+
+  for (std::size_t i0 = 0; i0 < n0; i0++) {
+    for (std::size_t i1 = 0; i1 < n1; i1++) {
+      for (std::size_t i2 = 0; i2 < n2; i2++) {
+        for (std::size_t i3 = 0; i3 < n3; i3++) {
+          for (std::size_t i4 = 0; i4 < n4; i4++) {
+            for (std::size_t i5 = 0; i5 < n5; i5++) {
+              for (std::size_t i6 = 0; i6 < n6; i6++) {
+                for (std::size_t i7 = 0; i7 < n7; i7++) {
+                  std::array<std::size_t, 8> indices{i0, i1, i2, i3,
+                                                     i4, i5, i6, i7};
+                  std::array<std::size_t, DIM> src{}, dst{};
+                  bool in_bound = true;
+                  for (std::size_t i = 0; i < DIM; ++i) {
+                    src.at(i) = indices.at(i);
+                  }
+                  for (std::size_t i = 0; i < DIM; ++i) {
                     dst.at(i) = src.at(map.at(i));
                     in_bound &= dst.at(i) < h_xT.extent(i);
                   }
                   if (in_bound) {
-                    // if i > ViewType1::rank:
-                    //  - dst[i] is 0 since we haven't touched it in the
-                    //  previous loop
-                    //  - src[i] is also 0 because h_x.extent(i) is 1
-                    // => We respect `access` constraints.
-                    h_xT.access(dst[0], dst[1], dst[2], dst[3], dst[4], dst[5],
-                                dst[6], dst[7]) =
-                        h_x.access(i0, i1, i2, i3, i4, i5, i6, i7);
+                    make_transposed_internal(h_x, h_xT, src, dst,
+                                             std::make_index_sequence<DIM>{});
                   }
                 }
               }
@@ -126,70 +196,39 @@ void test_is_transpose_needed() {
 
 // Tests for transpose
 // 1D Transpose
-template <typename LayoutType1, typename LayoutType2>
-void test_transpose_1d_1dview(bool bounds_check) {
-  // When transpose is not necessary, we should not call transpose method
-  using View1DLayout1type = Kokkos::View<double*, LayoutType1, execution_space>;
-  using View1DLayout2type = Kokkos::View<double*, LayoutType2, execution_space>;
-  const int len = 30, perturbation = bounds_check ? -2 : 0;
-  View1DLayout1type x("x", len);
-  View1DLayout2type xt("xt", len + perturbation),
-      xt_ref("xt_ref", len + perturbation);
+template <typename LayoutType1, typename LayoutType2, std::size_t DIM>
+void test_transpose_1d(bool bounds_check) {
+  using view_data_type = KokkosFFT::Impl::add_pointer_n_t<double, DIM>;
+
+  using ViewLayout1type =
+      Kokkos::View<view_data_type, LayoutType1, execution_space>;
+  using ViewLayout2type =
+      Kokkos::View<view_data_type, LayoutType2, execution_space>;
+
+  auto in_extents = get_extents<int, DIM>();
+  auto in_layout  = KokkosFFT::Impl::create_layout<LayoutType1>(in_extents);
+
+  ViewLayout1type x("x", in_layout);
 
   execution_space exec;
   Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
   Kokkos::fill_random(exec, x, random_pool, 1.0);
   exec.fence();
 
-  if (bounds_check) {
-    auto sub_x = Kokkos::subview(
-        x, Kokkos::pair<std::size_t, std::size_t>(0, xt_ref.extent(0)));
-    Kokkos::deep_copy(xt_ref, sub_x);
-  } else {
-    Kokkos::deep_copy(xt_ref, x);
-  }
-  KokkosFFT::Impl::transpose(exec, x, xt, axes_type<1>({0}), bounds_check);
-  EXPECT_TRUE(allclose(exec, xt, xt_ref, 1.e-5, 1.e-12));
-  exec.fence();
-}
-
-template <typename LayoutType1, typename LayoutType2>
-void test_transpose_1d_2dview(bool bounds_check) {
-  using View2DLayout1type =
-      Kokkos::View<double**, LayoutType1, execution_space>;
-  using View2DLayout2type =
-      Kokkos::View<double**, LayoutType2, execution_space>;
-  constexpr int DIM = 2;
-  const int n0 = 3, n1 = 5;
-  View2DLayout1type x("x", n0, n1);
-
-  execution_space exec;
-  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
-  Kokkos::fill_random(exec, x, random_pool, 1.0);
-  exec.fence();
-
-  for (int axis0 = 0; axis0 < DIM; axis0++) {
-    auto [map, map_inv]        = KokkosFFT::Impl::get_map_axes(x, axis0);
-    axes_type<DIM> out_extents = {};
-    for (int i = 0; i < DIM; i++) {
-      out_extents.at(i) = x.extent_int(map.at(i));
-      if (bounds_check) {
-        // With bounds_check, we can manipulate the output extents to be
-        // different from the input extents.
-        const axes_type<DIM> perturbations{1, -1};
-        out_extents.at(i) += perturbations.at(map.at(i));
-      }
-    }
-    auto [nt0, nt1] = out_extents;
-
-    View2DLayout2type xt("xt", nt0, nt1), xt_ref("xt_ref", nt0, nt1);
+  for (std::size_t axis0 = 0; axis0 < DIM; axis0++) {
+    auto [map, map_inv] =
+        KokkosFFT::Impl::get_map_axes(x, static_cast<int>(axis0));
+    auto out_extents = get_out_extents(in_extents, map, bounds_check);
+    auto out_layout  = KokkosFFT::Impl::create_layout<LayoutType2>(out_extents);
+    ViewLayout2type xt("xt", out_layout), xt_ref("xt_ref", out_layout);
     make_transposed(x, xt_ref, map);
 
     KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
     EXPECT_TRUE(allclose(exec, xt, xt_ref, 1.e-5, 1.e-12));
 
     // Inverse (transpose of transpose is identical to the original)
-    View2DLayout1type x_inv("x_inv", n0, n1), x_inv_ref("x_inv_ref", n0, n1);
+    ViewLayout1type x_inv("x_inv", in_layout),
+        x_inv_ref("x_inv_ref", in_layout);
     if (bounds_check) {
       // With bounds_check, we may discard some of the input data,
       // so the inverse is not identical to the original
@@ -204,530 +243,45 @@ void test_transpose_1d_2dview(bool bounds_check) {
   }
 }
 
-template <typename LayoutType1, typename LayoutType2>
-void test_transpose_1d_3dview(bool bounds_check) {
-  using View3DLayout1type =
-      Kokkos::View<double***, LayoutType1, execution_space>;
-  using View3DLayout2type =
-      Kokkos::View<double***, LayoutType2, execution_space>;
-  constexpr int DIM = 3;
-  const int n0 = 3, n1 = 5, n2 = 8;
-  View3DLayout1type x("x", n0, n1, n2);
+// 2D Transpose
+template <typename LayoutType1, typename LayoutType2, std::size_t DIM>
+void test_transpose_2d(bool bounds_check) {
+  using view_data_type = KokkosFFT::Impl::add_pointer_n_t<double, DIM>;
+
+  using ViewLayout1type =
+      Kokkos::View<view_data_type, LayoutType1, execution_space>;
+  using ViewLayout2type =
+      Kokkos::View<view_data_type, LayoutType2, execution_space>;
+
+  auto in_extents = get_extents<int, DIM>();
+  auto in_layout  = KokkosFFT::Impl::create_layout<LayoutType1>(in_extents);
+
+  ViewLayout1type x("x", in_layout);
 
   execution_space exec;
   Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
   Kokkos::fill_random(exec, x, random_pool, 1.0);
   exec.fence();
 
-  for (int axis0 = 0; axis0 < DIM; axis0++) {
-    auto [map, map_inv]        = KokkosFFT::Impl::get_map_axes(x, axis0);
-    axes_type<DIM> out_extents = {};
-    for (int i = 0; i < DIM; i++) {
-      out_extents.at(i) = x.extent_int(map.at(i));
-      if (bounds_check) {
-        // With bounds_check, we can manipulate the output extents to be
-        // different from the input extents.
-        const axes_type<DIM> perturbations{1, -2, -1};
-        out_extents.at(i) += perturbations.at(map.at(i));
-      }
-    }
-    auto [nt0, nt1, nt2] = out_extents;
-
-    View3DLayout2type xt("xt", nt0, nt1, nt2), xt_ref("xt_ref", nt0, nt1, nt2);
-    make_transposed(x, xt_ref, map);
-
-    KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
-    EXPECT_TRUE(allclose(exec, xt, xt_ref, 1.e-5, 1.e-12));
-
-    // Inverse (transpose of transpose is identical to the original)
-    View3DLayout1type x_inv("x_invx", n0, n1, n2),
-        x_inv_ref("x_inv_ref", n0, n1, n2);
-    if (bounds_check) {
-      // With bounds_check, we may discard some of the input data,
-      // so the inverse is not identical to the original
-      make_transposed(xt_ref, x_inv_ref, map_inv);
-    } else {
-      Kokkos::deep_copy(x_inv_ref, x);
-    }
-    KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
-    EXPECT_TRUE(allclose(exec, x_inv, x_inv_ref, 1.e-5, 1.e-12));
-    exec.fence();
-  }
-}
-
-template <typename LayoutType1, typename LayoutType2>
-void test_transpose_1d_4dview(bool bounds_check) {
-  using View4DLayout1type =
-      Kokkos::View<double****, LayoutType1, execution_space>;
-  using View4DLayout2type =
-      Kokkos::View<double****, LayoutType2, execution_space>;
-  constexpr int DIM = 4;
-  const int n0 = 2, n1 = 3, n2 = 4, n3 = 5;
-  View4DLayout1type x("x", n0, n1, n2, n3);
-
-  execution_space exec;
-  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
-  Kokkos::fill_random(exec, x, random_pool, 1.0);
-  exec.fence();
-
-  for (int axis0 = 0; axis0 < DIM; axis0++) {
-    auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, axis0);
-
-    axes_type<DIM> out_extents = {};
-    for (int i = 0; i < DIM; i++) {
-      out_extents.at(i) = x.extent_int(map.at(i));
-      if (bounds_check) {
-        // With bounds_check, we can manipulate the output extents to be
-        // different from the input extents.
-        const axes_type<DIM> perturbations{1, 0, -1, -3};
-        out_extents.at(i) += perturbations.at(map.at(i));
-      }
-    }
-    auto [nt0, nt1, nt2, nt3] = out_extents;
-
-    View4DLayout2type xt("xt", nt0, nt1, nt2, nt3),
-        xt_ref("xt_ref", nt0, nt1, nt2, nt3);
-    make_transposed(x, xt_ref, map);
-
-    KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
-    EXPECT_TRUE(allclose(exec, xt, xt_ref, 1.e-5, 1.e-12));
-
-    // Inverse (transpose of transpose is identical to the original)
-    View4DLayout1type x_inv("x_inv", n0, n1, n2, n3),
-        x_inv_ref("x_inv_ref", n0, n1, n2, n3);
-    if (bounds_check) {
-      // With bounds_check, we may discard some of the input data,
-      // so the inverse is not identical to the original
-      make_transposed(xt_ref, x_inv_ref, map_inv);
-    } else {
-      Kokkos::deep_copy(x_inv_ref, x);
-    }
-    KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
-    EXPECT_TRUE(allclose(exec, x_inv, x_inv_ref, 1.e-5, 1.e-12));
-    exec.fence();
-  }
-}
-
-template <typename LayoutType1, typename LayoutType2>
-void test_transpose_1d_5dview(bool bounds_check) {
-  using View5DLayout1type =
-      Kokkos::View<double*****, LayoutType1, execution_space>;
-  using View5DLayout2type =
-      Kokkos::View<double*****, LayoutType2, execution_space>;
-  constexpr int DIM = 5;
-  const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6;
-  View5DLayout1type x("x", n0, n1, n2, n3, n4);
-
-  execution_space exec;
-  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
-  Kokkos::fill_random(exec, x, random_pool, 1.0);
-  exec.fence();
-
-  for (int axis0 = 0; axis0 < DIM; axis0++) {
-    auto [map, map_inv]        = KokkosFFT::Impl::get_map_axes(x, axis0);
-    axes_type<DIM> out_extents = {};
-    for (int i = 0; i < DIM; i++) {
-      out_extents.at(i) = x.extent_int(map.at(i));
-      if (bounds_check) {
-        // With bounds_check, we can manipulate the output extents to be
-        // different from the input extents.
-        const axes_type<DIM> perturbations{1, -1, -1, -3, -2};
-        out_extents.at(i) += perturbations.at(map.at(i));
-      }
-    }
-    auto [nt0, nt1, nt2, nt3, nt4] = out_extents;
-
-    View5DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4),
-        xt_ref("xt_ref", nt0, nt1, nt2, nt3, nt4);
-    make_transposed(x, xt_ref, map);
-
-    KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
-    EXPECT_TRUE(allclose(exec, xt, xt_ref, 1.e-5, 1.e-12));
-
-    // Inverse (transpose of transpose is identical to the original)
-    View5DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4),
-        x_inv_ref("x_inv_ref", n0, n1, n2, n3, n4);
-    if (bounds_check) {
-      // With bounds_check, we may discard some of the input data,
-      // so the inverse is not identical to the original
-      make_transposed(xt_ref, x_inv_ref, map_inv);
-    } else {
-      Kokkos::deep_copy(x_inv_ref, x);
-    }
-    KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
-    EXPECT_TRUE(allclose(exec, x_inv, x_inv_ref, 1.e-5, 1.e-12));
-    exec.fence();
-  }
-}
-
-template <typename LayoutType1, typename LayoutType2>
-void test_transpose_1d_6dview(bool bounds_check) {
-  using View6DLayout1type =
-      Kokkos::View<double******, LayoutType1, execution_space>;
-  using View6DLayout2type =
-      Kokkos::View<double******, LayoutType2, execution_space>;
-  constexpr int DIM = 6;
-  const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6, n5 = 7;
-  View6DLayout1type x("x", n0, n1, n2, n3, n4, n5);
-
-  execution_space exec;
-  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
-  Kokkos::fill_random(exec, x, random_pool, 1.0);
-  exec.fence();
-
-  for (int axis0 = 0; axis0 < DIM; axis0++) {
-    auto [map, map_inv]        = KokkosFFT::Impl::get_map_axes(x, axis0);
-    axes_type<DIM> out_extents = {};
-    for (int i = 0; i < DIM; i++) {
-      out_extents.at(i) = x.extent_int(map.at(i));
-      if (bounds_check) {
-        // With bounds_check, we can manipulate the output extents to be
-        // different from the input extents.
-        const axes_type<DIM> perturbations{0, -1, 1, 1, -2, -1};
-        out_extents.at(i) += perturbations.at(map.at(i));
-      }
-    }
-    auto [nt0, nt1, nt2, nt3, nt4, nt5] = out_extents;
-
-    View6DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5),
-        xt_ref("xt_ref", nt0, nt1, nt2, nt3, nt4, nt5);
-    make_transposed(x, xt_ref, map);
-
-    KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
-    EXPECT_TRUE(allclose(exec, xt, xt_ref, 1.e-5, 1.e-12));
-
-    // Inverse (transpose of transpose is identical to the original)
-    View6DLayout1type x_inv("x_inv_x", n0, n1, n2, n3, n4, n5),
-        x_inv_ref("x_inv_ref", n0, n1, n2, n3, n4, n5);
-    if (bounds_check) {
-      // With bounds_check, we may discard some of the input data,
-      // so the inverse is not identical to the original
-      make_transposed(xt_ref, x_inv_ref, map_inv);
-    } else {
-      Kokkos::deep_copy(x_inv_ref, x);
-    }
-    KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
-    EXPECT_TRUE(allclose(exec, x_inv, x_inv_ref, 1.e-5, 1.e-12));
-    exec.fence();
-  }
-}
-
-template <typename LayoutType1, typename LayoutType2>
-void test_transpose_1d_7dview(bool bounds_check) {
-  using View7DLayout1type =
-      Kokkos::View<double*******, LayoutType1, execution_space>;
-  using View7DLayout2type =
-      Kokkos::View<double*******, LayoutType2, execution_space>;
-  constexpr int DIM = 7;
-  const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6, n5 = 7, n6 = 8;
-  View7DLayout1type x("x", n0, n1, n2, n3, n4, n5, n6);
-
-  execution_space exec;
-  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
-  Kokkos::fill_random(exec, x, random_pool, 1.0);
-  exec.fence();
-
-  for (int axis0 = 0; axis0 < DIM; axis0++) {
-    auto [map, map_inv]        = KokkosFFT::Impl::get_map_axes(x, axis0);
-    axes_type<DIM> out_extents = {};
-    for (int i = 0; i < DIM; i++) {
-      out_extents.at(i) = x.extent_int(map.at(i));
-      if (bounds_check) {
-        // With bounds_check, we can manipulate the output extents to be
-        // different from the input extents.
-        const axes_type<DIM> perturbations{0, -1, 1, 1, -2, -1, 1};
-        out_extents.at(i) += perturbations.at(map.at(i));
-      }
-    }
-    auto [nt0, nt1, nt2, nt3, nt4, nt5, nt6] = out_extents;
-
-    View7DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5, nt6),
-        xt_ref("xt_ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6);
-    make_transposed(x, xt_ref, map);
-
-    KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
-    EXPECT_TRUE(allclose(exec, xt, xt_ref, 1.e-5, 1.e-12));
-
-    // Inverse (transpose of transpose is identical to the original)
-    View7DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6),
-        x_inv_ref("x_inv_ref", n0, n1, n2, n3, n4, n5, n6);
-    if (bounds_check) {
-      // With bounds_check, we may discard some of the input data,
-      // so the inverse is not identical to the original
-      make_transposed(xt_ref, x_inv_ref, map_inv);
-    } else {
-      Kokkos::deep_copy(x_inv_ref, x);
-    }
-    KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
-    EXPECT_TRUE(allclose(exec, x_inv, x_inv_ref, 1.e-5, 1.e-12));
-    exec.fence();
-  }
-}
-
-template <typename LayoutType1, typename LayoutType2>
-void test_transpose_1d_8dview(bool bounds_check) {
-  using View8DLayout1type =
-      Kokkos::View<double********, LayoutType1, execution_space>;
-  using View8DLayout2type =
-      Kokkos::View<double********, LayoutType2, execution_space>;
-  constexpr int DIM = 8;
-  const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6, n5 = 7, n6 = 8, n7 = 9;
-  View8DLayout1type x("x", n0, n1, n2, n3, n4, n5, n6, n7);
-
-  execution_space exec;
-  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
-  Kokkos::fill_random(exec, x, random_pool, 1.0);
-  exec.fence();
-
-  for (int axis0 = 0; axis0 < DIM; axis0++) {
-    auto [map, map_inv]        = KokkosFFT::Impl::get_map_axes(x, axis0);
-    axes_type<DIM> out_extents = {};
-    for (int i = 0; i < DIM; i++) {
-      out_extents.at(i) = x.extent_int(map.at(i));
-      if (bounds_check) {
-        // With bounds_check, we can manipulate the output extents to be
-        // different from the input extents.
-        const axes_type<DIM> perturbations{0, -1, 1, 1, -2, -1, 1, 1};
-        out_extents.at(i) += perturbations.at(map.at(i));
-      }
-    }
-    auto [nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7] = out_extents;
-
-    View8DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7),
-        xt_ref("xt_ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7);
-    make_transposed(x, xt_ref, map);
-
-    KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
-    EXPECT_TRUE(allclose(exec, xt, xt_ref, 1.e-5, 1.e-12));
-
-    // Inverse (transpose of transpose is identical to the original)
-    View8DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6, n7),
-        x_inv_ref("x_inv_ref", n0, n1, n2, n3, n4, n5, n6, n7);
-    if (bounds_check) {
-      // With bounds_check, we may discard some of the input data,
-      // so the inverse is not identical to the original
-      make_transposed(xt_ref, x_inv_ref, map_inv);
-    } else {
-      Kokkos::deep_copy(x_inv_ref, x);
-    }
-    KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
-    EXPECT_TRUE(allclose(exec, x_inv, x_inv_ref, 1.e-5, 1.e-12));
-    exec.fence();
-  }
-}
-
-template <typename LayoutType1, typename LayoutType2>
-void test_transpose_2d_2dview(bool bounds_check) {
-  using View2DLayout1type =
-      Kokkos::View<double**, LayoutType1, execution_space>;
-  using View2DLayout2type =
-      Kokkos::View<double**, LayoutType2, execution_space>;
-  constexpr int DIM = 2;
-  const int n0 = 3, n1 = 5;
-  View2DLayout1type x("x", n0, n1);
-
-  execution_space exec;
-  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
-  Kokkos::fill_random(exec, x, random_pool, 1.0);
-  exec.fence();
-
-  for (int axis0 = 0; axis0 < DIM; axis0++) {
-    for (int axis1 = 0; axis1 < DIM; axis1++) {
+  for (std::size_t axis0 = 0; axis0 < DIM; axis0++) {
+    for (std::size_t axis1 = 0; axis1 < DIM; axis1++) {
       if (axis0 == axis1) continue;
-      KokkosFFT::axis_type<2> axes = {axis0, axis1};
-
-      auto [map, map_inv]        = KokkosFFT::Impl::get_map_axes(x, axes);
-      axes_type<DIM> out_extents = {};
-      for (int i = 0; i < DIM; i++) {
-        out_extents.at(i) = x.extent_int(map.at(i));
-        if (bounds_check) {
-          // With bounds_check, we can manipulate the output extents to be
-          // different from the input extents.
-          const axes_type<DIM> perturbations{1, -1};
-          out_extents.at(i) += perturbations.at(map.at(i));
-        }
-      }
-      auto [nt0, nt1] = out_extents;
-
-      View2DLayout2type xt("xt", nt0, nt1), xt_ref("xt_ref", nt0, nt1);
-      make_transposed(x, xt_ref, map);
-
-      KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
-      EXPECT_TRUE(allclose(exec, xt, xt_ref, 1.e-5, 1.e-12));
-      // Inverse (transpose of transpose is identical to the original)
-      View2DLayout1type x_inv("x_inv", n0, n1), x_inv_ref("x_inv_ref", n0, n1);
-      if (bounds_check) {
-        // With bounds_check, we may discard some of the input data,
-        // so the inverse is not identical to the original
-        make_transposed(xt_ref, x_inv_ref, map_inv);
-      } else {
-        Kokkos::deep_copy(x_inv_ref, x);
-      }
-      KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
-      EXPECT_TRUE(allclose(exec, x_inv, x_inv_ref, 1.e-5, 1.e-12));
-      exec.fence();
-    }
-  }
-}
-
-template <typename LayoutType1, typename LayoutType2>
-void test_transpose_2d_3dview(bool bounds_check) {
-  using View3DLayout1type =
-      Kokkos::View<double***, LayoutType1, execution_space>;
-  using View3DLayout2type =
-      Kokkos::View<double***, LayoutType2, execution_space>;
-  constexpr int DIM = 3;
-  const int n0 = 3, n1 = 5, n2 = 8;
-  View3DLayout1type x("x", n0, n1, n2);
-
-  execution_space exec;
-  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
-  Kokkos::fill_random(exec, x, random_pool, 1.0);
-  exec.fence();
-
-  for (int axis0 = 0; axis0 < DIM; axis0++) {
-    for (int axis1 = 0; axis1 < DIM; axis1++) {
-      if (axis0 == axis1) continue;
-      KokkosFFT::axis_type<2> axes{axis0, axis1};
-
-      auto [map, map_inv]        = KokkosFFT::Impl::get_map_axes(x, axes);
-      axes_type<DIM> out_extents = {};
-      for (int i = 0; i < DIM; i++) {
-        out_extents.at(i) = x.extent_int(map.at(i));
-        if (bounds_check) {
-          // With bounds_check, we can manipulate the output extents to be
-          // different from the input extents.
-          const axes_type<DIM> perturbations{1, -1, 2};
-          out_extents.at(i) += perturbations.at(map.at(i));
-        }
-      }
-      auto [nt0, nt1, nt2] = out_extents;
-
-      View3DLayout2type xt("xt", nt0, nt1, nt2),
-          xt_ref("xt_ref", nt0, nt1, nt2);
-      make_transposed(x, xt_ref, map);
-
-      KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
-      EXPECT_TRUE(allclose(exec, xt, xt_ref, 1.e-5, 1.e-12));
-
-      // Inverse (transpose of transpose is identical to the original)
-      View3DLayout1type x_inv("x_inv", n0, n1, n2),
-          x_inv_ref("x_inv_ref", n0, n1, n2);
-      if (bounds_check) {
-        // With bounds_check, we may discard some of the input data,
-        // so the inverse is not identical to the original
-        make_transposed(xt_ref, x_inv_ref, map_inv);
-      } else {
-        Kokkos::deep_copy(x_inv_ref, x);
-      }
-      KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
-      EXPECT_TRUE(allclose(exec, x_inv, x_inv_ref, 1.e-5, 1.e-12));
-      exec.fence();
-    }
-  }
-}
-
-template <typename LayoutType1, typename LayoutType2>
-void test_transpose_2d_4dview(bool bounds_check) {
-  using View4DLayout1type =
-      Kokkos::View<double****, LayoutType1, execution_space>;
-  using View4DLayout2type =
-      Kokkos::View<double****, LayoutType2, execution_space>;
-  constexpr int DIM = 4;
-  const int n0 = 2, n1 = 3, n2 = 4, n3 = 5;
-  View4DLayout1type x("x", n0, n1, n2, n3);
-
-  execution_space exec;
-  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
-  Kokkos::fill_random(exec, x, random_pool, 1.0);
-  exec.fence();
-
-  for (int axis0 = 0; axis0 < DIM; axis0++) {
-    for (int axis1 = 0; axis1 < DIM; axis1++) {
-      if (axis0 == axis1) continue;
-      KokkosFFT::axis_type<2> axes{axis0, axis1};
+      KokkosFFT::axis_type<2> axes{static_cast<int>(axis0),
+                                   static_cast<int>(axis1)};
 
       auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, axes);
-      if (KokkosFFT::Impl::is_transpose_needed(map)) {
-        axes_type<DIM> out_extents = {};
-        for (int i = 0; i < DIM; i++) {
-          out_extents.at(i) = x.extent_int(map.at(i));
-          if (bounds_check) {
-            // With bounds_check, we can manipulate the output extents to be
-            // different from the input extents.
-            const axes_type<DIM> perturbations{1, 0, -1, -3};
-            out_extents.at(i) += perturbations.at(map.at(i));
-          }
-        }
-        auto [nt0, nt1, nt2, nt3] = out_extents;
-
-        View4DLayout2type xt("xt", nt0, nt1, nt2, nt3),
-            xt_ref("xt_ref", nt0, nt1, nt2, nt3);
-        make_transposed(x, xt_ref, map);
-
-        KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
-        EXPECT_TRUE(allclose(exec, xt, xt_ref, 1.e-5, 1.e-12));
-        // Inverse (transpose of transpose is identical to the original)
-        View4DLayout1type x_inv("x_inv", n0, n1, n2, n3),
-            x_inv_ref("x_inv_ref", n0, n1, n2, n3);
-        if (bounds_check) {
-          // With bounds_check, we may discard some of the input data,
-          // so the inverse is not identical to the original
-          make_transposed(xt_ref, x_inv_ref, map_inv);
-        } else {
-          Kokkos::deep_copy(x_inv_ref, x);
-        }
-        KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
-        EXPECT_TRUE(allclose(exec, x_inv, x_inv_ref, 1.e-5, 1.e-12));
-        exec.fence();
-      }
-    }
-  }
-}
-
-template <typename LayoutType1, typename LayoutType2>
-void test_transpose_2d_5dview(bool bounds_check) {
-  using View5DLayout1type =
-      Kokkos::View<double*****, LayoutType1, execution_space>;
-  using View5DLayout2type =
-      Kokkos::View<double*****, LayoutType2, execution_space>;
-  constexpr int DIM = 5;
-  const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6;
-  View5DLayout1type x("x", n0, n1, n2, n3, n4);
-
-  execution_space exec;
-  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
-  Kokkos::fill_random(exec, x, random_pool, 1.0);
-  exec.fence();
-
-  for (int axis0 = 0; axis0 < DIM; axis0++) {
-    for (int axis1 = 0; axis1 < DIM; axis1++) {
-      if (axis0 == axis1) continue;
-      KokkosFFT::axis_type<2> axes{axis0, axis1};
-
-      auto [map, map_inv]        = KokkosFFT::Impl::get_map_axes(x, axes);
-      axes_type<DIM> out_extents = {};
-      for (int i = 0; i < DIM; i++) {
-        out_extents.at(i) = x.extent_int(map.at(i));
-        if (bounds_check) {
-          // With bounds_check, we can manipulate the output extents to be
-          // different from the input extents.
-          const axes_type<DIM> perturbations{1, -1, -1, -3, -2};
-          out_extents.at(i) += perturbations.at(map.at(i));
-        }
-      }
-      auto [nt0, nt1, nt2, nt3, nt4] = out_extents;
-
-      View5DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4),
-          xt_ref("xt_ref", nt0, nt1, nt2, nt3, nt4);
+      auto out_extents    = get_out_extents(in_extents, map, bounds_check);
+      auto out_layout =
+          KokkosFFT::Impl::create_layout<LayoutType2>(out_extents);
+      ViewLayout2type xt("xt", out_layout), xt_ref("xt_ref", out_layout);
       make_transposed(x, xt_ref, map);
 
       KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
       EXPECT_TRUE(allclose(exec, xt, xt_ref, 1.e-5, 1.e-12));
 
       // Inverse (transpose of transpose is identical to the original)
-      View5DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4),
-          x_inv_ref("x_inv_ref", n0, n1, n2, n3, n4);
+      ViewLayout1type x_inv("x_inv", in_layout),
+          x_inv_ref("x_inv_ref", in_layout);
       if (bounds_check) {
         // With bounds_check, we may discard some of the input data,
         // so the inverse is not identical to the original
@@ -735,6 +289,7 @@ void test_transpose_2d_5dview(bool bounds_check) {
       } else {
         Kokkos::deep_copy(x_inv_ref, x);
       }
+
       KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
       EXPECT_TRUE(allclose(exec, x_inv, x_inv_ref, 1.e-5, 1.e-12));
       exec.fence();
@@ -742,528 +297,47 @@ void test_transpose_2d_5dview(bool bounds_check) {
   }
 }
 
-template <typename LayoutType1, typename LayoutType2>
-void test_transpose_2d_6dview(bool bounds_check) {
-  using View6DLayout1type =
-      Kokkos::View<double******, LayoutType1, execution_space>;
-  using View6DLayout2type =
-      Kokkos::View<double******, LayoutType2, execution_space>;
-  constexpr int DIM = 6;
-  const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6, n5 = 7;
-  View6DLayout1type x("x", n0, n1, n2, n3, n4, n5);
+// 3D Transpose
+template <typename LayoutType1, typename LayoutType2, std::size_t DIM>
+void test_transpose_3d(bool bounds_check) {
+  using view_data_type = KokkosFFT::Impl::add_pointer_n_t<double, DIM>;
+
+  using ViewLayout1type =
+      Kokkos::View<view_data_type, LayoutType1, execution_space>;
+  using ViewLayout2type =
+      Kokkos::View<view_data_type, LayoutType2, execution_space>;
+
+  auto in_extents = get_extents<int, DIM>();
+  auto in_layout  = KokkosFFT::Impl::create_layout<LayoutType1>(in_extents);
+
+  ViewLayout1type x("x", in_layout);
 
   execution_space exec;
   Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
   Kokkos::fill_random(exec, x, random_pool, 1.0);
   exec.fence();
 
-  for (int axis0 = 0; axis0 < DIM; axis0++) {
-    for (int axis1 = 0; axis1 < DIM; axis1++) {
-      if (axis0 == axis1) continue;
-      KokkosFFT::axis_type<2> axes{axis0, axis1};
-
-      auto [map, map_inv]        = KokkosFFT::Impl::get_map_axes(x, axes);
-      axes_type<DIM> out_extents = {};
-      for (int i = 0; i < DIM; i++) {
-        out_extents.at(i) = x.extent_int(map.at(i));
-        if (bounds_check) {
-          // With bounds_check, we can manipulate the output extents to be
-          // different from the input extents.
-          const axes_type<DIM> perturbations{1, -1, -1, 1, -2, -2};
-          out_extents.at(i) += perturbations.at(map.at(i));
-        }
-      }
-      auto [nt0, nt1, nt2, nt3, nt4, nt5] = out_extents;
-
-      View6DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5),
-          xt_ref("xt_ref", nt0, nt1, nt2, nt3, nt4, nt5);
-      make_transposed(x, xt_ref, map);
-
-      KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
-      EXPECT_TRUE(allclose(exec, xt, xt_ref, 1.e-5, 1.e-12));
-
-      // Inverse (transpose of transpose is identical to the original)
-      View6DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5),
-          x_inv_ref("x_inv_ref", n0, n1, n2, n3, n4, n5);
-      if (bounds_check) {
-        // With bounds_check, we may discard some of the input data,
-        // so the inverse is not identical to the original
-        make_transposed(xt_ref, x_inv_ref, map_inv);
-      } else {
-        Kokkos::deep_copy(x_inv_ref, x);
-      }
-      KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
-      EXPECT_TRUE(allclose(exec, x_inv, x_inv_ref, 1.e-5, 1.e-12));
-      exec.fence();
-    }
-  }
-}
-
-template <typename LayoutType1, typename LayoutType2>
-void test_transpose_2d_7dview(bool bounds_check) {
-  using View7DLayout1type =
-      Kokkos::View<double*******, LayoutType1, execution_space>;
-  using View7DLayout2type =
-      Kokkos::View<double*******, LayoutType2, execution_space>;
-  constexpr int DIM = 7;
-  const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6, n5 = 7, n6 = 8;
-  View7DLayout1type x("x", n0, n1, n2, n3, n4, n5, n6);
-
-  execution_space exec;
-  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
-  Kokkos::fill_random(exec, x, random_pool, 1.0);
-  exec.fence();
-
-  for (int axis0 = 0; axis0 < DIM; axis0++) {
-    for (int axis1 = 0; axis1 < DIM; axis1++) {
-      if (axis0 == axis1) continue;
-      KokkosFFT::axis_type<2> axes{axis0, axis1};
-
-      auto [map, map_inv]        = KokkosFFT::Impl::get_map_axes(x, axes);
-      axes_type<DIM> out_extents = {};
-      for (int i = 0; i < DIM; i++) {
-        out_extents.at(i) = x.extent_int(map.at(i));
-        if (bounds_check) {
-          // With bounds_check, we can manipulate the output extents to be
-          // different from the input extents.
-          const axes_type<DIM> perturbations{1, -1, -1, 1, -2, -2};
-          out_extents.at(i) += perturbations.at(map.at(i));
-        }
-      }
-      auto [nt0, nt1, nt2, nt3, nt4, nt5, nt6] = out_extents;
-
-      View7DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5, nt6),
-          xt_ref("xt_ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6);
-
-      make_transposed(x, xt_ref, map);
-      KokkosFFT::Impl::transpose(execution_space(), x, xt, map, bounds_check);
-      EXPECT_TRUE(allclose(execution_space(), xt, xt_ref, 1.e-5, 1.e-12));
-
-      // Inverse (transpose of transpose is identical to the original)
-      View7DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6),
-          x_inv_ref("x_inv_ref", n0, n1, n2, n3, n4, n5, n6);
-      if (bounds_check) {
-        // With bounds_check, we may discard some of the input data,
-        // so the inverse is not identical to the original
-        make_transposed(xt_ref, x_inv_ref, map_inv);
-      } else {
-        Kokkos::deep_copy(x_inv_ref, x);
-      }
-      KokkosFFT::Impl::transpose(execution_space(), xt, x_inv, map_inv,
-                                 bounds_check);
-      EXPECT_TRUE(allclose(execution_space(), x_inv, x_inv_ref, 1.e-5, 1.e-12));
-    }
-  }
-}
-
-template <typename LayoutType1, typename LayoutType2>
-void test_transpose_2d_8dview(bool bounds_check) {
-  using View8DLayout1type =
-      Kokkos::View<double********, LayoutType1, execution_space>;
-  using View8DLayout2type =
-      Kokkos::View<double********, LayoutType2, execution_space>;
-  constexpr int DIM = 8;
-  const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6, n5 = 7, n6 = 8, n7 = 9;
-  View8DLayout1type x("x", n0, n1, n2, n3, n4, n5, n6, n7);
-
-  execution_space exec;
-  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
-  Kokkos::fill_random(exec, x, random_pool, 1.0);
-  exec.fence();
-
-  for (int axis0 = 0; axis0 < DIM; axis0++) {
-    for (int axis1 = 0; axis1 < DIM; axis1++) {
-      if (axis0 == axis1) continue;
-      KokkosFFT::axis_type<2> axes{axis0, axis1};
-
-      auto [map, map_inv]        = KokkosFFT::Impl::get_map_axes(x, axes);
-      axes_type<DIM> out_extents = {};
-      for (int i = 0; i < DIM; i++) {
-        out_extents.at(i) = x.extent_int(map.at(i));
-        if (bounds_check) {
-          // With bounds_check, we can manipulate the output extents to be
-          // different from the input extents.
-          const axes_type<DIM> perturbations{0, -1, 1, 1, -2, -1, 1, 1};
-          out_extents.at(i) += perturbations.at(map.at(i));
-        }
-      }
-      auto [nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7] = out_extents;
-
-      View8DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7),
-          xt_ref("xt_ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7);
-      make_transposed(x, xt_ref, map);
-
-      KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
-      EXPECT_TRUE(allclose(exec, xt, xt_ref, 1.e-5, 1.e-12));
-
-      // Inverse (transpose of transpose is identical to the original)
-      View8DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6, n7),
-          x_inv_ref("x_inv_ref", n0, n1, n2, n3, n4, n5, n6, n7);
-      if (bounds_check) {
-        // With bounds_check, we may discard some of the input data,
-        // so the inverse is not identical to the original
-        make_transposed(xt_ref, x_inv_ref, map_inv);
-      } else {
-        Kokkos::deep_copy(x_inv_ref, x);
-      }
-      KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
-      EXPECT_TRUE(allclose(exec, x_inv, x_inv_ref, 1.e-5, 1.e-12));
-      exec.fence();
-    }
-  }
-}
-
-template <typename LayoutType1, typename LayoutType2>
-void test_transpose_3d_3dview(bool bounds_check) {
-  using View3DLayout1type =
-      Kokkos::View<double***, LayoutType1, execution_space>;
-  using View3DLayout2type =
-      Kokkos::View<double***, LayoutType2, execution_space>;
-  constexpr int DIM = 3;
-  const int n0 = 2, n1 = 3, n2 = 4;
-  View3DLayout1type x("x", n0, n1, n2);
-
-  execution_space exec;
-  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
-  Kokkos::fill_random(exec, x, random_pool, 1.0);
-  exec.fence();
-
-  for (int axis0 = 0; axis0 < DIM; axis0++) {
-    for (int axis1 = 0; axis1 < DIM; axis1++) {
-      for (int axis2 = 0; axis2 < DIM; axis2++) {
+  for (std::size_t axis0 = 0; axis0 < DIM; axis0++) {
+    for (std::size_t axis1 = 0; axis1 < DIM; axis1++) {
+      for (std::size_t axis2 = 0; axis2 < DIM; axis2++) {
         if (axis0 == axis1 || axis0 == axis2 || axis1 == axis2) continue;
-
-        KokkosFFT::axis_type<3> axes = {axis0, axis1, axis2};
-        auto [map, map_inv]          = KokkosFFT::Impl::get_map_axes(x, axes);
-
-        // FIXME: This triggers test failure in FFT shifts test on Cuda
-        // backend with Release build
-        if (map == axes_type<DIM>{0, 1, 2}) continue;
-
-        axes_type<DIM> out_extents = {};
-        for (int i = 0; i < DIM; i++) {
-          out_extents.at(i) = x.extent_int(map.at(i));
-          if (bounds_check) {
-            // With bounds_check, we can manipulate the output extents to be
-            // different from the input extents.
-            const axes_type<DIM> perturbations{1, -1, 1};
-            out_extents.at(i) += perturbations.at(map.at(i));
-          }
-        }
-        auto [nt0, nt1, nt2] = out_extents;
-
-        View3DLayout2type xt("xt", nt0, nt1, nt2),
-            xt_ref("xt_ref", nt0, nt1, nt2);
-        make_transposed(x, xt_ref, map);
-
-        KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
-        EXPECT_TRUE(allclose(exec, xt, xt_ref, 1.e-5, 1.e-12));
-
-        // Inverse (transpose of transpose is identical to the original)
-        View3DLayout1type x_inv("x_inv", n0, n1, n2),
-            x_inv_ref("x_inv_ref", n0, n1, n2);
-        if (bounds_check) {
-          // With bounds_check, we may discard some of the input data,
-          // so the inverse is not identical to the original
-          make_transposed(xt_ref, x_inv_ref, map_inv);
-        } else {
-          Kokkos::deep_copy(x_inv_ref, x);
-        }
-        KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
-        EXPECT_TRUE(allclose(exec, x_inv, x_inv_ref, 1.e-5, 1.e-12));
-        exec.fence();
-      }
-    }
-  }
-}
-
-template <typename LayoutType1, typename LayoutType2>
-void test_transpose_3d_4dview(bool bounds_check) {
-  using View4DLayout1type =
-      Kokkos::View<double****, LayoutType1, execution_space>;
-  using View4DLayout2type =
-      Kokkos::View<double****, LayoutType2, execution_space>;
-  constexpr int DIM = 4;
-  const int n0 = 2, n1 = 3, n2 = 4, n3 = 5;
-  View4DLayout1type x("x", n0, n1, n2, n3);
-
-  execution_space exec;
-  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
-  Kokkos::fill_random(exec, x, random_pool, 1.0);
-  exec.fence();
-
-  for (int axis0 = 0; axis0 < DIM; axis0++) {
-    for (int axis1 = 0; axis1 < DIM; axis1++) {
-      for (int axis2 = 0; axis2 < DIM; axis2++) {
-        if (axis0 == axis1 || axis0 == axis2 || axis1 == axis2) continue;
-        KokkosFFT::axis_type<3> axes{axis0, axis1, axis2};
+        KokkosFFT::axis_type<3> axes{static_cast<int>(axis0),
+                                     static_cast<int>(axis1),
+                                     static_cast<int>(axis2)};
 
         auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, axes);
-        // FIXME: This triggers test failure in FFT shifts test on Cuda
-        // backend with Release build
-        if (map == axes_type<DIM>{0, 1, 2, 3}) continue;
-        axes_type<DIM> out_extents = {};
-        for (int i = 0; i < DIM; i++) {
-          out_extents.at(i) = x.extent_int(map.at(i));
-          if (bounds_check) {
-            // With bounds_check, we can manipulate the output extents to be
-            // different from the input extents.
-            const axes_type<DIM> perturbations{1, -1, 1, -1};
-            out_extents.at(i) += perturbations.at(map.at(i));
-          }
-        }
-        auto [nt0, nt1, nt2, nt3] = out_extents;
-
-        View4DLayout2type xt("xt", nt0, nt1, nt2, nt3),
-            xt_ref("xt_ref", nt0, nt1, nt2, nt3);
-        make_transposed(x, xt_ref, map);
-
-        KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
-        EXPECT_TRUE(allclose(exec, xt, xt_ref, 1.e-5, 1.e-12));
-        // Inverse (transpose of transpose is identical to the original)
-        View4DLayout1type x_inv("x_inv", n0, n1, n2, n3),
-            x_inv_ref("x_inv_ref", n0, n1, n2, n3);
-        if (bounds_check) {
-          // With bounds_check, we may discard some of the input data,
-          // so the inverse is not identical to the original
-          make_transposed(xt_ref, x_inv_ref, map_inv);
-        } else {
-          Kokkos::deep_copy(x_inv_ref, x);
-        }
-        KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
-        EXPECT_TRUE(allclose(exec, x_inv, x_inv_ref, 1.e-5, 1.e-12));
-        exec.fence();
-      }
-    }
-  }
-}
-
-template <typename LayoutType1, typename LayoutType2>
-void test_transpose_3d_5dview(bool bounds_check) {
-  using View5DLayout1type =
-      Kokkos::View<double*****, LayoutType1, execution_space>;
-  using View5DLayout2type =
-      Kokkos::View<double*****, LayoutType2, execution_space>;
-  constexpr int DIM = 5;
-  const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6;
-  View5DLayout1type x("x", n0, n1, n2, n3, n4);
-
-  execution_space exec;
-  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
-  Kokkos::fill_random(exec, x, random_pool, 1.0);
-  exec.fence();
-
-  for (int axis0 = 0; axis0 < DIM; axis0++) {
-    for (int axis1 = 0; axis1 < DIM; axis1++) {
-      for (int axis2 = 0; axis2 < DIM; axis2++) {
-        if (axis0 == axis1 || axis0 == axis2 || axis1 == axis2) continue;
-
-        KokkosFFT::axis_type<3> axes{axis0, axis1, axis2};
-
-        auto [map, map_inv]        = KokkosFFT::Impl::get_map_axes(x, axes);
-        axes_type<DIM> out_extents = {};
-        for (int i = 0; i < DIM; i++) {
-          out_extents.at(i) = x.extent_int(map.at(i));
-          if (bounds_check) {
-            // With bounds_check, we can manipulate the output extents to be
-            // different from the input extents.
-            const axes_type<DIM> perturbations{1, -1, 1, -1, -1};
-            out_extents.at(i) += perturbations.at(map.at(i));
-          }
-        }
-        auto [nt0, nt1, nt2, nt3, nt4] = out_extents;
-
-        View5DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4),
-            xt_ref("xt_ref", nt0, nt1, nt2, nt3, nt4);
+        auto out_extents    = get_out_extents(in_extents, map, bounds_check);
+        auto out_layout =
+            KokkosFFT::Impl::create_layout<LayoutType2>(out_extents);
+        ViewLayout2type xt("xt", out_layout), xt_ref("xt_ref", out_layout);
         make_transposed(x, xt_ref, map);
 
         KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
         EXPECT_TRUE(allclose(exec, xt, xt_ref, 1.e-5, 1.e-12));
 
         // Inverse (transpose of transpose is identical to the original)
-        View5DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4),
-            x_inv_ref("x_inv_ref", n0, n1, n2, n3, n4);
-        if (bounds_check) {
-          // With bounds_check, we may discard some of the input data,
-          // so the inverse is not identical to the original
-          make_transposed(xt_ref, x_inv_ref, map_inv);
-        } else {
-          Kokkos::deep_copy(x_inv_ref, x);
-        }
-        KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
-        EXPECT_TRUE(allclose(exec, x_inv, x_inv_ref, 1.e-5, 1.e-12));
-        exec.fence();
-      }
-    }
-  }
-}
-
-template <typename LayoutType1, typename LayoutType2>
-void test_transpose_3d_6dview(bool bounds_check) {
-  using View6DLayout1type =
-      Kokkos::View<double******, LayoutType1, execution_space>;
-  using View6DLayout2type =
-      Kokkos::View<double******, LayoutType2, execution_space>;
-  constexpr int DIM = 6;
-  const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6, n5 = 7;
-  View6DLayout1type x("x", n0, n1, n2, n3, n4, n5);
-
-  execution_space exec;
-  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
-  Kokkos::fill_random(exec, x, random_pool, 1.0);
-  exec.fence();
-
-  for (int axis0 = 0; axis0 < DIM; axis0++) {
-    for (int axis1 = 0; axis1 < DIM; axis1++) {
-      for (int axis2 = 0; axis2 < DIM; axis2++) {
-        if (axis0 == axis1 || axis0 == axis2 || axis1 == axis2) continue;
-
-        KokkosFFT::axis_type<3> axes{axis0, axis1, axis2};
-
-        auto [map, map_inv]        = KokkosFFT::Impl::get_map_axes(x, axes);
-        axes_type<DIM> out_extents = {};
-        for (int i = 0; i < DIM; i++) {
-          out_extents.at(i) = x.extent_int(map.at(i));
-          if (bounds_check) {
-            // With bounds_check, we can manipulate the output extents to be
-            // different from the input extents.
-            const axes_type<DIM> perturbations{1, -1, 1, -1, -1, -1};
-            out_extents.at(i) += perturbations.at(map.at(i));
-          }
-        }
-        auto [nt0, nt1, nt2, nt3, nt4, nt5] = out_extents;
-
-        View6DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5),
-            xt_ref("xt_ref", nt0, nt1, nt2, nt3, nt4, nt5);
-        make_transposed(x, xt_ref, map);
-
-        KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
-        EXPECT_TRUE(allclose(exec, xt, xt_ref, 1.e-5, 1.e-12));
-
-        // Inverse (transpose of transpose is identical to the original)
-        View6DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5),
-            x_inv_ref("x_inv_ref", n0, n1, n2, n3, n4, n5);
-        if (bounds_check) {
-          // With bounds_check, we may discard some of the input data,
-          // so the inverse is not identical to the original
-          make_transposed(xt_ref, x_inv_ref, map_inv);
-        } else {
-          Kokkos::deep_copy(x_inv_ref, x);
-        }
-        KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
-        EXPECT_TRUE(allclose(exec, x_inv, x_inv_ref, 1.e-5, 1.e-12));
-        exec.fence();
-      }
-    }
-  }
-}
-
-template <typename LayoutType1, typename LayoutType2>
-void test_transpose_3d_7dview(bool bounds_check) {
-  using View7DLayout1type =
-      Kokkos::View<double*******, LayoutType1, execution_space>;
-  using View7DLayout2type =
-      Kokkos::View<double*******, LayoutType2, execution_space>;
-  constexpr int DIM = 7;
-  const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6, n5 = 7, n6 = 8;
-  View7DLayout1type x("x", n0, n1, n2, n3, n4, n5, n6);
-
-  execution_space exec;
-  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
-  Kokkos::fill_random(exec, x, random_pool, 1.0);
-  exec.fence();
-
-  for (int axis0 = 0; axis0 < DIM; axis0++) {
-    for (int axis1 = 0; axis1 < DIM; axis1++) {
-      for (int axis2 = 0; axis2 < DIM; axis2++) {
-        if (axis0 == axis1 || axis0 == axis2 || axis1 == axis2) continue;
-
-        KokkosFFT::axis_type<3> axes{axis0, axis1, axis2};
-
-        auto [map, map_inv]        = KokkosFFT::Impl::get_map_axes(x, axes);
-        axes_type<DIM> out_extents = {};
-
-        for (int i = 0; i < DIM; i++) {
-          out_extents.at(i) = x.extent_int(map.at(i));
-          if (bounds_check) {
-            // With bounds_check, we can manipulate the output extents to be
-            // different from the input extents.
-            const axes_type<DIM> perturbations{1, -1, 1, -1, -1, -1, -1};
-            out_extents.at(i) += perturbations.at(map.at(i));
-          }
-        }
-        auto [nt0, nt1, nt2, nt3, nt4, nt5, nt6] = out_extents;
-
-        View7DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5, nt6),
-            xt_ref("xt_ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6);
-        make_transposed(x, xt_ref, map);
-
-        KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
-        EXPECT_TRUE(allclose(exec, xt, xt_ref, 1.e-5, 1.e-12));
-
-        // Inverse (transpose of transpose is identical to the original)
-        View7DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6),
-            x_inv_ref("x_inv_ref", n0, n1, n2, n3, n4, n5, n6);
-        if (bounds_check) {
-          // With bounds_check, we may discard some of the input data,
-          // so the inverse is not identical to the original
-          make_transposed(xt_ref, x_inv_ref, map_inv);
-        } else {
-          Kokkos::deep_copy(x_inv_ref, x);
-        }
-        KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
-        EXPECT_TRUE(allclose(exec, x_inv, x_inv_ref, 1.e-5, 1.e-12));
-        exec.fence();
-      }
-    }
-  }
-}
-
-template <typename LayoutType1, typename LayoutType2>
-void test_transpose_3d_8dview(bool bounds_check) {
-  using View8DLayout1type =
-      Kokkos::View<double********, LayoutType1, execution_space>;
-  using View8DLayout2type =
-      Kokkos::View<double********, LayoutType2, execution_space>;
-  constexpr int DIM = 8;
-  const int n0 = 2, n1 = 3, n2 = 4, n3 = 5, n4 = 6, n5 = 7, n6 = 8, n7 = 9;
-  View8DLayout1type x("x", n0, n1, n2, n3, n4, n5, n6, n7);
-
-  execution_space exec;
-  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
-  Kokkos::fill_random(exec, x, random_pool, 1.0);
-  exec.fence();
-
-  for (int axis0 = 0; axis0 < DIM; axis0++) {
-    for (int axis1 = 0; axis1 < DIM; axis1++) {
-      for (int axis2 = 0; axis2 < DIM; axis2++) {
-        if (axis0 == axis1 || axis0 == axis2 || axis1 == axis2) continue;
-
-        KokkosFFT::axis_type<3> axes{axis0, axis1, axis2};
-
-        auto [map, map_inv]        = KokkosFFT::Impl::get_map_axes(x, axes);
-        axes_type<DIM> out_extents = {};
-        for (int i = 0; i < DIM; i++) {
-          out_extents.at(i) = x.extent_int(map.at(i));
-          if (bounds_check) {
-            // With bounds_check, we can manipulate the output extents to be
-            // different from the input extents.
-            const axes_type<DIM> perturbations{0, -1, 1, 1, -2, -1, 1, 1};
-            out_extents.at(i) += perturbations.at(map.at(i));
-          }
-        }
-        auto [nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7] = out_extents;
-
-        View8DLayout2type xt("xt", nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7),
-            xt_ref("xt_ref", nt0, nt1, nt2, nt3, nt4, nt5, nt6, nt7);
-        make_transposed(x, xt_ref, map);
-
-        KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
-        EXPECT_TRUE(allclose(exec, xt, xt_ref, 1.e-5, 1.e-12));
-
-        // Inverse (transpose of transpose is identical to the original)
-        View8DLayout1type x_inv("x_inv", n0, n1, n2, n3, n4, n5, n6, n7),
-            x_inv_ref("x_inv_ref", n0, n1, n2, n3, n4, n5, n6, n7);
+        ViewLayout1type x_inv("x_inv", in_layout),
+            x_inv_ref("x_inv_ref", in_layout);
         if (bounds_check) {
           // With bounds_check, we may discard some of the input data,
           // so the inverse is not identical to the original
@@ -1297,332 +371,292 @@ TYPED_TEST(TestTranspose1D, 1DView) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_1d_1dview<layout_type1, layout_type2>(false);
+  test_transpose_1d<layout_type1, layout_type2, 1>(false);
 }
 
 TYPED_TEST(TestTranspose1D, 1DView_with_bounds_check) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_1d_1dview<layout_type1, layout_type2>(true);
+  test_transpose_1d<layout_type1, layout_type2, 1>(true);
 }
 
 TYPED_TEST(TestTranspose1D, 2DView) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_1d_2dview<layout_type1, layout_type2>(false);
+  test_transpose_1d<layout_type1, layout_type2, 2>(false);
 }
 
 TYPED_TEST(TestTranspose1D, 2DView_with_bounds_check) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_1d_2dview<layout_type1, layout_type2>(true);
+  test_transpose_1d<layout_type1, layout_type2, 2>(true);
 }
 
 TYPED_TEST(TestTranspose1D, 3DView) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_1d_3dview<layout_type1, layout_type2>(false);
+  test_transpose_1d<layout_type1, layout_type2, 3>(false);
 }
 
 TYPED_TEST(TestTranspose1D, 3DView_with_bounds_check) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_1d_3dview<layout_type1, layout_type2>(true);
+  test_transpose_1d<layout_type1, layout_type2, 3>(true);
 }
 
 TYPED_TEST(TestTranspose1D, 4DView) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  if constexpr (!std::is_same_v<layout_type1, layout_type2>) {
-    GTEST_SKIP() << "FIXME: This triggers a failure in FFT shifts test on Cuda "
-                    "backend with Release build";
-  }
-
-  test_transpose_1d_4dview<layout_type1, layout_type2>(false);
+  test_transpose_1d<layout_type1, layout_type2, 4>(false);
 }
 
 TYPED_TEST(TestTranspose1D, 4DView_with_bounds_check) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  if constexpr (!std::is_same_v<layout_type1, layout_type2>) {
-    GTEST_SKIP() << "FIXME: This triggers a failure in FFT shifts test on Cuda "
-                    "backend with Release build";
-  }
-
-  test_transpose_1d_4dview<layout_type1, layout_type2>(true);
+  test_transpose_1d<layout_type1, layout_type2, 4>(true);
 }
 
 TYPED_TEST(TestTranspose1D, 5DView) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_1d_5dview<layout_type1, layout_type2>(false);
+  test_transpose_1d<layout_type1, layout_type2, 5>(false);
 }
 
 TYPED_TEST(TestTranspose1D, 5DView_with_bounds_check) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_1d_5dview<layout_type1, layout_type2>(true);
+  test_transpose_1d<layout_type1, layout_type2, 5>(true);
 }
 
 TYPED_TEST(TestTranspose1D, 6DView) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_1d_6dview<layout_type1, layout_type2>(false);
+  test_transpose_1d<layout_type1, layout_type2, 6>(false);
 }
 
 TYPED_TEST(TestTranspose1D, 6DView_with_bounds_check) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_1d_6dview<layout_type1, layout_type2>(true);
+  test_transpose_1d<layout_type1, layout_type2, 6>(true);
 }
 
 TYPED_TEST(TestTranspose1D, 7DView) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_1d_7dview<layout_type1, layout_type2>(false);
+  test_transpose_1d<layout_type1, layout_type2, 7>(false);
 }
 
 TYPED_TEST(TestTranspose1D, 7DView_with_bounds_check) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_1d_7dview<layout_type1, layout_type2>(true);
+  test_transpose_1d<layout_type1, layout_type2, 7>(true);
 }
 
 TYPED_TEST(TestTranspose1D, 8DView) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_1d_8dview<layout_type1, layout_type2>(false);
+  test_transpose_1d<layout_type1, layout_type2, 8>(false);
 }
 
 TYPED_TEST(TestTranspose1D, 8DView_with_bounds_check) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_1d_8dview<layout_type1, layout_type2>(true);
+  test_transpose_1d<layout_type1, layout_type2, 8>(true);
 }
 
 TYPED_TEST(TestTranspose2D, 2DView) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_2d_2dview<layout_type1, layout_type2>(false);
+  test_transpose_2d<layout_type1, layout_type2, 2>(false);
 }
 
 TYPED_TEST(TestTranspose2D, 2DView_with_bounds_check) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_2d_2dview<layout_type1, layout_type2>(true);
+  test_transpose_2d<layout_type1, layout_type2, 2>(true);
 }
 
 TYPED_TEST(TestTranspose2D, 3DView) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_2d_3dview<layout_type1, layout_type2>(false);
+  test_transpose_2d<layout_type1, layout_type2, 3>(false);
 }
 
 TYPED_TEST(TestTranspose2D, 3DView_with_bounds_check) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_2d_3dview<layout_type1, layout_type2>(true);
+  test_transpose_2d<layout_type1, layout_type2, 3>(true);
 }
 
 TYPED_TEST(TestTranspose2D, 4DView) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  if constexpr (!std::is_same_v<layout_type1, layout_type2>) {
-    GTEST_SKIP() << "FIXME: This triggers a failure in FFT shifts test on Cuda "
-                    "backend with Release build";
-  }
-
-  test_transpose_2d_4dview<layout_type1, layout_type2>(false);
+  test_transpose_2d<layout_type1, layout_type2, 4>(false);
 }
 
 TYPED_TEST(TestTranspose2D, 4DView_with_bounds_check) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  if constexpr (!std::is_same_v<layout_type1, layout_type2>) {
-    GTEST_SKIP() << "FIXME: This triggers a failure in FFT shifts test on Cuda "
-                    "backend with Release build";
-  }
-
-  test_transpose_2d_4dview<layout_type1, layout_type2>(true);
+  test_transpose_2d<layout_type1, layout_type2, 4>(true);
 }
 
 TYPED_TEST(TestTranspose2D, 5DView) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_2d_5dview<layout_type1, layout_type2>(false);
+  test_transpose_2d<layout_type1, layout_type2, 5>(false);
 }
 
 TYPED_TEST(TestTranspose2D, 5DView_with_bounds_check) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_2d_5dview<layout_type1, layout_type2>(true);
+  test_transpose_2d<layout_type1, layout_type2, 5>(true);
 }
 
 TYPED_TEST(TestTranspose2D, 6DView) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_2d_6dview<layout_type1, layout_type2>(false);
+  test_transpose_2d<layout_type1, layout_type2, 6>(false);
 }
 
 TYPED_TEST(TestTranspose2D, 6DView_with_bounds_check) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_2d_6dview<layout_type1, layout_type2>(true);
+  test_transpose_2d<layout_type1, layout_type2, 6>(true);
 }
 
 TYPED_TEST(TestTranspose2D, 7DView) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_2d_7dview<layout_type1, layout_type2>(false);
+  test_transpose_2d<layout_type1, layout_type2, 7>(false);
 }
 
 TYPED_TEST(TestTranspose2D, 7DView_with_bounds_check) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_2d_7dview<layout_type1, layout_type2>(true);
+  test_transpose_2d<layout_type1, layout_type2, 7>(true);
 }
 
 TYPED_TEST(TestTranspose2D, 8DView) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_2d_8dview<layout_type1, layout_type2>(false);
+  test_transpose_2d<layout_type1, layout_type2, 8>(false);
 }
 
 TYPED_TEST(TestTranspose2D, 8DView_with_bounds_check) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_2d_8dview<layout_type1, layout_type2>(true);
+  test_transpose_2d<layout_type1, layout_type2, 8>(true);
 }
 
 TYPED_TEST(TestTranspose3D, 3DView) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  if constexpr (!std::is_same_v<layout_type1, layout_type2>) {
-    GTEST_SKIP() << "FIXME: This triggers a failure in FFT shifts test on Cuda "
-                    "backend with Release build";
-  }
-
-  test_transpose_3d_3dview<layout_type1, layout_type2>(false);
+  test_transpose_3d<layout_type1, layout_type2, 3>(false);
 }
 
 TYPED_TEST(TestTranspose3D, 3DView_with_bounds_check) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  if constexpr (!std::is_same_v<layout_type1, layout_type2>) {
-    GTEST_SKIP() << "FIXME: This triggers a failure in FFT shifts test on Cuda "
-                    "backend with Release build";
-  }
-
-  test_transpose_3d_3dview<layout_type1, layout_type2>(true);
+  test_transpose_3d<layout_type1, layout_type2, 3>(true);
 }
 
 TYPED_TEST(TestTranspose3D, 4DView) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  if constexpr (!std::is_same_v<layout_type1, layout_type2>) {
-    GTEST_SKIP() << "FIXME: This triggers a failure in FFT shifts test on Cuda "
-                    "backend with Release build";
-  }
-
-  test_transpose_3d_4dview<layout_type1, layout_type2>(false);
+  test_transpose_3d<layout_type1, layout_type2, 4>(false);
 }
 
 TYPED_TEST(TestTranspose3D, 4DView_with_bounds_check) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  if constexpr (!std::is_same_v<layout_type1, layout_type2>) {
-    GTEST_SKIP() << "FIXME: This triggers a failure in FFT shifts test on Cuda "
-                    "backend with Release build";
-  }
-
-  test_transpose_3d_4dview<layout_type1, layout_type2>(true);
+  test_transpose_3d<layout_type1, layout_type2, 4>(true);
 }
 
 TYPED_TEST(TestTranspose3D, 5DView) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_3d_5dview<layout_type1, layout_type2>(false);
+  test_transpose_3d<layout_type1, layout_type2, 5>(false);
 }
 
 TYPED_TEST(TestTranspose3D, 5DView_with_bounds_check) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_3d_5dview<layout_type1, layout_type2>(true);
+  test_transpose_3d<layout_type1, layout_type2, 5>(true);
 }
 
 TYPED_TEST(TestTranspose3D, 6DView) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_3d_6dview<layout_type1, layout_type2>(false);
+  test_transpose_3d<layout_type1, layout_type2, 6>(false);
 }
 
 TYPED_TEST(TestTranspose3D, 6DView_with_bounds_check) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_3d_6dview<layout_type1, layout_type2>(true);
+  test_transpose_3d<layout_type1, layout_type2, 6>(true);
 }
 
 TYPED_TEST(TestTranspose3D, 7DView) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_3d_7dview<layout_type1, layout_type2>(false);
+  test_transpose_3d<layout_type1, layout_type2, 7>(false);
 }
 
 TYPED_TEST(TestTranspose3D, 7DView_with_bounds_check) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_3d_7dview<layout_type1, layout_type2>(true);
+  test_transpose_3d<layout_type1, layout_type2, 7>(true);
 }
 
 TYPED_TEST(TestTranspose3D, 8DView) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_3d_8dview<layout_type1, layout_type2>(false);
+  test_transpose_3d<layout_type1, layout_type2, 8>(false);
 }
 
 TYPED_TEST(TestTranspose3D, 8DView_with_bounds_check) {
   using layout_type1 = typename TestFixture::layout_type1;
   using layout_type2 = typename TestFixture::layout_type2;
 
-  test_transpose_3d_8dview<layout_type1, layout_type2>(true);
+  test_transpose_3d<layout_type1, layout_type2, 8>(true);
 }
