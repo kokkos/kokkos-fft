@@ -9,9 +9,9 @@ add_executable(
   Test_Traits.cpp
   Test_Layout.cpp
   Test_Normalization.cpp
+  Test_MDOperations.cpp
   Test_Mapping.cpp
   Test_Extents.cpp
-  Test_MDOperations.cpp
   Test_Padding.cpp
   Test_Helpers.cpp
 )
