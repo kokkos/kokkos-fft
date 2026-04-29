@@ -25,4 +25,5 @@ target_link_libraries(unit-tests-kokkos-transpose PUBLIC KokkosFFT::fft GTest::g
 
 # Enable GoogleTest
 include(GoogleTest)
-gtest_discover_tests(unit-tests-kokkos-fft-common unit-tests-kokkos-transpose PROPERTIES DISCOVERY_TIMEOUT 600 DISCOVERY_MODE PRE_TEST)
+gtest_discover_tests(unit-tests-kokkos-fft-common PROPERTIES DISCOVERY_TIMEOUT 600 DISCOVERY_MODE PRE_TEST)
+gtest_discover_tests(unit-tests-kokkos-transpose PROPERTIES DISCOVERY_TIMEOUT 600 DISCOVERY_MODE PRE_TEST)
