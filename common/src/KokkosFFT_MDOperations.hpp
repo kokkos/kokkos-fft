@@ -56,8 +56,9 @@ auto get_mdpolicy(const ExecutionSpace& space, const ViewType& x) {
 /// on each element of the view.
 ///
 /// \tparam ViewType The type of the Kokkos view on which the unary operator is
-/// applied. \tparam UnaryOperatorType The type of the unary operator to be
-/// applied on each element of the view.
+/// applied.
+/// \tparam UnaryOperatorType The type of the unary operator to be applied on
+/// each element of the view.
 template <typename ViewType, typename UnaryOperatorType>
 struct MDUnaryOp {
  private:
@@ -93,7 +94,8 @@ struct MDUnaryOp {
 /// \brief A helper function to apply a unary operator on each element of the
 /// view with Range/MDRangePolicy based on the rank of the view. For 1D views, a
 /// RangePolicy is used, while for higher-dimensional views, an MDRangePolicy is
-/// used. \tparam IndexType The type of the index used in the Kokkos policies.
+/// used.
+/// \tparam IndexType The type of the index used in the Kokkos policies.
 /// \tparam ExecutionSpace The type of the Kokkos execution space.
 /// \tparam ViewType The type of the Kokkos view.
 /// \tparam UnaryOperatorType The type of the unary operator.

@@ -14,9 +14,11 @@ namespace Impl {
 /// \brief Functor to compute the conjugate of a complex number.
 struct Conjugate {
   /// \brief Applies the conjugate operation to the input value if it is
-  /// complex, otherwise returns the input value unchanged. \tparam T The type
-  /// of the input value. \param[in] x The input value. \return The conjugate of
-  /// the input value if it is complex, otherwise the input value unchanged.
+  /// complex, otherwise returns the input value unchanged.
+  /// \tparam T The type of the input value.
+  /// \param[in] x The input value.
+  /// \return The conjugate of the input value if it is complex, otherwise the
+  /// input value unchanged.
   template <typename T>
   KOKKOS_INLINE_FUNCTION auto operator()(const T& x) const {
     return is_complex_v<T> ? Kokkos::conj(x) : x;
