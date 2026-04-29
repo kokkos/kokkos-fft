@@ -254,11 +254,11 @@ void hfft(const ExecutionSpace& exec_space, const InViewType& in,
     auto extents     = KokkosFFT::Impl::extract_extents(in);
     ManageableComplexInViewType cin(
         "cin", KokkosFFT::Impl::create_layout<LayoutType>(extents));
-    Kokkos::deep_copy(cin, in);
+    Kokkos::deep_copy(exec_space, cin, in);
     irfft(exec_space, cin, out, new_norm, axis, n);
   } else {
     InViewType in_conj("in_conj", in.layout());
-    Kokkos::deep_copy(in_conj, in);
+    Kokkos::deep_copy(exec_space, in_conj, in);
     if (in_conj.span() >= std::size_t(std::numeric_limits<int>::max())) {
       KokkosFFT::Impl::md_unary_operation<int64_t>(
           "KokkosFFT::conjugate", exec_space, in_conj,
