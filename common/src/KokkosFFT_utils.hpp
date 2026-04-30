@@ -5,16 +5,16 @@
 #ifndef KOKKOSFFT_UTILS_HPP
 #define KOKKOSFFT_UTILS_HPP
 
-#include <Kokkos_Core.hpp>
 #include <vector>
 #include <set>
 #include <algorithm>
 #include <numeric>
 #include <stdexcept>
 #include <limits>
+#include <Kokkos_Core.hpp>
 #include "KokkosFFT_Asserts.hpp"
+#include "KokkosFFT_Common_Types.hpp"
 #include "KokkosFFT_Traits.hpp"
-#include "KokkosFFT_common_types.hpp"
 
 namespace KokkosFFT {
 namespace Impl {

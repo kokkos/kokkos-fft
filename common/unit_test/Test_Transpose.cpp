@@ -4,8 +4,9 @@
 
 #include <utility>
 #include <gtest/gtest.h>
+#include <Kokkos_Core.hpp>
 #include <Kokkos_Random.hpp>
-#include "KokkosFFT_common_types.hpp"
+#include "KokkosFFT_Common_Types.hpp"
 #include "KokkosFFT_Mapping.hpp"
 #include "KokkosFFT_Extents.hpp"
 #include "KokkosFFT_Transpose.hpp"

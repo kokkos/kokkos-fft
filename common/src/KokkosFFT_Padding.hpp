@@ -10,8 +10,8 @@
 #include <utility>
 #include <tuple>
 #include <Kokkos_Core.hpp>
-#include "KokkosFFT_common_types.hpp"
 #include "KokkosFFT_Asserts.hpp"
+#include "KokkosFFT_Common_Types.hpp"
 #include "KokkosFFT_Traits.hpp"
 
 namespace KokkosFFT {

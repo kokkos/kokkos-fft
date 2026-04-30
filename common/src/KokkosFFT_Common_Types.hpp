@@ -5,6 +5,8 @@
 #ifndef KOKKOSFFT_COMMON_TYPES_HPP
 #define KOKKOSFFT_COMMON_TYPES_HPP
 
+#include <array>
+
 namespace KokkosFFT {
 //! Type to specify transform axis
 template <std::size_t DIM>

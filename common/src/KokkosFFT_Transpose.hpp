@@ -11,11 +11,11 @@
 #include <utility>
 #include <type_traits>
 #include <Kokkos_Core.hpp>
-#include "KokkosFFT_common_types.hpp"
-#include "KokkosFFT_utils.hpp"
-#include "KokkosFFT_Padding.hpp"
+#include "KokkosFFT_Common_Types.hpp"
 #include "KokkosFFT_Layout.hpp"
 #include "KokkosFFT_MDOperations.hpp"
+#include "KokkosFFT_Padding.hpp"
+#include "KokkosFFT_utils.hpp"
 
 namespace KokkosFFT {
 namespace Impl {

@@ -8,7 +8,7 @@
 #include <fftw3.h>
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Profiling_ScopedRegion.hpp>
-#include "KokkosFFT_common_types.hpp"
+#include "KokkosFFT_Common_Types.hpp"
 #include "KokkosFFT_utils.hpp"
 
 // Check the size of complex type
