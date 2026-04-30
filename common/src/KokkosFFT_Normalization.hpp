@@ -10,9 +10,10 @@
 #include <numeric>
 #include <tuple>
 #include <limits>
-#include "KokkosFFT_common_types.hpp"
-#include "KokkosFFT_Traits.hpp"
+#include <Kokkos_Core.hpp>
+#include "KokkosFFT_Common_Types.hpp"
 #include "KokkosFFT_MDOperations.hpp"
+#include "KokkosFFT_Traits.hpp"
 #include "KokkosFFT_UnaryOps.hpp"
 
 namespace KokkosFFT {

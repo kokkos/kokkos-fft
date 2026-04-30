@@ -8,8 +8,9 @@
 #include <vector>
 #include <tuple>
 #include <numeric>
-#include "KokkosFFT_common_types.hpp"
+#include <Kokkos_Core.hpp>
 #include "KokkosFFT_Asserts.hpp"
+#include "KokkosFFT_Common_Types.hpp"
 #include "KokkosFFT_utils.hpp"
 
 namespace KokkosFFT {

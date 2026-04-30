@@ -8,7 +8,7 @@
 #include <hipfft/hipfft.h>
 #include <Kokkos_Abort.hpp>
 #include <Kokkos_Profiling_ScopedRegion.hpp>
-#include "KokkosFFT_common_types.hpp"
+#include "KokkosFFT_Common_Types.hpp"
 #include "KokkosFFT_Asserts.hpp"
 #include "KokkosFFT_HIP_asserts.hpp"
 
