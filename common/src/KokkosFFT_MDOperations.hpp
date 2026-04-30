@@ -51,6 +51,66 @@ auto get_mdpolicy(const ExecutionSpace& space, const ViewType& x) {
     return mdrange_policy_type(space, begins, ends);
   }
 }
+
+/// \brief A helper functor for md_unary_operation that applies a unary operator
+/// on each element of the view.
+///
+/// \tparam ViewType The type of the Kokkos view on which the unary operator is
+/// applied.
+/// \tparam UnaryOperatorType The type of the unary operator to be applied on
+/// each element of the view.
+template <typename ViewType, typename UnaryOperatorType>
+struct MDUnaryOp {
+ private:
+  const ViewType m_x;
+  const UnaryOperatorType m_op;
+
+ public:
+  /// \brief Constructor for the MDUnaryOp functor.
+  /// \param[in] x The Kokkos view on which the unary operator will be applied.
+  /// \param[in] op The unary operator to be applied on each element of the
+  /// view.
+  MDUnaryOp(const ViewType& x, const UnaryOperatorType& op)
+      : m_x(x), m_op(op) {}
+
+  template <typename... IndicesType>
+  KOKKOS_INLINE_FUNCTION void operator()(const IndicesType... indices) const {
+    if constexpr (ViewType::rank() <= 6) {
+      m_x(indices...) = m_op(m_x(indices...));
+    } else if constexpr (ViewType::rank() == 7) {
+      for (std::size_t i6 = 0; i6 < m_x.extent(6); i6++) {
+        m_x(indices..., i6) = m_op(m_x(indices..., i6));
+      }
+    } else if constexpr (ViewType::rank() == 8) {
+      for (std::size_t i6 = 0; i6 < m_x.extent(6); i6++) {
+        for (std::size_t i7 = 0; i7 < m_x.extent(7); i7++) {
+          m_x(indices..., i6, i7) = m_op(m_x(indices..., i6, i7));
+        }
+      }
+    }
+  }
+};
+
+/// \brief A helper function to apply a unary operator on each element of the
+/// view with Range/MDRangePolicy based on the rank of the view. For 1D views, a
+/// RangePolicy is used, while for higher-dimensional views, an MDRangePolicy is
+/// used.
+/// \tparam IndexType The type of the index used in the Kokkos policies.
+/// \tparam ExecutionSpace The type of the Kokkos execution space.
+/// \tparam ViewType The type of the Kokkos view.
+/// \tparam UnaryOperatorType The type of the unary operator.
+/// \param[in] label The label for the Kokkos parallel operation.
+/// \param[in] exec The Kokkos execution space.
+/// \param[in] x The Kokkos view on which the unary operator will be applied.
+/// \param[in] op The unary operator to be applied on each element of the view.
+template <typename IndexType, typename ExecutionSpace, typename ViewType,
+          typename UnaryOperatorType>
+void md_unary_operation(const std::string& label, const ExecutionSpace& exec,
+                        const ViewType& x, UnaryOperatorType op) {
+  const auto policy = get_mdpolicy<IndexType>(exec, x);
+  Kokkos::parallel_for(label, policy, MDUnaryOp(x, op));
+}
+
 }  // namespace Impl
 }  // namespace KokkosFFT
 

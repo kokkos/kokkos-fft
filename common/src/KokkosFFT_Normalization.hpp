@@ -9,8 +9,11 @@
 #include <cmath>
 #include <numeric>
 #include <tuple>
+#include <limits>
 #include "KokkosFFT_common_types.hpp"
 #include "KokkosFFT_Traits.hpp"
+#include "KokkosFFT_MDOperations.hpp"
+#include "KokkosFFT_UnaryOps.hpp"
 
 namespace KokkosFFT {
 namespace Impl {
@@ -24,16 +27,30 @@ namespace Impl {
 /// \param[in,out] inout Input/output view to be normalized
 /// \param[in] coef Normalization coefficient
 template <typename ExecutionSpace, typename ViewType, typename T>
-void normalize_impl(const ExecutionSpace& exec_space, ViewType& inout,
+void normalize_impl(const ExecutionSpace& exec_space, const ViewType& inout,
                     const T coef) {
-  std::size_t size = inout.size();
-  auto* data       = inout.data();
+  using LayoutType = typename ViewType::array_layout;
 
-  Kokkos::parallel_for(
-      "KokkosFFT::normalize",
-      Kokkos::RangePolicy<ExecutionSpace, Kokkos::IndexType<std::size_t>>(
-          exec_space, 0, size),
-      KOKKOS_LAMBDA(std::size_t i) { data[i] *= coef; });
+  if constexpr (std::is_same_v<LayoutType, Kokkos::LayoutLeft> ||
+                std::is_same_v<LayoutType, Kokkos::LayoutRight>) {
+    std::size_t size = inout.size();
+    auto* data       = inout.data();
+
+    Kokkos::parallel_for(
+        "KokkosFFT::normalize",
+        Kokkos::RangePolicy<ExecutionSpace, Kokkos::IndexType<std::size_t>>(
+            exec_space, 0, size),
+        KOKKOS_LAMBDA(std::size_t i) { data[i] *= coef; });
+  } else {
+    Multiply multiply(coef);
+    if (inout.span() >= std::size_t(std::numeric_limits<int>::max())) {
+      md_unary_operation<int64_t>("KokkosFFT::normalize", exec_space, inout,
+                                  multiply);
+    } else {
+      md_unary_operation<int>("KokkosFFT::normalize", exec_space, inout,
+                              multiply);
+    }
+  }
 }
 
 /// \brief Internal function to compute the normalization coefficient 1/N
