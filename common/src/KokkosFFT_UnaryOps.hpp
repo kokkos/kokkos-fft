@@ -21,7 +21,11 @@ struct Conjugate {
   /// input value unchanged.
   template <typename T>
   KOKKOS_INLINE_FUNCTION auto operator()(const T& x) const {
-    return is_complex_v<T> ? Kokkos::conj(x) : x;
+    if constexpr (is_complex_v<T>) {
+      return Kokkos::conj(x);
+    } else {
+      return x;
+    }
   }
 };
 
