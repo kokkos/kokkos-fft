@@ -16,7 +16,6 @@
 #include "KokkosFFT_Traits.hpp"
 #include "KokkosFFT_utils.hpp"
 
-
 namespace KokkosFFT {
 namespace Impl {
 /// \brief Compute the extent after FFT
