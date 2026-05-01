@@ -67,7 +67,7 @@ void test_extent_after_transform() {
 }
 
 // Tests for compute strides
-template <typename ContainerType, typename EmptyContainterType>
+template <typename ContainerType, typename EmptyContainerType>
 void test_compute_strides() {
   ContainerType v0 = {2, 3, 5}, v1 = {1, 3, 0};
   ContainerType ref_strides0 = {1, 5, 3 * 5};
@@ -75,7 +75,7 @@ void test_compute_strides() {
   EXPECT_EQ(KokkosFFT::Impl::compute_strides(v0), ref_strides0);
   EXPECT_THROW(KokkosFFT::Impl::compute_strides(v1), std::runtime_error);
 
-  EmptyContainterType empty{};
+  EmptyContainerType empty{};
   EXPECT_THROW(KokkosFFT::Impl::compute_strides(empty), std::runtime_error);
 }
 
