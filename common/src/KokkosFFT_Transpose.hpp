@@ -12,7 +12,6 @@
 #include <type_traits>
 #include <Kokkos_Core.hpp>
 #include "KokkosFFT_Common_Types.hpp"
-#include "KokkosFFT_Extents.hpp"
 #include "KokkosFFT_Layout.hpp"
 #include "KokkosFFT_MDOperations.hpp"
 #include "KokkosFFT_Padding.hpp"
