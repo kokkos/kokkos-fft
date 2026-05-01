@@ -67,13 +67,16 @@ void test_extent_after_transform() {
 }
 
 // Tests for compute strides
-template <typename ContainerType>
+template <typename ContainerType, typename EmptyContainterType>
 void test_compute_strides() {
   ContainerType v0 = {2, 3, 5}, v1 = {1, 3, 0};
   ContainerType ref_strides0 = {1, 5, 3 * 5};
 
   EXPECT_EQ(KokkosFFT::Impl::compute_strides(v0), ref_strides0);
   EXPECT_THROW(KokkosFFT::Impl::compute_strides(v1), std::runtime_error);
+
+  EmptyContainterType empty{};
+  EXPECT_THROW(KokkosFFT::Impl::compute_strides(empty), std::runtime_error);
 }
 
 // Tests for padded_extents
@@ -1119,13 +1122,15 @@ TEST(TestGetOutputExtent, C2C) {
 TYPED_TEST(TestStrides, compute_strides_of_arrays) {
   using value_type     = typename TestFixture::value_type;
   using container_type = std::array<value_type, 3>;
-  test_compute_strides<container_type>();
+  using empty_type     = std::array<value_type, 0>;
+  test_compute_strides<container_type, empty_type>();
 }
 
 TYPED_TEST(TestStrides, compute_strides_of_vectors) {
   using value_type     = typename TestFixture::value_type;
   using container_type = std::vector<value_type>;
-  test_compute_strides<container_type>();
+  using empty_type     = std::vector<value_type>;
+  test_compute_strides<container_type, empty_type>();
 }
 
 // Padded extents
