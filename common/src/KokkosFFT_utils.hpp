@@ -184,18 +184,6 @@ inline std::vector<ElementType> arange(const ElementType start,
   return result;
 }
 
-template <typename ViewType>
-auto extract_extents(const ViewType& view) {
-  static_assert(Kokkos::is_view_v<ViewType>,
-                "extract_extents: ViewType is not a Kokkos::View.");
-  constexpr std::size_t rank = ViewType::rank();
-  std::array<std::size_t, rank> extents;
-  for (std::size_t i = 0; i < rank; i++) {
-    extents.at(i) = view.extent(i);
-  }
-  return extents;
-}
-
 template <typename T, std::size_t N, std::size_t... Is>
 constexpr Kokkos::Array<std::remove_cv_t<T>, N> to_array_lvalue(
     std::array<T, N>& a, std::index_sequence<Is...>) {

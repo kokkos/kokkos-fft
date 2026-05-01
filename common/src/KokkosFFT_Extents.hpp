@@ -31,6 +31,23 @@ inline auto extent_after_transform(std::size_t extent, bool is_R2C) {
   return is_R2C ? (extent / 2 + 1) : extent;
 }
 
+/// \brief Return the extents of the input view
+/// \tparam ViewType The type of the input view
+///
+/// \param[in] view The input view
+/// \return The extents of the input view
+template <typename ViewType>
+auto extract_extents(const ViewType& view) {
+  static_assert(Kokkos::is_view_v<ViewType>,
+                "extract_extents: ViewType is not a Kokkos::View.");
+  constexpr std::size_t rank = ViewType::rank();
+  std::array<std::size_t, rank> extents{};
+  for (std::size_t i = 0; i < rank; i++) {
+    extents.at(i) = view.extent(i);
+  }
+  return extents;
+}
+
 /// \brief Return a new shape of the input view based on the
 /// specified input shape and axes.
 ///
@@ -54,18 +71,15 @@ auto get_modified_shape(const InViewType in, const OutViewType /* out */,
 
   shape_type<DIM> zeros{};  // default shape means no crop or pad
   if (shape == zeros) {
-    return KokkosFFT::Impl::extract_extents(in);
+    return extract_extents(in);
   }
 
   // Convert the input axes to be in the range of [0, rank-1]
   constexpr std::size_t rank = InViewType::rank();
   auto non_negative_axes     = convert_negative_axes(axes, rank);
 
-  using full_shape_type = shape_type<rank>;
-  full_shape_type modified_shape;
-  for (std::size_t i = 0; i < rank; i++) {
-    modified_shape.at(i) = in.extent(i);
-  }
+  using full_shape_type          = shape_type<rank>;
+  full_shape_type modified_shape = extract_extents(in);
 
   // Update shapes based on newly given shape
   for (std::size_t i = 0; i < DIM; i++) {

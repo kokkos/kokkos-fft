@@ -8,11 +8,13 @@
 #include <limits>
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Profiling_ScopedRegion.hpp>
-#include "KokkosFFT_Traits.hpp"
+
 #include "KokkosFFT_Asserts.hpp"
+#include "KokkosFFT_Extents.hpp"
 #include "KokkosFFT_Layout.hpp"
-#include "KokkosFFT_utils.hpp"
 #include "KokkosFFT_Plans.hpp"
+#include "KokkosFFT_Traits.hpp"
+#include "KokkosFFT_utils.hpp"
 
 namespace KokkosFFT {
 
