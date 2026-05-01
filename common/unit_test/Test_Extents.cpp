@@ -21,6 +21,11 @@ struct TestExtents : public ::testing::Test {
 };
 
 template <typename T>
+struct TestStrides : public ::testing::Test {
+  using value_type = T;
+};
+
+template <typename T>
 struct TestGetExtents1D : public ::testing::Test {
   using layout_type = T;
 };
@@ -59,6 +64,16 @@ void test_extent_after_transform() {
     EXPECT_EQ(n0h, n0);
     EXPECT_EQ(n1h, n1);
   }
+}
+
+// Tests for compute strides
+template <typename ContainerType>
+void test_compute_strides() {
+  ContainerType v0 = {2, 3, 5}, v1 = {1, 3, 0};
+  ContainerType ref_strides0 = {1, 5, 3 * 5};
+
+  EXPECT_EQ(KokkosFFT::Impl::compute_strides(v0), ref_strides0);
+  EXPECT_THROW(KokkosFFT::Impl::compute_strides(v1), std::runtime_error);
 }
 
 // Tests for padded_extents
@@ -1083,6 +1098,7 @@ void test_extents_2d_view_3d(bool is_static = true) {
 }  // namespace
 
 TYPED_TEST_SUITE(TestExtents, test_int_types);
+TYPED_TEST_SUITE(TestStrides, test_int_types);
 TYPED_TEST_SUITE(TestGetExtents1D, test_types);
 TYPED_TEST_SUITE(TestGetExtents2D, test_types);
 TYPED_TEST_SUITE(TestGetDynExtents1D, test_types);
@@ -1097,6 +1113,19 @@ TEST(TestGetOutputExtent, R2C) {
 TEST(TestGetOutputExtent, C2C) {
   using float_type = Kokkos::complex<double>;
   test_extent_after_transform<float_type>();
+}
+
+// Compute strides
+TYPED_TEST(TestStrides, compute_strides_of_arrays) {
+  using value_type     = typename TestFixture::value_type;
+  using container_type = std::array<value_type, 3>;
+  test_compute_strides<container_type>();
+}
+
+TYPED_TEST(TestStrides, compute_strides_of_vectors) {
+  using value_type     = typename TestFixture::value_type;
+  using container_type = std::vector<value_type>;
+  test_compute_strides<container_type>();
 }
 
 // Padded extents

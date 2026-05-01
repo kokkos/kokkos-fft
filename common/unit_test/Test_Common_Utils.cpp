@@ -597,15 +597,6 @@ void test_is_out_of_range_value_included() {
 }
 
 template <typename ContainerType>
-void test_compute_strides() {
-  ContainerType v0 = {2, 3, 5}, v1 = {1, 3, 0};
-  ContainerType ref_strides0 = {1, 5, 3 * 5};
-
-  EXPECT_EQ(KokkosFFT::Impl::compute_strides(v0), ref_strides0);
-  EXPECT_THROW(KokkosFFT::Impl::compute_strides(v1), std::runtime_error);
-}
-
-template <typename ContainerType>
 void test_reversed() {
   ContainerType v = {2, 3, 5}, v_fixed = {2, 3, 5};
   ContainerType ref_reversed = {5, 3, 2};
@@ -1030,17 +1021,6 @@ TYPED_TEST(ContainerTypes, test_total_size_of_array) {
   using container_type1 = std::array<value_type, 3>;
   using container_type2 = std::array<value_type, 1>;
   test_total_size<container_type0, container_type1, container_type2>();
-}
-
-TYPED_TEST(ContainerTypes, test_compute_strides_of_arrays) {
-  using value_type     = typename TestFixture::value_type;
-  using container_type = std::array<value_type, 3>;
-  test_compute_strides<container_type>();
-}
-
-TYPED_TEST(ContainerTypes, test_compute_strides_of_vectors) {
-  using container_type = typename TestFixture::vector_type;
-  test_compute_strides<container_type>();
 }
 
 TYPED_TEST(ContainerTypes, test_reversed_of_arrays) {

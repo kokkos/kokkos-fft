@@ -12,6 +12,7 @@
 #include <Kokkos_Abort.hpp>
 #include <Kokkos_Profiling_ScopedRegion.hpp>
 #include "KokkosFFT_Asserts.hpp"
+#include "KokkosFFT_Extents.hpp"
 #include "KokkosFFT_Common_Types.hpp"
 #include "KokkosFFT_Traits.hpp"
 #include "KokkosFFT_utils.hpp"
