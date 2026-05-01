@@ -48,16 +48,16 @@ auto extract_extents(const ViewType& view) {
   return extents;
 }
 
-// \brief Helper to compute strides from extents.
-// The extents are computed from a LayoutRight View.
-// The computed strides can be considered as view strides
-// in the reversed order.
-//
-// Examples:
-// v0 (n0) -> (v0.stride(0)) or (1)
-// v1 (n0, n1) -> (v1.stride(1), v1.stride(0)) or (1, n1)
-// v2 (n0, n1, n2) -> (v2.stride(2), v2.stride(1), v2.stride(0))
-//                 or (1, n2, n2 * n1)
+/// \brief Helper to compute strides from extents.
+/// The extents are computed from a LayoutRight View.
+/// The computed strides can be considered as view strides
+/// in the reversed order.
+///
+/// Examples:
+/// v0 (n0) -> (v0.stride(0)) or (1)
+/// v1 (n0, n1) -> (v1.stride(1), v1.stride(0)) or (1, n1)
+/// v2 (n0, n1, n2) -> (v2.stride(2), v2.stride(1), v2.stride(0))
+///                 or (1, n2, n2 * n1)
 /// \tparam ContainerType The container type, must be either one of std::array
 /// or std::vector
 /// \param[in] extents The extents of the data
