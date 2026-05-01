@@ -62,7 +62,8 @@ auto extract_extents(const ViewType& view) {
 /// or std::vector
 /// \param[in] extents The extents of the data
 /// \return strides computed from the input data
-/// \throws runtime_error if any of the extents is less than or equal to 0
+/// \throws runtime_error if extents is empty or if any of the extents is less
+/// than or equal to 0
 template <typename ContainerType,
           std::enable_if_t<is_std_vector_v<ContainerType> ||
                                is_std_array_v<ContainerType>,
@@ -72,6 +73,8 @@ auto compute_strides(const ContainerType& extents) {
       std::remove_reference_t<typename ContainerType::value_type>>;
   static_assert(std::is_integral_v<index_type>,
                 "compute_strides: index_type must be an integral type.");
+  KOKKOSFFT_THROW_IF(extents.size() == 0,
+                     "extents must have at least one dimension.");
   KOKKOSFFT_THROW_IF(std::any_of(extents.begin(), extents.end(),
                                  [](index_type extent) { return extent <= 0; }),
                      "extents must be greater than 0");
