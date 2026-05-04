@@ -82,7 +82,7 @@ auto compute_strides(const ContainerType& extents) {
   std::reverse(reversed_extents.begin(), reversed_extents.end());
 
   strides.at(0) = 1;
-  for (std::size_t i = 1; i < reversed_extents.size(); i++) {
+  for (std::size_t i = 1; i < extents.size(); i++) {
     strides.at(i) = reversed_extents.at(i - 1) * strides.at(i - 1);
   }
   return strides;
