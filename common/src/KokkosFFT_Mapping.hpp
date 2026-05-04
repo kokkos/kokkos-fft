@@ -96,7 +96,6 @@ auto get_map_axes(const std::array<IntType, FFT_DIM>& axes) {
 /// \param[in] view The input view (used for type deduction)
 /// \param[in] axes Axes over which FFT is performed
 /// \return The mapping axes and inverse mapping axes as a tuple
-/// \throws if axes are not valid for the view
 template <typename ViewType, std::size_t FFT_DIM>
 auto get_map_axes(const ViewType& /*view*/, const axis_type<FFT_DIM>& axes) {
   using LayoutType = typename ViewType::array_layout;
