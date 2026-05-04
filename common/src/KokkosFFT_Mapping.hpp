@@ -93,29 +93,14 @@ auto get_map_axes(const std::array<IntType, FFT_DIM>& axes) {
 /// \tparam ViewType The type of the input view
 /// \tparam FFT_DIM The dimensionality of the FFT axes
 ///
+/// \param[in] view The input view (used for type deduction)
 /// \param[in] axes Axes over which FFT is performed
 /// \return The mapping axes and inverse mapping axes as a tuple
 /// \throws if axes are not valid for the view
 template <typename ViewType, std::size_t FFT_DIM>
-auto get_map_axes(const ViewType& view, const axis_type<FFT_DIM>& axes) {
-  KOKKOSFFT_THROW_IF(!KokkosFFT::Impl::are_valid_axes(view, axes),
-                     "get_map_axes: input axes are not valid for the view");
+auto get_map_axes(const ViewType& /*view*/, const axis_type<FFT_DIM>& axes) {
   using LayoutType = typename ViewType::array_layout;
   return get_map_axes<LayoutType, ViewType::rank()>(axes);
-}
-
-/// \brief Mapping axes for transpose. With this mapping,
-/// the input view is transposed into the contiguous order which is expected by
-/// the FFT plan.
-///
-/// \tparam ViewType The type of the input view
-///
-/// \param[in] axis Axis over which FFT is performed
-/// \return The mapping axes and inverse mapping axes as a tuple
-/// \throws if axes are not valid for the view
-template <typename ViewType>
-auto get_map_axes(const ViewType& view, int axis) {
-  return get_map_axes(view, axis_type<1>({axis}));
 }
 
 }  // namespace Impl
