@@ -347,95 +347,6 @@ void test_convert_negative_axes_4d() {
 }
 
 template <typename ContainerType>
-void test_is_found() {
-  using IntType   = KokkosFFT::Impl::base_container_value_type<ContainerType>;
-  ContainerType v = {0, 1, 4, 2, 3};
-
-  EXPECT_TRUE(KokkosFFT::Impl::is_found(v, static_cast<IntType>(0)));
-  EXPECT_TRUE(KokkosFFT::Impl::is_found(v, static_cast<IntType>(1)));
-  EXPECT_TRUE(KokkosFFT::Impl::is_found(v, static_cast<IntType>(2)));
-  EXPECT_TRUE(KokkosFFT::Impl::is_found(v, static_cast<IntType>(3)));
-  EXPECT_TRUE(KokkosFFT::Impl::is_found(v, static_cast<IntType>(4)));
-
-  if constexpr (std::is_signed_v<IntType>) {
-    EXPECT_FALSE(KokkosFFT::Impl::is_found(v, static_cast<IntType>(-1)));
-  }
-  EXPECT_FALSE(KokkosFFT::Impl::is_found(v, static_cast<IntType>(5)));
-}
-
-template <typename ContainerType>
-void test_get_index() {
-  using IntType   = KokkosFFT::Impl::base_container_value_type<ContainerType>;
-  ContainerType v = {0, 1, 4, 2, 3};
-
-  EXPECT_EQ(KokkosFFT::Impl::get_index(v, static_cast<IntType>(0)), 0);
-  EXPECT_EQ(KokkosFFT::Impl::get_index(v, static_cast<IntType>(1)), 1);
-  EXPECT_EQ(KokkosFFT::Impl::get_index(v, static_cast<IntType>(2)), 3);
-  EXPECT_EQ(KokkosFFT::Impl::get_index(v, static_cast<IntType>(3)), 4);
-  EXPECT_EQ(KokkosFFT::Impl::get_index(v, static_cast<IntType>(4)), 2);
-
-  if constexpr (std::is_signed_v<IntType>) {
-    EXPECT_THROW(KokkosFFT::Impl::get_index(v, static_cast<IntType>(-1)),
-                 std::runtime_error);
-  }
-  EXPECT_THROW(KokkosFFT::Impl::get_index(v, static_cast<IntType>(5)),
-               std::runtime_error);
-}
-
-template <typename ContainerType0, typename ContainerType1,
-          typename ContainerType2>
-void test_has_duplicate_values() {
-  ContainerType0 v0 = {0, 1, 1};
-  ContainerType1 v1 = {0, 1, 1, 1};
-  ContainerType1 v2 = {0, 1, 2, 3};
-  ContainerType2 v3 = {0};
-
-  EXPECT_TRUE(KokkosFFT::Impl::has_duplicate_values(v0));
-  EXPECT_TRUE(KokkosFFT::Impl::has_duplicate_values(v1));
-  EXPECT_FALSE(KokkosFFT::Impl::has_duplicate_values(v2));
-  EXPECT_FALSE(KokkosFFT::Impl::has_duplicate_values(v3));
-}
-
-template <typename ContainerType>
-void test_is_out_of_range_value_included() {
-  using IntType   = KokkosFFT::Impl::base_container_value_type<ContainerType>;
-  ContainerType v = {0, 1, 2, 3, 4}, v2 = {0, 4, 1};
-
-  EXPECT_TRUE(KokkosFFT::Impl::is_out_of_range_value_included(
-      v, static_cast<IntType>(2)));
-  EXPECT_TRUE(KokkosFFT::Impl::is_out_of_range_value_included(
-      v, static_cast<IntType>(3)));
-  EXPECT_TRUE(KokkosFFT::Impl::is_out_of_range_value_included(
-      v, static_cast<IntType>(4)));
-  EXPECT_FALSE(KokkosFFT::Impl::is_out_of_range_value_included(
-      v, static_cast<IntType>(5)));
-  EXPECT_FALSE(KokkosFFT::Impl::is_out_of_range_value_included(
-      v, static_cast<IntType>(6)));
-
-  EXPECT_TRUE(KokkosFFT::Impl::is_out_of_range_value_included(
-      v2, static_cast<IntType>(2)));
-  EXPECT_TRUE(KokkosFFT::Impl::is_out_of_range_value_included(
-      v2, static_cast<IntType>(3)));
-  EXPECT_TRUE(KokkosFFT::Impl::is_out_of_range_value_included(
-      v2, static_cast<IntType>(4)));
-  EXPECT_FALSE(KokkosFFT::Impl::is_out_of_range_value_included(
-      v2, static_cast<IntType>(5)));
-  EXPECT_FALSE(KokkosFFT::Impl::is_out_of_range_value_included(
-      v2, static_cast<IntType>(6)));
-
-  if constexpr (std::is_signed_v<IntType>) {
-    // Since non-negative value is included, it should be invalid
-    ContainerType v3 = {0, 1, -1};
-    EXPECT_THROW(
-        {
-          KokkosFFT::Impl::is_out_of_range_value_included(
-              v3, static_cast<IntType>(2));
-        },
-        std::runtime_error);
-  }
-}
-
-template <typename ContainerType>
 void test_reversed() {
   ContainerType v = {2, 3, 5}, v_fixed = {2, 3, 5};
   ContainerType ref_reversed = {5, 3, 2};
@@ -468,61 +379,6 @@ void test_reversed() {
   }
 }
 
-template <typename IntType>
-void test_are_valid_axes() {
-  using real_type  = double;
-  using View1DType = Kokkos::View<real_type*>;
-  using View2DType = Kokkos::View<real_type**>;
-  using View3DType = Kokkos::View<real_type***>;
-  using View4DType = Kokkos::View<real_type****>;
-
-  std::array<IntType, 1> axes0 = {0};
-  std::array<IntType, 2> axes1 = {0, 1};
-  std::array<IntType, 3> axes2 = {0, 1, 2};
-  std::array<IntType, 3> axes3 = {0, 1, 1};
-  std::array<IntType, 3> axes4 = {0, 1, 3};
-
-  View1DType view1;
-  View2DType view2;
-  View3DType view3;
-  View4DType view4;
-
-  // 1D axes on 1D+ Views
-  EXPECT_TRUE(KokkosFFT::Impl::are_valid_axes(view1, axes0));
-  EXPECT_TRUE(KokkosFFT::Impl::are_valid_axes(view2, axes0));
-  EXPECT_TRUE(KokkosFFT::Impl::are_valid_axes(view3, axes0));
-  EXPECT_TRUE(KokkosFFT::Impl::are_valid_axes(view4, axes0));
-
-  // 2D axes on 2D+ Views
-  EXPECT_TRUE(KokkosFFT::Impl::are_valid_axes(view2, axes1));
-  EXPECT_TRUE(KokkosFFT::Impl::are_valid_axes(view3, axes1));
-  EXPECT_TRUE(KokkosFFT::Impl::are_valid_axes(view4, axes1));
-
-  // 3D axes on 3D+ Views
-  EXPECT_TRUE(KokkosFFT::Impl::are_valid_axes(view3, axes2));
-  EXPECT_TRUE(KokkosFFT::Impl::are_valid_axes(view4, axes2));
-  EXPECT_TRUE(KokkosFFT::Impl::are_valid_axes(view4, axes4));
-
-  // 3D axes on 3D Views with out of range -> should fail
-  EXPECT_FALSE(KokkosFFT::Impl::are_valid_axes(view3, axes4));
-
-  // axes include overlap -> should fail
-  EXPECT_FALSE(KokkosFFT::Impl::are_valid_axes(view3, axes3));
-  EXPECT_FALSE(KokkosFFT::Impl::are_valid_axes(view4, axes3));
-
-  if constexpr (std::is_signed_v<IntType>) {
-    // {0, 1, -2} is converted to {0, 1, 1} for 3D View and {0, 1, 2}
-    // for 4D View. Invalid for 3D View but valid for 4D View
-    std::array<IntType, 3> axes5 = {0, 1, -2};
-
-    // axes include overlap -> should fail
-    EXPECT_FALSE(KokkosFFT::Impl::are_valid_axes(view3, axes5));
-
-    // axes do not include overlap -> OK
-    EXPECT_TRUE(KokkosFFT::Impl::are_valid_axes(view4, axes5));
-  }
-}
-
 template <typename iType>
 void test_array_to_vector(iType nprocs) {
   using vector_type      = std::vector<iType>;
@@ -546,22 +402,6 @@ void test_array_to_vector(iType nprocs) {
   EXPECT_EQ(vec_tmp, ref_vec);
   EXPECT_EQ(vec_move, ref_vec);
   EXPECT_EQ(arr, arr_ref) << "Input container modified in rvalue test";
-}
-
-template <typename ValueType1, typename ValueType2>
-void test_are_pointers_aliasing() {
-  using View1 = Kokkos::View<ValueType1*, execution_space>;
-  using View2 = Kokkos::View<ValueType2*, execution_space>;
-
-  const int n1 = 10;
-  // sizeof ValueType2 is larger or equal to ValueType1
-  const int n2 = sizeof(ValueType1) == sizeof(ValueType2) ? n1 : n1 / 2 + 1;
-  View1 view1("view1", n1);
-  View2 view2("view2", n1);
-  View2 uview2(reinterpret_cast<ValueType2*>(view1.data()), n2);
-
-  EXPECT_TRUE(KokkosFFT::Impl::are_aliasing(view1.data(), uview2.data()));
-  EXPECT_FALSE(KokkosFFT::Impl::are_aliasing(view1.data(), view2.data()));
 }
 
 template <typename IntType>
@@ -784,50 +624,6 @@ TYPED_TEST(TestConvertNegativeAxes, 4DView) {
   test_convert_negative_axes_4d<value_type>();
 }
 
-TYPED_TEST(ContainerTypes, is_found_from_vector) {
-  using container_type = typename TestFixture::vector_type;
-  test_is_found<container_type>();
-}
-
-TYPED_TEST(ContainerTypes, is_found_from_array) {
-  using container_type = typename TestFixture::array_type;
-  test_is_found<container_type>();
-}
-
-TYPED_TEST(ContainerTypes, get_index_from_vector) {
-  using container_type = typename TestFixture::vector_type;
-  test_get_index<container_type>();
-}
-
-TYPED_TEST(ContainerTypes, get_index_from_array) {
-  using container_type = typename TestFixture::array_type;
-  test_get_index<container_type>();
-}
-
-TYPED_TEST(ContainerTypes, has_duplicate_values_in_vector) {
-  using container_type = typename TestFixture::vector_type;
-  test_has_duplicate_values<container_type, container_type, container_type>();
-}
-
-TYPED_TEST(ContainerTypes, has_duplicate_values_in_array) {
-  using value_type      = typename TestFixture::value_type;
-  using container_type0 = std::array<value_type, 3>;
-  using container_type1 = std::array<value_type, 4>;
-  using container_type2 = std::array<value_type, 1>;
-  test_has_duplicate_values<container_type0, container_type1,
-                            container_type2>();
-}
-
-TYPED_TEST(ContainerTypes, is_out_of_range_value_included_in_vector) {
-  using container_type = typename TestFixture::vector_type;
-  test_is_out_of_range_value_included<container_type>();
-}
-
-TYPED_TEST(ContainerTypes, is_out_of_range_value_included_in_array) {
-  using container_type = typename TestFixture::array_type;
-  test_is_out_of_range_value_included<container_type>();
-}
-
 TYPED_TEST(ContainerTypes, test_total_size_of_vector) {
   using container_type = typename TestFixture::vector_type;
   test_total_size<container_type, container_type, container_type>();
@@ -852,11 +648,6 @@ TYPED_TEST(ContainerTypes, test_reversed_of_vectors) {
   test_reversed<container_type>();
 }
 
-TYPED_TEST(ContainerTypes, are_valid_axes) {
-  using value_type = typename TestFixture::value_type;
-  test_are_valid_axes<value_type>();
-}
-
 TYPED_TEST(ContainerTypes, array_to_vector) {
   using value_type = typename TestFixture::value_type;
   for (value_type nprocs = 1; nprocs <= 6; ++nprocs) {
@@ -876,12 +667,6 @@ TEST(ToArray, lvalue) {
 
 TEST(ToArray, rvalue) {
   ASSERT_EQ(KokkosFFT::Impl::to_array(std::array{1, 2}), (Kokkos::Array{1, 2}));
-}
-
-TYPED_TEST(PairedScalarTypes, are_pointers_aliasing) {
-  using value_type1 = typename TestFixture::value_type1;
-  using value_type2 = typename TestFixture::value_type2;
-  test_are_pointers_aliasing<value_type1, value_type2>();
 }
 
 TYPED_TEST(TestConvertBaseTypes, convert_arrays) {

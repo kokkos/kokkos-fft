@@ -5,16 +5,58 @@
 #ifndef KOKKOSFFT_MAPPING_HPP
 #define KOKKOSFFT_MAPPING_HPP
 
-#include <vector>
-#include <tuple>
+#include <algorithm>
 #include <numeric>
+#include <tuple>
+#include <vector>
 #include <Kokkos_Core.hpp>
 #include "KokkosFFT_Asserts.hpp"
+#include "KokkosFFT_CheckConditions.hpp"
 #include "KokkosFFT_Common_Types.hpp"
 #include "KokkosFFT_utils.hpp"
 
 namespace KokkosFFT {
 namespace Impl {
+
+/// \brief Check if a value is found in a container
+/// Examples:
+/// - is_found({1, 2, 3}, 2) returns true
+/// - is_found({1, 2, 3}, 4) returns false
+///
+/// \tparam ContainerType The type of the container
+/// \tparam ValueType The type of the value to search for
+/// \param[in] values The container to search in
+/// \param[in] value The value to search for
+/// \return True if the value is found in the container, false otherwise
+template <typename ContainerType, typename ValueType>
+bool is_found(const ContainerType& values, const ValueType value) {
+  using value_type = std::remove_cv_t<
+      std::remove_reference_t<typename ContainerType::value_type>>;
+  static_assert(std::is_same_v<value_type, ValueType>,
+                "is_found: Container value type must match ValueType");
+  return std::find(values.begin(), values.end(), value) != values.end();
+}
+
+/// \brief Get the index of a value in a container
+/// Examples:
+/// - get_index({1, 2, 3}, 2) returns 1
+/// - get_index({1, 2, 3}, 4) throws an exception
+///
+/// \tparam ContainerType The type of the container
+/// \tparam ValueType The type of the value to search for
+/// \param[in] values The container to search in
+/// \param[in] value The value to search for
+/// \return The index of the value in the container
+/// \throws a runtime_error if the value is not found in the container
+template <typename ContainerType, typename ValueType>
+std::size_t get_index(const ContainerType& values, const ValueType value) {
+  using value_type = KokkosFFT::Impl::base_container_value_type<ContainerType>;
+  static_assert(std::is_same_v<value_type, ValueType>,
+                "get_index: Container value type must match ValueType");
+  auto it = std::find(values.begin(), values.end(), value);
+  KOKKOSFFT_THROW_IF(it == values.end(), "value is not included in values");
+  return it - values.begin();
+}
 
 /// \brief Mapping axes for transpose. With this mapping,
 /// the input view is transposed into the contiguous order which is expected by

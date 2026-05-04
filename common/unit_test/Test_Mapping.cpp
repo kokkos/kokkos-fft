@@ -11,14 +11,64 @@ namespace {
 using execution_space = Kokkos::DefaultExecutionSpace;
 
 template <std::size_t DIM>
-using axes_type    = std::array<int, DIM>;
+using axes_type = std::array<int, DIM>;
+
+using int_types    = ::testing::Types<int, std::size_t>;
 using layout_types = ::testing::Types<Kokkos::LayoutLeft, Kokkos::LayoutRight>;
 
 // Basically the same fixtures, used for labeling tests
 template <typename T>
+struct TestIsFound : public ::testing::Test {
+  using value_type = T;
+};
+
+template <typename T>
+struct TestGetIndex : public ::testing::Test {
+  using value_type = T;
+};
+
+template <typename T>
 struct TestMapAxes : public ::testing::Test {
   using layout_type = T;
 };
+
+template <typename ContainerType>
+void test_is_found() {
+  using IntType = std::remove_cv_t<
+      std::remove_reference_t<typename ContainerType::value_type>>;
+  ContainerType v{0, 1, 4, 2, 3};
+
+  EXPECT_TRUE(KokkosFFT::Impl::is_found(v, static_cast<IntType>(0)));
+  EXPECT_TRUE(KokkosFFT::Impl::is_found(v, static_cast<IntType>(1)));
+  EXPECT_TRUE(KokkosFFT::Impl::is_found(v, static_cast<IntType>(2)));
+  EXPECT_TRUE(KokkosFFT::Impl::is_found(v, static_cast<IntType>(3)));
+  EXPECT_TRUE(KokkosFFT::Impl::is_found(v, static_cast<IntType>(4)));
+
+  if constexpr (std::is_signed_v<IntType>) {
+    EXPECT_FALSE(KokkosFFT::Impl::is_found(v, static_cast<IntType>(-1)));
+  }
+  EXPECT_FALSE(KokkosFFT::Impl::is_found(v, static_cast<IntType>(5)));
+}
+
+template <typename ContainerType>
+void test_get_index() {
+  using IntType = std::remove_cv_t<
+      std::remove_reference_t<typename ContainerType::value_type>>;
+  ContainerType v{0, 1, 4, 2, 3};
+
+  EXPECT_EQ(KokkosFFT::Impl::get_index(v, static_cast<IntType>(0)), 0);
+  EXPECT_EQ(KokkosFFT::Impl::get_index(v, static_cast<IntType>(1)), 1);
+  EXPECT_EQ(KokkosFFT::Impl::get_index(v, static_cast<IntType>(2)), 3);
+  EXPECT_EQ(KokkosFFT::Impl::get_index(v, static_cast<IntType>(3)), 4);
+  EXPECT_EQ(KokkosFFT::Impl::get_index(v, static_cast<IntType>(4)), 2);
+
+  if constexpr (std::is_signed_v<IntType>) {
+    EXPECT_THROW(KokkosFFT::Impl::get_index(v, static_cast<IntType>(-1)),
+                 std::runtime_error);
+  }
+  EXPECT_THROW(KokkosFFT::Impl::get_index(v, static_cast<IntType>(5)),
+               std::runtime_error);
+}
 
 // Tests for map axes over ND views
 template <typename LayoutType>
@@ -245,7 +295,33 @@ void test_map_axes3d() {
 }
 }  // namespace
 
+TYPED_TEST_SUITE(TestIsFound, int_types);
+TYPED_TEST_SUITE(TestGetIndex, int_types);
 TYPED_TEST_SUITE(TestMapAxes, layout_types);
+
+TYPED_TEST(TestIsFound, is_found_from_vector) {
+  using value_type  = typename TestFixture::value_type;
+  using vector_type = std::vector<value_type>;
+  test_is_found<vector_type>();
+}
+
+TYPED_TEST(TestIsFound, is_found_from_array) {
+  using value_type = typename TestFixture::value_type;
+  using array_type = std::array<value_type, 5>;
+  test_is_found<array_type>();
+}
+
+TYPED_TEST(TestGetIndex, get_index_from_vector) {
+  using value_type  = typename TestFixture::value_type;
+  using vector_type = std::vector<value_type>;
+  test_get_index<vector_type>();
+}
+
+TYPED_TEST(TestGetIndex, get_index_from_array) {
+  using value_type = typename TestFixture::value_type;
+  using array_type = std::array<value_type, 5>;
+  test_get_index<array_type>();
+}
 
 // Tests for 1D View
 TYPED_TEST(TestMapAxes, 1DView) {

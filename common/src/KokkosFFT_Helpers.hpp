@@ -6,6 +6,7 @@
 #define KOKKOSFFT_HELPERS_HPP
 
 #include <Kokkos_Core.hpp>
+#include "KokkosFFT_CheckConditions.hpp"
 #include "KokkosFFT_Common_Types.hpp"
 #include "KokkosFFT_Extents.hpp"
 #include "KokkosFFT_Layout.hpp"

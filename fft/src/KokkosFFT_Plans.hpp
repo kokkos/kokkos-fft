@@ -13,6 +13,7 @@
 
 #include <Kokkos_Core.hpp>
 #include "KokkosFFT_default_types.hpp"
+#include "KokkosFFT_CheckConditions.hpp"
 #include "KokkosFFT_Traits.hpp"
 #include "KokkosFFT_Transpose.hpp"
 #include "KokkosFFT_Asserts.hpp"
