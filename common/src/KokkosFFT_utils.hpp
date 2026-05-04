@@ -24,30 +24,6 @@ bool are_aliasing(const ScalarType1* ptr1, const ScalarType2* ptr2) {
   return (static_cast<const void*>(ptr1) == static_cast<const void*>(ptr2));
 }
 
-/// \brief Converts an axis in [-rank, rank-1] to [0, rank-1]
-/// \tparam IntType The integer type used for axis
-///
-/// \param[in] axis The axis to be converted
-/// \param[in] rank The rank of the view
-/// \return The converted axis
-/// \throws a runtime_error if axis is out of range
-template <typename IntType>
-IntType convert_negative_axis(IntType axis, std::size_t rank) {
-  static_assert(std::is_integral_v<IntType>,
-                "convert_negative_axis: IntType must be an integral type.");
-
-  const IntType irank = static_cast<IntType>(rank);
-  if constexpr (std::is_signed_v<IntType>) {
-    KOKKOSFFT_THROW_IF(axis < -irank || axis >= irank,
-                       "Axis must be in [-rank, rank-1]");
-
-    return axis < 0 ? irank + axis : axis;
-  } else {
-    KOKKOSFFT_THROW_IF(axis >= irank, "Axis must be in [0, rank-1]");
-    return axis;
-  }
-}
-
 /// \brief Converts axes in [-rank, rank-1] to [0, rank-1]
 /// \tparam IntType The integer type used for axis
 /// \tparam DIM The dimensionality of the axes
@@ -61,21 +37,22 @@ auto convert_negative_axes(const std::array<IntType, DIM>& axes,
                            std::size_t rank) {
   static_assert(std::is_integral_v<IntType>,
                 "convert_negative_axes: IntType must be an integral type.");
-  std::array<IntType, DIM> non_negative_axes = {};
-  try {
-    for (std::size_t i = 0; i < axes.size(); i++) {
-      auto axis = axes.at(i);
-      auto non_negative_axis =
-          KokkosFFT::Impl::convert_negative_axis(axis, rank);
-      non_negative_axes.at(i) = non_negative_axis;
-    }
-  } catch (std::runtime_error& e) {
+  std::array<IntType, DIM> non_negative_axes{};
+
+  const IntType irank        = static_cast<IntType>(rank);
+  auto convert_negative_axis = [irank](IntType axis) -> IntType {
     if constexpr (std::is_signed_v<IntType>) {
-      KOKKOSFFT_THROW_IF(true, "All axes must be in [-rank, rank-1]");
+      KOKKOSFFT_THROW_IF(axis < -irank || axis >= irank,
+                         "All axes must be in [-rank, rank-1]");
+      return axis < 0 ? irank + axis : axis;
     } else {
-      KOKKOSFFT_THROW_IF(true, "All axes must be in [0, rank-1]");
+      KOKKOSFFT_THROW_IF(axis >= irank, "All axes must be in [0, rank-1]");
+      return axis;
     }
-  }
+  };
+
+  std::transform(axes.begin(), axes.end(), non_negative_axes.begin(),
+                 convert_negative_axis);
 
   return non_negative_axes;
 }
