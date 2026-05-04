@@ -10,7 +10,7 @@
 #include <numeric>
 #include <Kokkos_Core.hpp>
 #include "KokkosFFT_Asserts.hpp"
-#include "KokkosFFT_utils.hpp"
+#include "KokkosFFT_Mapping.hpp"
 
 namespace KokkosFFT {
 namespace Impl {
