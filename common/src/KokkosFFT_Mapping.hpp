@@ -27,7 +27,8 @@ namespace Impl {
 ///
 /// \param[in] axes Axes over which FFT is performed
 /// \return The mapping axes and inverse mapping axes as a tuple
-/// \throws if axes are not valid for the view
+/// \throws std::runtime_error if any axis is out of range
+/// \pre axes must not contain duplicates after negative-axis conversion
 template <typename Layout, std::size_t DIM, typename IntType,
           std::size_t FFT_DIM>
 auto get_map_axes(const std::array<IntType, FFT_DIM>& axes) {
