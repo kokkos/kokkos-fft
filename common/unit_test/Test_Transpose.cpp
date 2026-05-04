@@ -217,10 +217,10 @@ void test_transpose_1d(bool bounds_check) {
   exec.fence();
 
   for (std::size_t axis0 = 0; axis0 < DIM; axis0++) {
-    auto [map, map_inv] =
-        KokkosFFT::Impl::get_map_axes(x, static_cast<int>(axis0));
-    auto out_extents = get_out_extents(in_extents, map, bounds_check);
-    auto out_layout  = KokkosFFT::Impl::create_layout<LayoutType2>(out_extents);
+    KokkosFFT::axis_type<1> axes{static_cast<int>(axis0)};
+    auto [map, map_inv] = KokkosFFT::Impl::get_map_axes(x, axes);
+    auto out_extents    = get_out_extents(in_extents, map, bounds_check);
+    auto out_layout = KokkosFFT::Impl::create_layout<LayoutType2>(out_extents);
     ViewLayout2type xt("xt", out_layout), xt_ref("xt_ref", out_layout);
     make_transposed(x, xt_ref, map);
 
