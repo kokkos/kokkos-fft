@@ -61,8 +61,9 @@ bool has_duplicate_values(const ContainerType& values) {
 /// \tparam IntType The type of the integer values in the container
 /// \param[in] values The container to check for out-of-range values
 /// \param[in] max The maximum allowed value (exclusive)
-/// \return True if the container includes any out-of-range values, false
-/// otherwise
+/// \return True if the container includes any out-of-range values
+/// \throws a runtime_error if the container includes any negative values (only
+/// for signed integer types)
 template <typename ContainerType, typename IntType>
 bool is_out_of_range_value_included(const ContainerType& values, IntType max) {
   static_assert(
@@ -96,10 +97,14 @@ bool is_out_of_range_value_included(const ContainerType& values, IntType max) {
 /// - are_valid_axes(view, {rank}) returns false (axis equal to rank is out of
 /// range)
 /// - are_valid_axes(view, {rank + 1}) returns false (axis greater than rank is
-/// out of range) \tparam ViewType The type of the view \tparam ArrayType The
-/// type of the array containing the axes \tparam IntType The type of the
-/// integer values in the array \tparam DIM The dimension of the array
-/// containing the axes \param[in] view The view to check for valid axes
+/// out of range)
+///
+/// \tparam ViewType The type of the view
+/// \tparam ArrayType The type of the array containing the axes
+/// \tparam IntType The type of the integer values in the array
+/// \tparam DIM The dimension of the array containing the axes
+///
+/// \param[in] view The view to check for valid axes
 /// \param[in] axes The array containing the axes to check
 /// \return True if the axes are valid for the view, false otherwise
 template <
