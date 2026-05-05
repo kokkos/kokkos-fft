@@ -88,18 +88,22 @@ bool is_out_of_range_value_included(const ContainerType& values, IntType max) {
 
 /// \brief Check if the given axes are valid for the given view
 /// Valid axes must satisfy the following conditions:
-/// 1. The axes must be in the range of [0, rank-1] after converting negative
-/// axes to non-negative axes, where rank is the rank of the view
-/// 2. The axes must not contain duplicate values
+/// 1. The axes may be given in the range of [-rank, rank-1], where rank is the
+/// rank of the view. Negative axes are converted to their non-negative
+/// equivalents before validation.
+/// 2. The resulting non-negative axes must not contain duplicate values.
 /// Examples:
 /// - are_valid_axes(view2d, {0, 1}) returns true (valid axes)
 /// - are_valid_axes(view2d, {0, 0}) returns false (duplicate axes)
 /// - are_valid_axes(view, {-1}) returns true (negative axis is converted to
-/// non-negative axis)
+///   its non-negative equivalent)
+/// - are_valid_axes(view, {-rank}) returns true (maps to axis 0)
+/// - are_valid_axes(view, {-rank - 1}) returns false (axis less than -rank is
+///   out of range)
 /// - are_valid_axes(view, {rank}) returns false (axis equal to rank is out of
-/// range)
+///   range)
 /// - are_valid_axes(view, {rank + 1}) returns false (axis greater than rank is
-/// out of range)
+///   out of range)
 ///
 /// \tparam ViewType The type of the view
 /// \tparam ArrayType The type of the array containing the axes
