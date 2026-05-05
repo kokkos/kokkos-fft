@@ -5,9 +5,11 @@
 #ifndef KOKKOSFFT_CHECKCONDITIONS_HPP
 #define KOKKOSFFT_CHECKCONDITIONS_HPP
 
-#include <set>
 #include <algorithm>
+#include <array>
 #include <numeric>
+#include <set>
+#include <type_traits>
 #include <Kokkos_Core.hpp>
 #include "KokkosFFT_Asserts.hpp"
 #include "KokkosFFT_Mapping.hpp"
@@ -132,7 +134,7 @@ bool are_valid_axes(const ViewType& /*view*/,
   // ensured that the 'non_negative_axes' are in the range of [0, rank-1]
   try {
     non_negative_axes = convert_negative_axes(axes, ViewType::rank());
-  } catch (std::runtime_error& e) {
+  } catch (const std::runtime_error&) {
     return false;
   }
 

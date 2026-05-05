@@ -2,6 +2,10 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
+#include <array>
+#include <type_traits>
+#include <utility>
+#include <vector>
 #include <gtest/gtest.h>
 #include "KokkosFFT_CheckConditions.hpp"
 
