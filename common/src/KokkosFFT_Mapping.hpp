@@ -6,8 +6,8 @@
 #define KOKKOSFFT_MAPPING_HPP
 
 #include <algorithm>
-#include <numeric>
 #include <tuple>
+#include <type_traits>
 #include <vector>
 #include <Kokkos_Core.hpp>
 #include "KokkosFFT_Asserts.hpp"
