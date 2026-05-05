@@ -7,7 +7,6 @@
 
 #include <algorithm>
 #include <array>
-#include <numeric>
 #include <set>
 #include <type_traits>
 #include <Kokkos_Core.hpp>
