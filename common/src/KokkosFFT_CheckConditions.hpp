@@ -52,8 +52,8 @@ bool has_duplicate_values(const ContainerType& values) {
 /// \brief Check if a container includes any out-of-range values (negative or
 /// greater than or equal to max) Examples:
 /// - is_out_of_range_value_included({0, 1, 2}, 3) returns false
-/// - is_out_of_range_value_included({-1, 0, 1}, 3) returns true (negative
-/// value)
+/// - is_out_of_range_value_included({-1, 0, 1}, 3) throws a runtime_error
+/// (negative value)
 /// - is_out_of_range_value_included({0, 1, 3}, 3) returns true (value equal to
 /// max)
 /// - is_out_of_range_value_included({0, 1, 4}, 3) returns true (value greater
@@ -88,8 +88,8 @@ bool is_out_of_range_value_included(const ContainerType& values, IntType max) {
 
 /// \brief Check if the given axes are valid for the given view
 /// Valid axes must satisfy the following conditions:
-/// 1. The axes must be in the range of [0, rank-1], where rank is the rank of
-/// the view
+/// 1. The axes must be in the range of [0, rank-1] after converting negative
+/// axes to non-negative axes, where rank is the rank of the view
 /// 2. The axes must not contain duplicate values
 /// Examples:
 /// - are_valid_axes(view2d, {0, 1}) returns true (valid axes)
