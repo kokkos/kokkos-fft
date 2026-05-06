@@ -6,6 +6,7 @@ add_executable(
   unit-tests-kokkos-fft-common
   Test_Main.cpp
   Test_Common_Utils.cpp
+  Test_CheckConditions.cpp
   Test_Traits.cpp
   Test_Layout.cpp
   Test_Normalization.cpp

@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <Kokkos_Core.hpp>
 #include "KokkosFFT_default_types.hpp"
+#include "KokkosFFT_CheckConditions.hpp"
 #include "KokkosFFT_Extents.hpp"
 #include "KokkosFFT_Normalization.hpp"
 #include "KokkosFFT_Traits.hpp"

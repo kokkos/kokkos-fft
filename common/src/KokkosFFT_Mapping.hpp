@@ -5,16 +5,90 @@
 #ifndef KOKKOSFFT_MAPPING_HPP
 #define KOKKOSFFT_MAPPING_HPP
 
-#include <vector>
+#include <algorithm>
 #include <tuple>
-#include <numeric>
+#include <type_traits>
+#include <vector>
 #include <Kokkos_Core.hpp>
 #include "KokkosFFT_Asserts.hpp"
 #include "KokkosFFT_Common_Types.hpp"
-#include "KokkosFFT_utils.hpp"
 
 namespace KokkosFFT {
 namespace Impl {
+
+/// \brief Check if a value is found in a container
+/// Examples:
+/// - is_found({1, 2, 3}, 2) returns true
+/// - is_found({1, 2, 3}, 4) returns false
+///
+/// \tparam ContainerType The type of the container
+/// \tparam ValueType The type of the value to search for
+/// \param[in] values The container to search in
+/// \param[in] value The value to search for
+/// \return True if the value is found in the container, false otherwise
+template <typename ContainerType, typename ValueType>
+bool is_found(const ContainerType& values, const ValueType value) {
+  using value_type = std::remove_cv_t<
+      std::remove_reference_t<typename ContainerType::value_type>>;
+  static_assert(std::is_same_v<value_type, ValueType>,
+                "is_found: Container value type must match ValueType");
+  return std::find(values.begin(), values.end(), value) != values.end();
+}
+
+/// \brief Get the index of a value in a container
+/// Examples:
+/// - get_index({1, 2, 3}, 2) returns 1
+/// - get_index({1, 2, 3}, 4) throws an exception
+///
+/// \tparam ContainerType The type of the container
+/// \tparam ValueType The type of the value to search for
+/// \param[in] values The container to search in
+/// \param[in] value The value to search for
+/// \return The index of the value in the container
+/// \throws a runtime_error if the value is not found in the container
+template <typename ContainerType, typename ValueType>
+std::size_t get_index(const ContainerType& values, const ValueType value) {
+  using value_type = std::remove_cv_t<
+      std::remove_reference_t<typename ContainerType::value_type>>;
+  static_assert(std::is_same_v<value_type, ValueType>,
+                "get_index: Container value type must match ValueType");
+  auto it = std::find(values.begin(), values.end(), value);
+  KOKKOSFFT_THROW_IF(it == values.end(), "value is not included in values");
+  return it - values.begin();
+}
+
+/// \brief Converts axes in [-rank, rank-1] to [0, rank-1]
+/// \tparam IntType The integer type used for axis
+/// \tparam DIM The dimensionality of the axes
+///
+/// \param[in] axes The axes to be converted
+/// \param[in] rank The rank of the view
+/// \return The converted axes
+/// \throws a runtime_error if any axis is out of range
+template <typename IntType, std::size_t DIM>
+auto convert_negative_axes(const std::array<IntType, DIM>& axes,
+                           std::size_t rank) {
+  static_assert(std::is_integral_v<IntType>,
+                "convert_negative_axes: IntType must be an integral type.");
+  std::array<IntType, DIM> non_negative_axes{};
+
+  const IntType irank        = static_cast<IntType>(rank);
+  auto convert_negative_axis = [irank](IntType axis) -> IntType {
+    if constexpr (std::is_signed_v<IntType>) {
+      KOKKOSFFT_THROW_IF(axis < -irank || axis >= irank,
+                         "All axes must be in [-rank, rank-1]");
+      return axis < 0 ? irank + axis : axis;
+    } else {
+      KOKKOSFFT_THROW_IF(axis >= irank, "All axes must be in [0, rank-1]");
+      return axis;
+    }
+  };
+
+  std::transform(axes.begin(), axes.end(), non_negative_axes.begin(),
+                 convert_negative_axis);
+
+  return non_negative_axes;
+}
 
 /// \brief Mapping axes for transpose. With this mapping,
 /// the input view is transposed into the contiguous order which is expected by
