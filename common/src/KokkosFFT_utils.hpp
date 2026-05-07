@@ -57,9 +57,8 @@ constexpr std::array<IntType, N> index_sequence() {
 /// \param[in] step The step size between consecutive values (default is 1)
 /// \return A std::vector containing the generated sequence values
 /// \throws std::runtime_error if step is zero, if span or step is not finite,
-/// if the combination of start, stop, and step would result in an overflow in
-/// the number of generated elements, or if an unsigned step exceeds the
-/// supported range for the internal size checks
+/// or if the computed number of generated elements would overflow
+/// `std::size_t`
 template <typename ElementType>
 std::vector<ElementType> arange(const ElementType start, const ElementType stop,
                                 const ElementType step = 1) {
@@ -81,18 +80,28 @@ std::vector<ElementType> arange(const ElementType start, const ElementType stop,
     }
   }
 
-  const long double span =
-      static_cast<long double>(stop) - static_cast<long double>(start);
-  const long double stride = static_cast<long double>(step);
-  KOKKOSFFT_THROW_IF(!std::isfinite(span) || !std::isfinite(stride),
-                     "span and step must be finite");
+  std::size_t count = 0;
+  if constexpr (std::is_floating_point_v<ElementType>) {
+    const long double span =
+        static_cast<long double>(stop) - static_cast<long double>(start);
+    const long double stride = static_cast<long double>(step);
+    KOKKOSFFT_THROW_IF(!std::isfinite(span) || !std::isfinite(stride),
+                       "span and step must be finite");
 
-  const long double n = std::ceil(span / stride);
-  KOKKOSFFT_THROW_IF(
-      n > static_cast<long double>(std::numeric_limits<std::size_t>::max()),
-      "sequence size overflow");
+    const long double n = std::ceil(span / stride);
+    KOKKOSFFT_THROW_IF(
+        n > static_cast<long double>(std::numeric_limits<std::size_t>::max()),
+        "sequence size overflow");
 
-  const std::size_t count = static_cast<std::size_t>(n);
+    count = static_cast<std::size_t>(n);
+  } else {
+    // For integral types, we can compute the count using integer arithmetic
+    if constexpr (std::is_unsigned_v<ElementType>) {
+      count = (stop - start + step - 1) / step;  // Round up for unsigned
+    } else {
+      count = (stop - start + (step > 0 ? step - 1 : step + 1)) / step;
+    }
+  }
   result.reserve(count);
   for (std::size_t i = 0; i < count; ++i) {
     result.push_back(start + static_cast<ElementType>(i) * step);
