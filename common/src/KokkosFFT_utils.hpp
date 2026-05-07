@@ -62,15 +62,28 @@ constexpr std::array<IntType, N> index_sequence() {
 template <typename ElementType>
 std::vector<ElementType> arange(const ElementType start, const ElementType stop,
                                 const ElementType step = 1) {
+  static_assert(std::is_arithmetic_v<ElementType>,
+                "arange: ElementType must be an arithmetic type");
   KOKKOSFFT_THROW_IF(step == 0, "step must be non-zero");
 
   std::vector<ElementType> result;
-  if constexpr (std::is_signed_v<ElementType>) {
-    if ((step > 0 && start >= stop) || (step < 0 && start <= stop)) {
-      return result;
+  if constexpr (std::is_integral_v<ElementType>) {
+    if constexpr (std::is_signed_v<ElementType>) {
+      if ((step > 0 && start >= stop) || (step < 0 && start <= stop)) {
+        return result;
+      }
+    } else {
+      KOKKOSFFT_THROW_IF(
+          step > static_cast<std::size_t>(
+                     std::numeric_limits<std::ptrdiff_t>::max()),
+          "Negative step size passed where std::size_t was expected");
+      if ((step > 0 && start >= stop)) {
+        return result;
+      }
     }
   } else {
-    if (step > 0 && start >= stop) {
+    // floating-point case:
+    if ((step > 0 && start >= stop) || (step < 0 && start <= stop)) {
       return result;
     }
   }

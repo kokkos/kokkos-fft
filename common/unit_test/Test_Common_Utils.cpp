@@ -163,6 +163,10 @@ void test_arange() {
   std::vector<ValueType> ref_result = {0, 1, 2, 3, 4};
   EXPECT_EQ(seq_result, ref_result);
 
+  auto empty_result = KokkosFFT::Impl::arange(seq_stop, seq_start);
+  std::vector<ValueType> ref_empty_result{};
+  EXPECT_EQ(empty_result, ref_empty_result);
+
   if constexpr (std::is_integral_v<ValueType>) {
     auto pos_result = KokkosFFT::Impl::arange(static_cast<ValueType>(0),
                                               static_cast<ValueType>(10),
@@ -180,6 +184,10 @@ void test_arange() {
       auto neg_step_result = KokkosFFT::Impl::arange(stop, start, neg_step);
       std::vector<ValueType> ref_neg_step_result = {4, 2, 0, -2};
       EXPECT_EQ(neg_step_result, ref_neg_step_result);
+
+      auto neg_empty_result = KokkosFFT::Impl::arange(start, stop, neg_step);
+      std::vector<ValueType> ref_neg_empty_result{};
+      EXPECT_EQ(neg_empty_result, ref_neg_empty_result);
     }
   } else {
     // For non-integral type, we test an explicit non-unit step size
@@ -198,7 +206,7 @@ void test_arange() {
       },
       std::runtime_error);
 
-  // Failure test for overflow in step size
+  // Failure test for overflow in the number of elements
   if constexpr (std::is_floating_point_v<ValueType>) {
     const ValueType overflow_start = 0;
     const ValueType overflow_stop  = std::numeric_limits<ValueType>::max();
