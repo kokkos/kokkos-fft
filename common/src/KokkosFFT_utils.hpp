@@ -56,9 +56,10 @@ constexpr std::array<IntType, N> index_sequence() {
 /// \param[in] stop The stopping value of the sequence (exclusive)
 /// \param[in] step The step size between consecutive values (default is 1)
 /// \return A std::vector containing the generated sequence values
-/// \throws std::runtime_error if step is zero or if the combination of
-/// start, stop, and step would result in an overflow in the number of generated
-/// elements
+/// \throws std::runtime_error if step is zero, if span or step is not finite,
+/// if the combination of start, stop, and step would result in an overflow in
+/// the number of generated elements, or if an unsigned step exceeds the
+/// supported range for the internal size checks
 template <typename ElementType>
 std::vector<ElementType> arange(const ElementType start, const ElementType stop,
                                 const ElementType step = 1) {
@@ -67,22 +68,14 @@ std::vector<ElementType> arange(const ElementType start, const ElementType stop,
   KOKKOSFFT_THROW_IF(step == 0, "step must be non-zero");
 
   std::vector<ElementType> result;
-  if constexpr (std::is_integral_v<ElementType>) {
-    if constexpr (std::is_signed_v<ElementType>) {
-      if ((step > 0 && start >= stop) || (step < 0 && start <= stop)) {
-        return result;
-      }
-    } else {
-      KOKKOSFFT_THROW_IF(
-          step > static_cast<std::size_t>(
-                     std::numeric_limits<std::ptrdiff_t>::max()),
-          "Negative step size passed where std::size_t was expected");
-      if ((step > 0 && start >= stop)) {
-        return result;
-      }
+  // Unsigned integers require special treatment: step is always positive
+  if constexpr (std::is_integral_v<ElementType> &&
+                std::is_unsigned_v<ElementType>) {
+    if (start >= stop) {
+      return result;
     }
   } else {
-    // floating-point case:
+    // For signed integers and floating-point types
     if ((step > 0 && start >= stop) || (step < 0 && start <= stop)) {
       return result;
     }
