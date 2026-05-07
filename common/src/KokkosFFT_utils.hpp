@@ -8,6 +8,7 @@
 #include <vector>
 #include <set>
 #include <algorithm>
+#include <cmath>
 #include <numeric>
 #include <stdexcept>
 #include <limits>
@@ -50,28 +51,38 @@ constexpr std::array<IntType, N> index_sequence() {
 /// \endcode
 /// This will generate a std::vector containing the values {0, 2, 4, 6, 8}
 ///
-/// \tparam ElementType The integral type of the sequence values
+/// \tparam ElementType The arithmetic type of the sequence values
 /// \param[in] start The starting value of the sequence
 /// \param[in] stop The stopping value of the sequence (exclusive)
 /// \param[in] step The step size between consecutive values (default is 1)
-/// \return A std::vector containing the generated sequence of integral values
-/// \throws std::invalid_argument if step is zero
+/// \return A std::vector containing the generated sequence values
+/// \throws std::invalid_argument if step is zero or if the combination of
+/// start, stop, and step would result in an overflow in the number of generated
+/// elements
 template <typename ElementType>
 std::vector<ElementType> arange(const ElementType start, const ElementType stop,
                                 const ElementType step = 1) {
-  if (step == 0) {
-    throw std::invalid_argument("step must be non-zero");
-  }
+  KOKKOSFFT_THROW_IF(step == 0, "step must be non-zero");
 
   std::vector<ElementType> result;
-  if (step > 0) {
-    for (ElementType value = start; value < stop; value += step) {
-      result.push_back(value);
-    }
-  } else {
-    for (ElementType value = start; value > stop; value += step) {
-      result.push_back(value);
-    }
+  // nvcc warns a pointless comparison of unsigned integer with zero, so we
+  // check step <= 0 even though step == 0 is already checked above
+  if ((step > 0 && start >= stop) || (step <= 0 && start <= stop)) {
+    return result;
+  }
+
+  const long double span =
+      static_cast<long double>(stop) - static_cast<long double>(start);
+  const long double stride = static_cast<long double>(step);
+  const long double n      = std::ceil(span / stride);
+  KOKKOSFFT_THROW_IF(
+      n > static_cast<long double>(std::numeric_limits<std::size_t>::max()),
+      "sequence size overflow");
+
+  const std::size_t count = static_cast<std::size_t>(n);
+  result.reserve(count);
+  for (std::size_t i = 0; i < count; ++i) {
+    result.push_back(start + static_cast<ElementType>(i) * step);
   }
 
   return result;
@@ -108,8 +119,8 @@ constexpr Kokkos::Array<T, N> to_array(std::array<T, N>&& a) {
 /// \throws std::overflow_error if multiplication overflows
 template <typename ContainerType>
 auto total_size(const ContainerType& values) {
-  using value_type = std::remove_cv_t<
-      std::remove_reference_t<typename ContainerType::value_type>>;
+  using value_type =
+      std::remove_cv_t<std::remove_reference_t<decltype(*values.begin())>>;
   static_assert(std::is_integral_v<value_type>,
                 "total_size: Container value type must be an integral type");
 
