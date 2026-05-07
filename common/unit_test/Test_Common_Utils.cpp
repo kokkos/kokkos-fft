@@ -175,6 +175,11 @@ void test_arange() {
       auto neg_result = KokkosFFT::Impl::arange(start, stop, step);
       std::vector<ValueType> ref_neg_result = {-3, -1, 1, 3};
       EXPECT_EQ(neg_result, ref_neg_result);
+
+      ValueType neg_step   = -2;
+      auto neg_step_result = KokkosFFT::Impl::arange(stop, start, neg_step);
+      std::vector<ValueType> ref_neg_step_result = {4, 2, 0, -2};
+      EXPECT_EQ(neg_step_result, ref_neg_step_result);
     }
   } else {
     // For non-integral type, we test an explicit non-unit step size

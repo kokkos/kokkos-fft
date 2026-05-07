@@ -46,8 +46,8 @@ constexpr std::array<IntType, N> index_sequence() {
 /// \brief Generate values starting from a specified value with a specified step
 /// size excluding the stop value.
 /// Example usage:
-/// \code{.cpp} std::vector<int>
-/// sequence = arange(0, 10, 2);
+/// \code{.cpp}
+/// std::vector<int> sequence = arange(0, 10, 2);
 /// \endcode
 /// This will generate a std::vector containing the values {0, 2, 4, 6, 8}
 ///
@@ -65,16 +65,23 @@ std::vector<ElementType> arange(const ElementType start, const ElementType stop,
   KOKKOSFFT_THROW_IF(step == 0, "step must be non-zero");
 
   std::vector<ElementType> result;
-  // nvcc warns a pointless comparison of unsigned integer with zero, so we
-  // check step <= 0 even though step == 0 is already checked above
-  if ((step > 0 && start >= stop) || (step <= 0 && start <= stop)) {
-    return result;
+  if constexpr (std::is_signed_v<ElementType>) {
+    if ((step > 0 && start >= stop) || (step < 0 && start <= stop)) {
+      return result;
+    }
+  } else {
+    if (step > 0 && start >= stop) {
+      return result;
+    }
   }
 
   const long double span =
       static_cast<long double>(stop) - static_cast<long double>(start);
   const long double stride = static_cast<long double>(step);
-  const long double n      = std::ceil(span / stride);
+  KOKKOSFFT_THROW_IF(!std::isfinite(span) || !std::isfinite(stride),
+                     "span and step must be finite");
+
+  const long double n = std::ceil(span / stride);
   KOKKOSFFT_THROW_IF(
       n > static_cast<long double>(std::numeric_limits<std::size_t>::max()),
       "sequence size overflow");
@@ -110,7 +117,8 @@ constexpr Kokkos::Array<T, N> to_array(std::array<T, N>&& a) {
 
 /// \brief Compute the total size by multiplying all elements in the container
 /// Example usage:
-/// \code{.cpp} std::vector<int> dims = {2, 3, 4};
+/// \code{.cpp}
+/// std::vector<int> dims = {2, 3, 4};
 /// auto size = total_size(dims); // size will be 24
 /// \endcode
 /// \tparam ContainerType The container type, must support begin() and end()
