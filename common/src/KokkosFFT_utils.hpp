@@ -56,7 +56,7 @@ constexpr std::array<IntType, N> index_sequence() {
 /// \param[in] stop The stopping value of the sequence (exclusive)
 /// \param[in] step The step size between consecutive values (default is 1)
 /// \return A std::vector containing the generated sequence values
-/// \throws std::invalid_argument if step is zero or if the combination of
+/// \throws std::runtime_error if step is zero or if the combination of
 /// start, stop, and step would result in an overflow in the number of generated
 /// elements
 template <typename ElementType>
@@ -125,30 +125,27 @@ auto total_size(const ContainerType& values) {
                 "total_size: Container value type must be an integral type");
 
   auto safe_multiply = [](value_type a, value_type b) -> value_type {
-    if constexpr (std::is_integral_v<value_type>) {
-      if constexpr (std::is_signed_v<value_type>) {
-        // Check special cases with std::numeric_limits<value_type>::min()
-        if ((a == std::numeric_limits<value_type>::min() && b < 0) ||
-            (b == std::numeric_limits<value_type>::min() && a < 0)) {
+    if constexpr (std::is_signed_v<value_type>) {
+      // Check special cases with std::numeric_limits<value_type>::min()
+      if ((a == std::numeric_limits<value_type>::min() && b < 0) ||
+          (b == std::numeric_limits<value_type>::min() && a < 0)) {
+        throw std::overflow_error("Integer multiplication overflow");
+      }
+      if (a > 0) {
+        if ((b > 0 && a > std::numeric_limits<value_type>::max() / b) ||
+            (b < 0 && b < std::numeric_limits<value_type>::min() / a)) {
           throw std::overflow_error("Integer multiplication overflow");
         }
-
-        if (a > 0) {
-          if ((b > 0 && a > std::numeric_limits<value_type>::max() / b) ||
-              (b < 0 && b < std::numeric_limits<value_type>::min() / a)) {
-            throw std::overflow_error("Integer multiplication overflow");
-          }
-        } else if (a < 0) {  // a < 0
-          if ((b > 0 && a < std::numeric_limits<value_type>::min() / b) ||
-              (b < 0 && a > std::numeric_limits<value_type>::max() / b)) {
-            throw std::overflow_error("Integer multiplication overflow");
-          }
+      } else if (a < 0) {  // a < 0
+        if ((b > 0 && a < std::numeric_limits<value_type>::min() / b) ||
+            (b < 0 && a > std::numeric_limits<value_type>::max() / b)) {
+          throw std::overflow_error("Integer multiplication overflow");
         }
-      } else {
-        // nvcc warns a pointless comparison of unsigned integer with zero
-        if (b != 0 && a > std::numeric_limits<value_type>::max() / b) {
-          throw std::overflow_error("Unsigned integer multiplication overflow");
-        }
+      }
+    } else {
+      // nvcc warns a pointless comparison of unsigned integer with zero
+      if (b != 0 && a > std::numeric_limits<value_type>::max() / b) {
+        throw std::overflow_error("Unsigned integer multiplication overflow");
       }
     }
     return a * b;
