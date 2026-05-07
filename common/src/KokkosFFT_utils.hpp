@@ -93,8 +93,30 @@ std::vector<ElementType> arange(const ElementType start, const ElementType stop,
 
   const std::size_t count = static_cast<std::size_t>(n);
   result.reserve(count);
-  for (std::size_t i = 0; i < count; ++i) {
-    result.push_back(start + static_cast<ElementType>(i) * step);
+  if constexpr (std::is_integral_v<ElementType>) {
+    ElementType value = start;
+    for (std::size_t i = 0; i < count; ++i) {
+      result.push_back(value);
+      if (i + 1 < count) {
+        if constexpr (std::is_signed_v<ElementType>) {
+          KOKKOSFFT_THROW_IF(
+              (step > 0 &&
+               value > std::numeric_limits<ElementType>::max() - step) ||
+                  (step < 0 &&
+                   value < std::numeric_limits<ElementType>::min() - step),
+              "arange value overflow");
+        } else {
+          KOKKOSFFT_THROW_IF(
+              value > std::numeric_limits<ElementType>::max() - step,
+              "arange value overflow");
+        }
+        value += step;
+      }
+    }
+  } else {
+    for (std::size_t i = 0; i < count; ++i) {
+      result.push_back(start + static_cast<ElementType>(i) * step);
+    }
   }
 
   return result;
