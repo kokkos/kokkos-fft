@@ -5,11 +5,14 @@
 #ifndef KOKKOSFFT_CUDA_PLANS_HPP
 #define KOKKOSFFT_CUDA_PLANS_HPP
 
+#include <Kokkos_Core.hpp>
 #include <Kokkos_Profiling_ScopedRegion.hpp>
+
+#include "KokkosFFT_Asserts.hpp"
+#include "KokkosFFT_Container_Helpers.hpp"
 #include "KokkosFFT_Cuda_types.hpp"
 #include "KokkosFFT_Extents.hpp"
 #include "KokkosFFT_Traits.hpp"
-#include "KokkosFFT_Asserts.hpp"
 #include "KokkosFFT_utils.hpp"
 
 namespace KokkosFFT {

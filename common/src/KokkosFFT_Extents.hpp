@@ -13,6 +13,7 @@
 #include "KokkosFFT_Asserts.hpp"
 #include "KokkosFFT_CheckConditions.hpp"
 #include "KokkosFFT_Common_Types.hpp"
+#include "KokkosFFT_Container_Helpers.hpp"
 #include "KokkosFFT_Mapping.hpp"
 #include "KokkosFFT_Traits.hpp"
 #include "KokkosFFT_utils.hpp"
