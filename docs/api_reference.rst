@@ -109,7 +109,7 @@ Real FFTs
      - `numpy.fft.irfft <https://numpy.org/doc/stable/reference/generated/numpy.fft.irfft.html>`_ 
    * - Two dimensional FFT for real input
      - :doc:`api/real/rfft2`
-     - `numpy.fft.rfft2 <https://numpy.org/doc/stable/reference/generated/numpy.fft.fft2.html>`_ 
+     - `numpy.fft.rfft2 <https://numpy.org/doc/stable/reference/generated/numpy.fft.rfft2.html>`_ 
    * - Inverse of :doc:`rfft2<api/real/rfft2>`
      - :doc:`api/real/irfft2`
      - `numpy.fft.irfft2 <https://numpy.org/doc/stable/reference/generated/numpy.fft.irfft2.html>`_ 
