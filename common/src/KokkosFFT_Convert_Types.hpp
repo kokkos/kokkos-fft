@@ -49,7 +49,7 @@ constexpr Kokkos::Array<std::remove_cv_t<T>, N> to_array_rvalue(
   return {{std::move(a[Is])...}};
 }
 
-/// \brief Convert a const std::array to a const Kokkos::Array
+/// \brief Convert a std::array to a Kokkos::Array
 /// \tparam T The element type of the array
 /// \tparam N The number of elements in the array
 ///
@@ -69,7 +69,7 @@ constexpr Kokkos::Array<std::remove_cv_t<T>, N> to_array(
 /// \param[in, out] a The input rvalue std::array
 /// \return A Kokkos::Array containing the elements of the input array
 template <typename T, std::size_t N>
-constexpr Kokkos::Array<T, N> to_array(std::array<T, N>&& a) {
+constexpr Kokkos::Array<std::remove_cv_t<T>, N> to_array(std::array<T, N>&& a) {
   return to_array_rvalue(std::move(a), std::make_index_sequence<N>());
 }
 
