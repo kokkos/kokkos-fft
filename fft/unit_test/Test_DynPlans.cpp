@@ -3,11 +3,12 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
 #include <gtest/gtest.h>
+#include <Kokkos_Core.hpp>
 #include <Kokkos_Random.hpp>
-#include "KokkosFFT_utils.hpp"
+#include "KokkosFFT_Convert_Types.hpp"
+#include "KokkosFFT_DynPlans.hpp"
 #include "KokkosFFT_Layout.hpp"
 #include "KokkosFFT_Plans.hpp"
-#include "KokkosFFT_DynPlans.hpp"
 #include "KokkosFFT_Transform.hpp"
 #include "Test_Utils.hpp"
 

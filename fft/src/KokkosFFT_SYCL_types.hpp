@@ -16,8 +16,8 @@
 #include <Kokkos_Core.hpp>
 #include "KokkosFFT_Asserts.hpp"
 #include "KokkosFFT_Common_Types.hpp"
+#include "KokkosFFT_Convert_Types.hpp"
 #include "KokkosFFT_Traits.hpp"
-#include "KokkosFFT_utils.hpp"
 
 #if defined(KOKKOSFFT_ENABLE_TPL_FFTW)
 #include "KokkosFFT_FFTW_Types.hpp"

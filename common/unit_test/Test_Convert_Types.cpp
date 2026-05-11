@@ -6,7 +6,7 @@
 #include <vector>
 #include <gtest/gtest.h>
 #include <Kokkos_Core.hpp>
-#include "KokkosFFT_utils.hpp"
+#include "KokkosFFT_Convert_Types.hpp"
 
 namespace {
 // Int like types
@@ -59,9 +59,18 @@ TYPED_TEST(ContainerTypes, array_to_vector) {
 
 TEST(ToArray, lvalue) {
   std::array arr{1, 2, 3};
-  ASSERT_EQ(KokkosFFT::Impl::to_array(arr), (Kokkos::Array{1, 2, 3}));
+  auto kokkos_arr = KokkosFFT::Impl::to_array(arr);
+  testing::StaticAssertTypeEq<decltype(kokkos_arr), Kokkos::Array<int, 3>>();
+  ASSERT_EQ(kokkos_arr, (Kokkos::Array{1, 2, 3}));
+
+  const std::array carr{1, 2, 3};
+  auto kokkos_carr = KokkosFFT::Impl::to_array(carr);
+  testing::StaticAssertTypeEq<decltype(kokkos_carr), Kokkos::Array<int, 3>>();
+  ASSERT_EQ(kokkos_carr, (Kokkos::Array{1, 2, 3}));
 }
 
 TEST(ToArray, rvalue) {
-  ASSERT_EQ(KokkosFFT::Impl::to_array(std::array{1, 2}), (Kokkos::Array{1, 2}));
+  auto kokkos_arr = KokkosFFT::Impl::to_array(std::array{1, 2, 3});
+  testing::StaticAssertTypeEq<decltype(kokkos_arr), Kokkos::Array<int, 3>>();
+  ASSERT_EQ(kokkos_arr, (Kokkos::Array{1, 2, 3}));
 }
