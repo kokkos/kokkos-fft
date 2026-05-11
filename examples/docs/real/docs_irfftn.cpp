@@ -8,7 +8,7 @@
 #include <KokkosFFT.hpp>
 
 /// \brief Example of irfftn usage in documentation
-/// x_hat = [[[78, -6j],
+/// x_hat = [[[78, -6],
 ///           [-12, 0]],
 ///          [[-24+13.8564j, 0],
 ///           [0, 0]],
