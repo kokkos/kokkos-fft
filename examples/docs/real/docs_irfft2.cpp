@@ -17,8 +17,9 @@
 int main(int argc, char* argv[]) {
   Kokkos::ScopeGuard guard(argc, argv);
   using ExecutionSpace = Kokkos::DefaultExecutionSpace;
-  using View2D         = Kokkos::View<double**, ExecutionSpace>;
-  using ComplexView2D = Kokkos::View<Kokkos::complex<double>**, ExecutionSpace>;
+  using View2D = Kokkos::View<double**, Kokkos::LayoutRight, ExecutionSpace>;
+  using ComplexView2D = Kokkos::View<Kokkos::complex<double>**,
+                                     Kokkos::LayoutRight, ExecutionSpace>;
 
   const int n0 = 3, n1 = 4;
 
