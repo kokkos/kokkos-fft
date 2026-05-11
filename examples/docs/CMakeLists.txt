@@ -27,3 +27,9 @@ target_link_libraries(docs_rfft PUBLIC KokkosFFT::fft)
 
 add_executable(docs_irfft real/docs_irfft.cpp)
 target_link_libraries(docs_irfft PUBLIC KokkosFFT::fft)
+
+add_executable(docs_rfft2 real/docs_rfft2.cpp)
+target_link_libraries(docs_rfft2 PUBLIC KokkosFFT::fft)
+
+add_executable(docs_irfft2 real/docs_irfft2.cpp)
+target_link_libraries(docs_irfft2 PUBLIC KokkosFFT::fft)
