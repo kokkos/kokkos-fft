@@ -5,11 +5,11 @@
 #ifndef KOKKOSFFT_HPP
 #define KOKKOSFFT_HPP
 
+#include "KokkosFFT_Convert_Types.hpp"
 #include "KokkosFFT_default_types.hpp"
-#include "KokkosFFT_utils.hpp"
+#include "KokkosFFT_DynPlans.hpp"
 #include "KokkosFFT_Helpers.hpp"
 #include "KokkosFFT_Plans.hpp"
-#include "KokkosFFT_DynPlans.hpp"
 #include "KokkosFFT_Transform.hpp"
 
 #endif

@@ -12,11 +12,11 @@
 #include "KokkosFFT_Asserts.hpp"
 #include "KokkosFFT_CheckConditions.hpp"
 #include "KokkosFFT_Container_Helpers.hpp"
+#include "KokkosFFT_Convert_Types.hpp"
 #include "KokkosFFT_Extents.hpp"
 #include "KokkosFFT_Layout.hpp"
 #include "KokkosFFT_Plans.hpp"
 #include "KokkosFFT_Traits.hpp"
-#include "KokkosFFT_utils.hpp"
 
 namespace KokkosFFT {
 

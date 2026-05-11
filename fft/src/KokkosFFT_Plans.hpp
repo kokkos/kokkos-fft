@@ -20,6 +20,7 @@
 #include "KokkosFFT_CheckConditions.hpp"
 #include "KokkosFFT_Common_Types.hpp"
 #include "KokkosFFT_Container_Helpers.hpp"
+#include "KokkosFFT_Convert_Types.hpp"
 #include "KokkosFFT_default_types.hpp"
 #include "KokkosFFT_Extents.hpp"
 #include "KokkosFFT_Layout.hpp"
@@ -27,7 +28,6 @@
 #include "KokkosFFT_Padding.hpp"
 #include "KokkosFFT_Traits.hpp"
 #include "KokkosFFT_Transpose.hpp"
-#include "KokkosFFT_utils.hpp"
 
 #if defined(KOKKOSFFT_ENABLE_TPL_CUFFT)
 #include "KokkosFFT_Cuda_plans.hpp"

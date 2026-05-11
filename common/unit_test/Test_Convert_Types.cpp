@@ -6,7 +6,7 @@
 #include <vector>
 #include <gtest/gtest.h>
 #include <Kokkos_Core.hpp>
-#include "KokkosFFT_utils.hpp"
+#include "KokkosFFT_Convert_Types.hpp"
 
 namespace {
 // Int like types
