@@ -13,6 +13,9 @@ using test_types = ::testing::Types<Kokkos::LayoutLeft, Kokkos::LayoutRight>;
 using base_int_types   = ::testing::Types<int, std::size_t>;
 using signed_int_types = ::testing::Types<int, std::int32_t, std::int64_t>;
 
+// Int or float types
+using data_types = ::testing::Types<int, std::size_t, float, double>;
+
 // value type combinations that are tested
 using paired_scalar_types = ::testing::Types<
     std::pair<float, float>, std::pair<float, Kokkos::complex<float>>,
@@ -42,6 +45,11 @@ struct PairedScalarTypes : public ::testing::Test {
 
 template <typename T>
 struct TestIndexSequence : public ::testing::Test {
+  using value_type = T;
+};
+
+template <typename T>
+struct TestArange : public ::testing::Test {
   using value_type = T;
 };
 
@@ -145,6 +153,71 @@ void test_index_sequence() {
     EXPECT_EQ(range0, ref_range0);
     EXPECT_EQ(range1, ref_range1);
     EXPECT_EQ(range2, ref_range2);
+  }
+}
+
+template <typename ValueType>
+void test_arange() {
+  ValueType seq_start = 0, seq_stop = 5;
+  auto seq_result = KokkosFFT::Impl::arange(seq_start, seq_stop);
+  std::vector<ValueType> ref_result = {0, 1, 2, 3, 4};
+  EXPECT_EQ(seq_result, ref_result);
+
+  auto empty_result = KokkosFFT::Impl::arange(seq_stop, seq_start);
+  std::vector<ValueType> ref_empty_result{};
+  EXPECT_EQ(empty_result, ref_empty_result);
+
+  if constexpr (std::is_integral_v<ValueType>) {
+    auto pos_result = KokkosFFT::Impl::arange(static_cast<ValueType>(0),
+                                              static_cast<ValueType>(10),
+                                              static_cast<ValueType>(2));
+    std::vector<ValueType> ref_pos_result = {0, 2, 4, 6, 8};
+    EXPECT_EQ(pos_result, ref_pos_result);
+
+    if constexpr (std::is_signed_v<ValueType>) {
+      ValueType start = -3, stop = 4, step = 2;
+      auto neg_result = KokkosFFT::Impl::arange(start, stop, step);
+      std::vector<ValueType> ref_neg_result = {-3, -1, 1, 3};
+      EXPECT_EQ(neg_result, ref_neg_result);
+
+      ValueType neg_step   = -2;
+      auto neg_step_result = KokkosFFT::Impl::arange(stop, start, neg_step);
+      std::vector<ValueType> ref_neg_step_result = {4, 2, 0, -2};
+      EXPECT_EQ(neg_step_result, ref_neg_step_result);
+
+      auto neg_empty_result = KokkosFFT::Impl::arange(start, stop, neg_step);
+      std::vector<ValueType> ref_neg_empty_result{};
+      EXPECT_EQ(neg_empty_result, ref_neg_empty_result);
+    }
+  } else {
+    // For non-integral type, we test an explicit non-unit step size
+    ValueType start = -1.0, stop = 1.1, step = 0.5;
+    auto result = KokkosFFT::Impl::arange(start, stop, step);
+    std::vector<ValueType> ref_result = {-1.0, -0.5, 0.0, 0.5, 1.0};
+    EXPECT_EQ(result, ref_result);
+  }
+
+  // Failure test for zero step size
+  EXPECT_THROW(
+      {
+        ValueType zero_step = 0;
+        [[maybe_unused]] auto result_zero_step =
+            KokkosFFT::Impl::arange(seq_start, seq_stop, zero_step);
+      },
+      std::runtime_error);
+
+  // Failure test for overflow in the number of elements
+  if constexpr (std::is_floating_point_v<ValueType>) {
+    const ValueType overflow_start = 0;
+    const ValueType overflow_stop  = std::numeric_limits<ValueType>::max();
+    const ValueType overflow_step  = std::numeric_limits<ValueType>::min();
+
+    EXPECT_THROW(
+        {
+          [[maybe_unused]] auto overflow_result = KokkosFFT::Impl::arange(
+              overflow_start, overflow_stop, overflow_step);
+        },
+        std::runtime_error);
   }
 }
 
@@ -305,6 +378,7 @@ void test_convert_base_int_type() {
 TYPED_TEST_SUITE(ContainerTypes, base_int_types);
 TYPED_TEST_SUITE(PairedScalarTypes, paired_scalar_types);
 TYPED_TEST_SUITE(TestIndexSequence, base_int_types);
+TYPED_TEST_SUITE(TestArange, data_types);
 TYPED_TEST_SUITE(TestConvertBaseTypes, paired_int_types);
 
 TYPED_TEST(ContainerTypes, test_total_size_of_vector) {
@@ -341,6 +415,11 @@ TYPED_TEST(ContainerTypes, array_to_vector) {
 TYPED_TEST(TestIndexSequence, make_sequence_3Dto5D) {
   using value_type = typename TestFixture::value_type;
   test_index_sequence<value_type>();
+}
+
+TYPED_TEST(TestArange, arange) {
+  using value_type = typename TestFixture::value_type;
+  test_arange<value_type>();
 }
 
 TEST(ToArray, lvalue) {
