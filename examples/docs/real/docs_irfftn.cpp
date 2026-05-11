@@ -31,7 +31,7 @@ int main(int argc, char* argv[]) {
 
   ComplexView3D x_hat("x_hat", n0, n1, n2 / 2 + 1);
   View3D x("x", n0, n1, n2);
-  auto h_x_hat  = Kokkos::create_mirror_view(x_hat);
+  auto h_x_hat     = Kokkos::create_mirror_view(x_hat);
   h_x_hat(0, 0, 0) = Kokkos::complex<double>(78, 0);
   h_x_hat(0, 0, 1) = Kokkos::complex<double>(-6, 0);
   h_x_hat(0, 1, 0) = Kokkos::complex<double>(-12, 0);
