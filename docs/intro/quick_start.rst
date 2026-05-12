@@ -8,22 +8,22 @@ Quickstart guide
 ================
 
 This section will quickly illustrate how to use Kokkos-FFT.
-First of all, you need to clone this repo. 
+First of all, you need to clone this repo.
 
 .. code-block:: bash
 
     git clone --recursive https://github.com/kokkos/kokkos-fft.git
 
-To configure Kokkos-FFT, we can just use CMake options for Kokkos, which automatically enables the FFT interface on Kokkos device. 
+To configure Kokkos-FFT, we can just use CMake options for Kokkos, which automatically enables the FFT interface on Kokkos device.
 If CMake fails to find a backend FFT library, see :doc:`How to find fft libraries?<../finding_libraries>`
 
 Requirements
 ------------
 
-Kokkos-FFT requires ``Kokkos 4.6+`` and dedicated compilers for CPUs or GPUs with C++20 support.
+Kokkos-FFT requires ``Kokkos 4.7+`` and dedicated compilers for CPUs or GPUs with C++20 support.
 It employs ``CMake 3.22+`` for building.
 
-Here are list of compilers we frequently use for testing. 
+Here are list of compilers we frequently use for testing.
 
 * ``gcc 10.4.0+`` - CPUs
 * ``IntelLLVM 2024.2.1+`` - CPUs, Intel GPUs
@@ -79,7 +79,7 @@ This way, all the functionalities are executed on A100 GPUs.
 Trying
 ------
 
-For those who are familiar with `numpy.fft <https://numpy.org/doc/stable/reference/routines.fft.html>`_, 
+For those who are familiar with `numpy.fft <https://numpy.org/doc/stable/reference/routines.fft.html>`_,
 you may use Kokkos-FFT quite easily. Here is an example for 1D real to complex transform with ``rfft`` in Kokkos-FFT and python.
 
 .. code-block:: C++
@@ -110,6 +110,6 @@ you may use Kokkos-FFT quite easily. Here is an example for 1D real to complex t
 In most cases, a function ``numpy.fft.<function_name>`` is available by ``KokkosFFT::<function_name>``.
 There are two major differences: ``execution_space`` argument and output value (``x_hat``) is an argument of API (not a returned value from API).
 Instead of numpy.array, we rely on `Kokkos Views <https://kokkos.org/kokkos-core-wiki/API/core/View.html>`_.
-The accessibilities of Views from ``execution_space`` are statically checked (compilation errors if not accessible). 
+The accessibilities of Views from ``execution_space`` are statically checked (compilation errors if not accessible).
 It is easiest to rely only on the ``Kokkos::DefaultExecutionSpace`` for both View allocation and KokkosFFT APIs.
 See :ref:`Using Kokkos-FFT<using>` for detail.

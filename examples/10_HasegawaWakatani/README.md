@@ -32,9 +32,9 @@ The nonlinear term can be described as follows, which can be efficiently compute
 ## Prerequisites
 
 For kokkos version, we need the followings (for the latest requirements, see [README.md](../../README.md)):
-   
+
 * `CMake 3.22+`
-* `Kokkos 4.6+`
+* `Kokkos 4.7+`
 * `gcc 10.4.0+` (CPUs)
 * `IntelLLVM 2024.2.1+` (CPUs, Intel GPUs)
 * `nvcc 12.2.0+` (NVIDIA GPUs)
@@ -86,13 +86,13 @@ template <typename FViewType, typename GViewType, typename PViewType>
 void poissonBracket(const FViewType& fk, const GViewType& gk, PViewType& pk) {
   derivative(fk, gk, m_ik_fg_all);
   backwardFFT(m_ik_fg_all, m_dfgdx_all);
-  
+
   // Convolution in real space
   convolution(m_dfgdx_all, m_conv);
-  
+
   // Forward FFT
   forwardFFT(m_conv, pk);
-  
+
   // ky == 0 component
   auto sub_pk = Kokkos::subview(pk, Kokkos::ALL, 0, Kokkos::ALL);
   realityCondition(sub_pk, m_mask);
@@ -116,7 +116,7 @@ cmake -B build \
 cmake --build build -j 8
 
 # Run the kokkos code
-./build/10_hasegawa_wakatani/10_hasegawa_wakatani 
+./build/10_hasegawa_wakatani/10_hasegawa_wakatani
 ```
 
 Python version is also available which can be executed by

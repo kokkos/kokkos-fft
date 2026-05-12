@@ -28,7 +28,7 @@ set(KOKKOSFFT_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
 set(KOKKOSFFT_VERSION_MINOR ${PROJECT_VERSION_MINOR})
 set(KOKKOSFFT_VERSION_PATCH ${PROJECT_VERSION_PATCH})
 
-set(KOKKOS_REQUIRED_VERSION 4.6.0)
+set(KOKKOS_REQUIRED_VERSION 4.7.0)
 
 if(NOT KokkosFFT_ENABLE_INTERNAL_KOKKOS)
   # First check, Kokkos is added as subdirectory or not
@@ -59,8 +59,10 @@ if(KokkosFFT_ENABLE_ROCFFT)
 endif()
 option(KokkosFFT_ENABLE_HIPFFT "Enable hipfft as a KokkosFFT backend on AMD GPUs" ${KokkosFFT_TO_ENABLE_HIPFFT})
 
-if(KokkosFFT_ENABLE_CUFFTMP AND NOT(KokkosFFT_ENABLE_DISTRIBUTED AND KokkosFFT_ENABLE_CUFFT))
-  message(FATAL_ERROR "Error: To enable cuFFTMp, you need to enable KokkosFFT_ENABLE_CUFFT and KokkosFFT_ENABLE_DISTRIBUTED")
+if(KokkosFFT_ENABLE_CUFFTMP AND NOT (KokkosFFT_ENABLE_DISTRIBUTED AND KokkosFFT_ENABLE_CUFFT))
+  message(
+    FATAL_ERROR "Error: To enable cuFFTMp, you need to enable KokkosFFT_ENABLE_CUFFT and KokkosFFT_ENABLE_DISTRIBUTED"
+  )
 endif()
 
 # Check if multiple device tpls are not enabled
@@ -75,7 +77,9 @@ endforeach()
 # Get the number of enabled tpls
 list(LENGTH ENABLED_DEVICE_TPLS COUNT)
 if(COUNT GREATER 1)
-  message(FATAL_ERROR "Error: Only one device tpls may be enabled. The following options are enabled: ${ENABLED_DEVICE_TPLS}")
+  message(
+    FATAL_ERROR "Error: Only one device tpls may be enabled. The following options are enabled: ${ENABLED_DEVICE_TPLS}"
+  )
 endif()
 
 # Set tpls
@@ -147,10 +151,7 @@ endif()
 set(PACKAGE_NAME_CONFIG_FILES KokkosFFT_config.hpp KokkosFFT_Version_Info.hpp)
 
 foreach(CONFIG_FILE ${PACKAGE_NAME_CONFIG_FILES})
-  configure_file(cmake/${CONFIG_FILE}.in
-                 ${CMAKE_CURRENT_BINARY_DIR}/fft/src/${CONFIG_FILE}
-                 @ONLY
-  )
+  configure_file(cmake/${CONFIG_FILE}.in ${CMAKE_CURRENT_BINARY_DIR}/fft/src/${CONFIG_FILE} @ONLY)
 endforeach()
 
 # Set directories used for install
@@ -182,13 +183,12 @@ install(
   PATTERN "*.hpp"
 )
 
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/fft/src/KokkosFFT_config.hpp ${CMAKE_CURRENT_BINARY_DIR}/fft/src/KokkosFFT_Version_Info.hpp
-        DESTINATION ${INSTALL_INCLUDEDIR}
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/fft/src/KokkosFFT_config.hpp
+              ${CMAKE_CURRENT_BINARY_DIR}/fft/src/KokkosFFT_Version_Info.hpp DESTINATION ${INSTALL_INCLUDEDIR}
 )
 
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindFFTW.cmake ${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindcuFFTMp.cmake
-              ${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindNVSHMEM.cmake
-        DESTINATION ${INSTALL_LIBDIR}
+              ${CMAKE_CURRENT_SOURCE_DIR}/cmake/FindNVSHMEM.cmake DESTINATION ${INSTALL_LIBDIR}
 )
 
 configure_package_config_file(
