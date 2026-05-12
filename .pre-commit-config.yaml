@@ -33,5 +33,4 @@ repos:
     hooks:
       - id: typos
         name: Spell-check for typos
-        files: ./cmake/ ./CMakeLists.txt ./docs/ ./README.md ./common/ ./fft/ ./examples/ ./install_test/ ./testing/ ./distributed/
         args: ['--config=./.typos.toml']
