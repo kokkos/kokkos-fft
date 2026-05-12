@@ -102,7 +102,7 @@ cd build && ctest --output-on-failure
 - `unit-tests-kokkos-transpose` — Transpose tests
 - `unit-tests-kokkos-fft-core` — Core FFT plan and transform tests
 - `unit-tests-kokkos-dynfft` — Dynamic plan API tests
-- `unit-tests-kokkos-fft-distributed` — Distributed FFT tests (requires MPI)
+- `unit-tests-mpi` — Distributed FFT tests (requires MPI)
 
 ### Important Build Notes
 
