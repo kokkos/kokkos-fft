@@ -99,9 +99,10 @@ cd build && ctest --output-on-failure
 ### Test Executables
 
 - `unit-tests-kokkos-fft-common` — Common utility tests
+- `unit-tests-kokkos-transpose` — Transpose tests
 - `unit-tests-kokkos-fft-core` — Core FFT plan and transform tests
 - `unit-tests-kokkos-dynfft` — Dynamic plan API tests
-- `unit-tests-kokkos-fft-distributed` — Distributed FFT tests (requires MPI)
+- `unit-tests-mpi` — Distributed FFT tests (requires MPI)
 
 ### Important Build Notes
 
@@ -137,7 +138,7 @@ Config in `.cmake-format.py`: line width 120, dangling parentheses enabled. Form
 
 ### Spell Check
 
-Uses `typos` with exceptions defined in `.typos.toml`. CI checks spelling in `cmake/`, `CMakeLists.txt`, `docs/`, `README.md`, `common/`, `fft/`, `examples/`, `install_test/`, `testing/`, `distributed/`.
+Uses `typos` with exceptions defined in `.typos.toml`. For pull requests, CI runs the `typos` pre-commit hook on changed files. To check spelling across the full repository locally, run `pre-commit run --all-files`.
 
 ## Coding Conventions
 
@@ -211,7 +212,7 @@ Use Doxygen-style `/// \brief`, `\tparam`, `\param[in]`, `\param[out]`, `\return
 
 The main CI workflow (`.github/workflows/build_test.yaml`) runs on PRs to `main` and includes:
 
-1. **Format checks**: clang-format, cmake-format, typos spell check
+1. **Format checks**: pre-commit (clang-format, cmake-format, typos)
 2. **REUSE compliance**: License header verification
 3. **Build matrix** (all inside Docker containers):
    - `clang-tidy`: Clang, C++17, Serial, Debug, warnings-as-errors
