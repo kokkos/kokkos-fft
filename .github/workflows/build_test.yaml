@@ -18,7 +18,6 @@ env:
   DOCKER_BUILDKIT: 1
 
 jobs:
-  
   # run pre-commit-check
   pre-commit-check:
     uses: ./.github/workflows/__pre-commit.yaml
