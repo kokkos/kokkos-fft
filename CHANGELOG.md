@@ -6,6 +6,46 @@ SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
 # Change Log
 
+## [1.1.0](https://github.com/kokkos/kokkos-fft/releases/tag/v1.1.0) (2026-05-13)
+
+**Documentation:**
+
+- Add rfftn/irfftn examples [\#461](https://github.com/kokkos/kokkos-fft/pull/461)
+- Add rfft2/irfft2 examples [\#460](https://github.com/kokkos/kokkos-fft/pull/460)
+- Add rfft/irfft example [\#433](https://github.com/kokkos/kokkos-fft/pull/433)
+- Add fftn/ifftn examples [\#430](https://github.com/kokkos/kokkos-fft/pull/430)
+- Add fft2/ifft2 examples [\#428](https://github.com/kokkos/kokkos-fft/pull/428)
+- Add ifft() example in API reference [\#427](https://github.com/kokkos/kokkos-fft/pull/427)
+- Add fft() example in API reference [\#424](https://github.com/kokkos/kokkos-fft/pull/424)
+
+**CI:**
+
+- Introduce pre-commit CI [\#462](https://github.com/kokkos/kokkos-fft/pull/462)
+- Add MI300A nightly via HPSF CI [\#447](https://github.com/kokkos/kokkos-fft/pull/447)
+- Update CI on Ruche [\#415](https://github.com/kokkos/kokkos-fft/pull/415), [\#434](https://github.com/kokkos/kokkos-fft/pull/434)
+- Fixes CI (distributed) for Intel [\#397](https://github.com/kokkos/kokkos-fft/pull/397)
+
+**General Enhancement:**
+
+- Update to kokkos 4.7 [\#466](https://github.com/kokkos/kokkos-fft/pull/466)
+- Add md operator helper [\#446](https://github.com/kokkos/kokkos-fft/pull/446)
+- Add .github/copilot-instructions.md for cloud agent onboarding [\#438](https://github.com/kokkos/kokkos-fft/pull/438) 
+- Allow inplace FFT even with internal transpose [\#429](https://github.com/kokkos/kokkos-fft/pull/429)
+- [cuFFT] Special assertion handler for cuFFT backend [\#407](https://github.com/kokkos/kokkos-fft/pull/407)
+- [HIPFFT] Special assertion handler for HIPFFT backend [\#409](https://github.com/kokkos/kokkos-fft/pull/409)
+- [ROCFFT] Special assertion handler for ROCFFT backend [\#410](https://github.com/kokkos/kokkos-fft/pull/410)
+
+**Bug fix:**
+
+- Fixes arange and add docs [\#458](https://github.com/kokkos/kokkos-fft/pull/458)
+- Fixes nvcc pointless-comparison-warning [\#456](https://github.com/kokkos/kokkos-fft/pull/456)
+- Fixes transpose tests [\#448](https://github.com/kokkos/kokkos-fft/pull/448)
+
+**Internal Changes:**
+
+- Refactor common helper functions [\#435](https://github.com/kokkos/kokkos-fft/pull/435), [\#437](https://github.com/kokkos/kokkos-fft/pull/437), [\#441](https://github.com/kokkos/kokkos-fft/pull/441), [\#449](https://github.com/kokkos/kokkos-fft/pull/449), [\#451](https://github.com/kokkos/kokkos-fft/pull/451), [\#452](https://github.com/kokkos/kokkos-fft/pull/452), [\#453](https://github.com/kokkos/kokkos-fft/pull/453), [\#454](https://github.com/kokkos/kokkos-fft/pull/454), [\#455](https://github.com/kokkos/kokkos-fft/pull/455), [\#457](https://github.com/kokkos/kokkos-fft/pull/457), [\#459](https://github.com/kokkos/kokkos-fft/pull/459)
+- Remove compute transpose extents [\#432](https://github.com/kokkos/kokkos-fft/pull/432)
+
 ## [1.0.0](https://github.com/kokkos/kokkos-fft/releases/tag/v1.0.0) (2026-01-26)
 
 **Documentation:**
