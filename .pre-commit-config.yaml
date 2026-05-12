@@ -18,7 +18,7 @@ repos:
       name: Check adding large files
 
   - repo: https://github.com/pre-commit/mirrors-clang-format
-    rev: 579d9fe3b1ee34ddd6ebc5def531f2f1acce622e # v16.0.0
+    rev: 46104a5610b063a4f895083ea11c3a7a5eaa0de8 # v17.0.1
     hooks:
     - id: clang-format
 
