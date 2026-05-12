@@ -8,9 +8,9 @@ Building Kokkos-FFT
 ===================
 
 This section describes how to build Kokkos-FFT with some advanced options.
-In order to build Kokkos-FFT, we use ``CMake`` with following compilers. 
+In order to build Kokkos-FFT, we use ``CMake`` with following compilers.
 Kokkos and backend FFT libraries are also necessary.
-Available CMake options for Kokkos-FFT are listed. 
+Available CMake options for Kokkos-FFT are listed.
 
 Compiler versions
 -----------------
@@ -103,10 +103,10 @@ The code can be built as
 CMake options
 -------------
 
-We rely on CMake to build Kokkos-FFT, more specifically ``CMake 3.22+``. Here is the list of CMake options. 
+We rely on CMake to build Kokkos-FFT, more specifically ``CMake 3.22+``. Here is the list of CMake options.
 For FFTs on Kokkos device only, we do not need to add extra compile options but for Kokkos ones.
 In order to use Kokkos-FFT from both host and device, it is necessary to add ``KokkosFFT_ENABLE_FFTW=ON``.
-This option may be useful, for example FFT is used for initialization at host. 
+This option may be useful, for example FFT is used for initialization at host.
 However, to enable this option, we need a pre-installed ``FFTW`` for FFT on host, so it is disabled in default
 if one of the device backend is enabled.
 (see :doc:`minimum working example<../samples/05_1DFFT_HOST_DEVICE>`).
@@ -115,7 +115,7 @@ if one of the device backend is enabled.
    :widths: 25 25 50
    :header-rows: 1
 
-   * - 
+   * -
      - Description
      - Default
    * - ``KokkosFFT_ENABLE_INTERNAL_KOKKOS``
@@ -156,10 +156,10 @@ Kokkos backends
 ---------------
 
 Kokkos-FFT requires ``Kokkos 4.7+``. For the moment, we support following backends for CPUs and GPUs.
-A FFT library dedicated to Kokkos Device backend (e.g. cufft for CUDA backend) is automatically used. 
+A FFT library dedicated to Kokkos Device backend (e.g. cufft for CUDA backend) is automatically used.
 If CMake fails to find a backend FFT library, see :doc:`How to find fft libraries?<../finding_libraries>`.
 We may support experimental backends like ``OPENACC`` in the future.
- 
+
 .. list-table:: ``Host backend``
    :widths: 25 50 25
    :header-rows: 1
@@ -168,13 +168,13 @@ We may support experimental backends like ``OPENACC`` in the future.
      - Description
      - Backend FFT library
    * - ``Kokkos_ENABLE_SERIAL``
-     - Serial backend targeting CPUs 
+     - Serial backend targeting CPUs
      - ``FFTW (Serial)``
    * - ``Kokkos_ENABLE_THREADS``
-     - C++ threads backend targeting CPUs 
+     - C++ threads backend targeting CPUs
      - ``FFTW (Threads)``
    * - ``Kokkos_ENABLE_OPENMP``
-     - OpenMP backend targeting CPUs 
+     - OpenMP backend targeting CPUs
      - ``FFTW (OpenMP)``
 
 .. list-table:: ``Device backend``
