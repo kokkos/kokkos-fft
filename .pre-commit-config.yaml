@@ -1,0 +1,37 @@
+# SPDX-FileCopyrightText: (C) The Kokkos-FFT development team, see COPYRIGHT.md file
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c # v6.0.0
+    hooks:
+    - id: trailing-whitespace
+      name: Trim trailing white space
+      exclude: '^tpls/'
+    - id: end-of-file-fixer
+      name: Fix EOFs
+      exclude: '^tpls/'
+    - id: check-yaml
+      name: Check YAML files
+    - id: check-added-large-files
+      name: Check adding large files
+
+  - repo: https://github.com/pre-commit/mirrors-clang-format
+    rev: 579d9fe3b1ee34ddd6ebc5def531f2f1acce622e # v16.0.0
+    hooks:
+    - id: clang-format
+
+  - repo: https://github.com/cheshirekow/cmake-format-precommit
+    rev: e2c2116d86a80e72e7146a06e68b7c228afc6319 # v0.6.13
+    hooks:
+    - id: cmake-format
+
+    # Spell-checking
+  - repo: https://github.com/crate-ci/typos
+    rev: bbaefadf97b0ec5fdc942684b647f1a6ab250274 # v1.46.0
+    hooks:
+      - id: typos
+        name: Spell-check for typos
+        files: ./cmake/ ./CMakeLists.txt ./docs/ ./README.md ./common/ ./fft/ ./examples/ ./install_test/ ./testing/ ./distributed/
+        args: ['--config=./.typos.toml']
