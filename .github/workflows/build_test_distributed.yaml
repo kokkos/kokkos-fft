@@ -18,20 +18,13 @@ env:
   DOCKER_BUILDKIT: 1
 
 jobs:
-
-  # run typos for spell check
-  spell-check:
-    name: spell check with typos
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
-    - uses: crate-ci/typos@bbaefadf97b0ec5fdc942684b647f1a6ab250274  # v1.46.0
-      with:
-        files: ./cmake/ ./CMakeLists.txt ./docs/ ./README.md ./distributed/
-        config: ./.typos.toml
+  # run pre-commit-check
+  pre-commit-check:
+    uses: ./.github/workflows/__pre-commit.yaml
 
   # build project
   build:
+    needs: pre-commit-check
     runs-on: ubuntu-latest
 
     strategy:
