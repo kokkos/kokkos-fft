@@ -138,7 +138,7 @@ Config in `.cmake-format.py`: line width 120, dangling parentheses enabled. Form
 
 ### Spell Check
 
-Uses `typos` with exceptions defined in `.typos.toml`. CI checks spelling in the entire codebase, excluding `tpls/`.
+Uses `typos` with exceptions defined in `.typos.toml`. For pull requests, CI runs the `typos` pre-commit hook on changed files. To check spelling across the full repository locally, run `pre-commit run --all-files`.
 
 ## Coding Conventions
 
