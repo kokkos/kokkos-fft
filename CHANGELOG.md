@@ -29,7 +29,7 @@ SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
 - Update to kokkos 4.7 [\#466](https://github.com/kokkos/kokkos-fft/pull/466)
 - Add md operator helper [\#446](https://github.com/kokkos/kokkos-fft/pull/446)
-- Add .github/copilot-instructions.md for cloud agent onboarding [\#438](https://github.com/kokkos/kokkos-fft/pull/438) 
+- Add .github/copilot-instructions.md for cloud agent onboarding [\#438](https://github.com/kokkos/kokkos-fft/pull/438)
 - Allow inplace FFT even with internal transpose [\#429](https://github.com/kokkos/kokkos-fft/pull/429)
 - [cuFFT] Special assertion handler for cuFFT backend [\#407](https://github.com/kokkos/kokkos-fft/pull/407)
 - [HIPFFT] Special assertion handler for HIPFFT backend [\#409](https://github.com/kokkos/kokkos-fft/pull/409)
