@@ -212,7 +212,7 @@ Use Doxygen-style `/// \brief`, `\tparam`, `\param[in]`, `\param[out]`, `\return
 
 The main CI workflow (`.github/workflows/build_test.yaml`) runs on PRs to `main` and includes:
 
-1. **Format checks**: clang-format, cmake-format, typos spell checks by pre-commit hooks and CI jobs.
+1. **Format checks**: pre-commit (clang-format, cmake-format, typos)
 2. **REUSE compliance**: License header verification
 3. **Build matrix** (all inside Docker containers):
    - `clang-tidy`: Clang, C++17, Serial, Debug, warnings-as-errors
