@@ -9,11 +9,14 @@
 #include <tuple>
 #include <algorithm>
 #include <numeric>
-#include "KokkosFFT_common_types.hpp"
-#include "KokkosFFT_traits.hpp"
-#include "KokkosFFT_asserts.hpp"
-#include "KokkosFFT_utils.hpp"
+#include <Kokkos_Core.hpp>
+#include "KokkosFFT_Asserts.hpp"
+#include "KokkosFFT_CheckConditions.hpp"
+#include "KokkosFFT_Common_Types.hpp"
+#include "KokkosFFT_Container_Helpers.hpp"
+#include "KokkosFFT_Convert_Types.hpp"
 #include "KokkosFFT_Mapping.hpp"
+#include "KokkosFFT_Traits.hpp"
 
 namespace KokkosFFT {
 namespace Impl {
@@ -28,6 +31,63 @@ namespace Impl {
 /// \return The output extent
 inline auto extent_after_transform(std::size_t extent, bool is_R2C) {
   return is_R2C ? (extent / 2 + 1) : extent;
+}
+
+/// \brief Return the extents of the input view
+/// \tparam ViewType The type of the input view
+///
+/// \param[in] view The input view
+/// \return The extents of the input view
+template <typename ViewType>
+auto extract_extents(const ViewType& view) {
+  static_assert(Kokkos::is_view_v<ViewType>,
+                "extract_extents: ViewType is not a Kokkos::View.");
+  constexpr std::size_t rank = ViewType::rank();
+  std::array<std::size_t, rank> extents{};
+  for (std::size_t i = 0; i < rank; i++) {
+    extents.at(i) = view.extent(i);
+  }
+  return extents;
+}
+
+/// \brief Helper to compute strides from extents.
+/// The extents are computed from a LayoutRight View.
+/// The computed strides can be considered as view strides
+/// in the reversed order.
+///
+/// Examples:
+/// v0 (n0) -> (v0.stride(0)) or (1)
+/// v1 (n0, n1) -> (v1.stride(1), v1.stride(0)) or (1, n1)
+/// v2 (n0, n1, n2) -> (v2.stride(2), v2.stride(1), v2.stride(0))
+///                 or (1, n2, n2 * n1)
+/// \tparam ContainerType The container type, must be either one of std::array
+/// or std::vector
+/// \param[in] extents The extents of the data
+/// \return strides computed from the input data
+/// \throws runtime_error if extents is empty or if any of the extents is less
+/// than or equal to 0
+template <typename ContainerType,
+          std::enable_if_t<is_std_vector_v<ContainerType> ||
+                               is_std_array_v<ContainerType>,
+                           std::nullptr_t> = nullptr>
+auto compute_strides(const ContainerType& extents) {
+  using index_type = std::remove_cv_t<
+      std::remove_reference_t<typename ContainerType::value_type>>;
+  static_assert(std::is_integral_v<index_type>,
+                "compute_strides: index_type must be an integral type.");
+  KOKKOSFFT_THROW_IF(extents.size() == 0,
+                     "extents must have at least one dimension.");
+  KOKKOSFFT_THROW_IF(std::any_of(extents.begin(), extents.end(),
+                                 [](index_type extent) { return extent <= 0; }),
+                     "extents must be greater than 0");
+  ContainerType strides = extents, reversed_extents = extents;
+  std::reverse(reversed_extents.begin(), reversed_extents.end());
+
+  strides.at(0) = 1;
+  for (std::size_t i = 1; i < extents.size(); i++) {
+    strides.at(i) = reversed_extents.at(i - 1) * strides.at(i - 1);
+  }
+  return strides;
 }
 
 /// \brief Return a new shape of the input view based on the
@@ -53,18 +113,15 @@ auto get_modified_shape(const InViewType in, const OutViewType /* out */,
 
   shape_type<DIM> zeros{};  // default shape means no crop or pad
   if (shape == zeros) {
-    return KokkosFFT::Impl::extract_extents(in);
+    return extract_extents(in);
   }
 
   // Convert the input axes to be in the range of [0, rank-1]
   constexpr std::size_t rank = InViewType::rank();
   auto non_negative_axes     = convert_negative_axes(axes, rank);
 
-  using full_shape_type = shape_type<rank>;
-  full_shape_type modified_shape;
-  for (std::size_t i = 0; i < rank; i++) {
-    modified_shape.at(i) = in.extent(i);
-  }
+  using full_shape_type          = shape_type<rank>;
+  full_shape_type modified_shape = extract_extents(in);
 
   // Update shapes based on newly given shape
   for (std::size_t i = 0; i < DIM; i++) {

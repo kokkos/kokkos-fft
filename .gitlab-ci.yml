@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: (C) The Kokkos-FFT development team, see COPYRIGHT.md file
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
+
+AMD-MI300A:
+  tags: [uo-gpu, odyssey, amd-mi300]
+  image: rocm/dev-ubuntu-24.04:6.2.4-complete
+  script:
+    - apt-get update && apt-get install -y libgtest-dev cmake git
+    - export HSA_XNACK=1
+    - git clone https://github.com/kokkos/kokkos.git
+    - cmake -S kokkos
+            -B kokkos_build
+            -D CMAKE_PREFIX_PATH=/opt/rocm-6.2.4
+            -DCMAKE_INSTALL_PREFIX=kokkos_install
+            -DCMAKE_CXX_COMPILER=hipcc
+            -DKokkos_ENABLE_HIP=ON
+    - cmake --build kokkos_build --parallel
+    - cmake --install kokkos_build --prefix kokkos_install
+    - cmake -B build
+            -DCMAKE_BUILD_TYPE=Release
+            -DCMAKE_CXX_COMPILER=hipcc
+            -D CMAKE_PREFIX_PATH=/opt/rocm-6.2.4
+            -DKokkos_DIR=/builds/kokkos/kokkos-fft/kokkos_install/lib/cmake/Kokkos/
+            -DKokkosFFT_ENABLE_EXAMPLES=ON
+            -DKokkosFFT_ENABLE_TESTS=ON
+            -DCMAKE_CXX_FLAGS="-Wall -Wextra"
+            -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
+    - cmake --build build --parallel
+    - ctest --test-dir build -V

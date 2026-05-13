@@ -5,21 +5,27 @@
 add_executable(
   unit-tests-kokkos-fft-common
   Test_Main.cpp
-  Test_Common_Utils.cpp
+  Test_CheckConditions.cpp
+  Test_Container_Helpers.cpp
+  Test_Convert_Types.cpp
   Test_Traits.cpp
   Test_Layout.cpp
   Test_Normalization.cpp
+  Test_MDOperations.cpp
   Test_Mapping.cpp
-  Test_Transpose.cpp
   Test_Extents.cpp
   Test_Padding.cpp
   Test_Helpers.cpp
 )
 
 target_compile_features(unit-tests-kokkos-fft-common PUBLIC cxx_std_17)
-
 target_link_libraries(unit-tests-kokkos-fft-common PUBLIC common GTest::gtest)
+
+add_executable(unit-tests-kokkos-transpose Test_Main.cpp Test_Transpose.cpp)
+target_compile_features(unit-tests-kokkos-transpose PUBLIC cxx_std_17)
+target_link_libraries(unit-tests-kokkos-transpose PUBLIC KokkosFFT::fft GTest::gtest)
 
 # Enable GoogleTest
 include(GoogleTest)
 gtest_discover_tests(unit-tests-kokkos-fft-common PROPERTIES DISCOVERY_TIMEOUT 600 DISCOVERY_MODE PRE_TEST)
+gtest_discover_tests(unit-tests-kokkos-transpose PROPERTIES DISCOVERY_TIMEOUT 600 DISCOVERY_MODE PRE_TEST)

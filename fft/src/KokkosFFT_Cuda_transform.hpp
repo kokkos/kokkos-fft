@@ -7,7 +7,7 @@
 
 #include <cufft.h>
 #include <Kokkos_Profiling_ScopedRegion.hpp>
-#include "KokkosFFT_asserts.hpp"
+#include "KokkosFFT_Asserts.hpp"
 #include "KokkosFFT_Cuda_types.hpp"
 #include "KokkosFFT_Cuda_asserts.hpp"
 

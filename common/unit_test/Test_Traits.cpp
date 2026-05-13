@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
 #include <gtest/gtest.h>
-#include "KokkosFFT_traits.hpp"
+#include "KokkosFFT_Traits.hpp"
 #include "Test_Utils.hpp"
 
 // All the tests in this file are compile time tests, so we skip all the tests

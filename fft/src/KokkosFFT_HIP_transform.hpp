@@ -7,7 +7,7 @@
 
 #include <hipfft/hipfft.h>
 #include <Kokkos_Profiling_ScopedRegion.hpp>
-#include "KokkosFFT_asserts.hpp"
+#include "KokkosFFT_Asserts.hpp"
 #include "KokkosFFT_HIP_types.hpp"
 #include "KokkosFFT_HIP_asserts.hpp"
 

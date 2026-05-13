@@ -5,12 +5,18 @@
 #ifndef KOKKOSFFT_TRANSPOSE_HPP
 #define KOKKOSFFT_TRANSPOSE_HPP
 
+#include <array>
+#include <limits>
 #include <numeric>
-#include <tuple>
-#include "KokkosFFT_common_types.hpp"
-#include "KokkosFFT_utils.hpp"
-#include "KokkosFFT_Padding.hpp"
+#include <utility>
+#include <type_traits>
+#include <Kokkos_Core.hpp>
+
+#include "KokkosFFT_Common_Types.hpp"
+#include "KokkosFFT_Convert_Types.hpp"
 #include "KokkosFFT_Layout.hpp"
+#include "KokkosFFT_MDOperations.hpp"
+#include "KokkosFFT_Padding.hpp"
 
 namespace KokkosFFT {
 namespace Impl {
@@ -18,6 +24,23 @@ struct BoundsCheck {
   struct On {};
   struct Off {};
 };
+
+/// \brief Check if transpose is needed or not
+/// If a map is contiguous and in ascending order (e.g. {0, 1, 2}),
+/// we do not need transpose
+/// \tparam IndexType The integer type used for map
+/// \tparam DIM The dimensionality of the axes
+///
+/// \param[in] map The map used for permutation
+/// \return true if transpose is needed, false otherwise
+template <typename IndexType, std::size_t DIM>
+bool is_transpose_needed(const std::array<IndexType, DIM>& map) {
+  static_assert(std::is_integral_v<IndexType>,
+                "is_transpose_needed: IndexType must be an integral type.");
+  std::array<IndexType, DIM> contiguous_map;
+  std::iota(contiguous_map.begin(), contiguous_map.end(), 0);
+  return map != contiguous_map;
+}
 
 /// \brief Transpose functor for out-of-place transpose operations.
 /// This struct implements a functor that applies a transpose on a Kokkos view.
@@ -34,46 +57,7 @@ template <typename ExecutionSpace, typename InViewType, typename OutViewType,
           typename IndexType, typename ArgBoundsCheck = BoundsCheck::Off>
 struct Transpose {
  private:
-  // Since MDRangePolicy is not available for 7D and 8D views, we need to
-  // handle them separately. We can use a 6D MDRangePolicy and iterate over
-  // the last two dimensions in the operator() function.
-  static constexpr std::size_t m_rank_truncated =
-      std::min(InViewType::rank(), std::size_t(6));
-
   using ArrayType = Kokkos::Array<int, InViewType::rank()>;
-
-  /// \brief Retrieves the policy for the parallel execution.
-  /// If the view is 1D, a Kokkos::RangePolicy is used. For higher dimensions up
-  /// to 6D, a Kokkos::MDRangePolicy is used. For 7D and 8D views, we use 6D
-  /// MDRangePolicy
-  /// \param[in] space The Kokkos execution space used to launch the parallel
-  /// reduction.
-  /// \param[in] x The Kokkos view to be used for determining the policy.
-  auto get_policy(const ExecutionSpace space, const InViewType& x) const {
-    if constexpr (InViewType::rank() == 1) {
-      using range_policy_type =
-          Kokkos::RangePolicy<ExecutionSpace, Kokkos::IndexType<IndexType>>;
-      return range_policy_type(space, 0, x.extent(0));
-    } else {
-      using LayoutType = typename InViewType::array_layout;
-      static const Kokkos::Iterate outer_iteration_pattern =
-          layout_iterate_type_selector<LayoutType>::outer_iteration_pattern;
-      static const Kokkos::Iterate inner_iteration_pattern =
-          layout_iterate_type_selector<LayoutType>::inner_iteration_pattern;
-      using iterate_type =
-          Kokkos::Rank<m_rank_truncated, outer_iteration_pattern,
-                       inner_iteration_pattern>;
-      using mdrange_policy_type =
-          Kokkos::MDRangePolicy<ExecutionSpace, iterate_type,
-                                Kokkos::IndexType<IndexType>>;
-      Kokkos::Array<std::size_t, m_rank_truncated> begins = {};
-      Kokkos::Array<std::size_t, m_rank_truncated> ends   = {};
-      for (std::size_t i = 0; i < m_rank_truncated; ++i) {
-        ends[i] = x.extent(i);
-      }
-      return mdrange_policy_type(space, begins, ends);
-    }
-  }
 
  public:
   /// \brief Constructor for the Transpose functor.
@@ -85,8 +69,10 @@ struct Transpose {
   /// to ExecutionSpace()).
   Transpose(const InViewType& in, const OutViewType& out, const ArrayType& map,
             const ExecutionSpace exec_space = ExecutionSpace()) {
-    Kokkos::parallel_for("KokkosFFT::transpose", get_policy(exec_space, in),
-                         TransposeInternal(in, out, map));
+    Kokkos::parallel_for(
+        "KokkosFFT::transpose",
+        KokkosFFT::Impl::get_mdpolicy<IndexType>(exec_space, in),
+        TransposeInternal(in, out, map));
   }
 
   /// \brief Helper functor to perform the transpose operation
@@ -130,18 +116,14 @@ struct Transpose {
         IndexType src_idx[], std::index_sequence<Is...>) const {
       if constexpr (std::is_same_v<ArgBoundsCheck, BoundsCheck::On>) {
         // Bounds check
-        bool in_bounds = true;
         for (std::size_t i = 0; i < InViewType::rank(); ++i) {
-          if (src_idx[m_map[i]] >= IndexType(m_out.extent(i)))
-            in_bounds = false;
+          if (src_idx[m_map[i]] >= IndexType(m_out.extent(i))) {
+            // Quick return for out-of-bounds
+            return;
+          }
         }
-
-        if (in_bounds) {
-          m_out(src_idx[m_map[Is]]...) = m_in(src_idx[Is]...);
-        }
-      } else {
-        m_out(src_idx[m_map[Is]]...) = m_in(src_idx[Is]...);
       }
+      m_out(src_idx[m_map[Is]]...) = m_in(src_idx[Is]...);
     }
   };
 };

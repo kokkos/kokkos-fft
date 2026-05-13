@@ -5,10 +5,11 @@
 #include <cmath>
 #include <gtest/gtest.h>
 #include <Kokkos_Random.hpp>
-#include "KokkosFFT_traits.hpp"
-#include "KokkosFFT_utils.hpp"
+
+#include "KokkosFFT_Convert_Types.hpp"
 #include "KokkosFFT_Layout.hpp"
 #include "KokkosFFT_Normalization.hpp"
+#include "KokkosFFT_Traits.hpp"
 #include "Test_Utils.hpp"
 
 namespace {

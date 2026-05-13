@@ -6,7 +6,7 @@
 #include <Kokkos_Random.hpp>
 #include <vector>
 #include "KokkosFFT_Extents.hpp"
-#include "KokkosFFT_traits.hpp"
+#include "KokkosFFT_Traits.hpp"
 #include "Test_Utils.hpp"
 
 namespace {
@@ -17,6 +17,11 @@ using test_types = ::testing::Types<Kokkos::LayoutLeft, Kokkos::LayoutRight>;
 // Basically the same fixtures, used for labeling tests
 template <typename T>
 struct TestExtents : public ::testing::Test {
+  using value_type = T;
+};
+
+template <typename T>
+struct TestStrides : public ::testing::Test {
   using value_type = T;
 };
 
@@ -59,6 +64,19 @@ void test_extent_after_transform() {
     EXPECT_EQ(n0h, n0);
     EXPECT_EQ(n1h, n1);
   }
+}
+
+// Tests for compute strides
+template <typename ContainerType, typename EmptyContainerType>
+void test_compute_strides() {
+  ContainerType v0 = {2, 3, 5}, v1 = {1, 3, 0};
+  ContainerType ref_strides0 = {1, 5, 3 * 5};
+
+  EXPECT_EQ(KokkosFFT::Impl::compute_strides(v0), ref_strides0);
+  EXPECT_THROW(KokkosFFT::Impl::compute_strides(v1), std::runtime_error);
+
+  EmptyContainerType empty{};
+  EXPECT_THROW(KokkosFFT::Impl::compute_strides(empty), std::runtime_error);
 }
 
 // Tests for padded_extents
@@ -200,6 +218,46 @@ void test_padded_extents() {
       EXPECT_EQ(padded_extents3_ax2, out_extents3_ax2);
     }
   }
+}
+
+void test_extract_extents() {
+  using View1Dtype = Kokkos::View<double*, execution_space>;
+  using View2Dtype = Kokkos::View<double**, execution_space>;
+  using View3Dtype = Kokkos::View<double***, execution_space>;
+  using View4Dtype = Kokkos::View<double****, execution_space>;
+  using View5Dtype = Kokkos::View<double*****, execution_space>;
+  using View6Dtype = Kokkos::View<double******, execution_space>;
+  using View7Dtype = Kokkos::View<double*******, execution_space>;
+  using View8Dtype = Kokkos::View<double********, execution_space>;
+
+  std::size_t n1 = 1, n2 = 1, n3 = 2, n4 = 3, n5 = 5, n6 = 8, n7 = 13, n8 = 21;
+
+  std::array<std::size_t, 1> ref_extents1D = {n1};
+  std::array<std::size_t, 2> ref_extents2D = {n1, n2};
+  std::array<std::size_t, 3> ref_extents3D = {n1, n2, n3};
+  std::array<std::size_t, 4> ref_extents4D = {n1, n2, n3, n4};
+  std::array<std::size_t, 5> ref_extents5D = {n1, n2, n3, n4, n5};
+  std::array<std::size_t, 6> ref_extents6D = {n1, n2, n3, n4, n5, n6};
+  std::array<std::size_t, 7> ref_extents7D = {n1, n2, n3, n4, n5, n6, n7};
+  std::array<std::size_t, 8> ref_extents8D = {n1, n2, n3, n4, n5, n6, n7, n8};
+
+  View1Dtype view1D("view1D", n1);
+  View2Dtype view2D("view2D", n1, n2);
+  View3Dtype view3D("view3D", n1, n2, n3);
+  View4Dtype view4D("view4D", n1, n2, n3, n4);
+  View5Dtype view5D("view5D", n1, n2, n3, n4, n5);
+  View6Dtype view6D("view6D", n1, n2, n3, n4, n5, n6);
+  View7Dtype view7D("view7D", n1, n2, n3, n4, n5, n6, n7);
+  View8Dtype view8D("view8D", n1, n2, n3, n4, n5, n6, n7, n8);
+
+  EXPECT_EQ(KokkosFFT::Impl::extract_extents(view1D), ref_extents1D);
+  EXPECT_EQ(KokkosFFT::Impl::extract_extents(view2D), ref_extents2D);
+  EXPECT_EQ(KokkosFFT::Impl::extract_extents(view3D), ref_extents3D);
+  EXPECT_EQ(KokkosFFT::Impl::extract_extents(view4D), ref_extents4D);
+  EXPECT_EQ(KokkosFFT::Impl::extract_extents(view5D), ref_extents5D);
+  EXPECT_EQ(KokkosFFT::Impl::extract_extents(view6D), ref_extents6D);
+  EXPECT_EQ(KokkosFFT::Impl::extract_extents(view7D), ref_extents7D);
+  EXPECT_EQ(KokkosFFT::Impl::extract_extents(view8D), ref_extents8D);
 }
 
 // Tests for mapped extents
@@ -1043,6 +1101,7 @@ void test_extents_2d_view_3d(bool is_static = true) {
 }  // namespace
 
 TYPED_TEST_SUITE(TestExtents, test_int_types);
+TYPED_TEST_SUITE(TestStrides, test_int_types);
 TYPED_TEST_SUITE(TestGetExtents1D, test_types);
 TYPED_TEST_SUITE(TestGetExtents2D, test_types);
 TYPED_TEST_SUITE(TestGetDynExtents1D, test_types);
@@ -1059,6 +1118,21 @@ TEST(TestGetOutputExtent, C2C) {
   test_extent_after_transform<float_type>();
 }
 
+// Compute strides
+TYPED_TEST(TestStrides, compute_strides_of_arrays) {
+  using value_type     = typename TestFixture::value_type;
+  using container_type = std::array<value_type, 3>;
+  using empty_type     = std::array<value_type, 0>;
+  test_compute_strides<container_type, empty_type>();
+}
+
+TYPED_TEST(TestStrides, compute_strides_of_vectors) {
+  using value_type     = typename TestFixture::value_type;
+  using container_type = std::vector<value_type>;
+  using empty_type     = std::vector<value_type>;
+  test_compute_strides<container_type, empty_type>();
+}
+
 // Padded extents
 TYPED_TEST(TestExtents, R2C) {
   using float_type = double;
@@ -1071,6 +1145,9 @@ TYPED_TEST(TestExtents, C2C) {
   using int_type   = typename TestFixture::value_type;
   test_padded_extents<float_type, int_type>();
 }
+
+// Extract extents
+TEST(TestExtractExtents, extract_extents) { test_extract_extents(); }
 
 // Mapped extents
 TYPED_TEST(TestExtents, mapped_extents_of_vector) {

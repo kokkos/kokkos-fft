@@ -5,11 +5,15 @@
 #ifndef KOKKOSFFT_HIP_PLANS_HPP
 #define KOKKOSFFT_HIP_PLANS_HPP
 
+#include <memory>
+#include <Kokkos_Core.hpp>
 #include <Kokkos_Profiling_ScopedRegion.hpp>
-#include "KokkosFFT_HIP_types.hpp"
+
+#include "KokkosFFT_Asserts.hpp"
+#include "KokkosFFT_Container_Helpers.hpp"
 #include "KokkosFFT_Extents.hpp"
-#include "KokkosFFT_traits.hpp"
-#include "KokkosFFT_asserts.hpp"
+#include "KokkosFFT_HIP_types.hpp"
+#include "KokkosFFT_Traits.hpp"
 
 namespace KokkosFFT {
 namespace Impl {
