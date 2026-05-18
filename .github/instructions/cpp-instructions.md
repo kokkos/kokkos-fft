@@ -58,6 +58,7 @@ The guard name follows the pattern `KOKKOSFFT_<FILENAME_UPPER>_HPP`, where the f
 - **Do NOT sort includes.** The `.clang-format` configuration has `SortIncludes: false` intentionally.
 - Group includes logically but do not rely on alphabetical ordering.
 - Place the component's own header first in test files.
+- Follow the [IWYU](https://github.com/include-what-you-use/include-what-you-use) (include-what-you-use) guidelines
 
 ## Formatting
 
