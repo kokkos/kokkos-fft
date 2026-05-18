@@ -309,7 +309,7 @@ cd build && ctest --output-on-failure
 | `unit-tests-kokkos-fft-common` | common | Common utility tests |
 | `unit-tests-kokkos-fft-core` | fft | Core FFT plan and transform tests |
 | `unit-tests-kokkos-dynfft` | fft | Dynamic plan API tests |
-| `unit-tests-kokkos-fft-distributed` | distributed | Distributed FFT tests (MPI) |
+| `unit-tests-mpi` | distributed | Distributed FFT tests (MPI) |
 
 ## Things to Avoid
 
