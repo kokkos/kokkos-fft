@@ -90,9 +90,9 @@ Third-Level Heading
 
 ### Cross-References
 
-- **Internal document references**: `:doc:\`path/to/document\``
-- **API references**: `:cpp:func:\`KokkosFFT::fft\``
-- **External links**: Use full URLs: `\`Link text <https://example.com>\`_`
+- **Internal document references**: `` :doc:`path/to/document` ``
+- **API references**: `` :cpp:func:`KokkosFFT::fft` ``
+- **External links**: Use full URLs: `` `Link text <https://example.com>`_ ``
 
 ### Code Blocks
 
