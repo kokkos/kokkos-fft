@@ -1,0 +1,132 @@
+# SPDX-FileCopyrightText: (C) The Kokkos-FFT development team, see COPYRIGHT.md file
+#
+# SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
+
+name: Nightly CEA builds
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "15 0 * * 1-5" # every weekday at midnight UTC
+
+permissions:
+  contents: read
+
+jobs:
+  build_and_test:
+    # only run on original repo
+    if: github.repository == 'kokkos/kokkos-fft'
+
+    strategy:
+      # allow all matrix jobs to perform even if errors occur
+      fail-fast: false
+      matrix:
+        build_type:
+          - Release
+        cxx_standard:
+          - 20
+        backend:
+          - name: CUDA-A100-GCC/13.4.0-CUDA/12.8.1-Static-CUDA_CONSTEXPR-CUDA_RELOCATABLE_DEVICE_CODE
+            kokkos_configure: -DKokkos_ENABLE_CUDA=ON -DKokkos_ARCH_AMPERE80=ON -DKokkos_ENABLE_CUDA_CONSTEXPR=ON -DKokkos_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE=ON
+            kokkosFFT_configure: -DKokkosFFT_ENABLE_EXAMPLES=ON -DKokkosFFT_ENABLE_BENCHMARK=ON -DKokkosFFT_ENABLE_TESTS=ON
+            test: -e gpu -g a100
+            modules: gcc/13.4.0/gcc-15.1.0 cuda/12.8.1/none-none cmake/3.31.9/gcc-15.1.0 python/3.14.0/gcc-15.1.0
+
+    runs-on: [self-hosted, cuda]
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          submodules: recursive
+
+      - name: Install Kokkos
+        run: |
+          git clone --depth 1 https://github.com/kokkos/kokkos.git && \
+          run \
+            -m "${{ matrix.backend.modules }}" \
+            -e local \
+            bash -lc 'cmake -S kokkos -B kokkos_build \
+              -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+              -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} \
+              -DCMAKE_INSTALL_PREFIX=kokkos_install \
+              ${{ matrix.backend.kokkos_configure }} && \
+            cmake --build kokkos_build --parallel && \
+            cmake --install kokkos_build'
+
+      - name: Initialize the build tree
+        # note: BUILDNAME sets the name of the build on the Dashboard
+        # note: SITE sets the name of the site on the Dashboard
+        # note: run is a Ruche command
+        run: |
+          run \
+            -m "${{ matrix.backend.modules }}" \
+            -e local \
+            cmake \
+              -B build \
+              -DBUILDNAME=${{ matrix.backend.name }}-C++${{ matrix.cxx_standard }}-${{ matrix.build_type }} \
+              -DSITE=cea-ruche \
+              -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+              -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} \
+              -DCMAKE_COMPILE_WARNING_AS_ERROR=ON \
+              -DCMAKE_CXX_FLAGS="-Wall -Wextra" \
+              -DKokkos_DIR=kokkos_install/lib/cmake/Kokkos/ \
+              ${{ matrix.backend.kokkosFFT_configure }}
+
+      - name: Start, update and configure
+        id: start_update_configure
+        continue-on-error: true
+        run: |
+          run \
+            -m "${{ matrix.backend.modules }}" \
+            -e local \
+            ctest \
+              -V \
+              --test-dir build \
+              -D NightlyStart \
+              -D NightlyUpdate \
+              -D NightlyConfigure
+
+      - name: Build
+        id: build
+        continue-on-error: true
+        run: |
+          run \
+            -m "${{ matrix.backend.modules }}" \
+            -e cpu \
+            CMAKE_BUILD_PARALLEL_LEVEL=40 \
+            ctest \
+              -V \
+              --test-dir build \
+              -D NightlyBuild
+
+      - name: Test
+        id: test
+        continue-on-error: true
+        run: |
+          run \
+            -m "${{ matrix.backend.modules }}" \
+            ${{ matrix.backend.test }} \
+            ctest \
+              --output-on-failure \
+              --test-dir build \
+              -D NightlyTest
+
+      - name: Submit
+        run: |
+          run \
+            -m "${{ matrix.backend.modules }}" \
+            -e local \
+            ctest \
+              --test-dir build \
+              -D NightlySubmit
+
+      # note: this marks the job as failed if any of the mentioned steps (that
+      # have `continue-on-error`) has failed
+      - name: Failure outcome
+        if: |-
+          ${{
+            steps.start_update_configure.outcome == 'failure' ||
+            steps.build.outcome == 'failure' ||
+            steps.test.outcome == 'failure'
+          }}
+        run: exit 1
