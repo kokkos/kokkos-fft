@@ -40,13 +40,16 @@ jobs:
       - name: Install Kokkos
         run: |
           git clone https://github.com/kokkos/kokkos.git && \
-          cmake -S kokkos -B kokkos_build \
+          run \
+            -m "${{ matrix.backend.modules }}" \
+            -e local \
+            cmake -S kokkos -B kokkos_build \
               -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
               -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} \
               -DCMAKE_INSTALL_PREFIX=kokkos_install \
               ${{ matrix.backend.kokkos_configure }} && \
-          cmake --build kokkos_build --parallel && \
-          cmake --install kokkos_build
+            cmake --build kokkos_build --parallel && \
+            cmake --install kokkos_build
 
       - name: Initialize the build tree
         # note: BUILDNAME sets the name of the build on the Dashboard
