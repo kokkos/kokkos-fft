@@ -8,7 +8,8 @@ on:
   schedule:
     - cron: "15 0 * * 1-5" # every weekday at midnight UTC
 
-permissions: read-all
+permissions:
+  contents: read
 
 jobs:
   build_and_test:
