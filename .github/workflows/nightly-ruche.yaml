@@ -5,6 +5,7 @@
 name: Nightly CEA builds
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: "15 0 * * 1-5" # every weekday at midnight UTC
 
