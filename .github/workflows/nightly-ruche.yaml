@@ -6,7 +6,7 @@ name: Nightly CEA builds
 
 on:
   schedule:
-    - cron: "0 0 * * 1-5" # every weekday at midnight UTC
+    - cron: "15 0 * * 1-5" # every weekday at midnight UTC
 
 permissions: read-all
 
@@ -43,13 +43,13 @@ jobs:
           run \
             -m "${{ matrix.backend.modules }}" \
             -e local \
-            cmake -S kokkos -B kokkos_build \
+            bash -lc 'cmake -S kokkos -B kokkos_build \
               -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
               -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} \
               -DCMAKE_INSTALL_PREFIX=kokkos_install \
               ${{ matrix.backend.kokkos_configure }} && \
             cmake --build kokkos_build --parallel && \
-            cmake --install kokkos_build
+            cmake --install kokkos_build'
 
       - name: Initialize the build tree
         # note: BUILDNAME sets the name of the build on the Dashboard
