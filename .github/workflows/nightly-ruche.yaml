@@ -63,7 +63,7 @@ jobs:
               -DCMAKE_COMPILE_WARNING_AS_ERROR=ON \
               -DCMAKE_CXX_FLAGS="-Wall -Wextra" \
               -DKokkos_DIR=kokkos_install/lib/cmake/Kokkos/ \
-              ${{ matrix.backend.kokkosFFT_configure }} 
+              ${{ matrix.backend.kokkosFFT_configure }}
 
       - name: Start, update and configure
         id: start_update_configure
@@ -113,7 +113,7 @@ jobs:
               --test-dir build \
               -D NightlySubmit
 
-      # note: this marks the job as failed if any of the mentionned steps (that
+      # note: this marks the job as failed if any of the mentioned steps (that
       # have `continue-on-error`) has failed
       - name: Failure outcome
         if: |-
