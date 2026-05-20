@@ -39,7 +39,7 @@ jobs:
 
       - name: Install Kokkos
         run: |
-          git clone https://github.com/kokkos/kokkos.git && \
+          git clone --depth 1 https://github.com/kokkos/kokkos.git && \
           run \
             -m "${{ matrix.backend.modules }}" \
             -e local \
