@@ -26,7 +26,7 @@ jobs:
         backend:
           - name: CUDA-A100-GCC/13.4.0-CUDA/12.8.1-Static-CUDA_CONSTEXPR-CUDA_RELOCATABLE_DEVICE_CODE
             kokkos_configure: -DKokkos_ENABLE_CUDA=ON -DKokkos_ARCH_AMPERE80=ON -DKokkos_ENABLE_CUDA_CONSTEXPR=ON -DKokkos_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE=ON
-            kokkosFFT_configure: -DKokkosFFT_ENABLE_EXAMPLES=ON -DKokkosFFT_ENABLE_BENCHMARKS=ON -DKokkosFFT_ENABLE_TESTS=ON
+            kokkosFFT_configure: -DKokkosFFT_ENABLE_EXAMPLES=ON -DKokkosFFT_ENABLE_BENCHMARK=ON -DKokkosFFT_ENABLE_TESTS=ON
             test: -e gpu -g a100
             modules: gcc/13.4.0/gcc-15.1.0 cuda/12.8.1/none-none cmake/3.31.9/gcc-15.1.0 python/3.14.0/gcc-15.1.0
 
