@@ -453,15 +453,16 @@ void test_fft1_1dhfft_1dview() {
   ConstComplexView1DType x_herm_const = x_herm;
 
   // Check if the input is unchanged
+  T eps = std::numeric_limits<T>::epsilon() * 10;
   KokkosFFT::hfft(exec, x_herm_const, out);
-  EXPECT_TRUE(allclose(exec, x_herm_const, x_herm_ref, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(exec, x_herm_const, x_herm_ref, eps, eps));
   KokkosFFT::hfft(exec, x_herm_const, out_b,
                   KokkosFFT::Normalization::backward);
-  EXPECT_TRUE(allclose(exec, x_herm_const, x_herm_ref, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(exec, x_herm_const, x_herm_ref, eps, eps));
   KokkosFFT::hfft(exec, x_herm_const, out_o, KokkosFFT::Normalization::ortho);
-  EXPECT_TRUE(allclose(exec, x_herm_const, x_herm_ref, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(exec, x_herm_const, x_herm_ref, eps, eps));
   KokkosFFT::hfft(exec, x_herm_const, out_f, KokkosFFT::Normalization::forward);
-  EXPECT_TRUE(allclose(exec, x_herm_const, x_herm_ref, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(exec, x_herm_const, x_herm_ref, eps, eps));
 
   multiply(exec, out_o, Kokkos::sqrt(static_cast<T>(len)));
   multiply(exec, out_f, static_cast<T>(len));
