@@ -246,9 +246,13 @@ void hfft(const ExecutionSpace& exec_space, const InViewType& in,
                      "axes are invalid for in/out views");
   auto new_norm = KokkosFFT::Impl::swap_direction(norm);
 
-  if constexpr (KokkosFFT::Impl::is_real_v<in_value_type>) {
-    // Convert to complex type
-    using ComplexType = Kokkos::complex<in_value_type>;
+  if constexpr (KokkosFFT::Impl::is_real_v<in_value_type> ||
+                std::is_const_v<typename InViewType::value_type>) {
+    // Convert to complex type if input is real
+    using ComplexType =
+        std::conditional_t<KokkosFFT::Impl::is_real_v<in_value_type>,
+                           Kokkos::complex<in_value_type>, in_value_type>;
+
     using ComplexInViewType =
         typename KokkosFFT::Impl::ConvertedViewType<InViewType,
                                                     ComplexType>::type;
@@ -258,21 +262,31 @@ void hfft(const ExecutionSpace& exec_space, const InViewType& in,
     auto extents     = KokkosFFT::Impl::extract_extents(in);
     ManageableComplexInViewType cin(
         "cin", KokkosFFT::Impl::create_layout<LayoutType>(extents));
+
     Kokkos::deep_copy(exec_space, cin, in);
+    if constexpr (!KokkosFFT::Impl::is_real_v<in_value_type>) {
+      if (cin.span() >= std::size_t(std::numeric_limits<int>::max())) {
+        KokkosFFT::Impl::md_unary_operation<int64_t>(
+            "KokkosFFT::conjugate", exec_space, cin,
+            KokkosFFT::Impl::Conjugate());
+      } else {
+        KokkosFFT::Impl::md_unary_operation<int>("KokkosFFT::conjugate",
+                                                 exec_space, cin,
+                                                 KokkosFFT::Impl::Conjugate());
+      }
+    }
     irfft(exec_space, cin, out, new_norm, axis, n);
   } else {
-    InViewType in_conj("in_conj", in.layout());
-    Kokkos::deep_copy(exec_space, in_conj, in);
-    if (in_conj.span() >= std::size_t(std::numeric_limits<int>::max())) {
+    // For non-const complex input, we can perform the conjugation in-place and
+    // save memory
+    if (in.span() >= std::size_t(std::numeric_limits<int>::max())) {
       KokkosFFT::Impl::md_unary_operation<int64_t>(
-          "KokkosFFT::conjugate", exec_space, in_conj,
-          KokkosFFT::Impl::Conjugate());
+          "KokkosFFT::conjugate", exec_space, in, KokkosFFT::Impl::Conjugate());
     } else {
-      KokkosFFT::Impl::md_unary_operation<int>("KokkosFFT::conjugate",
-                                               exec_space, in_conj,
-                                               KokkosFFT::Impl::Conjugate());
+      KokkosFFT::Impl::md_unary_operation<int>(
+          "KokkosFFT::conjugate", exec_space, in, KokkosFFT::Impl::Conjugate());
     }
-    irfft(exec_space, in_conj, out, new_norm, axis, n);
+    irfft(exec_space, in, out, new_norm, axis, n);
   }
 }
 
