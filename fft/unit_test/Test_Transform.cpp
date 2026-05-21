@@ -391,6 +391,8 @@ void test_fft1_1dhfft_1dview() {
   using RealView1DType = Kokkos::View<T*, LayoutType, execution_space>;
   using ComplexView1DType =
       Kokkos::View<Kokkos::complex<T>*, LayoutType, execution_space>;
+  using ConstComplexView1DType =
+      Kokkos::View<const Kokkos::complex<T>*, LayoutType, execution_space>;
 
   ComplexView1DType x_herm("x_herm", len_herm),
       x_herm_ref("x_herm_ref", len_herm);
@@ -445,10 +447,33 @@ void test_fft1_1dhfft_1dview() {
   Kokkos::deep_copy(ref_signal, h_ref_signal);
 
   KokkosFFT::fft(exec, x, ref);
-
   Kokkos::deep_copy(x_herm, x_herm_ref);
-  KokkosFFT::hfft(exec, x_herm,
-                  out);  // default: KokkosFFT::Normalization::backward
+
+  // Testing for const Views
+  ConstComplexView1DType x_herm_const = x_herm;
+
+  // Check if the input is unchanged
+  T eps = std::numeric_limits<T>::epsilon() * 10;
+  KokkosFFT::hfft(exec, x_herm_const, out);
+  EXPECT_TRUE(allclose(exec, x_herm_const, x_herm_ref, eps, eps));
+  KokkosFFT::hfft(exec, x_herm_const, out_b,
+                  KokkosFFT::Normalization::backward);
+  EXPECT_TRUE(allclose(exec, x_herm_const, x_herm_ref, eps, eps));
+  KokkosFFT::hfft(exec, x_herm_const, out_o, KokkosFFT::Normalization::ortho);
+  EXPECT_TRUE(allclose(exec, x_herm_const, x_herm_ref, eps, eps));
+  KokkosFFT::hfft(exec, x_herm_const, out_f, KokkosFFT::Normalization::forward);
+  EXPECT_TRUE(allclose(exec, x_herm_const, x_herm_ref, eps, eps));
+
+  multiply(exec, out_o, Kokkos::sqrt(static_cast<T>(len)));
+  multiply(exec, out_f, static_cast<T>(len));
+
+  EXPECT_TRUE(allclose(exec, out, ref, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(exec, out_b, out, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(exec, out_o, out, 1.e-5, 1.e-6));
+  EXPECT_TRUE(allclose(exec, out_f, out, 1.e-5, 1.e-6));
+
+  // Testing for non-const Views, input can be overwritten
+  KokkosFFT::hfft(exec, x_herm, out);
 
   Kokkos::deep_copy(x_herm, x_herm_ref);
   KokkosFFT::hfft(exec, x_herm, out_b, KokkosFFT::Normalization::backward);

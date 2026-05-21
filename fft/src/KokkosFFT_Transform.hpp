@@ -216,13 +216,17 @@ void irfft(const ExecutionSpace& exec_space, const InViewType& in,
 /// \tparam InViewType: Input View type for the fft
 /// \tparam OutViewType: Output View type for the fft
 ///
-/// \param exec_space [in] Kokkos execution space
-/// \param in [in] Input data (real or complex)
-/// \param out [out] Output data (real)
-/// \param norm [in] How the normalization is applied (default, backward)
-/// \param axis [in] Axis over which FFT is performed (default, -1)
-/// \param n [in] Length of the transformed axis of the output (default,
+/// \param[in] exec_space Kokkos execution space
+/// \param[in,out] in Input data (real or complex)
+/// \param[out] out Output data (real)
+/// \param[in] norm How the normalization is applied (default, backward)
+/// \param[in] axis Axis over which FFT is performed (default, -1)
+/// \param[in] n Length of the transformed axis of the output (default,
 /// nullopt)
+/// \details The input data is modified in-place to save memory (if the input is
+/// non-const complex). If the input is real or const complex, we create a
+/// temporary complex view to perform the computation, and the input data is not
+/// modified.
 template <typename ExecutionSpace, typename InViewType, typename OutViewType>
 void hfft(const ExecutionSpace& exec_space, const InViewType& in,
           const OutViewType& out,
@@ -246,9 +250,15 @@ void hfft(const ExecutionSpace& exec_space, const InViewType& in,
                      "axes are invalid for in/out views");
   auto new_norm = KokkosFFT::Impl::swap_direction(norm);
 
-  if constexpr (KokkosFFT::Impl::is_real_v<in_value_type>) {
-    // Convert to complex type
-    using ComplexType = Kokkos::complex<in_value_type>;
+  if constexpr (KokkosFFT::Impl::is_real_v<in_value_type> ||
+                std::is_const_v<typename InViewType::value_type>) {
+    // For real input or const complex input, we create a temporary complex view
+    // to perform the computation, and the input data is not modified. Convert
+    // to complex type if input is real
+    using ComplexType =
+        std::conditional_t<KokkosFFT::Impl::is_real_v<in_value_type>,
+                           Kokkos::complex<in_value_type>, in_value_type>;
+
     using ComplexInViewType =
         typename KokkosFFT::Impl::ConvertedViewType<InViewType,
                                                     ComplexType>::type;
@@ -258,21 +268,31 @@ void hfft(const ExecutionSpace& exec_space, const InViewType& in,
     auto extents     = KokkosFFT::Impl::extract_extents(in);
     ManageableComplexInViewType cin(
         "cin", KokkosFFT::Impl::create_layout<LayoutType>(extents));
+
     Kokkos::deep_copy(exec_space, cin, in);
+    if constexpr (!KokkosFFT::Impl::is_real_v<in_value_type>) {
+      if (cin.span() >= std::size_t(std::numeric_limits<int>::max())) {
+        KokkosFFT::Impl::md_unary_operation<std::int64_t>(
+            "KokkosFFT::conjugate", exec_space, cin,
+            KokkosFFT::Impl::Conjugate());
+      } else {
+        KokkosFFT::Impl::md_unary_operation<int>("KokkosFFT::conjugate",
+                                                 exec_space, cin,
+                                                 KokkosFFT::Impl::Conjugate());
+      }
+    }
     irfft(exec_space, cin, out, new_norm, axis, n);
   } else {
-    InViewType in_conj("in_conj", in.layout());
-    Kokkos::deep_copy(exec_space, in_conj, in);
-    if (in_conj.span() >= std::size_t(std::numeric_limits<int>::max())) {
-      KokkosFFT::Impl::md_unary_operation<int64_t>(
-          "KokkosFFT::conjugate", exec_space, in_conj,
-          KokkosFFT::Impl::Conjugate());
+    // For non-const complex input, we can perform the conjugation in-place and
+    // save memory
+    if (in.span() >= std::size_t(std::numeric_limits<int>::max())) {
+      KokkosFFT::Impl::md_unary_operation<std::int64_t>(
+          "KokkosFFT::conjugate", exec_space, in, KokkosFFT::Impl::Conjugate());
     } else {
-      KokkosFFT::Impl::md_unary_operation<int>("KokkosFFT::conjugate",
-                                               exec_space, in_conj,
-                                               KokkosFFT::Impl::Conjugate());
+      KokkosFFT::Impl::md_unary_operation<int>(
+          "KokkosFFT::conjugate", exec_space, in, KokkosFFT::Impl::Conjugate());
     }
-    irfft(exec_space, in_conj, out, new_norm, axis, n);
+    irfft(exec_space, in, out, new_norm, axis, n);
   }
 }
 
