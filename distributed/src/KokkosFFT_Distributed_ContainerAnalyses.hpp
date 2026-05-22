@@ -6,6 +6,9 @@
 #define KOKKOSFFT_DISTRIBUTED_CONTAINER_ANALYSES_HPP
 
 #include <algorithm>
+#include <set>
+#include <type_traits>
+#include <vector>
 #include <Kokkos_Core.hpp>
 #include <KokkosFFT.hpp>
 
