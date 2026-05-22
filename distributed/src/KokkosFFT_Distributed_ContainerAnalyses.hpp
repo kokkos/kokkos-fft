@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <set>
+#include <string>
 #include <type_traits>
 #include <vector>
 #include <Kokkos_Core.hpp>
