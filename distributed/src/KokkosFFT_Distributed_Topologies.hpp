@@ -5,6 +5,7 @@
 #ifndef KOKKOSFFT_DISTRIBUTED_TOPOLOGIES_HPP
 #define KOKKOSFFT_DISTRIBUTED_TOPOLOGIES_HPP
 
+#include <type_traits>
 #include "KokkosFFT_Distributed_Types.hpp"
 #include "KokkosFFT_Distributed_ContainerAnalyses.hpp"
 
@@ -28,6 +29,11 @@ inline auto to_topology_type(const ContainerType& topology) {
   static_assert(
       (is_allowed_topology_v<ContainerType>),
       "to_topology_type: topologies must be either in std::array or Topology");
+  using value_type =
+      std::remove_cv_t<std::remove_reference_t<decltype(*topology.begin())>>;
+  static_assert(
+      std::is_integral_v<value_type>,
+      "to_topology_type: Container value type must be an integral type");
 
   for (const auto& value : topology) {
     if (value == 0) return TopologyType::Empty;
