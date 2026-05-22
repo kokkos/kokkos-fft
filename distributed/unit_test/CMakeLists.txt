@@ -14,6 +14,7 @@ set(SOURCES
     Test_MPI_Extents.cpp
     Test_Pack.cpp
     Test_Unpack.cpp
+    Test_Topologies.cpp
     Test_TransBlock.cpp
 )
 
