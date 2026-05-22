@@ -319,6 +319,8 @@ void test_get_common_topology_type(std::size_t nprocs) {
         {topology1, topology1,
          KokkosFFT::Distributed::Impl::TopologyType::Shared},
         {topology1D_type{0}, topology1,
+         KokkosFFT::Distributed::Impl::TopologyType::Empty},
+        {topology1, topology1D_type{0},
          KokkosFFT::Distributed::Impl::TopologyType::Empty}};
     for (const auto& [topo1, topo2, ref] : topo1D_test_cases) {
       auto topo_type =

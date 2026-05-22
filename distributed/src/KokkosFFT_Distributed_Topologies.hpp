@@ -84,13 +84,17 @@ inline auto get_common_topology_type(const FirstTopology& first_topology,
     return TopologyType::Empty;
   }
 
+  if constexpr (sizeof...(RestTopologies) > 0) {
+    const bool has_empty =
+        ((to_topology_type(rest_topologies) == TopologyType::Empty) || ...);
+    if (has_empty) {
+      return TopologyType::Empty;
+    }
+  }
+
   bool has_mismatch        = false;
   auto check_topology_type = [&](const auto& topology) {
     const auto topology_type = to_topology_type(topology);
-    if (topology_type == TopologyType::Empty) {
-      has_mismatch = true;
-      return;
-    }
     if (topology_type != common_topology_type) {
       has_mismatch = true;
     }
