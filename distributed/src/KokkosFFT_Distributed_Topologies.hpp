@@ -13,12 +13,12 @@ namespace Distributed {
 namespace Impl {
 
 /// \brief Get the topology type from the given topology container
-/// Empty topology: 0 is included in the topology
-/// Shared topology: non-one element is not included in the topology
-/// Slab topology: 1 non-one element is included in the topology
-/// Pencil topology: 2 non-one elements are included in the topology
-/// Brick topology: 3 non-one elements are included in the topology
-/// Invalid topology: more than 3 non-one elements are included in the topology
+/// Empty topology: at least one element is 0
+/// Shared topology: no elements differ from 1
+/// Slab topology: exactly 1 element differs from 1
+/// Pencil topology: exactly 2 elements differ from 1
+/// Brick topology: exactly 3 elements differ from 1
+/// Invalid topology: more than 3 elements differ from 1
 ///
 /// \tparam ContainerType Topology container type (std::array or Topology)
 /// \param[in] topology Topology container
@@ -69,33 +69,34 @@ inline bool are_specified_topologies(const TopologyType topology_type,
 /// \return TopologyType::Empty if any topology is empty; otherwise the common
 /// topology type if all topologies have the same non-empty type; otherwise
 /// TopologyType::Invalid
-template <class... Topologies>
-inline auto get_common_topology_type(const Topologies&... topologies) {
-  static_assert(
-      sizeof...(Topologies) > 0,
-      "get_common_topology_type: at least one topology must be provided");
-  static_assert((are_allowed_topologies_v<Topologies...>),
+template <class FirstTopology, class... RestTopologies>
+inline auto get_common_topology_type(const FirstTopology& first_topology,
+                                     const RestTopologies&... rest_topologies) {
+  static_assert((are_allowed_topologies_v<FirstTopology, RestTopologies...>),
                 "get_common_topology_type: topologies must be either in "
                 "std::array or Topology");
 
-  // Quick return if empty topology is found
-  auto is_empty = [](const auto& topology) {
-    return to_topology_type(topology) == TopologyType::Empty;
-  };
-  if ((is_empty(topologies) || ...)) {
+  const auto common_topology_type = to_topology_type(first_topology);
+  if (common_topology_type == TopologyType::Empty) {
     return TopologyType::Empty;
   }
 
-  const std::array<TopologyType, 4> all_topology_types = {
-      TopologyType::Shared, TopologyType::Slab, TopologyType::Pencil,
-      TopologyType::Brick};
-  for (TopologyType t : all_topology_types) {
-    if (are_specified_topologies(t, topologies...)) {
-      return t;
+  bool has_mismatch        = false;
+  auto check_topology_type = [&](const auto& topology) {
+    const auto topology_type = to_topology_type(topology);
+    if (topology_type == TopologyType::Empty) {
+      has_mismatch = true;
+      return;
     }
+    if (topology_type != common_topology_type) {
+      has_mismatch = true;
+    }
+  };
+  if constexpr (sizeof...(RestTopologies) > 0) {
+    (check_topology_type(rest_topologies), ...);
   }
 
-  return TopologyType::Invalid;
+  return has_mismatch ? TopologyType::Invalid : common_topology_type;
 }
 
 }  // namespace Impl

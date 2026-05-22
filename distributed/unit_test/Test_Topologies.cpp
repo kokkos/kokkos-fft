@@ -37,6 +37,23 @@ inline std::string topology_type_to_string(
   }
 }
 
+/// \brief Convert a topology-like container to a formatted string.
+/// 	param TopologyContainerType The type of the topology input.
+/// \param[in] name The label to prepend to the formatted topology.
+/// \param[in] topology The topology values to stringify.
+/// \return The formatted topology string.
+template <typename TopologyContainerType>
+std::string topology_to_string(const std::string& name,
+                               const TopologyContainerType& topology) {
+  std::string msg = name + " (";
+  msg += std::to_string(topology.at(0));
+  for (std::size_t i = 1; i < topology.size(); ++i) {
+    msg += ", " + std::to_string(topology.at(i));
+  }
+  msg += ")";
+  return msg;
+}
+
 /// \brief Generate error message for topology type test failures.
 /// \tparam TopologyContainerType The type of the topology input.
 /// \param[in] topology The input topology that caused the failure.
@@ -47,13 +64,8 @@ template <typename TopologyContainerType>
 std::string error_to_topology_type(
     const TopologyContainerType& topology,
     KokkosFFT::Distributed::Impl::TopologyType ref) {
-  std::string msg;
-  msg += "Input topology: (";
-  msg += std::to_string(topology.at(0));
-  for (std::size_t i = 1; i < topology.size(); ++i) {
-    msg += ", " + std::to_string(topology.at(i));
-  }
-  msg += "), should be: " + topology_type_to_string(ref) + ", but got: " +
+  std::string msg = topology_to_string("Input topology:", topology);
+  msg += ", should be: " + topology_type_to_string(ref) + ", but got: " +
          topology_type_to_string(
              KokkosFFT::Distributed::Impl::to_topology_type(topology));
   return msg;
@@ -72,19 +84,10 @@ template <typename Topology1Type, typename Topology2Type>
 std::string error_get_common_topology_type(
     const Topology1Type& topo1, const Topology2Type& topo2,
     KokkosFFT::Distributed::Impl::TopologyType ref) {
-  std::string msg;
-  msg += "Input topologies: ";
-  msg += "(" + std::to_string(topo1.at(0));
-  for (std::size_t i = 1; i < topo1.size(); ++i) {
-    msg += ", " + std::to_string(topo1.at(i));
-  }
-  msg += ") and (";
-  msg += std::to_string(topo2.at(0));
-  for (std::size_t i = 1; i < topo2.size(); ++i) {
-    msg += ", " + std::to_string(topo2.at(i));
-  }
+  std::string msg = topology_to_string("Input topologies: ", topo1);
+  msg += " and " + topology_to_string("", topo2);
   msg +=
-      "), should be: " + topology_type_to_string(ref) + ", but got: " +
+      ", should be: " + topology_type_to_string(ref) + ", but got: " +
       topology_type_to_string(
           KokkosFFT::Distributed::Impl::get_common_topology_type(topo1, topo2));
   return msg;
@@ -103,17 +106,12 @@ template <typename TopologyType>
 std::string error_is_topology(
     const TopologyType& topology,
     KokkosFFT::Distributed::Impl::TopologyType specified, bool expected) {
-  std::string msg;
-  msg += "Input topology: (";
-  msg += std::to_string(topology.at(0));
-  for (std::size_t i = 1; i < topology.size(); ++i) {
-    msg += ", " + std::to_string(topology.at(i));
-  }
+  std::string msg = topology_to_string("Input topology:", topology);
   if (expected) {
-    msg += "), should be identified as " + topology_type_to_string(specified) +
+    msg += ", should be identified as " + topology_type_to_string(specified) +
            ", but it is not.";
   } else {
-    msg += "), should not be identified as " +
+    msg += ", should not be identified as " +
            topology_type_to_string(specified) + ", but it is.";
   }
   return msg;
@@ -134,22 +132,13 @@ template <typename Topology1Type, typename Topology2Type>
 std::string error_are_topologies(
     const Topology1Type& topo1, const Topology2Type& topo2,
     KokkosFFT::Distributed::Impl::TopologyType specified, bool expected) {
-  std::string msg;
-  msg += "Input topologies: ";
-  msg += "(" + std::to_string(topo1.at(0));
-  for (std::size_t i = 1; i < topo1.size(); ++i) {
-    msg += ", " + std::to_string(topo1.at(i));
-  }
-  msg += ") and (";
-  msg += std::to_string(topo2.at(0));
-  for (std::size_t i = 1; i < topo2.size(); ++i) {
-    msg += ", " + std::to_string(topo2.at(i));
-  }
+  std::string msg = topology_to_string("Input topologies: ", topo1);
+  msg += " and " + topology_to_string("", topo2);
   if (expected) {
-    msg += "), should be identified as " + topology_type_to_string(specified) +
+    msg += ", should be identified as " + topology_type_to_string(specified) +
            ", but it is not.";
   } else {
-    msg += "), should not be identified as " +
+    msg += ", should not be identified as " +
            topology_type_to_string(specified) + ", but it is.";
   }
   return msg;
