@@ -33,18 +33,9 @@ include(GoogleTest)
 #  - -n 2: The flag to specify running with 2 processes.
 #  - $<TARGET_FILE:unit-tests-mpi>: A CMake generator expression that correctly
 #   resolves to the path of our compiled executable.
-add_test(
-  NAME UnitTests1MPI
-  COMMAND ${MPIEXEC_EXECUTABLE} -n 1 $<TARGET_FILE:unit-tests-mpi>
-)
-add_test(
-  NAME UnitTests2MPI
-  COMMAND ${MPIEXEC_EXECUTABLE} -n 2 $<TARGET_FILE:unit-tests-mpi>
-)
-add_test(
-  NAME UnitTests4MPI
-  COMMAND ${MPIEXEC_EXECUTABLE} -n 4 $<TARGET_FILE:unit-tests-mpi>
-)
+add_test(NAME UnitTests1MPI COMMAND ${MPIEXEC_EXECUTABLE} -n 1 $<TARGET_FILE:unit-tests-mpi>)
+add_test(NAME UnitTests2MPI COMMAND ${MPIEXEC_EXECUTABLE} -n 2 $<TARGET_FILE:unit-tests-mpi>)
+add_test(NAME UnitTests4MPI COMMAND ${MPIEXEC_EXECUTABLE} -n 4 $<TARGET_FILE:unit-tests-mpi>)
 
 set_property(TEST UnitTests1MPI PROPERTY TIMEOUT 600)
 set_property(TEST UnitTests2MPI PROPERTY TIMEOUT 600)
