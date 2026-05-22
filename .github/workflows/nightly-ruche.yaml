@@ -57,7 +57,7 @@ jobs:
           run \
             -m "${{ matrix.backend.modules }}" \
             -e local \
-            cmake --install kokkos_build --prefix kokkos_install
+            cmake --install kokkos_build
 
       - name: Initialize the build tree
         # note: BUILDNAME sets the name of the build on the Dashboard
