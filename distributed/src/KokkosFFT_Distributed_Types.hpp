@@ -38,6 +38,9 @@ enum class TopologyType {
 
   //! Invalid topology
   Invalid,
+
+  //! Number of topology types (only used for validation and iteration)
+  Count,
 };
 
 /// \brief Enumeration of different block types in a distributed FFT plan
