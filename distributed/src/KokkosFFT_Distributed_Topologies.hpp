@@ -5,8 +5,6 @@
 #ifndef KOKKOSFFT_DISTRIBUTED_TOPOLOGIES_HPP
 #define KOKKOSFFT_DISTRIBUTED_TOPOLOGIES_HPP
 
-#include <Kokkos_Core.hpp>
-#include <KokkosFFT.hpp>
 #include "KokkosFFT_Distributed_Types.hpp"
 #include "KokkosFFT_Distributed_ContainerAnalyses.hpp"
 
@@ -52,6 +50,9 @@ inline auto to_topology_type(const ContainerType& topology) {
 template <class... Topologies>
 inline bool are_specified_topologies(const TopologyType topology_type,
                                      const Topologies&... topologies) {
+  static_assert(
+      sizeof...(Topologies) > 0,
+      "are_specified_topologies: at least one topology must be provided");
   static_assert((are_allowed_topologies_v<Topologies...>),
                 "are_specified_topologies: topologies must be either in "
                 "std::array or Topology");
