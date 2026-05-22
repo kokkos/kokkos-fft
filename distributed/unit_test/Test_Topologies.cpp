@@ -38,7 +38,7 @@ inline std::string topology_type_to_string(
 }
 
 /// \brief Convert a topology-like container to a formatted string.
-/// 	param TopologyContainerType The type of the topology input.
+/// \tparam TopologyContainerType The type of the topology input.
 /// \param[in] name The label to prepend to the formatted topology.
 /// \param[in] topology The topology values to stringify.
 /// \return The formatted topology string.

@@ -66,8 +66,9 @@ inline bool are_specified_topologies(const TopologyType topology_type,
 ///
 /// \tparam FirstTopology The type of the first topology container
 /// \tparam RestTopologies Variadic template parameter for the rest of the
-/// topology container types \param[in] first_topology The first topology
-/// container \param[in] rest_topologies The rest of the topology containers
+/// topology container types
+/// \param[in] first_topology The first topology container
+/// \param[in] rest_topologies The rest of the topology containers
 /// \return TopologyType::Empty if any topology is empty; otherwise the common
 /// topology type if all topologies have the same non-empty type; otherwise
 /// TopologyType::Invalid
