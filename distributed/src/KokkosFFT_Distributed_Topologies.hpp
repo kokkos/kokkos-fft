@@ -7,7 +7,6 @@
 
 #include <Kokkos_Core.hpp>
 #include <KokkosFFT.hpp>
-#include "KokkosFFT_Distributed_MPI_Extents.hpp"
 #include "KokkosFFT_Distributed_Types.hpp"
 #include "KokkosFFT_Distributed_ContainerAnalyses.hpp"
 
@@ -32,8 +31,9 @@ inline auto to_topology_type(const ContainerType& topology) {
       (is_allowed_topology_v<ContainerType>),
       "to_topology_type: topologies must be either in std::array or Topology");
 
-  auto size = KokkosFFT::Impl::total_size(topology);
-  if (size == 0) return TopologyType::Empty;
+  for (const auto& value : topology) {
+    if (value == 0) return TopologyType::Empty;
+  }
 
   switch (count_non_ones(topology)) {
     case 0: return TopologyType::Shared;
@@ -48,7 +48,7 @@ inline auto to_topology_type(const ContainerType& topology) {
 /// \tparam Topologies Variadic template parameter for topology container types
 /// \param[in] topology_type a topology type of interest
 /// \param[in] topologies Topology containers
-/// \return true if all topologies are Shared type, false otherwise
+/// \return true if all topologies are of the specified type, false otherwise
 template <class... Topologies>
 inline bool are_specified_topologies(const TopologyType topology_type,
                                      const Topologies&... topologies) {
@@ -64,8 +64,10 @@ inline bool are_specified_topologies(const TopologyType topology_type,
 /// \brief Get the topology type from the given topology containers
 ///
 /// \tparam Topologies Variadic template parameter for topology container types
-/// \param[in] topology Topology container
-/// \return TopologyType enum value representing the topology type
+/// \param[in] topologies Topology containers to compare
+/// \return TopologyType::Empty if any topology is empty; otherwise the common
+/// topology type if all topologies have the same non-empty type; otherwise
+/// TopologyType::Invalid
 template <class... Topologies>
 inline auto get_common_topology_type(const Topologies&... topologies) {
   static_assert((are_allowed_topologies_v<Topologies...>),

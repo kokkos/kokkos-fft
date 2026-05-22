@@ -31,14 +31,14 @@ inline std::string topology_type_to_string(
 }
 
 /// \brief Generate error message for topology type test failures.
-/// \tparam TopologyType The type of the topology input.
+/// \tparam TopologyContainerType The type of the topology input.
 /// \param[in] topology The input topology that caused the failure.
 /// \param[in] ref The expected topology type that should have been returned.
 /// \return Error message including the input topology, expected topology type,
 /// and actual topology type.
-template <typename TopologyType>
+template <typename TopologyContainerType>
 std::string error_to_topology_type(
-    const TopologyType& topology,
+    const TopologyContainerType& topology,
     KokkosFFT::Distributed::Impl::TopologyType ref) {
   std::string msg;
   msg += "Input topology: (";
