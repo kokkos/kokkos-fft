@@ -656,11 +656,6 @@ void test_is_topology(std::size_t nprocs) {
         {topology3_3, TopologyType::Brick},
         {topology3_4, TopologyType::Brick},
         {topology3_5, TopologyType::Brick},
-        {topology3_1, TopologyType::Brick},
-        {topology3_2, TopologyType::Brick},
-        {topology3_3, TopologyType::Brick},
-        {topology3_4, TopologyType::Brick},
-        {topology3_5, TopologyType::Brick},
         {topology3D_type{0, p1, p2}, TopologyType::Empty},
         {topology3D_type{p0, 0, p2}, TopologyType::Empty},
         {topology3D_type{p0, p1, 0}, TopologyType::Empty}};

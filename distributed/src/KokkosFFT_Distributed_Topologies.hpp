@@ -71,6 +71,9 @@ inline bool are_specified_topologies(const TopologyType topology_type,
 /// TopologyType::Invalid
 template <class... Topologies>
 inline auto get_common_topology_type(const Topologies&... topologies) {
+  static_assert(
+      sizeof...(Topologies) > 0,
+      "get_common_topology_type: at least one topology must be provided");
   static_assert((are_allowed_topologies_v<Topologies...>),
                 "get_common_topology_type: topologies must be either in "
                 "std::array or Topology");
