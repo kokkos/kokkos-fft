@@ -168,7 +168,7 @@ TYPED_TEST(CompileTestTopologyTypes, internal_types) {
 
 // Test default constructor
 TYPED_TEST(TestTopology, default_constructor) {
-  TypeParam topology;
+  TypeParam topology{};
   EXPECT_EQ(topology.size(), this->m_test_data.size());
   EXPECT_EQ(topology.empty(), this->m_test_data.empty());
 }

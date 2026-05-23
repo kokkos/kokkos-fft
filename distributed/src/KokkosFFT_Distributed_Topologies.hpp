@@ -147,15 +147,40 @@ auto slab_in_out_axes(const std::array<iType, DIM>& in_topology,
   KOKKOSFFT_THROW_IF(!is_slab,
                      "Input and output topologies must be slab topologies.");
 
-  std::size_t in_axis = 0, out_axis = 0;
+  std::size_t in_axis = 0, out_axis = 0, num_differences = 0;
+  bool found_in_axis = false, found_out_axis = false;
   for (std::size_t i = 0; i < DIM; ++i) {
-    if (in_topology.at(i) > 1 && out_topology.at(i) == 1) {
-      out_axis = i;
+    const auto in_value  = in_topology.at(i);
+    const auto out_value = out_topology.at(i);
+    if (in_value == out_value) continue;
+    ++num_differences;
+    if (in_value > 1 && out_value == 1) {
+      KOKKOSFFT_THROW_IF(found_out_axis,
+                         "Input and output slab topologies must differ in "
+                         "exactly one non-1 -> 1 axis.");
+      out_axis       = i;
+      found_out_axis = true;
+      continue;
     }
-    if (in_topology.at(i) == 1 && out_topology.at(i) > 1) {
-      in_axis = i;
+    if (in_value == 1 && out_value > 1) {
+      KOKKOSFFT_THROW_IF(found_in_axis,
+                         "Input and output slab topologies must differ in "
+                         "exactly one non-1 -> 1 axis.");
+      in_axis       = i;
+      found_in_axis = true;
+      continue;
     }
+
+    KOKKOSFFT_THROW_IF(
+        true,
+        "Input and output slab topologies must differ only by 1 <-> non-1 "
+        "changes.");
   }
+
+  KOKKOSFFT_THROW_IF(
+      num_differences != 2 || !found_in_axis || !found_out_axis,
+      "Input and output slab topologies must differ in exactly two indices: "
+      "one 1 -> non-1 axis and one non-1 -> 1 axis.");
 
   return std::make_tuple(in_axis, out_axis);
 }
@@ -175,8 +200,8 @@ auto slab_in_out_axes(const std::array<iType, DIM>& in_topology,
 /// \return A tuple of two size_t representing the axes that are different
 /// \throws std::runtime_error if the input and output topologies do not have
 /// at least one non-trivial dimension
-/// \throws std::runtime_error if the input and output topologies are not pencil
-/// topologies
+/// \throws std::runtime_error if the input and output topologies do not have
+/// the same size
 template <typename iType, std::size_t DIM>
 auto pencil_in_out_axes(const std::array<iType, DIM>& in_topology,
                         const std::array<iType, DIM>& out_topology) {
@@ -184,13 +209,12 @@ auto pencil_in_out_axes(const std::array<iType, DIM>& in_topology,
   auto in_size  = KokkosFFT::Impl::total_size(in_topology);
   auto out_size = KokkosFFT::Impl::total_size(out_topology);
 
+  KOKKOSFFT_THROW_IF(in_size == 1 || out_size == 1,
+                     "Input and output topologies must have at least one "
+                     "non-trivial dimension.");
+
   KOKKOSFFT_THROW_IF(in_size != out_size,
                      "Input and output topologies must have the same size.");
-
-  bool is_pencil =
-      are_specified_topologies(TopologyType::Pencil, in_topology, out_topology);
-  KOKKOSFFT_THROW_IF(!is_pencil,
-                     "Input and output topologies must be pencil topologies.");
 
   std::size_t in_axis = 0, out_axis = 0;
   for (std::size_t i = 0; i < DIM; ++i) {
@@ -241,8 +265,8 @@ std::array<iType, DIM> propose_mid_array(const std::array<iType, DIM>& in,
   iType idx_one_out = KokkosFFT::Impl::get_index(out_trimmed, iType(1));
 
   // Try all combinations of 2 indices for a single valid swap
-  for (size_t i = 0; i < diff_non_one_indices.size(); ++i) {
-    for (size_t j = i + 1; j < diff_non_one_indices.size(); ++j) {
+  for (std::size_t i = 0; i < diff_non_one_indices.size(); ++i) {
+    for (std::size_t j = i + 1; j < diff_non_one_indices.size(); ++j) {
       iType idx_in  = diff_non_one_indices.at(i);
       iType idx_out = diff_non_one_indices.at(j);
 
