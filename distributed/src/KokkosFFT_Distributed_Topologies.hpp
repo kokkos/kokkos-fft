@@ -130,7 +130,7 @@ inline auto get_common_topology_type(const FirstTopology& first_topology,
 /// \param[in] out_topology The output topology.
 /// \return A tuple of two size_t representing the axes that are different
 /// \throws std::runtime_error if the input and output topologies do not have
-/// the same size
+/// the same size or if they are identical
 /// \throws std::runtime_error if the input and output topologies are not slab
 /// topologies
 template <typename iType, std::size_t DIM>
@@ -142,45 +142,23 @@ auto slab_in_out_axes(const std::array<iType, DIM>& in_topology,
   KOKKOSFFT_THROW_IF(in_size != out_size,
                      "Input and output topologies must have the same size.");
 
+  KOKKOSFFT_THROW_IF(in_topology == out_topology,
+                     "Input and output topologies must be different.");
+
   bool is_slab =
       are_specified_topologies(TopologyType::Slab, in_topology, out_topology);
   KOKKOSFFT_THROW_IF(!is_slab,
                      "Input and output topologies must be slab topologies.");
 
-  std::size_t in_axis = 0, out_axis = 0, num_differences = 0;
-  bool found_in_axis = false, found_out_axis = false;
+  std::size_t in_axis = 0, out_axis = 0;
   for (std::size_t i = 0; i < DIM; ++i) {
-    const auto in_value  = in_topology.at(i);
-    const auto out_value = out_topology.at(i);
-    if (in_value == out_value) continue;
-    ++num_differences;
-    if (in_value > 1 && out_value == 1) {
-      KOKKOSFFT_THROW_IF(found_out_axis,
-                         "Input and output slab topologies must differ in "
-                         "exactly one non-1 -> 1 axis.");
-      out_axis       = i;
-      found_out_axis = true;
-      continue;
+    if (in_topology.at(i) > 1 && out_topology.at(i) == 1) {
+      out_axis = i;
     }
-    if (in_value == 1 && out_value > 1) {
-      KOKKOSFFT_THROW_IF(found_in_axis,
-                         "Input and output slab topologies must differ in "
-                         "exactly one non-1 -> 1 axis.");
-      in_axis       = i;
-      found_in_axis = true;
-      continue;
+    if (in_topology.at(i) == 1 && out_topology.at(i) > 1) {
+      in_axis = i;
     }
-
-    KOKKOSFFT_THROW_IF(
-        true,
-        "Input and output slab topologies must differ only by 1 <-> non-1 "
-        "changes.");
   }
-
-  KOKKOSFFT_THROW_IF(
-      num_differences != 2 || !found_in_axis || !found_out_axis,
-      "Input and output slab topologies must differ in exactly two indices: "
-      "one 1 -> non-1 axis and one non-1 -> 1 axis.");
 
   return std::make_tuple(in_axis, out_axis);
 }
