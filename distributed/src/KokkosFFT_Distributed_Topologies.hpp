@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <array>
+#include <string>
 #include <string_view>
 #include <tuple>
 #include <type_traits>
