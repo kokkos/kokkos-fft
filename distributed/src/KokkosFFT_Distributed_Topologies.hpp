@@ -5,7 +5,9 @@
 #ifndef KOKKOSFFT_DISTRIBUTED_TOPOLOGIES_HPP
 #define KOKKOSFFT_DISTRIBUTED_TOPOLOGIES_HPP
 
+#include <algorithm>
 #include <array>
+#include <string_view>
 #include <tuple>
 #include <type_traits>
 #include <vector>
