@@ -149,14 +149,15 @@ std::string error_are_topologies(
 /// \tparam Topology2Type The type of the second topology input.
 /// \param[in] topo1 The first input topology that caused the failure.
 /// \param[in] topo2 The second input topology that caused the failure.
+/// \param[in] actual The actual in/out axes.
 /// \param[in] expected The expected in/out axes.
 /// \return Error message including the input topologies and the expected in/out
 /// axes.
 template <typename Topology1Type, typename Topology2Type>
-std::string error_in_out_axes(const Topology1Type& topo1,
-                              const Topology2Type& topo2,
-                              std::tuple<std::size_t, std::size_t> expected) {
-  auto actual = KokkosFFT::Distributed::Impl::slab_in_out_axes(topo1, topo2);
+std::string error_in_out_axes(
+    const Topology1Type& topo1, const Topology2Type& topo2,
+    const std::tuple<std::size_t, std::size_t>& actual,
+    const std::tuple<std::size_t, std::size_t>& expected) {
   std::string msg = "Input topologies: ";
   msg += topology_to_string("topology1", topo1);
   msg += " and ";
@@ -240,6 +241,20 @@ std::string error_decompose_axes(
     }
     msg += ")";
     if (i != expected.size() - 1) {
+      msg += " and ";
+    }
+  }
+  msg += "), but got: (";
+  for (std::size_t i = 0; i < actual.size(); ++i) {
+    msg += "(";
+    for (std::size_t j = 0; j < actual.at(i).size(); ++j) {
+      msg += std::to_string(actual.at(i).at(j));
+      if (j != actual.at(i).size() - 1) {
+        msg += ", ";
+      }
+    }
+    msg += ")";
+    if (i != actual.size() - 1) {
       msg += " and ";
     }
   }
@@ -1135,7 +1150,8 @@ void test_slab_in_out_axes_2D(std::size_t nprocs) {
     // Failure tests because of size 1 case
     std::vector<topo_and_ref_type> topo_test_cases = {{topo0, topo1, {0, 1}},
                                                       {topo1, topo0, {1, 0}}};
-    for (const auto& [topo_in, topo_out, ref_inout_axes] : topo_test_cases) {
+    for ([[maybe_unused]] const auto& [topo_in, topo_out, ref_inout_axes] :
+         topo_test_cases) {
       EXPECT_THROW(
           {
             [[maybe_unused]] auto inout_axes =
@@ -1152,14 +1168,14 @@ void test_slab_in_out_axes_2D(std::size_t nprocs) {
       auto inout_axes =
           KokkosFFT::Distributed::Impl::slab_in_out_axes(topo_in, topo_out);
       EXPECT_EQ(inout_axes, ref_inout_axes)
-          << error_in_out_axes(topo_in, topo_out, ref_inout_axes);
+          << error_in_out_axes(topo_in, topo_out, inout_axes, ref_inout_axes);
     }
   }
 
   // Failure tests because of shape mismatch (or size 1 case)
   std::vector<topo_and_ref_type> topo_failure_test_cases = {
       {topo0, topo2, {0, 1}}, {topo0, topo3, {0, 1}}};
-  for (const auto& [topo_in, topo_out, ref_inout_axes] :
+  for ([[maybe_unused]] const auto& [topo_in, topo_out, ref_inout_axes] :
        topo_failure_test_cases) {
     EXPECT_THROW(
         {
@@ -1182,7 +1198,8 @@ void test_slab_in_out_axes_3D(std::size_t nprocs) {
     std::vector<topo_and_ref_type> topo_test_cases = {
         {topo0, topo1, {0, 1}}, {topo0, topo2, {0, 2}}, {topo1, topo0, {1, 0}},
         {topo1, topo2, {1, 2}}, {topo2, topo0, {2, 0}}, {topo2, topo1, {2, 1}}};
-    for (const auto& [topo_in, topo_out, ref_inout_axes] : topo_test_cases) {
+    for ([[maybe_unused]] const auto& [topo_in, topo_out, ref_inout_axes] :
+         topo_test_cases) {
       EXPECT_THROW(
           {
             [[maybe_unused]] auto inout_axes =
@@ -1199,14 +1216,14 @@ void test_slab_in_out_axes_3D(std::size_t nprocs) {
       auto inout_axes =
           KokkosFFT::Distributed::Impl::slab_in_out_axes(topo_in, topo_out);
       EXPECT_EQ(inout_axes, ref_inout_axes)
-          << error_in_out_axes(topo_in, topo_out, ref_inout_axes);
+          << error_in_out_axes(topo_in, topo_out, inout_axes, ref_inout_axes);
     }
   }
 
   // Failure tests because of shape mismatch (or size 1 case)
   std::vector<topo_and_ref_type> topo_failure_test_cases = {
       {topo0, topo3, {0, 1}}, {topo0, topo4, {0, 1}}};
-  for (const auto& [topo_in, topo_out, ref_inout_axes] :
+  for ([[maybe_unused]] const auto& [topo_in, topo_out, ref_inout_axes] :
        topo_failure_test_cases) {
     EXPECT_THROW(
         {
@@ -1393,7 +1410,7 @@ void test_compute_trans_axis(std::size_t nprocs) {
         {topo0, topo1, 0}, {topo0, topo2, 1}, {topo1, topo0, 0},
         {topo1, topo2, 1}, {topo2, topo0, 1}, {topo2, topo1, 1}};
 
-    for (const auto& [topo_in, topo_out, ref_trans_axis] :
+    for ([[maybe_unused]] const auto& [topo_in, topo_out, ref_trans_axis] :
          topo3D_failure_test_cases) {
       EXPECT_THROW(
           {
@@ -1406,7 +1423,7 @@ void test_compute_trans_axis(std::size_t nprocs) {
 
     std::vector<topo4D_and_ref_type> topo4D_failure_test_cases = {
         {topo3, topo4, 0}, {topo4, topo3, 0}};
-    for (const auto& [topo_in, topo_out, ref_trans_axis] :
+    for ([[maybe_unused]] const auto& [topo_in, topo_out, ref_trans_axis] :
          topo4D_failure_test_cases) {
       EXPECT_THROW(
           {
@@ -1433,7 +1450,7 @@ void test_compute_trans_axis(std::size_t nprocs) {
     std::vector<topo3D_and_ref_type> topo3D_failure_test_cases = {
         {topo1, topo2, 0}, {topo2, topo1, 1}};
 
-    for (const auto& [topo_in, topo_out, ref_trans_axis] :
+    for ([[maybe_unused]] const auto& [topo_in, topo_out, ref_trans_axis] :
          topo3D_failure_test_cases) {
       EXPECT_THROW(
           {
@@ -1469,7 +1486,8 @@ void test_pencil_in_out_axes_3D(std::size_t nprocs) {
     std::vector<topo_and_ref_type> topo_and_ref_vec = {
         {topo0, topo1, {1, 2}}, {topo0, topo2, {0, 2}}, {topo1, topo0, {2, 1}},
         {topo1, topo2, {0, 1}}, {topo2, topo0, {2, 0}}, {topo2, topo1, {1, 0}}};
-    for (const auto& [topo_in, topo_out, ref_in_out] : topo_and_ref_vec) {
+    for ([[maybe_unused]] const auto& [topo_in, topo_out, ref_in_out] :
+         topo_and_ref_vec) {
       EXPECT_THROW(
           {
             [[maybe_unused]] auto inout_axis =
@@ -1487,14 +1505,14 @@ void test_pencil_in_out_axes_3D(std::size_t nprocs) {
       auto inout_axes =
           KokkosFFT::Distributed::Impl::pencil_in_out_axes(topo_in, topo_out);
       EXPECT_EQ(inout_axes, ref_inout_axes)
-          << error_in_out_axes(topo_in, topo_out, ref_inout_axes);
+          << error_in_out_axes(topo_in, topo_out, inout_axes, ref_inout_axes);
     }
   }
 
   // Failure tests because of shape mismatch (or size 1 case)
   std::vector<topo_and_ref_type> topo_failure_test_cases = {
       {topo3, topo0, {0, 1}}, {topo3, topo1, {0, 1}}, {topo3, topo2, {0, 2}}};
-  for (const auto& [topo_in, topo_out, ref_inout_axes] :
+  for ([[maybe_unused]] const auto& [topo_in, topo_out, ref_inout_axes] :
        topo_failure_test_cases) {
     EXPECT_THROW(
         {
@@ -1518,7 +1536,8 @@ void test_get_mid_array_pencil_3D(std::size_t nprocs) {
         {topo0, topo1, topo_type{}}, {topo0, topo2, topo_type{}},
         {topo1, topo0, topo_type{}}, {topo1, topo2, topo_type{}},
         {topo2, topo0, topo_type{}}, {topo2, topo1, topo_type{}}};
-    for (const auto& [topo_in, topo_out, ref_mid] : topo_and_ref_vec) {
+    for ([[maybe_unused]] const auto& [topo_in, topo_out, ref_mid] :
+         topo_and_ref_vec) {
       EXPECT_THROW(
           {
             [[maybe_unused]] auto mid =
@@ -1534,7 +1553,8 @@ void test_get_mid_array_pencil_3D(std::size_t nprocs) {
         {topo1, topo0, topo_type{}},
         {topo1, topo2, topo_type{}},
         {topo2, topo1, topo_type{}}};
-    for (const auto& [topo_in, topo_out, ref_mid] : topo_failure_test_cases) {
+    for ([[maybe_unused]] const auto& [topo_in, topo_out, ref_mid] :
+         topo_failure_test_cases) {
       EXPECT_THROW(
           {
             [[maybe_unused]] auto mid =
@@ -1570,7 +1590,8 @@ void test_get_mid_array_pencil_4D(std::size_t nprocs) {
         {topo0, topo1, topo_type{}}, {topo0, topo2, topo_type{}},
         {topo1, topo0, topo_type{}}, {topo1, topo2, topo_type{}},
         {topo2, topo0, topo_type{}}, {topo2, topo1, topo_type{}}};
-    for (const auto& [topo_in, topo_out, ref_mid] : topo_and_ref_vec) {
+    for ([[maybe_unused]] const auto& [topo_in, topo_out, ref_mid] :
+         topo_and_ref_vec) {
       EXPECT_THROW(
           {
             [[maybe_unused]] auto mid =
@@ -1587,7 +1608,8 @@ void test_get_mid_array_pencil_4D(std::size_t nprocs) {
         {topo1, topo4, topo_type{}}, {topo2, topo3, topo_type{}},
         {topo2, topo4, topo_type{}}, {topo3, topo5, topo_type{}},
         {topo4, topo5, topo_type{}}};
-    for (const auto& [topo_in, topo_out, ref_mid] : topo_failure_test_cases) {
+    for ([[maybe_unused]] const auto& [topo_in, topo_out, ref_mid] :
+         topo_failure_test_cases) {
       EXPECT_THROW(
           {
             [[maybe_unused]] auto mid =
