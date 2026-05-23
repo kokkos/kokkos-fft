@@ -5,7 +5,11 @@
 #ifndef KOKKOSFFT_DISTRIBUTED_TOPOLOGIES_HPP
 #define KOKKOSFFT_DISTRIBUTED_TOPOLOGIES_HPP
 
+#include <array>
+#include <tuple>
 #include <type_traits>
+#include <vector>
+#include <KokkosFFT.hpp>
 #include "KokkosFFT_Distributed_Types.hpp"
 #include "KokkosFFT_Distributed_ContainerAnalyses.hpp"
 
@@ -171,8 +175,8 @@ auto slab_in_out_axes(const std::array<iType, DIM>& in_topology,
 /// \return A tuple of two size_t representing the axes that are different
 /// \throws std::runtime_error if the input and output topologies do not have
 /// at least one non-trivial dimension
-/// \throws std::runtime_error if the input and output topologies do not have
-/// the same size
+/// \throws std::runtime_error if the input and output topologies are not pencil
+/// topologies
 template <typename iType, std::size_t DIM>
 auto pencil_in_out_axes(const std::array<iType, DIM>& in_topology,
                         const std::array<iType, DIM>& out_topology) {
@@ -180,12 +184,13 @@ auto pencil_in_out_axes(const std::array<iType, DIM>& in_topology,
   auto in_size  = KokkosFFT::Impl::total_size(in_topology);
   auto out_size = KokkosFFT::Impl::total_size(out_topology);
 
-  KOKKOSFFT_THROW_IF(in_size == 1 || out_size == 1,
-                     "Input and output topologies must have at least one "
-                     "non-trivial dimension.");
-
   KOKKOSFFT_THROW_IF(in_size != out_size,
                      "Input and output topologies must have the same size.");
+
+  bool is_pencil =
+      are_specified_topologies(TopologyType::Pencil, in_topology, out_topology);
+  KOKKOSFFT_THROW_IF(!is_pencil,
+                     "Input and output topologies must be pencil topologies.");
 
   std::size_t in_axis = 0, out_axis = 0;
   for (std::size_t i = 0; i < DIM; ++i) {
@@ -370,8 +375,8 @@ std::vector<std::vector<iType>> decompose_axes(
 /// exactly two non-one elements
 /// \throws std::runtime_error if the input and output topologies have identical
 /// non-one elements
-/// \throws std::runtime_error if the input and output topologies differ exactly
-/// two positions
+/// \throws std::runtime_error if the input and output topologies do not differ
+/// in exactly two positions
 template <typename iType, std::size_t DIM>
 auto compute_trans_axis(const std::array<iType, DIM>& in_topology,
                         const std::array<iType, DIM>& out_topology,
