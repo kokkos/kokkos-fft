@@ -7,6 +7,7 @@
 
 #include <stdexcept>
 #include <sstream>
+#include <string>
 #include <string_view>
 #include <type_traits>
 #include <utility>
@@ -149,7 +150,7 @@ void check_fft_call(FFTStatusType status, const char* command_name,
 /// Example:
 /// \code{.cpp}
 /// std::array<int, 3> arr = {1, 2, 3};
-/// std::string msg = container_to_string("Array", arr);
+/// std::string msg = container_to_string("Array ", arr);
 /// // msg: "Array (1, 2, 3)"
 /// \endcode
 /// \tparam ContainerType The type of the container input.

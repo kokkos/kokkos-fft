@@ -71,8 +71,7 @@ std::string error_get_common_topology_type(
     KokkosFFT::Distributed::Impl::TopologyType ref) {
   std::string msg =
       KokkosFFT::Impl::container_to_string("Input topologies: ", topo1);
-  msg += " and " +
-         KokkosFFT::Impl::container_to_string("Input topologies: ", topo2);
+  msg += " and " + KokkosFFT::Impl::container_to_string("", topo2);
   msg +=
       ", should be: " + topology_type_to_string(ref) + ", but got: " +
       topology_type_to_string(

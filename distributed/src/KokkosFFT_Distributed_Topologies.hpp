@@ -13,6 +13,7 @@
 #include <type_traits>
 #include <vector>
 #include <KokkosFFT.hpp>
+#include "KokkosFFT_Asserts.hpp"
 #include "KokkosFFT_Distributed_Types.hpp"
 #include "KokkosFFT_Distributed_ContainerAnalyses.hpp"
 
