@@ -5,6 +5,7 @@
 #ifndef KOKKOSFFT_ASSERTS_HPP
 #define KOKKOSFFT_ASSERTS_HPP
 
+#include <cstddef>
 #include <stdexcept>
 #include <sstream>
 #include <string>
