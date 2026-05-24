@@ -5,9 +5,13 @@
 #ifndef KOKKOSFFT_ASSERTS_HPP
 #define KOKKOSFFT_ASSERTS_HPP
 
+#include <cstddef>
 #include <stdexcept>
 #include <sstream>
+#include <string>
 #include <string_view>
+#include <type_traits>
+#include <utility>
 
 #define KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(expr, name)             \
   static_assert(                                                             \
@@ -141,6 +145,42 @@ void check_fft_call(FFTStatusType status, const char* command_name,
        << result_to_string(status) << ")\n";
     throw std::runtime_error(ss.str());
   }
+}
+
+/// \brief Convert a container-like object to a formatted string.
+/// Example:
+/// \code{.cpp}
+/// std::array<int, 3> arr = {1, 2, 3};
+/// std::string msg = container_to_string("Array ", arr);
+/// // msg: "Array (1, 2, 3)"
+/// \endcode
+/// \tparam ContainerType The type of the container input.
+/// \param[in] name The label to prepend to the formatted container.
+/// \param[in] container The container values to stringify.
+/// \return The formatted container string.
+template <typename ContainerType>
+std::string container_to_string(std::string_view name,
+                                const ContainerType& container) {
+  using value_type = std::remove_cv_t<std::remove_reference_t<
+      decltype(std::declval<const ContainerType&>().at(0))>>;
+  static_assert(
+      std::is_integral_v<value_type>,
+      "container_to_string: Input container must hold integral values");
+
+  std::string msg;
+  msg.reserve(name.size() + 2);
+  msg += name;
+  msg += "(";
+  if (container.empty()) {
+    msg += ")";
+    return msg;
+  }
+  msg += std::to_string(container.at(0));
+  for (std::size_t i = 1; i < container.size(); ++i) {
+    msg += ", " + std::to_string(container.at(i));
+  }
+  msg += ")";
+  return msg;
 }
 
 }  // namespace Impl

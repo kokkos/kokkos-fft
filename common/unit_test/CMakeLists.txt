@@ -5,6 +5,7 @@
 add_executable(
   unit-tests-kokkos-fft-common
   Test_Main.cpp
+  Test_Assert.cpp
   Test_CheckConditions.cpp
   Test_Container_Helpers.cpp
   Test_Convert_Types.cpp

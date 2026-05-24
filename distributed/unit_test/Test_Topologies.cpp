@@ -13,6 +13,7 @@
 #include <gtest/gtest.h>
 
 #include <Kokkos_Core.hpp>
+#include "KokkosFFT_Asserts.hpp"
 #include "KokkosFFT_Distributed_Topologies.hpp"
 #include "Test_Utils.hpp"
 
@@ -37,23 +38,6 @@ inline std::string topology_type_to_string(
   }
 }
 
-/// \brief Convert a topology-like container to a formatted string.
-/// \tparam TopologyContainerType The type of the topology input.
-/// \param[in] name The label to prepend to the formatted topology.
-/// \param[in] topology The topology values to stringify.
-/// \return The formatted topology string.
-template <typename TopologyContainerType>
-std::string topology_to_string(const std::string& name,
-                               const TopologyContainerType& topology) {
-  std::string msg = name + " (";
-  msg += std::to_string(topology.at(0));
-  for (std::size_t i = 1; i < topology.size(); ++i) {
-    msg += ", " + std::to_string(topology.at(i));
-  }
-  msg += ")";
-  return msg;
-}
-
 /// \brief Generate error message for topology type test failures.
 /// \tparam TopologyContainerType The type of the topology input.
 /// \param[in] topology The input topology that caused the failure.
@@ -64,7 +48,8 @@ template <typename TopologyContainerType>
 std::string error_to_topology_type(
     const TopologyContainerType& topology,
     KokkosFFT::Distributed::Impl::TopologyType ref) {
-  std::string msg = topology_to_string("Input topology:", topology);
+  std::string msg =
+      KokkosFFT::Impl::container_to_string("Input topology: ", topology);
   msg += ", should be: " + topology_type_to_string(ref) + ", but got: " +
          topology_type_to_string(
              KokkosFFT::Distributed::Impl::to_topology_type(topology));
@@ -84,8 +69,9 @@ template <typename Topology1Type, typename Topology2Type>
 std::string error_get_common_topology_type(
     const Topology1Type& topo1, const Topology2Type& topo2,
     KokkosFFT::Distributed::Impl::TopologyType ref) {
-  std::string msg = topology_to_string("Input topologies: ", topo1);
-  msg += " and " + topology_to_string("", topo2);
+  std::string msg =
+      KokkosFFT::Impl::container_to_string("Input topologies: ", topo1);
+  msg += " and " + KokkosFFT::Impl::container_to_string("", topo2);
   msg +=
       ", should be: " + topology_type_to_string(ref) + ", but got: " +
       topology_type_to_string(
@@ -106,7 +92,8 @@ template <typename TopologyType>
 std::string error_is_topology(
     const TopologyType& topology,
     KokkosFFT::Distributed::Impl::TopologyType specified, bool expected) {
-  std::string msg = topology_to_string("Input topology:", topology);
+  std::string msg =
+      KokkosFFT::Impl::container_to_string("Input topology: ", topology);
   if (expected) {
     msg += ", should be identified as " + topology_type_to_string(specified) +
            ", but it is not.";
@@ -132,8 +119,9 @@ template <typename Topology1Type, typename Topology2Type>
 std::string error_are_topologies(
     const Topology1Type& topo1, const Topology2Type& topo2,
     KokkosFFT::Distributed::Impl::TopologyType specified, bool expected) {
-  std::string msg = topology_to_string("Input topologies: ", topo1);
-  msg += " and " + topology_to_string("", topo2);
+  std::string msg =
+      KokkosFFT::Impl::container_to_string("Input topologies: ", topo1);
+  msg += " and " + KokkosFFT::Impl::container_to_string("", topo2);
   if (expected) {
     msg += ", should be identified as " + topology_type_to_string(specified) +
            ", but it is not.";
@@ -159,9 +147,9 @@ std::string error_in_out_axes(
     const std::tuple<std::size_t, std::size_t>& actual,
     const std::tuple<std::size_t, std::size_t>& expected) {
   std::string msg = "Input topologies: ";
-  msg += topology_to_string("topology1", topo1);
+  msg += KokkosFFT::Impl::container_to_string("topology1: ", topo1);
   msg += " and ";
-  msg += topology_to_string("topology2", topo2);
+  msg += KokkosFFT::Impl::container_to_string("topology2: ", topo2);
   msg += ", should have in/out axes: (";
   msg += std::to_string(std::get<0>(expected));
   msg += ", ";
@@ -187,9 +175,9 @@ std::string error_mid_topology(const TopologyType& topo1,
                                const TopologyType& expected) {
   auto actual = KokkosFFT::Distributed::Impl::propose_mid_array(topo1, topo2);
   std::string msg = "Input topologies: ";
-  msg += topology_to_string("topology1", topo1);
+  msg += KokkosFFT::Impl::container_to_string("topology1: ", topo1);
   msg += " and ";
-  msg += topology_to_string("topology2", topo2);
+  msg += KokkosFFT::Impl::container_to_string("topology2: ", topo2);
   msg += ", should have a mid topology: (";
   msg += std::to_string(expected.at(0));
   for (std::size_t i = 1; i < expected.size(); ++i) {
@@ -223,37 +211,24 @@ std::string error_decompose_axes(
   auto actual = KokkosFFT::Distributed::Impl::decompose_axes(topologies, axes);
   std::string msg = "Input topologies: ";
   for (std::size_t i = 0; i < topologies.size(); ++i) {
-    msg += topology_to_string("topology", topologies.at(i));
+    msg += KokkosFFT::Impl::container_to_string(
+        "topology" + std::to_string(i) + ": ", topologies.at(i));
     if (i != topologies.size() - 1) {
       msg += " and ";
     }
   }
   msg += ", with FFT axes: ";
-  msg += topology_to_string("axes", axes);
+  msg += KokkosFFT::Impl::container_to_string("axes: ", axes);
   msg += ", should have decomposed axes: (";
   for (std::size_t i = 0; i < expected.size(); ++i) {
-    msg += "(";
-    for (std::size_t j = 0; j < expected.at(i).size(); ++j) {
-      msg += std::to_string(expected.at(i).at(j));
-      if (j != expected.at(i).size() - 1) {
-        msg += ", ";
-      }
-    }
-    msg += ")";
+    msg += KokkosFFT::Impl::container_to_string("", expected.at(i));
     if (i != expected.size() - 1) {
       msg += " and ";
     }
   }
   msg += "), but got: (";
   for (std::size_t i = 0; i < actual.size(); ++i) {
-    msg += "(";
-    for (std::size_t j = 0; j < actual.at(i).size(); ++j) {
-      msg += std::to_string(actual.at(i).at(j));
-      if (j != actual.at(i).size() - 1) {
-        msg += ", ";
-      }
-    }
-    msg += ")";
+    msg += KokkosFFT::Impl::container_to_string("", actual.at(i));
     if (i != actual.size() - 1) {
       msg += " and ";
     }
@@ -279,9 +254,9 @@ std::string error_trans_axis(const std::array<iType, DIM>& in_topology,
   auto actual = KokkosFFT::Distributed::Impl::compute_trans_axis(
       in_topology, out_topology, first_non_one);
   std::string msg = "Input topologies: ";
-  msg += topology_to_string("in_topology", in_topology);
+  msg += KokkosFFT::Impl::container_to_string("in_topology: ", in_topology);
   msg += " and ";
-  msg += topology_to_string("out_topology", out_topology);
+  msg += KokkosFFT::Impl::container_to_string("out_topology: ", out_topology);
   msg += ", should have trans_axis: ";
   msg += std::to_string(expected);
   msg += ", but got: ";
