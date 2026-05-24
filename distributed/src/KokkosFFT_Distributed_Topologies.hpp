@@ -323,30 +323,18 @@ std::vector<std::vector<iType>> decompose_axes(
   auto error_msg = [&axes, &all_axes,
                     &topologies](std::string_view details) -> std::string {
     std::string msg(details);
-    msg += " Input axes: ";
-    for (auto axis : axes) {
-      msg += std::to_string(axis) + " ";
-    }
+    msg += KokkosFFT::Impl::container_to_string(" Input axes: ", axes);
     msg += "\n";
     msg += "Decomposed axes: \n";
     for (std::size_t i = 0; i < all_axes.size(); ++i) {
       auto topology = topologies.at(i);
-      msg += "at topology (";
-      msg += std::to_string(topology.at(0));
-      for (std::size_t j = 1; j < topology.size(); ++j) {
-        msg += ", " + std::to_string(topology.at(j));
-      }
-      msg += "): Ready axes: ";
+      msg += "at ";
+      msg += KokkosFFT::Impl::container_to_string("topology: ", topology);
+      msg += ": Ready axes: ";
       if (all_axes.at(i).empty()) {
         msg += "None";
       } else {
-        auto axis = all_axes.at(i);
-        msg += "(";
-        msg += std::to_string(axis.at(0));
-        for (std::size_t j = 1; j < axis.size(); ++j) {
-          msg += ", " + std::to_string(axis.at(j));
-        }
-        msg += ")";
+        msg += KokkosFFT::Impl::container_to_string("", all_axes.at(i));
       }
       msg += "\n";
     }
@@ -392,20 +380,11 @@ auto compute_trans_axis(const std::array<iType, DIM>& in_topology,
   auto error_msg = [&in_topology,
                     &out_topology](std::string_view details) -> std::string {
     std::string message(details);
-    message += "in_topology (";
-    message += std::to_string(in_topology.at(0));
-    for (std::size_t r = 1; r < in_topology.size(); r++) {
-      message += ",";
-      message += std::to_string(in_topology.at(r));
-    }
-    message += "), ";
-    message += "out_topology (";
-    message += std::to_string(out_topology.at(0));
-    for (std::size_t r = 1; r < out_topology.size(); r++) {
-      message += ",";
-      message += std::to_string(out_topology.at(r));
-    }
-    message += ")";
+    message +=
+        KokkosFFT::Impl::container_to_string("in_topology: ", in_topology);
+    message += ", ";
+    message +=
+        KokkosFFT::Impl::container_to_string("out_topology: ", out_topology);
     return message;
   };
 
