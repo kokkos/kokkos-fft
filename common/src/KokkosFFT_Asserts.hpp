@@ -158,7 +158,7 @@ void check_fft_call(FFTStatusType status, const char* command_name,
 /// \param[in] container The container values to stringify.
 /// \return The formatted container string.
 template <typename ContainerType>
-std::string container_to_string(const std::string& name,
+std::string container_to_string(std::string_view name,
                                 const ContainerType& container) {
   using value_type = std::remove_cv_t<std::remove_reference_t<
       decltype(std::declval<const ContainerType&>().at(0))>>;
@@ -166,7 +166,10 @@ std::string container_to_string(const std::string& name,
       std::is_integral_v<value_type>,
       "container_to_string: Input container must hold integral values");
 
-  std::string msg = name + "(";
+  std::string msg;
+  msg.reserve(name.size() + 2);
+  msg += name;
+  msg += "(";
   if (container.empty()) {
     msg += ")";
     return msg;
