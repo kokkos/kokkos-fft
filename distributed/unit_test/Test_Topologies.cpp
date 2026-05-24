@@ -144,6 +144,152 @@ std::string error_are_topologies(
   return msg;
 }
 
+/// \brief Generate error message for in_out_axes test failures.
+/// \tparam Topology1Type The type of the first topology input.
+/// \tparam Topology2Type The type of the second topology input.
+/// \param[in] topo1 The first input topology that caused the failure.
+/// \param[in] topo2 The second input topology that caused the failure.
+/// \param[in] actual The actual in/out axes.
+/// \param[in] expected The expected in/out axes.
+/// \return Error message including the input topologies and the expected in/out
+/// axes.
+template <typename Topology1Type, typename Topology2Type>
+std::string error_in_out_axes(
+    const Topology1Type& topo1, const Topology2Type& topo2,
+    const std::tuple<std::size_t, std::size_t>& actual,
+    const std::tuple<std::size_t, std::size_t>& expected) {
+  std::string msg = "Input topologies: ";
+  msg += topology_to_string("topology1", topo1);
+  msg += " and ";
+  msg += topology_to_string("topology2", topo2);
+  msg += ", should have in/out axes: (";
+  msg += std::to_string(std::get<0>(expected));
+  msg += ", ";
+  msg += std::to_string(std::get<1>(expected));
+  msg += "), but got: (";
+  msg += std::to_string(std::get<0>(actual));
+  msg += ", ";
+  msg += std::to_string(std::get<1>(actual));
+  msg += ").";
+  return msg;
+}
+
+/// \brief Generate error message for mid_topology test failures.
+/// \tparam TopologyType The type of the topology input.
+/// \param[in] topo1 The first input topology that caused the failure.
+/// \param[in] topo2 The second input topology that caused the failure.
+/// \param[in] expected The expected topology
+/// \return Error message including the input topologies and the expected
+/// topology
+template <typename TopologyType>
+std::string error_mid_topology(const TopologyType& topo1,
+                               const TopologyType& topo2,
+                               const TopologyType& expected) {
+  auto actual = KokkosFFT::Distributed::Impl::propose_mid_array(topo1, topo2);
+  std::string msg = "Input topologies: ";
+  msg += topology_to_string("topology1", topo1);
+  msg += " and ";
+  msg += topology_to_string("topology2", topo2);
+  msg += ", should have a mid topology: (";
+  msg += std::to_string(expected.at(0));
+  for (std::size_t i = 1; i < expected.size(); ++i) {
+    msg += ", ";
+    msg += std::to_string(expected.at(i));
+  }
+  msg += "), but got (";
+  msg += std::to_string(actual.at(0));
+  for (std::size_t i = 1; i < actual.size(); ++i) {
+    msg += ", ";
+    msg += std::to_string(actual.at(i));
+  }
+  msg += ").";
+  return msg;
+}
+
+/// \brief Generate error message for decompose_axes test failures.
+/// \tparam iType The index type used for the topology.
+/// \tparam DIM The dimensionality of the topology.
+/// \tparam FFT_DIM The dimensionality of the FFT axes.
+/// \param[in] topologies The input topologies that caused the failure.
+/// \param[in] axes The axes along which the FFT is performed.
+/// \param[in] expected The expected decomposed axes
+/// \return Error message including the input topologies, FFT axes, and the
+/// expected decomposition
+template <typename iType, std::size_t DIM, std::size_t FFT_DIM>
+std::string error_decompose_axes(
+    const std::vector<std::array<std::size_t, DIM>>& topologies,
+    const std::array<iType, FFT_DIM>& axes,
+    const std::vector<std::vector<iType>>& expected) {
+  auto actual = KokkosFFT::Distributed::Impl::decompose_axes(topologies, axes);
+  std::string msg = "Input topologies: ";
+  for (std::size_t i = 0; i < topologies.size(); ++i) {
+    msg += topology_to_string("topology", topologies.at(i));
+    if (i != topologies.size() - 1) {
+      msg += " and ";
+    }
+  }
+  msg += ", with FFT axes: ";
+  msg += topology_to_string("axes", axes);
+  msg += ", should have decomposed axes: (";
+  for (std::size_t i = 0; i < expected.size(); ++i) {
+    msg += "(";
+    for (std::size_t j = 0; j < expected.at(i).size(); ++j) {
+      msg += std::to_string(expected.at(i).at(j));
+      if (j != expected.at(i).size() - 1) {
+        msg += ", ";
+      }
+    }
+    msg += ")";
+    if (i != expected.size() - 1) {
+      msg += " and ";
+    }
+  }
+  msg += "), but got: (";
+  for (std::size_t i = 0; i < actual.size(); ++i) {
+    msg += "(";
+    for (std::size_t j = 0; j < actual.at(i).size(); ++j) {
+      msg += std::to_string(actual.at(i).at(j));
+      if (j != actual.at(i).size() - 1) {
+        msg += ", ";
+      }
+    }
+    msg += ")";
+    if (i != actual.size() - 1) {
+      msg += " and ";
+    }
+  }
+  msg += ").";
+
+  return msg;
+}
+
+/// \brief Generate error message for compute_trans_axis test failures.
+/// \tparam iType The index type
+/// \tparam DIM The dimension
+/// \param[in] in_topology The input topology
+/// \param[in] out_topology The output topology
+/// \param[in] first_non_one The first non-one element in the input or output
+/// \param[in] expected The expected transformation axis (0 or 1)
+/// \return Error message including the input topologies and the expected in/out
+/// axes.
+template <typename iType, std::size_t DIM>
+std::string error_trans_axis(const std::array<iType, DIM>& in_topology,
+                             const std::array<iType, DIM>& out_topology,
+                             iType first_non_one, iType expected) {
+  auto actual = KokkosFFT::Distributed::Impl::compute_trans_axis(
+      in_topology, out_topology, first_non_one);
+  std::string msg = "Input topologies: ";
+  msg += topology_to_string("in_topology", in_topology);
+  msg += " and ";
+  msg += topology_to_string("out_topology", out_topology);
+  msg += ", should have trans_axis: ";
+  msg += std::to_string(expected);
+  msg += ", but got: ";
+  msg += std::to_string(actual);
+  msg += ".";
+  return msg;
+}
+
 template <bool is_std_array>
 void test_to_topology_type(std::size_t nprocs) {
   using KokkosFFT::Distributed::Impl::TopologyType;
@@ -994,6 +1140,496 @@ void test_are_topologies(std::size_t nprocs) {
   }
 }
 
+void test_slab_in_out_axes_2D(std::size_t nprocs) {
+  using topo_type = std::array<std::size_t, 2>;
+  using topo_and_ref_type =
+      std::tuple<topo_type, topo_type, std::tuple<std::size_t, std::size_t>>;
+  topo_type topo0{1, nprocs}, topo1{nprocs, 1}, topo2{nprocs, 7}, topo3{1, 1};
+
+  if (nprocs == 1) {
+    // Failure tests because of size 1 case
+    std::vector<topo_and_ref_type> topo_test_cases = {{topo0, topo1, {0, 1}},
+                                                      {topo1, topo0, {1, 0}}};
+    for ([[maybe_unused]] const auto& [topo_in, topo_out, ref_inout_axes] :
+         topo_test_cases) {
+      EXPECT_THROW(
+          {
+            [[maybe_unused]] auto inout_axes =
+                KokkosFFT::Distributed::Impl::slab_in_out_axes(topo_in,
+                                                               topo_out);
+          },
+          std::runtime_error);
+    }
+  } else {
+    std::vector<topo_and_ref_type> topo_test_cases = {{topo0, topo1, {0, 1}},
+                                                      {topo1, topo0, {1, 0}}};
+
+    for (const auto& [topo_in, topo_out, ref_inout_axes] : topo_test_cases) {
+      auto inout_axes =
+          KokkosFFT::Distributed::Impl::slab_in_out_axes(topo_in, topo_out);
+      EXPECT_EQ(inout_axes, ref_inout_axes)
+          << error_in_out_axes(topo_in, topo_out, inout_axes, ref_inout_axes);
+    }
+  }
+
+  // Failure tests because of shape mismatch (or size 1 case)
+  std::vector<topo_and_ref_type> topo_failure_test_cases = {
+      {topo0, topo2, {0, 1}}, {topo0, topo3, {0, 1}}};
+  for ([[maybe_unused]] const auto& [topo_in, topo_out, ref_inout_axes] :
+       topo_failure_test_cases) {
+    EXPECT_THROW(
+        {
+          [[maybe_unused]] auto inout_axes =
+              KokkosFFT::Distributed::Impl::slab_in_out_axes(topo_in, topo_out);
+        },
+        std::runtime_error);
+  }
+}
+
+void test_slab_in_out_axes_3D(std::size_t nprocs) {
+  using topo_type = std::array<std::size_t, 3>;
+  using topo_and_ref_type =
+      std::tuple<topo_type, topo_type, std::tuple<std::size_t, std::size_t>>;
+  topo_type topo0{1, 1, nprocs}, topo1{1, nprocs, 1}, topo2{nprocs, 1, 1},
+      topo3{1, nprocs, 7}, topo4{1, 1, 1};
+
+  if (nprocs == 1) {
+    // Failure tests because of size 1 case
+    std::vector<topo_and_ref_type> topo_test_cases = {
+        {topo0, topo1, {0, 1}}, {topo0, topo2, {0, 2}}, {topo1, topo0, {1, 0}},
+        {topo1, topo2, {1, 2}}, {topo2, topo0, {2, 0}}, {topo2, topo1, {2, 1}}};
+    for ([[maybe_unused]] const auto& [topo_in, topo_out, ref_inout_axes] :
+         topo_test_cases) {
+      EXPECT_THROW(
+          {
+            [[maybe_unused]] auto inout_axes =
+                KokkosFFT::Distributed::Impl::slab_in_out_axes(topo_in,
+                                                               topo_out);
+          },
+          std::runtime_error);
+    }
+  } else {
+    std::vector<topo_and_ref_type> topo_test_cases = {
+        {topo0, topo1, {1, 2}}, {topo0, topo2, {0, 2}}, {topo1, topo0, {2, 1}},
+        {topo1, topo2, {0, 1}}, {topo2, topo0, {2, 0}}, {topo2, topo1, {1, 0}}};
+    for (const auto& [topo_in, topo_out, ref_inout_axes] : topo_test_cases) {
+      auto inout_axes =
+          KokkosFFT::Distributed::Impl::slab_in_out_axes(topo_in, topo_out);
+      EXPECT_EQ(inout_axes, ref_inout_axes)
+          << error_in_out_axes(topo_in, topo_out, inout_axes, ref_inout_axes);
+    }
+  }
+
+  // Failure tests because of shape mismatch (or size 1 case)
+  std::vector<topo_and_ref_type> topo_failure_test_cases = {
+      {topo0, topo3, {0, 1}}, {topo0, topo4, {0, 1}}};
+  for ([[maybe_unused]] const auto& [topo_in, topo_out, ref_inout_axes] :
+       topo_failure_test_cases) {
+    EXPECT_THROW(
+        {
+          [[maybe_unused]] auto inout_axes =
+              KokkosFFT::Distributed::Impl::slab_in_out_axes(topo_in, topo_out);
+        },
+        std::runtime_error);
+  }
+}
+
+void test_decompose_axes_slab(std::size_t nprocs) {
+  using topo3D_type       = std::array<std::size_t, 3>;
+  using topo4D_type       = std::array<std::size_t, 4>;
+  using axes_type         = std::array<std::size_t, 3>;
+  using vec_topo3D_type   = std::vector<topo3D_type>;
+  using vec_topo4D_type   = std::vector<topo4D_type>;
+  using vec_axes_type     = std::vector<std::size_t>;
+  using vec_vec_axes_type = std::vector<vec_axes_type>;
+  using topo3D_and_ref_type =
+      std::tuple<vec_topo3D_type, axes_type, vec_vec_axes_type>;
+  using topo4D_and_ref_type =
+      std::tuple<vec_topo4D_type, axes_type, vec_vec_axes_type>;
+
+  // 3D topologies
+  topo3D_type topo0{1, 1, nprocs}, topo1{1, nprocs, 1}, topo2{nprocs, 1, 1};
+
+  // 4D topologies
+  topo4D_type topo3{1, 1, 1, nprocs}, topo4{1, 1, nprocs, 1};
+
+  axes_type axes012{0, 1, 2}, axes021{0, 2, 1}, axes102{1, 0, 2},
+      axes120{1, 2, 0}, axes201{2, 0, 1}, axes210{2, 1, 0};
+
+  std::vector<axes_type> all_axes{axes012, axes021, axes102,
+                                  axes120, axes201, axes210};
+
+  if (nprocs == 1) {
+    for (const auto& axes : all_axes) {
+      vec_vec_axes_type ref_all_axes2{KokkosFFT::Impl::to_vector(axes), {}},
+          ref_all_axes3{KokkosFFT::Impl::to_vector(axes), {}, {}};
+      // 3D case
+      std::vector<topo3D_and_ref_type> topo3D_test_cases = {
+          {vec_topo3D_type{topo0, topo1}, axes, ref_all_axes2},
+          {vec_topo3D_type{topo0, topo2}, axes, ref_all_axes2},
+          {vec_topo3D_type{topo1, topo2}, axes, ref_all_axes2},
+          {vec_topo3D_type{topo2, topo0, topo2}, axes, ref_all_axes3}};
+      for (const auto& [topos3D, axes3D, ref_axes3D] : topo3D_test_cases) {
+        auto all_axes_3D =
+            KokkosFFT::Distributed::Impl::decompose_axes(topos3D, axes3D);
+        EXPECT_EQ(all_axes_3D, ref_axes3D)
+            << error_decompose_axes(topos3D, axes3D, ref_axes3D);
+      }
+
+      // 4D case
+      std::vector<topo4D_and_ref_type> topo4D_test_cases = {
+          {vec_topo4D_type{topo3, topo4}, axes, ref_all_axes2},
+          {vec_topo4D_type{topo4, topo3}, axes, ref_all_axes2}};
+
+      for (const auto& [topos4D, axes4D, ref_axes4D] : topo4D_test_cases) {
+        auto all_axes_4D =
+            KokkosFFT::Distributed::Impl::decompose_axes(topos4D, axes4D);
+        EXPECT_EQ(all_axes_4D, ref_axes4D)
+            << error_decompose_axes(topos4D, axes4D, ref_axes4D);
+      }
+    }
+  } else {
+    vec_vec_axes_type ref_all_axes_2_0_2{vec_axes_type{2, 1}, vec_axes_type{0},
+                                         vec_axes_type{}},
+        ref_all_axes_3_4{vec_axes_type{0, 1, 2}, vec_axes_type{}},
+        ref_all_axes_4_3_ax210{vec_axes_type{1, 0}, vec_axes_type{2}},
+        ref_all_axes_4_3_ax012{vec_axes_type{}, vec_axes_type{0, 1, 2}};
+    // 3D case
+    std::vector<topo3D_and_ref_type> topo3D_test_cases{
+        {vec_topo3D_type{topo2, topo0, topo2}, axes021, ref_all_axes_2_0_2}};
+    for (const auto& [topos3D, axes3D, ref_axes3D] : topo3D_test_cases) {
+      auto all_axes_3D =
+          KokkosFFT::Distributed::Impl::decompose_axes(topos3D, axes3D);
+      EXPECT_EQ(all_axes_3D, ref_axes3D)
+          << error_decompose_axes(topos3D, axes3D, ref_axes3D);
+    }
+
+    // 4D case
+    std::vector<topo4D_and_ref_type> topo4D_test_cases{
+        {vec_topo4D_type{topo3, topo4}, axes012, ref_all_axes_3_4},
+        {vec_topo4D_type{topo4, topo3}, axes210, ref_all_axes_4_3_ax210},
+        {vec_topo4D_type{topo4, topo3}, axes012, ref_all_axes_4_3_ax012}};
+
+    for (const auto& [topos4D, axes4D, ref_axes4D] : topo4D_test_cases) {
+      auto all_axes_4D =
+          KokkosFFT::Distributed::Impl::decompose_axes(topos4D, axes4D);
+      EXPECT_EQ(all_axes_4D, ref_axes4D)
+          << error_decompose_axes(topos4D, axes4D, ref_axes4D);
+    }
+  }
+}
+
+void test_decompose_axes_pencil(std::size_t nprocs) {
+  using topo_type         = std::array<std::size_t, 3>;
+  using axes_type         = std::array<std::size_t, 3>;
+  using vec_axes_type     = std::vector<std::size_t>;
+  using vec_topo_type     = std::vector<topo_type>;
+  using vec_vec_axes_type = std::vector<vec_axes_type>;
+  using topo_and_ref_type =
+      std::tuple<vec_topo_type, axes_type, vec_vec_axes_type>;
+  std::size_t np0 = 4;
+
+  // 3D topologies
+  topo_type topo0{1, nprocs, np0}, topo1{nprocs, 1, np0}, topo2{np0, nprocs, 1},
+      topo3{nprocs, np0, 1}, topo4{np0, 1, nprocs};
+
+  axes_type axes012{0, 1, 2}, axes021{0, 2, 1}, axes102{1, 0, 2},
+      axes120{1, 2, 0}, axes201{2, 0, 1}, axes210{2, 1, 0};
+  std::vector<axes_type> all_axes = {axes012, axes021, axes102,
+                                     axes120, axes201, axes210};
+  if (nprocs == 1) {
+    // Slab geometry
+    std::vector<topo_and_ref_type> topo_test_cases = {
+        {std::vector<topo_type>{topo0, topo2, topo4, topo2, topo0},
+         axes012,
+         {{}, vec_axes_type{1, 2}, {}, {}, vec_axes_type{0}}},
+        {std::vector<topo_type>{topo0, topo1, topo3, topo1, topo0},
+         axes021,
+         {vec_axes_type{1}, {}, vec_axes_type{0, 2}, {}, {}}},
+        {std::vector<topo_type>{topo0, topo2, topo0, topo1, topo0},
+         axes102,
+         {{}, vec_axes_type{2}, vec_axes_type{1, 0}, {}, {}}},
+        {std::vector<topo_type>{topo0, topo1, topo0, topo2, topo0},
+         axes201,
+         {vec_axes_type{0, 1}, {}, {}, vec_axes_type{2}, {}}},
+        {std::vector<topo_type>{topo0, topo2, topo0, topo1},
+         axes102,
+         {{}, vec_axes_type{2}, vec_axes_type{1, 0}, {}}}};
+
+    for (const auto& [topos, axes, ref_axes] : topo_test_cases) {
+      auto all_axes = KokkosFFT::Distributed::Impl::decompose_axes(topos, axes);
+      EXPECT_EQ(all_axes, ref_axes)
+          << error_decompose_axes(topos, axes, ref_axes);
+    }
+  } else {
+    // Pencil geometry
+    std::vector<topo_and_ref_type> topo_test_cases = {
+        {std::vector<topo_type>{topo0, topo2, topo4, topo2, topo0},
+         axes012,
+         {{}, vec_axes_type{2}, vec_axes_type{1}, {}, vec_axes_type{0}}},
+        {std::vector<topo_type>{topo0, topo1, topo3, topo1, topo0},
+         axes021,
+         {{}, vec_axes_type{1}, vec_axes_type{2}, {}, vec_axes_type{0}}},
+        {std::vector<topo_type>{topo0, topo2, topo0, topo1, topo0},
+         axes102,
+         {{}, vec_axes_type{2}, vec_axes_type{0}, vec_axes_type{1}, {}}},
+        {std::vector<topo_type>{topo0, topo1, topo0, topo2, topo0},
+         axes201,
+         {{}, vec_axes_type{1}, vec_axes_type{0}, vec_axes_type{2}, {}}},
+        {std::vector<topo_type>{topo0, topo2, topo0, topo1},
+         axes102,
+         {{}, vec_axes_type{2}, vec_axes_type{0}, vec_axes_type{1}}}};
+
+    for (const auto& [topos, axes, ref_axes] : topo_test_cases) {
+      auto all_axes = KokkosFFT::Distributed::Impl::decompose_axes(topos, axes);
+      EXPECT_EQ(all_axes, ref_axes)
+          << error_decompose_axes(topos, axes, ref_axes);
+    }
+  }
+}
+
+void test_compute_trans_axis(std::size_t nprocs) {
+  using topo3D_type         = std::array<std::size_t, 3>;
+  using topo4D_type         = std::array<std::size_t, 4>;
+  using topo3D_and_ref_type = std::tuple<topo3D_type, topo3D_type, std::size_t>;
+  using topo4D_and_ref_type = std::tuple<topo4D_type, topo4D_type, std::size_t>;
+
+  std::size_t np0 = 4;
+
+  // 3D topologies
+  topo3D_type topo0{1, nprocs, np0}, topo1{nprocs, 1, np0},
+      topo2{np0, nprocs, 1};
+
+  // 4D topologies
+  topo4D_type topo3{1, 1, np0, nprocs}, topo4{1, np0, 1, nprocs};
+
+  if (nprocs == 1 || nprocs == np0) {
+    // Failure tests because these are not pencils for nprocs == 1 or they
+    // include identical non-one elements for nprocs == np0
+    std::vector<topo3D_and_ref_type> topo3D_failure_test_cases = {
+        {topo0, topo1, 0}, {topo0, topo2, 1}, {topo1, topo0, 0},
+        {topo1, topo2, 1}, {topo2, topo0, 1}, {topo2, topo1, 1}};
+
+    for ([[maybe_unused]] const auto& [topo_in, topo_out, ref_trans_axis] :
+         topo3D_failure_test_cases) {
+      EXPECT_THROW(
+          {
+            [[maybe_unused]] auto trans_axis =
+                KokkosFFT::Distributed::Impl::compute_trans_axis(
+                    topo_in, topo_out, nprocs);
+          },
+          std::runtime_error);
+    }
+
+    std::vector<topo4D_and_ref_type> topo4D_failure_test_cases = {
+        {topo3, topo4, 0}, {topo4, topo3, 0}};
+    for ([[maybe_unused]] const auto& [topo_in, topo_out, ref_trans_axis] :
+         topo4D_failure_test_cases) {
+      EXPECT_THROW(
+          {
+            [[maybe_unused]] auto trans_axis =
+                KokkosFFT::Distributed::Impl::compute_trans_axis(
+                    topo_in, topo_out, nprocs);
+          },
+          std::runtime_error);
+    }
+  } else {
+    // 3D case
+    std::vector<topo3D_and_ref_type> topo3D_test_cases = {{topo0, topo1, 0},
+                                                          {topo0, topo2, 1},
+                                                          {topo1, topo0, 0},
+                                                          {topo2, topo0, 1}};
+
+    for (const auto& [topo_in, topo_out, ref_trans_axis] : topo3D_test_cases) {
+      auto trans_axis = KokkosFFT::Distributed::Impl::compute_trans_axis(
+          topo_in, topo_out, nprocs);
+      EXPECT_EQ(trans_axis, ref_trans_axis)
+          << error_trans_axis(topo_in, topo_out, nprocs, ref_trans_axis);
+    }
+
+    std::vector<topo3D_and_ref_type> topo3D_failure_test_cases = {
+        {topo1, topo2, 0}, {topo2, topo1, 1}};
+
+    for ([[maybe_unused]] const auto& [topo_in, topo_out, ref_trans_axis] :
+         topo3D_failure_test_cases) {
+      EXPECT_THROW(
+          {
+            [[maybe_unused]] auto trans_axis =
+                KokkosFFT::Distributed::Impl::compute_trans_axis(
+                    topo_in, topo_out, nprocs);
+          },
+          std::runtime_error);
+    }
+
+    // 4D case
+    std::vector<topo4D_and_ref_type> topo4D_test_cases = {{topo3, topo4, 0},
+                                                          {topo4, topo3, 0}};
+
+    for (const auto& [topo_in, topo_out, ref_trans_axis] : topo4D_test_cases) {
+      auto trans_axis = KokkosFFT::Distributed::Impl::compute_trans_axis(
+          topo_in, topo_out, np0);
+      EXPECT_EQ(trans_axis, ref_trans_axis)
+          << error_trans_axis(topo_in, topo_out, np0, ref_trans_axis);
+    }
+  }
+}
+
+void test_pencil_in_out_axes_3D(std::size_t nprocs) {
+  using topo_type = std::array<std::size_t, 3>;
+  using topo_and_ref_type =
+      std::tuple<topo_type, topo_type, std::tuple<std::size_t, std::size_t>>;
+  topo_type topo0{1, 1, nprocs}, topo1{1, nprocs, 1}, topo2{nprocs, 1, 1},
+      topo3{nprocs, 1, 2}, topo4{nprocs, 2, 1};
+
+  if (nprocs == 1) {
+    // Failure tests because of size 1 case
+    std::vector<topo_and_ref_type> topo_and_ref_vec = {
+        {topo0, topo1, {1, 2}}, {topo0, topo2, {0, 2}}, {topo1, topo0, {2, 1}},
+        {topo1, topo2, {0, 1}}, {topo2, topo0, {2, 0}}, {topo2, topo1, {1, 0}}};
+    for ([[maybe_unused]] const auto& [topo_in, topo_out, ref_in_out] :
+         topo_and_ref_vec) {
+      EXPECT_THROW(
+          {
+            [[maybe_unused]] auto inout_axis =
+                KokkosFFT::Distributed::Impl::pencil_in_out_axes(topo_in,
+                                                                 topo_out);
+          },
+          std::runtime_error);
+    }
+  } else {
+    std::vector<topo_and_ref_type> topo_and_ref_vec = {
+        {topo0, topo1, {1, 2}}, {topo0, topo2, {0, 2}}, {topo1, topo0, {2, 1}},
+        {topo1, topo2, {0, 1}}, {topo2, topo0, {2, 0}}, {topo2, topo1, {1, 0}},
+        {topo3, topo4, {1, 2}}, {topo4, topo3, {2, 1}}};
+    for (const auto& [topo_in, topo_out, ref_inout_axes] : topo_and_ref_vec) {
+      auto inout_axes =
+          KokkosFFT::Distributed::Impl::pencil_in_out_axes(topo_in, topo_out);
+      EXPECT_EQ(inout_axes, ref_inout_axes)
+          << error_in_out_axes(topo_in, topo_out, inout_axes, ref_inout_axes);
+    }
+  }
+
+  // Failure tests because of shape mismatch (or size 1 case)
+  std::vector<topo_and_ref_type> topo_failure_test_cases = {
+      {topo3, topo0, {0, 1}}, {topo3, topo1, {0, 1}}, {topo3, topo2, {0, 2}}};
+  for ([[maybe_unused]] const auto& [topo_in, topo_out, ref_inout_axes] :
+       topo_failure_test_cases) {
+    EXPECT_THROW(
+        {
+          [[maybe_unused]] auto inout_axes =
+              KokkosFFT::Distributed::Impl::pencil_in_out_axes(topo_in,
+                                                               topo_out);
+        },
+        std::runtime_error);
+  }
+}
+
+void test_get_mid_array_pencil_3D(std::size_t nprocs) {
+  using topo_type         = std::array<std::size_t, 3>;
+  using topo_and_ref_type = std::tuple<topo_type, topo_type, topo_type>;
+  topo_type topo0{nprocs, 1, 8}, topo1{nprocs, 8, 1}, topo2{8, nprocs, 1},
+      topo3{1, 2, nprocs}, topo4{2, nprocs, 1};
+
+  if (nprocs == 1) {
+    // Failure tests because only two elements differ
+    std::vector<topo_and_ref_type> topo_and_ref_vec = {
+        {topo0, topo1, topo_type{}}, {topo0, topo2, topo_type{}},
+        {topo1, topo0, topo_type{}}, {topo1, topo2, topo_type{}},
+        {topo2, topo0, topo_type{}}, {topo2, topo1, topo_type{}}};
+    for ([[maybe_unused]] const auto& [topo_in, topo_out, ref_mid] :
+         topo_and_ref_vec) {
+      EXPECT_THROW(
+          {
+            [[maybe_unused]] auto mid =
+                KokkosFFT::Distributed::Impl::propose_mid_array(topo_in,
+                                                                topo_out);
+          },
+          std::runtime_error);
+    }
+  } else {
+    // Failure tests because only two elements differ
+    std::vector<topo_and_ref_type> topo_failure_test_cases = {
+        {topo0, topo1, topo_type{}},
+        {topo1, topo0, topo_type{}},
+        {topo1, topo2, topo_type{}},
+        {topo2, topo1, topo_type{}}};
+    for ([[maybe_unused]] const auto& [topo_in, topo_out, ref_mid] :
+         topo_failure_test_cases) {
+      EXPECT_THROW(
+          {
+            [[maybe_unused]] auto mid =
+                KokkosFFT::Distributed::Impl::propose_mid_array(topo_in,
+                                                                topo_out);
+          },
+          std::runtime_error);
+    }
+    topo_type ref_mid02{1, nprocs, 8}, ref_mid34{2, 1, nprocs};
+    std::vector<topo_and_ref_type> topo_test_cases = {
+        {topo0, topo2, ref_mid02},
+        {topo2, topo0, ref_mid02},
+        {topo3, topo4, ref_mid34},
+        {topo4, topo3, ref_mid34}};
+    for (const auto& [topo_in, topo_out, ref_mid] : topo_test_cases) {
+      auto mid =
+          KokkosFFT::Distributed::Impl::propose_mid_array(topo_in, topo_out);
+      EXPECT_EQ(mid, ref_mid) << error_mid_topology(topo_in, topo_out, ref_mid);
+    }
+  }
+}
+
+void test_get_mid_array_pencil_4D(std::size_t nprocs) {
+  using topo_type         = std::array<std::size_t, 4>;
+  using topo_and_ref_type = std::tuple<topo_type, topo_type, topo_type>;
+  topo_type topo0{1, 1, nprocs, 8}, topo1{1, nprocs, 1, 8},
+      topo2{1, 8, nprocs, 1}, topo3{1, nprocs, 8, 1}, topo4{1, 8, 1, nprocs},
+      topo5{1, 1, 8, nprocs};
+
+  if (nprocs == 1) {
+    // Failure tests because only two elements differ
+    std::vector<topo_and_ref_type> topo_and_ref_vec = {
+        {topo0, topo1, topo_type{}}, {topo0, topo2, topo_type{}},
+        {topo1, topo0, topo_type{}}, {topo1, topo2, topo_type{}},
+        {topo2, topo0, topo_type{}}, {topo2, topo1, topo_type{}}};
+    for ([[maybe_unused]] const auto& [topo_in, topo_out, ref_mid] :
+         topo_and_ref_vec) {
+      EXPECT_THROW(
+          {
+            [[maybe_unused]] auto mid =
+                KokkosFFT::Distributed::Impl::propose_mid_array(topo_in,
+                                                                topo_out);
+          },
+          std::runtime_error);
+    }
+  } else {
+    // Failure tests because only two elements differ
+    std::vector<topo_and_ref_type> topo_failure_test_cases = {
+        {topo0, topo1, topo_type{}}, {topo0, topo2, topo_type{}},
+        {topo0, topo5, topo_type{}}, {topo1, topo3, topo_type{}},
+        {topo1, topo4, topo_type{}}, {topo2, topo3, topo_type{}},
+        {topo2, topo4, topo_type{}}, {topo3, topo5, topo_type{}},
+        {topo4, topo5, topo_type{}}};
+    for ([[maybe_unused]] const auto& [topo_in, topo_out, ref_mid] :
+         topo_failure_test_cases) {
+      EXPECT_THROW(
+          {
+            [[maybe_unused]] auto mid =
+                KokkosFFT::Distributed::Impl::propose_mid_array(topo_in,
+                                                                topo_out);
+          },
+          std::runtime_error);
+    }
+
+    std::vector<topo_and_ref_type> topo_test_cases = {
+        {topo0, topo3, topo1}, {topo0, topo4, topo2}, {topo1, topo2, topo0},
+        {topo1, topo5, topo3}, {topo2, topo5, topo4}, {topo3, topo4, topo5}};
+    for (const auto& [topo_in, topo_out, ref_mid] : topo_test_cases) {
+      auto mid =
+          KokkosFFT::Distributed::Impl::propose_mid_array(topo_in, topo_out);
+      EXPECT_EQ(mid, ref_mid) << error_mid_topology(topo_in, topo_out, ref_mid);
+    }
+  }
+}
+
 }  // namespace
 
 TEST_P(TopologyParamTests, GetTopologyType_std_array) {
@@ -1034,6 +1670,46 @@ TEST_P(TopologyParamTests, are_topologies_std_array) {
 TEST_P(TopologyParamTests, are_topologies_topology) {
   int n0 = GetParam();
   test_are_topologies<false>(n0);
+}
+
+TEST_P(TopologyParamTests, decompose_axes_slab) {
+  int n0 = GetParam();
+  test_decompose_axes_slab(n0);
+}
+
+TEST_P(TopologyParamTests, decompose_axes_pencil) {
+  int n0 = GetParam();
+  test_decompose_axes_pencil(n0);
+}
+
+TEST_P(TopologyParamTests, compute_trans_axis) {
+  int n0 = GetParam();
+  test_compute_trans_axis(n0);
+}
+
+TEST_P(TopologyParamTests, slab_in_out_axes_2D) {
+  int n0 = GetParam();
+  test_slab_in_out_axes_2D(n0);
+}
+
+TEST_P(TopologyParamTests, slab_in_out_axes_3D) {
+  int n0 = GetParam();
+  test_slab_in_out_axes_3D(n0);
+}
+
+TEST_P(TopologyParamTests, pencil_in_out_axes_3D) {
+  int n0 = GetParam();
+  test_pencil_in_out_axes_3D(n0);
+}
+
+TEST_P(TopologyParamTests, get_mid_array_3D) {
+  int n0 = GetParam();
+  test_get_mid_array_pencil_3D(n0);
+}
+
+TEST_P(TopologyParamTests, get_mid_array_4D) {
+  int n0 = GetParam();
+  test_get_mid_array_pencil_4D(n0);
 }
 
 INSTANTIATE_TEST_SUITE_P(TopologyTests, TopologyParamTests,
