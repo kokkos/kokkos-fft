@@ -121,8 +121,7 @@ std::string error_are_topologies(
     KokkosFFT::Distributed::Impl::TopologyType specified, bool expected) {
   std::string msg =
       KokkosFFT::Impl::container_to_string("Input topologies: ", topo1);
-  msg += " and " +
-         KokkosFFT::Impl::container_to_string("Input topologies: ", topo2);
+  msg += " and " + KokkosFFT::Impl::container_to_string("", topo2);
   if (expected) {
     msg += ", should be identified as " + topology_type_to_string(specified) +
            ", but it is not.";
