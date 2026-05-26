@@ -284,29 +284,11 @@ auto get_extents(const InViewType& in, const OutViewType& out,
   }
 
   auto mismatched_extents = [&in, &out, &axes]() -> std::string {
-    std::string message;
-    message += in.label();
-    message += "(";
-    message += std::to_string(in.extent(0));
-    for (std::size_t r = 1; r < rank; r++) {
-      message += ",";
-      message += std::to_string(in.extent(r));
-    }
-    message += "), ";
-    message += out.label();
-    message += "(";
-    message += std::to_string(out.extent(0));
-    for (std::size_t r = 1; r < rank; r++) {
-      message += ",";
-      message += std::to_string(out.extent(r));
-    }
-    message += "), with axes (";
-    message += std::to_string(axes.at(0));
-    for (std::size_t i = 1; i < axes.size(); i++) {
-      message += ",";
-      message += std::to_string(axes.at(i));
-    }
-    message += ")";
+    std::string message =
+        container_to_string(in.label(), extract_extents(in)) + ", ";
+    message += container_to_string(out.label(), extract_extents(out));
+    message += ", with ";
+    message += container_to_string("axes ", axes);
     return message;
   };
 
@@ -367,14 +349,27 @@ auto get_extents(const InViewType& in, const OutViewType& out,
   // Define subvectors starting from last - DIM
   // Dimensions relevant to FFTs
   const std::size_t DIM = axes.size();
-  std::vector<std::size_t> in_extents(in_extents_full.end() - DIM,
-                                      in_extents_full.end());
-  std::vector<std::size_t> out_extents(out_extents_full.end() - DIM,
-                                       out_extents_full.end());
-  std::vector<std::size_t> fft_extents(fft_extents_full.end() - DIM,
-                                       fft_extents_full.end());
-  std::vector<std::size_t> batch_extents(fft_extents_full.begin(),
-                                         fft_extents_full.end() - DIM);
+  KOKKOSFFT_THROW_IF(DIM == 0, "axes must have at least one dimension.");
+  KOKKOSFFT_THROW_IF(DIM > rank,
+                     "axes size must be less than or equal to the view rank.");
+
+  const std::size_t fft_offset = rank - DIM;
+  auto slice_tail = [fft_offset, DIM](const std::vector<std::size_t>& extents) {
+    std::vector<std::size_t> slice(DIM);
+    for (std::size_t i = 0; i < DIM; ++i) {
+      slice.at(i) = extents.at(fft_offset + i);
+    }
+    return slice;
+  };
+
+  std::vector<std::size_t> in_extents  = slice_tail(in_extents_full);
+  std::vector<std::size_t> out_extents = slice_tail(out_extents_full);
+  std::vector<std::size_t> fft_extents = slice_tail(fft_extents_full);
+
+  std::vector<std::size_t> batch_extents(fft_offset);
+  for (std::size_t i = 0; i < fft_offset; ++i) {
+    batch_extents.at(i) = fft_extents_full.at(i);
+  }
   auto howmany = total_size(batch_extents);
 
   return std::make_tuple(in_extents, out_extents, fft_extents, howmany);
