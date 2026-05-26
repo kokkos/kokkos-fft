@@ -16,15 +16,28 @@ AMD-MI300A:
             -DCMAKE_CXX_COMPILER=hipcc
             -DKokkos_ENABLE_HIP=ON
     - cmake --build kokkos_build --parallel
-    - cmake --install kokkos_build --prefix kokkos_install
-    - cmake -B build
-            -DCMAKE_BUILD_TYPE=Release
-            -DCMAKE_CXX_COMPILER=hipcc
-            -D CMAKE_PREFIX_PATH=/opt/rocm-6.2.4
-            -DKokkos_DIR=/builds/kokkos/kokkos-fft/kokkos_install/lib/cmake/Kokkos/
-            -DKokkosFFT_ENABLE_EXAMPLES=ON
-            -DKokkosFFT_ENABLE_TESTS=ON
-            -DCMAKE_CXX_FLAGS="-Wall -Wextra"
-            -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
-    - cmake --build build --parallel
-    - ctest --test-dir build -V
+    - cmake --install kokkos_build
+    - export ENV_CMAKE_OPTIONS=""
+    - export ENV_CMAKE_OPTIONS="${ENV_CMAKE_OPTIONS};-D CMAKE_BUILD_TYPE=Release"
+    - export ENV_CMAKE_OPTIONS="${ENV_CMAKE_OPTIONS};-D CMAKE_PREFIX_PATH=/opt/rocm-6.2.4"
+    - export ENV_CMAKE_OPTIONS="${ENV_CMAKE_OPTIONS};-D Kokkos_DIR=/builds/kokkos/kokkos-fft/kokkos_install/lib/cmake/Kokkos/"
+    - export ENV_CMAKE_OPTIONS="${ENV_CMAKE_OPTIONS};-D CMAKE_CUDA_FLAGS='-Wall -Wextra'"
+    - export ENV_CMAKE_OPTIONS="${ENV_CMAKE_OPTIONS};-D Kokkos_ENABLE_COMPILER_WARNINGS=ON"
+    - export ENV_CMAKE_OPTIONS="${ENV_CMAKE_OPTIONS};-D KokkosFFT_ENABLE_EXAMPLES=ON"
+    - export ENV_CMAKE_OPTIONS="${ENV_CMAKE_OPTIONS};-D KokkosFFT_ENABLE_TESTS=ON"
+    - export CTEST_BUILD_NAME="AMD-MI300A"
+    - ctest -VV
+        -D CDASH_MODEL=Nightly
+        -D GITHUB_PR_ID="${GITHUB_PR_ID}"
+        -D CMAKE_OPTIONS="${ENV_CMAKE_OPTIONS}"
+        -D OUTPUT_JUNIT_FILE=result_mi300a.xml
+        -S scripts/CTestRun.cmake
+        -D CTEST_SITE="gitlab.spack.io"
+        -D CTEST_BUILD_NAME="${CTEST_BUILD_NAME}"
+      | tee test_results.txt
+  artifacts:
+    when: always
+    paths:
+      - build/result_mi300a.xml
+    reports:
+      junit: build/result_mi300a.xml
