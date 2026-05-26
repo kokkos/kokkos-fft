@@ -24,7 +24,7 @@ ctest_configure(OPTIONS "${CMAKE_OPTIONS}" RETURN_VALUE config_result)
 ctest_build(RETURN_VALUE build_result)
 
 # Only run tests if the build was successful
-if (NOT build_result)
+if(NOT build_result)
   ctest_test(RETURN_VALUE test_result)
 endif()
 
