@@ -12,3 +12,7 @@ iz = "iz"
 ND = "ND"
 SAV = "SAV"
 arange = "arange"
+
+[default.extend-identifiers]
+# Environmental variable
+HSA_XNACK = "HSA_XNACK"
