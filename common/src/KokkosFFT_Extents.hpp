@@ -5,10 +5,11 @@
 #ifndef KOKKOSFFT_EXTENTS_HPP
 #define KOKKOSFFT_EXTENTS_HPP
 
-#include <vector>
-#include <tuple>
 #include <algorithm>
 #include <numeric>
+#include <tuple>
+#include <utility>
+#include <vector>
 #include <Kokkos_Core.hpp>
 #include "KokkosFFT_Asserts.hpp"
 #include "KokkosFFT_CheckConditions.hpp"
@@ -362,17 +363,18 @@ auto get_extents(const InViewType& in, const OutViewType& out,
     return slice;
   };
 
-  std::vector<std::size_t> in_extents  = slice_tail(in_extents_full);
-  std::vector<std::size_t> out_extents = slice_tail(out_extents_full);
-  std::vector<std::size_t> fft_extents = slice_tail(fft_extents_full);
-
   std::vector<std::size_t> batch_extents(fft_offset);
   for (std::size_t i = 0; i < fft_offset; ++i) {
     batch_extents.at(i) = fft_extents_full.at(i);
   }
   auto howmany = total_size(batch_extents);
 
-  return std::make_tuple(in_extents, out_extents, fft_extents, howmany);
+  using extents_type = std::vector<std::size_t>;
+  using return_type =
+      std::tuple<extents_type, extents_type, extents_type, decltype(howmany)>;
+
+  return return_type(slice_tail(in_extents_full), slice_tail(out_extents_full),
+                     slice_tail(fft_extents_full), howmany);
 }
 
 /// \brief Compute input, output and fft extents required for FFT
