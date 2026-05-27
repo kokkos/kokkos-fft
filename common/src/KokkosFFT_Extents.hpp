@@ -372,7 +372,12 @@ auto get_extents(const InViewType& in, const OutViewType& out,
   }
   auto howmany = total_size(batch_extents);
 
-  return std::make_tuple(in_extents, out_extents, fft_extents, howmany);
+  using extents_type = std::vector<std::size_t>;
+  using return_type =
+      std::tuple<extents_type, extents_type, extents_type, decltype(howmany)>;
+
+  return return_type(std::move(in_extents), std::move(out_extents),
+                     std::move(fft_extents), howmany);
 }
 
 /// \brief Compute input, output and fft extents required for FFT
