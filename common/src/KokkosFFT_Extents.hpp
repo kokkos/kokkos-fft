@@ -363,10 +363,6 @@ auto get_extents(const InViewType& in, const OutViewType& out,
     return slice;
   };
 
-  std::vector<std::size_t> in_extents  = slice_tail(in_extents_full);
-  std::vector<std::size_t> out_extents = slice_tail(out_extents_full);
-  std::vector<std::size_t> fft_extents = slice_tail(fft_extents_full);
-
   std::vector<std::size_t> batch_extents(fft_offset);
   for (std::size_t i = 0; i < fft_offset; ++i) {
     batch_extents.at(i) = fft_extents_full.at(i);
@@ -377,8 +373,8 @@ auto get_extents(const InViewType& in, const OutViewType& out,
   using return_type =
       std::tuple<extents_type, extents_type, extents_type, decltype(howmany)>;
 
-  return return_type(std::move(in_extents), std::move(out_extents),
-                     std::move(fft_extents), howmany);
+  return return_type(slice_tail(in_extents_full), slice_tail(out_extents_full),
+                     slice_tail(fft_extents_full), howmany);
 }
 
 /// \brief Compute input, output and fft extents required for FFT
