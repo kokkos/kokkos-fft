@@ -5,10 +5,11 @@
 #ifndef KOKKOSFFT_EXTENTS_HPP
 #define KOKKOSFFT_EXTENTS_HPP
 
-#include <vector>
-#include <tuple>
 #include <algorithm>
 #include <numeric>
+#include <tuple>
+#include <utility>
+#include <vector>
 #include <Kokkos_Core.hpp>
 #include "KokkosFFT_Asserts.hpp"
 #include "KokkosFFT_CheckConditions.hpp"
