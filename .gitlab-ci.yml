@@ -22,7 +22,7 @@ AMD-MI300A:
     - export ENV_CMAKE_OPTIONS="${ENV_CMAKE_OPTIONS};-D CMAKE_CXX_COMPILER=hipcc"
     - export ENV_CMAKE_OPTIONS="${ENV_CMAKE_OPTIONS};-D CMAKE_PREFIX_PATH=/opt/rocm-6.2.4"
     - export ENV_CMAKE_OPTIONS="${ENV_CMAKE_OPTIONS};-D Kokkos_DIR=/builds/kokkos/kokkos-fft/kokkos_install/lib/cmake/Kokkos/"
-    - export ENV_CMAKE_OPTIONS="${ENV_CMAKE_OPTIONS};-D CMAKE_CUDA_FLAGS='-Wall -Wextra'"
+    - export ENV_CMAKE_OPTIONS="${ENV_CMAKE_OPTIONS};-D CMAKE_CXX_FLAGS='-Wall -Wextra -Werror'"
     - export ENV_CMAKE_OPTIONS="${ENV_CMAKE_OPTIONS};-D KokkosFFT_ENABLE_EXAMPLES=ON"
     - export ENV_CMAKE_OPTIONS="${ENV_CMAKE_OPTIONS};-D KokkosFFT_ENABLE_TESTS=ON"
     - export CTEST_BUILD_NAME="AMD-MI300A"
