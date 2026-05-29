@@ -7,7 +7,7 @@
 # only if requested. Docker images are used for building Kokkos FFT, while
 # Apptainer images are used for test execution on the righteous hardware.
 # It runs once month, on any push on `main` if Docker files are changed, and
-# mannualy.
+# manually.
 # It also runs on pull requests, but then the Apptainer image is not created,
 # and no images are pushed to the registry.
 
