@@ -18,13 +18,33 @@ env:
   DOCKER_BUILDKIT: 1
 
 jobs:
+  # detect changes
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      changes: ${{ steps.detect-changes.outputs.changes }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - id: detect-changes
+        uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
+        with:
+          predicate-quantifier: 'every'
+          filters: |
+            changes:
+              - '**'
+              - '!**/*.md'
+              - '!**/*.rst'
+              - '!**/*.py'
+              - '!docs/**'
+
   # run pre-commit-check
   pre-commit-check:
     uses: ./.github/workflows/__pre-commit.yaml
 
   # build project
   build:
-    needs: pre-commit-check
+    needs: [detect-changes, pre-commit-check]
+    if: ${{ needs.detect-changes.outputs.changes == 'true' }}
     runs-on: ubuntu-latest
 
     strategy:
