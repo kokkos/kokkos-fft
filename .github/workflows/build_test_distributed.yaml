@@ -39,7 +39,6 @@ jobs:
 
   # run pre-commit-check
   pre-commit-check:
-    if: ${{ github.repository == 'kokkos/kokkos-fft' || github.event_name == 'pull_request' }}
     uses: ./.github/workflows/__pre-commit.yaml
 
   # build project
