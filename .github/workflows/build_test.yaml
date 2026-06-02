@@ -18,7 +18,7 @@ env:
   DOCKER_BUILDKIT: 1
 
 jobs:
-  # detech changes
+  # detect changes
   detect-changes:
     if: ${{ github.repository == 'kokkos/kokkos-fft' || github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
