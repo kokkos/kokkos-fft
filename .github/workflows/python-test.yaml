@@ -23,8 +23,6 @@ jobs:
           filters: |
             changes:
               - '**'
-              - '!**/*.md'
-              - '!**/*.rst'
               - '!**/*.hpp'
               - '!**/*.cpp'
 
