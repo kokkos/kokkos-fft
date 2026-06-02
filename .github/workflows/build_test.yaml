@@ -35,8 +35,7 @@ jobs:
               - '!**/*.md'
               - '!**/*.rst'
               - '!**/*.py'
-              - '!**/docs/**'
-              - '!**/docs/**/*'
+              - '!docs/**'
 
   # run pre-commit-check
   pre-commit-check:
