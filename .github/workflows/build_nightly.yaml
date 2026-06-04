@@ -35,6 +35,7 @@ jobs:
               cxx_standard: 20
               kokkos: -DKokkos_ENABLE_OPENMP=ON
               kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
+            build_procs: 4
           - name: threads
             image: gcc
             compiler:
@@ -44,6 +45,7 @@ jobs:
               cxx_standard: 20
               kokkos: -DKokkos_ENABLE_THREADS=ON
               kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON -DKokkosFFT_ENABLE_TESTING_TOOLS=ON
+            build_procs: 4
           - name: serial
             image: gcc
             compiler:
@@ -53,6 +55,7 @@ jobs:
               cxx_standard: 20
               kokkos: -DKokkos_ENABLE_SERIAL=ON
               kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
+            build_procs: 4
           - name: cuda
             image: nvcc
             compiler:
@@ -62,6 +65,7 @@ jobs:
               cxx_standard: 20
               kokkos: -DKokkos_ENABLE_CUDA=ON -DKokkos_ARCH_AMPERE80=ON
               kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror" -DKokkosFFT_ENABLE_TESTING_TOOLS=ON
+            build_procs: 2
           - name: hip
             image: rocm
             compiler:
@@ -71,6 +75,7 @@ jobs:
               cxx_standard: 20
               kokkos: -DKokkos_ENABLE_HIP=ON -DKokkos_ARCH_AMD_GFX90A=ON
               kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror"
+            build_procs: 4
           - name: rocm
             image: rocm
             compiler:
@@ -80,6 +85,7 @@ jobs:
               cxx_standard: 20
               kokkos: -DKokkos_ENABLE_HIP=ON -DKokkos_ARCH_AMD_GFX90A=ON
               kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror" -DKokkosFFT_ENABLE_ROCFFT=ON -DKokkosFFT_ENABLE_TESTING_TOOLS=ON
+            build_procs: 4
           - name: sycl
             image: intel
             compiler:
@@ -91,6 +97,7 @@ jobs:
               cxx_standard: 20
               kokkos: -DKokkos_ENABLE_SYCL=ON -DKokkos_ARCH_INTEL_GEN=ON
               kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra"
+            build_procs: 4
     steps:
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be  # v1.3.1
@@ -124,7 +131,7 @@ jobs:
       - name: Build Kokkos
         run: |
           docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
-            cmake --build build_kokkos -j 4
+            cmake --build build_kokkos -j ${{ matrix.backend.build_procs }}
 
       - name: Install Kokkos
         run: |
@@ -147,4 +154,4 @@ jobs:
       - name: Build
         run: |
           docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
-            cmake --build build -j 4
+            cmake --build build -j ${{ matrix.backend.build_procs }}
