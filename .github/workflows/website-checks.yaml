@@ -8,7 +8,7 @@ on:
   schedule:
     - cron: "0 1 * * 0"  # At 01:00 on Sunday.
   workflow_dispatch:
-  
+
 jobs:
   links-check:
     name: Links check using linkchecker
