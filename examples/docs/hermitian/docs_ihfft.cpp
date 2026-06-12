@@ -16,10 +16,10 @@ int main(int argc, char* argv[]) {
   using View1D         = Kokkos::View<double*, ExecutionSpace>;
   using ComplexView1D  = Kokkos::View<Kokkos::complex<double>*, ExecutionSpace>;
 
-  const int n0 = 4;
+  const int n0 = 6;
 
-  View1D x_hat("x_hat", 2 * (n0 - 1));
-  ComplexView1D x("x", n0);
+  View1D x_hat("x_hat", n0);
+  ComplexView1D x("x", n0 / 2 + 1);
   auto h_x_hat = Kokkos::create_mirror_view(x_hat);
   h_x_hat(0)   = 15.0;
   h_x_hat(1)   = -4.0;

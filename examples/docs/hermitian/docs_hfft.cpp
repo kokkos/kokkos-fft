@@ -15,11 +15,11 @@ int main(int argc, char* argv[]) {
   using ExecutionSpace = Kokkos::DefaultExecutionSpace;
   using View1D         = Kokkos::View<double*, ExecutionSpace>;
 
-  const int n0 = 4;
+  const int n0 = 6;
 
-  View1D x("x", n0), x_hat("x_hat", 2 * (n0 - 1));
+  View1D x("x", n0 / 2 + 1), x_hat("x_hat", n0);
   auto h_x = Kokkos::create_mirror_view(x);
-  for (int i = 0; i < n0; ++i) {
+  for (int i = 0; i < x.extent_int(0); ++i) {
     h_x(i) = i + 1;
   }
   Kokkos::deep_copy(x, h_x);
