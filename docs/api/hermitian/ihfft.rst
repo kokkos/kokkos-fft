@@ -9,7 +9,7 @@ KokkosFFT::ihfft
 
 .. note::
 
-   The input must be a real-valued view, and the output must be a complex-valued view. The input length along the transform axis is ``(n / 2 + 1) * 2``, where ``n`` is the output length along that axis. If this condition is not met, the `std::runtime_error` exception will be thrown.
+   The input must be a real-valued view, and the output must be a complex-valued view. The input length along the transform axis is ``2 * (n - 1)``, where ``n`` is the output length along that axis. If this condition is not met, the `std::runtime_error` exception will be thrown.
 
 Examples
 ========

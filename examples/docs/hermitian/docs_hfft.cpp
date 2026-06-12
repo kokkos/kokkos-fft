@@ -17,7 +17,7 @@ int main(int argc, char* argv[]) {
 
   const int n0 = 4;
 
-  View1D x("x", n0), x_hat("x_hat", (n0 / 2 + 1) * 2);
+  View1D x("x", n0), x_hat("x_hat", 2 * (n0 - 1));
   auto h_x = Kokkos::create_mirror_view(x);
   for (int i = 0; i < n0; ++i) {
     h_x(i) = i + 1;
