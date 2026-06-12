@@ -39,3 +39,10 @@ target_link_libraries(docs_rfftn PUBLIC KokkosFFT::fft)
 
 add_executable(docs_irfftn real/docs_irfftn.cpp)
 target_link_libraries(docs_irfftn PUBLIC KokkosFFT::fft)
+
+# Hermitian FFT examples
+add_executable(docs_hfft hermitian/docs_hfft.cpp)
+target_link_libraries(docs_hfft PUBLIC KokkosFFT::fft)
+
+add_executable(docs_ihfft hermitian/docs_ihfft.cpp)
+target_link_libraries(docs_ihfft PUBLIC KokkosFFT::fft)
