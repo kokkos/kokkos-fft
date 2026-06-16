@@ -46,3 +46,10 @@ target_link_libraries(docs_hfft PUBLIC KokkosFFT::fft)
 
 add_executable(docs_ihfft hermitian/docs_ihfft.cpp)
 target_link_libraries(docs_ihfft PUBLIC KokkosFFT::fft)
+
+# Helper routines
+add_executable(docs_fftfreq helper/docs_fftfreq.cpp)
+target_link_libraries(docs_fftfreq PUBLIC KokkosFFT::fft)
+
+add_executable(docs_rfftfreq helper/docs_rfftfreq.cpp)
+target_link_libraries(docs_rfftfreq PUBLIC KokkosFFT::fft)
