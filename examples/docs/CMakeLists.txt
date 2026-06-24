@@ -53,3 +53,9 @@ target_link_libraries(docs_fftfreq PUBLIC KokkosFFT::fft)
 
 add_executable(docs_rfftfreq helper/docs_rfftfreq.cpp)
 target_link_libraries(docs_rfftfreq PUBLIC KokkosFFT::fft)
+
+add_executable(docs_fftshift helper/docs_fftshift.cpp)
+target_link_libraries(docs_fftshift PUBLIC KokkosFFT::fft)
+
+add_executable(docs_ifftshift helper/docs_ifftshift.cpp)
+target_link_libraries(docs_ifftshift PUBLIC KokkosFFT::fft)
