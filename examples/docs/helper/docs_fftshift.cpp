@@ -9,7 +9,7 @@
 
 /// \brief Example of fftshift usage in documentation
 /// freqs = KokkosFFT::fftfreq(10, 0.1);
-/// freqs: [0 1 2 3 4 5 -4 -3 -2 -1]
+/// freqs: [0 1 2 3 4 -5 -4 -3 -2 -1]
 /// KokkosFFT::fftshift(freqs);
 /// freqs_shifted: [-5 -4 -3 -2 -1 0 1 2 3 4]
 int main(int argc, char* argv[]) {
