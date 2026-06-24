@@ -18,7 +18,7 @@ int main(int argc, char* argv[]) {
 
   const int n0 = 10;
   ExecutionSpace exec;
-  auto freq = KokkosFFT::fftfreq<ExecutionSpace, double>(exec, n0, 0.1);
+  auto freq = KokkosFFT::fftfreq(exec, n0, 0.1);
   KokkosFFT::fftshift(exec, freq);
   auto h_freq = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, freq);
   for (int i = 0; i < freq.extent_int(0); ++i) {
