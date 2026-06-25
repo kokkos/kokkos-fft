@@ -59,3 +59,7 @@ target_link_libraries(docs_fftshift PUBLIC KokkosFFT::fft)
 
 add_executable(docs_ifftshift helper/docs_ifftshift.cpp)
 target_link_libraries(docs_ifftshift PUBLIC KokkosFFT::fft)
+
+# Plan and execute examples
+add_executable(docs_plan_execute plan/docs_plan_execute.cpp)
+target_link_libraries(docs_plan_execute PUBLIC KokkosFFT::fft)
