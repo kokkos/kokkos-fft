@@ -103,13 +103,13 @@ Here is the summary of our compile and run tests for each backend. For GPU backe
      - Build/install test
      - Run test
    * - clang-tidy
-     - clang, 17
+     - clang, 20
      - ``Kokkos_ENABLE_SERIAL``
      - clang-tidy check
      - x (Aazure)
      - None
    * - serial
-     - gcc, 17
+     - gcc, 20
      - ``Kokkos_ENABLE_SERIAL``
      -
      - x (Aazure)
@@ -121,7 +121,7 @@ Here is the summary of our compile and run tests for each backend. For GPU backe
      - x (Aazure)
      - x (Aazure)
    * - openmp
-     - gcc, 17
+     - gcc, 20
      - ``Kokkos_ENABLE_OPENMP``
      - Debug mode
      - x (Aazure)
@@ -133,7 +133,7 @@ Here is the summary of our compile and run tests for each backend. For GPU backe
      - x (Aazure)
      - x (self-hosted)
    * - hip
-     - hipcc, 17
+     - hipcc, 20
      - ``Kokkos_ENABLE_HIP``
      - ``hipfft`` backend
      - x (Aazure)
@@ -145,7 +145,7 @@ Here is the summary of our compile and run tests for each backend. For GPU backe
      - x (Aazure)
      - None
    * - sycl
-     - icpx, 17
+     - icpx, 20
      - ``Kokkos_ENABLE_SYCL``
      -
      - x (Aazure)

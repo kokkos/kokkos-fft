@@ -56,7 +56,7 @@ jobs:
               c: clang
               cxx: clang++
             cmake_flags:
-              cxx_standard: 17
+              cxx_standard: 20
               kokkos: -DKokkos_ENABLE_SERIAL=ON
               kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON -DCMAKE_CXX_CLANG_TIDY="clang-tidy;-warnings-as-errors=*"
               benchmark: OFF
@@ -67,7 +67,7 @@ jobs:
               c: gcc
               cxx: g++
             cmake_flags:
-              cxx_standard: 17
+              cxx_standard: 20
               kokkos: -DKokkos_ENABLE_OPENMP=ON -DKokkos_ENABLE_SERIAL=ON
               kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
               benchmark: ON
@@ -89,7 +89,7 @@ jobs:
               c: gcc
               cxx: g++
             cmake_flags:
-              cxx_standard: 17
+              cxx_standard: 20
               kokkos: -DKokkos_ENABLE_SERIAL=ON
               kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
               benchmark: ON
@@ -111,7 +111,7 @@ jobs:
               c: hipcc
               cxx: hipcc
             cmake_flags:
-              cxx_standard: 17
+              cxx_standard: 20
               kokkos: -DKokkos_ENABLE_HIP=ON -DKokkos_ARCH_AMD_GFX90A=ON -DKokkos_ENABLE_THREADS=ON
               kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror"
               benchmark: ON
@@ -135,7 +135,7 @@ jobs:
             cmake_flags:
               # building for Intel PVC was unsuccessful without the proper
               # device, so for now, we simply generate generic Intel GPU code
-              cxx_standard: 17
+              cxx_standard: 20
               kokkos: -DKokkos_ENABLE_SYCL=ON -DKokkos_ARCH_INTEL_GEN=ON
               kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra"
               benchmark: ON
