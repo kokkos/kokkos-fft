@@ -10,8 +10,7 @@ These instructions apply when creating, modifying, or reviewing C++ code (`.hpp`
 
 ## Language Standard
 
-- **Minimum**: C++17. Use C++17 features freely (structured bindings, `if constexpr`, `std::optional`, fold expressions, etc.).
-- **C++20**: Supported but not required. Use `#if __cplusplus >= 202002L` guards for C++20-only features (e.g., `std::source_location`).
+- **Minimum**: C++20. Use C++20 features freely (structured bindings, `if constexpr`, `std::optional`, fold expressions, `std::source_location`, etc.).
 - Avoid C++23 or later features.
 
 ## Header-Only Library
