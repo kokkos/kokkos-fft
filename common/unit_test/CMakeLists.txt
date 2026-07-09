@@ -19,11 +19,9 @@ add_executable(
   Test_Helpers.cpp
 )
 
-target_compile_features(unit-tests-kokkos-fft-common PUBLIC cxx_std_17)
 target_link_libraries(unit-tests-kokkos-fft-common PUBLIC common GTest::gtest)
 
 add_executable(unit-tests-kokkos-transpose Test_Main.cpp Test_Transpose.cpp)
-target_compile_features(unit-tests-kokkos-transpose PUBLIC cxx_std_17)
 target_link_libraries(unit-tests-kokkos-transpose PUBLIC KokkosFFT::fft GTest::gtest)
 
 # Enable GoogleTest
