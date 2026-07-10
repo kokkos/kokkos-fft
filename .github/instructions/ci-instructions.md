@@ -47,14 +47,14 @@ The main workflow includes these stages:
 1. **Format checks**: clang-format (v17), cmake-format, typos spell check.
 2. **REUSE compliance**: SPDX license header verification.
 3. **Build matrix**: Multiple configurations run in parallel:
-   - `clang-tidy`: Clang, C++17, Serial, Debug, warnings-as-errors.
-   - `openmp`: GCC, C++17, OpenMP+Serial, Debug.
+   - `clang-tidy`: Clang, C++20, Serial, Debug, warnings-as-errors.
+   - `openmp`: GCC, C++20, OpenMP+Serial, Debug.
    - `threads`: GCC, C++20, Threads, Release.
-   - `serial`: GCC, C++17, Serial, Release.
+   - `serial`: GCC, C++20, Serial, Release.
    - `cuda`: GCC+nvcc, C++20, CUDA+OpenMP, Release.
-   - `hip`: hipcc, C++17, HIP (hipFFT), Release.
+   - `hip`: hipcc, C++20, HIP (hipFFT), Release.
    - `rocm`: hipcc, C++20, HIP (rocFFT), Release.
-   - `sycl`: icpx, C++17, SYCL, Release.
+   - `sycl`: icpx, C++20, SYCL, Release.
 4. **Unit tests**: Run on CPU backends (Azure) and NVIDIA GPUs (self-hosted, requires maintainer approval).
 
 ## Docker Usage

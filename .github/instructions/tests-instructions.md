@@ -263,7 +263,6 @@ Kokkos::deep_copy(h_input, input);
 
 ```cmake
 add_executable(unit-tests-kokkos-fft-<module> Test_Main.cpp Test_Component.cpp)
-target_compile_features(unit-tests-kokkos-fft-<module> PUBLIC cxx_std_17)
 target_link_libraries(unit-tests-kokkos-fft-<module> PUBLIC KokkosFFT::fft GTest::gtest)
 
 include(GoogleTest)

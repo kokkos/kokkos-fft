@@ -215,14 +215,14 @@ The main CI workflow (`.github/workflows/build_test.yaml`) runs on PRs to `main`
 1. **Format checks**: pre-commit (clang-format, cmake-format, typos)
 2. **REUSE compliance**: License header verification
 3. **Build matrix** (all inside Docker containers):
-   - `clang-tidy`: Clang, C++17, Serial, Debug, warnings-as-errors
-   - `openmp`: GCC, C++17, OpenMP+Serial, Debug
+   - `clang-tidy`: Clang, C++20, Serial, Debug, warnings-as-errors
+   - `openmp`: GCC, C++20, OpenMP+Serial, Debug
    - `threads`: GCC, C++20, Threads, Release
-   - `serial`: GCC, C++17, Serial, Release
+   - `serial`: GCC, C++20, Serial, Release
    - `cuda`: GCC+nvcc, C++20, CUDA+OpenMP, Release
-   - `hip`: hipcc, C++17, HIP (hipFFT), Release
+   - `hip`: hipcc, C++20, HIP (hipFFT), Release
    - `rocm`: hipcc, C++20, HIP (rocFFT), Release
-   - `sycl`: icpx, C++17, SYCL, Release
+   - `sycl`: icpx, C++20, SYCL, Release
 4. **Unit tests**: Run on CPU backends (Azure) and NVIDIA GPUs (self-hosted, requires maintainer approval)
 
 Other workflows: `build_nightly.yaml` (extended nightly tests), `build_test_distributed.yaml` (MPI tests), `spack-test.yaml` (Spack installation), `website-checks.yaml` (docs), `reuse.yml` (license compliance).

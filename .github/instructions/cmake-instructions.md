@@ -65,7 +65,6 @@ The library uses CMake INTERFACE targets since it is header-only:
 ```cmake
 add_library(component_name INTERFACE)
 target_link_libraries(component_name INTERFACE Kokkos::kokkos)
-target_compile_features(component_name INTERFACE cxx_std_17)
 target_include_directories(
     component_name INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
                              $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
@@ -105,7 +104,6 @@ endif()
 
 ```cmake
 add_executable(test-executable-name Test_Main.cpp Test_Component.cpp)
-target_compile_features(test-executable-name PUBLIC cxx_std_17)
 target_link_libraries(test-executable-name PUBLIC KokkosFFT::fft GTest::gtest)
 
 include(GoogleTest)

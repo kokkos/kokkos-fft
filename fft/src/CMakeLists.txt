@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
 add_library(fft INTERFACE)
-
+target_compile_features(fft INTERFACE cxx_std_20)
 target_link_libraries(fft INTERFACE common Kokkos::kokkos)
 
 # find and link libraries based on KOKKOSFFT_TPL_LIST
@@ -44,6 +44,7 @@ elseif("FFTW_SERIAL" IN_LIST KOKKOSFFT_TPL_LIST)
 endif()
 
 target_include_directories(
-  fft INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}> $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}> $<INSTALL_INTERFACE:${INSTALL_INCLUDEDIR}>
+  fft INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}> $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+                $<INSTALL_INTERFACE:${INSTALL_INCLUDEDIR}>
 )
 add_library(KokkosFFT::fft ALIAS fft)
