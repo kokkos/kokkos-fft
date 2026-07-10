@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
 add_library(fft INTERFACE)
-
+target_compile_features(fft INTERFACE cxx_std_20)
 target_link_libraries(fft INTERFACE common Kokkos::kokkos)
 
 # find and link libraries based on KOKKOSFFT_TPL_LIST

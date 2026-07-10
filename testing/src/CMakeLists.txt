@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
 add_library(testing INTERFACE)
-
+target_compile_features(testing INTERFACE cxx_std_20)
 target_link_libraries(testing INTERFACE Kokkos::kokkos GTest::gtest GTest::gmock)
 
 target_include_directories(

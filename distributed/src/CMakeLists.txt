@@ -4,6 +4,7 @@
 
 add_library(distributed INTERFACE)
 find_package(MPI REQUIRED COMPONENTS CXX)
+target_compile_features(distributed INTERFACE cxx_std_20)
 target_link_libraries(distributed INTERFACE Kokkos::kokkos KokkosFFT::fft MPI::MPI_CXX)
 
 target_include_directories(
