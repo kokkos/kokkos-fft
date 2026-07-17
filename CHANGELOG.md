@@ -6,6 +6,30 @@ SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
 # Change Log
 
+## [2.0.0](https://github.com/kokkos/kokkos-fft/releases/tag/v2.0.0) (2026-07-17)
+
+**Documentation:**
+
+- Add documentation for plan/execute [\#492](https://github.com/kokkos/kokkos-fft/pull/492)
+- Add fftshift/ifftshift examples [\#491](https://github.com/kokkos/kokkos-fft/pull/491)
+- Add fftfreq/rfftfreq examples [\#489](https://github.com/kokkos/kokkos-fft/pull/489)
+- Add hfft/ihfft example [\#488](https://github.com/kokkos/kokkos-fft/pull/488)
+
+**CI:**
+
+- Running CI only if changes are relevant [\#484](https://github.com/kokkos/kokkos-fft/pull/484)
+- Publish hpsf CI on CDASH [\#478](https://github.com/kokkos/kokkos-fft/pull/478)
+- Add nightly CI on ruche [\#469](https://github.com/kokkos/kokkos-fft/pull/469)
+
+**General Enhancement:**
+
+- Update to kokkos 5.0 [\#501](https://github.com/kokkos/kokkos-fft/pull/501)
+- Add a const input API for hfft [\#470](https://github.com/kokkos/kokkos-fft/pull/470)
+
+**Internal Changes:**
+
+- Suppress warnings by explicitly define a return type [\#480](https://github.com/kokkos/kokkos-fft/pull/480)
+
 ## [1.1.0](https://github.com/kokkos/kokkos-fft/releases/tag/v1.1.0) (2026-05-13)
 
 **Documentation:**
