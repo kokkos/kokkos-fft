@@ -23,7 +23,7 @@ SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
 **General Enhancement:**
 
-- Update to kokkos 5.0 and make C++20 as a new minimal [\#501](https://github.com/kokkos/kokkos-fft/pull/501)
+- Update to kokkos 5.0 and make C++20 a new minimal [\#501](https://github.com/kokkos/kokkos-fft/pull/501)
 - Add a const input API for hfft [\#470](https://github.com/kokkos/kokkos-fft/pull/470)
 
 **Internal Changes:**
