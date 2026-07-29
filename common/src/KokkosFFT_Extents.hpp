@@ -356,9 +356,9 @@ auto get_extents(const InViewType& in, const OutViewType& out,
 
   const std::size_t fft_offset = rank - DIM;
   auto slice_tail = [fft_offset, DIM](const std::vector<std::size_t>& extents) {
-    std::vector<std::size_t> slice(DIM);
+    std::vector<std::size_t> slice;
     for (std::size_t i = 0; i < DIM; ++i) {
-      slice.at(i) = extents.at(fft_offset + i);
+      slice.push_back(extents.at(fft_offset + i));
     }
     return slice;
   };
