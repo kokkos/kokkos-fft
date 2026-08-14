@@ -9,8 +9,8 @@ build-backend = "hatchling.build"
 [project]
 name = "kokkos-fft-python"
 version = "1.0"
-readme = "../README.md"
-requires-python = ">=3.8"
+readme = "README.md"
+requires-python = ">=3.10"
 dependencies = [
   "pytest>=7.0",
   "numpy",
