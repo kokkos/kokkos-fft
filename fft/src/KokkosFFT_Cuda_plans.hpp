@@ -6,6 +6,7 @@
 #define KOKKOSFFT_CUDA_PLANS_HPP
 
 #include <concepts>
+#include <memory>
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Profiling_ScopedRegion.hpp>
 

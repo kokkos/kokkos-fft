@@ -5,6 +5,7 @@
 #ifndef KOKKOSFFT_ROCM_PLANS_HPP
 #define KOKKOSFFT_ROCM_PLANS_HPP
 
+#include <concepts>
 #include <memory>
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Profiling_ScopedRegion.hpp>
@@ -19,9 +20,8 @@
 namespace KokkosFFT {
 namespace Impl {
 
-template <typename ExecutionSpace, typename T,
-          std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
-                           std::nullptr_t> = nullptr>
+template <typename ExecutionSpace, typename T>
+  requires(std::same_as<ExecutionSpace, Kokkos::HIP>)
 void setup() {
   [[maybe_unused]] static bool once = [] {
     if (!(Kokkos::is_initialized() || Kokkos::is_finalized())) {
@@ -48,11 +48,10 @@ void setup() {
   }();
 }
 
-// batched transform, over ND Views
+// Interface for static plans
 template <typename ExecutionSpace, typename PlanType, typename InViewType,
-          typename OutViewType, std::size_t fft_rank = 1,
-          std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
-                           std::nullptr_t> = nullptr>
+          typename OutViewType, std::size_t fft_rank>
+  requires(std::same_as<ExecutionSpace, Kokkos::HIP>)
 auto create_plan(const ExecutionSpace& exec_space,
                  std::unique_ptr<PlanType>& plan, const InViewType& in,
                  const OutViewType& out, Direction direction,
@@ -62,9 +61,11 @@ auto create_plan(const ExecutionSpace& exec_space,
       (KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
                                                OutViewType>),
       "create_plan");
+  static_assert(
+      fft_rank >= 1 && fft_rank <= KokkosFFT::MAX_FFT_DIM,
+      "create_plan: Rank of FFT axes must be between 1 and MAX_FFT_DIM");
   static_assert(InViewType::rank() >= fft_rank,
-                "create_plan: Rank of View must be larger than "
-                "Rank of FFT.");
+                "create_plan: Rank of View must be larger than Rank of FFT.");
 
   using in_value_type  = typename InViewType::non_const_value_type;
   using out_value_type = typename OutViewType::non_const_value_type;
@@ -85,11 +86,10 @@ auto create_plan(const ExecutionSpace& exec_space,
   return fft_extents;
 }
 
-// batched transform, over ND Views
+// Interface for dynamic plans
 template <typename ExecutionSpace, typename PlanType, typename InViewType,
-          typename OutViewType,
-          std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
-                           std::nullptr_t> = nullptr>
+          typename OutViewType>
+  requires(std::same_as<ExecutionSpace, Kokkos::HIP>)
 auto create_dynplan(const ExecutionSpace& exec_space,
                     std::unique_ptr<PlanType>& plan, const InViewType& in,
                     const OutViewType& out, Direction direction,
