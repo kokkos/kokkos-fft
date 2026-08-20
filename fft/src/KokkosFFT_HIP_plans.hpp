@@ -5,6 +5,7 @@
 #ifndef KOKKOSFFT_HIP_PLANS_HPP
 #define KOKKOSFFT_HIP_PLANS_HPP
 
+#include <concepts>
 #include <memory>
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Profiling_ScopedRegion.hpp>
@@ -18,9 +19,8 @@
 namespace KokkosFFT {
 namespace Impl {
 
-template <typename ExecutionSpace, typename T,
-          std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
-                           std::nullptr_t> = nullptr>
+template <typename ExecutionSpace, typename T>
+  requires(std::same_as<ExecutionSpace, Kokkos::HIP>)
 void setup() {
   [[maybe_unused]] static bool once = [] {
     if (!(Kokkos::is_initialized() || Kokkos::is_finalized())) {
@@ -37,104 +37,10 @@ void setup() {
   }();
 }
 
-// 1D transform
+// Interface for static plans
 template <typename ExecutionSpace, typename PlanType, typename InViewType,
-          typename OutViewType,
-          std::enable_if_t<InViewType::rank() == 1 &&
-                               std::is_same_v<ExecutionSpace, Kokkos::HIP>,
-                           std::nullptr_t> = nullptr>
-auto create_plan(const ExecutionSpace& exec_space,
-                 std::unique_ptr<PlanType>& plan, const InViewType& in,
-                 const OutViewType& out, Direction /*direction*/,
-                 axis_type<1> axes, shape_type<1> s, bool is_inplace) {
-  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(
-      (KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                               OutViewType>),
-      "create_plan");
-  using in_value_type  = typename InViewType::non_const_value_type;
-  using out_value_type = typename OutViewType::non_const_value_type;
-
-  Kokkos::Profiling::ScopedRegion region("KokkosFFT::create_plan[TPL_hipfft]");
-  auto type = KokkosFFT::Impl::transform_type<ExecutionSpace, in_value_type,
-                                              out_value_type>::type();
-  auto [in_extents, out_extents, fft_extents, howmany] =
-      KokkosFFT::Impl::get_extents(in, out, axes, s, is_inplace);
-  using index_type    = FFTIndexType<Kokkos::HIP>;
-  const index_type nx = fft_extents.at(0);
-  plan                = std::make_unique<PlanType>(nx, type, howmany);
-  plan->commit(exec_space);
-
-  return fft_extents;
-}
-
-// 2D transform
-template <typename ExecutionSpace, typename PlanType, typename InViewType,
-          typename OutViewType,
-          std::enable_if_t<InViewType::rank() == 2 &&
-                               std::is_same_v<ExecutionSpace, Kokkos::HIP>,
-                           std::nullptr_t> = nullptr>
-auto create_plan(const ExecutionSpace& exec_space,
-                 std::unique_ptr<PlanType>& plan, const InViewType& in,
-                 const OutViewType& out, Direction /*direction*/,
-                 axis_type<2> axes, shape_type<2> s, bool is_inplace) {
-  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(
-      (KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                               OutViewType>),
-      "create_plan");
-  using in_value_type  = typename InViewType::non_const_value_type;
-  using out_value_type = typename OutViewType::non_const_value_type;
-
-  Kokkos::Profiling::ScopedRegion region("KokkosFFT::create_plan[TPL_hipfft]");
-  auto type = KokkosFFT::Impl::transform_type<ExecutionSpace, in_value_type,
-                                              out_value_type>::type();
-  [[maybe_unused]] auto [in_extents, out_extents, fft_extents, howmany] =
-      KokkosFFT::Impl::get_extents(in, out, axes, s, is_inplace);
-
-  using index_type    = FFTIndexType<Kokkos::HIP>;
-  const index_type nx = fft_extents.at(0), ny = fft_extents.at(1);
-  plan = std::make_unique<PlanType>(nx, ny, type);
-  plan->commit(exec_space);
-
-  return fft_extents;
-}
-
-// 3D transform
-template <typename ExecutionSpace, typename PlanType, typename InViewType,
-          typename OutViewType,
-          std::enable_if_t<InViewType::rank() == 3 &&
-                               std::is_same_v<ExecutionSpace, Kokkos::HIP>,
-                           std::nullptr_t> = nullptr>
-auto create_plan(const ExecutionSpace& exec_space,
-                 std::unique_ptr<PlanType>& plan, const InViewType& in,
-                 const OutViewType& out, Direction /*direction*/,
-                 axis_type<3> axes, shape_type<3> s, bool is_inplace) {
-  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(
-      (KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
-                                               OutViewType>),
-      "create_plan");
-  using in_value_type  = typename InViewType::non_const_value_type;
-  using out_value_type = typename OutViewType::non_const_value_type;
-
-  Kokkos::Profiling::ScopedRegion region("KokkosFFT::create_plan[TPL_hipfft]");
-  auto type = KokkosFFT::Impl::transform_type<ExecutionSpace, in_value_type,
-                                              out_value_type>::type();
-  [[maybe_unused]] auto [in_extents, out_extents, fft_extents, howmany] =
-      KokkosFFT::Impl::get_extents(in, out, axes, s, is_inplace);
-
-  using index_type    = FFTIndexType<Kokkos::HIP>;
-  const index_type nx = fft_extents.at(0), ny = fft_extents.at(1),
-                   nz = fft_extents.at(2);
-  plan                = std::make_unique<PlanType>(nx, ny, nz, type);
-  plan->commit(exec_space);
-
-  return fft_extents;
-}
-
-// batched transform, over ND Views
-template <typename ExecutionSpace, typename PlanType, typename InViewType,
-          typename OutViewType, std::size_t fft_rank = 1,
-          std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
-                           std::nullptr_t> = nullptr>
+          typename OutViewType, std::size_t fft_rank>
+  requires(std::same_as<ExecutionSpace, Kokkos::HIP>)
 auto create_plan(const ExecutionSpace& exec_space,
                  std::unique_ptr<PlanType>& plan, const InViewType& in,
                  const OutViewType& out, Direction /*direction*/,
@@ -158,18 +64,31 @@ auto create_plan(const ExecutionSpace& exec_space,
       KokkosFFT::Impl::get_extents(in, out, axes, s, is_inplace);
 
   using index_type = FFTIndexType<Kokkos::HIP>;
-  index_type idist = total_size(in_extents);
-  index_type odist = total_size(out_extents);
+  if constexpr (InViewType::rank() == 1 && fft_rank == 1) {
+    const index_type nx = fft_extents.at(0);
+    plan                = std::make_unique<PlanType>(nx, type, howmany);
+  } else if constexpr (InViewType::rank() == 2 && fft_rank == 2) {
+    const index_type nx = fft_extents.at(0), ny = fft_extents.at(1);
+    plan = std::make_unique<PlanType>(nx, ny, type);
+  } else if constexpr (InViewType::rank() == 3 && fft_rank == 3) {
+    const index_type nx = fft_extents.at(0), ny = fft_extents.at(1),
+                     nz = fft_extents.at(2);
+    plan                = std::make_unique<PlanType>(nx, ny, nz, type);
+  } else {
+    // Batched plan
+    index_type idist = total_size(in_extents);
+    index_type odist = total_size(out_extents);
 
-  auto int_in_extents  = convert_base_int_type<index_type>(in_extents);
-  auto int_out_extents = convert_base_int_type<index_type>(out_extents);
-  auto int_fft_extents = convert_base_int_type<index_type>(fft_extents);
+    auto int_in_extents  = convert_base_int_type<index_type>(in_extents);
+    auto int_out_extents = convert_base_int_type<index_type>(out_extents);
+    auto int_fft_extents = convert_base_int_type<index_type>(fft_extents);
 
-  // For the moment, considering the contiguous layout only
-  index_type istride = 1, ostride = 1;
-  plan = std::make_unique<PlanType>(
-      int_fft_extents.size(), int_fft_extents.data(), int_in_extents.data(),
-      istride, idist, int_out_extents.data(), ostride, odist, type, howmany);
+    // For the moment, considering the contiguous layout only
+    index_type istride = 1, ostride = 1;
+    plan = std::make_unique<PlanType>(
+        int_fft_extents.size(), int_fft_extents.data(), int_in_extents.data(),
+        istride, idist, int_out_extents.data(), ostride, odist, type, howmany);
+  }
   plan->commit(exec_space);
 
   return fft_extents;
@@ -177,9 +96,8 @@ auto create_plan(const ExecutionSpace& exec_space,
 
 // Interface for dynamic plans
 template <typename ExecutionSpace, typename PlanType, typename InViewType,
-          typename OutViewType,
-          std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
-                           std::nullptr_t> = nullptr>
+          typename OutViewType>
+  requires(std::same_as<ExecutionSpace, Kokkos::HIP>)
 auto create_dynplan(const ExecutionSpace& exec_space,
                     std::unique_ptr<PlanType>& plan, const InViewType& in,
                     const OutViewType& out, Direction /*direction*/,
