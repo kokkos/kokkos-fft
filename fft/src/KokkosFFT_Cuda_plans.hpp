@@ -6,6 +6,7 @@
 #define KOKKOSFFT_CUDA_PLANS_HPP
 
 #include <concepts>
+#include <memory>
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Profiling_ScopedRegion.hpp>
 
@@ -52,7 +53,7 @@ auto create_plan(const ExecutionSpace& exec_space,
       "create_plan");
   static_assert(
       fft_rank >= 1 && fft_rank <= KokkosFFT::MAX_FFT_DIM,
-      "create_plan: the Rank of FFT axes must be between 1 and MAX_FFT_DIM");
+      "create_plan: Rank of FFT axes must be between 1 and MAX_FFT_DIM.");
   static_assert(InViewType::rank() >= fft_rank,
                 "create_plan: Rank of View must be larger than Rank of FFT.");
 
