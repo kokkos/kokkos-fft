@@ -5,8 +5,12 @@
 #ifndef KOKKOSFFT_SYCL_PLANS_HPP
 #define KOKKOSFFT_SYCL_PLANS_HPP
 
-#include <numeric>
 #include <algorithm>
+#include <concepts>
+#include <memory>
+#include <numeric>
+#include <vector>
+
 #if defined(INTEL_MKL_VERSION) && INTEL_MKL_VERSION >= 20250100
 #include <oneapi/mkl/dft.hpp>
 #else
@@ -24,9 +28,8 @@
 namespace KokkosFFT {
 namespace Impl {
 
-template <typename ExecutionSpace, typename T,
-          std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::SYCL>,
-                           std::nullptr_t> = nullptr>
+template <typename ExecutionSpace, typename T>
+  requires(std::same_as<ExecutionSpace, Kokkos::SYCL>)
 void setup() {
   [[maybe_unused]] static bool once = [] {
     if (!(Kokkos::is_initialized() || Kokkos::is_finalized())) {
@@ -63,9 +66,8 @@ auto compute_strides(std::vector<InType>& extents) -> std::vector<OutType> {
 
 // batched transform, over ND Views
 template <typename ExecutionSpace, typename PlanType, typename InViewType,
-          typename OutViewType, std::size_t fft_rank = 1,
-          std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::SYCL>,
-                           std::nullptr_t> = nullptr>
+          typename OutViewType, std::size_t fft_rank>
+  requires(std::same_as<ExecutionSpace, Kokkos::SYCL>)
 auto create_plan(const ExecutionSpace& exec_space,
                  std::unique_ptr<PlanType>& plan, const InViewType& in,
                  const OutViewType& out, Direction direction,
@@ -75,6 +77,9 @@ auto create_plan(const ExecutionSpace& exec_space,
       (KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
                                                OutViewType>),
       "create_plan");
+  static_assert(
+      fft_rank >= 1 && fft_rank <= KokkosFFT::MAX_FFT_DIM,
+      "create_plan: Rank of FFT axes must be between 1 and MAX_FFT_DIM.");
   static_assert(InViewType::rank() >= fft_rank,
                 "create_plan: Rank of View must be larger than Rank of FFT.");
 
@@ -105,9 +110,8 @@ auto create_plan(const ExecutionSpace& exec_space,
 
 // batched transform, over ND Views
 template <typename ExecutionSpace, typename PlanType, typename InViewType,
-          typename OutViewType,
-          std::enable_if_t<std::is_same_v<ExecutionSpace, Kokkos::SYCL>,
-                           std::nullptr_t> = nullptr>
+          typename OutViewType>
+  requires(std::same_as<ExecutionSpace, Kokkos::SYCL>)
 auto create_dynplan(const ExecutionSpace& exec_space,
                     std::unique_ptr<PlanType>& plan, const InViewType& in,
                     const OutViewType& out, Direction direction,
