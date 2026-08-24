@@ -5,6 +5,7 @@
 #ifndef KOKKOSFFT_HOST_PLANS_HPP
 #define KOKKOSFFT_HOST_PLANS_HPP
 
+#include <concepts>
 #include <memory>
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Profiling_ScopedRegion.hpp>
@@ -19,9 +20,8 @@
 namespace KokkosFFT {
 namespace Impl {
 
-template <typename ExecutionSpace, typename T,
-          std::enable_if_t<is_AnyHostSpace_v<ExecutionSpace>, std::nullptr_t> =
-              nullptr>
+template <typename ExecutionSpace, typename T>
+  requires(is_AnyHostSpace_v<ExecutionSpace>)
 void setup() {
   [[maybe_unused]] static bool once = [] {
     if (!(Kokkos::is_initialized() || Kokkos::is_finalized())) {
@@ -35,9 +35,9 @@ void setup() {
           "Kokkos.\n");
     }
 #if defined(KOKKOS_ENABLE_OPENMP) || defined(KOKKOS_ENABLE_THREADS)
-    if constexpr (std::is_same_v<ExecutionSpace,
-                                 Kokkos::DefaultHostExecutionSpace>) {
-      if constexpr (std::is_same_v<T, float>) {
+    if constexpr (std::same_as<ExecutionSpace,
+                               Kokkos::DefaultHostExecutionSpace>) {
+      if constexpr (std::same_as<T, float>) {
         fftwf_init_threads();
       } else {
         fftw_init_threads();
@@ -45,7 +45,7 @@ void setup() {
 
       // Register cleanup function as a hook in Kokkos::finalize
       Kokkos::push_finalize_hook([]() {
-        if constexpr (std::is_same_v<T, float>) {
+        if constexpr (std::same_as<T, float>) {
           fftwf_cleanup_threads();
         } else {
           fftw_cleanup_threads();
@@ -59,9 +59,8 @@ void setup() {
 
 // batched transform, over ND Views
 template <typename ExecutionSpace, typename PlanType, typename InViewType,
-          typename OutViewType, std::size_t fft_rank = 1,
-          std::enable_if_t<is_AnyHostSpace_v<ExecutionSpace>, std::nullptr_t> =
-              nullptr>
+          typename OutViewType, std::size_t fft_rank>
+  requires(is_AnyHostSpace_v<ExecutionSpace>)
 auto create_plan(const ExecutionSpace& exec_space,
                  std::unique_ptr<PlanType>& plan, const InViewType& in,
                  const OutViewType& out, Direction direction,
@@ -71,6 +70,9 @@ auto create_plan(const ExecutionSpace& exec_space,
       (KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
                                                OutViewType>),
       "create_plan");
+  static_assert(
+      fft_rank >= 1 && fft_rank <= KokkosFFT::MAX_FFT_DIM,
+      "create_plan: Rank of FFT axes must be between 1 and MAX_FFT_DIM.");
   static_assert(InViewType::rank() >= fft_rank,
                 "create_plan: Rank of View must be larger than Rank of FFT.");
 
@@ -95,8 +97,7 @@ auto create_plan(const ExecutionSpace& exec_space,
   auto int_in_extents  = convert_base_int_type<index_type>(in_extents);
   auto int_out_extents = convert_base_int_type<index_type>(out_extents);
   auto int_fft_extents = convert_base_int_type<index_type>(fft_extents);
-  [[maybe_unused]] auto sign =
-      KokkosFFT::Impl::direction_type<ExecutionSpace>(direction);
+  auto sign = KokkosFFT::Impl::direction_type<ExecutionSpace>(direction);
 
   plan = std::make_unique<PlanType>(
       exec_space, int_fft_extents.size(), int_fft_extents.data(), howmany,
@@ -108,9 +109,8 @@ auto create_plan(const ExecutionSpace& exec_space,
 
 // batched transform, over ND Views
 template <typename ExecutionSpace, typename PlanType, typename InViewType,
-          typename OutViewType,
-          std::enable_if_t<is_AnyHostSpace_v<ExecutionSpace>, std::nullptr_t> =
-              nullptr>
+          typename OutViewType>
+  requires(is_AnyHostSpace_v<ExecutionSpace>)
 auto create_dynplan(const ExecutionSpace& exec_space,
                     std::unique_ptr<PlanType>& plan, const InViewType& in,
                     const OutViewType& out, Direction direction,
