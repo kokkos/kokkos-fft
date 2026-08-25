@@ -6,7 +6,6 @@
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Half.hpp>
 #include "KokkosFFT_Ulps.hpp"
-#include "Test_Utils.hpp"
 
 namespace {
 using execution_space = Kokkos::DefaultExecutionSpace;
@@ -24,8 +23,8 @@ template <typename T, typename BoolViewType>
 void test_almost_equal_ulps_positive() {
   T a(1.0);
   T b = a;
-  T c = nextafter_wrapper(a, T(2.0));
-  T d = nextafter_wrapper(c, T(2.0));
+  T c = Kokkos::nextafter(a, T(2.0));
+  T d = Kokkos::nextafter(c, T(2.0));
 
   BoolViewType a_b_are_almost_equal("a_b_are_almost_equal"),
       a_c_are_almost_equal("a_c_are_almost_equal"),
@@ -69,8 +68,8 @@ template <typename T, typename BoolViewType>
 void test_almost_equal_ulps_negative() {
   T a(-1.0);
   T b = a;
-  T c = nextafter_wrapper(a, T(-2.0));
-  T d = nextafter_wrapper(c, T(-2.0));
+  T c = Kokkos::nextafter(a, T(-2.0));
+  T d = Kokkos::nextafter(c, T(-2.0));
 
   BoolViewType a_b_are_almost_equal("a_b_are_almost_equal"),
       a_c_are_almost_equal("a_c_are_almost_equal"),
@@ -114,8 +113,8 @@ template <typename T, typename BoolViewType>
 void test_almost_equal_ulps_near_zero() {
   T c(0.0);
   T d(-0.0);
-  T a = nextafter_wrapper(c, T(1.0));
-  T b = nextafter_wrapper(d, T(-1.0));
+  T a = Kokkos::nextafter(c, T(1.0));
+  T b = Kokkos::nextafter(d, T(-1.0));
 
   BoolViewType a_b_are_almost_equal("a_b_are_almost_equal"),
       a_c_are_almost_equal("a_c_are_almost_equal"),

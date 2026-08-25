@@ -5,7 +5,6 @@
 #include <gtest/gtest.h>
 #include <Kokkos_Core.hpp>
 #include "KokkosFFT_AlmostEqualNulp.hpp"
-#include "Test_Utils.hpp"
 
 namespace {
 using execution_space = Kokkos::DefaultExecutionSpace;
@@ -33,8 +32,8 @@ void test_almost_equal_nulp_1D_analytical() {
   auto h_c = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), c);
   auto h_d = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), d);
 
-  h_c(1) = nextafter_wrapper(h_b(1), T(2.0));
-  h_d(1) = nextafter_wrapper(h_c(1), T(2.0));
+  h_c(1) = Kokkos::nextafter(h_b(1), T(2.0));
+  h_d(1) = Kokkos::nextafter(h_c(1), T(2.0));
 
   Kokkos::deep_copy(c, h_c);
   Kokkos::deep_copy(d, h_d);
@@ -67,9 +66,9 @@ void test_almost_equal_nulp_2D_analytical() {
   auto h_c = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), c);
   auto h_d = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), d);
 
-  h_c(1, 0) = nextafter_wrapper(h_b(1, 0), T(2.0));
-  h_d(0, 0) = nextafter_wrapper(h_b(0, 0), T(2.0));
-  h_d(1, 0) = nextafter_wrapper(h_c(1, 0), T(2.0));
+  h_c(1, 0) = Kokkos::nextafter(h_b(1, 0), T(2.0));
+  h_d(0, 0) = Kokkos::nextafter(h_b(0, 0), T(2.0));
+  h_d(1, 0) = Kokkos::nextafter(h_c(1, 0), T(2.0));
 
   Kokkos::deep_copy(c, h_c);
   Kokkos::deep_copy(d, h_d);
@@ -103,9 +102,9 @@ void test_almost_equal_nulp_3D_analytical() {
   auto h_c = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), c);
   auto h_d = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), d);
 
-  h_c(1, 0, 0) = nextafter_wrapper(h_b(1, 0, 0), T(2.0));
-  h_d(0, 0, 0) = nextafter_wrapper(h_b(0, 0, 0), T(2.0));
-  h_d(1, 0, 0) = nextafter_wrapper(h_c(1, 0, 0), T(2.0));
+  h_c(1, 0, 0) = Kokkos::nextafter(h_b(1, 0, 0), T(2.0));
+  h_d(0, 0, 0) = Kokkos::nextafter(h_b(0, 0, 0), T(2.0));
+  h_d(1, 0, 0) = Kokkos::nextafter(h_c(1, 0, 0), T(2.0));
 
   Kokkos::deep_copy(c, h_c);
   Kokkos::deep_copy(d, h_d);
@@ -140,9 +139,9 @@ void test_almost_equal_nulp_4D_analytical() {
   auto h_d = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), d);
   ;
 
-  h_c(1, 0, 0, 0) = nextafter_wrapper(h_b(1, 0, 0, 0), T(2.0));
-  h_d(0, 0, 0, 0) = nextafter_wrapper(h_b(0, 0, 0, 0), T(2.0));
-  h_d(1, 0, 2, 0) = nextafter_wrapper(h_c(1, 0, 0, 0), T(2.0));
+  h_c(1, 0, 0, 0) = Kokkos::nextafter(h_b(1, 0, 0, 0), T(2.0));
+  h_d(0, 0, 0, 0) = Kokkos::nextafter(h_b(0, 0, 0, 0), T(2.0));
+  h_d(1, 0, 2, 0) = Kokkos::nextafter(h_c(1, 0, 0, 0), T(2.0));
 
   Kokkos::deep_copy(c, h_c);
   Kokkos::deep_copy(d, h_d);
@@ -176,9 +175,9 @@ void test_almost_equal_nulp_5D_analytical() {
   auto h_c = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), c);
   auto h_d = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), d);
 
-  h_c(1, 0, 0, 0, 0) = nextafter_wrapper(h_b(1, 0, 0, 0, 0), T(2.0));
-  h_d(0, 0, 0, 0, 0) = nextafter_wrapper(h_b(0, 0, 0, 0, 0), T(2.0));
-  h_d(1, 0, 2, 0, 0) = nextafter_wrapper(h_c(1, 0, 0, 0, 0), T(2.0));
+  h_c(1, 0, 0, 0, 0) = Kokkos::nextafter(h_b(1, 0, 0, 0, 0), T(2.0));
+  h_d(0, 0, 0, 0, 0) = Kokkos::nextafter(h_b(0, 0, 0, 0, 0), T(2.0));
+  h_d(1, 0, 2, 0, 0) = Kokkos::nextafter(h_c(1, 0, 0, 0, 0), T(2.0));
 
   Kokkos::deep_copy(c, h_c);
   Kokkos::deep_copy(d, h_d);
@@ -212,9 +211,9 @@ void test_almost_equal_nulp_6D_analytical() {
   auto h_c = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), c);
   auto h_d = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), d);
 
-  h_c(1, 0, 0, 0, 0, 0) = nextafter_wrapper(h_b(1, 0, 0, 0, 0, 0), T(2.0));
-  h_d(0, 0, 0, 0, 0, 0) = nextafter_wrapper(h_b(0, 0, 0, 0, 0, 0), T(2.0));
-  h_d(1, 0, 2, 0, 0, 1) = nextafter_wrapper(h_c(1, 0, 0, 0, 0, 0), T(2.0));
+  h_c(1, 0, 0, 0, 0, 0) = Kokkos::nextafter(h_b(1, 0, 0, 0, 0, 0), T(2.0));
+  h_d(0, 0, 0, 0, 0, 0) = Kokkos::nextafter(h_b(0, 0, 0, 0, 0, 0), T(2.0));
+  h_d(1, 0, 2, 0, 0, 1) = Kokkos::nextafter(h_c(1, 0, 0, 0, 0, 0), T(2.0));
 
   Kokkos::deep_copy(c, h_c);
   Kokkos::deep_copy(d, h_d);
@@ -250,11 +249,11 @@ void test_almost_equal_nulp_7D_analytical() {
   auto h_d = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), d);
 
   h_c(1, 0, 0, 0, 0, 0, 0) =
-      nextafter_wrapper(h_b(1, 0, 0, 0, 0, 0, 0), T(2.0));
+      Kokkos::nextafter(h_b(1, 0, 0, 0, 0, 0, 0), T(2.0));
   h_d(0, 0, 0, 0, 0, 0, 0) =
-      nextafter_wrapper(h_b(0, 0, 0, 0, 0, 0, 0), T(2.0));
+      Kokkos::nextafter(h_b(0, 0, 0, 0, 0, 0, 0), T(2.0));
   h_d(1, 0, 2, 0, 0, 1, 2) =
-      nextafter_wrapper(h_c(1, 0, 0, 0, 0, 0, 0), T(2.0));
+      Kokkos::nextafter(h_c(1, 0, 0, 0, 0, 0, 0), T(2.0));
 
   Kokkos::deep_copy(c, h_c);
   Kokkos::deep_copy(d, h_d);
@@ -291,11 +290,11 @@ void test_almost_equal_nulp_8D_analytical() {
   auto h_d = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), d);
 
   h_c(1, 0, 0, 0, 0, 0, 0, 0) =
-      nextafter_wrapper(h_b(1, 0, 0, 0, 0, 0, 0, 0), T(2.0));
+      Kokkos::nextafter(h_b(1, 0, 0, 0, 0, 0, 0, 0), T(2.0));
   h_d(0, 0, 0, 0, 0, 0, 0, 0) =
-      nextafter_wrapper(h_b(0, 0, 0, 0, 0, 0, 0, 0), T(2.0));
+      Kokkos::nextafter(h_b(0, 0, 0, 0, 0, 0, 0, 0), T(2.0));
   h_d(1, 0, 2, 0, 0, 1, 2, 0) =
-      nextafter_wrapper(h_c(1, 0, 0, 0, 0, 0, 0, 0), T(2.0));
+      Kokkos::nextafter(h_c(1, 0, 0, 0, 0, 0, 0, 0), T(2.0));
 
   Kokkos::deep_copy(c, h_c);
   Kokkos::deep_copy(d, h_d);
