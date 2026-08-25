@@ -4,7 +4,7 @@
 
 #include <utility>
 #include <gtest/gtest.h>
-#include "KokkosFFT_TypeCartesianProduct.hpp"
+#include "KokkosFFT_Testing_TypeCartesianProduct.hpp"
 
 // All the tests in this file are compile time tests, so we skip all the tests
 // by GTEST_SKIP(). gtest is used for type parameterization.

@@ -5,7 +5,7 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include <Kokkos_Core.hpp>
-#include "KokkosFFT_PrintErrors.hpp"
+#include "KokkosFFT_Testing_PrintErrors.hpp"
 
 namespace {
 

@@ -4,8 +4,8 @@
 
 #include <gtest/gtest.h>
 #include <Kokkos_Core.hpp>
-#include "KokkosFFT_CountErrors.hpp"
-#include "KokkosFFT_AlmostEqual.hpp"
+#include "KokkosFFT_Testing_AlmostEqual.hpp"
+#include "KokkosFFT_Testing_CountErrors.hpp"
 
 namespace {
 

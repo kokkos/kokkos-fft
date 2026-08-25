@@ -5,7 +5,8 @@
 #ifndef KOKKOSFFT_TESTING_HPP
 #define KOKKOSFFT_TESTING_HPP
 
-#include "KokkosFFT_Concepts.hpp"
-#include "KokkosFFT_Allclose.hpp"
+#include "KokkosFFT_Testing_Allclose.hpp"
+#include "KokkosFFT_Testing_AlmostEqualNulp.hpp"
+#include "KokkosFFT_Testing_Concepts.hpp"
 
 #endif

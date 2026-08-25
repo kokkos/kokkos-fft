@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
-#ifndef KOKKOSFFT_PRINT_ERRORS_HPP
-#define KOKKOSFFT_PRINT_ERRORS_HPP
+#ifndef KOKKOSFFT_TESTING_PRINT_ERRORS_HPP
+#define KOKKOSFFT_TESTING_PRINT_ERRORS_HPP
 
 #include <tuple>
 #include <map>
@@ -12,7 +12,7 @@
 #include <iomanip>
 #include <algorithm>
 #include <Kokkos_Core.hpp>
-#include "KokkosFFT_Concepts.hpp"
+#include "KokkosFFT_Testing_Concepts.hpp"
 
 namespace KokkosFFT {
 namespace Testing {
