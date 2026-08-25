@@ -19,10 +19,10 @@ add_executable(
   Test_Helpers.cpp
 )
 
-target_link_libraries(unit-tests-kokkos-fft-common PUBLIC common GTest::gtest)
+target_link_libraries(unit-tests-kokkos-fft-common PUBLIC common KokkosFFT::testing GTest::gtest GTest::gmock)
 
 add_executable(unit-tests-kokkos-transpose Test_Main.cpp Test_Transpose.cpp)
-target_link_libraries(unit-tests-kokkos-transpose PUBLIC KokkosFFT::fft GTest::gtest)
+target_link_libraries(unit-tests-kokkos-transpose PUBLIC common KokkosFFT::testing GTest::gtest GTest::gmock)
 
 # Enable GoogleTest
 include(GoogleTest)
