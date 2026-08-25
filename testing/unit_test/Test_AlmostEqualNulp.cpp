@@ -4,7 +4,7 @@
 
 #include <gtest/gtest.h>
 #include <Kokkos_Core.hpp>
-#include "KokkosFFT_AlmostEqualNulp.hpp"
+#include "KokkosFFT_Testing_AlmostEqualNulp.hpp"
 
 namespace {
 using execution_space = Kokkos::DefaultExecutionSpace;

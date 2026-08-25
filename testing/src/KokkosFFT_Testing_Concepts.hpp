@@ -2,8 +2,8 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
-#ifndef KOKKOSFFT_CONCEPTS_HPP
-#define KOKKOSFFT_CONCEPTS_HPP
+#ifndef KOKKOSFFT_TESTING_CONCEPTS_HPP
+#define KOKKOSFFT_TESTING_CONCEPTS_HPP
 
 #include <Kokkos_Core.hpp>
 

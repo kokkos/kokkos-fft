@@ -2,14 +2,14 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
-#ifndef KOKKOSFFT_ULPS_HPP
-#define KOKKOSFFT_ULPS_HPP
+#ifndef KOKKOSFFT_TESTING_ULPS_HPP
+#define KOKKOSFFT_TESTING_ULPS_HPP
 
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Half.hpp>
 #include <Kokkos_MathematicalFunctions.hpp>
 #include <Kokkos_BitManipulation.hpp>
-#include "KokkosFFT_Concepts.hpp"
+#include "KokkosFFT_Testing_Concepts.hpp"
 
 namespace KokkosFFT {
 namespace Testing {

@@ -5,7 +5,7 @@
 #include <gtest/gtest.h>
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Half.hpp>
-#include "KokkosFFT_Ulps.hpp"
+#include "KokkosFFT_Testing_Ulps.hpp"
 
 namespace {
 using execution_space = Kokkos::DefaultExecutionSpace;
