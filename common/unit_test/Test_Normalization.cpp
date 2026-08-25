@@ -3,13 +3,17 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
 #include <cmath>
+
 #include <gtest/gtest.h>
+#include <gmock/gmock.h>
+
 #include <Kokkos_Random.hpp>
 
 #include "KokkosFFT_Convert_Types.hpp"
 #include "KokkosFFT_Layout.hpp"
 #include "KokkosFFT_Normalization.hpp"
 #include "KokkosFFT_Traits.hpp"
+#include "KokkosFFT_Testing_Allclose.hpp"
 #include "Test_Utils.hpp"
 
 namespace {
@@ -209,29 +213,29 @@ void test_normalization(KokkosFFT::Normalization norm) {
   // Backward FFT with forward Normalization -> Do nothing
   KokkosFFT::Impl::normalize<T>(exec, x, KokkosFFT::Direction::backward, norm,
                                 extents);
-  EXPECT_TRUE(allclose(exec, x, ref_b, 1.e-5, 1.e-12));
   exec.fence();
+  EXPECT_THAT(x, KokkosFFT::Testing::allclose(ref_b, 1.e-5, 1.e-12));
   Kokkos::deep_copy(x, ref_x);
 
   // Forward FFT with forward Normalization -> 1/N normalization
   KokkosFFT::Impl::normalize<T>(exec, x, KokkosFFT::Direction::forward, norm,
                                 extents);
-  EXPECT_TRUE(allclose(exec, x, ref_f, 1.e-5, 1.e-12));
   exec.fence();
+  EXPECT_THAT(x, KokkosFFT::Testing::allclose(ref_f, 1.e-5, 1.e-12));
   Kokkos::deep_copy(x, ref_x);
 
   auto extents_vec = KokkosFFT::Impl::to_vector(extents);
   KokkosFFT::Impl::normalize<T>(exec, x, KokkosFFT::Direction::backward, norm,
                                 extents_vec);
-  EXPECT_TRUE(allclose(exec, x, ref_b, 1.e-5, 1.e-12));
   exec.fence();
+  EXPECT_THAT(x, KokkosFFT::Testing::allclose(ref_b, 1.e-5, 1.e-12));
   Kokkos::deep_copy(x, ref_x);
 
   // Forward FFT with forward Normalization -> 1/N normalization
   KokkosFFT::Impl::normalize<T>(exec, x, KokkosFFT::Direction::forward, norm,
                                 extents_vec);
-  EXPECT_TRUE(allclose(exec, x, ref_f, 1.e-5, 1.e-12));
   exec.fence();
+  EXPECT_THAT(x, KokkosFFT::Testing::allclose(ref_f, 1.e-5, 1.e-12));
 }
 
 void test_swap_direction(KokkosFFT::Normalization norm) {
