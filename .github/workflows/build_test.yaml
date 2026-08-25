@@ -80,7 +80,7 @@ jobs:
             cmake_flags:
               cxx_standard: 20
               kokkos: -DKokkos_ENABLE_THREADS=ON
-              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON -DKokkosFFT_ENABLE_TESTING_TOOLS=ON
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
               benchmark: ON
             cmake_build_type: Release
           - name: serial
@@ -102,7 +102,7 @@ jobs:
             cmake_flags:
               cxx_standard: 20
               kokkos: -DKokkos_ENABLE_CUDA=ON -DKokkos_ARCH_AMPERE80=ON -DKokkos_ENABLE_OPENMP=ON -DKokkos_ENABLE_SERIAL=ON
-              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror" -DKokkosFFT_ENABLE_TESTING_TOOLS=ON
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror"
               benchmark: ON
             cmake_build_type: Release
           - name: hip
@@ -124,7 +124,7 @@ jobs:
             cmake_flags:
               cxx_standard: 20
               kokkos: -DKokkos_ENABLE_HIP=ON -DKokkos_ARCH_AMD_GFX90A=ON
-              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror" -DKokkosFFT_ENABLE_ROCFFT=ON -DKokkosFFT_ENABLE_TESTING_TOOLS=ON
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror" -DKokkosFFT_ENABLE_ROCFFT=ON
               benchmark: ON
             cmake_build_type: Release
           - name: sycl

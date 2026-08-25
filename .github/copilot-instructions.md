@@ -94,7 +94,6 @@ cd build && ctest --output-on-failure
 | `KokkosFFT_ENABLE_ROCFFT` | OFF | Enable rocFFT (AMD GPU, alternative to hipFFT) |
 | `KokkosFFT_ENABLE_ONEMKL` | auto | Enable oneMKL (Intel GPU) |
 | `KokkosFFT_ENABLE_DISTRIBUTED` | OFF | Enable distributed (MPI) FFT support |
-| `KokkosFFT_ENABLE_TESTING_TOOLS` | OFF | Enable testing utility library |
 
 ### Test Executables
 
