@@ -6,8 +6,11 @@
 #include <cstddef>
 #include <string>
 #include <vector>
+
 #include <gtest/gtest.h>
+
 #include <Kokkos_Core.hpp>
+
 #include "KokkosFFT_Asserts.hpp"
 
 namespace {

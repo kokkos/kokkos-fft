@@ -2,12 +2,18 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
+#include <array>
+#include <utility>
+
 #include <gtest/gtest.h>
+
 #include <Kokkos_Core.hpp>
+
 #include "KokkosFFT_Traits.hpp"
 #include "KokkosFFT_MDOperations.hpp"
 #include "KokkosFFT_UnaryOps.hpp"
-#include "Test_Utils.hpp"
+#include "KokkosFFT_Testing_Allclose.hpp"
+#include "KokkosFFT_Testing_TypeCartesianProduct.hpp"
 
 namespace {
 #if defined(KOKKOS_ENABLE_SERIAL)
@@ -23,11 +29,11 @@ using base_int_types    = std::tuple<int, std::size_t>;
 using base_layout_types = std::tuple<Kokkos::LayoutLeft, Kokkos::LayoutRight>;
 
 using test_types =
-    tuple_to_types_t<cartesian_product_t<base_execution_space_types,
-                                         base_int_types, base_layout_types>>;
-
-using test_ops_types = tuple_to_types_t<
-    cartesian_product_t<base_execution_space_types, base_layout_types>>;
+    KokkosFFT::Testing::make_cartesian_types<base_execution_space_types,
+                                             base_int_types, base_layout_types>;
+using test_ops_types =
+    KokkosFFT::Testing::make_cartesian_types<base_execution_space_types,
+                                             base_layout_types>;
 
 template <typename T>
 struct TestGetMDPolicy : public ::testing::Test {
@@ -119,9 +125,8 @@ void test_md_unary_operation(UnaryOpType op, T init_scalar, T ref_scalar) {
   Kokkos::deep_copy(exec, x_ref, ref_scalar);
 
   KokkosFFT::Impl::md_unary_operation<int>("TestMDUnaryOperation", exec, x, op);
-
-  EXPECT_TRUE(allclose(exec, x, x_ref, 1.e-5, 1.e-12));
   exec.fence();
+  EXPECT_THAT(x, KokkosFFT::Testing::allclose(x_ref, 1.e-5, 1.e-12));
 }
 
 }  // namespace
