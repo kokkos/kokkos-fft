@@ -61,6 +61,7 @@ jobs:
               kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON -DCMAKE_CXX_CLANG_TIDY="clang-tidy;-warnings-as-errors=*"
               benchmark: OFF
             cmake_build_type: Debug
+            build_procs: 4
           - name: openmp
             image: gcc
             compiler:
@@ -72,6 +73,7 @@ jobs:
               kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
               benchmark: ON
             cmake_build_type: Debug
+            build_procs: 4
           - name: threads
             image: gcc
             compiler:
@@ -83,6 +85,7 @@ jobs:
               kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
               benchmark: ON
             cmake_build_type: Release
+            build_procs: 4
           - name: serial
             image: gcc
             compiler:
@@ -94,6 +97,7 @@ jobs:
               kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra" -DCMAKE_COMPILE_WARNING_AS_ERROR=ON
               benchmark: ON
             cmake_build_type: Release
+            build_procs: 4
           - name: cuda
             image: nvcc
             compiler:
@@ -105,6 +109,7 @@ jobs:
               kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror"
               benchmark: ON
             cmake_build_type: Release
+            build_procs: 2
           - name: hip
             image: rocm
             compiler:
@@ -116,6 +121,7 @@ jobs:
               kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror"
               benchmark: ON
             cmake_build_type: Release
+            build_procs: 4
           - name: rocm
             image: rocm
             compiler:
@@ -127,6 +133,7 @@ jobs:
               kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror" -DKokkosFFT_ENABLE_ROCFFT=ON
               benchmark: ON
             cmake_build_type: Release
+            build_procs: 4
           - name: sycl
             image: intel
             compiler:
@@ -140,6 +147,7 @@ jobs:
               kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra"
               benchmark: ON
             cmake_build_type: Release
+            build_procs: 4
         target:
           - name: native
             cmake_flags: ""
@@ -194,7 +202,7 @@ jobs:
       - name: Build
         run: |
           docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
-            cmake --build build -j 4
+            cmake --build build -j ${{ matrix.backend.build_procs }}
 
       - name: Prepare artifacts
         # this is mandatory to preserve execution rights
@@ -251,7 +259,7 @@ jobs:
             ${{ matrix.backend.cmake_flags.kokkos }} \
             tpls/kokkos
           docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
-            cmake --build build_kokkos -j 4
+            cmake --build build_kokkos -j ${{ matrix.backend.build_procs }}
           docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
             cmake --install build_kokkos
 
@@ -268,7 +276,7 @@ jobs:
             ${{ matrix.backend.cmake_flags.kokkos_fft }} \
             ${{ matrix.target.cmake_flags }}
           docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
-            cmake --build build_kokkos_fft -j 4
+            cmake --build build_kokkos_fft -j ${{ matrix.backend.build_procs }}
           docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
             cmake --install build_kokkos_fft
 
@@ -283,7 +291,7 @@ jobs:
             -DCMAKE_CXX_STANDARD=${{ matrix.backend.cmake_flags.cxx_standard }} \
             install_test/as_library
           docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
-            cmake --build install_test/as_library/build -j 4
+            cmake --build install_test/as_library/build -j ${{ matrix.backend.build_procs }}
 
   # test the project
   test:
