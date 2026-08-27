@@ -71,10 +71,28 @@ void crop_or_pad_impl(const ExecutionSpace& exec_space, const SrcViewType& src,
 template <typename ExecutionSpace, typename SrcViewType, typename DstViewType>
 void crop_or_pad(const ExecutionSpace& exec_space, const SrcViewType& src,
                  const DstViewType& dst) {
-  KOKKOSFFT_STATIC_ASSERT_VIEWS_ARE_OPERATABLE(
-      (KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, SrcViewType,
-                                               DstViewType>),
-      "crop_or_pad");
+  static_assert(
+      is_operatable_view_v<ExecutionSpace, SrcViewType>,
+      "crop_or_pad: Src View value type must be float, double, "
+      "Kokkos::Complex<float>, or Kokkos::Complex<double>. "
+      "Layout must be either LayoutLeft or LayoutRight. "
+      "The data in SrcViewType must be accessible from ExecutionSpace.");
+
+  static_assert(
+      is_operatable_view_v<ExecutionSpace, DstViewType>,
+      "crop_or_pad: Dst View value type must be float, double, "
+      "Kokkos::Complex<float>, or Kokkos::Complex<double>. "
+      "Layout must be either LayoutLeft or LayoutRight. "
+      "The data in DstViewType must be accessible from ExecutionSpace.");
+
+  static_assert(have_same_rank_v<SrcViewType, DstViewType>,
+                "crop_or_pad: Src and Dst View must have the same rank.");
+
+  static_assert(
+      have_same_base_floating_point_type_v<SrcViewType, DstViewType>,
+      "crop_or_pad: Src and Dst View must have the same base floating point "
+      "type.");
+
   crop_or_pad_impl(exec_space, src, dst,
                    std::make_index_sequence<SrcViewType::rank()>{});
 }
