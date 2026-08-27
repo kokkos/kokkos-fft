@@ -2,15 +2,20 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
+#include <array>
 #include <utility>
+
 #include <gtest/gtest.h>
+#include <gmock/gmock.h>
+
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Random.hpp>
+
 #include "KokkosFFT_Common_Types.hpp"
 #include "KokkosFFT_Mapping.hpp"
 #include "KokkosFFT_Extents.hpp"
 #include "KokkosFFT_Transpose.hpp"
-#include "Test_Utils.hpp"
+#include "KokkosFFT_Testing_Allclose.hpp"
 
 namespace {
 using execution_space = Kokkos::DefaultExecutionSpace;
@@ -225,7 +230,8 @@ void test_transpose_1d(bool bounds_check) {
     make_transposed(x, xt_ref, map);
 
     KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
-    EXPECT_TRUE(allclose(exec, xt, xt_ref, 1.e-5, 1.e-12));
+    exec.fence();
+    EXPECT_THAT(xt, KokkosFFT::Testing::allclose(xt_ref, 1.e-5, 1.e-12));
 
     // Inverse (transpose of transpose is identical to the original)
     ViewLayout1type x_inv("x_inv", in_layout),
@@ -239,8 +245,8 @@ void test_transpose_1d(bool bounds_check) {
     }
 
     KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
-    EXPECT_TRUE(allclose(exec, x_inv, x_inv_ref, 1.e-5, 1.e-12));
     exec.fence();
+    EXPECT_THAT(x_inv, KokkosFFT::Testing::allclose(x_inv_ref, 1.e-5, 1.e-12));
   }
 }
 
@@ -278,7 +284,8 @@ void test_transpose_2d(bool bounds_check) {
       make_transposed(x, xt_ref, map);
 
       KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
-      EXPECT_TRUE(allclose(exec, xt, xt_ref, 1.e-5, 1.e-12));
+      exec.fence();
+      EXPECT_THAT(xt, KokkosFFT::Testing::allclose(xt_ref, 1.e-5, 1.e-12));
 
       // Inverse (transpose of transpose is identical to the original)
       ViewLayout1type x_inv("x_inv", in_layout),
@@ -292,8 +299,9 @@ void test_transpose_2d(bool bounds_check) {
       }
 
       KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
-      EXPECT_TRUE(allclose(exec, x_inv, x_inv_ref, 1.e-5, 1.e-12));
       exec.fence();
+      EXPECT_THAT(x_inv,
+                  KokkosFFT::Testing::allclose(x_inv_ref, 1.e-5, 1.e-12));
     }
   }
 }
@@ -334,7 +342,8 @@ void test_transpose_3d(bool bounds_check) {
         make_transposed(x, xt_ref, map);
 
         KokkosFFT::Impl::transpose(exec, x, xt, map, bounds_check);
-        EXPECT_TRUE(allclose(exec, xt, xt_ref, 1.e-5, 1.e-12));
+        exec.fence();
+        EXPECT_THAT(xt, KokkosFFT::Testing::allclose(xt_ref, 1.e-5, 1.e-12));
 
         // Inverse (transpose of transpose is identical to the original)
         ViewLayout1type x_inv("x_inv", in_layout),
@@ -348,8 +357,9 @@ void test_transpose_3d(bool bounds_check) {
         }
 
         KokkosFFT::Impl::transpose(exec, xt, x_inv, map_inv, bounds_check);
-        EXPECT_TRUE(allclose(exec, x_inv, x_inv_ref, 1.e-5, 1.e-12));
         exec.fence();
+        EXPECT_THAT(x_inv,
+                    KokkosFFT::Testing::allclose(x_inv_ref, 1.e-5, 1.e-12));
       }
     }
   }
