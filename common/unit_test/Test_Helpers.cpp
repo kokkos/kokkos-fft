@@ -233,8 +233,8 @@ void test_fftshift1D_1DView(int n0) {
 
   exec.fence();
 
-  EXPECT_THAT(x, KokkosFFT::Testing::allclose(y_ref, 1.e-5, 1.e-12));
-  EXPECT_THAT(y, KokkosFFT::Testing::allclose(x_ref, 1.e-5, 1.e-12));
+  EXPECT_THAT(x, KokkosFFT::Testing::allclose(y_ref));
+  EXPECT_THAT(y, KokkosFFT::Testing::allclose(x_ref));
 }
 
 // Tests for fftshift1D on 2D View
@@ -297,8 +297,8 @@ void test_fftshift1D_2DView(int n0) {
   KokkosFFT::ifftshift(exec, y_axis0, axes_type<1>({0}));
 
   exec.fence();
-  EXPECT_THAT(x, KokkosFFT::Testing::allclose(y_axis0_ref, 1.e-5, 1.e-12));
-  EXPECT_THAT(y_axis0, KokkosFFT::Testing::allclose(x_ref, 1.e-5, 1.e-12));
+  EXPECT_THAT(x, KokkosFFT::Testing::allclose(y_axis0_ref));
+  EXPECT_THAT(y_axis0, KokkosFFT::Testing::allclose(x_ref));
 
   Kokkos::deep_copy(x, h_x_ref);
 
