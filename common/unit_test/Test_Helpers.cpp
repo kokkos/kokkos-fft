@@ -2,10 +2,16 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
-#include <gtest/gtest.h>
+#include <cmath>
 #include <vector>
+
+#include <gtest/gtest.h>
+
+#include <Kokkos_Core.hpp>
 #include <Kokkos_Random.hpp>
+
 #include "KokkosFFT_Helpers.hpp"
+#include "KokkosFFT_Testing_Allclose.hpp"
 #include "Test_Utils.hpp"
 
 namespace {
@@ -52,25 +58,24 @@ void test_fft_freq(T atol = 1.0e-12) {
 
   Kokkos::deep_copy(x_odd_ref, h_x_odd_ref);
   Kokkos::deep_copy(x_even_ref, h_x_even_ref);
-  T pi       = static_cast<T>(M_PI);
-  auto x_odd = KokkosFFT::fftfreq<execution_space, T>(execution_space(), n_odd);
-  auto x_odd_pi =
-      KokkosFFT::fftfreq<execution_space, T>(execution_space(), n_odd, pi);
-  multiply(execution_space(), x_odd, static_cast<T>(n_odd));
-  multiply(execution_space(), x_odd_pi, static_cast<T>(n_odd) * pi);
+  T pi = static_cast<T>(M_PI);
 
-  EXPECT_TRUE(allclose(execution_space(), x_odd, x_odd_ref, 1.e-5, atol));
-  EXPECT_TRUE(allclose(execution_space(), x_odd_pi, x_odd_ref, 1.e-5, atol));
+  execution_space exec;
+  auto x_odd    = KokkosFFT::fftfreq<execution_space, T>(exec, n_odd);
+  auto x_odd_pi = KokkosFFT::fftfreq<execution_space, T>(exec, n_odd, pi);
+  multiply(exec, x_odd, static_cast<T>(n_odd));
+  multiply(exec, x_odd_pi, static_cast<T>(n_odd) * pi);
 
-  auto x_even =
-      KokkosFFT::fftfreq<execution_space, T>(execution_space(), n_even);
-  auto x_even_pi =
-      KokkosFFT::fftfreq<execution_space, T>(execution_space(), n_even, pi);
-  multiply(execution_space(), x_even, static_cast<T>(n_even));
-  multiply(execution_space(), x_even_pi, static_cast<T>(n_even) * pi);
+  EXPECT_THAT(x_odd, KokkosFFT::Testing::allclose(x_odd_ref, 1.e-5, atol));
+  EXPECT_THAT(x_odd_pi, KokkosFFT::Testing::allclose(x_odd_ref, 1.e-5, atol));
 
-  EXPECT_TRUE(allclose(execution_space(), x_even, x_even_ref, 1.e-5, atol));
-  EXPECT_TRUE(allclose(execution_space(), x_even_pi, x_even_ref, 1.e-5, atol));
+  auto x_even    = KokkosFFT::fftfreq<execution_space, T>(exec, n_even);
+  auto x_even_pi = KokkosFFT::fftfreq<execution_space, T>(exec, n_even, pi);
+  multiply(exec, x_even, static_cast<T>(n_even));
+  multiply(exec, x_even_pi, static_cast<T>(n_even) * pi);
+
+  EXPECT_THAT(x_even, KokkosFFT::Testing::allclose(x_even_ref, 1.e-5, atol));
+  EXPECT_THAT(x_even_pi, KokkosFFT::Testing::allclose(x_even_ref, 1.e-5, atol));
 }
 
 // Tests for RFFT Freq
@@ -98,25 +103,23 @@ void test_rfft_freq(T atol = 1.0e-12) {
   Kokkos::deep_copy(x_odd_ref, h_x_odd_ref);
   Kokkos::deep_copy(x_even_ref, h_x_even_ref);
   T pi = static_cast<T>(M_PI);
-  auto x_odd =
-      KokkosFFT::rfftfreq<execution_space, T>(execution_space(), n_odd);
-  auto x_odd_pi =
-      KokkosFFT::rfftfreq<execution_space, T>(execution_space(), n_odd, pi);
-  multiply(execution_space(), x_odd, static_cast<T>(n_odd));
-  multiply(execution_space(), x_odd_pi, static_cast<T>(n_odd) * pi);
 
-  EXPECT_TRUE(allclose(execution_space(), x_odd, x_odd_ref, 1.e-5, atol));
-  EXPECT_TRUE(allclose(execution_space(), x_odd_pi, x_odd_ref, 1.e-5, atol));
+  execution_space exec;
+  auto x_odd    = KokkosFFT::rfftfreq<execution_space, T>(exec, n_odd);
+  auto x_odd_pi = KokkosFFT::rfftfreq<execution_space, T>(exec, n_odd, pi);
+  multiply(exec, x_odd, static_cast<T>(n_odd));
+  multiply(exec, x_odd_pi, static_cast<T>(n_odd) * pi);
 
-  auto x_even =
-      KokkosFFT::rfftfreq<execution_space, T>(execution_space(), n_even);
-  auto x_even_pi =
-      KokkosFFT::rfftfreq<execution_space, T>(execution_space(), n_even, pi);
-  multiply(execution_space(), x_even, static_cast<T>(n_even));
-  multiply(execution_space(), x_even_pi, static_cast<T>(n_even) * pi);
+  EXPECT_THAT(x_odd, KokkosFFT::Testing::allclose(x_odd_ref, 1.e-5, atol));
+  EXPECT_THAT(x_odd_pi, KokkosFFT::Testing::allclose(x_odd_ref, 1.e-5, atol));
 
-  EXPECT_TRUE(allclose(execution_space(), x_even, x_even_ref, 1.e-5, atol));
-  EXPECT_TRUE(allclose(execution_space(), x_even_pi, x_even_ref, 1.e-5, atol));
+  auto x_even    = KokkosFFT::rfftfreq<execution_space, T>(exec, n_even);
+  auto x_even_pi = KokkosFFT::rfftfreq<execution_space, T>(exec, n_even, pi);
+  multiply(exec, x_even, static_cast<T>(n_even));
+  multiply(exec, x_even_pi, static_cast<T>(n_even) * pi);
+
+  EXPECT_THAT(x_even, KokkosFFT::Testing::allclose(x_even_ref, 1.e-5, atol));
+  EXPECT_THAT(x_even_pi, KokkosFFT::Testing::allclose(x_even_ref, 1.e-5, atol));
 }
 
 // Tests for get shifts
@@ -124,8 +127,8 @@ void test_get_shift1D_1DView(int n0, int direction) {
   using RealView1DType = Kokkos::View<double*, execution_space>;
   RealView1DType x("x", n0);
 
-  Kokkos::Array<std::size_t, 1> shifts1_ref = {};
-  int shift0                                = direction * n0 / 2;
+  Kokkos::Array<std::size_t, 1> shifts1_ref{};
+  int shift0 = direction * n0 / 2;
   if (shift0 < 0) shift0 += n0;
   shifts1_ref[0] = static_cast<std::size_t>(shift0);
   auto shifts1 =
@@ -138,7 +141,7 @@ void test_get_shift1D_2DView(int n0, int direction) {
   const int n1         = 5;
   RealView2DType x("x", n0, n1);
 
-  Kokkos::Array<std::size_t, 2> shifts1_axis0_ref = {}, shifts1_axis1_ref = {};
+  Kokkos::Array<std::size_t, 2> shifts1_axis0_ref{}, shifts1_axis1_ref{};
   int shift0 = direction * n0 / 2;
   if (shift0 < 0) shift0 += n0;
   shifts1_axis0_ref[0] = static_cast<std::size_t>(shift0);
@@ -160,8 +163,8 @@ void test_get_shift2D_2DView(int n0, int direction) {
   const int n1         = 5;
   RealView2DType x("x", n0, n1);
 
-  Kokkos::Array<std::size_t, 2> shifts2_ref = {};
-  int shift0                                = direction * n0 / 2;
+  Kokkos::Array<std::size_t, 2> shifts2_ref{};
+  int shift0 = direction * n0 / 2;
   if (shift0 < 0) shift0 += n0;
   shifts2_ref[0] = static_cast<std::size_t>(shift0);
 
@@ -180,16 +183,18 @@ void test_fftshift1D_1DView_identity(int n0) {
 
   RealView1DType x("x", n0), x_ref("x_ref", n0);
 
-  Kokkos::Random_XorShift64_Pool<> random_pool(/*seed=*/12345);
-  Kokkos::fill_random(x, random_pool, 1.0);
+  execution_space exec;
+  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(/*seed=*/12345);
+  Kokkos::fill_random(exec, x, random_pool, 1.0);
+  exec.fence();
+
   Kokkos::deep_copy(x_ref, x);
 
-  Kokkos::fence();
+  KokkosFFT::fftshift(exec, x);
+  KokkosFFT::ifftshift(exec, x);
 
-  KokkosFFT::fftshift(execution_space(), x);
-  KokkosFFT::ifftshift(execution_space(), x);
-
-  EXPECT_TRUE(allclose(execution_space(), x, x_ref, 1.e-5, 1.e-12));
+  exec.fence();
+  EXPECT_THAT(x, KokkosFFT::Testing::allclose(x_ref, 1.e-5, 1.e-12));
 }
 
 // Tests for fftshift1D on 1D View
@@ -222,11 +227,14 @@ void test_fftshift1D_1DView(int n0) {
   Kokkos::deep_copy(x, h_x_ref);
   Kokkos::deep_copy(y, h_y_ref);
 
-  KokkosFFT::fftshift(execution_space(), x);
-  KokkosFFT::ifftshift(execution_space(), y);
+  execution_space exec;
+  KokkosFFT::fftshift(exec, x);
+  KokkosFFT::ifftshift(exec, y);
 
-  EXPECT_TRUE(allclose(execution_space(), x, y_ref));
-  EXPECT_TRUE(allclose(execution_space(), y, x_ref));
+  exec.fence();
+
+  EXPECT_THAT(x, KokkosFFT::Testing::allclose(y_ref, 1.e-5, 1.e-12));
+  EXPECT_THAT(y, KokkosFFT::Testing::allclose(x_ref, 1.e-5, 1.e-12));
 }
 
 // Tests for fftshift1D on 2D View
@@ -283,19 +291,23 @@ void test_fftshift1D_2DView(int n0) {
   Kokkos::deep_copy(y_axis0, h_y_axis0_ref);
   Kokkos::deep_copy(y_axis1, h_y_axis1_ref);
 
-  KokkosFFT::fftshift(execution_space(), x, axes_type<1>({0}));
-  KokkosFFT::ifftshift(execution_space(), y_axis0, axes_type<1>({0}));
+  execution_space exec;
 
-  EXPECT_TRUE(allclose(execution_space(), x, y_axis0_ref));
-  EXPECT_TRUE(allclose(execution_space(), y_axis0, x_ref));
+  KokkosFFT::fftshift(exec, x, axes_type<1>({0}));
+  KokkosFFT::ifftshift(exec, y_axis0, axes_type<1>({0}));
+
+  exec.fence();
+  EXPECT_THAT(x, KokkosFFT::Testing::allclose(y_axis0_ref, 1.e-5, 1.e-12));
+  EXPECT_THAT(y_axis0, KokkosFFT::Testing::allclose(x_ref, 1.e-5, 1.e-12));
 
   Kokkos::deep_copy(x, h_x_ref);
 
-  KokkosFFT::fftshift(execution_space(), x, axes_type<1>({1}));
-  KokkosFFT::ifftshift(execution_space(), y_axis1, axes_type<1>({1}));
+  KokkosFFT::fftshift(exec, x, axes_type<1>({1}));
+  KokkosFFT::ifftshift(exec, y_axis1, axes_type<1>({1}));
 
-  EXPECT_TRUE(allclose(execution_space(), x, y_axis1_ref));
-  EXPECT_TRUE(allclose(execution_space(), y_axis1, x_ref));
+  exec.fence();
+  EXPECT_THAT(x, KokkosFFT::Testing::allclose(y_axis1_ref));
+  EXPECT_THAT(y_axis1, KokkosFFT::Testing::allclose(x_ref));
 }
 
 // Tests for fftshift2D on 2D View
@@ -339,11 +351,14 @@ void test_fftshift2D_2DView(int n0) {
   Kokkos::deep_copy(x, h_x_ref);
   Kokkos::deep_copy(y, h_y_ref);
 
-  KokkosFFT::fftshift(execution_space(), x, axes_type<2>({0, 1}));
-  KokkosFFT::ifftshift(execution_space(), y, axes_type<2>({0, 1}));
+  execution_space exec;
+  KokkosFFT::fftshift(exec, x, axes_type<2>({0, 1}));
+  KokkosFFT::ifftshift(exec, y, axes_type<2>({0, 1}));
 
-  EXPECT_TRUE(allclose(execution_space(), x, y_ref));
-  EXPECT_TRUE(allclose(execution_space(), y, x_ref));
+  exec.fence();
+
+  EXPECT_THAT(x, KokkosFFT::Testing::allclose(y_ref));
+  EXPECT_THAT(y, KokkosFFT::Testing::allclose(x_ref));
 }
 
 // Tests for fftshift3D on 3D View
@@ -399,11 +414,15 @@ void test_fftshift3D_3DView(int n0) {
   Kokkos::deep_copy(x, h_x_ref);
   Kokkos::deep_copy(y, h_y_ref);
 
-  KokkosFFT::fftshift(execution_space(), x, axes_type<3>({0, 1, 2}));
-  KokkosFFT::ifftshift(execution_space(), y, axes_type<3>({0, 1, 2}));
+  execution_space exec;
 
-  EXPECT_TRUE(allclose(execution_space(), x, y_ref));
-  EXPECT_TRUE(allclose(execution_space(), y, x_ref));
+  KokkosFFT::fftshift(exec, x, axes_type<3>({0, 1, 2}));
+  KokkosFFT::ifftshift(exec, y, axes_type<3>({0, 1, 2}));
+
+  exec.fence();
+
+  EXPECT_THAT(x, KokkosFFT::Testing::allclose(y_ref));
+  EXPECT_THAT(y, KokkosFFT::Testing::allclose(x_ref));
 }
 
 // Tests for fftshift4D on 4D View
@@ -478,11 +497,14 @@ void test_fftshift4D_4DView(int n0) {
   Kokkos::deep_copy(x, h_x_ref);
   Kokkos::deep_copy(y, h_y_ref);
 
-  KokkosFFT::fftshift(execution_space(), x, axes_type<4>({0, 1, 2, 3}));
-  KokkosFFT::ifftshift(execution_space(), y, axes_type<4>({0, 1, 2, 3}));
+  execution_space exec;
 
-  EXPECT_TRUE(allclose(execution_space(), x, y_ref));
-  EXPECT_TRUE(allclose(execution_space(), y, x_ref));
+  KokkosFFT::fftshift(exec, x, axes_type<4>({0, 1, 2, 3}));
+  KokkosFFT::ifftshift(exec, y, axes_type<4>({0, 1, 2, 3}));
+  exec.fence();
+
+  EXPECT_THAT(x, KokkosFFT::Testing::allclose(y_ref));
+  EXPECT_THAT(y, KokkosFFT::Testing::allclose(x_ref));
 }
 
 // Tests for fftshift5D on 5D View (Identity test only)
@@ -502,7 +524,8 @@ void test_fftshift5D_5DView(int n0) {
   KokkosFFT::fftshift(exec, x, axes_type<5>({0, 1, 2, 3, 4}));
   KokkosFFT::ifftshift(exec, x, axes_type<5>({0, 1, 2, 3, 4}));
 
-  EXPECT_TRUE(allclose(exec, x, x_ref));
+  exec.fence();
+  EXPECT_THAT(x, KokkosFFT::Testing::allclose(x_ref));
 }
 
 // Tests for fftshift6D on 6D View (Identity test only)
@@ -522,7 +545,8 @@ void test_fftshift6D_6DView(int n0) {
   KokkosFFT::fftshift(exec, x, axes_type<6>({0, 1, 2, 3, 4, 5}));
   KokkosFFT::ifftshift(exec, x, axes_type<6>({0, 1, 2, 3, 4, 5}));
 
-  EXPECT_TRUE(allclose(exec, x, x_ref));
+  exec.fence();
+  EXPECT_THAT(x, KokkosFFT::Testing::allclose(x_ref));
 }
 
 // Tests for fftshift7D on 7D View (Identity test only)
@@ -542,7 +566,8 @@ void test_fftshift7D_7DView(int n0) {
   KokkosFFT::fftshift(exec, x, axes_type<7>({0, 1, 2, 3, 4, 5, 6}));
   KokkosFFT::ifftshift(exec, x, axes_type<7>({0, 1, 2, 3, 4, 5, 6}));
 
-  EXPECT_TRUE(allclose(exec, x, x_ref));
+  exec.fence();
+  EXPECT_THAT(x, KokkosFFT::Testing::allclose(x_ref));
 }
 
 // Tests for fftshift8D on 8D View (Identity test only)
@@ -562,7 +587,8 @@ void test_fftshift8D_8DView(int n0) {
   KokkosFFT::fftshift(exec, x, axes_type<8>({0, 1, 2, 3, 4, 5, 6, 7}));
   KokkosFFT::ifftshift(exec, x, axes_type<8>({0, 1, 2, 3, 4, 5, 6, 7}));
 
-  EXPECT_TRUE(allclose(exec, x, x_ref));
+  exec.fence();
+  EXPECT_THAT(x, KokkosFFT::Testing::allclose(x_ref));
 }
 
 }  // namespace
