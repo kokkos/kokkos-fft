@@ -203,18 +203,19 @@ void test_modified_shape_1d() {
   OutViewType x_out("x_out", out_layout);
 
   auto default_extents = out_extents;
-  for (int axis0 = 0; axis0 < DIM; axis0++) {
-    auto in_extents = default_extents;
-    in_extents.at(axis0) =
-        KokkosFFT::Impl::extent_after_transform(x_out.extent(axis0), is_C2R);
+  for (int axis0 = -1; axis0 < DIM; axis0++) {
+    auto in_extents                  = default_extents;
+    int non_negative_axis            = axis0 < 0 ? axis0 + DIM : axis0;
+    in_extents.at(non_negative_axis) = KokkosFFT::Impl::extent_after_transform(
+        x_out.extent(non_negative_axis), is_C2R);
 
     auto in_layout =
         KokkosFFT::Impl::create_layout<Kokkos::LayoutRight>(in_extents);
     InViewType x_in("x_in", in_layout);
     for (int i0 = -1; i0 <= 1; i0++) {
       auto ref_extents   = default_extents;
-      std::size_t n0_new = x_in.extent_int(axis0) + i0;
-      ref_extents.at(axis0) =
+      std::size_t n0_new = x_in.extent_int(non_negative_axis) + i0;
+      ref_extents.at(non_negative_axis) =
           KokkosFFT::Impl::extent_after_transform(n0_new, is_C2R);
       shape_type<1> new_extents = {n0_new};
       auto modified_extents     = KokkosFFT::Impl::get_modified_shape(
