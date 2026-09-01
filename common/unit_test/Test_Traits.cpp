@@ -2,9 +2,18 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
+#include <array>
+#include <utility>
+#include <type_traits>
+#include <vector>
+
 #include <gtest/gtest.h>
+#include <gmock/gmock.h>
+
+#include <Kokkos_Core.hpp>
+
 #include "KokkosFFT_Traits.hpp"
-#include "Test_Utils.hpp"
+#include "KokkosFFT_Testing_TypeCartesianProduct.hpp"
 
 // All the tests in this file are compile time tests, so we skip all the tests
 // by GTEST_SKIP(). gtest is used for type parameterization.
@@ -35,14 +44,12 @@ using view_types =
 
 // Define all the combinations
 using paired_value_types =
-    tuple_to_types_t<cartesian_product_t<base_real_types, base_real_types>>;
-
+    KokkosFFT::Testing::make_cartesian_types<base_real_types, base_real_types>;
 using paired_layout_types =
-    tuple_to_types_t<cartesian_product_t<base_layout_types, base_layout_types>>;
-
-using paired_view_types =
-    tuple_to_types_t<cartesian_product_t<base_real_types, base_layout_types,
-                                         base_real_types, base_layout_types>>;
+    KokkosFFT::Testing::make_cartesian_types<base_layout_types,
+                                             base_layout_types>;
+using paired_view_types = KokkosFFT::Testing::make_cartesian_types<
+    base_real_types, base_layout_types, base_real_types, base_layout_types>;
 
 template <typename T>
 struct CompileTestContainerTypes : public ::testing::Test {
