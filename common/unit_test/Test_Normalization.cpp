@@ -2,19 +2,25 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
+#include <array>
 #include <cmath>
+#include <limits>
+#include <utility>
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
+#include <Kokkos_Core.hpp>
 #include <Kokkos_Random.hpp>
 
 #include "KokkosFFT_Convert_Types.hpp"
 #include "KokkosFFT_Layout.hpp"
 #include "KokkosFFT_Normalization.hpp"
+#include "KokkosFFT_MDOperations.hpp"
 #include "KokkosFFT_Traits.hpp"
+#include "KokkosFFT_UnaryOps.hpp"
+
 #include "KokkosFFT_Testing_Allclose.hpp"
-#include "Test_Utils.hpp"
 
 namespace {
 using execution_space = Kokkos::DefaultExecutionSpace;
@@ -206,8 +212,10 @@ void test_normalization(KokkosFFT::Normalization norm) {
       KokkosFFT::Impl::get_coefficients<T>(KokkosFFT::Direction::backward, norm,
                                            extents);
 
-  multiply(exec, ref_f, coef_f);
-  multiply(exec, ref_b, coef_b);
+  // Make references
+  KokkosFFT::Impl::Multiply mul_f(coef_f), mul_b(coef_b);
+  KokkosFFT::Impl::md_unary_operation<int>("norm_mul_f", exec, ref_f, mul_f);
+  KokkosFFT::Impl::md_unary_operation<int>("norm_mul_b", exec, ref_b, mul_b);
   exec.fence();
 
   // Backward FFT with forward Normalization -> Do nothing
