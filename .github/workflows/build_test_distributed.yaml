@@ -175,6 +175,21 @@ jobs:
         with:
           submodules: recursive
 
+      # Rebuild the image from the Docker file of the branch under test, so that
+      # a change to docker/**/Dockerfile is exercised by the very PR that makes
+      # it instead of only after the image has been pushed to the registry. The
+      # registry image is used as a layer cache, hence this is essentially the
+      # pull that happened anyway when the Docker file is unchanged. The image
+      # keeps the registry name, so the steps below run the freshly built one.
+      - name: Build Docker image
+        run: |
+          docker build \
+            -t ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
+            --cache-from ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
+            --build-arg BUILDKIT_INLINE_CACHE=1 \
+            --progress=plain \
+            docker/${{ matrix.backend.image }}
+
       - name: Configure
         run: |
           docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
