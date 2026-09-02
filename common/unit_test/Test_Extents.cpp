@@ -2,12 +2,16 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
+#include <array>
+#include <stdexcept>
+#include <tuple>
+#include <vector>
+
 #include <gtest/gtest.h>
 #include <Kokkos_Random.hpp>
-#include <vector>
+
 #include "KokkosFFT_Extents.hpp"
 #include "KokkosFFT_Traits.hpp"
-#include "Test_Utils.hpp"
 
 namespace {
 using execution_space = Kokkos::DefaultExecutionSpace;

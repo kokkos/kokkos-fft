@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
 #include <cmath>
+#include <utility>
 #include <vector>
 
 #include <gtest/gtest.h>
@@ -11,8 +12,9 @@
 #include <Kokkos_Random.hpp>
 
 #include "KokkosFFT_Helpers.hpp"
+#include "KokkosFFT_MDOperations.hpp"
+#include "KokkosFFT_UnaryOps.hpp"
 #include "KokkosFFT_Testing_Allclose.hpp"
-#include "Test_Utils.hpp"
 
 namespace {
 using execution_space = Kokkos::DefaultExecutionSpace;
@@ -63,16 +65,26 @@ void test_fft_freq(T atol = 1.0e-12) {
   execution_space exec;
   auto x_odd    = KokkosFFT::fftfreq<execution_space, T>(exec, n_odd);
   auto x_odd_pi = KokkosFFT::fftfreq<execution_space, T>(exec, n_odd, pi);
-  multiply(exec, x_odd, static_cast<T>(n_odd));
-  multiply(exec, x_odd_pi, static_cast<T>(n_odd) * pi);
+
+  KokkosFFT::Impl::Multiply mul_odd_n(static_cast<T>(n_odd)),
+      mul_odd_pi(static_cast<T>(n_odd) * pi);
+  KokkosFFT::Impl::md_unary_operation<int>("mul_odd_n", exec, x_odd, mul_odd_n);
+  KokkosFFT::Impl::md_unary_operation<int>("mul_odd_pi", exec, x_odd_pi,
+                                           mul_odd_pi);
+  exec.fence();
 
   EXPECT_THAT(x_odd, KokkosFFT::Testing::allclose(x_odd_ref, 1.e-5, atol));
   EXPECT_THAT(x_odd_pi, KokkosFFT::Testing::allclose(x_odd_ref, 1.e-5, atol));
 
   auto x_even    = KokkosFFT::fftfreq<execution_space, T>(exec, n_even);
   auto x_even_pi = KokkosFFT::fftfreq<execution_space, T>(exec, n_even, pi);
-  multiply(exec, x_even, static_cast<T>(n_even));
-  multiply(exec, x_even_pi, static_cast<T>(n_even) * pi);
+  KokkosFFT::Impl::Multiply mul_even_n(static_cast<T>(n_even)),
+      mul_even_pi(static_cast<T>(n_even) * pi);
+  KokkosFFT::Impl::md_unary_operation<int>("mul_even_n", exec, x_even,
+                                           mul_even_n);
+  KokkosFFT::Impl::md_unary_operation<int>("mul_even_pi", exec, x_even_pi,
+                                           mul_even_pi);
+  exec.fence();
 
   EXPECT_THAT(x_even, KokkosFFT::Testing::allclose(x_even_ref, 1.e-5, atol));
   EXPECT_THAT(x_even_pi, KokkosFFT::Testing::allclose(x_even_ref, 1.e-5, atol));
@@ -107,16 +119,26 @@ void test_rfft_freq(T atol = 1.0e-12) {
   execution_space exec;
   auto x_odd    = KokkosFFT::rfftfreq<execution_space, T>(exec, n_odd);
   auto x_odd_pi = KokkosFFT::rfftfreq<execution_space, T>(exec, n_odd, pi);
-  multiply(exec, x_odd, static_cast<T>(n_odd));
-  multiply(exec, x_odd_pi, static_cast<T>(n_odd) * pi);
+
+  KokkosFFT::Impl::Multiply mul_odd_n(static_cast<T>(n_odd)),
+      mul_odd_pi(static_cast<T>(n_odd) * pi);
+  KokkosFFT::Impl::md_unary_operation<int>("mul_odd_n", exec, x_odd, mul_odd_n);
+  KokkosFFT::Impl::md_unary_operation<int>("mul_odd_pi", exec, x_odd_pi,
+                                           mul_odd_pi);
+  exec.fence();
 
   EXPECT_THAT(x_odd, KokkosFFT::Testing::allclose(x_odd_ref, 1.e-5, atol));
   EXPECT_THAT(x_odd_pi, KokkosFFT::Testing::allclose(x_odd_ref, 1.e-5, atol));
 
   auto x_even    = KokkosFFT::rfftfreq<execution_space, T>(exec, n_even);
   auto x_even_pi = KokkosFFT::rfftfreq<execution_space, T>(exec, n_even, pi);
-  multiply(exec, x_even, static_cast<T>(n_even));
-  multiply(exec, x_even_pi, static_cast<T>(n_even) * pi);
+  KokkosFFT::Impl::Multiply mul_even_n(static_cast<T>(n_even)),
+      mul_even_pi(static_cast<T>(n_even) * pi);
+  KokkosFFT::Impl::md_unary_operation<int>("mul_even_n", exec, x_even,
+                                           mul_even_n);
+  KokkosFFT::Impl::md_unary_operation<int>("mul_even_pi", exec, x_even_pi,
+                                           mul_even_pi);
+  exec.fence();
 
   EXPECT_THAT(x_even, KokkosFFT::Testing::allclose(x_even_ref, 1.e-5, atol));
   EXPECT_THAT(x_even_pi, KokkosFFT::Testing::allclose(x_even_ref, 1.e-5, atol));
