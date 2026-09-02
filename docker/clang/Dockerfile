@@ -37,7 +37,6 @@ RUN gcc --version && g++ --version && \
 
 # Install newer CMake manually
 ARG CMAKE_VERSION=3.23.2
-ARG build_dir=/tmp/build
 
 ENV CMAKE_DIR=/opt/cmake
 RUN CMAKE_URL=https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION} && \
