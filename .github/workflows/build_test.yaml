@@ -2,9 +2,11 @@
 #
 # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
-# Build and test Kokkos FFT using Docker and Apptainer images. Pre-generated
-# images are pulled from Github registry; they are updated only if the current
-# PR or commit modified the Docker files.
+# Build and test Kokkos FFT using Docker and Singularity images. The build job
+# rebuilds the image from the Docker file of the branch under test, using the
+# pre-generated image on the Github registry as a layer cache, so that a change
+# to a Docker file takes effect in the PR that makes it. The test job runs the
+# artifacts in the pre-generated image pulled from the registry.
 
 name: CI
 
@@ -182,6 +184,21 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           submodules: recursive
+
+      # Rebuild the image from the Docker file of the branch under test, so that
+      # a change to docker/**/Dockerfile is exercised by the very PR that makes
+      # it instead of only after the image has been pushed to the registry. The
+      # registry image is used as a layer cache, hence this is essentially the
+      # pull that happened anyway when the Docker file is unchanged. The image
+      # keeps the registry name, so the steps below run the freshly built one.
+      - name: Build Docker image
+        run: |
+          docker build \
+            -t ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
+            --cache-from ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
+            --build-arg BUILDKIT_INLINE_CACHE=1 \
+            --progress=plain \
+            docker/${{ matrix.backend.image }}
 
       - name: Configure
         run: |
