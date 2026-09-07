@@ -6,7 +6,7 @@ AMD-MI300A:
   tags: [uo-gpu, odyssey, amd-mi300]
   image: rocm/dev-ubuntu-24.04:6.2.4-complete
   script:
-    - apt-get update && apt-get install -y libgtest-dev cmake git
+    - apt-get update && apt-get install -y libgtest-dev libgmock-dev cmake git
     - export HSA_XNACK=1
     - git clone https://github.com/kokkos/kokkos.git
     - cmake -S kokkos
