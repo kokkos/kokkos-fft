@@ -237,18 +237,13 @@ struct ScopedCufftDynPlan {
         cufftSetStream(m_plan, exec_space.cuda_stream()));
   }
 
-  // template <typename T, typename CallbackSymbol>
   template <typename CallbackSymbol>
   void set_loadcallback(CallbackSymbol &d_callback_symbol) {
 #if defined(KOKKOSFFT_ENABLE_CALLBACK)
-    // using cufft_callback_type = cuFFTCallBackType<T, LoadCallback>::type;
-    // cufft_callback_type load_callback{};
     CallbackSymbol load_callback{};
     KOKKOSFFT_CHECK_CUDA_CALL(cudaMemcpyFromSymbol(
         &load_callback, d_callback_symbol, sizeof(load_callback)));
 
-    // cufftXtCallbackType cb_type = is_complex_v<T> ? CUFFT_CB_LD_COMPLEX :
-    // CUFFT_CB_LD_REAL;
     cufftXtCallbackType cb_type = deduce_callback_type<CallbackSymbol>();
     void *load_callback_ptr     = reinterpret_cast<void *>(load_callback);
     KOKKOSFFT_CHECK_CUFFT_CALL(
