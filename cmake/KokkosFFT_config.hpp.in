@@ -26,4 +26,7 @@
 /* ONEMKL */
 #cmakedefine KOKKOSFFT_ENABLE_TPL_ONEMKL
 
+/* Enable callback support for cuFFT */
+#cmakedefine KOKKOSFFT_ENABLE_CALLBACK
+
 #endif
