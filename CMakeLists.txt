@@ -20,6 +20,7 @@ option(KokkosFFT_ENABLE_BENCHMARK "Build benchmarks for KokkosFFT" OFF)
 option(KokkosFFT_ENABLE_DOCS "Build KokkosFFT documentaion/website" OFF)
 option(KokkosFFT_ENABLE_DISTRIBUTED "Enable KokkosFFT distributed support" OFF)
 option(KokkosFFT_ENABLE_TESTS_DISTRIBUTED_ONLY "Enable KokkosFFT distributed tests only" OFF)
+option(KokkosFFT_ENABLE_CALLBACK "Enable KokkosFFT callback support" OFF)
 
 # Version information
 set(KOKKOSFFT_VERSION ${PROJECT_VERSION})
@@ -63,6 +64,8 @@ if(KokkosFFT_ENABLE_CUFFTMP AND NOT (KokkosFFT_ENABLE_DISTRIBUTED AND KokkosFFT_
     FATAL_ERROR "Error: To enable cuFFTMp, you need to enable KokkosFFT_ENABLE_CUFFT and KokkosFFT_ENABLE_DISTRIBUTED"
   )
 endif()
+
+set(KOKKOSFFT_ENABLE_CALLBACK ${KokkosFFT_ENABLE_CALLBACK})
 
 # Check if multiple device tpls are not enabled
 set(ENABLED_DEVICE_TPLS "")

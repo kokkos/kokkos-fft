@@ -77,6 +77,14 @@ inline constexpr bool is_allowed_space_v =
     is_allowed_space<ExecutionSpace>::value;
 
 }  // namespace Impl
+
+// Callback types are exposed to users
+template <typename ExecutionSpace, typename T, typename CallBackTag>
+struct CallBackSymbolType {
+  using type =
+      KokkosFFT::Impl::FFTCallBackType<ExecutionSpace, T, CallBackTag>::type;
+};
+
 }  // namespace KokkosFFT
 
 #endif

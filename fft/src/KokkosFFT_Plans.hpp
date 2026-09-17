@@ -295,6 +295,11 @@ class Plan {
     }
   }
 
+  template <typename CallbackSymbol>
+  void set_loadcallback(CallbackSymbol& d_callback_symbol) {
+    m_plan->set_loadcallback(d_callback_symbol);
+  }
+
  private:
   void execute_fft(const InViewType& in, const OutViewType& out,
                    KokkosFFT::Normalization norm) const {
