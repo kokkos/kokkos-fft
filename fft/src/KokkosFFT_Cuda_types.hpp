@@ -16,6 +16,11 @@
 #include "KokkosFFT_FFTW_Types.hpp"
 #endif
 
+#if defined(KOKKOSFFT_ENABLE_CALLBACK)
+#include <cuda_runtime.h>
+#include <cufftXt.h>
+#endif
+
 // Check the size of complex type
 static_assert(sizeof(cufftComplex) == sizeof(Kokkos::complex<float>));
 static_assert(alignof(cufftComplex) <= alignof(Kokkos::complex<float>));
@@ -26,6 +31,56 @@ static_assert(alignof(cufftDoubleComplex) <= alignof(Kokkos::complex<double>));
 namespace KokkosFFT {
 namespace Impl {
 using FFTDirectionType = int;
+
+#if defined(KOKKOSFFT_ENABLE_CALLBACK)
+template <typename T, typename Tag>
+struct cuFFTCallBackType {
+  using float32 = std::conditional_t<std::same_as<Tag, KokkosFFT::LoadCallback>,
+                                     cufftCallbackLoadR, cufftCallbackStoreR>;
+  using float64 = std::conditional_t<std::same_as<Tag, KokkosFFT::LoadCallback>,
+                                     cufftCallbackLoadD, cufftCallbackStoreD>;
+  using complex64 =
+      std::conditional_t<std::same_as<Tag, KokkosFFT::LoadCallback>,
+                         cufftCallbackLoadC, cufftCallbackStoreC>;
+  using complex128 =
+      std::conditional_t<std::same_as<Tag, KokkosFFT::LoadCallback>,
+                         cufftCallbackLoadZ, cufftCallbackStoreZ>;
+
+  using type = std::conditional_t<
+      std::same_as<T, float>, float32,
+      std::conditional_t<
+          std::same_as<T, double>, float64,
+          std::conditional_t<
+              std::same_as<T, Kokkos::complex<float>>, complex64,
+              std::conditional_t<std::same_as<T, Kokkos::complex<double>>,
+                                 complex128, void>>>>;
+};
+
+template <typename CallbackSymbol>
+auto deduce_callback_type() -> cufftXtCallbackType {
+  if constexpr (std::same_as<CallbackSymbol, cufftCallbackLoadR> ||
+                std::same_as<CallbackSymbol, cufftCallbackLoadD>) {
+    return CUFFT_CB_LD_REAL;
+  } else if constexpr (std::same_as<CallbackSymbol, cufftCallbackLoadC> ||
+                       std::same_as<CallbackSymbol, cufftCallbackLoadZ>) {
+    return CUFFT_CB_LD_COMPLEX;
+  } else if constexpr (std::same_as<CallbackSymbol, cufftCallbackStoreR> ||
+                       std::same_as<CallbackSymbol, cufftCallbackStoreD>) {
+    return CUFFT_CB_ST_REAL;
+  } else if constexpr (std::same_as<CallbackSymbol, cufftCallbackStoreC> ||
+                       std::same_as<CallbackSymbol, cufftCallbackStoreZ>) {
+    return CUFFT_CB_ST_COMPLEX;
+  } else {
+    static_assert(!std::is_same_v<CallbackSymbol, CallbackSymbol>,
+                  "Unsupported callback type");
+  }
+}
+#else
+template <typename T, typename Tag>
+struct cuFFTCallBackType {
+  using type = void;
+};
+#endif
 
 /// \brief A class that wraps cufft for RAII
 struct ScopedCufftPlan {
@@ -70,6 +125,35 @@ struct ScopedCufftPlan {
   void commit(const Kokkos::Cuda &exec_space) const {
     KOKKOSFFT_CHECK_CUFFT_CALL(
         cufftSetStream(m_plan, exec_space.cuda_stream()));
+  }
+
+  template <typename CallbackSymbol>
+  void set_loadcallback(CallbackSymbol &d_callback_symbol) {
+#if defined(KOKKOSFFT_ENABLE_CALLBACK)
+    CallbackSymbol load_callback{};
+    KOKKOSFFT_CHECK_CUDA_CALL(cudaMemcpyFromSymbol(
+        &load_callback, d_callback_symbol, sizeof(load_callback)));
+
+    cufftXtCallbackType cb_type = deduce_callback_type<CallbackSymbol>();
+    void *load_callback_ptr     = reinterpret_cast<void *>(load_callback);
+    KOKKOSFFT_CHECK_CUFFT_CALL(
+        cufftXtSetCallback(m_plan, &load_callback_ptr, cb_type, nullptr));
+#endif
+  }
+
+  template <typename T, typename CallbackSymbol>
+  void set_storecallback(CallbackSymbol &d_callback_symbol, void *caller_info) {
+#if defined(KOKKOSFFT_ENABLE_CALLBACK)
+    CallbackSymbol store_callback{};
+    KOKKOSFFT_CHECK_CUDA_CALL(cudaMemcpyFromSymbol(
+        &store_callback, d_callback_symbol, sizeof(store_callback)));
+
+    cufftXtCallbackType cb_type = deduce_callback_type<CallbackSymbol>();
+    void *store_callback_ptr    = reinterpret_cast<void *>(store_callback);
+    void *caller_info_ptr = caller_info != nullptr ? caller_info : nullptr;
+    KOKKOSFFT_CHECK_CUFFT_CALL(cufftXtSetCallback(m_plan, &store_callback_ptr,
+                                                  cb_type, &caller_info_ptr));
+#endif
   }
 };
 
@@ -152,6 +236,35 @@ struct ScopedCufftDynPlan {
     KOKKOSFFT_CHECK_CUFFT_CALL(
         cufftSetStream(m_plan, exec_space.cuda_stream()));
   }
+
+  template <typename CallbackSymbol>
+  void set_loadcallback(CallbackSymbol &d_callback_symbol) {
+#if defined(KOKKOSFFT_ENABLE_CALLBACK)
+    CallbackSymbol load_callback{};
+    KOKKOSFFT_CHECK_CUDA_CALL(cudaMemcpyFromSymbol(
+        &load_callback, d_callback_symbol, sizeof(load_callback)));
+
+    cufftXtCallbackType cb_type = deduce_callback_type<CallbackSymbol>();
+    void *load_callback_ptr     = reinterpret_cast<void *>(load_callback);
+    KOKKOSFFT_CHECK_CUFFT_CALL(
+        cufftXtSetCallback(m_plan, &load_callback_ptr, cb_type, nullptr));
+#endif
+  }
+
+  template <typename T, typename CallbackSymbol>
+  void set_storecallback(CallbackSymbol &d_callback_symbol, void *caller_info) {
+#if defined(KOKKOSFFT_ENABLE_CALLBACK)
+    CallbackSymbol store_callback{};
+    KOKKOSFFT_CHECK_CUDA_CALL(cudaMemcpyFromSymbol(
+        &store_callback, d_callback_symbol, sizeof(store_callback)));
+
+    cufftXtCallbackType cb_type = deduce_callback_type<CallbackSymbol>();
+    void *store_callback_ptr    = reinterpret_cast<void *>(store_callback);
+    void *caller_info_ptr = caller_info != nullptr ? caller_info : nullptr;
+    KOKKOSFFT_CHECK_CUFFT_CALL(cufftXtSetCallback(m_plan, &store_callback_ptr,
+                                                  cb_type, &caller_info_ptr));
+#endif
+  }
 };
 
 #if defined(KOKKOSFFT_ENABLE_TPL_FFTW)
@@ -169,6 +282,12 @@ struct FFTDataType {
   using complex128 =
       std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::Cuda>,
                          cufftDoubleComplex, fftw_complex>;
+};
+
+template <typename ExecutionSpace, typename T, typename Tag>
+struct FFTCallBackType {
+  using type = std::conditional_t<std::same_as<ExecutionSpace, Kokkos::Cuda>,
+                                  cuFFTCallBackType<T, Tag>, void>;
 };
 
 template <typename ExecutionSpace>
@@ -285,6 +404,11 @@ struct FFTDataType {
   using float64    = cufftDoubleReal;
   using complex64  = cufftComplex;
   using complex128 = cufftDoubleComplex;
+};
+
+template <typename ExecutionSpace, typename T, typename Tag>
+struct FFTCallBackType {
+  using type = cuFFTCallBackType<T, Tag>;
 };
 
 template <typename ExecutionSpace>
