@@ -49,7 +49,7 @@ jobs:
         with:
           extra_args: --files ${{ steps.changed-files.outputs.all_changed_files }}
       # Post change suggestions from pre-commit to the PR.
-      - uses: reviewdog/action-suggester@2558ba17e65a9039e73764a73009fc05fef28a46 #v1.24.3
+      - uses: reviewdog/action-suggester@4553543bea739d9d503379d786148cfd561de5fa #v1.25.0
         env:
           REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         if: ${{ failure() && steps.run-pre-commit.conclusion == 'failure' }}
