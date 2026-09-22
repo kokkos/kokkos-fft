@@ -295,9 +295,18 @@ class Plan {
     }
   }
 
-  template <typename CallbackSymbol>
-  void set_loadcallback(CallbackSymbol& d_callback_symbol) {
-    m_plan->set_loadcallback(d_callback_symbol);
+  /// \brief Attach a load or store callback to this plan.
+  ///
+  /// \tparam CallbackSymbol The type of the callback symbol
+  /// \tparam CallbackParamsType The type of the caller-provided params
+  /// \param d_callback_symbol The __device__ global holding the callback
+  /// function pointer
+  /// \param params The callback parameters, copied into a device allocation
+  /// owned by the plan
+  template <typename CallbackSymbol, typename CallbackParamsType>
+  void set_callback(CallbackSymbol& d_callback_symbol,
+                    const CallbackParamsType& params) {
+    m_plan->set_callback(d_callback_symbol, params);
   }
 
  private:

@@ -4,6 +4,7 @@
 
 #include <gtest/gtest.h>
 #include "KokkosFFT_Plans.hpp"
+#include "KokkosFFT_Transform.hpp"
 
 namespace {
 using execution_space = Kokkos::DefaultExecutionSpace;
@@ -66,21 +67,60 @@ KOKKOS_IMPL_DEVICE_FUNCTION cufftCallbackLoadR d_load_callback_symbol =
 
 template <typename T, typename LayoutType>
 void test_callback_1d() {
-  const int n          = 30;
+  const int original_size = 20;
+  const int n              = 30;
   using RealView1DType = Kokkos::View<T*, LayoutType, execution_space>;
   using ComplexView1DType =
       Kokkos::View<Kokkos::complex<T>*, LayoutType, execution_space>;
 
   RealView1DType x("x", n);
   ComplexView1DType x_c("x_c", n / 2 + 1);
-  ComplexView1DType x_cin("x_cin", n), x_cout("x_cout", n);
+
+  // Fill the whole buffer; indices >= original_size are only meaningful
+  // because the callback is expected to zero them out.
+  auto x_host = Kokkos::create_mirror_view(x);
+  for (int i = 0; i < n; ++i) {
+    x_host(i) = static_cast<T>(i + 1);
+  }
+  Kokkos::deep_copy(x, x_host);
 
   // R2C plan
   execution_space exec;
   KokkosFFT::Plan plan_r2c_axis_0(exec, x, x_c, KokkosFFT::Direction::forward,
                                   /*axis=*/0);
 
-  plan_r2c_axis_0.set_loadcallback(d_load_callback_symbol);
+  Params params{static_cast<unsigned int>(original_size),
+               static_cast<unsigned int>(n)};
+  plan_r2c_axis_0.set_callback(d_load_callback_symbol, params);
+
+  KokkosFFT::execute(plan_r2c_axis_0, x, x_c);
+  Kokkos::fence();
+
+  // Reference: same transform, no callback, on an input that is explicitly
+  // zero-padded on the host instead of relying on the callback to do it.
+  RealView1DType x_ref("x_ref", n);
+  ComplexView1DType x_c_ref("x_c_ref", n / 2 + 1);
+  auto x_ref_host = Kokkos::create_mirror_view(x_ref);
+  for (int i = 0; i < n; ++i) {
+    x_ref_host(i) = (i < original_size) ? x_host(i) : static_cast<T>(0);
+  }
+  Kokkos::deep_copy(x_ref, x_ref_host);
+
+  KokkosFFT::Plan plan_ref(exec, x_ref, x_c_ref, KokkosFFT::Direction::forward,
+                           /*axis=*/0);
+  KokkosFFT::execute(plan_ref, x_ref, x_c_ref);
+  Kokkos::fence();
+
+  auto x_c_host = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), x_c);
+  auto x_c_ref_host =
+      Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), x_c_ref);
+
+  for (int i = 0; i < static_cast<int>(x_c_host.extent(0)); ++i) {
+    EXPECT_NEAR(x_c_host(i).real(), x_c_ref_host(i).real(), 1e-3)
+        << "mismatch at index " << i << " (real)";
+    EXPECT_NEAR(x_c_host(i).imag(), x_c_ref_host(i).imag(), 1e-3)
+        << "mismatch at index " << i << " (imag)";
+  }
 }
 }  // namespace
 
