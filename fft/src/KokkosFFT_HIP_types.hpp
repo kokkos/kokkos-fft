@@ -16,6 +16,11 @@
 #include "KokkosFFT_FFTW_Types.hpp"
 #endif
 
+#if defined(KOKKOSFFT_ENABLE_CALLBACK)
+#include <hip/hip_runtime.h>
+#include <hipfft/hipfftXt.h>
+#endif
+
 // Check the size of complex type
 static_assert(sizeof(hipfftComplex) == sizeof(Kokkos::complex<float>));
 static_assert(alignof(hipfftComplex) <= alignof(Kokkos::complex<float>));
@@ -27,10 +32,68 @@ namespace KokkosFFT {
 namespace Impl {
 using FFTDirectionType = int;
 
+#if defined(KOKKOSFFT_ENABLE_CALLBACK)
+template <typename T, typename Tag>
+struct hipFFTCallBackType {
+  using float32 = std::conditional_t<std::same_as<Tag, KokkosFFT::LoadCallback>,
+                                     hipfftCallbackLoadR, hipfftCallbackStoreR>;
+  using float64 = std::conditional_t<std::same_as<Tag, KokkosFFT::LoadCallback>,
+                                     hipfftCallbackLoadD, hipfftCallbackStoreD>;
+  using complex64 =
+      std::conditional_t<std::same_as<Tag, KokkosFFT::LoadCallback>,
+                         hipfftCallbackLoadC, hipfftCallbackStoreC>;
+  using complex128 =
+      std::conditional_t<std::same_as<Tag, KokkosFFT::LoadCallback>,
+                         hipfftCallbackLoadZ, hipfftCallbackStoreZ>;
+
+  using type = std::conditional_t<
+      std::same_as<T, float>, float32,
+      std::conditional_t<
+          std::same_as<T, double>, float64,
+          std::conditional_t<
+              std::same_as<T, Kokkos::complex<float>>, complex64,
+              std::conditional_t<std::same_as<T, Kokkos::complex<double>>,
+                                 complex128, void>>>>;
+};
+
+// Unlike cuFFT, hipFFT uses distinct enum values for single vs double
+// precision (HIPFFT_CB_LD_REAL vs HIPFFT_CB_LD_REAL_DOUBLE), so this cannot
+// mirror cuFFT's deduce_callback_type mapping.
+template <typename CallbackSymbol>
+auto deduce_callback_type() -> hipfftXtCallbackType {
+  if constexpr (std::same_as<CallbackSymbol, hipfftCallbackLoadR>) {
+    return HIPFFT_CB_LD_REAL;
+  } else if constexpr (std::same_as<CallbackSymbol, hipfftCallbackLoadD>) {
+    return HIPFFT_CB_LD_REAL_DOUBLE;
+  } else if constexpr (std::same_as<CallbackSymbol, hipfftCallbackLoadC>) {
+    return HIPFFT_CB_LD_COMPLEX;
+  } else if constexpr (std::same_as<CallbackSymbol, hipfftCallbackLoadZ>) {
+    return HIPFFT_CB_LD_COMPLEX_DOUBLE;
+  } else if constexpr (std::same_as<CallbackSymbol, hipfftCallbackStoreR>) {
+    return HIPFFT_CB_ST_REAL;
+  } else if constexpr (std::same_as<CallbackSymbol, hipfftCallbackStoreD>) {
+    return HIPFFT_CB_ST_REAL_DOUBLE;
+  } else if constexpr (std::same_as<CallbackSymbol, hipfftCallbackStoreC>) {
+    return HIPFFT_CB_ST_COMPLEX;
+  } else if constexpr (std::same_as<CallbackSymbol, hipfftCallbackStoreZ>) {
+    return HIPFFT_CB_ST_COMPLEX_DOUBLE;
+  } else {
+    static_assert(!std::is_same_v<CallbackSymbol, CallbackSymbol>,
+                  "Unsupported callback type");
+  }
+}
+#else
+template <typename T, typename Tag>
+struct hipFFTCallBackType {
+  using type = void;
+};
+#endif
+
 /// \brief A class that wraps hipfft for RAII
 struct ScopedHIPfftPlan {
  private:
   hipfftHandle m_plan;
+  void *m_callback_params = nullptr;
 
  public:
   ScopedHIPfftPlan(int nx, hipfftType type, int batch) {
@@ -58,6 +121,15 @@ struct ScopedHIPfftPlan {
         "KokkosFFT::cleanup_plan[TPL_hipfft]");
     hipfftResult hipfft_rt = hipfftDestroy(m_plan);
     if (hipfft_rt != HIPFFT_SUCCESS) Kokkos::abort("hipfftDestroy failed");
+
+    // hipFFT only borrows the callerInfo pointer set in set_callback() for
+    // the lifetime of the plan; it never frees it itself. This class owns
+    // that allocation, so free it here now that the plan (and anything that
+    // might still be reading it) is gone.
+    if (m_callback_params != nullptr) {
+      hipError_t hip_rt = hipFree(m_callback_params);
+      if (hip_rt != hipSuccess) Kokkos::abort("hipFree failed");
+    }
   }
 
   ScopedHIPfftPlan()                                    = delete;
@@ -71,6 +143,44 @@ struct ScopedHIPfftPlan {
     KOKKOSFFT_CHECK_HIPFFT_CALL(
         hipfftSetStream(m_plan, exec_space.hip_stream()));
   }
+
+  /// \brief Attach a load or store callback to this plan, deduced from
+  /// CallbackSymbolType (the vendor typedef, e.g. hipfftCallbackLoadR vs
+  /// hipfftCallbackStoreR, already encodes which one it is).
+  ///
+  /// \tparam CallbackSymbolType The type of the callback symbol
+  /// \tparam CallbackParamsType The type of the caller-provided params
+  /// \param d_callback_symbol The __device__ global holding the callback
+  /// function pointer
+  /// \param params The callback parameters. Copied into a device allocation
+  /// owned by this ScopedHIPfftPlan, freed in its destructor -- the caller
+  /// never has to manage that memory themselves.
+  template <typename CallbackSymbolType, typename CallbackParamsType>
+  void set_callback(CallbackSymbolType &d_callback_symbol,
+                    const CallbackParamsType &params) {
+#if defined(KOKKOSFFT_ENABLE_CALLBACK)
+    CallbackSymbolType callback{};
+    KOKKOSFFT_CHECK_HIP_CALL(
+        hipMemcpyFromSymbol(&callback, d_callback_symbol, sizeof(callback)));
+
+    hipfftXtCallbackType cb_type = deduce_callback_type<CallbackSymbolType>();
+    void *callback_ptr           = reinterpret_cast<void *>(callback);
+
+    if (m_callback_params != nullptr) {
+      KOKKOSFFT_CHECK_HIP_CALL(hipFree(m_callback_params));
+      m_callback_params = nullptr;
+    }
+    KOKKOSFFT_CHECK_HIP_CALL(
+        hipMalloc(&m_callback_params, sizeof(CallbackParamsType)));
+    KOKKOSFFT_CHECK_HIP_CALL(hipMemcpy(m_callback_params, &params,
+                                       sizeof(CallbackParamsType),
+                                       hipMemcpyHostToDevice));
+
+    void *callback_params_ptr = m_callback_params;
+    KOKKOSFFT_CHECK_HIPFFT_CALL(hipfftXtSetCallback(
+        m_plan, &callback_ptr, cb_type, &callback_params_ptr));
+#endif
+  }
 };
 
 /// \brief A class that wraps hipfft for RAII
@@ -78,6 +188,7 @@ struct ScopedHIPfftDynPlan {
  private:
   hipfftHandle m_plan;
   std::size_t m_workspace_size;
+  void *m_callback_params = nullptr;
 
  public:
   ScopedHIPfftDynPlan(int nx, hipfftType type, int batch) {
@@ -120,6 +231,15 @@ struct ScopedHIPfftDynPlan {
         "KokkosFFT::cleanup_plan[TPL_hipfft]");
     hipfftResult hipfft_rt = hipfftDestroy(m_plan);
     if (hipfft_rt != HIPFFT_SUCCESS) Kokkos::abort("hipfftDestroy failed");
+
+    // hipFFT only borrows the callerInfo pointer set in set_callback() for
+    // the lifetime of the plan; it never frees it itself. This class owns
+    // that allocation, so free it here now that the plan (and anything that
+    // might still be reading it) is gone.
+    if (m_callback_params != nullptr) {
+      hipError_t hip_rt = hipFree(m_callback_params);
+      if (hip_rt != hipSuccess) Kokkos::abort("hipFree failed");
+    }
   }
 
   ScopedHIPfftDynPlan()                                       = delete;
@@ -151,6 +271,44 @@ struct ScopedHIPfftDynPlan {
     KOKKOSFFT_CHECK_HIPFFT_CALL(
         hipfftSetStream(m_plan, exec_space.hip_stream()));
   }
+
+  /// \brief Attach a load or store callback to this plan, deduced from
+  /// CallbackSymbolType (the vendor typedef, e.g. hipfftCallbackLoadR vs
+  /// hipfftCallbackStoreR, already encodes which one it is).
+  ///
+  /// \tparam CallbackSymbolType The type of the callback symbol
+  /// \tparam CallbackParamsType The type of the caller-provided params
+  /// \param d_callback_symbol The __device__ global holding the callback
+  /// function pointer
+  /// \param params The callback parameters. Copied into a device allocation
+  /// owned by this ScopedHIPfftDynPlan, freed in its destructor -- the caller
+  /// never has to manage that memory themselves.
+  template <typename CallbackSymbolType, typename CallbackParamsType>
+  void set_callback(CallbackSymbolType &d_callback_symbol,
+                    const CallbackParamsType &params) {
+#if defined(KOKKOSFFT_ENABLE_CALLBACK)
+    CallbackSymbolType callback{};
+    KOKKOSFFT_CHECK_HIP_CALL(
+        hipMemcpyFromSymbol(&callback, d_callback_symbol, sizeof(callback)));
+
+    hipfftXtCallbackType cb_type = deduce_callback_type<CallbackSymbolType>();
+    void *callback_ptr           = reinterpret_cast<void *>(callback);
+
+    if (m_callback_params != nullptr) {
+      KOKKOSFFT_CHECK_HIP_CALL(hipFree(m_callback_params));
+      m_callback_params = nullptr;
+    }
+    KOKKOSFFT_CHECK_HIP_CALL(
+        hipMalloc(&m_callback_params, sizeof(CallbackParamsType)));
+    KOKKOSFFT_CHECK_HIP_CALL(hipMemcpy(m_callback_params, &params,
+                                       sizeof(CallbackParamsType),
+                                       hipMemcpyHostToDevice));
+
+    void *callback_params_ptr = m_callback_params;
+    KOKKOSFFT_CHECK_HIPFFT_CALL(hipfftXtSetCallback(
+        m_plan, &callback_ptr, cb_type, &callback_params_ptr));
+#endif
+  }
 };
 
 #if defined(KOKKOSFFT_ENABLE_TPL_FFTW)
@@ -168,6 +326,12 @@ struct FFTDataType {
   using complex128 =
       std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
                          hipfftDoubleComplex, fftw_complex>;
+};
+
+template <typename ExecutionSpace, typename T, typename Tag>
+struct FFTCallBackType {
+  using type = std::conditional_t<std::same_as<ExecutionSpace, Kokkos::HIP>,
+                                  hipFFTCallBackType<T, Tag>, void>;
 };
 
 template <typename ExecutionSpace>
@@ -284,6 +448,11 @@ struct FFTDataType {
   using float64    = hipfftDoubleReal;
   using complex64  = hipfftComplex;
   using complex128 = hipfftDoubleComplex;
+};
+
+template <typename ExecutionSpace, typename T, typename Tag>
+struct FFTCallBackType {
+  using type = hipFFTCallBackType<T, Tag>;
 };
 
 template <typename ExecutionSpace>

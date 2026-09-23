@@ -58,18 +58,26 @@ struct cuFFTCallBackType {
 
 template <typename CallbackSymbol>
 auto deduce_callback_type() -> cufftXtCallbackType {
-  if constexpr (std::same_as<CallbackSymbol, cufftCallbackLoadR> ||
-                std::same_as<CallbackSymbol, cufftCallbackLoadD>) {
+  // cufftXtCallbackType has distinct enum values for single vs double
+  // precision (CUFFT_CB_LD_REAL vs CUFFT_CB_LD_REAL_DOUBLE, etc.); collapsing
+  // R/D or C/Z into the same value here would tell cufftXtSetCallback the
+  // wrong callback type for any double-precision callback.
+  if constexpr (std::same_as<CallbackSymbol, cufftCallbackLoadR>) {
     return CUFFT_CB_LD_REAL;
-  } else if constexpr (std::same_as<CallbackSymbol, cufftCallbackLoadC> ||
-                       std::same_as<CallbackSymbol, cufftCallbackLoadZ>) {
+  } else if constexpr (std::same_as<CallbackSymbol, cufftCallbackLoadD>) {
+    return CUFFT_CB_LD_REAL_DOUBLE;
+  } else if constexpr (std::same_as<CallbackSymbol, cufftCallbackLoadC>) {
     return CUFFT_CB_LD_COMPLEX;
-  } else if constexpr (std::same_as<CallbackSymbol, cufftCallbackStoreR> ||
-                       std::same_as<CallbackSymbol, cufftCallbackStoreD>) {
+  } else if constexpr (std::same_as<CallbackSymbol, cufftCallbackLoadZ>) {
+    return CUFFT_CB_LD_COMPLEX_DOUBLE;
+  } else if constexpr (std::same_as<CallbackSymbol, cufftCallbackStoreR>) {
     return CUFFT_CB_ST_REAL;
-  } else if constexpr (std::same_as<CallbackSymbol, cufftCallbackStoreC> ||
-                       std::same_as<CallbackSymbol, cufftCallbackStoreZ>) {
+  } else if constexpr (std::same_as<CallbackSymbol, cufftCallbackStoreD>) {
+    return CUFFT_CB_ST_REAL_DOUBLE;
+  } else if constexpr (std::same_as<CallbackSymbol, cufftCallbackStoreC>) {
     return CUFFT_CB_ST_COMPLEX;
+  } else if constexpr (std::same_as<CallbackSymbol, cufftCallbackStoreZ>) {
+    return CUFFT_CB_ST_COMPLEX_DOUBLE;
   } else {
     static_assert(!std::is_same_v<CallbackSymbol, CallbackSymbol>,
                   "Unsupported callback type");
@@ -181,6 +189,7 @@ struct ScopedCufftDynPlan {
  private:
   cufftHandle m_plan;
   std::size_t m_workspace_size;
+  void *m_callback_params = nullptr;
 
  public:
   ScopedCufftDynPlan(int nx, cufftType type, int batch) {
@@ -223,6 +232,15 @@ struct ScopedCufftDynPlan {
         "KokkosFFT::cleanup_plan[TPL_cufft]");
     cufftResult cufft_rt = cufftDestroy(m_plan);
     if (cufft_rt != CUFFT_SUCCESS) Kokkos::abort("cufftDestroy failed");
+
+    // cuFFT only borrows the callerInfo pointer set in set_callback() for the
+    // lifetime of the plan; it never frees it itself. This class owns that
+    // allocation, so free it here now that the plan (and anything that might
+    // still be reading it) is gone.
+    if (m_callback_params != nullptr) {
+      cudaError_t cuda_rt = cudaFree(m_callback_params);
+      if (cuda_rt != cudaSuccess) Kokkos::abort("cudaFree failed");
+    }
   }
 
   ScopedCufftDynPlan()                                      = delete;
@@ -256,32 +274,41 @@ struct ScopedCufftDynPlan {
         cufftSetStream(m_plan, exec_space.cuda_stream()));
   }
 
-  template <typename CallbackSymbol>
-  void set_loadcallback(CallbackSymbol &d_callback_symbol) {
+  /// \brief Attach a load or store callback to this plan, deduced from
+  /// CallbackSymbolType (the vendor typedef, e.g. cufftCallbackLoadR vs
+  /// cufftCallbackStoreR, already encodes which one it is).
+  ///
+  /// \tparam CallbackSymbolType The type of the callback symbol
+  /// \tparam CallbackParamsType The type of the caller-provided params
+  /// \param d_callback_symbol The __device__ global holding the callback
+  /// function pointer
+  /// \param params The callback parameters. Copied into a device allocation
+  /// owned by this ScopedCufftDynPlan, freed in its destructor -- the caller
+  /// never has to manage that memory themselves.
+  template <typename CallbackSymbolType, typename CallbackParamsType>
+  void set_callback(CallbackSymbolType &d_callback_symbol,
+                    const CallbackParamsType &params) {
 #if defined(KOKKOSFFT_ENABLE_CALLBACK)
-    CallbackSymbol load_callback{};
-    KOKKOSFFT_CHECK_CUDA_CALL(cudaMemcpyFromSymbol(
-        &load_callback, d_callback_symbol, sizeof(load_callback)));
+    CallbackSymbolType callback{};
+    KOKKOSFFT_CHECK_CUDA_CALL(
+        cudaMemcpyFromSymbol(&callback, d_callback_symbol, sizeof(callback)));
 
-    cufftXtCallbackType cb_type = deduce_callback_type<CallbackSymbol>();
-    void *load_callback_ptr     = reinterpret_cast<void *>(load_callback);
-    KOKKOSFFT_CHECK_CUFFT_CALL(
-        cufftXtSetCallback(m_plan, &load_callback_ptr, cb_type, nullptr));
-#endif
-  }
+    cufftXtCallbackType cb_type = deduce_callback_type<CallbackSymbolType>();
+    void *callback_ptr          = reinterpret_cast<void *>(callback);
 
-  template <typename T, typename CallbackSymbol>
-  void set_storecallback(CallbackSymbol &d_callback_symbol, void *caller_info) {
-#if defined(KOKKOSFFT_ENABLE_CALLBACK)
-    CallbackSymbol store_callback{};
-    KOKKOSFFT_CHECK_CUDA_CALL(cudaMemcpyFromSymbol(
-        &store_callback, d_callback_symbol, sizeof(store_callback)));
+    if (m_callback_params != nullptr) {
+      KOKKOSFFT_CHECK_CUDA_CALL(cudaFree(m_callback_params));
+      m_callback_params = nullptr;
+    }
+    KOKKOSFFT_CHECK_CUDA_CALL(
+        cudaMalloc(&m_callback_params, sizeof(CallbackParamsType)));
+    KOKKOSFFT_CHECK_CUDA_CALL(cudaMemcpy(m_callback_params, &params,
+                                         sizeof(CallbackParamsType),
+                                         cudaMemcpyHostToDevice));
 
-    cufftXtCallbackType cb_type = deduce_callback_type<CallbackSymbol>();
-    void *store_callback_ptr    = reinterpret_cast<void *>(store_callback);
-    void *caller_info_ptr = caller_info != nullptr ? caller_info : nullptr;
-    KOKKOSFFT_CHECK_CUFFT_CALL(cufftXtSetCallback(m_plan, &store_callback_ptr,
-                                                  cb_type, &caller_info_ptr));
+    void *callback_params_ptr = m_callback_params;
+    KOKKOSFFT_CHECK_CUFFT_CALL(cufftXtSetCallback(
+        m_plan, &callback_ptr, cb_type, &callback_params_ptr));
 #endif
   }
 };

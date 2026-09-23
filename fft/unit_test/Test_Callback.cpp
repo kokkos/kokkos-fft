@@ -27,31 +27,15 @@ struct Params {
   unsigned int padded_size;
 };
 
-/*
-template <typename T>
-KOKKOS_IMPL_DEVICE_FUNCTION auto zero_pad_load_callback(void* dataIn, size_t
-offset, void* callerInfo, void* sharedPointer) -> typename
-KokkosFFT::Impl::fft_data_type<execution_space, T>::type { using data_type =
-typename KokkosFFT::Impl::fft_data_type<execution_space, T>::type; auto*
-callback_params = static_cast<Params*>(callerInfo); const data_type* in_data =
-static_cast<const data_type*>(dataIn);
-
-  // Zero-padding: return 0 for indices beyond original_size
-  if (offset >= callback_params->original_size) {
-    return static_cast<data_type>(0);
-  }
-  return in_data[offset];
-}
-
-template <typename T>
-KOKKOS_IMPL_DEVICE_FUNCTION KokkosFFT::CallBackSymbolType<execution_space, T,
-KokkosFFT::LoadCallback>::type d_load_callback_symbol =
-zero_pad_load_callback<T>;
-*/
-
-KOKKOS_IMPL_DEVICE_FUNCTION cufftReal zero_pad_load_callback(
+// A templated __device__ global (one symbol generically covering every T)
+// does not compile -- see dev meeting notes 2026-09-18. kokkosfftReal/
+// kokkosfftCallbackLoadR are backend-agnostic aliases (KokkosFFT_default_types.hpp)
+// resolving to cufftReal/cufftCallbackLoadR or hipfftReal/hipfftCallbackLoadR
+// depending on which backend is active, so this stays portable without
+// naming a vendor type directly.
+KOKKOS_IMPL_DEVICE_FUNCTION kokkosfftReal zero_pad_load_callback(
     void* dataIn, size_t offset, void* callerInfo, void* sharedPointer) {
-  using data_type          = cufftReal;
+  using data_type          = kokkosfftReal;
   auto* callback_params    = static_cast<Params*>(callerInfo);
   const data_type* in_data = static_cast<const data_type*>(dataIn);
 
@@ -62,7 +46,7 @@ KOKKOS_IMPL_DEVICE_FUNCTION cufftReal zero_pad_load_callback(
   return in_data[offset];
 }
 
-KOKKOS_IMPL_DEVICE_FUNCTION cufftCallbackLoadR d_load_callback_symbol =
+KOKKOS_IMPL_DEVICE_FUNCTION kokkosfftCallbackLoadR d_load_callback_symbol =
     zero_pad_load_callback;
 
 template <typename T, typename LayoutType>

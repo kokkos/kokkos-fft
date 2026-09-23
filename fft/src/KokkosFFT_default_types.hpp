@@ -34,6 +34,47 @@ static_assert(false,
 static_assert(false, "KokkosFFT requires at least one backend library");
 #endif
 
+// Backend-agnostic aliases for the vendor real/complex data types and
+// (when callbacks are enabled) the vendor callback function pointer types.
+// Users writing a callback function or __device__ global should use these
+// instead of naming a vendor type (cufftReal, hipfftReal, ...) directly, so
+// the same callback source works under either backend.
+#if defined(KOKKOSFFT_ENABLE_TPL_CUFFT)
+using kokkosfftReal          = cufftReal;
+using kokkosfftDoubleReal    = cufftDoubleReal;
+using kokkosfftComplex       = cufftComplex;
+using kokkosfftDoubleComplex = cufftDoubleComplex;
+
+#if defined(KOKKOSFFT_ENABLE_CALLBACK)
+using kokkosfftCallbackLoadR = cufftCallbackLoadR;
+using kokkosfftCallbackLoadD = cufftCallbackLoadD;
+using kokkosfftCallbackLoadC = cufftCallbackLoadC;
+using kokkosfftCallbackLoadZ = cufftCallbackLoadZ;
+
+using kokkosfftCallbackStoreR = cufftCallbackStoreR;
+using kokkosfftCallbackStoreD = cufftCallbackStoreD;
+using kokkosfftCallbackStoreC = cufftCallbackStoreC;
+using kokkosfftCallbackStoreZ = cufftCallbackStoreZ;
+#endif
+#elif defined(KOKKOSFFT_ENABLE_TPL_HIPFFT)
+using kokkosfftReal          = hipfftReal;
+using kokkosfftDoubleReal    = hipfftDoubleReal;
+using kokkosfftComplex       = hipfftComplex;
+using kokkosfftDoubleComplex = hipfftDoubleComplex;
+
+#if defined(KOKKOSFFT_ENABLE_CALLBACK)
+using kokkosfftCallbackLoadR = hipfftCallbackLoadR;
+using kokkosfftCallbackLoadD = hipfftCallbackLoadD;
+using kokkosfftCallbackLoadC = hipfftCallbackLoadC;
+using kokkosfftCallbackLoadZ = hipfftCallbackLoadZ;
+
+using kokkosfftCallbackStoreR = hipfftCallbackStoreR;
+using kokkosfftCallbackStoreD = hipfftCallbackStoreD;
+using kokkosfftCallbackStoreC = hipfftCallbackStoreC;
+using kokkosfftCallbackStoreZ = hipfftCallbackStoreZ;
+#endif
+#endif
+
 namespace KokkosFFT {
 namespace Impl {
 // Define fft data types
