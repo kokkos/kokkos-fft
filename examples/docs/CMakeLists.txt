@@ -3,63 +3,44 @@
 # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
 # Standard FFT examples
-add_executable(docs_fft standard/docs_fft.cpp)
-target_link_libraries(docs_fft PUBLIC KokkosFFT::fft)
+kokkosfft_add_example(docs_fft SOURCES standard/docs_fft.cpp)
 
-add_executable(docs_ifft standard/docs_ifft.cpp)
-target_link_libraries(docs_ifft PUBLIC KokkosFFT::fft)
+kokkosfft_add_example(docs_ifft SOURCES standard/docs_ifft.cpp)
 
-add_executable(docs_fft2 standard/docs_fft2.cpp)
-target_link_libraries(docs_fft2 PUBLIC KokkosFFT::fft)
+kokkosfft_add_example(docs_fft2 SOURCES standard/docs_fft2.cpp)
 
-add_executable(docs_ifft2 standard/docs_ifft2.cpp)
-target_link_libraries(docs_ifft2 PUBLIC KokkosFFT::fft)
+kokkosfft_add_example(docs_ifft2 SOURCES standard/docs_ifft2.cpp)
 
-add_executable(docs_fftn standard/docs_fftn.cpp)
-target_link_libraries(docs_fftn PUBLIC KokkosFFT::fft)
+kokkosfft_add_example(docs_fftn SOURCES standard/docs_fftn.cpp)
 
-add_executable(docs_ifftn standard/docs_ifftn.cpp)
-target_link_libraries(docs_ifftn PUBLIC KokkosFFT::fft)
+kokkosfft_add_example(docs_ifftn SOURCES standard/docs_ifftn.cpp)
 
 # Real FFT examples
-add_executable(docs_rfft real/docs_rfft.cpp)
-target_link_libraries(docs_rfft PUBLIC KokkosFFT::fft)
+kokkosfft_add_example(docs_rfft SOURCES real/docs_rfft.cpp)
 
-add_executable(docs_irfft real/docs_irfft.cpp)
-target_link_libraries(docs_irfft PUBLIC KokkosFFT::fft)
+kokkosfft_add_example(docs_irfft SOURCES real/docs_irfft.cpp)
 
-add_executable(docs_rfft2 real/docs_rfft2.cpp)
-target_link_libraries(docs_rfft2 PUBLIC KokkosFFT::fft)
+kokkosfft_add_example(docs_rfft2 SOURCES real/docs_rfft2.cpp)
 
-add_executable(docs_irfft2 real/docs_irfft2.cpp)
-target_link_libraries(docs_irfft2 PUBLIC KokkosFFT::fft)
+kokkosfft_add_example(docs_irfft2 SOURCES real/docs_irfft2.cpp)
 
-add_executable(docs_rfftn real/docs_rfftn.cpp)
-target_link_libraries(docs_rfftn PUBLIC KokkosFFT::fft)
+kokkosfft_add_example(docs_rfftn SOURCES real/docs_rfftn.cpp)
 
-add_executable(docs_irfftn real/docs_irfftn.cpp)
-target_link_libraries(docs_irfftn PUBLIC KokkosFFT::fft)
+kokkosfft_add_example(docs_irfftn SOURCES real/docs_irfftn.cpp)
 
 # Hermitian FFT examples
-add_executable(docs_hfft hermitian/docs_hfft.cpp)
-target_link_libraries(docs_hfft PUBLIC KokkosFFT::fft)
+kokkosfft_add_example(docs_hfft SOURCES hermitian/docs_hfft.cpp)
 
-add_executable(docs_ihfft hermitian/docs_ihfft.cpp)
-target_link_libraries(docs_ihfft PUBLIC KokkosFFT::fft)
+kokkosfft_add_example(docs_ihfft SOURCES hermitian/docs_ihfft.cpp)
 
 # Helper routines
-add_executable(docs_fftfreq helper/docs_fftfreq.cpp)
-target_link_libraries(docs_fftfreq PUBLIC KokkosFFT::fft)
+kokkosfft_add_example(docs_fftfreq SOURCES helper/docs_fftfreq.cpp)
 
-add_executable(docs_rfftfreq helper/docs_rfftfreq.cpp)
-target_link_libraries(docs_rfftfreq PUBLIC KokkosFFT::fft)
+kokkosfft_add_example(docs_rfftfreq SOURCES helper/docs_rfftfreq.cpp)
 
-add_executable(docs_fftshift helper/docs_fftshift.cpp)
-target_link_libraries(docs_fftshift PUBLIC KokkosFFT::fft)
+kokkosfft_add_example(docs_fftshift SOURCES helper/docs_fftshift.cpp)
 
-add_executable(docs_ifftshift helper/docs_ifftshift.cpp)
-target_link_libraries(docs_ifftshift PUBLIC KokkosFFT::fft)
+kokkosfft_add_example(docs_ifftshift SOURCES helper/docs_ifftshift.cpp)
 
 # Plan and execute examples
-add_executable(docs_plan_execute plan/docs_plan_execute.cpp)
-target_link_libraries(docs_plan_execute PUBLIC KokkosFFT::fft)
+kokkosfft_add_example(docs_plan_execute SOURCES plan/docs_plan_execute.cpp)
