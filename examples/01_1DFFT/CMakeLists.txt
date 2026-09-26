@@ -2,5 +2,4 @@
 #
 # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
-add_executable(01_1DFFT 01_1DFFT.cpp)
-target_link_libraries(01_1DFFT PUBLIC KokkosFFT::fft)
+kokkosfft_add_example(01_1DFFT SOURCES 01_1DFFT.cpp)
