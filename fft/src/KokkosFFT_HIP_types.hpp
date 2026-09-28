@@ -60,11 +60,6 @@ auto deduce_callback_type() -> hipfftXtCallbackType {
                   "Unsupported callback type");
   }
 }
-#else
-template <typename T, typename Tag>
-struct hipFFTCallBackType {
-  using type = void;
-};
 #endif
 
 /// \brief A class that wraps hipfft for RAII
