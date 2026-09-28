@@ -417,11 +417,6 @@ struct FFTDataType {
   using complex128 = hipfftDoubleComplex;
 };
 
-template <typename ExecutionSpace, typename T, typename Tag>
-struct FFTCallBackType {
-  using type = hipFFTCallBackType<T, Tag>;
-};
-
 template <typename ExecutionSpace>
 using TransformType = hipfftType;
 
