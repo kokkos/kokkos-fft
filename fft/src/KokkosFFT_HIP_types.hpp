@@ -33,28 +33,6 @@ namespace Impl {
 using FFTDirectionType = int;
 
 #if defined(KOKKOSFFT_ENABLE_CALLBACK)
-template <typename T, typename Tag>
-struct hipFFTCallBackType {
-  using float32 = std::conditional_t<std::same_as<Tag, KokkosFFT::LoadCallback>,
-                                     hipfftCallbackLoadR, hipfftCallbackStoreR>;
-  using float64 = std::conditional_t<std::same_as<Tag, KokkosFFT::LoadCallback>,
-                                     hipfftCallbackLoadD, hipfftCallbackStoreD>;
-  using complex64 =
-      std::conditional_t<std::same_as<Tag, KokkosFFT::LoadCallback>,
-                         hipfftCallbackLoadC, hipfftCallbackStoreC>;
-  using complex128 =
-      std::conditional_t<std::same_as<Tag, KokkosFFT::LoadCallback>,
-                         hipfftCallbackLoadZ, hipfftCallbackStoreZ>;
-
-  using type = std::conditional_t<
-      std::same_as<T, float>, float32,
-      std::conditional_t<
-          std::same_as<T, double>, float64,
-          std::conditional_t<
-              std::same_as<T, Kokkos::complex<float>>, complex64,
-              std::conditional_t<std::same_as<T, Kokkos::complex<double>>,
-                                 complex128, void>>>>;
-};
 
 // Unlike cuFFT, hipFFT uses distinct enum values for single vs double
 // precision (HIPFFT_CB_LD_REAL vs HIPFFT_CB_LD_REAL_DOUBLE), so this cannot
