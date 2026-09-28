@@ -301,12 +301,6 @@ struct FFTDataType {
                          hipfftDoubleComplex, fftw_complex>;
 };
 
-template <typename ExecutionSpace, typename T, typename Tag>
-struct FFTCallBackType {
-  using type = std::conditional_t<std::same_as<ExecutionSpace, Kokkos::HIP>,
-                                  hipFFTCallBackType<T, Tag>, void>;
-};
-
 template <typename ExecutionSpace>
 using TransformType =
     std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>, hipfftType,
