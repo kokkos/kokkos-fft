@@ -22,27 +22,6 @@ option(KokkosFFT_ENABLE_DISTRIBUTED "Enable KokkosFFT distributed support" OFF)
 option(KokkosFFT_ENABLE_TESTS_DISTRIBUTED_ONLY "Enable KokkosFFT distributed tests only" OFF)
 option(KokkosFFT_ENABLE_CALLBACK "Enable KokkosFFT callback support" OFF)
 
-# Legacy vendor callbacks (cufftXtSetCallback/hipfftXtSetCallback) resolve a
-# device function pointer via cudaMemcpyFromSymbol/hipMemcpyFromSymbol. Without
-# relocatable device code, that pointer is not valid at the call site inside
-# the vendor FFT library's own kernel, causing an "Invalid PC" crash at
-# execution time. Force RDC on for whichever GPU backend is in use so this
-# can't be silently misconfigured.
-if(KokkosFFT_ENABLE_CALLBACK)
-  if(Kokkos_ENABLE_CUDA)
-    set(Kokkos_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE
-        ON
-        CACHE BOOL "Enable RDC for CUDA (required by KokkosFFT callbacks)" FORCE
-    )
-  endif()
-  if(Kokkos_ENABLE_HIP)
-    set(Kokkos_ENABLE_HIP_RELOCATABLE_DEVICE_CODE
-        ON
-        CACHE BOOL "Enable RDC for HIP (required by KokkosFFT callbacks)" FORCE
-    )
-  endif()
-endif()
-
 # Version information
 set(KOKKOSFFT_VERSION ${PROJECT_VERSION})
 set(KOKKOSFFT_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
@@ -57,8 +36,38 @@ if(NOT KokkosFFT_ENABLE_INTERNAL_KOKKOS)
     find_package(Kokkos ${KOKKOS_REQUIRED_VERSION} REQUIRED)
     # Check the alignment of complex numbers
     kokkos_check(OPTIONS COMPLEX_ALIGN)
+    if(KokkosFFT_ENABLE_CALLBACK)
+      kokkos_check(DEVICES CUDA RETURN_VALUE is_cuda_enabled)
+      if("${is_cuda_enabled}")
+        kokkos_check(OPTIONS CUDA_CONSTEXPR CUDA_RELOCATABLE_DEVICE_CODE)
+      endif()
+      kokkos_check(DEVICES HIP RETURN_VALUE is_hip_enabled)
+      if("${is_hip_enabled}")
+        kokkos_check(OPTIONS HIP_RELOCATABLE_DEVICE_CODE)
+      endif()
+    endif()
   endif()
 else()
+  # Legacy vendor callbacks (cufftXtSetCallback/hipfftXtSetCallback) resolve a
+  # device function pointer via cudaMemcpyFromSymbol/hipMemcpyFromSymbol. Without
+  # relocatable device code, that pointer is not valid at the call site inside
+  # the vendor FFT library's own kernel, causing an "Invalid PC" crash at
+  # execution time. Force RDC on for whichever GPU backend is in use so this
+  # can't be silently misconfigured.
+  if(KokkosFFT_ENABLE_CALLBACK)
+    if(Kokkos_ENABLE_CUDA)
+      set(Kokkos_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE
+          ON
+          CACHE BOOL "Enable RDC for CUDA (required by KokkosFFT callbacks)" FORCE
+      )
+    endif()
+    if(Kokkos_ENABLE_HIP)
+      set(Kokkos_ENABLE_HIP_RELOCATABLE_DEVICE_CODE
+          ON
+          CACHE BOOL "Enable RDC for HIP (required by KokkosFFT callbacks)" FORCE
+      )
+    endif()
+  endif()
   add_subdirectory(tpls/kokkos)
 endif()
 
