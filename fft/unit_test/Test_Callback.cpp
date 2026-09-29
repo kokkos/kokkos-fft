@@ -5,15 +5,14 @@
 #include <gtest/gtest.h>
 #include "KokkosFFT_Plans.hpp"
 #include "KokkosFFT_Transform.hpp"
+#include "KokkosFFT_Testing_Allclose.hpp"
 
 namespace {
 using execution_space = Kokkos::DefaultExecutionSpace;
-// using test_types = ::testing::Types<std::pair<float, Kokkos::LayoutLeft>,
-//                                     std::pair<float, Kokkos::LayoutRight>,
-//                                     std::pair<double, Kokkos::LayoutLeft>,
-//                                     std::pair<double, Kokkos::LayoutRight> >;
 using test_types = ::testing::Types<std::pair<float, Kokkos::LayoutLeft>,
-                                    std::pair<float, Kokkos::LayoutRight>>;
+                                    std::pair<float, Kokkos::LayoutRight>,
+                                    std::pair<double, Kokkos::LayoutLeft>,
+                                    std::pair<double, Kokkos::LayoutRight>>;
 
 // Basically the same fixtures, used for labeling tests
 template <typename T>
@@ -27,27 +26,30 @@ struct Params {
   unsigned int padded_size;
 };
 
-// A templated __device__ global (one symbol generically covering every T)
-// does not compile -- see dev meeting notes 2026-09-18. kokkosfftReal/
-// kokkosfftCallbackLoadR are backend-agnostic aliases (KokkosFFT_default_types.hpp)
-// resolving to cufftReal/cufftCallbackLoadR or hipfftReal/hipfftCallbackLoadR
-// depending on which backend is active, so this stays portable without
-// naming a vendor type directly.
-KOKKOS_IMPL_DEVICE_FUNCTION kokkosfftReal zero_pad_load_callback(
+// Templated on T (float or double) so the zero-padding logic is written
+// once rather than duplicated per precision. kokkosfftCallbackLoadR/LoadD
+// are backend-agnostic aliases (KokkosFFT_default_types.hpp) resolving to
+// cufftCallbackLoadR/D or hipfftCallbackLoadR/D depending on which backend
+// is active, so this stays portable without naming a vendor type directly.
+// A __device__ global itself can't be templated, so one concrete global per
+// precision below just instantiates this shared function template.
+template <typename T>
+KOKKOS_IMPL_DEVICE_FUNCTION T zero_pad_load_callback(
     void* dataIn, size_t offset, void* callerInfo, void* sharedPointer) {
-  using data_type          = kokkosfftReal;
-  auto* callback_params    = static_cast<Params*>(callerInfo);
-  const data_type* in_data = static_cast<const data_type*>(dataIn);
+  auto* callback_params = static_cast<Params*>(callerInfo);
+  const T* in_data       = static_cast<const T*>(dataIn);
 
   // Zero-padding: return 0 for indices beyond original_size
   if (offset >= callback_params->original_size) {
-    return static_cast<data_type>(0);
+    return static_cast<T>(0);
   }
   return in_data[offset];
 }
 
-KOKKOS_IMPL_DEVICE_FUNCTION kokkosfftCallbackLoadR d_load_callback_symbol =
-    zero_pad_load_callback;
+KOKKOS_IMPL_DEVICE_FUNCTION kokkosfftCallbackLoadR d_load_callback_symbol_fp32 =
+    zero_pad_load_callback<float>;
+KOKKOS_IMPL_DEVICE_FUNCTION kokkosfftCallbackLoadD d_load_callback_symbol_fp64 =
+    zero_pad_load_callback<double>;
 
 template <typename T, typename LayoutType>
 void test_callback_1d() {
@@ -75,7 +77,11 @@ void test_callback_1d() {
 
   Params params{static_cast<unsigned int>(original_size),
                static_cast<unsigned int>(n)};
-  plan_r2c_axis_0.set_callback(d_load_callback_symbol, params);
+  if constexpr (std::is_same_v<T, float>) {
+    plan_r2c_axis_0.set_callback(d_load_callback_symbol_fp32, params);
+  } else {
+    plan_r2c_axis_0.set_callback(d_load_callback_symbol_fp64, params);
+  }
 
   KokkosFFT::execute(plan_r2c_axis_0, x, x_c);
   Kokkos::fence();
@@ -95,16 +101,7 @@ void test_callback_1d() {
   KokkosFFT::execute(plan_ref, x_ref, x_c_ref);
   Kokkos::fence();
 
-  auto x_c_host = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), x_c);
-  auto x_c_ref_host =
-      Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), x_c_ref);
-
-  for (int i = 0; i < static_cast<int>(x_c_host.extent(0)); ++i) {
-    EXPECT_NEAR(x_c_host(i).real(), x_c_ref_host(i).real(), 1e-3)
-        << "mismatch at index " << i << " (real)";
-    EXPECT_NEAR(x_c_host(i).imag(), x_c_ref_host(i).imag(), 1e-3)
-        << "mismatch at index " << i << " (imag)";
-  }
+  EXPECT_THAT(x_c, KokkosFFT::Testing::allclose(x_c_ref, 1.e-5, 1.e-12));
 }
 }  // namespace
 

@@ -15,6 +15,6 @@ gtest_discover_tests(unit-tests-kokkos-dynfft PROPERTIES DISCOVERY_TIMEOUT 600 D
 
 if(KokkosFFT_ENABLE_CALLBACK)
     add_executable(unit-tests-kokkos-fft-callback Test_Main.cpp Test_Callback.cpp)
-    target_link_libraries(unit-tests-kokkos-fft-callback PUBLIC KokkosFFT::fft GTest::gtest)
+    target_link_libraries(unit-tests-kokkos-fft-callback PUBLIC KokkosFFT::fft KokkosFFT::testing GTest::gtest GTest::gmock)
     gtest_discover_tests(unit-tests-kokkos-fft-callback PROPERTIES DISCOVERY_TIMEOUT 600 DISCOVERY_MODE PRE_TEST)
 endif()

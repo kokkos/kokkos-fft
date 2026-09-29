@@ -129,7 +129,7 @@ struct ScopedHIPfftPlan {
   /// owned by this ScopedHIPfftPlan, freed in its destructor -- the caller
   /// never has to manage that memory themselves.
   template <typename CallbackSymbolType, typename CallbackParamsType>
-  void set_callback(CallbackSymbolType &d_callback_symbol,
+  void set_callback(const CallbackSymbolType &d_callback_symbol,
                     const CallbackParamsType &params) {
 #if defined(KOKKOSFFT_ENABLE_CALLBACK)
     CallbackSymbolType callback{};
@@ -257,7 +257,7 @@ struct ScopedHIPfftDynPlan {
   /// owned by this ScopedHIPfftDynPlan, freed in its destructor -- the caller
   /// never has to manage that memory themselves.
   template <typename CallbackSymbolType, typename CallbackParamsType>
-  void set_callback(CallbackSymbolType &d_callback_symbol,
+  void set_callback(const CallbackSymbolType &d_callback_symbol,
                     const CallbackParamsType &params) {
 #if defined(KOKKOSFFT_ENABLE_CALLBACK)
     CallbackSymbolType callback{};

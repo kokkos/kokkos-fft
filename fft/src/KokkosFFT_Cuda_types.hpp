@@ -33,29 +33,6 @@ namespace Impl {
 using FFTDirectionType = int;
 
 #if defined(KOKKOSFFT_ENABLE_CALLBACK)
-template <typename T, typename Tag>
-struct cuFFTCallBackType {
-  using float32 = std::conditional_t<std::same_as<Tag, KokkosFFT::LoadCallback>,
-                                     cufftCallbackLoadR, cufftCallbackStoreR>;
-  using float64 = std::conditional_t<std::same_as<Tag, KokkosFFT::LoadCallback>,
-                                     cufftCallbackLoadD, cufftCallbackStoreD>;
-  using complex64 =
-      std::conditional_t<std::same_as<Tag, KokkosFFT::LoadCallback>,
-                         cufftCallbackLoadC, cufftCallbackStoreC>;
-  using complex128 =
-      std::conditional_t<std::same_as<Tag, KokkosFFT::LoadCallback>,
-                         cufftCallbackLoadZ, cufftCallbackStoreZ>;
-
-  using type = std::conditional_t<
-      std::same_as<T, float>, float32,
-      std::conditional_t<
-          std::same_as<T, double>, float64,
-          std::conditional_t<
-              std::same_as<T, Kokkos::complex<float>>, complex64,
-              std::conditional_t<std::same_as<T, Kokkos::complex<double>>,
-                                 complex128, void>>>>;
-};
-
 template <typename CallbackSymbol>
 auto deduce_callback_type() -> cufftXtCallbackType {
   // cufftXtCallbackType has distinct enum values for single vs double
@@ -83,11 +60,6 @@ auto deduce_callback_type() -> cufftXtCallbackType {
                   "Unsupported callback type");
   }
 }
-#else
-template <typename T, typename Tag>
-struct cuFFTCallBackType {
-  using type = void;
-};
 #endif
 
 /// \brief A class that wraps cufft for RAII
@@ -157,7 +129,7 @@ struct ScopedCufftPlan {
   /// owned by this ScopedCufftPlan, freed in its destructor -- the caller
   /// never has to manage that memory themselves.
   template <typename CallbackSymbolType, typename CallbackParamsType>
-  void set_callback(CallbackSymbolType &d_callback_symbol,
+  void set_callback(const CallbackSymbolType &d_callback_symbol,
                     const CallbackParamsType &params) {
 #if defined(KOKKOSFFT_ENABLE_CALLBACK)
     CallbackSymbolType callback{};
@@ -286,7 +258,7 @@ struct ScopedCufftDynPlan {
   /// owned by this ScopedCufftDynPlan, freed in its destructor -- the caller
   /// never has to manage that memory themselves.
   template <typename CallbackSymbolType, typename CallbackParamsType>
-  void set_callback(CallbackSymbolType &d_callback_symbol,
+  void set_callback(const CallbackSymbolType &d_callback_symbol,
                     const CallbackParamsType &params) {
 #if defined(KOKKOSFFT_ENABLE_CALLBACK)
     CallbackSymbolType callback{};
@@ -328,12 +300,6 @@ struct FFTDataType {
   using complex128 =
       std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::Cuda>,
                          cufftDoubleComplex, fftw_complex>;
-};
-
-template <typename ExecutionSpace, typename T, typename Tag>
-struct FFTCallBackType {
-  using type = std::conditional_t<std::same_as<ExecutionSpace, Kokkos::Cuda>,
-                                  cuFFTCallBackType<T, Tag>, void>;
 };
 
 template <typename ExecutionSpace>
@@ -450,11 +416,6 @@ struct FFTDataType {
   using float64    = cufftDoubleReal;
   using complex64  = cufftComplex;
   using complex128 = cufftDoubleComplex;
-};
-
-template <typename ExecutionSpace, typename T, typename Tag>
-struct FFTCallBackType {
-  using type = cuFFTCallBackType<T, Tag>;
 };
 
 template <typename ExecutionSpace>

@@ -304,7 +304,7 @@ class Plan {
   /// \param params The callback parameters, copied into a device allocation
   /// owned by the plan
   template <typename CallbackSymbol, typename CallbackParamsType>
-  void set_callback(CallbackSymbol& d_callback_symbol,
+  void set_callback(const CallbackSymbol& d_callback_symbol,
                     const CallbackParamsType& params) {
     m_plan->set_callback(d_callback_symbol, params);
   }
