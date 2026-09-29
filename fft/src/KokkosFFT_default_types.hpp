@@ -86,9 +86,8 @@ inline constexpr bool is_allowed_space_v =
 /// function template with the type the vendor callback symbol actually
 /// expects instead of relying on T happening to be layout-identical to it.
 template <typename T, typename ExecutionSpace = Kokkos::DefaultExecutionSpace>
-struct fft_data_type {
-  using type = typename KokkosFFT::Impl::fft_data_type<ExecutionSpace, T>::type;
-};
+using fft_data_type =
+    typename KokkosFFT::Impl::fft_data_type<ExecutionSpace, T>::type;
 
 }  // namespace KokkosFFT
 

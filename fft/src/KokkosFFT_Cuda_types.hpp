@@ -16,15 +16,6 @@
 #include "KokkosFFT_FFTW_Types.hpp"
 #endif
 
-// Backend-agnostic aliases for the vendor real/complex data types. Users
-// writing a callback function should use these instead of naming
-// cufftReal/etc. directly, so the same callback source stays portable as
-// more backends gain callback support.
-using kokkosfftReal          = cufftReal;
-using kokkosfftDoubleReal    = cufftDoubleReal;
-using kokkosfftComplex       = cufftComplex;
-using kokkosfftDoubleComplex = cufftDoubleComplex;
-
 #if defined(KOKKOSFFT_ENABLE_CALLBACK)
 #include <cuda_runtime.h>
 #include <cufftXt.h>
