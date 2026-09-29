@@ -19,6 +19,20 @@
 #if defined(KOKKOSFFT_ENABLE_CALLBACK)
 #include <cuda_runtime.h>
 #include <cufftXt.h>
+
+// Backend-agnostic aliases for the vendor callback function pointer types.
+// Users writing a callback function or __device__ global should use these
+// instead of naming cufftCallbackLoadR/etc. directly, so the same callback
+// source stays portable as more backends gain callback support.
+using kokkosfftCallbackLoadR = cufftCallbackLoadR;
+using kokkosfftCallbackLoadD = cufftCallbackLoadD;
+using kokkosfftCallbackLoadC = cufftCallbackLoadC;
+using kokkosfftCallbackLoadZ = cufftCallbackLoadZ;
+
+using kokkosfftCallbackStoreR = cufftCallbackStoreR;
+using kokkosfftCallbackStoreD = cufftCallbackStoreD;
+using kokkosfftCallbackStoreC = cufftCallbackStoreC;
+using kokkosfftCallbackStoreZ = cufftCallbackStoreZ;
 #endif
 
 // Check the size of complex type

@@ -10,10 +10,6 @@
 #include <hipfft/hipfft.h>
 #include "KokkosFFT_Asserts.hpp"
 
-#if defined(KOKKOSFFT_ENABLE_CALLBACK)
-#include <hip/hip_runtime.h>
-#endif
-
 #if defined(__cpp_lib_source_location) && __cpp_lib_source_location >= 201907L
 #include <source_location>
 #define KOKKOSFFT_CHECK_HIPFFT_CALL(call)                                    \
@@ -23,23 +19,10 @@
       std::source_location::current().line(),                                \
       std::source_location::current().function_name(),                       \
       std::source_location::current().column())
-
-#define KOKKOSFFT_CHECK_HIP_CALL(call)                                  \
-  KokkosFFT::Impl::check_fft_call(                                      \
-      call, #call, hipSuccess, KokkosFFT::Impl::hip_result_to_string,   \
-      std::source_location::current().file_name(),                      \
-      std::source_location::current().line(),                           \
-      std::source_location::current().function_name(),                  \
-      std::source_location::current().column())
 #else
 #define KOKKOSFFT_CHECK_HIPFFT_CALL(call)                                   \
   KokkosFFT::Impl::check_fft_call(call, #call, HIPFFT_SUCCESS,              \
                                   KokkosFFT::Impl::hipfft_result_to_string, \
-                                  __FILE__, __LINE__, __FUNCTION__)
-
-#define KOKKOSFFT_CHECK_HIP_CALL(call)                                \
-  KokkosFFT::Impl::check_fft_call(call, #call, hipSuccess,            \
-                                  KokkosFFT::Impl::hip_result_to_string, \
                                   __FILE__, __LINE__, __FUNCTION__)
 #endif
 
@@ -68,30 +51,6 @@ inline std::string_view hipfft_result_to_string(hipfftResult result) {
     default: return "UNKNOWN_HIPFFT_ERROR";
   }
 }
-
-#if defined(KOKKOSFFT_ENABLE_CALLBACK)
-inline std::string_view hip_result_to_string(hipError_t result) {
-  switch (result) {
-    case hipSuccess: return "hipSuccess";
-    case hipErrorInvalidValue: return "hipErrorInvalidValue";
-    case hipErrorInvalidDevicePointer: return "hipErrorInvalidDevicePointer";
-    case hipErrorInvalidSymbol: return "hipErrorInvalidSymbol";
-    case hipErrorMemoryAllocation: return "hipErrorMemoryAllocation";
-    case hipErrorInitializationError: return "hipErrorInitializationError";
-    case hipErrorLaunchFailure: return "hipErrorLaunchFailure";
-    case hipErrorLaunchTimeOut: return "hipErrorLaunchTimeOut";
-    case hipErrorLaunchOutOfResources: return "hipErrorLaunchOutOfResources";
-    case hipErrorInvalidDeviceFunction:
-      return "hipErrorInvalidDeviceFunction";
-    case hipErrorInvalidConfiguration: return "hipErrorInvalidConfiguration";
-    case hipErrorInvalidDevice: return "hipErrorInvalidDevice";
-    case hipErrorInvalidMemcpyDirection:
-      return "hipErrorInvalidMemcpyDirection";
-    case hipErrorUnknown: return "hipErrorUnknown";
-    default: return "UNKNOWN_HIP_ERROR";
-  }
-}
-#endif
 }  // namespace Impl
 }  // namespace KokkosFFT
 
