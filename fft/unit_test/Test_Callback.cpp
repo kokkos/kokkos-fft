@@ -47,9 +47,9 @@ KOKKOS_IMPL_DEVICE_FUNCTION T zero_pad_load_callback(
 }
 
 KOKKOS_IMPL_DEVICE_FUNCTION kokkosfftCallbackLoadR d_load_callback_symbol_fp32 =
-    zero_pad_load_callback<float>;
+    zero_pad_load_callback<typename KokkosFFT::fft_data_type<float>::type>;
 KOKKOS_IMPL_DEVICE_FUNCTION kokkosfftCallbackLoadD d_load_callback_symbol_fp64 =
-    zero_pad_load_callback<double>;
+    zero_pad_load_callback<typename KokkosFFT::fft_data_type<double>::type>;
 
 template <typename T, typename LayoutType>
 void test_callback_1d() {
