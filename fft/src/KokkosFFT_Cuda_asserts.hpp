@@ -7,6 +7,7 @@
 
 #include <stdexcept>
 #include <string_view>
+#include <cuda_runtime.h>
 #include <cufft.h>
 #include "KokkosFFT_Asserts.hpp"
 
@@ -20,21 +21,21 @@
       std::source_location::current().function_name(),                     \
       std::source_location::current().column())
 
-#define KOKKOSFFT_CHECK_CUDA_CALL(call)                                 \
-  KokkosFFT::Impl::check_fft_call(                                      \
-      call, #call, cudaSuccess, KokkosFFT::Impl::cuda_result_to_string, \
-      std::source_location::current().file_name(),                      \
-      std::source_location::current().line(),                           \
-      std::source_location::current().function_name(),                  \
+#define KOKKOSFFT_CHECK_CUDA_CALL(call)                      \
+  KokkosFFT::Impl::check_fft_call(                            \
+      call, #call, cudaSuccess, cudaGetErrorString,            \
+      std::source_location::current().file_name(),             \
+      std::source_location::current().line(),                  \
+      std::source_location::current().function_name(),         \
       std::source_location::current().column())
 #else
 #define KOKKOSFFT_CHECK_CUFFT_CALL(call)                                   \
   KokkosFFT::Impl::check_fft_call(call, #call, CUFFT_SUCCESS,              \
                                   KokkosFFT::Impl::cufft_result_to_string, \
                                   __FILE__, __LINE__, __FUNCTION__)
-#define KOKKOSFFT_CHECK_CUDA_CALL(call)                                   \
-  KokkosFFT::Impl::check_fft_call(call, #call, cudaSuccess,               \
-                                  KokkosFFT::Impl::cuda_result_to_string, \
+#define KOKKOSFFT_CHECK_CUDA_CALL(call)                     \
+  KokkosFFT::Impl::check_fft_call(call, #call, cudaSuccess,  \
+                                  cudaGetErrorString,         \
                                   __FILE__, __LINE__, __FUNCTION__)
 #endif
 
@@ -62,26 +63,6 @@ inline std::string_view cufft_result_to_string(cufftResult result) {
     // case CUFFT_NVJITLINK_FAILURE:  return "CUFFT_NVJITLINK_FAILURE";
     // case CUFFT_NVSHMEM_FAILURE:    return "CUFFT_NVSHMEM_FAILURE";
     default: return "UNKNOWN_CUFFT_ERROR";
-  }
-}
-
-inline std::string_view cuda_result_to_string(cudaError_t result) {
-  switch (result) {
-    case cudaSuccess: return "cudaSuccess";
-    case cudaErrorInvalidValue: return "cudaErrorInvalidValue";
-    case cudaErrorMemoryAllocation: return "cudaErrorMemoryAllocation";
-    case cudaErrorInitializationError: return "cudaErrorInitializationError";
-    case cudaErrorLaunchFailure: return "cudaErrorLaunchFailure";
-    case cudaErrorLaunchTimeout: return "cudaErrorLaunchTimeout";
-    case cudaErrorLaunchOutOfResources: return "cudaErrorLaunchOutOfResources";
-    case cudaErrorInvalidDeviceFunction:
-      return "cudaErrorInvalidDeviceFunction";
-    case cudaErrorInvalidConfiguration: return "cudaErrorInvalidConfiguration";
-    case cudaErrorInvalidDevice: return "cudaErrorInvalidDevice";
-    case cudaErrorInvalidMemcpyDirection:
-      return "cudaErrorInvalidMemcpyDirection";
-    case cudaErrorUnknown: return "cudaErrorUnknown";
-    default: return "UNKNOWN_CUDA_ERROR";
   }
 }
 
