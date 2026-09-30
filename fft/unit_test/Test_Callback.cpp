@@ -9,7 +9,7 @@
 
 namespace {
 using execution_space = Kokkos::DefaultExecutionSpace;
-using test_types = ::testing::Types<std::pair<float, Kokkos::LayoutLeft>,
+using test_types      = ::testing::Types<std::pair<float, Kokkos::LayoutLeft>,
                                     std::pair<float, Kokkos::LayoutRight>,
                                     std::pair<double, Kokkos::LayoutLeft>,
                                     std::pair<double, Kokkos::LayoutRight>>;
@@ -33,10 +33,12 @@ struct Params {
 // A __device__ global itself can't be templated, so one concrete global per
 // precision below just instantiates this shared function template.
 template <typename T>
-KOKKOS_IMPL_DEVICE_FUNCTION T zero_pad_load_callback(
-    void* dataIn, size_t offset, void* callerInfo, void* sharedPointer) {
+KOKKOS_IMPL_DEVICE_FUNCTION T zero_pad_load_callback(void* dataIn,
+                                                     size_t offset,
+                                                     void* callerInfo,
+                                                     void* sharedPointer) {
   auto* callback_params = static_cast<Params*>(callerInfo);
-  const T* in_data       = static_cast<const T*>(dataIn);
+  const T* in_data      = static_cast<const T*>(dataIn);
 
   // Zero-padding: return 0 for indices beyond original_size
   if (offset >= callback_params->original_size) {
@@ -64,23 +66,25 @@ KOKKOS_IMPL_DEVICE_FUNCTION void store_callback(void* dataOut, size_t offset,
                                                 T element, void* callerInfo,
                                                 void* sharedPointer) {
   auto* callback_params = static_cast<Params*>(callerInfo);
-  T* out_data            = static_cast<T*>(dataOut);
+  T* out_data           = static_cast<T*>(dataOut);
 
   if (offset < callback_params->original_size) {
     out_data[offset] = element;
   }
 }
 
-KOKKOS_IMPL_DEVICE_FUNCTION kokkosfftCallbackStoreR d_store_callback_symbol_fp32 =
-    store_callback<KokkosFFT::fft_data_type<float>>;
-KOKKOS_IMPL_DEVICE_FUNCTION kokkosfftCallbackStoreD d_store_callback_symbol_fp64 =
-    store_callback<KokkosFFT::fft_data_type<double>>;
+KOKKOS_IMPL_DEVICE_FUNCTION kokkosfftCallbackStoreR
+    d_store_callback_symbol_fp32 =
+        store_callback<KokkosFFT::fft_data_type<float>>;
+KOKKOS_IMPL_DEVICE_FUNCTION kokkosfftCallbackStoreD
+    d_store_callback_symbol_fp64 =
+        store_callback<KokkosFFT::fft_data_type<double>>;
 
 template <typename T, typename LayoutType>
 void test_load_callback_1d() {
   const int original_size = 20;
-  const int n              = 30;
-  using RealView1DType = Kokkos::View<T*, LayoutType, execution_space>;
+  const int n             = 30;
+  using RealView1DType    = Kokkos::View<T*, LayoutType, execution_space>;
   using ComplexView1DType =
       Kokkos::View<Kokkos::complex<T>*, LayoutType, execution_space>;
 
@@ -131,8 +135,8 @@ void test_load_callback_1d() {
 template <typename T, typename LayoutType>
 void test_store_callback_1d() {
   const int original_size = 20;
-  const int n              = 30;
-  using RealView1DType = Kokkos::View<T*, LayoutType, execution_space>;
+  const int n             = 30;
+  using RealView1DType    = Kokkos::View<T*, LayoutType, execution_space>;
   using ComplexView1DType =
       Kokkos::View<Kokkos::complex<T>*, LayoutType, execution_space>;
 
@@ -147,8 +151,7 @@ void test_store_callback_1d() {
 
   // C2R plan
   execution_space exec;
-  KokkosFFT::Plan plan_c2r_axis_0(exec, in, out,
-                                  KokkosFFT::Direction::backward,
+  KokkosFFT::Plan plan_c2r_axis_0(exec, in, out, KokkosFFT::Direction::backward,
                                   /*axis=*/0);
 
   Params params{static_cast<unsigned int>(original_size)};
@@ -174,7 +177,8 @@ void test_store_callback_1d() {
   // store_callback above).
   auto out_sub     = Kokkos::subview(out, std::make_pair(0, original_size));
   auto out_ref_sub = Kokkos::subview(out_ref, std::make_pair(0, original_size));
-  EXPECT_THAT(out_sub, KokkosFFT::Testing::allclose(out_ref_sub, 1.e-5, 1.e-12));
+  EXPECT_THAT(out_sub,
+              KokkosFFT::Testing::allclose(out_ref_sub, 1.e-5, 1.e-12));
 }
 
 // End-to-end: forward R2C with the zero-padding load callback, then
@@ -185,8 +189,8 @@ void test_store_callback_1d() {
 template <typename T, typename LayoutType>
 void test_load_store_roundtrip_1d() {
   const int original_size = 20;
-  const int n              = 30;
-  using RealView1DType = Kokkos::View<T*, LayoutType, execution_space>;
+  const int n             = 30;
+  using RealView1DType    = Kokkos::View<T*, LayoutType, execution_space>;
   using ComplexView1DType =
       Kokkos::View<Kokkos::complex<T>*, LayoutType, execution_space>;
 

@@ -180,7 +180,7 @@ struct ScopedCufftPlan {
 
     constexpr cufftXtCallbackType cb_type =
         deduce_callback_type_v<CallbackSymbolType>;
-    void *callback_ptr          = reinterpret_cast<void *>(callback);
+    void *callback_ptr = reinterpret_cast<void *>(callback);
 
     if (m_callback_params != nullptr) {
       KOKKOSFFT_CHECK_CUDA_CALL(cudaFree(m_callback_params));
@@ -316,7 +316,7 @@ struct ScopedCufftDynPlan {
 
     constexpr cufftXtCallbackType cb_type =
         deduce_callback_type_v<CallbackSymbolType>;
-    void *callback_ptr          = reinterpret_cast<void *>(callback);
+    void *callback_ptr = reinterpret_cast<void *>(callback);
 
     if (m_callback_params != nullptr) {
       KOKKOSFFT_CHECK_CUDA_CALL(cudaFree(m_callback_params));
