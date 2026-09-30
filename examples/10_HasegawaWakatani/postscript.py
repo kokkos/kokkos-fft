@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
-""" 
+"""
 A module for loading simulation data files and providing access to the data
 for different variables and iterations.
 
@@ -148,7 +148,7 @@ class DataLoader:
                         f'(2, {nkyh}, {nkx2}). Current nx = {nx} does not fit '
                         f'in the data from the file {file_path}'
                     )
-                var = var.reshape(2, nkyh, nkx2)
+                var = var.reshape((2, nkyh, nkx2))
             return to_real_data(var)
 
         if self.suffix == 'nc':
@@ -193,7 +193,7 @@ def Real3DtoComplex2D(A: np.ndarray) -> np.ndarray:
 
 def backwardFFT(fk: np.ndarray, shape: tuple) -> np.ndarray:
     """
-    Compute the inverse 2D FFT to transform a complex Fourier representation 
+    Compute the inverse 2D FFT to transform a complex Fourier representation
     to a real spatial domain field.
 
     Parameters
