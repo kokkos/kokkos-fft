@@ -148,7 +148,7 @@ class DataLoader:
                         f'(2, {nkyh}, {nkx2}). Current nx = {nx} does not fit '
                         f'in the data from the file {file_path}'
                     )
-                var = var.reshape(2, nkyh, nkx2)
+                var = var.reshape((2, nkyh, nkx2))
             return to_real_data(var)
 
         if self.suffix == 'nc':
