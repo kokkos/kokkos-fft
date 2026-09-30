@@ -47,33 +47,55 @@ namespace Impl {
 using FFTDirectionType = int;
 
 #if defined(KOKKOSFFT_ENABLE_CALLBACK)
+// cufftXtCallbackType has distinct enum values for single vs double
+// precision (CUFFT_CB_LD_REAL vs CUFFT_CB_LD_REAL_DOUBLE, etc.); collapsing
+// R/D or C/Z onto the same value here would tell cufftXtSetCallback the
+// wrong callback type for any double-precision callback.
+//
+// Primary template intentionally left undefined: instantiating it with an
+// unsupported CallbackSymbol fails to compile with that type named in the
+// error, instead of silently falling through.
 template <typename CallbackSymbol>
-auto deduce_callback_type() -> cufftXtCallbackType {
-  // cufftXtCallbackType has distinct enum values for single vs double
-  // precision (CUFFT_CB_LD_REAL vs CUFFT_CB_LD_REAL_DOUBLE, etc.); collapsing
-  // R/D or C/Z into the same value here would tell cufftXtSetCallback the
-  // wrong callback type for any double-precision callback.
-  if constexpr (std::same_as<CallbackSymbol, cufftCallbackLoadR>) {
-    return CUFFT_CB_LD_REAL;
-  } else if constexpr (std::same_as<CallbackSymbol, cufftCallbackLoadD>) {
-    return CUFFT_CB_LD_REAL_DOUBLE;
-  } else if constexpr (std::same_as<CallbackSymbol, cufftCallbackLoadC>) {
-    return CUFFT_CB_LD_COMPLEX;
-  } else if constexpr (std::same_as<CallbackSymbol, cufftCallbackLoadZ>) {
-    return CUFFT_CB_LD_COMPLEX_DOUBLE;
-  } else if constexpr (std::same_as<CallbackSymbol, cufftCallbackStoreR>) {
-    return CUFFT_CB_ST_REAL;
-  } else if constexpr (std::same_as<CallbackSymbol, cufftCallbackStoreD>) {
-    return CUFFT_CB_ST_REAL_DOUBLE;
-  } else if constexpr (std::same_as<CallbackSymbol, cufftCallbackStoreC>) {
-    return CUFFT_CB_ST_COMPLEX;
-  } else if constexpr (std::same_as<CallbackSymbol, cufftCallbackStoreZ>) {
-    return CUFFT_CB_ST_COMPLEX_DOUBLE;
-  } else {
-    static_assert(!std::is_same_v<CallbackSymbol, CallbackSymbol>,
-                  "Unsupported callback type");
-  }
-}
+struct deduce_callback_type;
+
+template <>
+struct deduce_callback_type<cufftCallbackLoadR> {
+  static constexpr cufftXtCallbackType value = CUFFT_CB_LD_REAL;
+};
+template <>
+struct deduce_callback_type<cufftCallbackLoadD> {
+  static constexpr cufftXtCallbackType value = CUFFT_CB_LD_REAL_DOUBLE;
+};
+template <>
+struct deduce_callback_type<cufftCallbackLoadC> {
+  static constexpr cufftXtCallbackType value = CUFFT_CB_LD_COMPLEX;
+};
+template <>
+struct deduce_callback_type<cufftCallbackLoadZ> {
+  static constexpr cufftXtCallbackType value = CUFFT_CB_LD_COMPLEX_DOUBLE;
+};
+template <>
+struct deduce_callback_type<cufftCallbackStoreR> {
+  static constexpr cufftXtCallbackType value = CUFFT_CB_ST_REAL;
+};
+template <>
+struct deduce_callback_type<cufftCallbackStoreD> {
+  static constexpr cufftXtCallbackType value = CUFFT_CB_ST_REAL_DOUBLE;
+};
+template <>
+struct deduce_callback_type<cufftCallbackStoreC> {
+  static constexpr cufftXtCallbackType value = CUFFT_CB_ST_COMPLEX;
+};
+template <>
+struct deduce_callback_type<cufftCallbackStoreZ> {
+  static constexpr cufftXtCallbackType value = CUFFT_CB_ST_COMPLEX_DOUBLE;
+};
+
+/// \brief Helper to deduce the cufftXtCallbackType enum value for a vendor
+/// callback symbol typedef (e.g. cufftCallbackLoadR)
+template <typename CallbackSymbol>
+inline constexpr cufftXtCallbackType deduce_callback_type_v =
+    deduce_callback_type<CallbackSymbol>::value;
 #endif
 
 /// \brief A class that wraps cufft for RAII
@@ -142,6 +164,12 @@ struct ScopedCufftPlan {
   /// \param params The callback parameters. Copied into a device allocation
   /// owned by this ScopedCufftPlan, freed in its destructor -- the caller
   /// never has to manage that memory themselves.
+  ///
+  /// \todo When KOKKOSFFT_ENABLE_CALLBACK is off, this method currently
+  /// compiles to a silent no-op instead of failing to compile or throwing --
+  /// a caller who forgets -DKokkosFFT_ENABLE_CALLBACK=ON gets no error, just
+  /// an FFT that silently runs without their callback attached. Needs a
+  /// compile-time failure instead (discussed in review, not yet decided).
   template <typename CallbackSymbolType, typename CallbackParamsType>
   void set_callback(const CallbackSymbolType &d_callback_symbol,
                     const CallbackParamsType &params) {
@@ -150,7 +178,8 @@ struct ScopedCufftPlan {
     KOKKOSFFT_CHECK_CUDA_CALL(
         cudaMemcpyFromSymbol(&callback, d_callback_symbol, sizeof(callback)));
 
-    cufftXtCallbackType cb_type = deduce_callback_type<CallbackSymbolType>();
+    constexpr cufftXtCallbackType cb_type =
+        deduce_callback_type_v<CallbackSymbolType>;
     void *callback_ptr          = reinterpret_cast<void *>(callback);
 
     if (m_callback_params != nullptr) {
@@ -271,6 +300,12 @@ struct ScopedCufftDynPlan {
   /// \param params The callback parameters. Copied into a device allocation
   /// owned by this ScopedCufftDynPlan, freed in its destructor -- the caller
   /// never has to manage that memory themselves.
+  ///
+  /// \todo When KOKKOSFFT_ENABLE_CALLBACK is off, this method currently
+  /// compiles to a silent no-op instead of failing to compile or throwing --
+  /// a caller who forgets -DKokkosFFT_ENABLE_CALLBACK=ON gets no error, just
+  /// an FFT that silently runs without their callback attached. Needs a
+  /// compile-time failure instead (discussed in review, not yet decided).
   template <typename CallbackSymbolType, typename CallbackParamsType>
   void set_callback(const CallbackSymbolType &d_callback_symbol,
                     const CallbackParamsType &params) {
@@ -279,7 +314,8 @@ struct ScopedCufftDynPlan {
     KOKKOSFFT_CHECK_CUDA_CALL(
         cudaMemcpyFromSymbol(&callback, d_callback_symbol, sizeof(callback)));
 
-    cufftXtCallbackType cb_type = deduce_callback_type<CallbackSymbolType>();
+    constexpr cufftXtCallbackType cb_type =
+        deduce_callback_type_v<CallbackSymbolType>;
     void *callback_ptr          = reinterpret_cast<void *>(callback);
 
     if (m_callback_params != nullptr) {
