@@ -23,7 +23,6 @@ struct TestCallback1D : public ::testing::Test {
 
 struct Params {
   unsigned int original_size;
-  unsigned int padded_size;
 };
 
 // Templated on T (float or double) so the zero-padding logic is written
@@ -101,8 +100,7 @@ void test_load_callback_1d() {
   KokkosFFT::Plan plan_r2c_axis_0(exec, x, x_c, KokkosFFT::Direction::forward,
                                   /*axis=*/0);
 
-  Params params{static_cast<unsigned int>(original_size),
-               static_cast<unsigned int>(n)};
+  Params params{static_cast<unsigned int>(original_size)};
   if constexpr (std::is_same_v<T, float>) {
     plan_r2c_axis_0.set_callback(d_load_callback_symbol_fp32, params);
   } else {
@@ -153,8 +151,7 @@ void test_store_callback_1d() {
                                   KokkosFFT::Direction::backward,
                                   /*axis=*/0);
 
-  Params params{static_cast<unsigned int>(original_size),
-               static_cast<unsigned int>(n)};
+  Params params{static_cast<unsigned int>(original_size)};
   if constexpr (std::is_same_v<T, float>) {
     plan_c2r_axis_0.set_callback(d_store_callback_symbol_fp32, params);
   } else {
@@ -206,8 +203,7 @@ void test_load_store_roundtrip_1d() {
   Kokkos::deep_copy(x, x_host);
 
   execution_space exec;
-  Params params{static_cast<unsigned int>(original_size),
-               static_cast<unsigned int>(n)};
+  Params params{static_cast<unsigned int>(original_size)};
 
   // Forward R2C with the zero-padding load callback.
   KokkosFFT::Plan plan_fwd(exec, x, x_c, KokkosFFT::Direction::forward,
