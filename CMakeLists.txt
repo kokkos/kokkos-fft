@@ -39,7 +39,7 @@ if(NOT KokkosFFT_ENABLE_INTERNAL_KOKKOS)
     if(KokkosFFT_ENABLE_CALLBACK)
       kokkos_check(DEVICES CUDA RETURN_VALUE is_cuda_enabled)
       if("${is_cuda_enabled}")
-        kokkos_check(OPTIONS CUDA_CONSTEXPR CUDA_RELOCATABLE_DEVICE_CODE)
+        kokkos_check(OPTIONS CUDA_RELOCATABLE_DEVICE_CODE)
       endif()
     endif()
   endif()
@@ -51,10 +51,7 @@ else()
   # can't be silently misconfigured.
   if(KokkosFFT_ENABLE_CALLBACK)
     if(Kokkos_ENABLE_CUDA)
-      set(Kokkos_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE
-          ON
-          CACHE BOOL "Enable RDC for CUDA (required by KokkosFFT callbacks)" FORCE
-      )
+      set(Kokkos_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE ON)
     endif()
   endif()
   add_subdirectory(tpls/kokkos)
