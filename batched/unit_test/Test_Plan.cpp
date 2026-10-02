@@ -12,7 +12,7 @@ namespace {
 using KokkosFFT::Batched::AxisTag;
 using KokkosFFT::Batched::Plan;
 using execution_space = Kokkos::DefaultExecutionSpace;
-using test_types = ::testing::Types<std::pair<float, Kokkos::LayoutLeft>,
+using test_types      = ::testing::Types<std::pair<float, Kokkos::LayoutLeft>,
                                     std::pair<float, Kokkos::LayoutRight>,
                                     std::pair<double, Kokkos::LayoutLeft>,
                                     std::pair<double, Kokkos::LayoutRight>>;
@@ -20,8 +20,9 @@ using test_types = ::testing::Types<std::pair<float, Kokkos::LayoutLeft>,
 const std::vector<std::size_t> test_lengths = {
     1, 2, 3, 4, 5, 7, 8, 12, 16, 30, 97, 128, 210, 1009, 4096};
 
-template <typename T> struct TestPlan : public ::testing::Test {
-  using float_type = typename T::first_type;
+template <typename T>
+struct TestPlan : public ::testing::Test {
+  using float_type  = typename T::first_type;
   using layout_type = typename T::second_type;
 };
 
@@ -47,8 +48,7 @@ void test_factorize(std::size_t n) {
 std::size_t generic_roots_size(const std::vector<std::size_t> &radices) {
   std::size_t size = 0;
   for (auto r : radices) {
-    if (!KokkosFFT::Batched::Impl::is_specialized_radix(r))
-      size += r;
+    if (!KokkosFFT::Batched::Impl::is_specialized_radix(r)) size += r;
   }
   return size;
 }
@@ -62,7 +62,7 @@ void test_plan_c2c_1d(std::size_t n) {
   View2DType x_hat("x_hat", x.extent(0), x.extent(1));
 
   execution_space exec;
-  Plan plan(exec, x, x_hat, AxisTag<Axis>{}); // CTAD
+  Plan plan(exec, x, x_hat, AxisTag<Axis>{});  // CTAD
   static_assert(std::same_as<decltype(plan), Plan<execution_space, View2DType,
                                                   View2DType, AxisTag<Axis>>>);
 
@@ -92,7 +92,8 @@ void test_plan_c2c_1d(std::size_t n) {
   }
 }
 
-template <typename T, typename LayoutType> void test_plan_errors() {
+template <typename T, typename LayoutType>
+void test_plan_errors() {
   using View2DType =
       Kokkos::View<Kokkos::complex<T> **, LayoutType, execution_space>;
   execution_space exec;
@@ -137,9 +138,9 @@ void test_plan_real_1d(std::size_t n) {
   using ComplexView2DType =
       Kokkos::View<Kokkos::complex<T> **, LayoutType, execution_space>;
   constexpr std::size_t nbatch = 3;
-  const bool is_odd = n % 2 == 1;
-  const std::size_t h = n / 2;
-  const std::size_t n_fft = is_odd ? n : h;
+  const bool is_odd            = n % 2 == 1;
+  const std::size_t h          = n / 2;
+  const std::size_t n_fft      = is_odd ? n : h;
   RealView2DType x("x", Axis == 0 ? n : nbatch, Axis == 0 ? nbatch : n);
   ComplexView2DType x_hat("x_hat", Axis == 0 ? h + 1 : nbatch,
                           Axis == 0 ? nbatch : h + 1);
@@ -179,7 +180,8 @@ void test_plan_real_1d(std::size_t n) {
 
 /// \brief 3-D plans over axes (2, 0, 1) of a 4-D view batched along dim 3:
 /// lengths, extents, children, and the real-axis requirement of N-D R2C/C2R
-template <typename T, typename LayoutType> void test_plan_nd() {
+template <typename T, typename LayoutType>
+void test_plan_nd() {
   using Axes = AxisTag<2, 0, 1>;
   using ComplexView4D =
       Kokkos::View<Kokkos::complex<T> ****, LayoutType, execution_space>;
@@ -209,11 +211,11 @@ template <typename T, typename LayoutType> void test_plan_nd() {
   EXPECT_EQ(r2c.length(2), 6u);
   EXPECT_EQ(r2c.in_extent(2), 6u);
   EXPECT_EQ(r2c.out_extent(2), 4u);
-  EXPECT_EQ(r2c.out_extent(0), 8u); // heads are C2C
+  EXPECT_EQ(r2c.out_extent(0), 8u);  // heads are C2C
   EXPECT_EQ(c2r.in_extent(2), 4u);
   EXPECT_EQ(c2r.out_extent(2), 6u);
   EXPECT_EQ(r2c.fft_size(), 8u * 7u * 6u);
-  EXPECT_EQ(r2c.last_plan().n_fft(), 3u); // even: half-length complex FFT
+  EXPECT_EQ(r2c.last_plan().n_fft(), 3u);  // even: half-length complex FFT
 
   // A length-1 heads axis is fine
   RealView4D r1("r1", 1, 6, 8, 3);
@@ -234,7 +236,8 @@ template <typename T, typename LayoutType> void test_plan_nd() {
   EXPECT_THROW(Plan(exec, x, y, Axes{}), std::runtime_error);
 }
 
-template <typename T, typename LayoutType> void test_plan_allocations() {
+template <typename T, typename LayoutType>
+void test_plan_allocations() {
   using View2DType =
       Kokkos::View<Kokkos::complex<T> **, LayoutType, execution_space>;
   View2DType x("x", 210, 3), x_hat("x_hat", 210, 3);
@@ -248,7 +251,7 @@ template <typename T, typename LayoutType> void test_plan_allocations() {
         << "unexpected allocation: " << label;
   }
 }
-} // namespace
+}  // namespace
 
 TEST(TestFactorize, Radices) {
   for (std::size_t n = 1; n <= 4096; ++n) {
@@ -263,7 +266,7 @@ TEST(TestFactorize, Radices) {
 }
 
 TYPED_TEST(TestPlan, C2C1D) {
-  using float_type = typename TestFixture::float_type;
+  using float_type  = typename TestFixture::float_type;
   using layout_type = typename TestFixture::layout_type;
   for (auto n : test_lengths) {
     test_plan_c2c_1d<float_type, layout_type, 0>(n);
@@ -272,7 +275,7 @@ TYPED_TEST(TestPlan, C2C1D) {
 }
 
 TYPED_TEST(TestPlan, Real1D) {
-  using float_type = typename TestFixture::float_type;
+  using float_type  = typename TestFixture::float_type;
   using layout_type = typename TestFixture::layout_type;
   for (std::size_t n :
        {1, 2, 3, 4, 6, 7, 8, 9, 16, 30, 105, 128, 1009, 2018, 4096}) {
@@ -282,19 +285,19 @@ TYPED_TEST(TestPlan, Real1D) {
 }
 
 TYPED_TEST(TestPlan, Errors) {
-  using float_type = typename TestFixture::float_type;
+  using float_type  = typename TestFixture::float_type;
   using layout_type = typename TestFixture::layout_type;
   test_plan_errors<float_type, layout_type>();
 }
 
 TYPED_TEST(TestPlan, ND) {
-  using float_type = typename TestFixture::float_type;
+  using float_type  = typename TestFixture::float_type;
   using layout_type = typename TestFixture::layout_type;
   test_plan_nd<float_type, layout_type>();
 }
 
 TYPED_TEST(TestPlan, AllocationLabels) {
-  using float_type = typename TestFixture::float_type;
+  using float_type  = typename TestFixture::float_type;
   using layout_type = typename TestFixture::layout_type;
   test_plan_allocations<float_type, layout_type>();
 }

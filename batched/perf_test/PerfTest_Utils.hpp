@@ -16,9 +16,9 @@
 
 namespace BatchedFFTBenchmark {
 
-using execution_space = Kokkos::DefaultExecutionSpace;
+using execution_space  = Kokkos::DefaultExecutionSpace;
 using team_policy_type = Kokkos::TeamPolicy<execution_space>;
-using member_type = typename team_policy_type::member_type;
+using member_type      = typename team_policy_type::member_type;
 using range_policy_type =
     Kokkos::RangePolicy<execution_space, Kokkos::IndexType<std::size_t>>;
 
@@ -41,7 +41,8 @@ inline std::size_t batch_count(std::size_t points_per_fft) {
 }
 
 /// \brief First argument of a KokkosFFT::Batched::Plan for the variant
-template <Variant V> auto plan_policy() {
+template <Variant V>
+auto plan_policy() {
   if constexpr (V == Variant::Team) {
     return team_policy_type(1, Kokkos::AUTO);
   } else {
@@ -100,8 +101,8 @@ KOKKOS_INLINE_FUNCTION auto batch_slice(const ViewType &v, std::size_t ib) {
 ///   team_sizes     : run for every FFT size
 ///   scan_team_sizes: further sizes, run only for the FFT sizes of the
 ///                    team-size scan (a few sizes per case, to limit run time)
-inline constexpr int team_size_auto = 0;
-inline constexpr int team_sizes[] = {team_size_auto, 1, 8, 32};
+inline constexpr int team_size_auto    = 0;
+inline constexpr int team_sizes[]      = {team_size_auto, 1, 8, 32};
 inline constexpr int scan_team_sizes[] = {2, 4, 16, 64, 128, 256, 512, 1024};
 
 /// \brief One batch per iteration of a RangePolicy, with a serial plan.
@@ -205,7 +206,7 @@ void run_batched(benchmark::State &state, const PlanType &plan,
                             std::to_string(team_size_max) + ")");
       return;
     }
-    const bool is_auto = requested == team_size_auto;
+    const bool is_auto  = requested == team_size_auto;
     const int team_size = is_auto ? auto_policy.team_size_recommended(
                                         functor, Kokkos::ParallelForTag())
                                   : requested;
@@ -262,17 +263,15 @@ inline void add_benchmark_context() {
   std::stringstream ss{msg.str()};
   for (std::string line; std::getline(ss, line, '\n');) {
     const auto colon = line.find(':');
-    if (colon == std::string::npos)
-      continue;
+    if (colon == std::string::npos) continue;
     auto trim = [](const std::string &s) {
       const auto b = s.find_first_not_of(" :");
       const auto e = s.find_last_not_of(" :");
       return b == std::string::npos ? std::string() : s.substr(b, e - b + 1);
     };
-    const auto key = trim(line.substr(0, colon));
+    const auto key   = trim(line.substr(0, colon));
     const auto value = trim(line.substr(colon + 1));
-    if (!key.empty() && !value.empty())
-      benchmark::AddCustomContext(key, value);
+    if (!key.empty() && !value.empty()) benchmark::AddCustomContext(key, value);
   }
   for (const char *name : {"OMP_NUM_THREADS", "OMP_PROC_BIND", "OMP_PLACES"}) {
     if (const char *value = std::getenv(name))
@@ -281,7 +280,8 @@ inline void add_benchmark_context() {
 }
 
 /// \brief Label of a variant in benchmark names
-template <Variant V> const char *variant_name() {
+template <Variant V>
+const char *variant_name() {
   if constexpr (V == Variant::Serial) {
     return "BatchedSerial";
   } else if constexpr (V == Variant::Team) {
@@ -291,6 +291,6 @@ template <Variant V> const char *variant_name() {
   }
 }
 
-} // namespace BatchedFFTBenchmark
+}  // namespace BatchedFFTBenchmark
 
 #endif

@@ -21,6 +21,6 @@ void test_axis_tag() {
   static_assert(OneAxis::last_v == 1, "Last should be 1");
   static_assert(OneAxis::rank == 1, "Rank should be 1");
 }
-} // namespace
+}  // namespace
 
 TEST(CompileTestBaseTypes, AxisTag) { test_axis_tag(); }

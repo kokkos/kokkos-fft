@@ -8,18 +8,21 @@ namespace {
 using KokkosFFT::Batched::AxisTag;
 using KokkosFFT::Batched::Plan;
 using KokkosFFT::Batched::TransformKind;
-using execution_space = Kokkos::DefaultExecutionSpace;
+using execution_space  = Kokkos::DefaultExecutionSpace;
 using team_policy_type = Kokkos::TeamPolicy<execution_space>;
 
 using float_types = ::testing::Types<float, double>;
 
-template <typename T> using complex_t = Kokkos::complex<T>;
+template <typename T>
+using complex_t = Kokkos::complex<T>;
 
-template <typename T> struct CompileTestTransformKind : public ::testing::Test {
+template <typename T>
+struct CompileTestTransformKind : public ::testing::Test {
   using float_type = T;
 };
 
-template <typename T> struct CompileTestPlan : public ::testing::Test {
+template <typename T>
+struct CompileTestPlan : public ::testing::Test {
   using float_type = T;
 };
 
@@ -47,7 +50,8 @@ void test_policy_traits() {
   static_assert(std::same_as<decltype(space1), execution_space>);
 }
 
-template <typename T> void test_transform_kind() {
+template <typename T>
+void test_transform_kind() {
   using KokkosFFT::Batched::Impl::transform_kind_v;
   static_assert(transform_kind_v<complex_t<T>, complex_t<T>> ==
                 TransformKind::C2C);
@@ -59,9 +63,9 @@ void test_axes() {
   using KokkosFFT::Batched::Impl::are_valid_axes;
   static_assert(are_valid_axes<AxisTag<0>, 1>());
   static_assert(are_valid_axes<AxisTag<2, 0>, 3>());
-  static_assert(!are_valid_axes<AxisTag<1>, 1>());    // out of range
-  static_assert(!are_valid_axes<AxisTag<0, 0>, 2>()); // duplicated
-  static_assert(!are_valid_axes<AxisTag<-1>, 2>());   // negative
+  static_assert(!are_valid_axes<AxisTag<1>, 1>());     // out of range
+  static_assert(!are_valid_axes<AxisTag<0, 0>, 2>());  // duplicated
+  static_assert(!are_valid_axes<AxisTag<-1>, 2>());    // negative
 
   // Axes {2, 0} of a rank-3 view: the slice keeps dims 0 and 2 in order
   using KokkosFFT::Batched::Impl::slice_dim_v;
@@ -70,11 +74,12 @@ void test_axes() {
   static_assert(slice_dim_v<AxisTag<1, 3, 2>, 1> == 0);
   static_assert(slice_dim_v<AxisTag<1, 3, 2>, 2> == 1);
   static_assert(slice_dim_v<AxisTag<1, 3, 2>, 3> == 2);
-  static_assert(slice_dim_v<AxisTag<1, 3>, 2> == -1); // not an FFT axis
+  static_assert(slice_dim_v<AxisTag<1, 3>, 2> == -1);  // not an FFT axis
 }
 
-template <typename ExecPolicy, typename T> void test_plan_tree() {
-  using RealView3D = Kokkos::View<T ***, execution_space>;
+template <typename ExecPolicy, typename T>
+void test_plan_tree() {
+  using RealView3D    = Kokkos::View<T ***, execution_space>;
   using ComplexView3D = Kokkos::View<complex_t<T> ***, execution_space>;
   using ComplexStride3D =
       Kokkos::View<complex_t<T> ***, Kokkos::LayoutStride, execution_space>;
@@ -128,7 +133,7 @@ template <typename ExecPolicy, typename T> void test_plan_tree() {
   static_assert(C2RPlan::last_plan_type::is_team == is_team);
 }
 
-} // namespace
+}  // namespace
 
 TEST(CompileTestTraits, PolicyTraits) { test_policy_traits(); }
 

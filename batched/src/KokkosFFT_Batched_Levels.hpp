@@ -49,7 +49,8 @@ struct SerialLevel {
 };
 
 /// \brief Team level: all threads (and vector lanes) of a team cooperate
-template <typename MemberType> struct TeamLevel {
+template <typename MemberType>
+struct TeamLevel {
   static constexpr bool merges_lines = true;
 
   const MemberType &m_member;
@@ -135,12 +136,12 @@ KOKKOS_FORCEINLINE_FUNCTION std::size_t fast_div(std::size_t a, std::size_t b) {
 /// when neighbouring lines are closer in memory than neighbouring items.
 /// One (cheap, see fast_div) division per work item.
 template <typename LevelType, typename FunctorType>
-KOKKOS_INLINE_FUNCTION void
-for_each_in_lines(const LevelType &level, std::size_t nlines,
-                  std::size_t per_line, bool line_fastest,
-                  const FunctorType &f) {
-  if (nlines == 0 || per_line == 0)
-    return;
+KOKKOS_INLINE_FUNCTION void for_each_in_lines(const LevelType &level,
+                                              std::size_t nlines,
+                                              std::size_t per_line,
+                                              bool line_fastest,
+                                              const FunctorType &f) {
+  if (nlines == 0 || per_line == 0) return;
   level.for_each(nlines * per_line, [&](std::size_t idx) {
     if (line_fastest) {
       const std::size_t i = fast_div(idx, nlines);
@@ -152,8 +153,8 @@ for_each_in_lines(const LevelType &level, std::size_t nlines,
   });
 }
 
-} // namespace Impl
-} // namespace Batched
-} // namespace KokkosFFT
+}  // namespace Impl
+}  // namespace Batched
+}  // namespace KokkosFFT
 
 #endif

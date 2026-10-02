@@ -21,7 +21,8 @@ namespace Impl {
 /// size is sum_s (len_s - len_{s+1}) = n - 1.
 /// A generic-radix stage also needs the r-th roots of unity, stored at
 /// roots[root_offset[s] + t], t = 0..r-1 (root_offset is 0 for other stages).
-template <typename ComplexType> struct StageTables {
+template <typename ComplexType>
+struct StageTables {
   std::vector<std::size_t> tw_offset;
   std::vector<std::size_t> root_offset;
   std::vector<ComplexType> twiddles;
@@ -31,7 +32,7 @@ template <typename ComplexType> struct StageTables {
 /// \brief exp(-2 pi i num / den), evaluated in double and cast
 template <typename ComplexType>
 ComplexType forward_root(std::size_t num, std::size_t den) {
-  using float_type = typename ComplexType::value_type;
+  using float_type   = typename ComplexType::value_type;
   const double theta = -2.0 * Kokkos::numbers::pi_v<double> *
                        static_cast<double>(num) / static_cast<double>(den);
   return ComplexType(static_cast<float_type>(std::cos(theta)),
@@ -39,8 +40,8 @@ ComplexType forward_root(std::size_t num, std::size_t den) {
 }
 
 template <typename ComplexType>
-StageTables<ComplexType>
-make_stage_tables(std::size_t n, const std::vector<std::size_t> &radices) {
+StageTables<ComplexType> make_stage_tables(
+    std::size_t n, const std::vector<std::size_t> &radices) {
   StageTables<ComplexType> tables;
   std::size_t len = n;
   for (auto radix : radices) {
@@ -72,8 +73,7 @@ make_stage_tables(std::size_t n, const std::vector<std::size_t> &radices) {
 template <typename ComplexType>
 std::vector<ComplexType> make_real_twiddles(std::size_t n) {
   std::vector<ComplexType> twiddles;
-  if (n < 2)
-    return twiddles;
+  if (n < 2) return twiddles;
   const std::size_t h = n / 2;
   for (std::size_t k = 0; k <= h / 2; ++k) {
     twiddles.push_back(forward_root<ComplexType>(k, n));
@@ -96,9 +96,9 @@ std::vector<ComplexType> make_odd_real_twiddles(std::size_t n) {
 /// `exec`. The copy is fenced so the host vector may be freed afterwards.
 /// No host mirror is allocated.
 template <typename ExecutionSpace, typename ValueType>
-Kokkos::View<ValueType *, typename ExecutionSpace::memory_space>
-to_view(const ExecutionSpace &exec, const std::string &label,
-        const std::vector<ValueType> &host) {
+Kokkos::View<ValueType *, typename ExecutionSpace::memory_space> to_view(
+    const ExecutionSpace &exec, const std::string &label,
+    const std::vector<ValueType> &host) {
   using view_type =
       Kokkos::View<ValueType *, typename ExecutionSpace::memory_space>;
   view_type view(Kokkos::view_alloc(exec, Kokkos::WithoutInitializing, label),
@@ -110,8 +110,8 @@ to_view(const ExecutionSpace &exec, const std::string &label,
   return view;
 }
 
-} // namespace Impl
-} // namespace Batched
-} // namespace KokkosFFT
+}  // namespace Impl
+}  // namespace Batched
+}  // namespace KokkosFFT
 
 #endif

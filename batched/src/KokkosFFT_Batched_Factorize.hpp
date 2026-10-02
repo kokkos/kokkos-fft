@@ -47,8 +47,7 @@ inline std::vector<std::size_t> factorize(std::size_t n) {
       n /= p;
     }
   }
-  if (n > 1)
-    radices.push_back(n);
+  if (n > 1) radices.push_back(n);
 
   // Prefer an odd number of stages so that the result lands in `out`
   if (radices.size() % 2 == 0) {
@@ -61,8 +60,8 @@ inline std::vector<std::size_t> factorize(std::size_t n) {
   return radices;
 }
 
-} // namespace Impl
-} // namespace Batched
-} // namespace KokkosFFT
+}  // namespace Impl
+}  // namespace Batched
+}  // namespace KokkosFFT
 
 #endif

@@ -3,12 +3,13 @@
 
 namespace KokkosFFT {
 namespace Batched {
-template <int... Tags> struct AxisTag;
+template <int... Tags>
+struct AxisTag;
 
 template <typename ExecPolicy, typename InViewType, typename OutViewType,
           typename Axes>
 class Plan;
-} // namespace Batched
-} // namespace KokkosFFT
+}  // namespace Batched
+}  // namespace KokkosFFT
 
 #endif

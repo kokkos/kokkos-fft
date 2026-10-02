@@ -34,12 +34,11 @@ namespace Impl {
 
 /// \brief Y[F] of an HC group of odd length L stored at line[base..base+L)
 template <typename LineType>
-KOKKOS_INLINE_FUNCTION Kokkos::complex<typename LineType::value_type>
-hc_load(const LineType &line, std::size_t base, std::size_t L, std::size_t F) {
-  using T = typename LineType::value_type;
+KOKKOS_INLINE_FUNCTION Kokkos::complex<typename LineType::value_type> hc_load(
+    const LineType &line, std::size_t base, std::size_t L, std::size_t F) {
+  using T            = typename LineType::value_type;
   using complex_type = Kokkos::complex<T>;
-  if (F == 0)
-    return complex_type(line.load(base), T(0));
+  if (F == 0) return complex_type(line.load(base), T(0));
   if (2 * F < L) {
     return complex_type(line.load(base + 2 * F - 1), line.load(base + 2 * F));
   }
@@ -62,14 +61,12 @@ KOKKOS_INLINE_FUNCTION void hc_store(const LineType &line, std::size_t base,
 /// \brief X[F] (F = 0..n-1) of a Hermitian spectrum given by X[0..(n-1)/2]
 /// (odd n). Im X[0] is ignored, as in numpy.
 template <typename LineType>
-KOKKOS_INLINE_FUNCTION typename LineType::value_type
-hermitian_load(const LineType &line, std::size_t n, std::size_t F) {
+KOKKOS_INLINE_FUNCTION typename LineType::value_type hermitian_load(
+    const LineType &line, std::size_t n, std::size_t F) {
   using complex_type = typename LineType::value_type;
-  using T = typename complex_type::value_type;
-  if (F == 0)
-    return complex_type(line.load(0).real(), T(0));
-  if (2 * F < n)
-    return line.load(F);
+  using T            = typename complex_type::value_type;
+  if (F == 0) return complex_type(line.load(0).real(), T(0));
+  if (2 * F < n) return line.load(F);
   return Kokkos::conj(line.load(n - F));
 }
 
@@ -82,28 +79,26 @@ KOKKOS_FUNCTION void odd_r2c_stage(const LevelType &level,
                                    const AxisDataType &axis, std::size_t radix,
                                    std::size_t L, const SrcLineType &src,
                                    const DstLineType &dst) {
-  using complex_type = typename AxisDataType::complex_type;
-  const std::size_t n = axis.length(0);
+  using complex_type   = typename AxisDataType::complex_type;
+  const std::size_t n  = axis.length(0);
   const std::size_t Ls = radix * L;
   // radix >= 3 and L >= 1 by construction; this makes it explicit for the
   // divisions below (and for static analysis)
-  if (Ls == 0)
-    return;
-  const std::size_t G = n / Ls; // output groups
+  if (Ls == 0) return;
+  const std::size_t G = n / Ls;  // output groups
   const std::size_t H = (Ls + 1) / 2;
-  const auto &tw = axis.real_twiddles(); // W_n^t
+  const auto &tw      = axis.real_twiddles();  // W_n^t
 
   level.for_each(G * H, [&](std::size_t idx) {
     const std::size_t g = idx / H;
     const std::size_t F = idx - g * H;
     const std::size_t f = F % L;
     complex_type acc(0);
-    std::size_t t = 0; // (k F) mod Ls
+    std::size_t t = 0;  // (k F) mod Ls
     for (std::size_t k = 0; k < radix; ++k) {
       acc += tw(t * G) * hc_load(src, L * (g + G * k), L, f);
       t += F;
-      if (t >= Ls)
-        t -= Ls;
+      if (t >= Ls) t -= Ls;
     }
     if constexpr (ToComplex) {
       dst.store(F, acc);
@@ -123,25 +118,24 @@ KOKKOS_FUNCTION void odd_c2r_stage(const LevelType &level,
                                    const AxisDataType &axis, std::size_t radix,
                                    std::size_t L, const SrcLineType &src,
                                    const DstLineType &dst) {
-  using complex_type = typename AxisDataType::complex_type;
-  const std::size_t n = axis.length(0);
+  using complex_type   = typename AxisDataType::complex_type;
+  const std::size_t n  = axis.length(0);
   const std::size_t Ls = radix * L;
   // radix >= 3 and L >= 1 by construction; this makes it explicit for the
   // divisions below (and for static analysis)
-  if (Ls == 0)
-    return;
-  const std::size_t G = n / Ls; // input groups
+  if (Ls == 0) return;
+  const std::size_t G = n / Ls;  // input groups
   const std::size_t H = (L + 1) / 2;
-  const auto &tw = axis.real_twiddles(); // W_n^t
+  const auto &tw      = axis.real_twiddles();  // W_n^t
 
   level.for_each(G * radix * H, [&](std::size_t idx) {
-    const std::size_t gk = idx / H; // output group g + G k
-    const std::size_t f = idx - gk * H;
-    const std::size_t g = gk % G;
-    const std::size_t k = gk / G;
+    const std::size_t gk   = idx / H;  // output group g + G k
+    const std::size_t f    = idx - gk * H;
+    const std::size_t g    = gk % G;
+    const std::size_t k    = gk / G;
     const std::size_t step = (k * L) % Ls;
     complex_type acc(0);
-    std::size_t t = (k * f) % Ls; // (k (f + L j)) mod Ls
+    std::size_t t = (k * f) % Ls;  // (k (f + L j)) mod Ls
     for (std::size_t j = 0; j < radix; ++j) {
       const std::size_t F = f + L * j;
       complex_type v;
@@ -152,8 +146,7 @@ KOKKOS_FUNCTION void odd_c2r_stage(const LevelType &level,
       }
       acc += v * Kokkos::conj(tw(t * G));
       t += step;
-      if (t >= Ls)
-        t -= Ls;
+      if (t >= Ls) t -= Ls;
     }
     hc_store(dst, L * gk, f, acc);
   });
@@ -165,16 +158,17 @@ KOKKOS_FUNCTION void odd_c2r_stage(const LevelType &level,
 /// `x` is overwritten.
 template <typename LevelType, typename AxisDataType, typename RealLineType,
           typename ComplexLineType>
-KOKKOS_FUNCTION void
-odd_r2c_line(const LevelType &level, const AxisDataType &axis,
-             const RealLineType &x, const ComplexLineType &y) {
-  using complex_type = typename AxisDataType::complex_type;
-  using T = typename complex_type::value_type;
+KOKKOS_FUNCTION void odd_r2c_line(const LevelType &level,
+                                  const AxisDataType &axis,
+                                  const RealLineType &x,
+                                  const ComplexLineType &y) {
+  using complex_type  = typename AxisDataType::complex_type;
+  using T             = typename complex_type::value_type;
   const std::size_t n = axis.length(0);
-  const int nstages = axis.nstages();
-  const auto yr = ComplexAsReal<T>{y.m_data, y.m_stride};
+  const int nstages   = axis.nstages();
+  const auto yr       = ComplexAsReal<T>{y.m_data, y.m_stride};
 
-  if (nstages == 0) { // n = 1
+  if (nstages == 0) {  // n = 1
     level.for_each(1,
                    [&](std::size_t) { y.store(0, complex_type(x.load(0))); });
     level.barrier();
@@ -185,7 +179,7 @@ odd_r2c_line(const LevelType &level, const AxisDataType &axis,
   for (int s = 0; s < nstages; ++s) {
     const std::size_t radix = axis.radix(s);
     if (s == nstages - 1) {
-      if (s % 2 == 1) { // data is in y: copy it back to x
+      if (s % 2 == 1) {  // data is in y: copy it back to x
         level.for_each(n, [&](std::size_t i) { x.store(i, yr.load(i)); });
         level.barrier();
       }
@@ -206,15 +200,16 @@ odd_r2c_line(const LevelType &level, const AxisDataType &axis,
 /// result is copied to `y`. `x` is overwritten.
 template <typename LevelType, typename AxisDataType, typename ComplexLineType,
           typename RealLineType>
-KOKKOS_FUNCTION void
-odd_c2r_line(const LevelType &level, const AxisDataType &axis,
-             const ComplexLineType &x, const RealLineType &y) {
-  using T = typename AxisDataType::float_type;
+KOKKOS_FUNCTION void odd_c2r_line(const LevelType &level,
+                                  const AxisDataType &axis,
+                                  const ComplexLineType &x,
+                                  const RealLineType &y) {
+  using T             = typename AxisDataType::float_type;
   const std::size_t n = axis.length(0);
-  const int nstages = axis.nstages();
-  const auto xr = ComplexAsReal<T>{x.m_data, x.m_stride};
+  const int nstages   = axis.nstages();
+  const auto xr       = ComplexAsReal<T>{x.m_data, x.m_stride};
 
-  if (nstages == 0) { // n = 1
+  if (nstages == 0) {  // n = 1
     level.for_each(1, [&](std::size_t) { y.store(0, x.load(0).real()); });
     level.barrier();
     return;
@@ -222,9 +217,9 @@ odd_c2r_line(const LevelType &level, const AxisDataType &axis,
 
   std::size_t Ls = n;
   for (int i = 0; i < nstages; ++i) {
-    const int s = nstages - 1 - i;
+    const int s             = nstages - 1 - i;
     const std::size_t radix = axis.radix(s);
-    const std::size_t L = Ls / radix;
+    const std::size_t L     = Ls / radix;
     if (i == 0) {
       odd_c2r_stage<true>(level, axis, radix, L, x, y);
     } else if (i % 2 == 1) {
@@ -235,14 +230,14 @@ odd_c2r_line(const LevelType &level, const AxisDataType &axis,
     level.barrier();
     Ls = L;
   }
-  if (nstages % 2 == 0) { // the last stage wrote x
+  if (nstages % 2 == 0) {  // the last stage wrote x
     level.for_each(n, [&](std::size_t i) { y.store(i, xr.load(i)); });
     level.barrier();
   }
 }
 
-} // namespace Impl
-} // namespace Batched
-} // namespace KokkosFFT
+}  // namespace Impl
+}  // namespace Batched
+}  // namespace KokkosFFT
 
 #endif

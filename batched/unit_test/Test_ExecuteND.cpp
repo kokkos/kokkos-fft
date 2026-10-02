@@ -18,7 +18,7 @@ using KokkosFFT::Normalization;
 using KokkosFFT::Batched::AxisTag;
 using KokkosFFT::Batched::Plan;
 using execution_space = Kokkos::DefaultExecutionSpace;
-using test_types = ::testing::Types<std::pair<float, Kokkos::LayoutLeft>,
+using test_types      = ::testing::Types<std::pair<float, Kokkos::LayoutLeft>,
                                     std::pair<float, Kokkos::LayoutRight>,
                                     std::pair<double, Kokkos::LayoutLeft>,
                                     std::pair<double, Kokkos::LayoutRight>>;
@@ -27,8 +27,9 @@ const std::vector<Normalization> test_norms = {
     Normalization::forward, Normalization::backward, Normalization::ortho,
     Normalization::none};
 
-template <typename T> struct TestExecuteND : public ::testing::Test {
-  using float_type = typename T::first_type;
+template <typename T>
+struct TestExecuteND : public ::testing::Test {
+  using float_type  = typename T::first_type;
   using layout_type = typename T::second_type;
 };
 
@@ -75,21 +76,20 @@ ViewType make_view(const std::string &label,
 /// \brief Extents of the batched view: FFT axis Axes[i] gets lengths[i],
 /// dimension B gets nbatch
 template <typename Axes, int B>
-std::array<std::size_t, Axes::rank + 1>
-full_extents(const std::array<std::size_t, Axes::rank> &lengths) {
+std::array<std::size_t, Axes::rank + 1> full_extents(
+    const std::array<std::size_t, Axes::rank> &lengths) {
   constexpr auto axes = KokkosFFT::Batched::Impl::axis_values<Axes>::value;
   std::array<std::size_t, Axes::rank + 1> extents{};
-  for (std::size_t i = 0; i < Axes::rank; ++i)
-    extents[axes[i]] = lengths[i];
+  for (std::size_t i = 0; i < Axes::rank; ++i) extents[axes[i]] = lengths[i];
   extents[B] = nbatch;
   return extents;
 }
 
-template <typename Axes> KokkosFFT::axis_type<Axes::rank> kokkosfft_axes() {
+template <typename Axes>
+KokkosFFT::axis_type<Axes::rank> kokkosfft_axes() {
   KokkosFFT::axis_type<Axes::rank> axes{};
   constexpr auto values = KokkosFFT::Batched::Impl::axis_values<Axes>::value;
-  for (std::size_t i = 0; i < Axes::rank; ++i)
-    axes[i] = values[i];
+  for (std::size_t i = 0; i < Axes::rank; ++i) axes[i] = values[i];
   return axes;
 }
 
@@ -158,8 +158,7 @@ std::string describe(const std::array<std::size_t, N> &lengths,
 template <std::size_t N>
 std::size_t total_length(const std::array<std::size_t, N> &lengths) {
   std::size_t total = 1;
-  for (auto n : lengths)
-    total *= n;
+  for (auto n : lengths) total *= n;
   return total;
 }
 
@@ -173,10 +172,10 @@ void test_c2c_nd(const std::array<std::size_t, Axes::rank> &lengths,
                    LayoutType, execution_space>;
   const auto e = full_extents<Axes, B>(lengths);
   auto x0 = make_view<ViewType>("x0", e), x = make_view<ViewType>("x", e),
-       x_hat = make_view<ViewType>("x_hat", e),
-       x_back = make_view<ViewType>("x_back", e),
-       ref_hat = make_view<ViewType>("ref_hat", e),
-       ref_in = make_view<ViewType>("ref_in", e),
+       x_hat    = make_view<ViewType>("x_hat", e),
+       x_back   = make_view<ViewType>("x_back", e),
+       ref_hat  = make_view<ViewType>("ref_hat", e),
+       ref_in   = make_view<ViewType>("ref_in", e),
        ref_back = make_view<ViewType>("ref_back", e);
 
   execution_space exec;
@@ -185,7 +184,7 @@ void test_c2c_nd(const std::array<std::size_t, Axes::rank> &lengths,
   Kokkos::deep_copy(exec, x, x0);
 
   Plan plan(TestUtils::plan_policy<Team>(), x, x_hat, Axes{});
-  const auto axes = kokkosfft_axes<Axes>();
+  const auto axes  = kokkosfft_axes<Axes>();
   const double tol = TestUtils::fft_tolerance<T>(total_length(lengths));
 
   batched_execute<B>(plan, x, x_hat, Direction::forward, norm);
@@ -217,17 +216,17 @@ void test_r2c_c2r_nd(const std::array<std::size_t, Axes::rank> &lengths,
   using ComplexViewType =
       Kokkos::View<KokkosFFT::Impl::add_pointer_n_t<Kokkos::complex<T>, rank>,
                    LayoutType, execution_space>;
-  const auto e = full_extents<Axes, B>(lengths);
-  auto ec = e;
+  const auto e     = full_extents<Axes, B>(lengths);
+  auto ec          = e;
   ec[Axes::last_v] = lengths[Axes::rank - 1] / 2 + 1;
 
-  auto x0 = make_view<RealViewType>("x0", e),
-       x = make_view<RealViewType>("x", e),
-       x_back = make_view<RealViewType>("x_back", e),
+  auto x0       = make_view<RealViewType>("x0", e),
+       x        = make_view<RealViewType>("x", e),
+       x_back   = make_view<RealViewType>("x_back", e),
        ref_back = make_view<RealViewType>("ref_back", e);
-  auto x_hat = make_view<ComplexViewType>("x_hat", ec),
-       ref_hat = make_view<ComplexViewType>("ref_hat", ec),
-       ref_in = make_view<ComplexViewType>("ref_in", ec);
+  auto x_hat    = make_view<ComplexViewType>("x_hat", ec),
+       ref_hat  = make_view<ComplexViewType>("ref_hat", ec),
+       ref_in   = make_view<ComplexViewType>("ref_in", ec);
 
   execution_space exec;
   Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
@@ -236,7 +235,7 @@ void test_r2c_c2r_nd(const std::array<std::size_t, Axes::rank> &lengths,
 
   Plan r2c(TestUtils::plan_policy<Team>(), x, x_hat, Axes{});
   Plan c2r(TestUtils::plan_policy<Team>(), x_hat, x_back, Axes{});
-  const auto axes = kokkosfft_axes<Axes>();
+  const auto axes  = kokkosfft_axes<Axes>();
   const double tol = TestUtils::fft_tolerance<T>(total_length(lengths));
 
   batched_execute_real<B>(r2c, x, x_hat, norm);
@@ -279,18 +278,18 @@ const std::vector<std::array<std::size_t, 3>> lengths_3d = {
 /// \brief R5 for N-D: execute never allocates
 template <typename T, typename LayoutType, bool Team = false>
 void test_nd_no_allocation() {
-  using Axes = AxisTag<2, 0, 1>;
+  using Axes      = AxisTag<2, 0, 1>;
   constexpr int B = 3;
   using ComplexViewType =
       Kokkos::View<Kokkos::complex<T> ****, LayoutType, execution_space>;
   using RealViewType = Kokkos::View<T ****, LayoutType, execution_space>;
   const std::array<std::size_t, 3> lengths = {6, 5, 8};
-  const auto e = full_extents<Axes, B>(lengths);
-  auto ec = e;
-  ec[Axes::last_v] = lengths[2] / 2 + 1;
-  auto x = make_view<ComplexViewType>("x", e),
+  const auto e                             = full_extents<Axes, B>(lengths);
+  auto ec                                  = e;
+  ec[Axes::last_v]                         = lengths[2] / 2 + 1;
+  auto x                                   = make_view<ComplexViewType>("x", e),
        x_hat = make_view<ComplexViewType>("x_hat", e);
-  auto r = make_view<RealViewType>("r", e);
+  auto r     = make_view<RealViewType>("r", e);
   auto r_hat = make_view<ComplexViewType>("r_hat", ec);
 
   Plan c2c(TestUtils::plan_policy<Team>(), x, x_hat, Axes{});
@@ -309,7 +308,7 @@ void test_nd_no_allocation() {
   EXPECT_TRUE(recorder.recorded().empty())
       << "N-D execute allocated: " << recorder.recorded().front();
 }
-} // namespace
+}  // namespace
 
 TYPED_TEST(TestExecuteND, TwoD) {
   using T = typename TestFixture::float_type;
@@ -367,8 +366,8 @@ TYPED_TEST(TestExecuteND, ThreeDTeam) {
 }
 
 TYPED_TEST(TestExecuteND, NoAllocationInExecuteTeam) {
-  using T = typename TestFixture::float_type;
-  using L = typename TestFixture::layout_type;
+  using T                  = typename TestFixture::float_type;
+  using L                  = typename TestFixture::layout_type;
   TestUtils::team_config() = {4, false};
   test_nd_no_allocation<T, L, true>();
 }

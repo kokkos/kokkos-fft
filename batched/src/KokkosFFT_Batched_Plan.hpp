@@ -51,15 +51,15 @@ struct PlanBase {
       "KokkosFFT::Batched::Plan: InViewType and OutViewType must have the "
       "same floating point precision");
 
-  using policy_type = ExecPolicy;
+  using policy_type     = ExecPolicy;
   using execution_space = policy_execution_space_t<ExecPolicy>;
-  using memory_space = typename execution_space::memory_space;
-  using in_view_type = InViewType;
-  using out_view_type = OutViewType;
-  using axes_type = Axes;
-  using in_value_type = typename InViewType::non_const_value_type;
-  using out_value_type = typename OutViewType::non_const_value_type;
-  using float_type = KokkosFFT::Impl::base_floating_point_type<in_value_type>;
+  using memory_space    = typename execution_space::memory_space;
+  using in_view_type    = InViewType;
+  using out_view_type   = OutViewType;
+  using axes_type       = Axes;
+  using in_value_type   = typename InViewType::non_const_value_type;
+  using out_value_type  = typename OutViewType::non_const_value_type;
+  using float_type   = KokkosFFT::Impl::base_floating_point_type<in_value_type>;
   using complex_type = Kokkos::complex<float_type>;
   using lengths_type = Kokkos::Array<std::size_t, Axes::rank>;
 
@@ -111,9 +111,9 @@ Kokkos::Array<std::size_t, Axes::rank> fft_lengths(const InViewType &in,
 
   Kokkos::Array<std::size_t, Axes::rank> lengths{};
   for (std::size_t i = 0; i < axes.size(); ++i) {
-    const std::size_t in_extent = in.extent(axes[i]);
+    const std::size_t in_extent  = in.extent(axes[i]);
     const std::size_t out_extent = out.extent(axes[i]);
-    const bool is_last = i + 1 == axes.size();
+    const bool is_last           = i + 1 == axes.size();
     if (is_last && Kind == TransformKind::R2C) {
       lengths[i] = in_extent;
       KOKKOSFFT_THROW_IF(
@@ -140,7 +140,7 @@ Kokkos::Array<std::size_t, Axes::rank> fft_lengths(const InViewType &in,
   return lengths;
 }
 
-} // namespace Impl
+}  // namespace Impl
 
 /// \brief Leaf: a 1D transform along axis `Axis`.
 /// Owns the stage descriptors and twiddle tables of this axis.
@@ -154,7 +154,7 @@ class Plan<ExecPolicy, InViewType, OutViewType, AxisTag<Axis>>
   using base_type =
       Impl::PlanBase<ExecPolicy, InViewType, OutViewType, AxisTag<Axis>>;
 
-public:
+ public:
   using base_type::is_team;
   using base_type::kind;
   using base_type::rank;
@@ -176,8 +176,8 @@ public:
   /// Kernel descriptor of this axis: lengths, stage descriptors and twiddle
   /// tables. The kernels are templated on it, not on the Plan type, so all
   /// axes/plans with the same complex type and memory space share them (§9, R2)
-  using axis_data_type = Impl::AxisData<complex_type, memory_space>;
-  using stage_view_type = typename axis_data_type::stage_view_type;
+  using axis_data_type    = Impl::AxisData<complex_type, memory_space>;
+  using stage_view_type   = typename axis_data_type::stage_view_type;
   using twiddle_view_type = typename axis_data_type::twiddle_view_type;
 
   /// \brief Plan from the full batched views (host).
@@ -267,19 +267,19 @@ public:
     return m_data.real_twiddles();
   }
 
-private:
+ private:
   void init(const execution_space &exec, std::size_t n) {
     KOKKOSFFT_THROW_IF(n == 0,
                        "KokkosFFT::Batched::Plan: FFT length must be positive");
     constexpr bool is_real = kind != TransformKind::C2C;
     const bool is_odd_real = is_real && n % 2 == 1;
-    m_data.m_n = n;
+    m_data.m_n             = n;
     // Even-n real transforms run a complex FFT of half length; odd-n real
     // transforms run a real FFT of length n on half-complex data
     m_data.m_n_fft = is_real && !is_odd_real ? n / 2 : n;
 
     const auto radices = Impl::factorize(m_data.m_n_fft);
-    m_data.m_nstages = static_cast<int>(radices.size());
+    m_data.m_nstages   = static_cast<int>(radices.size());
 
     const std::string prefix = "KokkosFFT::Batched::Plan::";
     const std::string suffix = "_axis" + std::to_string(Axis);
@@ -326,7 +326,7 @@ class Plan<ExecPolicy, InViewType, OutViewType,
   using base_type = Impl::PlanBase<ExecPolicy, InViewType, OutViewType,
                                    AxisTag<Axis, NextAxis, Rest...>>;
 
-public:
+ public:
   using base_type::is_team;
   using base_type::kind;
   using base_type::rank;
@@ -343,13 +343,13 @@ public:
   using typename base_type::out_view_type;
   using typename base_type::policy_type;
 
-private:
+ private:
   using split_type = Impl::split_view_types<execution_space, in_value_type,
                                             out_value_type, view_rank>;
 
-public:
+ public:
   using heads_axes_type = typename axes_type::heads;
-  using last_axes_type = AxisTag<axes_type::last_v>;
+  using last_axes_type  = AxisTag<axes_type::last_v>;
 
   using heads_plan_type =
       Plan<ExecPolicy, typename split_type::heads_in_view_type,
@@ -413,16 +413,15 @@ public:
     return m_last_plan;
   }
 
-private:
-  static typename heads_plan_type::lengths_type
-  heads_lengths(const lengths_type &lengths) {
+ private:
+  static typename heads_plan_type::lengths_type heads_lengths(
+      const lengths_type &lengths) {
     typename heads_plan_type::lengths_type heads{};
-    for (std::size_t i = 0; i + 1 < rank; ++i)
-      heads[i] = lengths[i];
+    for (std::size_t i = 0; i + 1 < rank; ++i) heads[i] = lengths[i];
     return heads;
   }
-  static typename last_plan_type::lengths_type
-  last_lengths(const lengths_type &lengths) {
+  static typename last_plan_type::lengths_type last_lengths(
+      const lengths_type &lengths) {
     return {lengths[rank - 1]};
   }
 
@@ -438,7 +437,7 @@ template <typename ExecPolicy, typename InViewType, typename OutViewType,
 Plan(const ExecPolicy &, const InViewType &, const OutViewType &, Axes)
     -> Plan<ExecPolicy, InViewType, OutViewType, Axes>;
 
-} // namespace Batched
-} // namespace KokkosFFT
+}  // namespace Batched
+}  // namespace KokkosFFT
 
 #endif

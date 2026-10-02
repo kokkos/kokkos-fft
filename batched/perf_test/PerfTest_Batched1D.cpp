@@ -6,10 +6,11 @@
 namespace BatchedFFTBenchmark {
 namespace {
 
-template <typename T, Variant V> void C2C_1D(benchmark::State &state) {
+template <typename T, Variant V>
+void C2C_1D(benchmark::State &state) {
   using ViewType =
       Kokkos::View<Kokkos::complex<T> **, Kokkos::LayoutLeft, execution_space>;
-  const std::size_t n = state.range(0);
+  const std::size_t n      = state.range(0);
   const std::size_t nbatch = batch_count(n);
   ViewType x0("x0", n, nbatch), x("x", n, nbatch), y("y", n, nbatch);
   Kokkos::Random_XorShift64_Pool<execution_space> pool(12345);
@@ -30,11 +31,12 @@ template <typename T, Variant V> void C2C_1D(benchmark::State &state) {
   state.counters["batch"] = static_cast<double>(nbatch);
 }
 
-template <typename T, Variant V> void R2C_1D(benchmark::State &state) {
+template <typename T, Variant V>
+void R2C_1D(benchmark::State &state) {
   using RealViewType = Kokkos::View<T **, Kokkos::LayoutLeft, execution_space>;
   using ComplexViewType =
       Kokkos::View<Kokkos::complex<T> **, Kokkos::LayoutLeft, execution_space>;
-  const std::size_t n = state.range(0);
+  const std::size_t n      = state.range(0);
   const std::size_t nbatch = batch_count(n);
   RealViewType x0("x0", n, nbatch), x("x", n, nbatch);
   ComplexViewType y("y", n / 2 + 1, nbatch);
@@ -66,11 +68,13 @@ constexpr std::initializer_list<int> lengths_1d = {8,   16,  32,   64,  128,
 /// warp's worth (64) and many (1024)
 constexpr std::initializer_list<int> scan_lengths_1d = {8, 64, 1024};
 
-template <typename T> const char *type_name() {
+template <typename T>
+const char *type_name() {
   return sizeof(T) == sizeof(float) ? "float" : "double";
 }
 
-template <typename T, Variant V> void register_1d() {
+template <typename T, Variant V>
+void register_1d() {
   const std::string suffix =
       std::string("/") + type_name<T>() + "/" + variant_name<V>();
   apply_sizes<V>(benchmark::RegisterBenchmark("C2C_1D" + suffix, C2C_1D<T, V>),
@@ -79,7 +83,8 @@ template <typename T, Variant V> void register_1d() {
                  lengths_1d, scan_lengths_1d);
 }
 
-template <typename T> void register_1d_all() {
+template <typename T>
+void register_1d_all() {
   register_1d<T, Variant::Serial>();
   register_1d<T, Variant::Team>();
   register_1d<T, Variant::KokkosFFT>();
@@ -91,5 +96,5 @@ template <typename T> void register_1d_all() {
   return true;
 }();
 
-} // namespace
-} // namespace BatchedFFTBenchmark
+}  // namespace
+}  // namespace BatchedFFTBenchmark

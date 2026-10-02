@@ -18,13 +18,14 @@ namespace Impl {
 /// stage are independent and distributed over the level.
 template <KokkosFFT::Direction Dir, typename LevelType, typename AxisDataType,
           typename SrcLineType, typename DstLineType>
-KOKKOS_FUNCTION void
-stockham_stage(const LevelType &level, const AxisDataType &axis, int stage,
-               std::size_t len, std::size_t stride, const SrcLineType &src,
-               const DstLineType &dst) {
+KOKKOS_FUNCTION void stockham_stage(const LevelType &level,
+                                    const AxisDataType &axis, int stage,
+                                    std::size_t len, std::size_t stride,
+                                    const SrcLineType &src,
+                                    const DstLineType &dst) {
   using twiddle_view_type = typename AxisDataType::twiddle_view_type;
   const std::size_t radix = axis.radix(stage);
-  const std::size_t m = len / radix;
+  const std::size_t m     = len / radix;
   const StageTwiddles<Dir, twiddle_view_type> tw{
       axis.twiddles(), axis.tw_offset(stage), radix - 1};
 
@@ -32,22 +33,14 @@ stockham_stage(const LevelType &level, const AxisDataType &axis, int stage,
     const std::size_t p = idx / stride;
     const std::size_t q = idx - p * stride;
     switch (radix) {
-    case 2:
-      butterfly<2, Dir>(src, dst, tw, p, q, m, stride);
-      break;
-    case 3:
-      butterfly<3, Dir>(src, dst, tw, p, q, m, stride);
-      break;
-    case 4:
-      butterfly<4, Dir>(src, dst, tw, p, q, m, stride);
-      break;
-    case 5:
-      butterfly<5, Dir>(src, dst, tw, p, q, m, stride);
-      break;
-    default:
-      butterfly_generic<Dir>(src, dst, tw, axis.roots(),
-                             axis.root_offset(stage), radix, p, q, m, stride);
-      break;
+      case 2: butterfly<2, Dir>(src, dst, tw, p, q, m, stride); break;
+      case 3: butterfly<3, Dir>(src, dst, tw, p, q, m, stride); break;
+      case 4: butterfly<4, Dir>(src, dst, tw, p, q, m, stride); break;
+      case 5: butterfly<5, Dir>(src, dst, tw, p, q, m, stride); break;
+      default:
+        butterfly_generic<Dir>(src, dst, tw, axis.roots(),
+                               axis.root_offset(stage), radix, p, q, m, stride);
+        break;
     }
   });
 }
@@ -61,7 +54,7 @@ template <KokkosFFT::Direction Dir, typename LevelType, typename AxisDataType,
           typename LineTypeA, typename LineTypeB>
 KOKKOS_FUNCTION void c2c_line(const LevelType &level, const AxisDataType &axis,
                               const LineTypeA &a, const LineTypeB &b) {
-  std::size_t len = axis.n_fft();
+  std::size_t len    = axis.n_fft();
   std::size_t stride = 1;
   for (int stage = 0; stage < axis.nstages(); ++stage) {
     if (stage % 2 == 0) {
@@ -96,11 +89,11 @@ KOKKOS_FUNCTION void c2c_lines(const LevelType &level, const AxisDataType &axis,
                                std::size_t nlines, bool line_fastest,
                                const LinesOf &lines_of) {
   using twiddle_view_type = typename AxisDataType::twiddle_view_type;
-  std::size_t len = axis.n_fft();
-  std::size_t stride = 1;
+  std::size_t len         = axis.n_fft();
+  std::size_t stride      = 1;
   for (int stage = 0; stage < axis.nstages(); ++stage) {
     const std::size_t radix = axis.radix(stage);
-    const std::size_t m = len / radix;
+    const std::size_t m     = len / radix;
     const StageTwiddles<Dir, twiddle_view_type> tw{
         axis.twiddles(), axis.tw_offset(stage), radix - 1};
     const bool a_to_b = stage % 2 == 0;
@@ -110,22 +103,15 @@ KOKKOS_FUNCTION void c2c_lines(const LevelType &level, const AxisDataType &axis,
       const std::size_t p = fast_div(idx, stride);
       const std::size_t q = idx - p * stride;
       switch (radix) {
-      case 2:
-        butterfly<2, Dir>(src, dst, tw, p, q, m, stride);
-        break;
-      case 3:
-        butterfly<3, Dir>(src, dst, tw, p, q, m, stride);
-        break;
-      case 4:
-        butterfly<4, Dir>(src, dst, tw, p, q, m, stride);
-        break;
-      case 5:
-        butterfly<5, Dir>(src, dst, tw, p, q, m, stride);
-        break;
-      default:
-        butterfly_generic<Dir>(src, dst, tw, axis.roots(),
-                               axis.root_offset(stage), radix, p, q, m, stride);
-        break;
+        case 2: butterfly<2, Dir>(src, dst, tw, p, q, m, stride); break;
+        case 3: butterfly<3, Dir>(src, dst, tw, p, q, m, stride); break;
+        case 4: butterfly<4, Dir>(src, dst, tw, p, q, m, stride); break;
+        case 5: butterfly<5, Dir>(src, dst, tw, p, q, m, stride); break;
+        default:
+          butterfly_generic<Dir>(src, dst, tw, axis.roots(),
+                                 axis.root_offset(stage), radix, p, q, m,
+                                 stride);
+          break;
       }
     };
     for_each_in_lines(level, nlines, m * stride, line_fastest,
@@ -159,36 +145,38 @@ KOKKOS_FUNCTION void c2c_lines(const LevelType &level, const AxisDataType &axis,
 ///   X[k] = E + W^k O,  X[h-k] = conj(E - W^k O)          (k = 1..h/2)
 ///   X[0] = Re Z[0] + Im Z[0],  X[h] = Re Z[0] - Im Z[0]
 template <typename TwiddleViewType, typename SrcLineType, typename DstLineType>
-KOKKOS_INLINE_FUNCTION void
-r2c_postprocess_item(std::size_t h, const TwiddleViewType &tw, std::size_t k,
-                     const SrcLineType &src, const DstLineType &dst) {
+KOKKOS_INLINE_FUNCTION void r2c_postprocess_item(std::size_t h,
+                                                 const TwiddleViewType &tw,
+                                                 std::size_t k,
+                                                 const SrcLineType &src,
+                                                 const DstLineType &dst) {
   using value_type = typename SrcLineType::value_type;
-  using T = typename value_type::value_type;
+  using T          = typename value_type::value_type;
   if (k == 0) {
     const value_type z0 = src.load(0);
     dst.store(0, value_type(z0.real() + z0.imag(), T(0)));
     dst.store(h, value_type(z0.real() - z0.imag(), T(0)));
     return;
   }
-  const value_type zk = src.load(k);
+  const value_type zk  = src.load(k);
   const value_type zhk = Kokkos::conj(src.load(h - k));
-  const value_type e = T(0.5) * (zk + zhk);
-  const value_type o = T(-0.5) * mul_i(zk - zhk);
-  const value_type t = tw(k) * o;
+  const value_type e   = T(0.5) * (zk + zhk);
+  const value_type o   = T(-0.5) * mul_i(zk - zhk);
+  const value_type t   = tw(k) * o;
   dst.store(k, e + t);
-  if (k != h - k)
-    dst.store(h - k, Kokkos::conj(e - t));
+  if (k != h - k) dst.store(h - k, Kokkos::conj(e - t));
 }
 
 /// \brief R2C post-processing of one line: the items k = 0..h/2 (see
 /// r2c_postprocess_item) are distributed over the level
 template <typename LevelType, typename AxisDataType, typename SrcLineType,
           typename DstLineType>
-KOKKOS_FUNCTION void
-r2c_postprocess(const LevelType &level, const AxisDataType &axis,
-                const SrcLineType &src, const DstLineType &dst) {
+KOKKOS_FUNCTION void r2c_postprocess(const LevelType &level,
+                                     const AxisDataType &axis,
+                                     const SrcLineType &src,
+                                     const DstLineType &dst) {
   const std::size_t h = axis.n_fft();
-  const auto &tw = axis.real_twiddles();
+  const auto &tw      = axis.real_twiddles();
   level.for_each(h / 2 + 1, [&](std::size_t k) {
     r2c_postprocess_item(h, tw, k, src, dst);
   });
@@ -206,9 +194,10 @@ r2c_postprocess(const LevelType &level, const AxisDataType &axis,
 /// Z' = 2 Z, so the unnormalized backward DFT of length h gives n x, the
 /// unnormalized C2R result; the normalization is applied afterwards.
 template <typename TwiddleViewType, typename LineType>
-KOKKOS_INLINE_FUNCTION void
-c2r_preprocess_item(std::size_t h, const TwiddleViewType &tw, std::size_t k,
-                    const LineType &x) {
+KOKKOS_INLINE_FUNCTION void c2r_preprocess_item(std::size_t h,
+                                                const TwiddleViewType &tw,
+                                                std::size_t k,
+                                                const LineType &x) {
   using value_type = typename LineType::value_type;
   if (k == 0) {
     const auto x0 = x.load(0).real();
@@ -216,13 +205,12 @@ c2r_preprocess_item(std::size_t h, const TwiddleViewType &tw, std::size_t k,
     x.store(0, value_type(x0 + xh, x0 - xh));
     return;
   }
-  const value_type xk = x.load(k);
+  const value_type xk  = x.load(k);
   const value_type xhk = Kokkos::conj(x.load(h - k));
-  const value_type e = xk + xhk;
-  const value_type o = (xk - xhk) * Kokkos::conj(tw(k));
+  const value_type e   = xk + xhk;
+  const value_type o   = (xk - xhk) * Kokkos::conj(tw(k));
   x.store(k, e + mul_i(o));
-  if (k != h - k)
-    x.store(h - k, Kokkos::conj(e) + mul_i(Kokkos::conj(o)));
+  if (k != h - k) x.store(h - k, Kokkos::conj(e) + mul_i(Kokkos::conj(o)));
 }
 
 /// \brief C2R pre-processing of one line: the items k = 0..h/2 (see
@@ -232,7 +220,7 @@ KOKKOS_FUNCTION void c2r_preprocess(const LevelType &level,
                                     const AxisDataType &axis,
                                     const LineType &x) {
   const std::size_t h = axis.n_fft();
-  const auto &tw = axis.real_twiddles();
+  const auto &tw      = axis.real_twiddles();
   level.for_each(h / 2 + 1,
                  [&](std::size_t k) { c2r_preprocess_item(h, tw, k, x); });
 }
@@ -244,21 +232,20 @@ template <typename T, KokkosFFT::Direction Dir>
 KOKKOS_INLINE_FUNCTION T normalization_factor(KokkosFFT::Normalization norm,
                                               std::size_t n) {
   switch (norm) {
-  case KokkosFFT::Normalization::forward:
-    return Dir == KokkosFFT::Direction::forward ? T(1) / static_cast<T>(n)
-                                                : T(1);
-  case KokkosFFT::Normalization::backward:
-    return Dir == KokkosFFT::Direction::backward ? T(1) / static_cast<T>(n)
-                                                 : T(1);
-  case KokkosFFT::Normalization::ortho:
-    return T(1) / Kokkos::sqrt(static_cast<T>(n));
-  default:
-    return T(1);
+    case KokkosFFT::Normalization::forward:
+      return Dir == KokkosFFT::Direction::forward ? T(1) / static_cast<T>(n)
+                                                  : T(1);
+    case KokkosFFT::Normalization::backward:
+      return Dir == KokkosFFT::Direction::backward ? T(1) / static_cast<T>(n)
+                                                   : T(1);
+    case KokkosFFT::Normalization::ortho:
+      return T(1) / Kokkos::sqrt(static_cast<T>(n));
+    default: return T(1);
   }
 }
 
-} // namespace Impl
-} // namespace Batched
-} // namespace KokkosFFT
+}  // namespace Impl
+}  // namespace Batched
+}  // namespace KokkosFFT
 
 #endif

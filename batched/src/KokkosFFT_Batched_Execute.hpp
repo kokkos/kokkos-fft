@@ -66,14 +66,14 @@ KOKKOS_FUNCTION void copy_line(const LevelType &level, std::size_t n,
 /// level merges lines).
 template <int SliceDim, KokkosFFT::Direction Dir, typename LevelType,
           typename PlanType, typename DataViewType, typename WorkViewType>
-KOKKOS_FUNCTION void
-c2c_lines_with_scratch(const LevelType &level, const PlanType &node,
-                       const DataViewType &data, const WorkViewType &work) {
+KOKKOS_FUNCTION void c2c_lines_with_scratch(const LevelType &level,
+                                            const PlanType &node,
+                                            const DataViewType &data,
+                                            const WorkViewType &work) {
   const std::size_t n = node.length(0);
   // n >= 1 by construction (plans reject zero lengths); this makes it
   // explicit for the division below (and for static analysis)
-  if (n == 0)
-    return;
+  if (n == 0) return;
   KOKKOS_ASSERT(data.extent(SliceDim) == n);
   KOKKOS_ASSERT(work.size() >= 2 * n);
   const std::size_t nlines = line_count<SliceDim>(data);
@@ -82,8 +82,7 @@ c2c_lines_with_scratch(const LevelType &level, const PlanType &node,
   if constexpr (LevelType::merges_lines) {
     // Rounds of at most max_concurrent lines; line j of a round uses the
     // scratch region starting at complex index j * n
-    if (max_concurrent == 0)
-      return;
+    if (max_concurrent == 0) return;
     const bool line_fastest = lines_are_inner<SliceDim>(data);
     const auto map =
         make_line_pair_map<SliceDim>(data, data, first_dim_is_inner(data));
@@ -93,7 +92,7 @@ c2c_lines_with_scratch(const LevelType &level, const PlanType &node,
           max_concurrent < nlines - base ? max_concurrent : nlines - base;
       // Line j of the round: (data line base + j, scratch region j)
       const auto lines_of = [&](std::size_t j) {
-        auto region = scratch;
+        auto region   = scratch;
         region.m_base = j * n;
         return Kokkos::make_pair(
             line_from_offset<SliceDim>(data, map.offsets(base + j).first),
@@ -143,7 +142,7 @@ KOKKOS_FUNCTION void pass_c2c(const LevelType &level, const PlanType &node,
     KOKKOS_ASSERT(in.extent(SliceDim) == node.length(0));
     KOKKOS_ASSERT(out.extent(SliceDim) == node.length(0));
     const std::size_t nlines = line_count<SliceDim>(in);
-    const bool data_in_out = state.data_in_out;
+    const bool data_in_out   = state.data_in_out;
     if constexpr (merged_pass_v<LevelType, InViewType>) {
       const bool line_fastest = lines_are_inner<SliceDim>(in);
       const auto map =
@@ -176,8 +175,7 @@ KOKKOS_FUNCTION void pass_c2c(const LevelType &level, const PlanType &node,
                         }
                       });
     }
-    if (node.nstages() % 2 == 1)
-      state.data_in_out = !state.data_in_out;
+    if (node.nstages() % 2 == 1) state.data_in_out = !state.data_in_out;
   } else if constexpr (RootKind == TransformKind::R2C) {
     KOKKOS_ASSERT(state.data_in_out);
     c2c_lines_with_scratch<SliceDim, Dir>(level, node, out, in);
@@ -202,7 +200,7 @@ KOKKOS_FUNCTION void pass_r2c(const LevelType &level, const PlanType &node,
   KOKKOS_ASSERT(out.extent(SliceDim) == node.out_extent(0));
   KOKKOS_ASSERT(!state.data_in_out);
 
-  const bool is_odd = node.length(0) % 2 == 1;
+  const bool is_odd        = node.length(0) % 2 == 1;
   const std::size_t nlines = line_count<SliceDim>(in);
   if constexpr (merged_pass_v<LevelType, InViewType>) {
     if (!is_odd) {
@@ -219,8 +217,8 @@ KOKKOS_FUNCTION void pass_r2c(const LevelType &level, const PlanType &node,
       c2c_lines<KokkosFFT::Direction::forward>(level, node.kernel_data(),
                                                nlines, line_fastest, xy_of);
       const std::size_t h = node.n_fft();
-      const auto &tw = node.kernel_data().real_twiddles();
-      const bool in_place = node.nstages() % 2 == 1; // Z is already in `out`
+      const auto &tw      = node.kernel_data().real_twiddles();
+      const bool in_place = node.nstages() % 2 == 1;  // Z is already in `out`
       for_each_in_lines(level, nlines, h / 2 + 1, line_fastest,
                         [&](std::size_t l, std::size_t k) {
                           const auto xy = xy_of(l);
@@ -248,7 +246,7 @@ KOKKOS_FUNCTION void pass_r2c(const LevelType &level, const PlanType &node,
         const auto x = pair_line_at<SliceDim>(in, l);
         c2c_line<KokkosFFT::Direction::forward>(lvl, node.kernel_data(), x, y);
         if (node.nstages() % 2 == 1) {
-          r2c_postprocess(lvl, node.kernel_data(), y, y); // in place
+          r2c_postprocess(lvl, node.kernel_data(), y, y);  // in place
         } else {
           r2c_postprocess(lvl, node.kernel_data(), x, y);
         }
@@ -272,7 +270,7 @@ KOKKOS_FUNCTION void pass_c2r(const LevelType &level, const PlanType &node,
   KOKKOS_ASSERT(out.extent(SliceDim) == node.out_extent(0));
   KOKKOS_ASSERT(!state.data_in_out);
 
-  const bool is_odd = node.length(0) % 2 == 1;
+  const bool is_odd        = node.length(0) % 2 == 1;
   const std::size_t nlines = line_count<SliceDim>(in);
   if constexpr (merged_pass_v<LevelType, InViewType>) {
     if (!is_odd) {
@@ -287,7 +285,7 @@ KOKKOS_FUNCTION void pass_c2r(const LevelType &level, const PlanType &node,
             pair_line_from_offset<SliceDim>(out, offsets.second));
       };
       const std::size_t h = node.n_fft();
-      const auto &tw = node.kernel_data().real_twiddles();
+      const auto &tw      = node.kernel_data().real_twiddles();
       for_each_in_lines(level, nlines, h / 2 + 1, line_fastest,
                         [&](std::size_t l, std::size_t k) {
                           c2r_preprocess_item(h, tw, k, xy_of(l).first);
@@ -320,8 +318,7 @@ KOKKOS_FUNCTION void pass_c2r(const LevelType &level, const PlanType &node,
         c2r_preprocess(lvl, node.kernel_data(), x);
         lvl.barrier();
         c2c_line<KokkosFFT::Direction::backward>(lvl, node.kernel_data(), x, y);
-        if (node.nstages() % 2 == 0)
-          copy_line(lvl, node.n_fft(), x, y);
+        if (node.nstages() % 2 == 0) copy_line(lvl, node.n_fft(), x, y);
       });
   state.data_in_out = true;
 }
@@ -379,13 +376,13 @@ KOKKOS_FUNCTION void finalize(const LevelType &level, const PlanType &plan,
   using float_type = typename PlanType::float_type;
   const float_type coef =
       normalization_factor<float_type, Dir>(norm, plan.fft_size());
-  auto *y = out.data();
+  auto *y                = out.data();
   const std::size_t size = out.size();
   if (state.data_in_out) {
     if (coef != float_type(1)) {
       level.for_each(size, [&](std::size_t i) {
         const std::size_t iy = element_offset(out, i);
-        y[iy] = y[iy] * coef;
+        y[iy]                = y[iy] * coef;
       });
     }
   } else {
@@ -431,7 +428,7 @@ inline constexpr KokkosFFT::Direction real_direction_v =
     Kind == TransformKind::R2C ? KokkosFFT::Direction::forward
                                : KokkosFFT::Direction::backward;
 
-} // namespace Impl
+}  // namespace Impl
 
 // ---- Serial plans: executed entirely by the calling thread ----
 
@@ -441,10 +438,10 @@ inline constexpr KokkosFFT::Direction real_direction_v =
 template <Planable PlanType, InSliceView<PlanType> InViewType,
           OutSliceView<PlanType> OutViewType>
   requires(!PlanType::is_team && PlanType::kind == TransformKind::C2C)
-KOKKOS_FUNCTION void
-execute(const PlanType &plan, const InViewType &in, const OutViewType &out,
-        KokkosFFT::Direction dir,
-        KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward) {
+KOKKOS_FUNCTION void execute(
+    const PlanType &plan, const InViewType &in, const OutViewType &out,
+    KokkosFFT::Direction dir,
+    KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward) {
   Impl::run(Impl::SerialLevel{}, plan, in, out, dir, norm);
 }
 
@@ -453,9 +450,9 @@ execute(const PlanType &plan, const InViewType &in, const OutViewType &out,
 template <Planable PlanType, InSliceView<PlanType> InViewType,
           OutSliceView<PlanType> OutViewType>
   requires(!PlanType::is_team && PlanType::kind != TransformKind::C2C)
-KOKKOS_FUNCTION void
-execute(const PlanType &plan, const InViewType &in, const OutViewType &out,
-        KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward) {
+KOKKOS_FUNCTION void execute(
+    const PlanType &plan, const InViewType &in, const OutViewType &out,
+    KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward) {
   Impl::run<Impl::real_direction_v<PlanType::kind>>(Impl::SerialLevel{}, plan,
                                                     in, out, norm);
 }
@@ -468,10 +465,10 @@ template <typename MemberType, Planable PlanType,
           InSliceView<PlanType> InViewType, OutSliceView<PlanType> OutViewType>
   requires(Kokkos::is_team_handle_v<MemberType> && PlanType::is_team &&
            PlanType::kind == TransformKind::C2C)
-KOKKOS_FUNCTION void
-execute(const MemberType &member, const PlanType &plan, const InViewType &in,
-        const OutViewType &out, KokkosFFT::Direction dir,
-        KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward) {
+KOKKOS_FUNCTION void execute(
+    const MemberType &member, const PlanType &plan, const InViewType &in,
+    const OutViewType &out, KokkosFFT::Direction dir,
+    KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward) {
   Impl::run(Impl::TeamLevel<MemberType>(member), plan, in, out, dir, norm);
 }
 
@@ -481,10 +478,10 @@ template <typename MemberType, Planable PlanType,
           InSliceView<PlanType> InViewType, OutSliceView<PlanType> OutViewType>
   requires(Kokkos::is_team_handle_v<MemberType> && PlanType::is_team &&
            PlanType::kind != TransformKind::C2C)
-KOKKOS_FUNCTION void
-execute(const MemberType &member, const PlanType &plan, const InViewType &in,
-        const OutViewType &out,
-        KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward) {
+KOKKOS_FUNCTION void execute(
+    const MemberType &member, const PlanType &plan, const InViewType &in,
+    const OutViewType &out,
+    KokkosFFT::Normalization norm = KokkosFFT::Normalization::backward) {
   Impl::run<Impl::real_direction_v<PlanType::kind>>(
       Impl::TeamLevel<MemberType>(member), plan, in, out, norm);
 }
@@ -507,7 +504,7 @@ template <typename MemberType, Planable PlanType, typename InViewType,
 void execute(const MemberType &, const PlanType &, const InViewType &,
              const OutViewType &, Args...) = delete;
 
-} // namespace Batched
-} // namespace KokkosFFT
+}  // namespace Batched
+}  // namespace KokkosFFT
 
 #endif

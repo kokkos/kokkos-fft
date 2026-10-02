@@ -17,11 +17,12 @@ namespace Impl {
 /// exposes it through kernel_data().
 ///
 /// Trivially cheap to copy: scalars and View handles.
-template <typename ComplexType, typename MemorySpace> struct AxisData {
-  using complex_type = ComplexType;
-  using float_type = typename ComplexType::value_type;
-  using memory_space = MemorySpace;
-  using stage_view_type = Kokkos::View<std::size_t *, memory_space>;
+template <typename ComplexType, typename MemorySpace>
+struct AxisData {
+  using complex_type      = ComplexType;
+  using float_type        = typename ComplexType::value_type;
+  using memory_space      = MemorySpace;
+  using stage_view_type   = Kokkos::View<std::size_t *, memory_space>;
   using twiddle_view_type = Kokkos::View<complex_type *, memory_space>;
 
   //! Logical length along this axis
@@ -69,8 +70,8 @@ template <typename ComplexType, typename MemorySpace> struct AxisData {
   }
 };
 
-} // namespace Impl
-} // namespace Batched
-} // namespace KokkosFFT
+}  // namespace Impl
+}  // namespace Batched
+}  // namespace KokkosFFT
 
 #endif

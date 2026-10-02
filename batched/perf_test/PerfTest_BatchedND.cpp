@@ -29,25 +29,28 @@ using axes_3d_type =
     KokkosFFT::Batched::AxisTag<first_axis_v<Layout>, first_axis_v<Layout> + 1,
                                 first_axis_v<Layout> + 2>;
 
-template <typename Layout> KokkosFFT::axis_type<2> kokkosfft_axes_2d() {
+template <typename Layout>
+KokkosFFT::axis_type<2> kokkosfft_axes_2d() {
   const int a = first_axis_v<Layout>;
   return {a, a + 1};
 }
 
-template <typename Layout> KokkosFFT::axis_type<3> kokkosfft_axes_3d() {
+template <typename Layout>
+KokkosFFT::axis_type<3> kokkosfft_axes_3d() {
   const int a = first_axis_v<Layout>;
   return {a, a + 1, a + 2};
 }
 
-template <typename Layout, Variant V> void C2C_2D(benchmark::State &state) {
+template <typename Layout, Variant V>
+void C2C_2D(benchmark::State &state) {
   using T = double;
   using ViewType =
       Kokkos::View<Kokkos::complex<T> ***, Layout, execution_space>;
-  const std::size_t n = state.range(0);
+  const std::size_t n      = state.range(0);
   const std::size_t nbatch = batch_count(n * n);
-  auto x0 = make_batched_view<ViewType>("x0", nbatch, n, n);
-  auto x = make_batched_view<ViewType>("x", nbatch, n, n);
-  auto y = make_batched_view<ViewType>("y", nbatch, n, n);
+  auto x0                  = make_batched_view<ViewType>("x0", nbatch, n, n);
+  auto x                   = make_batched_view<ViewType>("x", nbatch, n, n);
+  auto y                   = make_batched_view<ViewType>("y", nbatch, n, n);
   Kokkos::Random_XorShift64_Pool<execution_space> pool(12345);
   Kokkos::fill_random(x0, pool, Kokkos::complex<T>(1, 1));
 
@@ -67,15 +70,16 @@ template <typename Layout, Variant V> void C2C_2D(benchmark::State &state) {
   state.counters["batch"] = static_cast<double>(nbatch);
 }
 
-template <typename Layout, Variant V> void R2C_2D(benchmark::State &state) {
-  using T = double;
+template <typename Layout, Variant V>
+void R2C_2D(benchmark::State &state) {
+  using T            = double;
   using RealViewType = Kokkos::View<T ***, Layout, execution_space>;
   using ComplexViewType =
       Kokkos::View<Kokkos::complex<T> ***, Layout, execution_space>;
-  const std::size_t n = state.range(0);
+  const std::size_t n      = state.range(0);
   const std::size_t nbatch = batch_count(n * n);
   auto x0 = make_batched_view<RealViewType>("x0", nbatch, n, n);
-  auto x = make_batched_view<RealViewType>("x", nbatch, n, n);
+  auto x  = make_batched_view<RealViewType>("x", nbatch, n, n);
   // The last FFT axis is the halved one
   auto y = make_batched_view<ComplexViewType>("y", nbatch, n, n / 2 + 1);
   Kokkos::Random_XorShift64_Pool<execution_space> pool(12345);
@@ -98,15 +102,16 @@ template <typename Layout, Variant V> void R2C_2D(benchmark::State &state) {
   state.counters["batch"] = static_cast<double>(nbatch);
 }
 
-template <typename Layout, Variant V> void C2C_3D(benchmark::State &state) {
+template <typename Layout, Variant V>
+void C2C_3D(benchmark::State &state) {
   using T = double;
   using ViewType =
       Kokkos::View<Kokkos::complex<T> ****, Layout, execution_space>;
-  const std::size_t n = state.range(0);
+  const std::size_t n      = state.range(0);
   const std::size_t nbatch = batch_count(n * n * n);
-  auto x0 = make_batched_view<ViewType>("x0", nbatch, n, n, n);
-  auto x = make_batched_view<ViewType>("x", nbatch, n, n, n);
-  auto y = make_batched_view<ViewType>("y", nbatch, n, n, n);
+  auto x0                  = make_batched_view<ViewType>("x0", nbatch, n, n, n);
+  auto x                   = make_batched_view<ViewType>("x", nbatch, n, n, n);
+  auto y                   = make_batched_view<ViewType>("y", nbatch, n, n, n);
   Kokkos::Random_XorShift64_Pool<execution_space> pool(12345);
   Kokkos::fill_random(x0, pool, Kokkos::complex<T>(1, 1));
 
@@ -133,13 +138,15 @@ constexpr std::initializer_list<int> lengths_3d = {8, 16, 32};
 constexpr std::initializer_list<int> scan_lengths_2d = {64};
 constexpr std::initializer_list<int> scan_lengths_3d = {32};
 
-template <typename Layout> const char *layout_name() {
+template <typename Layout>
+const char *layout_name() {
   return std::is_same_v<Layout, Kokkos::LayoutRight> ? "LayoutRight"
                                                      : "LayoutLeft";
 }
 
 /// \brief Names: <case>/<layout>/double/<variant>/n:<n>[/team:<t>]
-template <typename Layout, Variant V> void register_nd() {
+template <typename Layout, Variant V>
+void register_nd() {
   const std::string suffix =
       std::string("/") + layout_name<Layout>() + "/double/" + variant_name<V>();
   apply_sizes<V>(
@@ -153,7 +160,8 @@ template <typename Layout, Variant V> void register_nd() {
       lengths_3d, scan_lengths_3d);
 }
 
-template <typename Layout> void register_nd_all() {
+template <typename Layout>
+void register_nd_all() {
   register_nd<Layout, Variant::Serial>();
   register_nd<Layout, Variant::Team>();
   register_nd<Layout, Variant::KokkosFFT>();
@@ -165,5 +173,5 @@ template <typename Layout> void register_nd_all() {
   return true;
 }();
 
-} // namespace
-} // namespace BatchedFFTBenchmark
+}  // namespace
+}  // namespace BatchedFFTBenchmark

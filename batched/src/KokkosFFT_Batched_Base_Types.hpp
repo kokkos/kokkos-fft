@@ -12,9 +12,11 @@ namespace Batched {
 /// C2C: complex -> complex, R2C: real -> complex, C2R: complex -> real
 enum class TransformKind { C2C, R2C, C2R };
 
-template <int Tag, typename Axes> struct PrependAxisTag;
+template <int Tag, typename Axes>
+struct PrependAxisTag;
 
-template <int Tag, int... Tags> struct PrependAxisTag<Tag, AxisTag<Tags...>> {
+template <int Tag, int... Tags>
+struct PrependAxisTag<Tag, AxisTag<Tags...>> {
   using type = AxisTag<Tag, Tags...>;
 };
 
@@ -23,8 +25,9 @@ using prepend_axis_tag_t = typename PrependAxisTag<Tag, Axes>::type;
 
 /// \brief Base case: represents an empty axis list.
 /// It provides a tail type for the recursion and a rank of 0.
-template <> struct AxisTag<> {
-  using heads = AxisTag<>;
+template <>
+struct AxisTag<> {
+  using heads                       = AxisTag<>;
   static constexpr std::size_t rank = 0;
 };
 
@@ -44,34 +47,36 @@ template <> struct AxisTag<> {
 ///
 /// \tparam Tag The current axis tag (an integer)
 /// \tparam Rest The remaining axis tags (a parameter pack of integers)
-template <int Tag> struct AxisTag<Tag> {
-  using head = std::integral_constant<int, Tag>;
-  using tail = AxisTag<>;
+template <int Tag>
+struct AxisTag<Tag> {
+  using head  = std::integral_constant<int, Tag>;
+  using tail  = AxisTag<>;
   using heads = AxisTag<>;
-  using last = head;
+  using last  = head;
 
   static constexpr std::size_t rank = 1;
-  static constexpr int head_v = head::value;
-  static constexpr int tail_rank = tail::rank;
-  static constexpr int heads_rank = heads::rank;
-  static constexpr int last_v = last::value;
+  static constexpr int head_v       = head::value;
+  static constexpr int tail_rank    = tail::rank;
+  static constexpr int heads_rank   = heads::rank;
+  static constexpr int last_v       = last::value;
 };
 
-template <int Tag, int Next, int... Rest> struct AxisTag<Tag, Next, Rest...> {
-  using head = std::integral_constant<int, Tag>;
-  using tail = AxisTag<Next, Rest...>;
+template <int Tag, int Next, int... Rest>
+struct AxisTag<Tag, Next, Rest...> {
+  using head  = std::integral_constant<int, Tag>;
+  using tail  = AxisTag<Next, Rest...>;
   using heads = prepend_axis_tag_t<Tag, typename tail::heads>;
-  using last = typename tail::last;
+  using last  = typename tail::last;
 
   /// The rank is the current dimension (1) plus the rank of the tail.
   static constexpr std::size_t rank = 1 + tail::rank;
-  static constexpr int head_v = head::value;
-  static constexpr int tail_rank = tail::rank;
-  static constexpr int heads_rank = heads::rank;
-  static constexpr int last_v = last::value;
+  static constexpr int head_v       = head::value;
+  static constexpr int tail_rank    = tail::rank;
+  static constexpr int heads_rank   = heads::rank;
+  static constexpr int last_v       = last::value;
 };
 
-} // namespace Batched
-} // namespace KokkosFFT
+}  // namespace Batched
+}  // namespace KokkosFFT
 
 #endif

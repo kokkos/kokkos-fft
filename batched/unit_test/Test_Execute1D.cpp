@@ -13,7 +13,7 @@ using KokkosFFT::Normalization;
 using KokkosFFT::Batched::AxisTag;
 using KokkosFFT::Batched::Plan;
 using execution_space = Kokkos::DefaultExecutionSpace;
-using test_types = ::testing::Types<std::pair<float, Kokkos::LayoutLeft>,
+using test_types      = ::testing::Types<std::pair<float, Kokkos::LayoutLeft>,
                                     std::pair<float, Kokkos::LayoutRight>,
                                     std::pair<double, Kokkos::LayoutLeft>,
                                     std::pair<double, Kokkos::LayoutRight>>;
@@ -24,8 +24,9 @@ const std::vector<Normalization> test_norms = {
     Normalization::forward, Normalization::backward, Normalization::ortho,
     Normalization::none};
 
-template <typename T> struct TestExecute1D : public ::testing::Test {
-  using float_type = typename T::first_type;
+template <typename T>
+struct TestExecute1D : public ::testing::Test {
+  using float_type  = typename T::first_type;
   using layout_type = typename T::second_type;
 };
 
@@ -42,8 +43,8 @@ void batched_execute(const PlanType &plan, const ViewType &in,
   if constexpr (PlanType::is_team) {
     const auto f = KOKKOS_LAMBDA(const TestUtils::member_type &member) {
       const std::size_t ib = member.league_rank();
-      auto sub_in = TestUtils::batch_slice<Axis>(in, ib);
-      auto sub_out = TestUtils::batch_slice<Axis>(out, ib);
+      auto sub_in          = TestUtils::batch_slice<Axis>(in, ib);
+      auto sub_out         = TestUtils::batch_slice<Axis>(out, ib);
       KokkosFFT::Batched::execute(member, plan, sub_in, sub_out, dir, norm);
     };
     Kokkos::parallel_for("test_batched_execute_team",
@@ -54,7 +55,7 @@ void batched_execute(const PlanType &plan, const ViewType &in,
         Kokkos::RangePolicy<execution_space, Kokkos::IndexType<std::size_t>>(
             0, nbatch),
         KOKKOS_LAMBDA(const std::size_t ib) {
-          auto sub_in = TestUtils::batch_slice<Axis>(in, ib);
+          auto sub_in  = TestUtils::batch_slice<Axis>(in, ib);
           auto sub_out = TestUtils::batch_slice<Axis>(out, ib);
           KokkosFFT::Batched::execute(plan, sub_in, sub_out, dir, norm);
         });
@@ -69,8 +70,8 @@ void test_c2c_1d(std::size_t n, Normalization norm) {
   using View2DType =
       Kokkos::View<Kokkos::complex<T> **, LayoutType, execution_space>;
   constexpr std::size_t nbatch = 5;
-  const std::size_t n0 = Axis == 0 ? n : nbatch;
-  const std::size_t n1 = Axis == 0 ? nbatch : n;
+  const std::size_t n0         = Axis == 0 ? n : nbatch;
+  const std::size_t n1         = Axis == 0 ? nbatch : n;
   View2DType x0("x0", n0, n1), x("x", n0, n1), x_hat("x_hat", n0, n1),
       x_back("x_back", n0, n1), ref_hat("ref_hat", n0, n1),
       ref_back("ref_back", n0, n1);
@@ -134,8 +135,8 @@ void batched_execute_real(const PlanType &plan, const InViewType &in,
   if constexpr (PlanType::is_team) {
     const auto f = KOKKOS_LAMBDA(const TestUtils::member_type &member) {
       const std::size_t ib = member.league_rank();
-      auto sub_in = TestUtils::batch_slice<Axis>(in, ib);
-      auto sub_out = TestUtils::batch_slice<Axis>(out, ib);
+      auto sub_in          = TestUtils::batch_slice<Axis>(in, ib);
+      auto sub_out         = TestUtils::batch_slice<Axis>(out, ib);
       KokkosFFT::Batched::execute(member, plan, sub_in, sub_out, norm);
     };
     Kokkos::parallel_for("test_batched_execute_real_team",
@@ -146,7 +147,7 @@ void batched_execute_real(const PlanType &plan, const InViewType &in,
         Kokkos::RangePolicy<execution_space, Kokkos::IndexType<std::size_t>>(
             0, nbatch),
         KOKKOS_LAMBDA(const std::size_t ib) {
-          auto sub_in = TestUtils::batch_slice<Axis>(in, ib);
+          auto sub_in  = TestUtils::batch_slice<Axis>(in, ib);
           auto sub_out = TestUtils::batch_slice<Axis>(out, ib);
           KokkosFFT::Batched::execute(plan, sub_in, sub_out, norm);
         });
@@ -161,14 +162,13 @@ template <int Axis, typename ViewType>
 void zero_dc_nyquist_imag(const ViewType &x_hat, std::size_t n) {
   using value_type = typename ViewType::non_const_value_type;
   auto h_x = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, x_hat);
-  const std::size_t nbatch = x_hat.extent(1 - Axis);
+  const std::size_t nbatch      = x_hat.extent(1 - Axis);
   std::vector<std::size_t> bins = {0};
-  if (n % 2 == 0)
-    bins.push_back(n / 2);
+  if (n % 2 == 0) bins.push_back(n / 2);
   for (std::size_t ib = 0; ib < nbatch; ++ib) {
     for (std::size_t k : bins) {
       auto &v = Axis == 0 ? h_x(k, ib) : h_x(ib, k);
-      v = value_type(v.real(), 0);
+      v       = value_type(v.real(), 0);
     }
   }
   Kokkos::deep_copy(x_hat, h_x);
@@ -181,7 +181,7 @@ void test_r2c_c2r_1d(std::size_t n, Normalization norm) {
   using ComplexView2DType =
       Kokkos::View<Kokkos::complex<T> **, LayoutType, execution_space>;
   constexpr std::size_t nbatch = 5;
-  const std::size_t h = n / 2;
+  const std::size_t h          = n / 2;
   const std::size_t r0 = Axis == 0 ? n : nbatch, r1 = Axis == 0 ? nbatch : n;
   const std::size_t c0 = Axis == 0 ? h + 1 : nbatch,
                     c1 = Axis == 0 ? nbatch : h + 1;
@@ -278,14 +278,14 @@ void test_execute_no_allocation() {
   recorder.clear();
   Plan r2c(TestUtils::plan_policy<Team>(), r, r_hat, AxisTag<0>{});
   Plan c2r(TestUtils::plan_policy<Team>(), r_hat, r, AxisTag<0>{});
-  batched_execute_real<0>(r2c, r, r_hat, Normalization::backward); // warm-up
+  batched_execute_real<0>(r2c, r, r_hat, Normalization::backward);  // warm-up
   recorder.clear();
   batched_execute_real<0>(r2c, r, r_hat, Normalization::backward);
   batched_execute_real<0>(c2r, r_hat, r, Normalization::backward);
   EXPECT_TRUE(recorder.recorded().empty())
       << "R2C/C2R execute allocated: " << recorder.recorded().front();
 }
-} // namespace
+}  // namespace
 
 TEST(TestExecute1DLengths, RealParityCoverage) {
   // Both stage-count parities of the even-n and odd-n paths of
@@ -310,19 +310,19 @@ TEST(TestExecute1DLengths, RealParityCoverage) {
 }
 
 TYPED_TEST(TestExecute1D, C2C) {
-  using float_type = typename TestFixture::float_type;
+  using float_type  = typename TestFixture::float_type;
   using layout_type = typename TestFixture::layout_type;
   test_c2c_1d_all<float_type, layout_type>();
 }
 
 TYPED_TEST(TestExecute1D, R2CC2R) {
-  using float_type = typename TestFixture::float_type;
+  using float_type  = typename TestFixture::float_type;
   using layout_type = typename TestFixture::layout_type;
   test_r2c_c2r_1d_all<float_type, layout_type>();
 }
 
 TYPED_TEST(TestExecute1D, NoAllocationInExecute) {
-  using float_type = typename TestFixture::float_type;
+  using float_type  = typename TestFixture::float_type;
   using layout_type = typename TestFixture::layout_type;
   test_execute_no_allocation<float_type, layout_type>();
 }
@@ -332,7 +332,7 @@ TYPED_TEST(TestExecute1D, NoAllocationInExecute) {
 // length) ----
 
 TYPED_TEST(TestExecute1D, C2CTeam) {
-  using float_type = typename TestFixture::float_type;
+  using float_type  = typename TestFixture::float_type;
   using layout_type = typename TestFixture::layout_type;
   for (auto config : TestUtils::team_configs()) {
     TestUtils::team_config() = config;
@@ -341,7 +341,7 @@ TYPED_TEST(TestExecute1D, C2CTeam) {
 }
 
 TYPED_TEST(TestExecute1D, R2CC2RTeam) {
-  using float_type = typename TestFixture::float_type;
+  using float_type  = typename TestFixture::float_type;
   using layout_type = typename TestFixture::layout_type;
   for (auto config : TestUtils::team_configs()) {
     TestUtils::team_config() = config;
@@ -350,8 +350,8 @@ TYPED_TEST(TestExecute1D, R2CC2RTeam) {
 }
 
 TYPED_TEST(TestExecute1D, NoAllocationInExecuteTeam) {
-  using float_type = typename TestFixture::float_type;
-  using layout_type = typename TestFixture::layout_type;
+  using float_type         = typename TestFixture::float_type;
+  using layout_type        = typename TestFixture::layout_type;
   TestUtils::team_config() = {4, false};
   test_execute_no_allocation<float_type, layout_type, true>();
 }

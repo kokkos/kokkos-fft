@@ -15,7 +15,7 @@ namespace TestUtils {
 /// the Kokkos Tools allocation callback. Used to check that execute never
 /// allocates and that a plan only allocates its own labelled tables.
 class AllocationRecorder {
-public:
+ public:
   AllocationRecorder() {
     labels().clear();
     Kokkos::Tools::Experimental::set_allocate_data_callback(&record);
@@ -23,13 +23,13 @@ public:
   ~AllocationRecorder() {
     Kokkos::Tools::Experimental::set_allocate_data_callback(nullptr);
   }
-  AllocationRecorder(const AllocationRecorder &) = delete;
+  AllocationRecorder(const AllocationRecorder &)            = delete;
   AllocationRecorder &operator=(const AllocationRecorder &) = delete;
 
   const std::vector<std::string> &recorded() const { return labels(); }
   void clear() { labels().clear(); }
 
-private:
+ private:
   static std::vector<std::string> &labels() {
     static std::vector<std::string> recorded_labels;
     return recorded_labels;
@@ -42,9 +42,9 @@ private:
 
 // ---- Team plans ----
 
-using execution_space = Kokkos::DefaultExecutionSpace;
+using execution_space  = Kokkos::DefaultExecutionSpace;
 using team_policy_type = Kokkos::TeamPolicy<execution_space>;
-using member_type = typename team_policy_type::member_type;
+using member_type      = typename team_policy_type::member_type;
 
 /// \brief How the team tests launch their kernels. team_size 0 means
 /// Kokkos::AUTO; explicit sizes are clamped to what the backend allows for
@@ -67,7 +67,8 @@ inline std::vector<TeamConfig> team_configs() {
 
 /// \brief First argument of a Plan: an execution space (serial plan) or a
 /// TeamPolicy (team plan; only its type and execution space are used)
-template <bool Team> auto plan_policy() {
+template <bool Team>
+auto plan_policy() {
   if constexpr (Team) {
     return team_policy_type(1, Kokkos::AUTO);
   } else {
@@ -127,11 +128,12 @@ double relative_l2_error(const ViewType &actual, const ViewType &expected) {
 }
 
 /// \brief Tolerance of development-plan.md §7: 10 eps log2(n)
-template <typename T> double fft_tolerance(std::size_t n) {
+template <typename T>
+double fft_tolerance(std::size_t n) {
   return 10.0 * std::numeric_limits<T>::epsilon() *
          std::max(1.0, std::log2(static_cast<double>(n)));
 }
 
-} // namespace TestUtils
+}  // namespace TestUtils
 
 #endif

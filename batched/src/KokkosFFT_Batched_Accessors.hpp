@@ -14,7 +14,8 @@ namespace Impl {
 
 /// \brief A 1D line of a View: base pointer and stride. Works for any layout
 /// (LayoutLeft, LayoutRight, LayoutStride subviews).
-template <typename ValueType> struct StridedLine {
+template <typename ValueType>
+struct StridedLine {
   using value_type = ValueType;
 
   ValueType *m_data;
@@ -33,7 +34,8 @@ template <typename ValueType> struct StridedLine {
 /// load() constructs a Kokkos::complex from the two reals; store() writes
 /// them back. The two reals are generally not adjacent in memory (strided
 /// slices), so the line cannot hand out a Kokkos::complex reference.
-template <typename RealType> struct RealPairAsComplex {
+template <typename RealType>
+struct RealPairAsComplex {
   using value_type = Kokkos::complex<RealType>;
 
   RealType *m_data;
@@ -43,7 +45,7 @@ template <typename RealType> struct RealPairAsComplex {
     return value_type(m_data[2 * k * m_stride], m_data[(2 * k + 1) * m_stride]);
   }
   KOKKOS_INLINE_FUNCTION void store(std::size_t k, const value_type &z) const {
-    m_data[2 * k * m_stride] = z.real();
+    m_data[2 * k * m_stride]       = z.real();
     m_data[(2 * k + 1) * m_stride] = z.imag();
   }
 };
@@ -51,7 +53,8 @@ template <typename RealType> struct RealPairAsComplex {
 /// \brief A complex line of length m read as 2m reals:
 ///   r[2i] = Re z[i], r[2i+1] = Im z[i]
 /// Used as a real work buffer by odd-n R2C/C2R.
-template <typename RealType> struct ComplexAsReal {
+template <typename RealType>
+struct ComplexAsReal {
   using value_type = RealType;
 
   Kokkos::complex<RealType> *m_data;
@@ -108,8 +111,7 @@ template <int Dim, typename ViewType>
 KOKKOS_INLINE_FUNCTION std::size_t line_count(const ViewType &view) {
   std::size_t count = 1;
   for (std::size_t e = 0; e < ViewType::rank(); ++e) {
-    if (e != static_cast<std::size_t>(Dim))
-      count *= view.extent(e);
+    if (e != static_cast<std::size_t>(Dim)) count *= view.extent(e);
   }
   return count;
 }
@@ -120,8 +122,7 @@ KOKKOS_INLINE_FUNCTION std::size_t line_offset(const ViewType &view,
                                                std::size_t l) {
   std::size_t offset = 0;
   for (int e = static_cast<int>(ViewType::rank()) - 1; e >= 0; --e) {
-    if (e == Dim)
-      continue;
+    if (e == Dim) continue;
     const std::size_t extent = view.extent(e);
     offset += (l % extent) * view.stride(e);
     l /= extent;
@@ -175,14 +176,15 @@ KOKKOS_INLINE_FUNCTION auto pair_line_at(const ViewType &view, std::size_t l) {
 //   pass runs along its first or last dimension).
 
 /// \brief Line index -> offsets of the line in two views (see above)
-template <std::size_t MaxDims> struct LinePairMap {
+template <std::size_t MaxDims>
+struct LinePairMap {
   int m_ndims = 0;
   Kokkos::Array<std::size_t, MaxDims> m_extent;
   Kokkos::Array<std::size_t, MaxDims> m_stride_a;
   Kokkos::Array<std::size_t, MaxDims> m_stride_b;
 
-  KOKKOS_INLINE_FUNCTION Kokkos::pair<std::size_t, std::size_t>
-  offsets(std::size_t l) const {
+  KOKKOS_INLINE_FUNCTION Kokkos::pair<std::size_t, std::size_t> offsets(
+      std::size_t l) const {
     std::size_t offset_a = 0, offset_b = 0;
     for (int d = 0; d + 1 < m_ndims; ++d) {
       const std::size_t q = fast_div(l, m_extent[d]);
@@ -201,28 +203,28 @@ template <std::size_t MaxDims> struct LinePairMap {
 
 /// \brief LinePairMap of the lines of views `a` and `b` along Dim
 template <int Dim, typename ViewTypeA, typename ViewTypeB>
-KOKKOS_INLINE_FUNCTION auto
-make_line_pair_map(const ViewTypeA &a, const ViewTypeB &b, bool first_fastest) {
+KOKKOS_INLINE_FUNCTION auto make_line_pair_map(const ViewTypeA &a,
+                                               const ViewTypeB &b,
+                                               bool first_fastest) {
   constexpr int rank = static_cast<int>(ViewTypeA::rank());
   static_assert(ViewTypeB::rank() == ViewTypeA::rank(),
                 "make_line_pair_map: views of different ranks");
   LinePairMap<(rank > 1 ? rank - 1 : 1)> map;
   for (int i = 0; i < rank; ++i) {
     const int e = first_fastest ? i : rank - 1 - i;
-    if (e == Dim || a.extent(e) == 1)
-      continue;
-    const std::size_t extent = a.extent(e);
+    if (e == Dim || a.extent(e) == 1) continue;
+    const std::size_t extent   = a.extent(e);
     const std::size_t stride_a = a.stride(e);
     const std::size_t stride_b = b.stride(e);
     if (map.m_ndims > 0) {
       const int d = map.m_ndims - 1;
       if (stride_a == map.m_extent[d] * map.m_stride_a[d] &&
           stride_b == map.m_extent[d] * map.m_stride_b[d]) {
-        map.m_extent[d] *= extent; // contiguous with the previous dimension
+        map.m_extent[d] *= extent;  // contiguous with the previous dimension
         continue;
       }
     }
-    map.m_extent[map.m_ndims] = extent;
+    map.m_extent[map.m_ndims]   = extent;
     map.m_stride_a[map.m_ndims] = stride_a;
     map.m_stride_b[map.m_ndims] = stride_b;
     ++map.m_ndims;
@@ -276,7 +278,8 @@ KOKKOS_INLINE_FUNCTION bool lines_are_inner(const ViewType &view) {
 /// the contents only matter to the line that uses the scratch.
 /// Capacity: view.size() / 2 complex values. `m_base` (in complex values)
 /// selects a region, so that concurrent lines use disjoint scratch.
-template <typename RealType, std::size_t Rank> struct FlatRealPairLine {
+template <typename RealType, std::size_t Rank>
+struct FlatRealPairLine {
   using value_type = Kokkos::complex<RealType>;
 
   RealType *m_data;
@@ -286,8 +289,7 @@ template <typename RealType, std::size_t Rank> struct FlatRealPairLine {
   std::size_t m_base;
 
   KOKKOS_INLINE_FUNCTION std::size_t offset(std::size_t f) const {
-    if (m_contiguous)
-      return f;
+    if (m_contiguous) return f;
     std::size_t off = 0;
     for (int e = static_cast<int>(Rank) - 1; e >= 0; --e) {
       off += (f % m_extents[e]) * m_strides[e];
@@ -300,8 +302,8 @@ template <typename RealType, std::size_t Rank> struct FlatRealPairLine {
     return value_type(m_data[offset(f)], m_data[offset(f + 1)]);
   }
   KOKKOS_INLINE_FUNCTION void store(std::size_t k, const value_type &z) const {
-    const std::size_t f = 2 * (m_base + k);
-    m_data[offset(f)] = z.real();
+    const std::size_t f   = 2 * (m_base + k);
+    m_data[offset(f)]     = z.real();
     m_data[offset(f + 1)] = z.imag();
   }
 };
@@ -321,8 +323,8 @@ KOKKOS_INLINE_FUNCTION auto make_flat_pair_scratch(const ViewType &view,
   return line;
 }
 
-} // namespace Impl
-} // namespace Batched
-} // namespace KokkosFFT
+}  // namespace Impl
+}  // namespace Batched
+}  // namespace KokkosFFT
 
 #endif

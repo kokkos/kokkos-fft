@@ -12,10 +12,12 @@ namespace KokkosFFT {
 namespace Batched {
 namespace Impl {
 
-template <typename... Ts> inline constexpr bool always_false_v = false;
+template <typename... Ts>
+inline constexpr bool always_false_v = false;
 
 /// \brief Checks whether T is a Kokkos::TeamPolicy
-template <typename T> struct is_team_policy : std::false_type {};
+template <typename T>
+struct is_team_policy : std::false_type {};
 
 template <typename... Properties>
 struct is_team_policy<Kokkos::TeamPolicy<Properties...>> : std::true_type {};
@@ -24,7 +26,8 @@ template <typename T>
 inline constexpr bool is_team_policy_v = is_team_policy<T>::value;
 
 /// \brief Execution space of an execution space (itself) or of a TeamPolicy
-template <typename T> struct policy_execution_space {
+template <typename T>
+struct policy_execution_space {
   using type = T;
 };
 
@@ -37,7 +40,8 @@ template <typename T>
 using policy_execution_space_t = typename policy_execution_space<T>::type;
 
 /// \brief Execution space instance from an execution space or a TeamPolicy
-template <typename ExecPolicy> auto get_space(const ExecPolicy &exec_policy) {
+template <typename ExecPolicy>
+auto get_space(const ExecPolicy &exec_policy) {
   if constexpr (is_team_policy_v<ExecPolicy>) {
     return exec_policy.space();
   } else {
@@ -77,22 +81,24 @@ inline constexpr TransformKind transform_kind_v =
     deduce_transform_kind<InValueType, OutValueType>();
 
 /// \brief Axis values of an AxisTag as a std::array
-template <typename Axes> struct axis_values;
+template <typename Axes>
+struct axis_values;
 
-template <int... Tags> struct axis_values<AxisTag<Tags...>> {
+template <int... Tags>
+struct axis_values<AxisTag<Tags...>> {
   static constexpr std::array<int, sizeof...(Tags)> value{Tags...};
 };
 
 /// \brief Axes are non-negative, smaller than the view rank and distinct.
 /// Negative axes are not supported for the moment.
-template <typename Axes, std::size_t ViewRank> consteval bool are_valid_axes() {
+template <typename Axes, std::size_t ViewRank>
+consteval bool are_valid_axes() {
   constexpr auto axes = axis_values<Axes>::value;
   for (std::size_t i = 0; i < axes.size(); ++i) {
     if (axes[i] < 0 || static_cast<std::size_t>(axes[i]) >= ViewRank)
       return false;
     for (std::size_t j = i + 1; j < axes.size(); ++j) {
-      if (axes[i] == axes[j])
-        return false;
+      if (axes[i] == axes[j]) return false;
     }
   }
   return true;
@@ -101,15 +107,14 @@ template <typename Axes, std::size_t ViewRank> consteval bool are_valid_axes() {
 /// \brief Dimension of axis `Axis` inside a slice that keeps only the FFT
 /// axes `RootAxes` of the full batched view (in their original order).
 /// e.g. RootAxes = AxisTag<2, 0>: axis 0 -> slice dim 0, axis 2 -> slice dim 1
-template <typename RootAxes, int Axis> consteval int slice_dim() {
+template <typename RootAxes, int Axis>
+consteval int slice_dim() {
   constexpr auto axes = axis_values<RootAxes>::value;
-  int dim = 0;
-  bool found = false;
+  int dim             = 0;
+  bool found          = false;
   for (auto a : axes) {
-    if (a < Axis)
-      ++dim;
-    if (a == Axis)
-      found = true;
+    if (a < Axis) ++dim;
+    if (a == Axis) found = true;
   }
   return found ? dim : -1;
 }
@@ -136,7 +141,7 @@ using stride_view_t =
 template <typename ExecutionSpace, typename InValueType, typename OutValueType,
           std::size_t ViewRank>
 struct split_view_types {
-  using float_type = KokkosFFT::Impl::base_floating_point_type<InValueType>;
+  using float_type   = KokkosFFT::Impl::base_floating_point_type<InValueType>;
   using complex_type = Kokkos::complex<float_type>;
 
   using heads_in_view_type =
@@ -149,8 +154,8 @@ struct split_view_types {
       stride_view_t<ExecutionSpace, OutValueType, ViewRank>;
 };
 
-} // namespace Impl
-} // namespace Batched
-} // namespace KokkosFFT
+}  // namespace Impl
+}  // namespace Batched
+}  // namespace KokkosFFT
 
 #endif

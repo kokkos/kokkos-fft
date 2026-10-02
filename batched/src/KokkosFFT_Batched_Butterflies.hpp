@@ -44,8 +44,8 @@ KOKKOS_INLINE_FUNCTION ComplexType directed(const ComplexType &w) {
 template <KokkosFFT::Direction Dir, typename ComplexType>
 KOKKOS_INLINE_FUNCTION void small_dft2(ComplexType (&a)[2]) {
   const ComplexType a0 = a[0];
-  a[0] = a0 + a[1];
-  a[1] = a0 - a[1];
+  a[0]                 = a0 + a[1];
+  a[1]                 = a0 - a[1];
 }
 
 /// \brief In-place radix-3 DFT
@@ -61,16 +61,16 @@ KOKKOS_INLINE_FUNCTION void small_dft2(ComplexType (&a)[2]) {
 ///   a_0 = a_0 + t1,  a_1 = t2 + i t3,  a_2 = t2 - i t3
 template <KokkosFFT::Direction Dir, typename ComplexType>
 KOKKOS_INLINE_FUNCTION void small_dft3(ComplexType (&a)[3]) {
-  using T = typename ComplexType::value_type;
+  using T          = typename ComplexType::value_type;
   constexpr T sign = direction_sign_v<Dir, T>;
-  constexpr T c = T(-0.5);                                    // cos(2 pi / 3)
-  constexpr T s = sign * T(0.866025403784438646763723170753); // sin(2 pi / 3)
+  constexpr T c    = T(-0.5);                                  // cos(2 pi / 3)
+  constexpr T s = sign * T(0.866025403784438646763723170753);  // sin(2 pi / 3)
   const ComplexType t1 = a[1] + a[2];
   const ComplexType t2 = a[0] + c * t1;
   const ComplexType t3 = s * (a[1] - a[2]);
-  a[0] = a[0] + t1;
-  a[1] = t2 + mul_i(t3);
-  a[2] = t2 - mul_i(t3);
+  a[0]                 = a[0] + t1;
+  a[1]                 = t2 + mul_i(t3);
+  a[2]                 = t2 - mul_i(t3);
 }
 
 /// \brief In-place radix-4 DFT
@@ -87,16 +87,16 @@ KOKKOS_INLINE_FUNCTION void small_dft3(ComplexType (&a)[3]) {
 ///   a_0 = t0 + t2,  a_1 = t1 + t3,  a_2 = t0 - t2,  a_3 = t1 - t3
 template <KokkosFFT::Direction Dir, typename ComplexType>
 KOKKOS_INLINE_FUNCTION void small_dft4(ComplexType (&a)[4]) {
-  using T = typename ComplexType::value_type;
-  constexpr T sign = direction_sign_v<Dir, T>;
+  using T              = typename ComplexType::value_type;
+  constexpr T sign     = direction_sign_v<Dir, T>;
   const ComplexType t0 = a[0] + a[2];
   const ComplexType t1 = a[0] - a[2];
   const ComplexType t2 = a[1] + a[3];
   const ComplexType t3 = sign * mul_i(a[1] - a[3]);
-  a[0] = t0 + t2;
-  a[1] = t1 + t3;
-  a[2] = t0 - t2;
-  a[3] = t1 - t3;
+  a[0]                 = t0 + t2;
+  a[1]                 = t1 + t3;
+  a[2]                 = t0 - t2;
+  a[3]                 = t1 - t3;
 }
 
 /// \brief In-place radix-5 DFT
@@ -120,12 +120,12 @@ KOKKOS_INLINE_FUNCTION void small_dft4(ComplexType (&a)[4]) {
 ///   a_2 = u2 + i v2,  a_3 = u2 - i v2
 template <KokkosFFT::Direction Dir, typename ComplexType>
 KOKKOS_INLINE_FUNCTION void small_dft5(ComplexType (&a)[5]) {
-  using T = typename ComplexType::value_type;
+  using T          = typename ComplexType::value_type;
   constexpr T sign = direction_sign_v<Dir, T>;
-  constexpr T c1 = T(0.309016994374947424102293417183);        // cos(2 pi / 5)
-  constexpr T c2 = T(-0.809016994374947424102293417183);       // cos(4 pi / 5)
-  constexpr T s1 = sign * T(0.951056516295153572116439333379); // sin(2pi/5)
-  constexpr T s2 = sign * T(0.587785252292473129168705954639); // sin(4pi/5)
+  constexpr T c1   = T(0.309016994374947424102293417183);   // cos(2 pi / 5)
+  constexpr T c2   = T(-0.809016994374947424102293417183);  // cos(4 pi / 5)
+  constexpr T s1   = sign * T(0.951056516295153572116439333379);  // sin(2pi/5)
+  constexpr T s2   = sign * T(0.587785252292473129168705954639);  // sin(4pi/5)
   const ComplexType b1 = a[1] + a[4];
   const ComplexType b2 = a[2] + a[3];
   const ComplexType d1 = a[1] - a[4];
@@ -134,11 +134,11 @@ KOKKOS_INLINE_FUNCTION void small_dft5(ComplexType (&a)[5]) {
   const ComplexType u2 = a[0] + c2 * b1 + c1 * b2;
   const ComplexType v1 = s1 * d1 + s2 * d2;
   const ComplexType v2 = s2 * d1 - s1 * d2;
-  a[0] = a[0] + b1 + b2;
-  a[1] = u1 + mul_i(v1);
-  a[2] = u2 + mul_i(v2);
-  a[3] = u2 - mul_i(v2);
-  a[4] = u1 - mul_i(v1);
+  a[0]                 = a[0] + b1 + b2;
+  a[1]                 = u1 + mul_i(v1);
+  a[2]                 = u2 + mul_i(v2);
+  a[3]                 = u2 - mul_i(v2);
+  a[4]                 = u1 - mul_i(v1);
 }
 
 /// \brief In-place DFT of size R, dispatched to small_dft2/3/4/5
@@ -177,10 +177,11 @@ struct StageTwiddles {
 /// src and dst may be different line types (StridedLine, RealPairAsComplex).
 template <std::size_t R, KokkosFFT::Direction Dir, typename SrcLineType,
           typename DstLineType, typename TwiddlesType>
-KOKKOS_INLINE_FUNCTION void
-butterfly(const SrcLineType &src, const DstLineType &dst,
-          const TwiddlesType &tw, std::size_t p, std::size_t q, std::size_t m,
-          std::size_t stride) {
+KOKKOS_INLINE_FUNCTION void butterfly(const SrcLineType &src,
+                                      const DstLineType &dst,
+                                      const TwiddlesType &tw, std::size_t p,
+                                      std::size_t q, std::size_t m,
+                                      std::size_t stride) {
   using value_type = typename SrcLineType::value_type;
   value_type a[R];
   for (std::size_t k = 0; k < R; ++k) {
@@ -199,29 +200,27 @@ butterfly(const SrcLineType &src, const DstLineType &dst,
 /// r temporaries, so no scratch array is needed.
 template <KokkosFFT::Direction Dir, typename SrcLineType, typename DstLineType,
           typename TwiddlesType, typename RootViewType>
-KOKKOS_INLINE_FUNCTION void
-butterfly_generic(const SrcLineType &src, const DstLineType &dst,
-                  const TwiddlesType &tw, const RootViewType &roots,
-                  std::size_t root_offset, std::size_t radix, std::size_t p,
-                  std::size_t q, std::size_t m, std::size_t stride) {
-  using value_type = typename SrcLineType::value_type;
+KOKKOS_INLINE_FUNCTION void butterfly_generic(
+    const SrcLineType &src, const DstLineType &dst, const TwiddlesType &tw,
+    const RootViewType &roots, std::size_t root_offset, std::size_t radix,
+    std::size_t p, std::size_t q, std::size_t m, std::size_t stride) {
+  using value_type       = typename SrcLineType::value_type;
   const std::size_t base = q + stride * radix * p;
   for (std::size_t j = 0; j < radix; ++j) {
     value_type acc(0);
-    std::size_t t = 0; // (j * k) mod radix
+    std::size_t t = 0;  // (j * k) mod radix
     for (std::size_t k = 0; k < radix; ++k) {
       acc += src.load(q + stride * (p + k * m)) *
              directed<Dir>(roots(root_offset + t));
       t += j;
-      if (t >= radix)
-        t -= radix;
+      if (t >= radix) t -= radix;
     }
     dst.store(base + stride * j, j == 0 ? acc : acc * tw(j, p));
   }
 }
 
-} // namespace Impl
-} // namespace Batched
-} // namespace KokkosFFT
+}  // namespace Impl
+}  // namespace Batched
+}  // namespace KokkosFFT
 
 #endif

@@ -10,12 +10,13 @@ using KokkosFFT::Direction;
 using KokkosFFT::Normalization;
 using KokkosFFT::Batched::AxisTag;
 using KokkosFFT::Batched::Plan;
-using execution_space = Kokkos::DefaultExecutionSpace;
+using execution_space  = Kokkos::DefaultExecutionSpace;
 using team_policy_type = Kokkos::TeamPolicy<execution_space>;
-using member_type = typename team_policy_type::member_type;
-using float_types = ::testing::Types<float, double>;
+using member_type      = typename team_policy_type::member_type;
+using float_types      = ::testing::Types<float, double>;
 
-template <typename T> struct CompileTestConcepts : public ::testing::Test {
+template <typename T>
+struct CompileTestConcepts : public ::testing::Test {
   using float_type = T;
 };
 
@@ -50,7 +51,8 @@ concept TeamWithoutDirection =
       KokkosFFT::Batched::execute(member, plan, in, out);
     };
 
-template <typename T> void test_planable() {
+template <typename T>
+void test_planable() {
   using View2D = Kokkos::View<Kokkos::complex<T> **, execution_space>;
   static_assert(KokkosFFT::Batched::Planable<
                 Plan<execution_space, View2D, View2D, AxisTag<0>>>);
@@ -70,9 +72,10 @@ template <typename T> void test_planable() {
   static_assert(!KokkosFFT::Batched::AxesSelectable<AxisTag<>>);
 }
 
-template <typename T> void test_slice_views() {
+template <typename T>
+void test_slice_views() {
   using ComplexView2D = Kokkos::View<Kokkos::complex<T> **, execution_space>;
-  using RealView2D = Kokkos::View<T **, execution_space>;
+  using RealView2D    = Kokkos::View<T **, execution_space>;
   using R2CPlan = Plan<execution_space, RealView2D, ComplexView2D, AxisTag<0>>;
 
   using RealSlice = Kokkos::View<T *, Kokkos::LayoutStride, execution_space>;
@@ -96,9 +99,10 @@ template <typename T> void test_slice_views() {
   static_assert(!KokkosFFT::Batched::InSliceView<RealView2D, R2CPlan>);
 }
 
-template <typename T> void test_execute_overloads() {
+template <typename T>
+void test_execute_overloads() {
   using ComplexView2D = Kokkos::View<Kokkos::complex<T> **, execution_space>;
-  using RealView2D = Kokkos::View<T **, execution_space>;
+  using RealView2D    = Kokkos::View<T **, execution_space>;
   using ComplexSlice =
       Kokkos::View<Kokkos::complex<T> *, Kokkos::LayoutStride, execution_space>;
   using RealSlice = Kokkos::View<T *, Kokkos::LayoutStride, execution_space>;
@@ -146,7 +150,7 @@ template <typename T> void test_execute_overloads() {
   static_assert(!TeamWithDirection<SerialC2C, ComplexSlice, ComplexSlice>);
   static_assert(!TeamWithoutDirection<SerialR2C, RealSlice, ComplexSlice>);
 }
-} // namespace
+}  // namespace
 
 TYPED_TEST(CompileTestConcepts, Planable) {
   using float_type = typename TestFixture::float_type;
