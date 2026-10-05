@@ -165,11 +165,8 @@ struct ScopedCufftPlan {
   /// owned by this ScopedCufftPlan, freed in its destructor -- the caller
   /// never has to manage that memory themselves.
   ///
-  /// \todo When KOKKOSFFT_ENABLE_CALLBACK is off, this method currently
-  /// compiles to a silent no-op instead of failing to compile or throwing --
-  /// a caller who forgets -DKokkosFFT_ENABLE_CALLBACK=ON gets no error, just
-  /// an FFT that silently runs without their callback attached. Needs a
-  /// compile-time failure instead (discussed in review, not yet decided).
+  /// \note When KOKKOSFFT_ENABLE_CALLBACK is off, calling this method fails
+  /// to compile (static_assert) rather than silently doing nothing.
   template <typename CallbackSymbolType, typename CallbackParamsType>
   void set_callback(const CallbackSymbolType &d_callback_symbol,
                     const CallbackParamsType &params) {
@@ -195,6 +192,10 @@ struct ScopedCufftPlan {
     void *callback_params_ptr = m_callback_params;
     KOKKOSFFT_CHECK_CUFFT_CALL(cufftXtSetCallback(
         m_plan, &callback_ptr, cb_type, &callback_params_ptr));
+#else
+    static_assert(std::is_void_v<CallbackSymbolType>,
+                  "set_callback() requires KokkosFFT to be built with "
+                  "-DKokkosFFT_ENABLE_CALLBACK=ON");
 #endif
   }
 };
@@ -301,11 +302,8 @@ struct ScopedCufftDynPlan {
   /// owned by this ScopedCufftDynPlan, freed in its destructor -- the caller
   /// never has to manage that memory themselves.
   ///
-  /// \todo When KOKKOSFFT_ENABLE_CALLBACK is off, this method currently
-  /// compiles to a silent no-op instead of failing to compile or throwing --
-  /// a caller who forgets -DKokkosFFT_ENABLE_CALLBACK=ON gets no error, just
-  /// an FFT that silently runs without their callback attached. Needs a
-  /// compile-time failure instead (discussed in review, not yet decided).
+  /// \note When KOKKOSFFT_ENABLE_CALLBACK is off, calling this method fails
+  /// to compile (static_assert) rather than silently doing nothing.
   template <typename CallbackSymbolType, typename CallbackParamsType>
   void set_callback(const CallbackSymbolType &d_callback_symbol,
                     const CallbackParamsType &params) {
@@ -331,6 +329,10 @@ struct ScopedCufftDynPlan {
     void *callback_params_ptr = m_callback_params;
     KOKKOSFFT_CHECK_CUFFT_CALL(cufftXtSetCallback(
         m_plan, &callback_ptr, cb_type, &callback_params_ptr));
+#else
+    static_assert(std::is_void_v<CallbackSymbolType>,
+                  "set_callback() requires KokkosFFT to be built with "
+                  "-DKokkosFFT_ENABLE_CALLBACK=ON");
 #endif
   }
 };
