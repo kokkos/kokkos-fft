@@ -1,7 +1,9 @@
 #include "KokkosFFT_Batched.hpp"
 #include "Test_Utils.hpp"
 #include <Kokkos_Core.hpp>
+#include <algorithm>
 #include <concepts>
+#include <cstddef>
 #include <gtest/gtest.h>
 #include <numeric>
 #include <stdexcept>
@@ -28,8 +30,8 @@ struct TestPlan : public ::testing::Test {
 
 TYPED_TEST_SUITE(TestPlan, test_types);
 
-void test_factorize(std::size_t n) {
-  const auto radices = KokkosFFT::Batched::Impl::factorize(n);
+void test_factorize(std::size_t n, bool odd_stages) {
+  const auto radices = KokkosFFT::Batched::Impl::factorize(n, odd_stages);
   const std::size_t product =
       std::accumulate(radices.begin(), radices.end(), std::size_t(1),
                       [](std::size_t a, std::size_t b) { return a * b; });
@@ -37,11 +39,34 @@ void test_factorize(std::size_t n) {
   for (auto r : radices) {
     EXPECT_GT(r, 1u) << "n = " << n;
   }
-  // An even stage count is only kept if no radix 4 can be split
-  if (radices.size() % 2 == 0) {
-    EXPECT_EQ(std::count(radices.begin(), radices.end(), std::size_t(4)), 0)
-        << "n = " << n;
+  // The power of two 2^k of n takes the fewest stages, ceil(k / 3): radix 8,
+  // plus 4 x 4, 4 or 2 for the rest; radix 2 only when k = 1
+  std::size_t k = 0;
+  for (std::size_t m = n; m % 2 == 0; m /= 2) ++k;
+  const auto pow2_stages = static_cast<std::size_t>(
+      std::count_if(radices.begin(), radices.end(),
+                    [](std::size_t r) { return r == 2 || r == 4 || r == 8; }));
+  const std::size_t min_stages = (k + 2) / 3;
+  const std::size_t n_others   = radices.size() - pow2_stages;
+  // G2e: one more stage only if none of them needs radix 2
+  if (!odd_stages || (min_stages + n_others) % 2 == 1 ||
+      2 * (min_stages + 1) > k) {
+    EXPECT_EQ(pow2_stages, min_stages) << "n = " << n;
+    if (k != 1) {
+      EXPECT_EQ(std::count(radices.begin(), radices.end(), std::size_t(2)), 0)
+          << "n = " << n;
+    }
+  } else {
+    // G2c: one more stage makes the count odd, balanced (radices differ by
+    // at most a factor 2), and no radix 2 (G2e)
+    EXPECT_EQ(pow2_stages, min_stages + 1) << "n = " << n;
+    EXPECT_EQ(radices.size() % 2, 1u) << "n = " << n;
+    EXPECT_LE(radices[pow2_stages - 1], 2 * radices[0]) << "n = " << n;
+    EXPECT_GE(radices[0], 4u) << "n = " << n;
   }
+  // Powers of two first, in ascending order
+  EXPECT_TRUE(std::is_sorted(radices.begin(), radices.begin() + pow2_stages))
+      << "n = " << n;
 }
 
 /// \brief Sum of the generic-radix primes, i.e. the size of the roots table
@@ -66,7 +91,8 @@ void test_plan_c2c_1d(std::size_t n) {
   static_assert(std::same_as<decltype(plan), Plan<execution_space, View2DType,
                                                   View2DType, AxisTag<Axis>>>);
 
-  const auto expected = KokkosFFT::Batched::Impl::factorize(n);
+  // A 1-D C2C plan prefers an odd stage count (G2c)
+  const auto expected = KokkosFFT::Batched::Impl::factorize(n, true);
   EXPECT_EQ(plan.length(0), n);
   EXPECT_EQ(plan.in_extent(0), n);
   EXPECT_EQ(plan.out_extent(0), n);
@@ -161,8 +187,12 @@ void test_plan_real_1d(std::size_t n) {
   EXPECT_EQ(c2r.in_extent(0), h + 1);
   EXPECT_EQ(c2r.out_extent(0), n);
 
+  // R2C keeps the fewest stages; C2R prefers an odd count (G2c)
   const auto expected = KokkosFFT::Batched::Impl::factorize(n_fft);
   EXPECT_EQ(r2c.nstages(), static_cast<int>(expected.size()));
+  EXPECT_EQ(c2r.nstages(),
+            static_cast<int>(
+                KokkosFFT::Batched::Impl::factorize(n_fft, true).size()));
   if (is_odd) {
     // Only W_n^t, t = 0..n-1; no complex stage tables
     EXPECT_EQ(r2c.twiddles().extent(0), 0u);
@@ -236,6 +266,60 @@ void test_plan_nd() {
   EXPECT_THROW(Plan(exec, x, y, Axes{}), std::runtime_error);
 }
 
+/// \brief Radices of a leaf plan, on the host
+template <typename LeafPlanType>
+std::vector<std::size_t> leaf_radices(const LeafPlanType &leaf) {
+  auto h =
+      Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, leaf.radices());
+  return std::vector<std::size_t>(h.data(), h.data() + h.extent(0));
+}
+
+/// \brief Radix 8 in N-D plans (G2d): the C2C leaves of a team plan with 3-D
+/// slices factorise without it, as their merged kernels do not have it. Serial
+/// plans, 2-D team plans and real 3-D team plans keep it.
+template <typename T, typename LayoutType>
+void test_plan_radix8() {
+  using KokkosFFT::Batched::Impl::factorize;
+  using ComplexView4D =
+      Kokkos::View<Kokkos::complex<T> ****, LayoutType, execution_space>;
+  using ComplexView3D =
+      Kokkos::View<Kokkos::complex<T> ***, LayoutType, execution_space>;
+  using RealView4D = Kokkos::View<T ****, LayoutType, execution_space>;
+  const auto no8   = [](std::size_t n) { return factorize(n, false, false); };
+  const auto with8 = [](std::size_t n) { return factorize(n); };
+  EXPECT_EQ(no8(8), (std::vector<std::size_t>{2, 4}));
+  EXPECT_EQ(no8(32), (std::vector<std::size_t>{2, 4, 4}));
+  EXPECT_EQ(no8(64), (std::vector<std::size_t>{4, 4, 4}));
+
+  // Lengths (in the order of the axes 2, 0, 1): 8, 32, 64
+  ComplexView4D x("x", 32, 64, 8, 2), x_hat("x_hat", 32, 64, 8, 2);
+  using Axes3 = AxisTag<2, 0, 1>;
+  Plan team(TestUtils::plan_policy<true>(), x, x_hat, Axes3{});
+  static_assert(!decltype(team)::root_radix8);
+  EXPECT_EQ(leaf_radices(team.heads_plan().heads_plan()), no8(8));
+  EXPECT_EQ(leaf_radices(team.heads_plan().last_plan()), no8(32));
+  EXPECT_EQ(leaf_radices(team.last_plan()), no8(64));
+
+  Plan serial(execution_space(), x, x_hat, Axes3{});
+  static_assert(decltype(serial)::root_radix8);
+  EXPECT_EQ(leaf_radices(serial.heads_plan().heads_plan()), with8(8));
+  EXPECT_EQ(leaf_radices(serial.last_plan()), with8(64));
+
+  // R2C 3-D (team): the heads run another kernel, which has radix 8
+  RealView4D r("r", 32, 64, 8, 2);
+  ComplexView4D r_hat("r_hat", 32, 33, 8, 2);
+  Plan r2c(TestUtils::plan_policy<true>(), r, r_hat, Axes3{});
+  static_assert(decltype(r2c)::root_radix8);
+  EXPECT_EQ(leaf_radices(r2c.heads_plan().heads_plan()), with8(8));
+
+  // 2-D slices (team): radix 8
+  ComplexView3D y("y", 8, 64, 2), y_hat("y_hat", 8, 64, 2);
+  Plan team2d(TestUtils::plan_policy<true>(), y, y_hat, AxisTag<0, 1>{});
+  static_assert(decltype(team2d)::root_radix8);
+  EXPECT_EQ(leaf_radices(team2d.heads_plan()), with8(8));
+  EXPECT_EQ(leaf_radices(team2d.last_plan()), with8(64));
+}
+
 template <typename T, typename LayoutType>
 void test_plan_allocations() {
   using View2DType =
@@ -255,14 +339,48 @@ void test_plan_allocations() {
 
 TEST(TestFactorize, Radices) {
   for (std::size_t n = 1; n <= 4096; ++n) {
-    test_factorize(n);
+    test_factorize(n, false);
+    test_factorize(n, true);
+    // Without radix 8 (G2d): ceil(k / 2) stages of radix 4 or 2, radix 2 at
+    // most once, and the same factors
+    const auto no8 = KokkosFFT::Batched::Impl::factorize(n, false, false);
+    const auto ref = KokkosFFT::Batched::Impl::factorize(n);
+    std::size_t k  = 0;
+    for (std::size_t m = n; m % 2 == 0; m /= 2) ++k;
+    EXPECT_EQ(std::count(no8.begin(), no8.end(), std::size_t(8)), 0);
+    EXPECT_LE(std::count(no8.begin(), no8.end(), std::size_t(2)), 1);
+    EXPECT_EQ(std::count_if(no8.begin(), no8.end(),
+                            [](std::size_t r) { return r == 2 || r == 4; }),
+              static_cast<std::ptrdiff_t>((k + 1) / 2))
+        << "n = " << n;
+    EXPECT_TRUE(std::equal(no8.end() - (no8.size() - (k + 1) / 2), no8.end(),
+                           ref.end() - (no8.size() - (k + 1) / 2)))
+        << "n = " << n;
   }
   using KokkosFFT::Batched::Impl::factorize;
   EXPECT_TRUE(factorize(1).empty());
-  EXPECT_EQ(factorize(8), (std::vector<std::size_t>{2, 2, 2}));
+  EXPECT_EQ(factorize(8), (std::vector<std::size_t>{8}));
+  EXPECT_EQ(factorize(16), (std::vector<std::size_t>{4, 4}));
+  EXPECT_EQ(factorize(32), (std::vector<std::size_t>{4, 8}));
+  EXPECT_EQ(factorize(128), (std::vector<std::size_t>{4, 4, 8}));
   EXPECT_EQ(factorize(30), (std::vector<std::size_t>{2, 3, 5}));
   EXPECT_EQ(factorize(1009), (std::vector<std::size_t>{1009}));
-  EXPECT_EQ(factorize(4096).size() % 2, 1u);
+  EXPECT_EQ(factorize(4096), (std::vector<std::size_t>{8, 8, 8, 8}));
+  // Odd stage count (G2c)
+  EXPECT_EQ(factorize(8, true), (std::vector<std::size_t>{8}));
+  // G2e: one more stage would need radix 2, the count stays even
+  EXPECT_EQ(factorize(16, true), (std::vector<std::size_t>{4, 4}));
+  EXPECT_EQ(factorize(32, true), (std::vector<std::size_t>{4, 8}));
+  EXPECT_EQ(factorize(12, true), (std::vector<std::size_t>{4, 3}));
+  EXPECT_EQ(factorize(64, true), (std::vector<std::size_t>{4, 4, 4}));
+  EXPECT_EQ(factorize(128, true), (std::vector<std::size_t>{4, 4, 8}));
+  EXPECT_EQ(factorize(1024, true), (std::vector<std::size_t>{4, 4, 4, 4, 4}));
+  EXPECT_EQ(factorize(4096, true), (std::vector<std::size_t>{4, 4, 4, 8, 8}));
+  EXPECT_EQ(factorize(48, true), (std::vector<std::size_t>{4, 4, 3}));
+  EXPECT_EQ(factorize(30, true), (std::vector<std::size_t>{2, 3, 5}));
+  // k = 1 or 0: no room for one more stage, the count stays even
+  EXPECT_EQ(factorize(210, true), (std::vector<std::size_t>{2, 3, 5, 7}));
+  EXPECT_EQ(factorize(15, true), (std::vector<std::size_t>{3, 5}));
 }
 
 TYPED_TEST(TestPlan, C2C1D) {
@@ -294,6 +412,12 @@ TYPED_TEST(TestPlan, ND) {
   using float_type  = typename TestFixture::float_type;
   using layout_type = typename TestFixture::layout_type;
   test_plan_nd<float_type, layout_type>();
+}
+
+TYPED_TEST(TestPlan, Radix8ND) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+  test_plan_radix8<float_type, layout_type>();
 }
 
 TYPED_TEST(TestPlan, AllocationLabels) {

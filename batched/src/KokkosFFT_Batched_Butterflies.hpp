@@ -141,7 +141,37 @@ KOKKOS_INLINE_FUNCTION void small_dft5(ComplexType (&a)[5]) {
   a[4]                 = u1 - mul_i(v1);
 }
 
-/// \brief In-place DFT of size R, dispatched to small_dft2/3/4/5
+/// \brief In-place radix-8 DFT, as two radix-4 DFTs of the even and odd
+/// samples (G2a):
+///
+///   w = exp(s 2 pi i / 8),  e = DFT4(a_0, a_2, a_4, a_6),
+///   o = DFT4(a_1, a_3, a_5, a_7)
+///   a_k     <- e_k + w^k o_k,  a_{k+4} <- e_k - w^k o_k   (k = 0..3)
+///
+/// with w^1 = r (1 + s i), w^2 = s i, w^3 = r (-1 + s i), r = 1 / sqrt(2)
+template <KokkosFFT::Direction Dir, typename ComplexType>
+KOKKOS_INLINE_FUNCTION void small_dft8(ComplexType (&a)[8]) {
+  using T          = typename ComplexType::value_type;
+  constexpr T sign = direction_sign_v<Dir, T>;
+  constexpr T r    = T(0.707106781186547524400844362105);  // 1 / sqrt(2)
+  ComplexType e[4] = {a[0], a[2], a[4], a[6]};
+  ComplexType o[4] = {a[1], a[3], a[5], a[7]};
+  small_dft4<Dir>(e);
+  small_dft4<Dir>(o);
+  const ComplexType t1 = r * (o[1] + sign * mul_i(o[1]));  // w^1 o_1
+  const ComplexType t2 = sign * mul_i(o[2]);               // w^2 o_2
+  const ComplexType t3 = r * (sign * mul_i(o[3]) - o[3]);  // w^3 o_3
+  a[0]                 = e[0] + o[0];
+  a[4]                 = e[0] - o[0];
+  a[1]                 = e[1] + t1;
+  a[5]                 = e[1] - t1;
+  a[2]                 = e[2] + t2;
+  a[6]                 = e[2] - t2;
+  a[3]                 = e[3] + t3;
+  a[7]                 = e[3] - t3;
+}
+
+/// \brief In-place DFT of size R, dispatched to small_dft2/3/4/5/8
 template <std::size_t R, KokkosFFT::Direction Dir, typename ComplexType>
 KOKKOS_INLINE_FUNCTION void small_dft(ComplexType (&a)[R]) {
   if constexpr (R == 2) {
@@ -152,9 +182,11 @@ KOKKOS_INLINE_FUNCTION void small_dft(ComplexType (&a)[R]) {
     small_dft4<Dir>(a);
   } else if constexpr (R == 5) {
     small_dft5<Dir>(a);
+  } else if constexpr (R == 8) {
+    small_dft8<Dir>(a);
   } else {
     static_assert(always_false_v<ComplexType>,
-                  "small_dft: only radix 2, 3, 4 and 5 are specialised");
+                  "small_dft: only radix 2, 3, 4, 5 and 8 are specialised");
   }
 }
 

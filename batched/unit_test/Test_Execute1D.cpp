@@ -288,25 +288,42 @@ void test_execute_no_allocation() {
 }  // namespace
 
 TEST(TestExecute1DLengths, RealParityCoverage) {
-  // Both stage-count parities of the even-n and odd-n paths of
-  // pass_r2c/pass_c2r must be covered by real_test_lengths
-  bool even_n_odd_stages = false, even_n_even_stages = false;
-  bool odd_n_odd_stages = false, odd_n_even_stages = false;
-  for (auto n : real_test_lengths) {
-    if (n % 2 == 0) {
-      const auto nstages = KokkosFFT::Batched::Impl::factorize(n / 2).size();
-      even_n_odd_stages |= nstages % 2 == 1;
-      even_n_even_stages |= nstages % 2 == 0;
-    } else if (n > 1) {
-      const auto nstages = KokkosFFT::Batched::Impl::factorize(n).size();
-      odd_n_odd_stages |= nstages % 2 == 1;
-      odd_n_even_stages |= nstages % 2 == 0;
+  // Both stage-count parities of the even-n and odd-n paths of pass_r2c and
+  // pass_c2r must be covered by real_test_lengths. C2R prefers an odd count
+  // (G2c), so its parities are checked with its own factorisation.
+  using KokkosFFT::Batched::Impl::factorize;
+  for (bool c2r : {false, true}) {
+    bool even_n_odd_stages = false, even_n_even_stages = false;
+    bool odd_n_odd_stages = false, odd_n_even_stages = false;
+    for (auto n : real_test_lengths) {
+      if (n % 2 == 0) {
+        const auto nstages = factorize(n / 2, c2r).size();
+        even_n_odd_stages |= nstages % 2 == 1;
+        even_n_even_stages |= nstages % 2 == 0;
+      } else if (n > 1) {
+        const auto nstages = factorize(n, c2r).size();
+        odd_n_odd_stages |= nstages % 2 == 1;
+        odd_n_even_stages |= nstages % 2 == 0;
+      }
     }
+    EXPECT_TRUE(even_n_odd_stages) << "c2r = " << c2r;
+    EXPECT_TRUE(even_n_even_stages) << "c2r = " << c2r;
+    EXPECT_TRUE(odd_n_odd_stages) << "c2r = " << c2r;
+    EXPECT_TRUE(odd_n_even_stages) << "c2r = " << c2r;
   }
-  EXPECT_TRUE(even_n_odd_stages);
-  EXPECT_TRUE(even_n_even_stages);
-  EXPECT_TRUE(odd_n_odd_stages);
-  EXPECT_TRUE(odd_n_even_stages);
+}
+
+TEST(TestExecute1DLengths, C2CParityCoverage) {
+  // A 1-D C2C plan prefers an odd stage count (G2c); test_lengths must still
+  // cover an even count (the copy in finalize) and an odd one
+  bool odd_stages = false, even_stages = false;
+  for (auto n : test_lengths) {
+    const auto nstages = KokkosFFT::Batched::Impl::factorize(n, true).size();
+    odd_stages |= nstages % 2 == 1;
+    even_stages |= n > 1 && nstages % 2 == 0;
+  }
+  EXPECT_TRUE(odd_stages);
+  EXPECT_TRUE(even_stages);
 }
 
 TYPED_TEST(TestExecute1D, C2C) {

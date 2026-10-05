@@ -18,7 +18,6 @@ namespace BatchedFFTBenchmark {
 
 using execution_space  = Kokkos::DefaultExecutionSpace;
 using team_policy_type = Kokkos::TeamPolicy<execution_space>;
-using member_type      = typename team_policy_type::member_type;
 using range_policy_type =
     Kokkos::RangePolicy<execution_space, Kokkos::IndexType<std::size_t>>;
 
@@ -134,7 +133,8 @@ struct TeamExecute {
   OutViewType out;
   KokkosFFT::Direction dir;
 
-  KOKKOS_FUNCTION void operator()(const member_type &member) const {
+  KOKKOS_FUNCTION void operator()(
+      const typename PlanType::policy_type::member_type &member) const {
     const std::size_t ib = member.league_rank();
     if constexpr (PlanType::kind == KokkosFFT::Batched::TransformKind::C2C) {
       KokkosFFT::Batched::execute(member, plan, batch_slice(in, ib),
@@ -196,8 +196,9 @@ void run_batched(benchmark::State &state, const PlanType &plan,
   if constexpr (PlanType::is_team) {
     const TeamExecute<PlanType, InViewType, OutViewType> functor{plan, x, y,
                                                                  dir};
+    using policy_type   = typename PlanType::policy_type;
     const int requested = static_cast<int>(state.range(1));
-    const team_policy_type auto_policy(nbatch, Kokkos::AUTO);
+    const policy_type auto_policy(nbatch, Kokkos::AUTO);
     const int team_size_max =
         auto_policy.team_size_max(functor, Kokkos::ParallelForTag());
     if (requested > team_size_max) {
@@ -210,8 +211,8 @@ void run_batched(benchmark::State &state, const PlanType &plan,
     const int team_size = is_auto ? auto_policy.team_size_recommended(
                                         functor, Kokkos::ParallelForTag())
                                   : requested;
-    const team_policy_type policy =
-        is_auto ? auto_policy : team_policy_type(nbatch, requested);
+    const policy_type policy =
+        is_auto ? auto_policy : policy_type(nbatch, requested);
     timed_loop(state, x0, x, bytes, flops, [&]() {
       Kokkos::parallel_for("batched_fft_team", policy, functor);
     });

@@ -181,19 +181,29 @@ class Plan<ExecPolicy, InViewType, OutViewType, AxisTag<Axis>>
   using twiddle_view_type = typename axis_data_type::twiddle_view_type;
 
   /// \brief Plan from the full batched views (host).
+  /// This is the constructor of a 1-D plan (the leaf is the whole plan), so a
+  /// C2C result that ends in `in` is copied by finalize: the stage count is
+  /// made odd where possible (G2c, see Impl::factorize).
   /// \param exec_policy [in] Execution space instance (serial plan) or
   /// TeamPolicy (team plan). Its execution space fills the twiddle tables.
   /// \param in [in] Batched input view (extents are used, not the data)
   /// \param out [in] Batched output view (extents are used, not the data)
   Plan(const ExecPolicy &exec_policy, const InViewType &in,
-       const OutViewType &out, AxisTag<Axis>)
-      : Plan(exec_policy, Impl::fft_lengths<axes_type, kind>(in, out)) {}
+       const OutViewType &out, AxisTag<Axis>) {
+    init(Impl::get_space(exec_policy),
+         Impl::fft_lengths<axes_type, kind>(in, out)[0], /*is_root=*/true,
+         /*radix8=*/true);
+  }
 
   /// \brief Plan from the logical FFT length (host). Used by the recursive
   /// parent, which has no views of the child types (see development-plan.md
   /// §3.5).
-  Plan(const ExecPolicy &exec_policy, const lengths_type &lengths) {
-    init(Impl::get_space(exec_policy), lengths[0]);
+  /// \param radix8 [in] Radix 8 is allowed: false for the C2C leaves of a
+  /// team plan with slices of rank 3 or more, whose kernels do not have it
+  /// (G2d, see Impl::merged_c2c_radix8_v). The root decides.
+  Plan(const ExecPolicy &exec_policy, const lengths_type &lengths,
+       bool radix8 = true) {
+    init(Impl::get_space(exec_policy), lengths[0], /*is_root=*/false, radix8);
   }
 
   /// \brief The kernel descriptor of this axis (what the kernels take)
@@ -268,7 +278,10 @@ class Plan<ExecPolicy, InViewType, OutViewType, AxisTag<Axis>>
   }
 
  private:
-  void init(const execution_space &exec, std::size_t n) {
+  /// \param is_root [in] The leaf is the whole plan (1-D)
+  /// \param radix8 [in] Radix 8 is allowed (G2d)
+  void init(const execution_space &exec, std::size_t n, bool is_root,
+            bool radix8) {
     KOKKOSFFT_THROW_IF(n == 0,
                        "KokkosFFT::Batched::Plan: FFT length must be positive");
     constexpr bool is_real = kind != TransformKind::C2C;
@@ -278,7 +291,13 @@ class Plan<ExecPolicy, InViewType, OutViewType, AxisTag<Axis>>
     // transforms run a real FFT of length n on half-complex data
     m_data.m_n_fft = is_real && !is_odd_real ? n / 2 : n;
 
-    const auto radices = Impl::factorize(m_data.m_n_fft);
+    // An odd stage count where an even one costs a copy (G2c): a C2R leaf
+    // copies each line, and a 1-D C2C plan copies in finalize. R2C, the
+    // C2C leaves of N-D plans (their parities add up) and the heads of real
+    // roots keep the minimal count.
+    const bool odd_stages =
+        kind == TransformKind::C2R || (kind == TransformKind::C2C && is_root);
+    const auto radices = Impl::factorize(m_data.m_n_fft, odd_stages, radix8);
     m_data.m_nstages   = static_cast<int>(radices.size());
 
     const std::string prefix = "KokkosFFT::Batched::Plan::";
@@ -358,6 +377,13 @@ class Plan<ExecPolicy, InViewType, OutViewType,
       Plan<ExecPolicy, typename split_type::last_in_view_type,
            typename split_type::last_out_view_type, last_axes_type>;
 
+  /// \brief Whether the leaves of this plan, as a root, may use radix 8: not
+  /// for C2C team plans with slices of rank 3 or more, whose merged passes
+  /// do not have it (G2d, see Impl::merged_c2c_radix8_v)
+  static constexpr bool root_radix8 =
+      !(is_team && kind == TransformKind::C2C) ||
+      Impl::merged_c2c_radix8_v<rank>;
+
   /// \brief Plan from the full batched views (host): extracts and validates
   /// the FFT lengths, then delegates to the lengths constructor.
   Plan(const ExecPolicy &exec_policy, const InViewType &in,
@@ -367,9 +393,12 @@ class Plan<ExecPolicy, InViewType, OutViewType,
   /// \brief Plan from the logical FFT lengths (host, in the order of Axes):
   /// the heads child gets lengths[0..rank-1), the last child lengths[rank-1]
   /// (see development-plan.md §3.5).
-  Plan(const ExecPolicy &exec_policy, const lengths_type &lengths)
-      : m_heads_plan(exec_policy, heads_lengths(lengths)),
-        m_last_plan(exec_policy, last_lengths(lengths)) {
+  /// \param radix8 [in] Radix 8 is allowed in the leaves: decided by the
+  /// root (root_radix8) and passed down
+  Plan(const ExecPolicy &exec_policy, const lengths_type &lengths,
+       bool radix8 = root_radix8)
+      : m_heads_plan(exec_policy, heads_lengths(lengths), radix8),
+        m_last_plan(exec_policy, last_lengths(lengths), radix8) {
     if constexpr (kind != TransformKind::C2C) {
       // The C2C passes of the heads use the real view as scratch: a line of
       // length n_a needs 2 n_a reals, and the real view holds

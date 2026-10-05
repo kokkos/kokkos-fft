@@ -3,6 +3,7 @@
 
 #include "KokkosFFT_Batched_Levels.hpp"
 #include <Kokkos_Core.hpp>
+#include <utility>
 #include <cstddef>
 
 namespace KokkosFFT {
@@ -165,41 +166,108 @@ KOKKOS_INLINE_FUNCTION auto pair_line_at(const ViewType &view, std::size_t l) {
 // line index, so the decoding must be cheap. A LinePairMap is built once per
 // pass for the two views of the pass (in and out, whose extents agree outside
 // Dim):
-// - line l is decoded with the first dimension fastest if `first_fastest` is
-//   set, with the last one otherwise (as line_offset); dimensions of extent 1
-//   are skipped;
-// - neighbouring dimensions that are contiguous in both views (the stride of
-//   the slower one is the extent times the stride of the faster one) are
-//   merged into one, which does not change the line enumeration;
-// - offsets(l) gives the offsets of line l in both views with one division
-//   per remaining dimension but the last (none for a contiguous slice whose
-//   pass runs along its first or last dimension).
+// - the dimensions other than Dim are slots 0..NSlots-1, slot 0 varying
+//   fastest: the first dimension fastest if `first_fastest` is set, the last
+//   one otherwise (as line_offset);
+// - a slot that is contiguous in both views with the slot before it (its
+//   stride is the extent times the stride of the slot before) absorbs that
+//   slot, which then has extent 1. Extent-1 slots are skipped when decoding,
+//   so offsets(l) needs one division per remaining slot but the last (none
+//   for a contiguous slice whose pass runs along its first or last
+//   dimension). The line enumeration does not change.
+// All arrays are indexed with compile-time constants (fold expressions over
+// the slots), so that the map can live in registers: with runtime indices it
+// was placed in local memory, 40 (2-D) and 320 (3-D) bytes of stack per
+// thread (G9a, optimization/measurements/2026-10-02_c2d7d59_A100).
 
 /// \brief Line index -> offsets of the line in two views (see above)
-template <std::size_t MaxDims>
+template <std::size_t NSlots>
 struct LinePairMap {
-  int m_ndims = 0;
-  Kokkos::Array<std::size_t, MaxDims> m_extent;
-  Kokkos::Array<std::size_t, MaxDims> m_stride_a;
-  Kokkos::Array<std::size_t, MaxDims> m_stride_b;
+  Kokkos::Array<std::size_t, NSlots> m_extent;
+  Kokkos::Array<std::size_t, NSlots> m_stride_a;
+  Kokkos::Array<std::size_t, NSlots> m_stride_b;
 
   KOKKOS_INLINE_FUNCTION Kokkos::pair<std::size_t, std::size_t> offsets(
       std::size_t l) const {
     std::size_t offset_a = 0, offset_b = 0;
-    for (int d = 0; d + 1 < m_ndims; ++d) {
-      const std::size_t q = fast_div(l, m_extent[d]);
-      const std::size_t i = l - q * m_extent[d];
-      offset_a += i * m_stride_a[d];
-      offset_b += i * m_stride_b[d];
-      l = q;
-    }
-    if (m_ndims > 0) {
-      offset_a += l * m_stride_a[m_ndims - 1];
-      offset_b += l * m_stride_b[m_ndims - 1];
-    }
+    decode(l, offset_a, offset_b, std::make_index_sequence<NSlots - 1>{});
+    // The last slot takes what is left of l, without a division
+    offset_a += l * m_stride_a[NSlots - 1];
+    offset_b += l * m_stride_b[NSlots - 1];
     return {offset_a, offset_b};
   }
+
+ private:
+  template <std::size_t... K>
+  KOKKOS_FORCEINLINE_FUNCTION void decode(std::size_t &l, std::size_t &offset_a,
+                                          std::size_t &offset_b,
+                                          std::index_sequence<K...>) const {
+    (decode_slot<K>(l, offset_a, offset_b), ...);
+  }
+
+  template <std::size_t K>
+  KOKKOS_FORCEINLINE_FUNCTION void decode_slot(std::size_t &l,
+                                               std::size_t &offset_a,
+                                               std::size_t &offset_b) const {
+    if (m_extent[K] == 1) return;
+    const std::size_t q = fast_div(l, m_extent[K]);
+    const std::size_t i = l - q * m_extent[K];
+    offset_a += i * m_stride_a[K];
+    offset_b += i * m_stride_b[K];
+    l = q;
+  }
 };
+
+namespace LinePairMapDetail {
+/// \brief View dimension of slot `k` among the dimensions other than Dim, in
+/// increasing order
+template <int Dim>
+KOKKOS_INLINE_FUNCTION constexpr int other_dim(int k) {
+  return k < Dim ? k : k + 1;
+}
+
+/// \brief Fill slot K of `map`, and let it absorb slot K - 1 if contiguous
+template <int Dim, int Rank, std::size_t K, typename MapType,
+          typename ViewTypeA, typename ViewTypeB>
+KOKKOS_FORCEINLINE_FUNCTION void fill_slot(MapType &map, const ViewTypeA &a,
+                                           const ViewTypeB &b,
+                                           bool first_fastest) {
+  constexpr int nslots = Rank - 1;
+  const int e          = first_fastest
+                             ? other_dim<Dim>(K)
+                             : other_dim<Dim>(nslots - 1 - static_cast<int>(K));
+  map.m_extent[K]      = a.extent(e);
+  map.m_stride_a[K]    = a.stride(e);
+  map.m_stride_b[K]    = b.stride(e);
+  if constexpr (K > 0) {
+    if (map.m_extent[K - 1] == 1) return;  // nothing to absorb
+    if (map.m_extent[K] == 1) {
+      // Carry slot K - 1 forward, so that it can still be merged with K + 1
+      map.m_extent[K]     = map.m_extent[K - 1];
+      map.m_stride_a[K]   = map.m_stride_a[K - 1];
+      map.m_stride_b[K]   = map.m_stride_b[K - 1];
+      map.m_extent[K - 1] = 1;
+      return;
+    }
+    if (map.m_stride_a[K] == map.m_extent[K - 1] * map.m_stride_a[K - 1] &&
+        map.m_stride_b[K] == map.m_extent[K - 1] * map.m_stride_b[K - 1]) {
+      map.m_extent[K] *= map.m_extent[K - 1];  // contiguous: absorb K - 1
+      map.m_stride_a[K]   = map.m_stride_a[K - 1];
+      map.m_stride_b[K]   = map.m_stride_b[K - 1];
+      map.m_extent[K - 1] = 1;
+    }
+  }
+}
+
+template <int Dim, int Rank, typename MapType, typename ViewTypeA,
+          typename ViewTypeB, std::size_t... K>
+KOKKOS_FORCEINLINE_FUNCTION void fill_slots(MapType &map, const ViewTypeA &a,
+                                            const ViewTypeB &b,
+                                            bool first_fastest,
+                                            std::index_sequence<K...>) {
+  (fill_slot<Dim, Rank, K>(map, a, b, first_fastest), ...);
+}
+}  // namespace LinePairMapDetail
 
 /// \brief LinePairMap of the lines of views `a` and `b` along Dim
 template <int Dim, typename ViewTypeA, typename ViewTypeB>
@@ -209,26 +277,11 @@ KOKKOS_INLINE_FUNCTION auto make_line_pair_map(const ViewTypeA &a,
   constexpr int rank = static_cast<int>(ViewTypeA::rank());
   static_assert(ViewTypeB::rank() == ViewTypeA::rank(),
                 "make_line_pair_map: views of different ranks");
-  LinePairMap<(rank > 1 ? rank - 1 : 1)> map;
-  for (int i = 0; i < rank; ++i) {
-    const int e = first_fastest ? i : rank - 1 - i;
-    if (e == Dim || a.extent(e) == 1) continue;
-    const std::size_t extent   = a.extent(e);
-    const std::size_t stride_a = a.stride(e);
-    const std::size_t stride_b = b.stride(e);
-    if (map.m_ndims > 0) {
-      const int d = map.m_ndims - 1;
-      if (stride_a == map.m_extent[d] * map.m_stride_a[d] &&
-          stride_b == map.m_extent[d] * map.m_stride_b[d]) {
-        map.m_extent[d] *= extent;  // contiguous with the previous dimension
-        continue;
-      }
-    }
-    map.m_extent[map.m_ndims]   = extent;
-    map.m_stride_a[map.m_ndims] = stride_a;
-    map.m_stride_b[map.m_ndims] = stride_b;
-    ++map.m_ndims;
-  }
+  static_assert(rank >= 2, "make_line_pair_map: a 1-D slice has one line");
+  constexpr std::size_t nslots = rank - 1;
+  LinePairMap<nslots> map;
+  LinePairMapDetail::fill_slots<Dim, rank>(map, a, b, first_fastest,
+                                           std::make_index_sequence<nslots>{});
   return map;
 }
 

@@ -7,6 +7,7 @@
 #include <KokkosFFT_Common_Types.hpp>
 #include <Kokkos_Core.hpp>
 #include <cstddef>
+#include <type_traits>
 
 namespace KokkosFFT {
 namespace Batched {
@@ -37,6 +38,7 @@ KOKKOS_FUNCTION void stockham_stage(const LevelType &level,
       case 3: butterfly<3, Dir>(src, dst, tw, p, q, m, stride); break;
       case 4: butterfly<4, Dir>(src, dst, tw, p, q, m, stride); break;
       case 5: butterfly<5, Dir>(src, dst, tw, p, q, m, stride); break;
+      case 8: butterfly<8, Dir>(src, dst, tw, p, q, m, stride); break;
       default:
         butterfly_generic<Dir>(src, dst, tw, axis.roots(),
                                axis.root_offset(stage), radix, p, q, m, stride);
@@ -83,8 +85,20 @@ KOKKOS_FUNCTION void c2c_line(const LevelType &level, const AxisDataType &axis,
 /// budget (inline-unit-growth), a translation unit that instantiates both the
 /// serial and the team N-D passes inlines less, and the N-D serial plans ran
 /// 15-25% slower than before (OpenMP); with a larger budget they do not.
-template <KokkosFFT::Direction Dir, typename LevelType, typename AxisDataType,
-          typename LinesOf>
+///
+/// `OnePath` (G9, G9c): when the data line and the work line have the same
+/// type, inline the butterflies once and choose source and destination by
+/// value, instead of once per ping-pong direction. That lowers the registers
+/// (and so allows larger teams), but costs more cycles per instruction: on
+/// the A100 it made 3-D faster (32^3: team 512 became possible) and 2-D 9-16%
+/// slower (optimization/measurements/2026-10-03_5b4dcc5_A100). The passes set
+/// it per slice rank.
+///
+/// `Radix8` (G2d): without it, the radix-8 butterfly is not compiled in, which
+/// lowers the registers; the plan then has no radix-8 stage (see
+/// merged_c2c_radix8_v).
+template <KokkosFFT::Direction Dir, bool OnePath = false, bool Radix8 = true,
+          typename LevelType, typename AxisDataType, typename LinesOf>
 KOKKOS_FUNCTION void c2c_lines(const LevelType &level, const AxisDataType &axis,
                                std::size_t nlines, bool line_fastest,
                                const LinesOf &lines_of) {
@@ -107,6 +121,13 @@ KOKKOS_FUNCTION void c2c_lines(const LevelType &level, const AxisDataType &axis,
         case 3: butterfly<3, Dir>(src, dst, tw, p, q, m, stride); break;
         case 4: butterfly<4, Dir>(src, dst, tw, p, q, m, stride); break;
         case 5: butterfly<5, Dir>(src, dst, tw, p, q, m, stride); break;
+        case 8:
+          if constexpr (Radix8) {
+            butterfly<8, Dir>(src, dst, tw, p, q, m, stride);
+          } else {
+            KOKKOS_ASSERT(false);  // the plan has no radix 8 (G2d)
+          }
+          break;
         default:
           butterfly_generic<Dir>(src, dst, tw, axis.roots(),
                                  axis.root_offset(stage), radix, p, q, m,
@@ -114,15 +135,22 @@ KOKKOS_FUNCTION void c2c_lines(const LevelType &level, const AxisDataType &axis,
           break;
       }
     };
-    for_each_in_lines(level, nlines, m * stride, line_fastest,
-                      [&](std::size_t l, std::size_t idx) {
-                        const auto lines = lines_of(l);
-                        if (a_to_b) {
-                          butterfly_at(idx, lines.first, lines.second);
-                        } else {
-                          butterfly_at(idx, lines.second, lines.first);
-                        }
-                      });
+    for_each_in_lines(
+        level, nlines, m * stride, line_fastest,
+        [&](std::size_t l, std::size_t idx) {
+          const auto lines  = lines_of(l);
+          using first_type  = decltype(lines.first);
+          using second_type = decltype(lines.second);
+          if constexpr (OnePath && std::is_same_v<first_type, second_type>) {
+            // One inlined copy of the butterflies, not two
+            butterfly_at(idx, a_to_b ? lines.first : lines.second,
+                         a_to_b ? lines.second : lines.first);
+          } else if (a_to_b) {
+            butterfly_at(idx, lines.first, lines.second);
+          } else {
+            butterfly_at(idx, lines.second, lines.first);
+          }
+        });
     level.barrier();
     len /= radix;
     stride *= radix;

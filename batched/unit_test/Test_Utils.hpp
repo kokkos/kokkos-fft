@@ -36,7 +36,20 @@ class AllocationRecorder {
   }
   static void record(const Kokkos_Profiling_SpaceHandle, const char *label,
                      const void *, const std::uint64_t) {
-    labels().emplace_back(label);
+    if (!is_backend_team_scratch(label)) labels().emplace_back(label);
+  }
+
+  /// The team scratch pool that the backend sets up when a TeamPolicy kernel
+  /// is launched (in the parallel_for, before execute runs), e.g.
+  /// "Kokkos::CudaSpace::TeamScratchMemory". On CUDA it is re-allocated with
+  /// 0 bytes at every launch when no level-1 scratch is requested, so a
+  /// warm-up launch does not absorb it. It is launch machinery, not an
+  /// allocation by execute, so it is not recorded.
+  static bool is_backend_team_scratch(const std::string &label) {
+    const std::string suffix = "::TeamScratchMemory";
+    return label.rfind("Kokkos::", 0) == 0 && label.size() >= suffix.size() &&
+           label.compare(label.size() - suffix.size(), suffix.size(), suffix) ==
+               0;
   }
 };
 

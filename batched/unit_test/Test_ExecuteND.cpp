@@ -297,7 +297,8 @@ void test_nd_no_allocation() {
   Plan c2r(TestUtils::plan_policy<Team>(), r_hat, r, Axes{});
 
   // Warm-up: the first TeamPolicy launch makes the Kokkos runtime allocate
-  // its team scratch buffer; that is not execute, so it is not recorded
+  // its team scratch buffer; that is not execute, so it is not recorded.
+  // CUDA's per-launch TeamScratchMemory is filtered by AllocationRecorder.
   batched_execute<B>(c2c, x, x_hat, Direction::forward, Normalization::ortho);
 
   TestUtils::AllocationRecorder recorder;

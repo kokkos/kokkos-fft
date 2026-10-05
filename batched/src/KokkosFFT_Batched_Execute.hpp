@@ -50,6 +50,25 @@ template <typename LevelType, typename ViewType>
 inline constexpr bool merged_pass_v =
     LevelType::merges_lines && (ViewType::rank() > 1);
 
+/// \brief Whether an even-length R2C/C2R pass runs its single line directly
+/// on the level (G1f): on levels that merge lines, for 1-D slices. The
+/// per-line path (`level.for_lines`) would run the same kernels with the
+/// same level, but inside one lambda that also holds the odd-length kernel.
+/// Before G1e, the merged path handled even lengths outside that lambda and
+/// was 4-9% faster for R2C at n <= 32 on the A100
+/// (optimization/measurements/2026-10-02_c2d7d59_A100, G1f).
+template <typename LevelType, typename ViewType>
+inline constexpr bool direct_line_pass_v =
+    LevelType::merges_lines && (ViewType::rank() == 1);
+
+/// \brief Whether the merged C2C passes of a slice inline the butterflies
+/// once (`c2c_lines`, OnePath): for slices of rank 3 or more. There, the
+/// lower register count allows larger teams, which wins; for 2-D slices the
+/// two-path code is faster (G9c,
+/// optimization/measurements/2026-10-03_5b4dcc5_A100)
+template <typename ViewType>
+inline constexpr bool one_butterfly_path_v = (ViewType::rank() >= 3);
+
 /// \brief Copy line `src` to line `dst` (n elements)
 template <typename LevelType, typename SrcLineType, typename DstLineType>
 KOKKOS_FUNCTION void copy_line(const LevelType &level, std::size_t n,
@@ -155,13 +174,17 @@ KOKKOS_FUNCTION void pass_c2c(const LevelType &level, const PlanType &node,
             line_from_offset<SliceDim>(out, offsets.second));
       };
       if (data_in_out) {
-        c2c_lines<Dir>(level, node.kernel_data(), nlines, line_fastest,
-                       [&](std::size_t l) {
-                         const auto xy = xy_of(l);
-                         return Kokkos::make_pair(xy.second, xy.first);
-                       });
+        c2c_lines<Dir, one_butterfly_path_v<InViewType>,
+                  merged_c2c_radix8_v<InViewType::rank()>>(
+            level, node.kernel_data(), nlines, line_fastest,
+            [&](std::size_t l) {
+              const auto xy = xy_of(l);
+              return Kokkos::make_pair(xy.second, xy.first);
+            });
       } else {
-        c2c_lines<Dir>(level, node.kernel_data(), nlines, line_fastest, xy_of);
+        c2c_lines<Dir, one_butterfly_path_v<InViewType>,
+                  merged_c2c_radix8_v<InViewType::rank()>>(
+            level, node.kernel_data(), nlines, line_fastest, xy_of);
       }
     } else {
       level.for_lines(nlines, nlines,
@@ -234,6 +257,22 @@ KOKKOS_FUNCTION void pass_r2c(const LevelType &level, const PlanType &node,
       return;
     }
   }
+  if constexpr (direct_line_pass_v<LevelType, InViewType>) {
+    // G1f: the single line of a 1-D slice, even n, directly on the level
+    if (!is_odd) {
+      const auto x = pair_line_at<SliceDim>(in, 0);
+      const auto y = line_at<SliceDim>(out, 0);
+      c2c_line<KokkosFFT::Direction::forward>(level, node.kernel_data(), x, y);
+      if (node.nstages() % 2 == 1) {
+        r2c_postprocess(level, node.kernel_data(), y, y);  // in place
+      } else {
+        r2c_postprocess(level, node.kernel_data(), x, y);
+      }
+      level.barrier();
+      state.data_in_out = true;
+      return;
+    }
+  }
   level.for_lines(
       nlines, nlines, [&](const auto &lvl, std::size_t l, std::size_t) {
         const auto y = line_at<SliceDim>(out, l);
@@ -301,6 +340,19 @@ KOKKOS_FUNCTION void pass_c2r(const LevelType &level, const PlanType &node,
                           });
         level.barrier();
       }
+      state.data_in_out = true;
+      return;
+    }
+  }
+  if constexpr (direct_line_pass_v<LevelType, InViewType>) {
+    // G1f: the single line of a 1-D slice, even n, directly on the level
+    if (!is_odd) {
+      const auto x = line_at<SliceDim>(in, 0);
+      const auto y = pair_line_at<SliceDim>(out, 0);
+      c2r_preprocess(level, node.kernel_data(), x);
+      level.barrier();
+      c2c_line<KokkosFFT::Direction::backward>(level, node.kernel_data(), x, y);
+      if (node.nstages() % 2 == 0) copy_line(level, node.n_fft(), x, y);
       state.data_in_out = true;
       return;
     }
