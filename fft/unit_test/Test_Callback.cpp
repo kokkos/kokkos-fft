@@ -282,8 +282,8 @@ void test_load_store_roundtrip_1d() {
 // second attempt must not corrupt the callback(s) already registered.
 template <typename T, typename LayoutType>
 void test_callback_precondition_1d() {
-  const int n = 8;
-  using RealView1DType    = Kokkos::View<T*, LayoutType, execution_space>;
+  const int n          = 8;
+  using RealView1DType = Kokkos::View<T*, LayoutType, execution_space>;
   using ComplexView1DType =
       Kokkos::View<Kokkos::complex<T>*, LayoutType, execution_space>;
 
@@ -314,10 +314,10 @@ void test_callback_precondition_1d() {
   ScaleParams other_load_params{99.0f};
   if constexpr (std::is_same_v<T, float>) {
     EXPECT_THROW(plan.set_callback(d_scale_load_fp32, other_load_params),
-                std::runtime_error);
+                 std::runtime_error);
   } else {
     EXPECT_THROW(plan.set_callback(d_scale_load_fp64, other_load_params),
-                std::runtime_error);
+                 std::runtime_error);
   }
 
   // A store callback can still be set independently -- load and store
@@ -333,10 +333,10 @@ void test_callback_precondition_1d() {
   ScaleParams other_store_params{55.0f};
   if constexpr (std::is_same_v<T, float>) {
     EXPECT_THROW(plan.set_callback(d_scale_store_fp32, other_store_params),
-                std::runtime_error);
+                 std::runtime_error);
   } else {
     EXPECT_THROW(plan.set_callback(d_scale_store_fp64, other_store_params),
-                std::runtime_error);
+                 std::runtime_error);
   }
 
   // The failed re-attempts above must not have corrupted the plan: the
@@ -351,7 +351,7 @@ void test_callback_precondition_1d() {
   // bin 0 of a forward R2C transform is the sum of the (scaled) inputs.
   T expected = sum * static_cast<T>(2.0) * static_cast<T>(10.0);
   EXPECT_NEAR(static_cast<double>(x_c_host(0).real()),
-             static_cast<double>(expected), 1.e-3);
+              static_cast<double>(expected), 1.e-3);
 }
 }  // namespace
 

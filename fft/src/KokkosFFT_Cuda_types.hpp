@@ -61,42 +61,42 @@ struct deduce_callback_type;
 template <>
 struct deduce_callback_type<cufftCallbackLoadR> {
   static constexpr cufftXtCallbackType value = CUFFT_CB_LD_REAL;
-  static constexpr bool is_load             = true;
+  static constexpr bool is_load              = true;
 };
 template <>
 struct deduce_callback_type<cufftCallbackLoadD> {
   static constexpr cufftXtCallbackType value = CUFFT_CB_LD_REAL_DOUBLE;
-  static constexpr bool is_load             = true;
+  static constexpr bool is_load              = true;
 };
 template <>
 struct deduce_callback_type<cufftCallbackLoadC> {
   static constexpr cufftXtCallbackType value = CUFFT_CB_LD_COMPLEX;
-  static constexpr bool is_load             = true;
+  static constexpr bool is_load              = true;
 };
 template <>
 struct deduce_callback_type<cufftCallbackLoadZ> {
   static constexpr cufftXtCallbackType value = CUFFT_CB_LD_COMPLEX_DOUBLE;
-  static constexpr bool is_load             = true;
+  static constexpr bool is_load              = true;
 };
 template <>
 struct deduce_callback_type<cufftCallbackStoreR> {
   static constexpr cufftXtCallbackType value = CUFFT_CB_ST_REAL;
-  static constexpr bool is_load             = false;
+  static constexpr bool is_load              = false;
 };
 template <>
 struct deduce_callback_type<cufftCallbackStoreD> {
   static constexpr cufftXtCallbackType value = CUFFT_CB_ST_REAL_DOUBLE;
-  static constexpr bool is_load             = false;
+  static constexpr bool is_load              = false;
 };
 template <>
 struct deduce_callback_type<cufftCallbackStoreC> {
   static constexpr cufftXtCallbackType value = CUFFT_CB_ST_COMPLEX;
-  static constexpr bool is_load             = false;
+  static constexpr bool is_load              = false;
 };
 template <>
 struct deduce_callback_type<cufftCallbackStoreZ> {
   static constexpr cufftXtCallbackType value = CUFFT_CB_ST_COMPLEX_DOUBLE;
-  static constexpr bool is_load             = false;
+  static constexpr bool is_load              = false;
 };
 
 /// \brief Helper to deduce the cufftXtCallbackType enum value for a vendor
