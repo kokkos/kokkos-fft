@@ -13,12 +13,13 @@ if("CUFFT" IN_LIST KOKKOSFFT_TPL_LIST)
     target_link_libraries(fft INTERFACE cuFFTMp::cuFFTMp)
   else()
     find_package(CUDAToolkit REQUIRED COMPONENTS cufft)
+    # ScopedCufftPlan/ScopedCufftDynPlan's destructors call cudaFree
+    # unconditionally (not guarded by KokkosFFT_ENABLE_CALLBACK), so this is
+    # a direct dependency and should be linked explicitly rather than
+    # relying on it coming in transitively through Kokkos::kokkos.
+    target_link_libraries(fft INTERFACE CUDA::cudart)
     if(KokkosFFT_ENABLE_CALLBACK)
-      # ScopedCufftPlan/ScopedCufftDynPlan's destructors call cudaFree
-      # unconditionally (not guarded by KokkosFFT_ENABLE_CALLBACK), so this is
-      # a direct dependency and should be linked explicitly rather than
-      # relying on it coming in transitively through Kokkos::kokkos.
-      target_link_libraries(fft INTERFACE CUDA::cufft_static CUDA::cudart)
+      target_link_libraries(fft INTERFACE CUDA::cufft_static)
     else()
       target_link_libraries(fft INTERFACE CUDA::cufft)
     endif()
