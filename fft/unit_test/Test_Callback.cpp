@@ -80,6 +80,44 @@ KOKKOS_IMPL_DEVICE_FUNCTION kokkosfftCallbackStoreD
     d_store_callback_symbol_fp64 =
         store_callback<KokkosFFT::fft_data_type<double>>;
 
+// Minimal scale callbacks, used only to exercise the one-load/one-store-per
+// -plan precondition below (not the zero-padding use case above). A plan's
+// load and store callback each get their own independent params struct, so
+// scaling by two distinct factors and checking the combined result proves
+// neither one's params leak into or get overwritten by the other's.
+struct ScaleParams {
+  float scale;
+};
+
+template <typename T>
+KOKKOS_IMPL_DEVICE_FUNCTION T scale_load_callback(void* dataIn, size_t offset,
+                                                  void* callerInfo,
+                                                  void* sharedPointer) {
+  auto* p = static_cast<ScaleParams*>(callerInfo);
+  return static_cast<const T*>(dataIn)[offset] * static_cast<T>(p->scale);
+}
+
+KOKKOS_IMPL_DEVICE_FUNCTION kokkosfftCallbackLoadR d_scale_load_fp32 =
+    scale_load_callback<KokkosFFT::fft_data_type<float>>;
+KOKKOS_IMPL_DEVICE_FUNCTION kokkosfftCallbackLoadD d_scale_load_fp64 =
+    scale_load_callback<KokkosFFT::fft_data_type<double>>;
+
+template <typename T>
+KOKKOS_IMPL_DEVICE_FUNCTION void scale_store_callback(void* dataOut,
+                                                      size_t offset, T element,
+                                                      void* callerInfo,
+                                                      void* sharedPointer) {
+  auto* p = static_cast<ScaleParams*>(callerInfo);
+  element.x *= p->scale;
+  element.y *= p->scale;
+  static_cast<T*>(dataOut)[offset] = element;
+}
+
+KOKKOS_IMPL_DEVICE_FUNCTION kokkosfftCallbackStoreC d_scale_store_fp32 =
+    scale_store_callback<KokkosFFT::fft_data_type<Kokkos::complex<float>>>;
+KOKKOS_IMPL_DEVICE_FUNCTION kokkosfftCallbackStoreZ d_scale_store_fp64 =
+    scale_store_callback<KokkosFFT::fft_data_type<Kokkos::complex<double>>>;
+
 template <typename T, typename LayoutType>
 void test_load_callback_1d() {
   const int original_size = 20;
@@ -238,6 +276,83 @@ void test_load_store_roundtrip_1d() {
   auto x_sub     = Kokkos::subview(x, std::make_pair(0, original_size));
   EXPECT_THAT(x_out_sub, KokkosFFT::Testing::allclose(x_sub, 1.e-5, 1.e-12));
 }
+
+// A plan may have one load and one store callback set independently, each
+// exactly once; setting either a second time must throw, and a failed
+// second attempt must not corrupt the callback(s) already registered.
+template <typename T, typename LayoutType>
+void test_callback_precondition_1d() {
+  const int n = 8;
+  using RealView1DType    = Kokkos::View<T*, LayoutType, execution_space>;
+  using ComplexView1DType =
+      Kokkos::View<Kokkos::complex<T>*, LayoutType, execution_space>;
+
+  RealView1DType x("x", n);
+  ComplexView1DType x_c("x_c", n / 2 + 1);
+
+  auto x_host = Kokkos::create_mirror_view(x);
+  T sum       = static_cast<T>(0);
+  for (int i = 0; i < n; ++i) {
+    x_host(i) = static_cast<T>(i + 1);
+    sum += x_host(i);
+  }
+  Kokkos::deep_copy(x, x_host);
+
+  execution_space exec;
+  KokkosFFT::Plan plan(exec, x, x_c, KokkosFFT::Direction::forward,
+                       /*axis=*/0);
+
+  // A load callback may be set once...
+  ScaleParams load_params{2.0f};
+  if constexpr (std::is_same_v<T, float>) {
+    EXPECT_NO_THROW(plan.set_callback(d_scale_load_fp32, load_params));
+  } else {
+    EXPECT_NO_THROW(plan.set_callback(d_scale_load_fp64, load_params));
+  }
+
+  // ...but not twice, even with a different scale.
+  ScaleParams other_load_params{99.0f};
+  if constexpr (std::is_same_v<T, float>) {
+    EXPECT_THROW(plan.set_callback(d_scale_load_fp32, other_load_params),
+                std::runtime_error);
+  } else {
+    EXPECT_THROW(plan.set_callback(d_scale_load_fp64, other_load_params),
+                std::runtime_error);
+  }
+
+  // A store callback can still be set independently -- load and store
+  // coexist on the same plan, each with its own params...
+  ScaleParams store_params{10.0f};
+  if constexpr (std::is_same_v<T, float>) {
+    EXPECT_NO_THROW(plan.set_callback(d_scale_store_fp32, store_params));
+  } else {
+    EXPECT_NO_THROW(plan.set_callback(d_scale_store_fp64, store_params));
+  }
+
+  // ...but, likewise, not twice.
+  ScaleParams other_store_params{55.0f};
+  if constexpr (std::is_same_v<T, float>) {
+    EXPECT_THROW(plan.set_callback(d_scale_store_fp32, other_store_params),
+                std::runtime_error);
+  } else {
+    EXPECT_THROW(plan.set_callback(d_scale_store_fp64, other_store_params),
+                std::runtime_error);
+  }
+
+  // The failed re-attempts above must not have corrupted the plan: the
+  // originally-registered load (x2) and store (x10) scales should still be
+  // the ones in effect, applied together, independently.
+  KokkosFFT::execute(plan, x, x_c);
+  Kokkos::fence();
+
+  auto x_c_host = Kokkos::create_mirror_view(x_c);
+  Kokkos::deep_copy(x_c_host, x_c);
+
+  // bin 0 of a forward R2C transform is the sum of the (scaled) inputs.
+  T expected = sum * static_cast<T>(2.0) * static_cast<T>(10.0);
+  EXPECT_NEAR(static_cast<double>(x_c_host(0).real()),
+             static_cast<double>(expected), 1.e-3);
+}
 }  // namespace
 
 TYPED_TEST_SUITE(TestCallback1D, test_types);
@@ -258,4 +373,10 @@ TYPED_TEST(TestCallback1D, load_store_roundtrip_1d) {
   using float_type  = typename TestFixture::float_type;
   using layout_type = typename TestFixture::layout_type;
   test_load_store_roundtrip_1d<float_type, layout_type>();
+}
+
+TYPED_TEST(TestCallback1D, callback_precondition_1d) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+  test_callback_precondition_1d<float_type, layout_type>();
 }
