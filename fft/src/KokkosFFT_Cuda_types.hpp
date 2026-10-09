@@ -195,12 +195,11 @@ struct ScopedCufftPlan {
   void set_callback(const CallbackSymbolType &d_callback_symbol,
                     const CallbackParamsType &params) {
 #if defined(KOKKOSFFT_ENABLE_CALLBACK)
-    static_assert(
-        !std::same_as<std::remove_cvref_t<CallbackParamsType>, std::nullptr_t>,
-        "set_callback() requires a real params struct -- passing "
-        "nullptr does not produce a null callerInfo on the "
-        "device, it points to zeroed memory instead, which is "
-        "almost certainly not what you want");
+    static_assert(!std::is_null_pointer_v<CallbackParamsType>,
+                  "set_callback() requires a real params struct -- passing "
+                  "nullptr does not produce a null callerInfo on the "
+                  "device, it points to zeroed memory instead, which is "
+                  "almost certainly not what you want");
     CallbackSymbolType callback{};
     KOKKOSFFT_CHECK_CUDA_CALL(
         cudaMemcpyFromSymbol(&callback, d_callback_symbol, sizeof(callback)));
@@ -361,12 +360,11 @@ struct ScopedCufftDynPlan {
   void set_callback(const CallbackSymbolType &d_callback_symbol,
                     const CallbackParamsType &params) {
 #if defined(KOKKOSFFT_ENABLE_CALLBACK)
-    static_assert(
-        !std::same_as<std::remove_cvref_t<CallbackParamsType>, std::nullptr_t>,
-        "set_callback() requires a real params struct -- passing "
-        "nullptr does not produce a null callerInfo on the "
-        "device, it points to zeroed memory instead, which is "
-        "almost certainly not what you want");
+    static_assert(!std::is_null_pointer_v<CallbackParamsType>,
+                  "set_callback() requires a real params struct -- passing "
+                  "nullptr does not produce a null callerInfo on the "
+                  "device, it points to zeroed memory instead, which is "
+                  "almost certainly not what you want");
     CallbackSymbolType callback{};
     KOKKOSFFT_CHECK_CUDA_CALL(
         cudaMemcpyFromSymbol(&callback, d_callback_symbol, sizeof(callback)));
