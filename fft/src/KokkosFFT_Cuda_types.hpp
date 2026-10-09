@@ -16,6 +16,25 @@
 #include "KokkosFFT_FFTW_Types.hpp"
 #endif
 
+#if defined(KOKKOSFFT_ENABLE_CALLBACK)
+#include <cuda_runtime.h>
+#include <cufftXt.h>
+
+// Backend-agnostic aliases for the vendor callback function pointer types.
+// Users writing a callback function or __device__ global should use these
+// instead of naming cufftCallbackLoadR/etc. directly, so the same callback
+// source stays portable as more backends gain callback support.
+using kokkosfftCallbackLoadR = cufftCallbackLoadR;
+using kokkosfftCallbackLoadD = cufftCallbackLoadD;
+using kokkosfftCallbackLoadC = cufftCallbackLoadC;
+using kokkosfftCallbackLoadZ = cufftCallbackLoadZ;
+
+using kokkosfftCallbackStoreR = cufftCallbackStoreR;
+using kokkosfftCallbackStoreD = cufftCallbackStoreD;
+using kokkosfftCallbackStoreC = cufftCallbackStoreC;
+using kokkosfftCallbackStoreZ = cufftCallbackStoreZ;
+#endif
+
 // Check the size of complex type
 static_assert(sizeof(cufftComplex) == sizeof(Kokkos::complex<float>));
 static_assert(alignof(cufftComplex) <= alignof(Kokkos::complex<float>));
@@ -27,10 +46,78 @@ namespace KokkosFFT {
 namespace Impl {
 using FFTDirectionType = int;
 
+#if defined(KOKKOSFFT_ENABLE_CALLBACK)
+// cufftXtCallbackType has distinct enum values for single vs double
+// precision (CUFFT_CB_LD_REAL vs CUFFT_CB_LD_REAL_DOUBLE, etc.); collapsing
+// R/D or C/Z onto the same value here would tell cufftXtSetCallback the
+// wrong callback type for any double-precision callback.
+//
+// Primary template intentionally left undefined: instantiating it with an
+// unsupported CallbackSymbol fails to compile with that type named in the
+// error, instead of silently falling through.
+template <typename CallbackSymbol>
+struct deduce_callback_type;
+
+template <>
+struct deduce_callback_type<cufftCallbackLoadR> {
+  static constexpr cufftXtCallbackType value = CUFFT_CB_LD_REAL;
+  static constexpr bool is_load              = true;
+};
+template <>
+struct deduce_callback_type<cufftCallbackLoadD> {
+  static constexpr cufftXtCallbackType value = CUFFT_CB_LD_REAL_DOUBLE;
+  static constexpr bool is_load              = true;
+};
+template <>
+struct deduce_callback_type<cufftCallbackLoadC> {
+  static constexpr cufftXtCallbackType value = CUFFT_CB_LD_COMPLEX;
+  static constexpr bool is_load              = true;
+};
+template <>
+struct deduce_callback_type<cufftCallbackLoadZ> {
+  static constexpr cufftXtCallbackType value = CUFFT_CB_LD_COMPLEX_DOUBLE;
+  static constexpr bool is_load              = true;
+};
+template <>
+struct deduce_callback_type<cufftCallbackStoreR> {
+  static constexpr cufftXtCallbackType value = CUFFT_CB_ST_REAL;
+  static constexpr bool is_load              = false;
+};
+template <>
+struct deduce_callback_type<cufftCallbackStoreD> {
+  static constexpr cufftXtCallbackType value = CUFFT_CB_ST_REAL_DOUBLE;
+  static constexpr bool is_load              = false;
+};
+template <>
+struct deduce_callback_type<cufftCallbackStoreC> {
+  static constexpr cufftXtCallbackType value = CUFFT_CB_ST_COMPLEX;
+  static constexpr bool is_load              = false;
+};
+template <>
+struct deduce_callback_type<cufftCallbackStoreZ> {
+  static constexpr cufftXtCallbackType value = CUFFT_CB_ST_COMPLEX_DOUBLE;
+  static constexpr bool is_load              = false;
+};
+
+/// \brief Helper to deduce the cufftXtCallbackType enum value for a vendor
+/// callback symbol typedef (e.g. cufftCallbackLoadR)
+template <typename CallbackSymbol>
+inline constexpr cufftXtCallbackType deduce_callback_type_v =
+    deduce_callback_type<CallbackSymbol>::value;
+
+/// \brief Helper to check whether a vendor callback symbol typedef is a load
+/// callback (true) or a store callback (false)
+template <typename CallbackSymbol>
+inline constexpr bool is_load_callback_v =
+    deduce_callback_type<CallbackSymbol>::is_load;
+#endif
+
 /// \brief A class that wraps cufft for RAII
 struct ScopedCufftPlan {
  private:
   cufftHandle m_plan;
+  void *m_load_callback_params  = nullptr;
+  void *m_store_callback_params = nullptr;
 
  public:
   ScopedCufftPlan(int nx, cufftType type, int batch) {
@@ -58,6 +145,19 @@ struct ScopedCufftPlan {
         "KokkosFFT::cleanup_plan[TPL_cufft]");
     cufftResult cufft_rt = cufftDestroy(m_plan);
     if (cufft_rt != CUFFT_SUCCESS) Kokkos::abort("cufftDestroy failed");
+
+    // cuFFT only borrows the callerInfo pointers set in set_callback() for
+    // the lifetime of the plan; it never frees them itself. This class owns
+    // those allocations, so free them here now that the plan (and anything
+    // that might still be reading them) is gone.
+    if (m_load_callback_params != nullptr) {
+      cudaError_t cuda_rt = cudaFree(m_load_callback_params);
+      if (cuda_rt != cudaSuccess) Kokkos::abort("cudaFree failed");
+    }
+    if (m_store_callback_params != nullptr) {
+      cudaError_t cuda_rt = cudaFree(m_store_callback_params);
+      if (cuda_rt != cudaSuccess) Kokkos::abort("cudaFree failed");
+    }
   }
 
   ScopedCufftPlan()                                   = delete;
@@ -71,6 +171,75 @@ struct ScopedCufftPlan {
     KOKKOSFFT_CHECK_CUFFT_CALL(
         cufftSetStream(m_plan, exec_space.cuda_stream()));
   }
+
+  /// \brief Attach a load or store callback to this plan, deduced from
+  /// CallbackSymbolType (the vendor typedef, e.g. cufftCallbackLoadR vs
+  /// cufftCallbackStoreR, already encodes which one it is).
+  ///
+  /// \tparam CallbackSymbolType The type of the callback symbol
+  /// \tparam CallbackParamsType The type of the caller-provided params
+  /// \param[in] d_callback_symbol The __device__ global holding the callback
+  /// function pointer
+  /// \param[in] params The callback parameters. Copied into a device allocation
+  /// owned by this ScopedCufftPlan, freed in its destructor -- the caller
+  /// never has to manage that memory themselves.
+  ///
+  /// \note When KOKKOSFFT_ENABLE_CALLBACK is off, calling this method fails
+  /// to compile (static_assert) rather than silently doing nothing.
+  ///
+  /// \note \p params must always be a real struct, even if the callback
+  /// itself never reads it. Passing nullptr fails to compile (static_assert)
+  /// rather than silently producing a non-null callerInfo on the device
+  /// that points to zeroed memory instead of a real struct.
+  template <typename CallbackSymbolType, typename CallbackParamsType>
+  void set_callback(const CallbackSymbolType &d_callback_symbol,
+                    const CallbackParamsType &params) {
+#if defined(KOKKOSFFT_ENABLE_CALLBACK)
+    static_assert(!std::is_null_pointer_v<CallbackParamsType>,
+                  "set_callback() requires a real params struct -- passing "
+                  "nullptr does not produce a null callerInfo on the "
+                  "device, it points to zeroed memory instead, which is "
+                  "almost certainly not what you want");
+    CallbackSymbolType callback{};
+    KOKKOSFFT_CHECK_CUDA_CALL(
+        cudaMemcpyFromSymbol(&callback, d_callback_symbol, sizeof(callback)));
+
+    constexpr cufftXtCallbackType cb_type =
+        deduce_callback_type_v<CallbackSymbolType>;
+    void *callback_ptr = reinterpret_cast<void *>(callback);
+
+    // Load and store callbacks each get their own device buffer -- cuFFT
+    // treats their caller-info as independent per callback type (confirmed
+    // against rocFFT's open-source native API and empirically against
+    // cuFFT itself), and each may only be set once per plan.
+    void **callback_params_slot;
+    if constexpr (is_load_callback_v<CallbackSymbolType>) {
+      KOKKOSFFT_THROW_IF(
+          m_load_callback_params != nullptr,
+          "set_callback() may only set a load callback once per plan");
+      callback_params_slot = &m_load_callback_params;
+    } else {
+      KOKKOSFFT_THROW_IF(
+          m_store_callback_params != nullptr,
+          "set_callback() may only set a store callback once per plan");
+      callback_params_slot = &m_store_callback_params;
+    }
+
+    KOKKOSFFT_CHECK_CUDA_CALL(
+        cudaMalloc(callback_params_slot, sizeof(CallbackParamsType)));
+    KOKKOSFFT_CHECK_CUDA_CALL(cudaMemcpy(*callback_params_slot, &params,
+                                         sizeof(CallbackParamsType),
+                                         cudaMemcpyHostToDevice));
+
+    void *callback_params_ptr = *callback_params_slot;
+    KOKKOSFFT_CHECK_CUFFT_CALL(cufftXtSetCallback(
+        m_plan, &callback_ptr, cb_type, &callback_params_ptr));
+#else
+    static_assert(std::is_void_v<CallbackSymbolType>,
+                  "set_callback() requires KokkosFFT to be built with "
+                  "-DKokkosFFT_ENABLE_CALLBACK=ON");
+#endif
+  }
 };
 
 /// \brief A class that wraps cufft for RAII
@@ -78,6 +247,8 @@ struct ScopedCufftDynPlan {
  private:
   cufftHandle m_plan;
   std::size_t m_workspace_size;
+  void *m_load_callback_params  = nullptr;
+  void *m_store_callback_params = nullptr;
 
  public:
   ScopedCufftDynPlan(int nx, cufftType type, int batch) {
@@ -120,6 +291,19 @@ struct ScopedCufftDynPlan {
         "KokkosFFT::cleanup_plan[TPL_cufft]");
     cufftResult cufft_rt = cufftDestroy(m_plan);
     if (cufft_rt != CUFFT_SUCCESS) Kokkos::abort("cufftDestroy failed");
+
+    // cuFFT only borrows the callerInfo pointers set in set_callback() for
+    // the lifetime of the plan; it never frees them itself. This class owns
+    // those allocations, so free them here now that the plan (and anything
+    // that might still be reading them) is gone.
+    if (m_load_callback_params != nullptr) {
+      cudaError_t cuda_rt = cudaFree(m_load_callback_params);
+      if (cuda_rt != cudaSuccess) Kokkos::abort("cudaFree failed");
+    }
+    if (m_store_callback_params != nullptr) {
+      cudaError_t cuda_rt = cudaFree(m_store_callback_params);
+      if (cuda_rt != cudaSuccess) Kokkos::abort("cudaFree failed");
+    }
   }
 
   ScopedCufftDynPlan()                                      = delete;
@@ -151,6 +335,75 @@ struct ScopedCufftDynPlan {
   void commit(const Kokkos::Cuda &exec_space) {
     KOKKOSFFT_CHECK_CUFFT_CALL(
         cufftSetStream(m_plan, exec_space.cuda_stream()));
+  }
+
+  /// \brief Attach a load or store callback to this plan, deduced from
+  /// CallbackSymbolType (the vendor typedef, e.g. cufftCallbackLoadR vs
+  /// cufftCallbackStoreR, already encodes which one it is).
+  ///
+  /// \tparam CallbackSymbolType The type of the callback symbol
+  /// \tparam CallbackParamsType The type of the caller-provided params
+  /// \param[in] d_callback_symbol The __device__ global holding the callback
+  /// function pointer
+  /// \param[in] params The callback parameters. Copied into a device allocation
+  /// owned by this ScopedCufftDynPlan, freed in its destructor -- the caller
+  /// never has to manage that memory themselves.
+  ///
+  /// \note When KOKKOSFFT_ENABLE_CALLBACK is off, calling this method fails
+  /// to compile (static_assert) rather than silently doing nothing.
+  ///
+  /// \note \p params must always be a real struct, even if the callback
+  /// itself never reads it. Passing nullptr fails to compile (static_assert)
+  /// rather than silently producing a non-null callerInfo on the device
+  /// that points to zeroed memory instead of a real struct.
+  template <typename CallbackSymbolType, typename CallbackParamsType>
+  void set_callback(const CallbackSymbolType &d_callback_symbol,
+                    const CallbackParamsType &params) {
+#if defined(KOKKOSFFT_ENABLE_CALLBACK)
+    static_assert(!std::is_null_pointer_v<CallbackParamsType>,
+                  "set_callback() requires a real params struct -- passing "
+                  "nullptr does not produce a null callerInfo on the "
+                  "device, it points to zeroed memory instead, which is "
+                  "almost certainly not what you want");
+    CallbackSymbolType callback{};
+    KOKKOSFFT_CHECK_CUDA_CALL(
+        cudaMemcpyFromSymbol(&callback, d_callback_symbol, sizeof(callback)));
+
+    constexpr cufftXtCallbackType cb_type =
+        deduce_callback_type_v<CallbackSymbolType>;
+    void *callback_ptr = reinterpret_cast<void *>(callback);
+
+    // Load and store callbacks each get their own device buffer -- cuFFT
+    // treats their caller-info as independent per callback type (confirmed
+    // against rocFFT's open-source native API and empirically against
+    // cuFFT itself), and each may only be set once per plan.
+    void **callback_params_slot;
+    if constexpr (is_load_callback_v<CallbackSymbolType>) {
+      KOKKOSFFT_THROW_IF(
+          m_load_callback_params != nullptr,
+          "set_callback() may only set a load callback once per plan");
+      callback_params_slot = &m_load_callback_params;
+    } else {
+      KOKKOSFFT_THROW_IF(
+          m_store_callback_params != nullptr,
+          "set_callback() may only set a store callback once per plan");
+      callback_params_slot = &m_store_callback_params;
+    }
+
+    KOKKOSFFT_CHECK_CUDA_CALL(
+        cudaMalloc(callback_params_slot, sizeof(CallbackParamsType)));
+    KOKKOSFFT_CHECK_CUDA_CALL(cudaMemcpy(*callback_params_slot, &params,
+                                         sizeof(CallbackParamsType),
+                                         cudaMemcpyHostToDevice));
+
+    void *callback_params_ptr = *callback_params_slot;
+    KOKKOSFFT_CHECK_CUFFT_CALL(cufftXtSetCallback(
+        m_plan, &callback_ptr, cb_type, &callback_params_ptr));
+#else
+    static_assert(std::is_void_v<CallbackSymbolType>,
+                  "set_callback() requires KokkosFFT to be built with "
+                  "-DKokkosFFT_ENABLE_CALLBACK=ON");
+#endif
   }
 };
 

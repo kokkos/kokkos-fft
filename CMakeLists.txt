@@ -20,6 +20,7 @@ option(KokkosFFT_ENABLE_BENCHMARK "Build benchmarks for KokkosFFT" OFF)
 option(KokkosFFT_ENABLE_DOCS "Build KokkosFFT documentaion/website" OFF)
 option(KokkosFFT_ENABLE_DISTRIBUTED "Enable KokkosFFT distributed support" OFF)
 option(KokkosFFT_ENABLE_TESTS_DISTRIBUTED_ONLY "Enable KokkosFFT distributed tests only" OFF)
+option(KokkosFFT_ENABLE_CALLBACK "Enable KokkosFFT callback support" OFF)
 
 # Version information
 set(KOKKOSFFT_VERSION ${PROJECT_VERSION})
@@ -35,8 +36,23 @@ if(NOT KokkosFFT_ENABLE_INTERNAL_KOKKOS)
     find_package(Kokkos ${KOKKOS_REQUIRED_VERSION} REQUIRED)
     # Check the alignment of complex numbers
     kokkos_check(OPTIONS COMPLEX_ALIGN)
+    if(KokkosFFT_ENABLE_CALLBACK)
+      if(Kokkos_ENABLE_CUDA)
+        kokkos_check(OPTIONS CUDA_RELOCATABLE_DEVICE_CODE)
+      endif()
+    endif()
   endif()
 else()
+  # Legacy vendor callbacks (cufftXtSetCallback) resolve a device function
+  # pointer via cudaMemcpyFromSymbol. Without relocatable device code, that
+  # pointer is not valid at the call site inside cuFFT's own kernel, causing
+  # an "Invalid PC" crash at execution time. Force RDC on for CUDA so this
+  # can't be silently misconfigured.
+  if(KokkosFFT_ENABLE_CALLBACK)
+    if(Kokkos_ENABLE_CUDA)
+      set(Kokkos_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE ON)
+    endif()
+  endif()
   add_subdirectory(tpls/kokkos)
 endif()
 
@@ -63,6 +79,8 @@ if(KokkosFFT_ENABLE_CUFFTMP AND NOT (KokkosFFT_ENABLE_DISTRIBUTED AND KokkosFFT_
     FATAL_ERROR "Error: To enable cuFFTMp, you need to enable KokkosFFT_ENABLE_CUFFT and KokkosFFT_ENABLE_DISTRIBUTED"
   )
 endif()
+
+set(KOKKOSFFT_ENABLE_CALLBACK ${KokkosFFT_ENABLE_CALLBACK})
 
 # Check if multiple device tpls are not enabled
 set(ENABLED_DEVICE_TPLS "")

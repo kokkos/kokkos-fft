@@ -7,6 +7,7 @@
 
 #include <stdexcept>
 #include <string_view>
+#include <cuda_runtime.h>
 #include <cufft.h>
 #include "KokkosFFT_Asserts.hpp"
 
@@ -19,11 +20,23 @@
       std::source_location::current().line(),                              \
       std::source_location::current().function_name(),                     \
       std::source_location::current().column())
+
+#define KOKKOSFFT_CHECK_CUDA_CALL(call)                \
+  KokkosFFT::Impl::check_fft_call(                     \
+      call, #call, cudaSuccess, cudaGetErrorString,    \
+      std::source_location::current().file_name(),     \
+      std::source_location::current().line(),          \
+      std::source_location::current().function_name(), \
+      std::source_location::current().column())
 #else
 #define KOKKOSFFT_CHECK_CUFFT_CALL(call)                                   \
   KokkosFFT::Impl::check_fft_call(call, #call, CUFFT_SUCCESS,              \
                                   KokkosFFT::Impl::cufft_result_to_string, \
                                   __FILE__, __LINE__, __FUNCTION__)
+#define KOKKOSFFT_CHECK_CUDA_CALL(call)                                   \
+  KokkosFFT::Impl::check_fft_call(call, #call, cudaSuccess,               \
+                                  cudaGetErrorString, __FILE__, __LINE__, \
+                                  __FUNCTION__)
 #endif
 
 namespace KokkosFFT {
@@ -52,6 +65,7 @@ inline std::string_view cufft_result_to_string(cufftResult result) {
     default: return "UNKNOWN_CUFFT_ERROR";
   }
 }
+
 }  // namespace Impl
 }  // namespace KokkosFFT
 
