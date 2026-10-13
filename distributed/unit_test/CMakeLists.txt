@@ -2,6 +2,9 @@
 #
 # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
+# Enable GoogleTest
+include(GoogleTest)
+
 set(SOURCES
     Test_Main.cpp
     Test_TplComm.cpp
@@ -19,10 +22,20 @@ set(SOURCES
 )
 
 add_executable(unit-tests-mpi ${SOURCES})
-target_link_libraries(unit-tests-mpi PUBLIC GTest::gtest GTest::gmock KokkosFFT::distributed)
+if(Kokkos_COMPILE_LANGUAGE)
+  set_source_files_properties(${SOURCES} PROPERTIES LANGUAGE ${Kokkos_COMPILE_LANGUAGE})
+  set_property(
+    TARGET unit-tests-mpi PROPERTY ${Kokkos_COMPILE_LANGUAGE}_ARCHITECTURES
+                                   ${Kokkos_${Kokkos_COMPILE_LANGUAGE}_ARCHITECTURES}
+  )
+  set_property(
+    TARGET unit-tests-mpi PROPERTY ${Kokkos_COMPILE_LANGUAGE}_STANDARD ${Kokkos_${Kokkos_COMPILE_LANGUAGE}_STANDARD}
+  )
+else()
+  target_compile_features(unit-tests-mpi PUBLIC cxx_std_20)
+endif()
 
-# Enable GoogleTest
-include(GoogleTest)
+target_link_libraries(unit-tests-mpi PUBLIC GTest::gtest GTest::gmock KokkosFFT::distributed)
 
 # This is the core instruction for CTest.
 # NAME: A descriptive name for the test.
