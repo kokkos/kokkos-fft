@@ -36,6 +36,11 @@ if(NOT KokkosFFT_ENABLE_INTERNAL_KOKKOS)
     find_package(Kokkos ${KOKKOS_REQUIRED_VERSION} REQUIRED)
     # Check the alignment of complex numbers
     kokkos_check(OPTIONS COMPLEX_ALIGN)
+    if(KokkosFFT_ENABLE_CALLBACK)
+      if(Kokkos_ENABLE_CUDA)
+        kokkos_check(OPTIONS CUDA_RELOCATABLE_DEVICE_CODE)
+      endif()
+    endif()
     # Enable the language Kokkos was built with
     if(Kokkos_COMPILE_LANGUAGE)
       enable_language(${Kokkos_COMPILE_LANGUAGE})

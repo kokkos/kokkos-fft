@@ -2,15 +2,46 @@
 #
 # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
-add_executable(unit-tests-kokkos-fft-core Test_Main.cpp Test_Plans.cpp Test_Transform.cpp)
-target_link_libraries(unit-tests-kokkos-fft-core PUBLIC KokkosFFT::fft GTest::gtest)
-
 # Enable GoogleTest
 include(GoogleTest)
-gtest_discover_tests(unit-tests-kokkos-fft-core PROPERTIES DISCOVERY_TIMEOUT 600 DISCOVERY_MODE PRE_TEST)
 
-add_executable(unit-tests-kokkos-dynfft Test_Main.cpp Test_DynPlans.cpp)
+set(UNIT_TEST_CORE_SOURCES Test_Main.cpp Test_Plans.cpp Test_Transform.cpp)
+add_executable(unit-tests-kokkos-fft-core ${UNIT_TEST_CORE_SOURCES})
+if(Kokkos_COMPILE_LANGUAGE)
+  set_source_files_properties(${UNIT_TEST_CORE_SOURCES} PROPERTIES LANGUAGE ${Kokkos_COMPILE_LANGUAGE})
+  set_property(
+    TARGET unit-tests-kokkos-fft-core PROPERTY ${Kokkos_COMPILE_LANGUAGE}_ARCHITECTURES
+                                               ${Kokkos_${Kokkos_COMPILE_LANGUAGE}_ARCHITECTURES}
+  )
+  set_property(
+    TARGET unit-tests-kokkos-fft-core PROPERTY ${Kokkos_COMPILE_LANGUAGE}_STANDARD
+                                               ${Kokkos_${Kokkos_COMPILE_LANGUAGE}_STANDARD}
+  )
+else()
+  target_compile_features(unit-tests-kokkos-fft-core PUBLIC cxx_std_20)
+endif()
+
+target_link_libraries(unit-tests-kokkos-fft-core PUBLIC KokkosFFT::fft GTest::gtest)
+
+set(UNIT_TEST_DYN_SOURCES Test_Main.cpp Test_DynPlans.cpp)
+add_executable(unit-tests-kokkos-dynfft ${UNIT_TEST_DYN_SOURCES})
+if(Kokkos_COMPILE_LANGUAGE)
+  set_source_files_properties(${UNIT_TEST_DYN_SOURCES} PROPERTIES LANGUAGE ${Kokkos_COMPILE_LANGUAGE})
+  set_property(
+    TARGET unit-tests-kokkos-dynfft PROPERTY ${Kokkos_COMPILE_LANGUAGE}_ARCHITECTURES
+                                             ${Kokkos_${Kokkos_COMPILE_LANGUAGE}_ARCHITECTURES}
+  )
+  set_property(
+    TARGET unit-tests-kokkos-dynfft PROPERTY ${Kokkos_COMPILE_LANGUAGE}_STANDARD
+                                             ${Kokkos_${Kokkos_COMPILE_LANGUAGE}_STANDARD}
+  )
+else()
+  target_compile_features(unit-tests-kokkos-fft-core PUBLIC cxx_std_20)
+endif()
+
 target_link_libraries(unit-tests-kokkos-dynfft PUBLIC KokkosFFT::fft GTest::gtest)
+
+gtest_discover_tests(unit-tests-kokkos-fft-core PROPERTIES DISCOVERY_TIMEOUT 600 DISCOVERY_MODE PRE_TEST)
 gtest_discover_tests(unit-tests-kokkos-dynfft PROPERTIES DISCOVERY_TIMEOUT 600 DISCOVERY_MODE PRE_TEST)
 
 if(KokkosFFT_ENABLE_CALLBACK)
