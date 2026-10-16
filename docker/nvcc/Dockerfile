@@ -23,7 +23,7 @@ RUN apt-get update && apt-get install -y \
 RUN git config --global --add safe.directory "*"
 
 # Install newer CMake manually
-ARG CMAKE_VERSION=3.23.2
+ARG CMAKE_VERSION=3.25.2
 
 ENV CMAKE_DIR=/opt/cmake \
     FFTWDIR=/usr
