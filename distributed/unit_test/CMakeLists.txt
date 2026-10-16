@@ -22,17 +22,12 @@ set(SOURCES
 )
 
 add_executable(unit-tests-mpi ${SOURCES})
-if(Kokkos_COMPILE_LANGUAGE)
-  set_source_files_properties(${SOURCES} PROPERTIES LANGUAGE ${Kokkos_COMPILE_LANGUAGE})
+if(KOKKOSFFT_COMPILE_LANGUAGE)
+  set_source_files_properties(${SOURCES} PROPERTIES LANGUAGE ${KOKKOSFFT_COMPILE_LANGUAGE})
   set_property(
-    TARGET unit-tests-mpi PROPERTY ${Kokkos_COMPILE_LANGUAGE}_ARCHITECTURES
-                                   ${Kokkos_${Kokkos_COMPILE_LANGUAGE}_ARCHITECTURES}
+    TARGET unit-tests-mpi PROPERTY ${KOKKOSFFT_COMPILE_LANGUAGE}_ARCHITECTURES
+                                   ${KOKKOSFFT_${KOKKOSFFT_COMPILE_LANGUAGE}_ARCHITECTURES}
   )
-  set_property(
-    TARGET unit-tests-mpi PROPERTY ${Kokkos_COMPILE_LANGUAGE}_STANDARD ${Kokkos_${Kokkos_COMPILE_LANGUAGE}_STANDARD}
-  )
-else()
-  target_compile_features(unit-tests-mpi PUBLIC cxx_std_20)
 endif()
 
 target_link_libraries(unit-tests-mpi PUBLIC GTest::gtest GTest::gmock KokkosFFT::distributed)

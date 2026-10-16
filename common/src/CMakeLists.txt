@@ -5,7 +5,13 @@
 add_library(common INTERFACE)
 
 target_link_libraries(common INTERFACE Kokkos::kokkos)
-target_compile_features(common INTERFACE cxx_std_20)
+if(KOKKOSFFT_COMPILE_LANGUAGE STREQUAL CUDA)
+  target_compile_features(common INTERFACE cuda_std_20)
+elseif(KOKKOSFFT_COMPILE_LANGUAGE STREQUAL HIP)
+  target_compile_features(common INTERFACE hip_std_20)
+else()
+  target_compile_features(common INTERFACE cxx_std_20)
+endif()
 target_include_directories(
   common INTERFACE $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}> $<INSTALL_INTERFACE:${INSTALL_INCLUDEDIR}>
 )

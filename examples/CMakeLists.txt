@@ -7,17 +7,12 @@ function(kokkosfft_add_example EXAMPLE_NAME)
 
   add_executable(${EXAMPLE_NAME} ${PARSE_SOURCES})
 
-  if(Kokkos_COMPILE_LANGUAGE)
-    set_source_files_properties(${PARSE_SOURCES} PROPERTIES LANGUAGE ${Kokkos_COMPILE_LANGUAGE})
+  if(KOKKOSFFT_COMPILE_LANGUAGE)
+    set_source_files_properties(${PARSE_SOURCES} PROPERTIES LANGUAGE ${KOKKOSFFT_COMPILE_LANGUAGE})
     set_property(
-      TARGET ${EXAMPLE_NAME} PROPERTY ${Kokkos_COMPILE_LANGUAGE}_ARCHITECTURES
-                                      ${Kokkos_${Kokkos_COMPILE_LANGUAGE}_ARCHITECTURES}
+      TARGET ${EXAMPLE_NAME} PROPERTY ${KOKKOSFFT_COMPILE_LANGUAGE}_ARCHITECTURES
+                                      ${KOKKOSFFT_${KOKKOSFFT_COMPILE_LANGUAGE}_ARCHITECTURES}
     )
-    set_property(
-      TARGET ${EXAMPLE_NAME} PROPERTY ${Kokkos_COMPILE_LANGUAGE}_STANDARD ${Kokkos_${Kokkos_COMPILE_LANGUAGE}_STANDARD}
-    )
-  else()
-    target_compile_features(${EXAMPLE_NAME} PUBLIC cxx_std_20)
   endif()
 
   target_link_libraries(${EXAMPLE_NAME} PUBLIC KokkosFFT::fft)

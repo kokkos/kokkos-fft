@@ -7,36 +7,24 @@ include(GoogleTest)
 
 set(UNIT_TEST_CORE_SOURCES Test_Main.cpp Test_Plans.cpp Test_Transform.cpp)
 add_executable(unit-tests-kokkos-fft-core ${UNIT_TEST_CORE_SOURCES})
-if(Kokkos_COMPILE_LANGUAGE)
-  set_source_files_properties(${UNIT_TEST_CORE_SOURCES} PROPERTIES LANGUAGE ${Kokkos_COMPILE_LANGUAGE})
+if(KOKKOSFFT_COMPILE_LANGUAGE)
+  set_source_files_properties(${UNIT_TEST_CORE_SOURCES} PROPERTIES LANGUAGE ${KOKKOSFFT_COMPILE_LANGUAGE})
   set_property(
-    TARGET unit-tests-kokkos-fft-core PROPERTY ${Kokkos_COMPILE_LANGUAGE}_ARCHITECTURES
-                                               ${Kokkos_${Kokkos_COMPILE_LANGUAGE}_ARCHITECTURES}
+    TARGET unit-tests-kokkos-fft-core PROPERTY ${KOKKOSFFT_COMPILE_LANGUAGE}_ARCHITECTURES
+                                               ${KOKKOSFFT_${KOKKOSFFT_COMPILE_LANGUAGE}_ARCHITECTURES}
   )
-  set_property(
-    TARGET unit-tests-kokkos-fft-core PROPERTY ${Kokkos_COMPILE_LANGUAGE}_STANDARD
-                                               ${Kokkos_${Kokkos_COMPILE_LANGUAGE}_STANDARD}
-  )
-else()
-  target_compile_features(unit-tests-kokkos-fft-core PUBLIC cxx_std_20)
 endif()
 
 target_link_libraries(unit-tests-kokkos-fft-core PUBLIC KokkosFFT::fft GTest::gtest)
 
 set(UNIT_TEST_DYN_SOURCES Test_Main.cpp Test_DynPlans.cpp)
 add_executable(unit-tests-kokkos-dynfft ${UNIT_TEST_DYN_SOURCES})
-if(Kokkos_COMPILE_LANGUAGE)
-  set_source_files_properties(${UNIT_TEST_DYN_SOURCES} PROPERTIES LANGUAGE ${Kokkos_COMPILE_LANGUAGE})
+if(KOKKOSFFT_COMPILE_LANGUAGE)
+  set_source_files_properties(${UNIT_TEST_DYN_SOURCES} PROPERTIES LANGUAGE ${KOKKOSFFT_COMPILE_LANGUAGE})
   set_property(
-    TARGET unit-tests-kokkos-dynfft PROPERTY ${Kokkos_COMPILE_LANGUAGE}_ARCHITECTURES
-                                             ${Kokkos_${Kokkos_COMPILE_LANGUAGE}_ARCHITECTURES}
+    TARGET unit-tests-kokkos-dynfft PROPERTY ${KOKKOSFFT_COMPILE_LANGUAGE}_ARCHITECTURES
+                                             ${KOKKOSFFT_${KOKKOSFFT_COMPILE_LANGUAGE}_ARCHITECTURES}
   )
-  set_property(
-    TARGET unit-tests-kokkos-dynfft PROPERTY ${Kokkos_COMPILE_LANGUAGE}_STANDARD
-                                             ${Kokkos_${Kokkos_COMPILE_LANGUAGE}_STANDARD}
-  )
-else()
-  target_compile_features(unit-tests-kokkos-fft-core PUBLIC cxx_std_20)
 endif()
 
 target_link_libraries(unit-tests-kokkos-dynfft PUBLIC KokkosFFT::fft GTest::gtest)

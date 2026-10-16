@@ -22,36 +22,24 @@ set(UNIT_TEST_COMMON_SOURCES
 )
 
 add_executable(unit-tests-kokkos-fft-common ${UNIT_TEST_COMMON_SOURCES})
-if(Kokkos_COMPILE_LANGUAGE)
-  set_source_files_properties(${UNIT_TEST_COMMON_SOURCES} PROPERTIES LANGUAGE ${Kokkos_COMPILE_LANGUAGE})
+if(KOKKOSFFT_COMPILE_LANGUAGE)
+  set_source_files_properties(${UNIT_TEST_COMMON_SOURCES} PROPERTIES LANGUAGE ${KOKKOSFFT_COMPILE_LANGUAGE})
   set_property(
-    TARGET unit-tests-kokkos-fft-common PROPERTY ${Kokkos_COMPILE_LANGUAGE}_ARCHITECTURES
-                                                 ${Kokkos_${Kokkos_COMPILE_LANGUAGE}_ARCHITECTURES}
+    TARGET unit-tests-kokkos-fft-common PROPERTY ${KOKKOSFFT_COMPILE_LANGUAGE}_ARCHITECTURES
+                                                 ${KOKKOSFFT_${KOKKOSFFT_COMPILE_LANGUAGE}_ARCHITECTURES}
   )
-  set_property(
-    TARGET unit-tests-kokkos-fft-common PROPERTY ${Kokkos_COMPILE_LANGUAGE}_STANDARD
-                                                 ${Kokkos_${Kokkos_COMPILE_LANGUAGE}_STANDARD}
-  )
-else()
-  target_compile_features(unit-tests-kokkos-fft-common PUBLIC cxx_std_20)
 endif()
 
 target_link_libraries(unit-tests-kokkos-fft-common PUBLIC common KokkosFFT::testing GTest::gtest GTest::gmock)
 
 set(UNIT_TEST_TRANSPOSE_SOURCES Test_Main.cpp Test_Transpose.cpp)
 add_executable(unit-tests-kokkos-transpose ${UNIT_TEST_TRANSPOSE_SOURCES})
-if(Kokkos_COMPILE_LANGUAGE)
-  set_source_files_properties(${UNIT_TEST_TRANSPOSE_SOURCES} PROPERTIES LANGUAGE ${Kokkos_COMPILE_LANGUAGE})
+if(KOKKOSFFT_COMPILE_LANGUAGE)
+  set_source_files_properties(${UNIT_TEST_TRANSPOSE_SOURCES} PROPERTIES LANGUAGE ${KOKKOSFFT_COMPILE_LANGUAGE})
   set_property(
-    TARGET unit-tests-kokkos-transpose PROPERTY ${Kokkos_COMPILE_LANGUAGE}_ARCHITECTURES
-                                                ${Kokkos_${Kokkos_COMPILE_LANGUAGE}_ARCHITECTURES}
+    TARGET unit-tests-kokkos-transpose PROPERTY ${KOKKOSFFT_COMPILE_LANGUAGE}_ARCHITECTURES
+                                                ${KOKKOSFFT_${KOKKOSFFT_COMPILE_LANGUAGE}_ARCHITECTURES}
   )
-  set_property(
-    TARGET unit-tests-kokkos-transpose PROPERTY ${Kokkos_COMPILE_LANGUAGE}_STANDARD
-                                                ${Kokkos_${Kokkos_COMPILE_LANGUAGE}_STANDARD}
-  )
-else()
-  target_compile_features(unit-tests-kokkos-transpose PUBLIC cxx_std_20)
 endif()
 
 target_link_libraries(unit-tests-kokkos-transpose PUBLIC common KokkosFFT::testing GTest::gtest GTest::gmock)
