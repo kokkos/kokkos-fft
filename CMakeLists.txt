@@ -40,17 +40,24 @@ if(NOT KokkosFFT_ENABLE_INTERNAL_KOKKOS)
       if(Kokkos_ENABLE_CUDA)
         kokkos_check(OPTIONS CUDA_RELOCATABLE_DEVICE_CODE)
       endif()
+      if(Kokkos_ENABLE_HIP)
+        kokkos_check(OPTIONS HIP_RELOCATABLE_DEVICE_CODE)
+      endif()
     endif()
   endif()
 else()
-  # Legacy vendor callbacks (cufftXtSetCallback) resolve a device function
-  # pointer via cudaMemcpyFromSymbol. Without relocatable device code, that
-  # pointer is not valid at the call site inside cuFFT's own kernel, causing
-  # an "Invalid PC" crash at execution time. Force RDC on for CUDA so this
-  # can't be silently misconfigured.
+  # Legacy vendor callbacks (cufftXtSetCallback/hipfftXtSetCallback) resolve
+  # a device function pointer via cudaMemcpyFromSymbol/hipMemcpyFromSymbol.
+  # Without relocatable device code, that pointer is not valid at the call
+  # site inside the vendor FFT library's own kernel, causing an "Invalid PC"
+  # crash at execution time. Force RDC on for whichever GPU backend is in
+  # use so this can't be silently misconfigured.
   if(KokkosFFT_ENABLE_CALLBACK)
     if(Kokkos_ENABLE_CUDA)
       set(Kokkos_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE ON)
+    endif()
+    if(Kokkos_ENABLE_HIP)
+      set(Kokkos_ENABLE_HIP_RELOCATABLE_DEVICE_CODE ON)
     endif()
   endif()
   add_subdirectory(tpls/kokkos)
