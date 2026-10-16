@@ -2,29 +2,47 @@
 #
 # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
-add_executable(
-  unit-tests-kokkos-fft-common
-  Test_Main.cpp
-  Test_Assert.cpp
-  Test_CheckConditions.cpp
-  Test_Container_Helpers.cpp
-  Test_Convert_Types.cpp
-  Test_Traits.cpp
-  Test_Layout.cpp
-  Test_Normalization.cpp
-  Test_MDOperations.cpp
-  Test_Mapping.cpp
-  Test_Extents.cpp
-  Test_Padding.cpp
-  Test_Helpers.cpp
+# Enable GoogleTest
+include(GoogleTest)
+
+set(UNIT_TEST_COMMON_SOURCES
+    Test_Main.cpp
+    Test_Assert.cpp
+    Test_CheckConditions.cpp
+    Test_Container_Helpers.cpp
+    Test_Convert_Types.cpp
+    Test_Traits.cpp
+    Test_Layout.cpp
+    Test_Normalization.cpp
+    Test_MDOperations.cpp
+    Test_Mapping.cpp
+    Test_Extents.cpp
+    Test_Padding.cpp
+    Test_Helpers.cpp
 )
+
+add_executable(unit-tests-kokkos-fft-common ${UNIT_TEST_COMMON_SOURCES})
+if(KOKKOSFFT_COMPILE_LANGUAGE)
+  set_source_files_properties(${UNIT_TEST_COMMON_SOURCES} PROPERTIES LANGUAGE ${KOKKOSFFT_COMPILE_LANGUAGE})
+  set_property(
+    TARGET unit-tests-kokkos-fft-common PROPERTY ${KOKKOSFFT_COMPILE_LANGUAGE}_ARCHITECTURES
+                                                 ${KOKKOSFFT_${KOKKOSFFT_COMPILE_LANGUAGE}_ARCHITECTURES}
+  )
+endif()
 
 target_link_libraries(unit-tests-kokkos-fft-common PUBLIC common KokkosFFT::testing GTest::gtest GTest::gmock)
 
-add_executable(unit-tests-kokkos-transpose Test_Main.cpp Test_Transpose.cpp)
+set(UNIT_TEST_TRANSPOSE_SOURCES Test_Main.cpp Test_Transpose.cpp)
+add_executable(unit-tests-kokkos-transpose ${UNIT_TEST_TRANSPOSE_SOURCES})
+if(KOKKOSFFT_COMPILE_LANGUAGE)
+  set_source_files_properties(${UNIT_TEST_TRANSPOSE_SOURCES} PROPERTIES LANGUAGE ${KOKKOSFFT_COMPILE_LANGUAGE})
+  set_property(
+    TARGET unit-tests-kokkos-transpose PROPERTY ${KOKKOSFFT_COMPILE_LANGUAGE}_ARCHITECTURES
+                                                ${KOKKOSFFT_${KOKKOSFFT_COMPILE_LANGUAGE}_ARCHITECTURES}
+  )
+endif()
+
 target_link_libraries(unit-tests-kokkos-transpose PUBLIC common KokkosFFT::testing GTest::gtest GTest::gmock)
 
-# Enable GoogleTest
-include(GoogleTest)
 gtest_discover_tests(unit-tests-kokkos-fft-common PROPERTIES DISCOVERY_TIMEOUT 600 DISCOVERY_MODE PRE_TEST)
 gtest_discover_tests(unit-tests-kokkos-transpose PROPERTIES DISCOVERY_TIMEOUT 600 DISCOVERY_MODE PRE_TEST)

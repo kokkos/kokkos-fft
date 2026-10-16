@@ -2,5 +2,4 @@
 #
 # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
-add_executable(10_hasegawa_wakatani 10_hasegawa_wakatani.cpp)
-target_link_libraries(10_hasegawa_wakatani PUBLIC KokkosFFT::fft)
+kokkosfft_add_example(10_hasegawa_wakatani SOURCES 10_hasegawa_wakatani.cpp)

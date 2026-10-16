@@ -2,6 +2,22 @@
 #
 # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
+function(kokkosfft_add_example EXAMPLE_NAME)
+  cmake_parse_arguments(PARSE_ARGV 1 PARSE "" "" "SOURCES")
+
+  add_executable(${EXAMPLE_NAME} ${PARSE_SOURCES})
+
+  if(KOKKOSFFT_COMPILE_LANGUAGE)
+    set_source_files_properties(${PARSE_SOURCES} PROPERTIES LANGUAGE ${KOKKOSFFT_COMPILE_LANGUAGE})
+    set_property(
+      TARGET ${EXAMPLE_NAME} PROPERTY ${KOKKOSFFT_COMPILE_LANGUAGE}_ARCHITECTURES
+                                      ${KOKKOSFFT_${KOKKOSFFT_COMPILE_LANGUAGE}_ARCHITECTURES}
+    )
+  endif()
+
+  target_link_libraries(${EXAMPLE_NAME} PUBLIC KokkosFFT::fft)
+endfunction()
+
 if(KOKKOSFFT_HAS_DEFAULT_BACKEND)
   add_subdirectory(01_1DFFT)
   add_subdirectory(02_2DFFT)
