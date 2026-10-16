@@ -3,11 +3,20 @@
 # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
 add_library(fft INTERFACE)
-if(Kokkos_COMPILE_LANGUAGE)
+if(KOKKOSFFT_COMPILE_LANGUAGE)
   set_property(
-    TARGET fft PROPERTY ${Kokkos_COMPILE_LANGUAGE}_ARCHITECTURES ${Kokkos_${Kokkos_COMPILE_LANGUAGE}_ARCHITECTURES}
+    TARGET fft PROPERTY ${KOKKOSFFT_COMPILE_LANGUAGE}_ARCHITECTURES
+                        ${KOKKOSFFT_${KOKKOSFFT_COMPILE_LANGUAGE}_ARCHITECTURES}
   )
-  set_property(TARGET fft PROPERTY ${Kokkos_COMPILE_LANGUAGE}_STANDARD ${Kokkos_${Kokkos_COMPILE_LANGUAGE}_STANDARD})
+  set_property(
+    TARGET fft PROPERTY ${KOKKOSFFT_COMPILE_LANGUAGE}_STANDARD ${KOKKOSFFT_${KOKKOSFFT_COMPILE_LANGUAGE}_STANDARD}
+  )
+endif()
+
+if(KOKKOSFFT_COMPILE_LANGUAGE STREQUAL CUDA)
+  target_compile_features(fft INTERFACE cuda_std_20)
+elseif(KOKKOSFFT_COMPILE_LANGUAGE STREQUAL HIP)
+  target_compile_features(fft INTERFACE hip_std_20)
 else()
   target_compile_features(fft INTERFACE cxx_std_20)
 endif()

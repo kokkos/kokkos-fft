@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
+# Kokkos minimally requires 3.25.2 for Cuda Language builds
 cmake_minimum_required(VERSION 3.22)
 
 set(KOKKOSFFT_TOP_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
@@ -41,10 +42,6 @@ if(NOT KokkosFFT_ENABLE_INTERNAL_KOKKOS)
         kokkos_check(OPTIONS CUDA_RELOCATABLE_DEVICE_CODE)
       endif()
     endif()
-    # Enable the language Kokkos was built with
-    if(Kokkos_COMPILE_LANGUAGE)
-      enable_language(${Kokkos_COMPILE_LANGUAGE})
-    endif()
   endif()
 else()
   # Legacy vendor callbacks (cufftXtSetCallback) resolve a device function
@@ -58,6 +55,30 @@ else()
     endif()
   endif()
   add_subdirectory(tpls/kokkos)
+endif()
+
+if(KokkosFFT_ENABLE_INTERNAL_KOKKOS)
+  if(Kokkos_ENABLE_COMPILE_AS_CMAKE_LANGUAGE AND Kokkos_ENABLE_CUDA)
+    set(KOKKOSFFT_COMPILE_LANGUAGE CUDA)
+    set(KOKKOSFFT_CUDA_ARCHITECTURES ${CMAKE_CUDA_ARCHITECTURES})
+  elseif(Kokkos_ENABLE_COMPILE_AS_CMAKE_LANGUAGE AND Kokkos_ENABLE_HIP)
+    set(KOKKOSFFT_COMPILE_LANGUAGE HIP)
+    set(KOKKOSFFT_HIP_ARCHITECTURES ${CMAKE_HIP_ARCHITECTURES})
+  endif()
+else()
+  # Use variables defined by Kokkos
+  set(KOKKOSFFT_COMPILE_LANGUAGE ${Kokkos_COMPILE_LANGUAGE})
+  set(KOKKOSFFT_${KOKKOSFFT_COMPILE_LANGUAGE}_ARCHITECTURES ${Kokkos_${Kokkos_COMPILE_LANGUAGE}_ARCHITECTURES})
+endif()
+
+if(KOKKOSFFT_COMPILE_LANGUAGE AND Kokkos_ENABLE_CUDA)
+  if(CMAKE_VERSION VERSION_LESS "3.25.2")
+    message(FATAL_ERROR "Building Kokkos with CUDA as language and c++20 requires CMake version 3.25.2 or higher.")
+  endif()
+endif()
+
+if(KOKKOSFFT_COMPILE_LANGUAGE)
+  enable_language(${KOKKOSFFT_COMPILE_LANGUAGE})
 endif()
 
 # Device specific options
