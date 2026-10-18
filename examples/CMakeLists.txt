@@ -7,14 +7,8 @@ function(kokkosfft_add_example EXAMPLE_NAME)
 
   add_executable(${EXAMPLE_NAME} ${PARSE_SOURCES})
 
-  if(KOKKOSFFT_COMPILE_LANGUAGE)
-    set_source_files_properties(${PARSE_SOURCES} PROPERTIES LANGUAGE ${KOKKOSFFT_COMPILE_LANGUAGE})
-    set_property(
-      TARGET ${EXAMPLE_NAME} PROPERTY ${KOKKOSFFT_COMPILE_LANGUAGE}_ARCHITECTURES
-                                      ${KOKKOSFFT_${KOKKOSFFT_COMPILE_LANGUAGE}_ARCHITECTURES}
-    )
-  endif()
-
+  kokkosfft_set_language(${PARSE_SOURCES})
+  kokkosfft_set_architectures(${EXAMPLE_NAME})
   target_link_libraries(${EXAMPLE_NAME} PUBLIC KokkosFFT::fft)
 endfunction()
 
