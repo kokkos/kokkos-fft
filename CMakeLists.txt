@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
-# Kokkos minimally requires 3.25.2 for Cuda Language builds
 cmake_minimum_required(VERSION 3.22)
 
 set(KOKKOSFFT_TOP_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
@@ -57,28 +56,31 @@ else()
   add_subdirectory(tpls/kokkos)
 endif()
 
-if(KokkosFFT_ENABLE_INTERNAL_KOKKOS)
-  if(Kokkos_ENABLE_COMPILE_AS_CMAKE_LANGUAGE AND Kokkos_ENABLE_CUDA)
-    set(KOKKOSFFT_COMPILE_LANGUAGE CUDA)
-    set(KOKKOSFFT_CUDA_ARCHITECTURES ${CMAKE_CUDA_ARCHITECTURES})
-  elseif(Kokkos_ENABLE_COMPILE_AS_CMAKE_LANGUAGE AND Kokkos_ENABLE_HIP)
-    set(KOKKOSFFT_COMPILE_LANGUAGE HIP)
-    set(KOKKOSFFT_HIP_ARCHITECTURES ${CMAKE_HIP_ARCHITECTURES})
-  endif()
-else()
-  # Use variables defined by Kokkos
+set(KOKKOSFFT_COMPILE_LANGUAGE CXX)
+
+# Kokkos found via find_package
+if(DEFINED Kokkos_COMPILE_LANGUAGE)
+  # Use variables defined by Kokko
   set(KOKKOSFFT_COMPILE_LANGUAGE ${Kokkos_COMPILE_LANGUAGE})
   set(KOKKOSFFT_${KOKKOSFFT_COMPILE_LANGUAGE}_ARCHITECTURES ${Kokkos_${Kokkos_COMPILE_LANGUAGE}_ARCHITECTURES})
-endif()
-
-if(KOKKOSFFT_COMPILE_LANGUAGE AND Kokkos_ENABLE_CUDA)
-  if(CMAKE_VERSION VERSION_LESS "3.25.2")
-    message(FATAL_ERROR "Building Kokkos with CUDA as language and c++20 requires CMake version 3.25.2 or higher.")
+elseif(Kokkos_ENABLE_COMPILE_AS_CMAKE_LANGUAGE)
+  # In-tree Kokkos, Kokkos variables are not visible from here
+  if(Kokkos_ENABLE_CUDA)
+    set(KOKKOSFFT_COMPILE_LANGUAGE CUDA)
+    get_target_property(KOKKOSFFT_CUDA_ARCHITECTURES kokkoscore CUDA_ARCHITECTURES)
+  elseif(Kokkos_ENABLE_HIP)
+    set(KOKKOSFFT_COMPILE_LANGUAGE HIP)
+    get_target_property(KOKKOSFFT_HIP_ARCHITECTURES kokkoscore HIP_ARCHITECTURES)
   endif()
 endif()
 
-if(KOKKOSFFT_COMPILE_LANGUAGE)
+if(NOT KOKKOSFFT_COMPILE_LANGUAGE STREQUAL CXX)
+  # Same requirement as Kokkos for CUDA language builds
+  if(KOKKOSFFT_COMPILE_LANGUAGE STREQUAL CUDA AND CMAKE_VERSION VERSION_LESS 3.25.2)
+    message(FATAL_ERROR "Building KokkosFFT with CUDA as a CMake language requires CMake 3.25.2 or higher.")
+  endif()
   enable_language(${KOKKOSFFT_COMPILE_LANGUAGE})
+  message(STATUS "KokkosFFT compile language: ${KOKKOSFFT_COMPILE_LANGUAGE}")
 endif()
 
 # Device specific options
