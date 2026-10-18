@@ -5,7 +5,7 @@
 # Enable GoogleTest
 include(GoogleTest)
 
-set(SOURCES
+set(UNIT_TEST_DISTRIBUTED_SOURCES
     Test_Main.cpp
     Test_TplComm.cpp
     Test_MPI_Types.cpp
@@ -21,15 +21,9 @@ set(SOURCES
     Test_TransBlock.cpp
 )
 
-add_executable(unit-tests-mpi ${SOURCES})
-if(KOKKOSFFT_COMPILE_LANGUAGE)
-  set_source_files_properties(${SOURCES} PROPERTIES LANGUAGE ${KOKKOSFFT_COMPILE_LANGUAGE})
-  set_property(
-    TARGET unit-tests-mpi PROPERTY ${KOKKOSFFT_COMPILE_LANGUAGE}_ARCHITECTURES
-                                   ${KOKKOSFFT_${KOKKOSFFT_COMPILE_LANGUAGE}_ARCHITECTURES}
-  )
-endif()
-
+add_executable(unit-tests-mpi ${UNIT_TEST_DISTRIBUTED_SOURCES})
+kokkosfft_set_language(${UNIT_TEST_DISTRIBUTED_SOURCES})
+kokkosfft_set_architectures(unit-tests-mpi)
 target_link_libraries(unit-tests-mpi PUBLIC GTest::gtest GTest::gmock KokkosFFT::distributed)
 
 # This is the core instruction for CTest.
