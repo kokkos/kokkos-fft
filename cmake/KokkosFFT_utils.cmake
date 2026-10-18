@@ -26,3 +26,26 @@ function(pad_string output_string input_string length)
   # Set the output variable
   set(${output_string} "${padded_string}" PARENT_SCOPE)
 endfunction()
+
+# \brief Set the architectures for the matching KOKKOSFFT_COMPILE_LANGUAGE.
+# \param target[in] Target to configure
+function(kokkosfft_set_architectures target)
+  if(NOT KOKKOSFFT_COMPILE_LANGUAGE STREQUAL CXX)
+    set_property(
+      TARGET ${target} PROPERTY ${KOKKOSFFT_COMPILE_LANGUAGE}_ARCHITECTURES
+                                ${KOKKOSFFT_${KOKKOSFFT_COMPILE_LANGUAGE}_ARCHITECTURES}
+    )
+  else()
+    return()
+  endif()
+endfunction()
+
+# \brief Set the sources languages to KOKKOSFFT_COMPILE_LANGUAGE
+# \param target[in] Target to configure
+function(kokkosfft_set_language list_sources)
+  if(NOT KOKKOSFFT_COMPILE_LANGUAGE STREQUAL CXX)
+    set_source_files_properties(${list_sources} PROPERTIES LANGUAGE ${KOKKOSFFT_COMPILE_LANGUAGE})
+  else()
+    return()
+  endif()
+endfunction()
