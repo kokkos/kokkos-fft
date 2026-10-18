@@ -75,10 +75,11 @@ else()
 endif()
 
 set(KOKKOSFFT_COMPILE_LANGUAGE CXX)
+set(KOKKOSFFT_STANDARD_FEATURE cxx_std_20)
 
-# Kokkos found via find_package
+# Set the compile language and architectures
 if(DEFINED Kokkos_COMPILE_LANGUAGE)
-  # Use variables defined by Kokko
+  # Kokkos found via find_package, use variables defined by Kokkos
   set(KOKKOSFFT_COMPILE_LANGUAGE ${Kokkos_COMPILE_LANGUAGE})
   set(KOKKOSFFT_${KOKKOSFFT_COMPILE_LANGUAGE}_ARCHITECTURES ${Kokkos_${Kokkos_COMPILE_LANGUAGE}_ARCHITECTURES})
 elseif(Kokkos_ENABLE_COMPILE_AS_CMAKE_LANGUAGE)
@@ -90,6 +91,12 @@ elseif(Kokkos_ENABLE_COMPILE_AS_CMAKE_LANGUAGE)
     set(KOKKOSFFT_COMPILE_LANGUAGE HIP)
     get_target_property(KOKKOSFFT_HIP_ARCHITECTURES kokkoscore HIP_ARCHITECTURES)
   endif()
+endif()
+
+if(KOKKOSFFT_COMPILE_LANGUAGE STREQUAL CUDA)
+  set(KOKKOSFFT_STANDARD_FEATURE cuda_std_20)
+elseif(KOKKOSFFT_COMPILE_LANGUAGE STREQUAL HIP)
+  set(KOKKOSFFT_STANDARD_FEATURE hip_std_20)
 endif()
 
 if(NOT KOKKOSFFT_COMPILE_LANGUAGE STREQUAL CXX)

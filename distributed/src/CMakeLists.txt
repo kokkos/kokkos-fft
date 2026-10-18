@@ -4,13 +4,7 @@
 
 add_library(distributed INTERFACE)
 find_package(MPI REQUIRED COMPONENTS CXX)
-if(KOKKOSFFT_COMPILE_LANGUAGE STREQUAL CUDA)
-  target_compile_features(distributed INTERFACE cuda_std_20)
-elseif(KOKKOSFFT_COMPILE_LANGUAGE STREQUAL HIP)
-  target_compile_features(distributed INTERFACE hip_std_20)
-else()
-  target_compile_features(distributed INTERFACE cxx_std_20)
-endif()
+target_compile_features(distributed INTERFACE ${KOKKOSFFT_STANDARD_FEATURE})
 target_link_libraries(distributed INTERFACE Kokkos::kokkos KokkosFFT::fft MPI::MPI_CXX)
 
 target_include_directories(
