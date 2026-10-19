@@ -22,26 +22,15 @@ set(UNIT_TEST_COMMON_SOURCES
 )
 
 add_executable(unit-tests-kokkos-fft-common ${UNIT_TEST_COMMON_SOURCES})
-if(KOKKOSFFT_COMPILE_LANGUAGE)
-  set_source_files_properties(${UNIT_TEST_COMMON_SOURCES} PROPERTIES LANGUAGE ${KOKKOSFFT_COMPILE_LANGUAGE})
-  set_property(
-    TARGET unit-tests-kokkos-fft-common PROPERTY ${KOKKOSFFT_COMPILE_LANGUAGE}_ARCHITECTURES
-                                                 ${KOKKOSFFT_${KOKKOSFFT_COMPILE_LANGUAGE}_ARCHITECTURES}
-  )
-endif()
-
+kokkosfft_set_language(${UNIT_TEST_COMMON_SOURCES})
+kokkosfft_set_architectures(unit-tests-kokkos-fft-common)
 target_link_libraries(unit-tests-kokkos-fft-common PUBLIC common KokkosFFT::testing GTest::gtest GTest::gmock)
 
 set(UNIT_TEST_TRANSPOSE_SOURCES Test_Main.cpp Test_Transpose.cpp)
-add_executable(unit-tests-kokkos-transpose ${UNIT_TEST_TRANSPOSE_SOURCES})
-if(KOKKOSFFT_COMPILE_LANGUAGE)
-  set_source_files_properties(${UNIT_TEST_TRANSPOSE_SOURCES} PROPERTIES LANGUAGE ${KOKKOSFFT_COMPILE_LANGUAGE})
-  set_property(
-    TARGET unit-tests-kokkos-transpose PROPERTY ${KOKKOSFFT_COMPILE_LANGUAGE}_ARCHITECTURES
-                                                ${KOKKOSFFT_${KOKKOSFFT_COMPILE_LANGUAGE}_ARCHITECTURES}
-  )
-endif()
 
+add_executable(unit-tests-kokkos-transpose ${UNIT_TEST_TRANSPOSE_SOURCES})
+kokkosfft_set_language(${UNIT_TEST_TRANSPOSE_SOURCES})
+kokkosfft_set_architectures(unit-tests-kokkos-transpose)
 target_link_libraries(unit-tests-kokkos-transpose PUBLIC common KokkosFFT::testing GTest::gtest GTest::gmock)
 
 gtest_discover_tests(unit-tests-kokkos-fft-common PROPERTIES DISCOVERY_TIMEOUT 600 DISCOVERY_MODE PRE_TEST)
