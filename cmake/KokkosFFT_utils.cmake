@@ -27,31 +27,15 @@ function(pad_string output_string input_string length)
   set(${output_string} "${padded_string}" PARENT_SCOPE)
 endfunction()
 
-# \brief Set the architectures for the matching KOKKOSFFT_COMPILE_LANGUAGE.
+# \brief Set the architectures and language for the matching KOKKOSFFT_COMPILE_LANGUAGE.
 # \param target[in] Target to configure
-function(kokkosfft_set_architectures target)
+function(kokkosfft_set_language kokkosfft_target)
   if(NOT KOKKOSFFT_COMPILE_LANGUAGE STREQUAL CXX)
+    get_target_property(TARGET_SOURCES ${kokkosfft_target} SOURCES)
+    set_source_files_properties(${TARGET_SOURCES} PROPERTIES LANGUAGE ${KOKKOSFFT_COMPILE_LANGUAGE})
     set_property(
-      TARGET ${target} PROPERTY ${KOKKOSFFT_COMPILE_LANGUAGE}_ARCHITECTURES
-                                ${KOKKOSFFT_${KOKKOSFFT_COMPILE_LANGUAGE}_ARCHITECTURES}
+      TARGET ${kokkosfft_target} PROPERTY ${KOKKOSFFT_COMPILE_LANGUAGE}_ARCHITECTURES
+                                          ${KOKKOSFFT_${KOKKOSFFT_COMPILE_LANGUAGE}_ARCHITECTURES}
     )
-    if(KOKKOSFFT_COMPILE_LANGUAGE STREQUAL CUDA AND Kokkos_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE)
-      set_property(TARGET ${target} PROPERTY CUDA_SEPARABLE_COMPILATION ON)
-    endif()
-  else()
-    return()
-  endif()
-endfunction()
-
-# \brief Set the sources languages to KOKKOSFFT_COMPILE_LANGUAGE
-# \param target[in] Target to configure
-function(kokkosfft_set_language)
-  if(${ARGC} LESS 1)
-    message(WARNING "kokkosfft_set_language() need at least one argument")
-  endif()
-  if(NOT KOKKOSFFT_COMPILE_LANGUAGE STREQUAL CXX)
-    set_source_files_properties(${ARGV} PROPERTIES LANGUAGE ${KOKKOSFFT_COMPILE_LANGUAGE})
-  else()
-    return()
   endif()
 endfunction()
