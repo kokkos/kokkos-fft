@@ -6,9 +6,7 @@ function(kokkosfft_add_example EXAMPLE_NAME)
   cmake_parse_arguments(PARSE_ARGV 1 PARSE "" "" "SOURCES")
 
   add_executable(${EXAMPLE_NAME} ${PARSE_SOURCES})
-
-  kokkosfft_set_language(${PARSE_SOURCES})
-  kokkosfft_set_architectures(${EXAMPLE_NAME})
+  kokkosfft_set_language(${EXAMPLE_NAME})
   target_link_libraries(${EXAMPLE_NAME} PUBLIC KokkosFFT::fft)
 endfunction()
 

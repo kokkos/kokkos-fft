@@ -2,10 +2,7 @@
 #
 # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
-# Enable GoogleTest
-include(GoogleTest)
-
-set(UNIT_TEST_DISTRIBUTED_SOURCES
+set(SOURCES
     Test_Main.cpp
     Test_TplComm.cpp
     Test_MPI_Types.cpp
@@ -21,10 +18,12 @@ set(UNIT_TEST_DISTRIBUTED_SOURCES
     Test_TransBlock.cpp
 )
 
-add_executable(unit-tests-mpi ${UNIT_TEST_DISTRIBUTED_SOURCES})
-kokkosfft_set_language(${UNIT_TEST_DISTRIBUTED_SOURCES})
-kokkosfft_set_architectures(unit-tests-mpi)
+add_executable(unit-tests-mpi ${SOURCES})
+kokkosfft_set_language(unit-tests-mpi)
 target_link_libraries(unit-tests-mpi PUBLIC GTest::gtest GTest::gmock KokkosFFT::distributed)
+
+# Enable GoogleTest
+include(GoogleTest)
 
 # This is the core instruction for CTest.
 # NAME: A descriptive name for the test.

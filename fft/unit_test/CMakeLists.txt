@@ -2,30 +2,22 @@
 #
 # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
-# Enable GoogleTest
-include(GoogleTest)
-
-set(UNIT_TEST_CORE_SOURCES Test_Main.cpp Test_Plans.cpp Test_Transform.cpp)
-
-add_executable(unit-tests-kokkos-fft-core ${UNIT_TEST_CORE_SOURCES})
-kokkosfft_set_language(${UNIT_TEST_CORE_SOURCES})
-kokkosfft_set_architectures(unit-tests-kokkos-fft-core)
+add_executable(unit-tests-kokkos-fft-core Test_Main.cpp Test_Plans.cpp Test_Transform.cpp)
+kokkosfft_set_language(unit-tests-kokkos-fft-core)
 target_link_libraries(unit-tests-kokkos-fft-core PUBLIC KokkosFFT::fft GTest::gtest)
 
-set(UNIT_TEST_DYN_SOURCES Test_Main.cpp Test_DynPlans.cpp)
-
-add_executable(unit-tests-kokkos-dynfft ${UNIT_TEST_DYN_SOURCES})
-kokkosfft_set_language(${UNIT_TEST_DYN_SOURCES})
-kokkosfft_set_architectures(unit-tests-kokkos-dynfft)
-target_link_libraries(unit-tests-kokkos-dynfft PUBLIC KokkosFFT::fft GTest::gtest)
-
+# Enable GoogleTest
+include(GoogleTest)
 gtest_discover_tests(unit-tests-kokkos-fft-core PROPERTIES DISCOVERY_TIMEOUT 600 DISCOVERY_MODE PRE_TEST)
+
+add_executable(unit-tests-kokkos-dynfft Test_Main.cpp Test_DynPlans.cpp)
+kokkosfft_set_language(unit-tests-kokkos-dynfft)
+target_link_libraries(unit-tests-kokkos-dynfft PUBLIC KokkosFFT::fft GTest::gtest)
 gtest_discover_tests(unit-tests-kokkos-dynfft PROPERTIES DISCOVERY_TIMEOUT 600 DISCOVERY_MODE PRE_TEST)
 
 if(KokkosFFT_ENABLE_CALLBACK)
   add_executable(unit-tests-kokkos-fft-callback Test_Main.cpp Test_Callback.cpp)
-  kokkosfft_set_language(Test_Main.cpp Test_Callback.cpp)
-  kokkosfft_set_architectures(unit-tests-kokkos-fft-callback)
+  kokkosfft_set_language(unit-tests-kokkos-fft-callback)
   target_link_libraries(
     unit-tests-kokkos-fft-callback PUBLIC KokkosFFT::fft KokkosFFT::testing GTest::gtest GTest::gmock
   )
