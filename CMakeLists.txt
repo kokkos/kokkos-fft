@@ -69,10 +69,10 @@ elseif(Kokkos_ENABLE_COMPILE_AS_CMAKE_LANGUAGE)
   # In-tree Kokkos, Kokkos variables are not visible from here
   if(Kokkos_ENABLE_CUDA)
     set(KOKKOSFFT_COMPILE_LANGUAGE CUDA)
-    get_target_property(KOKKOSFFT_CUDA_ARCHITECTURES kokkoscore CUDA_ARCHITECTURES)
+    get_target_property(KOKKOSFFT_CUDA_ARCHITECTURES Kokkos::kokkoscore CUDA_ARCHITECTURES)
   elseif(Kokkos_ENABLE_HIP)
     set(KOKKOSFFT_COMPILE_LANGUAGE HIP)
-    get_target_property(KOKKOSFFT_HIP_ARCHITECTURES kokkoscore HIP_ARCHITECTURES)
+    get_target_property(KOKKOSFFT_HIP_ARCHITECTURES Kokkos::kokkoscore HIP_ARCHITECTURES)
   endif()
 endif()
 
