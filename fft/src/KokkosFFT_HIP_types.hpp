@@ -115,10 +115,12 @@ inline constexpr bool is_load_callback_v =
 struct ScopedHIPfftPlan {
  private:
   hipfftHandle m_plan;
-  // hipFFT keeps the callbacks/callbackData arrays passed to
-  // hipfftXtSetCallback by pointer instead of copying them (unlike cuFFT),
-  // and re-reads them on every later set_callback() call, so they must
-  // outlive set_callback(). These members are those one-element arrays.
+  // hipfftXtSetCallback takes void** callbacks/callbackData: arrays with one
+  // entry per device. We only support a single device, so each void* member
+  // below is passed (by address) as an array of length 1. Unlike cuFFT,
+  // hipFFT keeps those void** pointers instead of copying the values, and
+  // re-reads them on every later hipfftXtSetCallback call, so what they
+  // point to must outlive set_callback(): hence members, not locals.
   void *m_load_callback         = nullptr;
   void *m_store_callback        = nullptr;
   void *m_load_callback_params  = nullptr;
@@ -258,10 +260,12 @@ struct ScopedHIPfftDynPlan {
  private:
   hipfftHandle m_plan;
   std::size_t m_workspace_size;
-  // hipFFT keeps the callbacks/callbackData arrays passed to
-  // hipfftXtSetCallback by pointer instead of copying them (unlike cuFFT),
-  // and re-reads them on every later set_callback() call, so they must
-  // outlive set_callback(). These members are those one-element arrays.
+  // hipfftXtSetCallback takes void** callbacks/callbackData: arrays with one
+  // entry per device. We only support a single device, so each void* member
+  // below is passed (by address) as an array of length 1. Unlike cuFFT,
+  // hipFFT keeps those void** pointers instead of copying the values, and
+  // re-reads them on every later hipfftXtSetCallback call, so what they
+  // point to must outlive set_callback(): hence members, not locals.
   void *m_load_callback         = nullptr;
   void *m_store_callback        = nullptr;
   void *m_load_callback_params  = nullptr;

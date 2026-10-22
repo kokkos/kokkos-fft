@@ -87,6 +87,14 @@ if(KokkosFFT_ENABLE_CUFFTMP AND NOT (KokkosFFT_ENABLE_DISTRIBUTED AND KokkosFFT_
   )
 endif()
 
+if(KokkosFFT_ENABLE_CALLBACK AND KokkosFFT_ENABLE_ROCFFT)
+  message(
+    FATAL_ERROR
+      "Error: KokkosFFT_ENABLE_CALLBACK is not supported with the rocFFT backend (KokkosFFT_ENABLE_ROCFFT) yet. "
+      "Use the hipFFT backend (KokkosFFT_ENABLE_HIPFFT, the default for HIP) or disable KokkosFFT_ENABLE_CALLBACK"
+  )
+endif()
+
 set(KOKKOSFFT_ENABLE_CALLBACK ${KokkosFFT_ENABLE_CALLBACK})
 
 # Check if multiple device tpls are not enabled
