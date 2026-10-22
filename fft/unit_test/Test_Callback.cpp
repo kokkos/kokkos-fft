@@ -27,9 +27,10 @@ struct Params {
 
 // Templated on T (float or double) so the zero-padding logic is written
 // once rather than duplicated per precision. kokkosfftCallbackLoadR/LoadD
-// are backend-agnostic aliases (KokkosFFT_default_types.hpp) resolving to
-// cufftCallbackLoadR/D or hipfftCallbackLoadR/D depending on which backend
-// is active, so this stays portable without naming a vendor type directly.
+// are backend-agnostic aliases (defined per backend in KokkosFFT_Cuda_types.hpp
+// and KokkosFFT_HIP_types.hpp) resolving to cufftCallbackLoadR/D or
+// hipfftCallbackLoadR/D depending on which backend is active, so this stays
+// portable without naming a vendor type directly.
 // A __device__ global itself can't be templated, so one concrete global per
 // precision below just instantiates this shared function template.
 template <typename T>

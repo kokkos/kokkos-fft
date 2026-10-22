@@ -16,6 +16,25 @@
 #include "KokkosFFT_FFTW_Types.hpp"
 #endif
 
+#if defined(KOKKOSFFT_ENABLE_CALLBACK)
+#include <hip/hip_runtime_api.h>
+#include <hipfft/hipfftXt.h>
+
+// Backend-agnostic aliases for the vendor callback function pointer types.
+// Users writing a callback function or __device__ global should use these
+// instead of naming hipfftCallbackLoadR/etc. directly, so the same callback
+// source stays portable across backends.
+using kokkosfftCallbackLoadR = hipfftCallbackLoadR;
+using kokkosfftCallbackLoadD = hipfftCallbackLoadD;
+using kokkosfftCallbackLoadC = hipfftCallbackLoadC;
+using kokkosfftCallbackLoadZ = hipfftCallbackLoadZ;
+
+using kokkosfftCallbackStoreR = hipfftCallbackStoreR;
+using kokkosfftCallbackStoreD = hipfftCallbackStoreD;
+using kokkosfftCallbackStoreC = hipfftCallbackStoreC;
+using kokkosfftCallbackStoreZ = hipfftCallbackStoreZ;
+#endif
+
 // Check the size of complex type
 static_assert(sizeof(hipfftComplex) == sizeof(Kokkos::complex<float>));
 static_assert(alignof(hipfftComplex) <= alignof(Kokkos::complex<float>));
@@ -27,10 +46,83 @@ namespace KokkosFFT {
 namespace Impl {
 using FFTDirectionType = int;
 
+#if defined(KOKKOSFFT_ENABLE_CALLBACK)
+// hipfftXtCallbackType has distinct enum values for single vs double
+// precision (HIPFFT_CB_LD_REAL vs HIPFFT_CB_LD_REAL_DOUBLE, etc.), so each
+// vendor callback typedef maps to its own value.
+//
+// Primary template intentionally left undefined: instantiating it with an
+// unsupported CallbackSymbol fails to compile with that type named in the
+// error, instead of silently falling through.
+template <typename CallbackSymbol>
+struct deduce_callback_type;
+
+template <>
+struct deduce_callback_type<hipfftCallbackLoadR> {
+  static constexpr hipfftXtCallbackType value = HIPFFT_CB_LD_REAL;
+  static constexpr bool is_load               = true;
+};
+template <>
+struct deduce_callback_type<hipfftCallbackLoadD> {
+  static constexpr hipfftXtCallbackType value = HIPFFT_CB_LD_REAL_DOUBLE;
+  static constexpr bool is_load               = true;
+};
+template <>
+struct deduce_callback_type<hipfftCallbackLoadC> {
+  static constexpr hipfftXtCallbackType value = HIPFFT_CB_LD_COMPLEX;
+  static constexpr bool is_load               = true;
+};
+template <>
+struct deduce_callback_type<hipfftCallbackLoadZ> {
+  static constexpr hipfftXtCallbackType value = HIPFFT_CB_LD_COMPLEX_DOUBLE;
+  static constexpr bool is_load               = true;
+};
+template <>
+struct deduce_callback_type<hipfftCallbackStoreR> {
+  static constexpr hipfftXtCallbackType value = HIPFFT_CB_ST_REAL;
+  static constexpr bool is_load               = false;
+};
+template <>
+struct deduce_callback_type<hipfftCallbackStoreD> {
+  static constexpr hipfftXtCallbackType value = HIPFFT_CB_ST_REAL_DOUBLE;
+  static constexpr bool is_load               = false;
+};
+template <>
+struct deduce_callback_type<hipfftCallbackStoreC> {
+  static constexpr hipfftXtCallbackType value = HIPFFT_CB_ST_COMPLEX;
+  static constexpr bool is_load               = false;
+};
+template <>
+struct deduce_callback_type<hipfftCallbackStoreZ> {
+  static constexpr hipfftXtCallbackType value = HIPFFT_CB_ST_COMPLEX_DOUBLE;
+  static constexpr bool is_load               = false;
+};
+
+/// \brief Helper to deduce the hipfftXtCallbackType enum value for a vendor
+/// callback symbol typedef (e.g. hipfftCallbackLoadR)
+template <typename CallbackSymbol>
+inline constexpr hipfftXtCallbackType deduce_callback_type_v =
+    deduce_callback_type<CallbackSymbol>::value;
+
+/// \brief Helper to check whether a vendor callback symbol typedef is a load
+/// callback (true) or a store callback (false)
+template <typename CallbackSymbol>
+inline constexpr bool is_load_callback_v =
+    deduce_callback_type<CallbackSymbol>::is_load;
+#endif
+
 /// \brief A class that wraps hipfft for RAII
 struct ScopedHIPfftPlan {
  private:
   hipfftHandle m_plan;
+  // hipFFT keeps the callbacks/callbackData arrays passed to
+  // hipfftXtSetCallback by pointer instead of copying them (unlike cuFFT),
+  // and re-reads them on every later set_callback() call, so they must
+  // outlive set_callback(). These members are those one-element arrays.
+  void *m_load_callback         = nullptr;
+  void *m_store_callback        = nullptr;
+  void *m_load_callback_params  = nullptr;
+  void *m_store_callback_params = nullptr;
 
  public:
   ScopedHIPfftPlan(int nx, hipfftType type, int batch) {
@@ -58,6 +150,19 @@ struct ScopedHIPfftPlan {
         "KokkosFFT::cleanup_plan[TPL_hipfft]");
     hipfftResult hipfft_rt = hipfftDestroy(m_plan);
     if (hipfft_rt != HIPFFT_SUCCESS) Kokkos::abort("hipfftDestroy failed");
+
+    // hipFFT only borrows the callerInfo pointers set in set_callback() for
+    // the lifetime of the plan; it never frees them itself. This class owns
+    // those allocations, so free them here now that the plan (and anything
+    // that might still be reading them) is gone.
+    if (m_load_callback_params != nullptr) {
+      hipError_t hip_rt = hipFree(m_load_callback_params);
+      if (hip_rt != hipSuccess) Kokkos::abort("hipFree failed");
+    }
+    if (m_store_callback_params != nullptr) {
+      hipError_t hip_rt = hipFree(m_store_callback_params);
+      if (hip_rt != hipSuccess) Kokkos::abort("hipFree failed");
+    }
   }
 
   ScopedHIPfftPlan()                                    = delete;
@@ -71,6 +176,81 @@ struct ScopedHIPfftPlan {
     KOKKOSFFT_CHECK_HIPFFT_CALL(
         hipfftSetStream(m_plan, exec_space.hip_stream()));
   }
+
+  /// \brief Attach a load or store callback to this plan, deduced from
+  /// CallbackSymbolType (the vendor typedef, e.g. hipfftCallbackLoadR vs
+  /// hipfftCallbackStoreR, already encodes which one it is).
+  ///
+  /// \tparam CallbackSymbolType The type of the callback symbol
+  /// \tparam CallbackParamsType The type of the caller-provided params
+  /// \param[in] d_callback_symbol The __device__ global holding the callback
+  /// function pointer
+  /// \param[in] params The callback parameters. Copied into a device allocation
+  /// owned by this ScopedHIPfftPlan, freed in its destructor -- the caller
+  /// never has to manage that memory themselves.
+  ///
+  /// \note When KOKKOSFFT_ENABLE_CALLBACK is off, calling this method fails
+  /// to compile (static_assert) rather than silently doing nothing.
+  ///
+  /// \note \p params must always be a real struct, even if the callback
+  /// itself never reads it. Passing nullptr fails to compile (static_assert)
+  /// rather than silently producing a non-null callerInfo on the device
+  /// that points to zeroed memory instead of a real struct.
+  template <typename CallbackSymbolType, typename CallbackParamsType>
+  void set_callback(const CallbackSymbolType &d_callback_symbol,
+                    const CallbackParamsType &params) {
+#if defined(KOKKOSFFT_ENABLE_CALLBACK)
+    static_assert(!std::is_null_pointer_v<CallbackParamsType>,
+                  "set_callback() requires a real params struct -- passing "
+                  "nullptr does not produce a null callerInfo on the "
+                  "device, it points to zeroed memory instead, which is "
+                  "almost certainly not what you want");
+    CallbackSymbolType callback{};
+    // HIP_SYMBOL is a no-op on the AMD backend, but keeps this portable if
+    // HIP is ever compiled through hip-nvcc.
+    KOKKOSFFT_CHECK_HIP_CALL(hipMemcpyFromSymbol(
+        &callback, HIP_SYMBOL(d_callback_symbol), sizeof(callback)));
+
+    constexpr hipfftXtCallbackType cb_type =
+        deduce_callback_type_v<CallbackSymbolType>;
+
+    // Load and store callbacks each get their own device buffer -- the
+    // caller-info is independent per callback type, and each may only be
+    // set once per plan.
+    void **callback_slot;
+    void **callback_params_slot;
+    if constexpr (is_load_callback_v<CallbackSymbolType>) {
+      KOKKOSFFT_THROW_IF(
+          m_load_callback_params != nullptr,
+          "set_callback() may only set a load callback once per plan");
+      callback_slot        = &m_load_callback;
+      callback_params_slot = &m_load_callback_params;
+    } else {
+      KOKKOSFFT_THROW_IF(
+          m_store_callback_params != nullptr,
+          "set_callback() may only set a store callback once per plan");
+      callback_slot        = &m_store_callback;
+      callback_params_slot = &m_store_callback_params;
+    }
+
+    KOKKOSFFT_CHECK_HIP_CALL(
+        hipMalloc(callback_params_slot, sizeof(CallbackParamsType)));
+    KOKKOSFFT_CHECK_HIP_CALL(hipMemcpy(*callback_params_slot, &params,
+                                       sizeof(CallbackParamsType),
+                                       hipMemcpyHostToDevice));
+
+    // hipFFT stores these two void** arrays as-is rather than copying their
+    // contents, so pass the plan's own members (stable for the plan's
+    // lifetime), never addresses of locals.
+    *callback_slot = reinterpret_cast<void *>(callback);
+    KOKKOSFFT_CHECK_HIPFFT_CALL(hipfftXtSetCallback(
+        m_plan, callback_slot, cb_type, callback_params_slot));
+#else
+    static_assert(std::is_void_v<CallbackSymbolType>,
+                  "set_callback() requires KokkosFFT to be built with "
+                  "-DKokkosFFT_ENABLE_CALLBACK=ON");
+#endif
+  }
 };
 
 /// \brief A class that wraps hipfft for RAII
@@ -78,6 +258,14 @@ struct ScopedHIPfftDynPlan {
  private:
   hipfftHandle m_plan;
   std::size_t m_workspace_size;
+  // hipFFT keeps the callbacks/callbackData arrays passed to
+  // hipfftXtSetCallback by pointer instead of copying them (unlike cuFFT),
+  // and re-reads them on every later set_callback() call, so they must
+  // outlive set_callback(). These members are those one-element arrays.
+  void *m_load_callback         = nullptr;
+  void *m_store_callback        = nullptr;
+  void *m_load_callback_params  = nullptr;
+  void *m_store_callback_params = nullptr;
 
  public:
   ScopedHIPfftDynPlan(int nx, hipfftType type, int batch) {
@@ -120,6 +308,19 @@ struct ScopedHIPfftDynPlan {
         "KokkosFFT::cleanup_plan[TPL_hipfft]");
     hipfftResult hipfft_rt = hipfftDestroy(m_plan);
     if (hipfft_rt != HIPFFT_SUCCESS) Kokkos::abort("hipfftDestroy failed");
+
+    // hipFFT only borrows the callerInfo pointers set in set_callback() for
+    // the lifetime of the plan; it never frees them itself. This class owns
+    // those allocations, so free them here now that the plan (and anything
+    // that might still be reading them) is gone.
+    if (m_load_callback_params != nullptr) {
+      hipError_t hip_rt = hipFree(m_load_callback_params);
+      if (hip_rt != hipSuccess) Kokkos::abort("hipFree failed");
+    }
+    if (m_store_callback_params != nullptr) {
+      hipError_t hip_rt = hipFree(m_store_callback_params);
+      if (hip_rt != hipSuccess) Kokkos::abort("hipFree failed");
+    }
   }
 
   ScopedHIPfftDynPlan()                                       = delete;
@@ -150,6 +351,81 @@ struct ScopedHIPfftDynPlan {
   void commit(const Kokkos::HIP &exec_space) {
     KOKKOSFFT_CHECK_HIPFFT_CALL(
         hipfftSetStream(m_plan, exec_space.hip_stream()));
+  }
+
+  /// \brief Attach a load or store callback to this plan, deduced from
+  /// CallbackSymbolType (the vendor typedef, e.g. hipfftCallbackLoadR vs
+  /// hipfftCallbackStoreR, already encodes which one it is).
+  ///
+  /// \tparam CallbackSymbolType The type of the callback symbol
+  /// \tparam CallbackParamsType The type of the caller-provided params
+  /// \param[in] d_callback_symbol The __device__ global holding the callback
+  /// function pointer
+  /// \param[in] params The callback parameters. Copied into a device allocation
+  /// owned by this ScopedHIPfftDynPlan, freed in its destructor -- the caller
+  /// never has to manage that memory themselves.
+  ///
+  /// \note When KOKKOSFFT_ENABLE_CALLBACK is off, calling this method fails
+  /// to compile (static_assert) rather than silently doing nothing.
+  ///
+  /// \note \p params must always be a real struct, even if the callback
+  /// itself never reads it. Passing nullptr fails to compile (static_assert)
+  /// rather than silently producing a non-null callerInfo on the device
+  /// that points to zeroed memory instead of a real struct.
+  template <typename CallbackSymbolType, typename CallbackParamsType>
+  void set_callback(const CallbackSymbolType &d_callback_symbol,
+                    const CallbackParamsType &params) {
+#if defined(KOKKOSFFT_ENABLE_CALLBACK)
+    static_assert(!std::is_null_pointer_v<CallbackParamsType>,
+                  "set_callback() requires a real params struct -- passing "
+                  "nullptr does not produce a null callerInfo on the "
+                  "device, it points to zeroed memory instead, which is "
+                  "almost certainly not what you want");
+    CallbackSymbolType callback{};
+    // HIP_SYMBOL is a no-op on the AMD backend, but keeps this portable if
+    // HIP is ever compiled through hip-nvcc.
+    KOKKOSFFT_CHECK_HIP_CALL(hipMemcpyFromSymbol(
+        &callback, HIP_SYMBOL(d_callback_symbol), sizeof(callback)));
+
+    constexpr hipfftXtCallbackType cb_type =
+        deduce_callback_type_v<CallbackSymbolType>;
+
+    // Load and store callbacks each get their own device buffer -- the
+    // caller-info is independent per callback type, and each may only be
+    // set once per plan.
+    void **callback_slot;
+    void **callback_params_slot;
+    if constexpr (is_load_callback_v<CallbackSymbolType>) {
+      KOKKOSFFT_THROW_IF(
+          m_load_callback_params != nullptr,
+          "set_callback() may only set a load callback once per plan");
+      callback_slot        = &m_load_callback;
+      callback_params_slot = &m_load_callback_params;
+    } else {
+      KOKKOSFFT_THROW_IF(
+          m_store_callback_params != nullptr,
+          "set_callback() may only set a store callback once per plan");
+      callback_slot        = &m_store_callback;
+      callback_params_slot = &m_store_callback_params;
+    }
+
+    KOKKOSFFT_CHECK_HIP_CALL(
+        hipMalloc(callback_params_slot, sizeof(CallbackParamsType)));
+    KOKKOSFFT_CHECK_HIP_CALL(hipMemcpy(*callback_params_slot, &params,
+                                       sizeof(CallbackParamsType),
+                                       hipMemcpyHostToDevice));
+
+    // hipFFT stores these two void** arrays as-is rather than copying their
+    // contents, so pass the plan's own members (stable for the plan's
+    // lifetime), never addresses of locals.
+    *callback_slot = reinterpret_cast<void *>(callback);
+    KOKKOSFFT_CHECK_HIPFFT_CALL(hipfftXtSetCallback(
+        m_plan, callback_slot, cb_type, callback_params_slot));
+#else
+    static_assert(std::is_void_v<CallbackSymbolType>,
+                  "set_callback() requires KokkosFFT to be built with "
+                  "-DKokkosFFT_ENABLE_CALLBACK=ON");
+#endif
   }
 };
 
