@@ -37,7 +37,7 @@ template <typename T>
 KOKKOS_IMPL_DEVICE_FUNCTION T zero_pad_load_callback(void* dataIn,
                                                      size_t offset,
                                                      void* callerInfo,
-                                                     void* sharedPointer) {
+                                                     void* /*sharedPointer*/) {
   auto* callback_params = static_cast<Params*>(callerInfo);
   const T* in_data      = static_cast<const T*>(dataIn);
 
@@ -65,7 +65,7 @@ KOKKOS_IMPL_DEVICE_FUNCTION kokkosfftCallbackLoadD d_load_callback_symbol_fp64 =
 template <typename T>
 KOKKOS_IMPL_DEVICE_FUNCTION void store_callback(void* dataOut, size_t offset,
                                                 T element, void* callerInfo,
-                                                void* sharedPointer) {
+                                                void* /*sharedPointer*/) {
   auto* callback_params = static_cast<Params*>(callerInfo);
   T* out_data           = static_cast<T*>(dataOut);
 
@@ -93,7 +93,7 @@ struct ScaleParams {
 template <typename T>
 KOKKOS_IMPL_DEVICE_FUNCTION T scale_load_callback(void* dataIn, size_t offset,
                                                   void* callerInfo,
-                                                  void* sharedPointer) {
+                                                  void* /*sharedPointer*/) {
   auto* p = static_cast<ScaleParams*>(callerInfo);
   return static_cast<const T*>(dataIn)[offset] * static_cast<T>(p->scale);
 }
@@ -107,7 +107,7 @@ template <typename T>
 KOKKOS_IMPL_DEVICE_FUNCTION void scale_store_callback(void* dataOut,
                                                       size_t offset, T element,
                                                       void* callerInfo,
-                                                      void* sharedPointer) {
+                                                      void* /*sharedPointer*/) {
   auto* p = static_cast<ScaleParams*>(callerInfo);
   element.x *= p->scale;
   element.y *= p->scale;
