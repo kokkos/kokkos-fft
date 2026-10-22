@@ -310,34 +310,77 @@ auto divide_by_topology(const ExtentsType& extents,
   return result;
 }
 
-// Process conditions from right to left.
-// Return the number of conditions still unsatisfied.
-template <typename iType, std::size_t N>
-std::size_t update_condition(const std::array<std::size_t, N>& temp,
-                             const std::vector<iType>& conditions,
-                             std::size_t remaining) {
-  while (remaining > 0 && temp[conditions[remaining - 1]] == std::size_t{1}) {
-    --remaining;
+/// \brief Progress of the FFT axes along a path of topologies.
+/// The axes are processed from right to left: axes.back() must become
+/// undistributed (1) first, then the one before it, and so on. The progress is
+/// described by a single number, remaining: axes[0, remaining) are still
+/// distributed and axes[remaining, axes.size()) have been consumed. The axes
+/// consumed on reaching a state are derived from the remaining of consecutive
+/// states, so they are never stored separately.
+///
+/// \tparam iType The integer type used for the axes
+template <typename iType>
+class FFTAxesProgress {
+  const std::vector<iType>& m_axes;
+
+ public:
+  /// \param[in] axes The FFT axes. They must outlive this object.
+  explicit FFTAxesProgress(const std::vector<iType>& axes) : m_axes(axes) {}
+
+  /// \brief The number of axes still distributed after reaching a topology
+  /// \param[in] topology The topology reached
+  /// \param[in] remaining The number of axes still distributed before
+  /// \return The number of axes still distributed after
+  template <std::size_t DIM>
+  std::size_t advance(const std::array<std::size_t, DIM>& topology,
+                      std::size_t remaining) const {
+    while (remaining > 0 && topology[m_axes[remaining - 1]] == std::size_t{1}) {
+      --remaining;
+    }
+    return remaining;
   }
 
-  return remaining;
-}
+  /// \brief The number of axes still distributed on the input topology
+  /// \param[in] topology The input topology
+  template <std::size_t DIM>
+  std::size_t initial(const std::array<std::size_t, DIM>& topology) const {
+    return advance(topology, m_axes.size());
+  }
+
+  /// \brief Whether no axis has been consumed, i.e. no FFT has been performed
+  bool none_consumed(std::size_t remaining) const {
+    return remaining == m_axes.size();
+  }
+
+  /// \brief The FFT axes that become ready on each state of a path, in the
+  /// original order. The first state consumes the axes already local on the
+  /// input topology.
+  /// \tparam StateType The type of the states, with a member m_remaining
+  /// \param[in] path The states from the input to the output topology
+  /// \return One vector of axes per state
+  template <typename StateType>
+  std::vector<std::vector<iType>> consumed_along(
+      const std::vector<StateType>& path) const {
+    std::vector<std::vector<iType>> all_axes;
+    std::size_t prev_remaining = m_axes.size();
+    for (const auto& state : path) {
+      all_axes.emplace_back(m_axes.begin() + state.m_remaining,
+                            m_axes.begin() + prev_remaining);
+      prev_remaining = state.m_remaining;
+    }
+    return all_axes;
+  }
+};
 
 struct SlabState {
   std::size_t m_pos;
   std::size_t m_p;
+
+  // The number of FFT axes still distributed (see FFTAxesProgress)
   std::size_t m_remaining;
 
-  // FFT axes that become ready on reaching this state (in the original order).
-  // Not part of the identity of a state, i.e. ignored by == and SlabStateHash.
-  std::vector<std::size_t> m_consumed_axes;
-
-  SlabState(std::size_t pos, std::size_t p, std::size_t remaining,
-            std::vector<std::size_t> consumed_axes = {})
-      : m_pos(pos),
-        m_p(p),
-        m_remaining(remaining),
-        m_consumed_axes(std::move(consumed_axes)) {}
+  SlabState(std::size_t pos, std::size_t p, std::size_t remaining)
+      : m_pos(pos), m_p(p), m_remaining(remaining) {}
 
   bool operator==(const SlabState& other) const {
     return m_pos == other.m_pos && m_remaining == other.m_remaining;
@@ -403,11 +446,7 @@ std::vector<SlabState> find_minimal_slab_path(
     const std::array<std::size_t, DIM>& in_topology,
     const std::array<std::size_t, DIM>& out_topology,
     const std::vector<iType>& axes) {
-  // Axes in [remaining, prev_remaining) are consumed by a transition.
-  auto consumed_axes = [&](std::size_t prev_remaining, std::size_t remaining) {
-    return std::vector<std::size_t>(axes.begin() + remaining,
-                                    axes.begin() + prev_remaining);
-  };
+  const FFTAxesProgress<iType> progress(axes);
 
   auto non_one_pos = [](const std::array<std::size_t, DIM>& topology) {
     return static_cast<std::size_t>(
@@ -427,11 +466,8 @@ std::vector<SlabState> find_minimal_slab_path(
   };
 
   // axes already satisfied by the input are removed first.
-  const std::size_t initial_remaining =
-      update_condition(in_topology, axes, axes.size());
-
-  const SlabState in{non_one_pos(in_topology), p, initial_remaining,
-                     consumed_axes(axes.size(), initial_remaining)};
+  const SlabState in{non_one_pos(in_topology), p,
+                     progress.initial(in_topology)};
   const SlabState out{non_one_pos(out_topology), p, 0};
 
   if (in == out) return {in};
@@ -445,30 +481,25 @@ std::vector<SlabState> find_minimal_slab_path(
 
   bool found = false;
 
-  // The reached output state, which carries its consumed axes unlike out.
-  SlabState last = in;
-
   while (!queue.empty()) {
     const SlabState current = queue.front();
     queue.pop();
     if (current == out) {
       found = true;
-      last  = current;
       break;
     }
 
     // No FFT has been performed until the first axis is consumed.
-    const auto& extents =
-        current.m_remaining == axes.size() ? gin_extents : gout_extents;
+    const auto& extents = progress.none_consumed(current.m_remaining)
+                              ? gin_extents
+                              : gout_extents;
 
     std::vector<SlabState> candidates;
     for (std::size_t pos = 0; pos < DIM; ++pos) {
       if (pos == current.m_pos) continue;
 
-      const std::size_t next_remaining =
-          update_condition(make_array(pos), axes, current.m_remaining);
-      const SlabState next{pos, p, next_remaining,
-                           consumed_axes(current.m_remaining, next_remaining)};
+      const SlabState next{
+          pos, p, progress.advance(make_array(pos), current.m_remaining)};
 
       // The output topology is already validated by the caller.
       if (!(next == out) && extents[pos] / p == 0) continue;
@@ -496,7 +527,7 @@ std::vector<SlabState> find_minimal_slab_path(
   // Reconstruct the shortest path.
   std::vector<SlabState> states;
 
-  for (SlabState current = last;; current = parent.at(current)) {
+  for (SlabState current = out;; current = parent.at(current)) {
     states.push_back(current);
     if (current == in) break;
   }
@@ -568,17 +599,16 @@ auto get_all_slab_topologies(const std::array<std::size_t, DIM>& gin_extents,
   KOKKOSFFT_THROW_IF(in_size == 0 || out_size == 0,
                      "Input and output extents must not include 0.");
 
-  auto all_states =
-      find_minimal_slab_path(gin_extents, gout_extents, in_topology,
-                             out_topology, KokkosFFT::Impl::to_vector(axes));
+  const auto axes_vec = KokkosFFT::Impl::to_vector(axes);
+
+  auto all_states = find_minimal_slab_path(gin_extents, gout_extents,
+                                           in_topology, out_topology, axes_vec);
 
   std::vector<std::array<std::size_t, DIM>> all_topologies;
-  std::vector<std::vector<iType>> all_axes;
   for (const auto& state : all_states) {
     all_topologies.push_back(state.template topology<DIM>());
-    all_axes.emplace_back(state.m_consumed_axes.begin(),
-                          state.m_consumed_axes.end());
   }
+  auto all_axes = FFTAxesProgress<iType>(axes_vec).consumed_along(all_states);
 
   return std::make_tuple(all_topologies, all_axes);
 }
