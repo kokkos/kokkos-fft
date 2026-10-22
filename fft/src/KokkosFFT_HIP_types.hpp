@@ -121,10 +121,10 @@ struct ScopedHIPfftPlan {
   // hipFFT keeps those void** pointers instead of copying the values, and
   // re-reads them on every later hipfftXtSetCallback call, so what they
   // point to must outlive set_callback(): hence members, not locals.
-  void *m_load_callback         = nullptr;
-  void *m_store_callback        = nullptr;
-  void *m_load_callback_params  = nullptr;
-  void *m_store_callback_params = nullptr;
+  [[maybe_unused]] void *m_load_callback  = nullptr;
+  [[maybe_unused]] void *m_store_callback = nullptr;
+  void *m_load_callback_params            = nullptr;
+  void *m_store_callback_params           = nullptr;
 
  public:
   ScopedHIPfftPlan(int nx, hipfftType type, int batch) {
@@ -199,8 +199,9 @@ struct ScopedHIPfftPlan {
   /// rather than silently producing a non-null callerInfo on the device
   /// that points to zeroed memory instead of a real struct.
   template <typename CallbackSymbolType, typename CallbackParamsType>
-  void set_callback(const CallbackSymbolType &d_callback_symbol,
-                    const CallbackParamsType &params) {
+  void set_callback(
+      [[maybe_unused]] const CallbackSymbolType &d_callback_symbol,
+      [[maybe_unused]] const CallbackParamsType &params) {
 #if defined(KOKKOSFFT_ENABLE_CALLBACK)
     static_assert(!std::is_null_pointer_v<CallbackParamsType>,
                   "set_callback() requires a real params struct -- passing "
@@ -266,10 +267,10 @@ struct ScopedHIPfftDynPlan {
   // hipFFT keeps those void** pointers instead of copying the values, and
   // re-reads them on every later hipfftXtSetCallback call, so what they
   // point to must outlive set_callback(): hence members, not locals.
-  void *m_load_callback         = nullptr;
-  void *m_store_callback        = nullptr;
-  void *m_load_callback_params  = nullptr;
-  void *m_store_callback_params = nullptr;
+  [[maybe_unused]] void *m_load_callback  = nullptr;
+  [[maybe_unused]] void *m_store_callback = nullptr;
+  void *m_load_callback_params            = nullptr;
+  void *m_store_callback_params           = nullptr;
 
  public:
   ScopedHIPfftDynPlan(int nx, hipfftType type, int batch) {
@@ -377,8 +378,9 @@ struct ScopedHIPfftDynPlan {
   /// rather than silently producing a non-null callerInfo on the device
   /// that points to zeroed memory instead of a real struct.
   template <typename CallbackSymbolType, typename CallbackParamsType>
-  void set_callback(const CallbackSymbolType &d_callback_symbol,
-                    const CallbackParamsType &params) {
+  void set_callback(
+      [[maybe_unused]] const CallbackSymbolType &d_callback_symbol,
+      [[maybe_unused]] const CallbackParamsType &params) {
 #if defined(KOKKOSFFT_ENABLE_CALLBACK)
     static_assert(!std::is_null_pointer_v<CallbackParamsType>,
                   "set_callback() requires a real params struct -- passing "
