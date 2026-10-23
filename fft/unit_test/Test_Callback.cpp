@@ -27,16 +27,17 @@ struct Params {
 
 // Templated on T (float or double) so the zero-padding logic is written
 // once rather than duplicated per precision. kokkosfftCallbackLoadR/LoadD
-// are backend-agnostic aliases (KokkosFFT_default_types.hpp) resolving to
-// cufftCallbackLoadR/D or hipfftCallbackLoadR/D depending on which backend
-// is active, so this stays portable without naming a vendor type directly.
+// are backend-agnostic aliases (defined per backend in KokkosFFT_Cuda_types.hpp
+// and KokkosFFT_HIP_types.hpp) resolving to cufftCallbackLoadR/D or
+// hipfftCallbackLoadR/D depending on which backend is active, so this stays
+// portable without naming a vendor type directly.
 // A __device__ global itself can't be templated, so one concrete global per
 // precision below just instantiates this shared function template.
 template <typename T>
 KOKKOS_IMPL_DEVICE_FUNCTION T zero_pad_load_callback(void* dataIn,
                                                      size_t offset,
                                                      void* callerInfo,
-                                                     void* sharedPointer) {
+                                                     void* /*sharedPointer*/) {
   auto* callback_params = static_cast<Params*>(callerInfo);
   const T* in_data      = static_cast<const T*>(dataIn);
 
@@ -64,7 +65,7 @@ KOKKOS_IMPL_DEVICE_FUNCTION kokkosfftCallbackLoadD d_load_callback_symbol_fp64 =
 template <typename T>
 KOKKOS_IMPL_DEVICE_FUNCTION void store_callback(void* dataOut, size_t offset,
                                                 T element, void* callerInfo,
-                                                void* sharedPointer) {
+                                                void* /*sharedPointer*/) {
   auto* callback_params = static_cast<Params*>(callerInfo);
   T* out_data           = static_cast<T*>(dataOut);
 
@@ -92,7 +93,7 @@ struct ScaleParams {
 template <typename T>
 KOKKOS_IMPL_DEVICE_FUNCTION T scale_load_callback(void* dataIn, size_t offset,
                                                   void* callerInfo,
-                                                  void* sharedPointer) {
+                                                  void* /*sharedPointer*/) {
   auto* p = static_cast<ScaleParams*>(callerInfo);
   return static_cast<const T*>(dataIn)[offset] * static_cast<T>(p->scale);
 }
@@ -106,7 +107,7 @@ template <typename T>
 KOKKOS_IMPL_DEVICE_FUNCTION void scale_store_callback(void* dataOut,
                                                       size_t offset, T element,
                                                       void* callerInfo,
-                                                      void* sharedPointer) {
+                                                      void* /*sharedPointer*/) {
   auto* p = static_cast<ScaleParams*>(callerInfo);
   element.x *= p->scale;
   element.y *= p->scale;

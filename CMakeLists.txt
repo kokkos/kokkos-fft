@@ -40,17 +40,24 @@ if(NOT KokkosFFT_ENABLE_INTERNAL_KOKKOS)
       if(Kokkos_ENABLE_CUDA)
         kokkos_check(OPTIONS CUDA_RELOCATABLE_DEVICE_CODE)
       endif()
+      if(Kokkos_ENABLE_HIP)
+        kokkos_check(OPTIONS HIP_RELOCATABLE_DEVICE_CODE)
+      endif()
     endif()
   endif()
 else()
-  # Legacy vendor callbacks (cufftXtSetCallback) resolve a device function
-  # pointer via cudaMemcpyFromSymbol. Without relocatable device code, that
-  # pointer is not valid at the call site inside cuFFT's own kernel, causing
-  # an "Invalid PC" crash at execution time. Force RDC on for CUDA so this
-  # can't be silently misconfigured.
+  # Legacy vendor callbacks (cufftXtSetCallback/hipfftXtSetCallback) resolve
+  # a device function pointer via cudaMemcpyFromSymbol/hipMemcpyFromSymbol.
+  # Without relocatable device code, that pointer is not valid at the call
+  # site inside the vendor FFT library's own kernel, causing an "Invalid PC"
+  # crash at execution time. Force RDC on for whichever GPU backend is in
+  # use so this can't be silently misconfigured.
   if(KokkosFFT_ENABLE_CALLBACK)
     if(Kokkos_ENABLE_CUDA)
       set(Kokkos_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE ON)
+    endif()
+    if(Kokkos_ENABLE_HIP)
+      set(Kokkos_ENABLE_HIP_RELOCATABLE_DEVICE_CODE ON)
     endif()
   endif()
   add_subdirectory(tpls/kokkos)
@@ -77,6 +84,14 @@ option(KokkosFFT_ENABLE_HIPFFT "Enable hipfft as a KokkosFFT backend on AMD GPUs
 if(KokkosFFT_ENABLE_CUFFTMP AND NOT (KokkosFFT_ENABLE_DISTRIBUTED AND KokkosFFT_ENABLE_CUFFT))
   message(
     FATAL_ERROR "Error: To enable cuFFTMp, you need to enable KokkosFFT_ENABLE_CUFFT and KokkosFFT_ENABLE_DISTRIBUTED"
+  )
+endif()
+
+if(KokkosFFT_ENABLE_CALLBACK AND KokkosFFT_ENABLE_ROCFFT)
+  message(
+    FATAL_ERROR
+      "Error: KokkosFFT_ENABLE_CALLBACK is not supported with the rocFFT backend (KokkosFFT_ENABLE_ROCFFT) yet. "
+      "Use the hipFFT backend (KokkosFFT_ENABLE_HIPFFT, the default for HIP) or disable KokkosFFT_ENABLE_CALLBACK"
   )
 endif()
 
