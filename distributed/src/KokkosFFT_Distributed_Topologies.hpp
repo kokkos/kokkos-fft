@@ -613,6 +613,317 @@ auto get_all_slab_topologies(const std::array<std::size_t, DIM>& gin_extents,
   return std::make_tuple(all_topologies, all_axes);
 }
 
+struct PencilState {
+  std::size_t m_p0_pos;
+  std::size_t m_p1_pos;
+  std::size_t m_p0;
+  std::size_t m_p1;
+
+  // The number of FFT axes still distributed (see FFTAxesProgress)
+  std::size_t m_remaining;
+
+  PencilState(std::size_t p0_pos, std::size_t p1_pos, std::size_t p0,
+              std::size_t p1, std::size_t remaining)
+      : m_p0_pos(p0_pos),
+        m_p1_pos(p1_pos),
+        m_p0(p0),
+        m_p1(p1),
+        m_remaining(remaining) {}
+
+  template <typename iType, std::size_t DIM, typename LayoutType>
+  explicit PencilState(const Topology<iType, DIM, LayoutType>& topo,
+                       std::size_t remaining)
+      : m_remaining(remaining) {
+    std::vector<std::size_t> pos;
+    for (std::size_t i = 0; i < topo.size(); i++) {
+      if (topo.at(i) != 1) pos.push_back(i);
+    }
+    m_p0_pos =
+        std::is_same_v<LayoutType, Kokkos::LayoutRight> ? pos.at(0) : pos.at(1);
+    m_p1_pos =
+        std::is_same_v<LayoutType, Kokkos::LayoutRight> ? pos.at(1) : pos.at(0);
+    m_p0 = topo.at(m_p0_pos);
+    m_p1 = topo.at(m_p1_pos);
+  }
+
+  bool operator==(const PencilState& other) const {
+    return m_p0_pos == other.m_p0_pos && m_p1_pos == other.m_p1_pos &&
+           m_remaining == other.m_remaining;
+  }
+
+  bool is_layout_right() const { return m_p0_pos < m_p1_pos; }
+  auto sizes() const { return std::make_pair(m_p0, m_p1); }
+
+  template <std::size_t DIM>
+  auto topology() const {
+    std::array<std::size_t, DIM> temp;
+    temp.fill(std::size_t{1});
+    temp[m_p0_pos] = m_p0;
+    temp[m_p1_pos] = m_p1;
+    return temp;
+  }
+};
+
+struct PencilStateHash {
+  std::size_t operator()(const PencilState& s) const {
+    std::size_t h = std::hash<std::size_t>{}(s.m_p0_pos);
+    auto combine  = [&h](std::size_t value) {
+      h ^= std::hash<std::size_t>{}(value) +
+           static_cast<std::size_t>(0x9e3779b9) + (h << 6) + (h >> 2);
+    };
+
+    combine(s.m_p1_pos);
+    combine(s.m_remaining);
+    return h;
+  }
+};
+
+/// \brief Find the minimal sequence of pencil topologies from the input to
+/// the output topology such that every FFT axis becomes undistributed (1) at
+/// some point along the way.
+///
+/// A pencil topology has exactly two non-one entries, p0 and p1 (assigned
+/// according to the input layout). Each step of the path moves either p0 or
+/// p1 to a position currently holding 1, which corresponds to a single
+/// transpose. The axes are processed from right to left: axes.back() must be
+/// undistributed first, then the one before it, and so on. The output
+/// topology can only be reached after all axes have been satisfied. A
+/// breadth-first search is used, so the returned path has the minimum number
+/// of transposes. A candidate topology is rejected if any extent would be
+/// smaller than the number of processes along that dimension. The extents are
+/// gin_extents until the first axis is consumed, and gout_extents afterwards.
+///
+/// Several transposes may precede the first FFT. For example, with
+/// axes = {2}, the minimal path from (1, Px, Py) to (Px, Py, 1) is
+///   (1, Px, Py) -> (Px, 1, Py) -> (Px, Py, 1)
+/// and the FFT is performed on the output topology after two transposes.
+///
+/// Example: 3D case, LayoutRight
+/// In topology: (1, Px, Py)
+/// Out topology: (Px, Py, 1)
+/// axes: {0, 1, 2}
+/// Output: {(1, Px, Py), (Py, Px, 1), (Py, 1, Px), (1, Py, Px), (Px, Py, 1)}
+///   (1, Px, Py) -> (Py, Px, 1): axis 2 is undistributed
+///   (Py, Px, 1) -> (Py, 1, Px): axis 1 is undistributed
+///   (Py, 1, Px) -> (1, Py, Px): axis 0 is undistributed
+///   (1, Py, Px) -> (Px, Py, 1): move to the output topology
+///
+/// \tparam iType The integer type used for the axes.
+/// \tparam DIM The dimensionality of the topologies.
+/// \tparam InLayoutType The layout type of the input topology.
+/// \tparam OutLayoutType The layout type of the output topology.
+/// \param[in] gin_extents The global input extents.
+/// \param[in] gout_extents The global output extents.
+/// \param[in] in_topology The input pencil topology.
+/// \param[in] out_topology The output pencil topology.
+/// \param[in] axes The FFT axes, each of which must be undistributed at some
+/// point along the path (processed from right to left).
+/// \return A vector of states representing the minimal path from the input to
+/// the output topology, including both ends. If the input already equals the
+/// output and all axes are satisfied, a single state is returned.
+/// \throws std::runtime_error if no valid path satisfies the conditions
+template <typename iType, std::size_t DIM, typename InLayoutType,
+          typename OutLayoutType>
+std::vector<PencilState> find_minimal_path(
+    const std::array<std::size_t, DIM>& gin_extents,
+    const std::array<std::size_t, DIM>& gout_extents,
+    const Topology<std::size_t, DIM, InLayoutType>& in_topology,
+    const Topology<std::size_t, DIM, OutLayoutType>& out_topology,
+    const std::vector<iType>& axes) {
+  const FFTAxesProgress<iType> progress(axes);
+
+  // axes already satisfied by the input are removed first.
+  const PencilState in{in_topology, progress.initial(in_topology.array())};
+  const PencilState out{out_topology, 0};
+
+  const auto sizes     = in.sizes();
+  const std::size_t p0 = sizes.first, p1 = sizes.second;
+
+  // Reconstruct the array represented by two positions.
+  auto make_array = [&](std::size_t p0_pos, std::size_t p1_pos) {
+    std::array<std::size_t, DIM> temp;
+    temp.fill(std::size_t{1});
+    temp[p0_pos] = p0;
+    temp[p1_pos] = p1;
+    return temp;
+  };
+
+  // Every candidate arrangement must satisfy S[i] / temp[i] > 0.
+  auto valid = [&](const std::array<std::size_t, DIM>& extents,
+                   std::size_t p0_pos, std::size_t p1_pos) {
+    for (std::size_t i = 0; i < DIM; ++i) {
+      const std::size_t value = (i == p0_pos)   ? p0
+                                : (i == p1_pos) ? p1
+                                                : std::size_t{1};
+
+      if (!(extents[i] / value > std::size_t{0})) return false;
+    }
+
+    return true;
+  };
+
+  if (in == out) return {in};
+
+  std::queue<PencilState> queue;
+  std::unordered_set<PencilState, PencilStateHash> visited;
+  std::unordered_map<PencilState, PencilState, PencilStateHash> parent;
+
+  queue.push(in);
+  visited.insert(in);
+
+  bool found = false;
+
+  while (!queue.empty()) {
+    const PencilState current = queue.front();
+    queue.pop();
+    if (current == out) {
+      found = true;
+      break;
+    }
+
+    // No FFT has been performed until the first axis is consumed.
+    const auto& extents = progress.none_consumed(current.m_remaining)
+                              ? gin_extents
+                              : gout_extents;
+
+    auto try_state = [&](std::size_t next_p0, std::size_t next_p1) {
+      if (!valid(extents, next_p0, next_p1)) return;
+
+      const auto temp = make_array(next_p0, next_p1);
+
+      // Conditions are processed whenever a new state is reached.
+      const std::size_t next_remaining =
+          progress.advance(temp, current.m_remaining);
+
+      const PencilState next{next_p0, next_p1, p0, p1, next_remaining};
+      if (visited.insert(next).second) {
+        parent.emplace(next, current);
+        queue.push(next);
+      }
+    };
+
+    // Move p0 to a position containing 1.
+    for (std::size_t pos = 0; pos < DIM; ++pos) {
+      if (pos == current.m_p0_pos || pos == current.m_p1_pos) continue;
+
+      try_state(pos, current.m_p1_pos);
+    }
+
+    // Move p1 to a position containing 1.
+    for (std::size_t pos = 0; pos < DIM; ++pos) {
+      if (pos == current.m_p0_pos || pos == current.m_p1_pos) continue;
+
+      try_state(current.m_p0_pos, pos);
+    }
+  }
+
+  KOKKOSFFT_THROW_IF(!found, "No valid path satisfies the conditions");
+
+  // Reconstruct the shortest path.
+  std::vector<PencilState> states;
+
+  for (PencilState current = out;; current = parent.at(current)) {
+    states.push_back(current);
+    if (current == in) break;
+  }
+
+  std::reverse(states.begin(), states.end());
+  return states;
+}
+
+/// \brief Get all pencil topologies for a given input and output topology
+///
+/// Example: 3D case
+/// In topology: (1, Px, Py)
+/// Out topology: (Px, Py, 1)
+/// axes: {0, 1, 2}
+/// Output: {(1, Px, Py), (Py, Px, 1), (Py, 1, Px), (1, Py, Px), (Px, Py, 1)}
+/// Operation:
+///    Transpose to (Py, Px, 1) -> FFT ax = {2}
+/// -> Transpose to (Py, 1, Px) -> FFT1 ax = {1}
+/// -> Transpose to (1, Py, Px) -> FFT1 ax = {0}
+/// -> Transpose to (Px, Py, 1)
+///
+/// \tparam iType The index type used for the topology.
+/// \tparam DIM The dimensionality of the topology.
+/// \tparam FFT_DIM The dimensionality of the FFT axes.
+///
+/// \param[in] in_topology The input topology.
+/// \param[in] out_topology The output topology.
+/// \param[in] axes The axes along which the FFT is performed.
+/// \param[in] is_same_order If true, the in/out topologies are considered in
+/// the same order.
+/// \return A tuple of (all_topologies, all_trans_axes, all_layouts, all_axes).
+/// all_topologies is the sequence of pencil topologies from the input to the
+/// output topology. all_trans_axes and all_layouts are the transpose axis and
+/// the layout (1 for LayoutRight) of each topology. all_axes are the FFT axes
+/// that become ready on each topology, identical to
+/// decompose_axes(all_topologies, axes).
+template <typename iType, std::size_t DIM, std::size_t FFT_DIM,
+          typename InLayoutType, typename OutLayoutType>
+auto get_all_pencil_topologies(
+    const std::array<std::size_t, DIM>& gin_extents,
+    const std::array<std::size_t, DIM>& gout_extents,
+    const Topology<std::size_t, DIM, InLayoutType>& in_topology,
+    const Topology<std::size_t, DIM, OutLayoutType>& out_topology,
+    const std::array<iType, FFT_DIM>& axes) {
+  static_assert(FFT_DIM >= 1 && FFT_DIM <= 3, "FFT_DIM must be in [1, 3]");
+  static_assert(DIM >= 3 && DIM >= FFT_DIM, "DIM >= 3 and DIM >= FFT_DIM");
+  static_assert(std::is_unsigned_v<iType>,
+                "get_all_pencil_topologies: axes must be unsigned");
+
+  using topology_type   = std::array<std::size_t, DIM>;
+  using topologies_type = std::vector<topology_type>;
+  using trans_axes_type = std::vector<std::size_t>;
+  using layouts_type    = std::vector<std::size_t>;
+  using fft_axes_type   = std::vector<std::vector<iType>>;
+
+  bool is_pencil =
+      are_specified_topologies(TopologyType::Pencil, in_topology, out_topology);
+
+  KOKKOSFFT_THROW_IF(!is_pencil,
+                     "Input and output topologies must be pencil topologies.");
+
+  auto in_topology_size  = KokkosFFT::Impl::total_size(in_topology);
+  auto out_topology_size = KokkosFFT::Impl::total_size(out_topology);
+
+  KOKKOSFFT_THROW_IF(in_topology_size != out_topology_size,
+                     "Input and output topologies must have the same size.");
+
+  // Check if local input and output sizes are not zero
+  auto in_extents  = divide_by_topology(gin_extents, in_topology);
+  auto out_extents = divide_by_topology(gout_extents, out_topology);
+
+  auto in_size  = KokkosFFT::Impl::total_size(in_extents);
+  auto out_size = KokkosFFT::Impl::total_size(out_extents);
+
+  KOKKOSFFT_THROW_IF(in_size == 0 || out_size == 0,
+                     "Input and output extents must not include 0.");
+
+  auto current_axes = KokkosFFT::Impl::to_vector(axes);
+  auto all_states   = find_minimal_path(gin_extents, gout_extents, in_topology,
+                                        out_topology, current_axes);
+
+  topologies_type all_topologies;
+  trans_axes_type all_trans_axes;
+  layouts_type all_layouts;
+  auto prev_state = all_states.at(0);
+  for (std::size_t i = 0; i < all_states.size(); i++) {
+    auto state             = all_states.at(i);
+    std::size_t trans_axis = 0;
+    if (i != 0) trans_axis = state.m_p0_pos == prev_state.m_p0_pos;
+
+    all_topologies.push_back(state.template topology<DIM>());
+    all_trans_axes.push_back(trans_axis);
+    all_layouts.push_back(state.is_layout_right());
+    prev_state = state;
+  }
+  fft_axes_type all_axes =
+      FFTAxesProgress<iType>(current_axes).consumed_along(all_states);
+
+  return std::make_tuple(all_topologies, all_trans_axes, all_layouts, all_axes);
+}
+
 }  // namespace Impl
 }  // namespace Distributed
 }  // namespace KokkosFFT
