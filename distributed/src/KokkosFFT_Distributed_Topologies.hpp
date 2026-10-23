@@ -837,11 +837,12 @@ std::vector<PencilState> find_minimal_path(
 /// In topology: (1, Px, Py)
 /// Out topology: (Px, Py, 1)
 /// axes: {0, 1, 2}
-/// Output: {(1, Px, Py), (Py, Px, 1), (Py, 1, Px), (Py, Px, 1), (1, Px, Py),}
+/// Output: {(1, Px, Py), (Py, Px, 1), (Py, 1, Px), (1, Py, Px), (Px, Py, 1)}
 /// Operation:
-/// Transpose to Topology2 -> FFT ax = {2} -> Transpose to Topology4 -> FFT1 ax
-/// = {1} Transpose to Topology2 -> Transpose to Topology0 -> FFT1 ax = {0}
-/// Topology0: {1, Px, Py}, Topology2: {Py, Px, 1}, Topology4: {Py, 1, Px}
+///    Transpose to (Py, Px, 1) -> FFT ax = {2}
+/// -> Transpose to (Py, 1, Px) -> FFT1 ax = {1}
+/// -> Transpose to (1, Py, Px) -> FFT1 ax = {0}
+/// -> Transpose to (Px, Py, 1)
 ///
 /// \tparam iType The index type used for the topology.
 /// \tparam DIM The dimensionality of the topology.
