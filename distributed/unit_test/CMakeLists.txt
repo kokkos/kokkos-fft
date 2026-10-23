@@ -19,6 +19,7 @@ set(SOURCES
 )
 
 add_executable(unit-tests-mpi ${SOURCES})
+kokkosfft_set_language(unit-tests-mpi)
 target_link_libraries(unit-tests-mpi PUBLIC GTest::gtest GTest::gmock KokkosFFT::distributed)
 
 # Enable GoogleTest
