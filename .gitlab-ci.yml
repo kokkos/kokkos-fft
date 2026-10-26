@@ -15,6 +15,7 @@ AMD-MI300A:
             -DCMAKE_INSTALL_PREFIX=kokkos_install
             -DCMAKE_CXX_COMPILER=hipcc
             -DKokkos_ENABLE_HIP=ON
+            -DKokkos_ENABLE_HIP_RELOCATABLE_DEVICE_CODE=ON
     - cmake --build kokkos_build --parallel
     - cmake --install kokkos_build
     - export ENV_CMAKE_OPTIONS=""
