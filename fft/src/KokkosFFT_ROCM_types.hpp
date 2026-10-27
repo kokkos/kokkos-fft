@@ -23,13 +23,14 @@
 #include "KokkosFFT_FFTW_Types.hpp"
 #endif
 
-// Check the size of complex type
-static_assert(sizeof(std::complex<float>) == sizeof(Kokkos::complex<float>));
-static_assert(alignof(std::complex<float>) <= alignof(Kokkos::complex<float>));
+#include <hip/hip_vector_types.h>
 
-static_assert(sizeof(std::complex<double>) == sizeof(Kokkos::complex<double>));
-static_assert(alignof(std::complex<double>) <=
-              alignof(Kokkos::complex<double>));
+// Check the size of complex type
+static_assert(sizeof(float2) == sizeof(Kokkos::complex<float>));
+static_assert(alignof(float2) <= alignof(Kokkos::complex<float>));
+
+static_assert(sizeof(double2) == sizeof(Kokkos::complex<double>));
+static_assert(alignof(double2) <= alignof(Kokkos::complex<double>));
 
 namespace KokkosFFT {
 namespace Impl {
@@ -316,11 +317,11 @@ struct FFTDataType {
   using float32 = float;
   using float64 = double;
   using complex64 =
-      std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
-                         std::complex<float>, fftwf_complex>;
+      std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>, float2,
+                         fftwf_complex>;
   using complex128 =
-      std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
-                         std::complex<double>, fftw_complex>;
+      std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>, double2,
+                         fftw_complex>;
 };
 
 /// \brief The index type used in backend FFT plan
@@ -363,8 +364,8 @@ template <typename ExecutionSpace>
 struct FFTDataType {
   using float32    = float;
   using float64    = double;
-  using complex64  = std::complex<float>;
-  using complex128 = std::complex<double>;
+  using complex64  = float2;
+  using complex128 = double2;
 };
 
 template <typename ExecutionSpace>
