@@ -7,9 +7,9 @@
 
 #include <stdexcept>
 #include <string_view>
-#include <hip/hip_runtime_api.h>
 #include <hipfft/hipfft.h>
 #include "KokkosFFT_Asserts.hpp"
+#include "KokkosFFT_HIP_runtime_asserts.hpp"
 
 #if defined(__cpp_lib_source_location) && __cpp_lib_source_location >= 201907L
 #include <source_location>
@@ -20,21 +20,10 @@
       std::source_location::current().line(),                                \
       std::source_location::current().function_name(),                       \
       std::source_location::current().column())
-
-#define KOKKOSFFT_CHECK_HIP_CALL(call)                 \
-  KokkosFFT::Impl::check_fft_call(                     \
-      call, #call, hipSuccess, hipGetErrorString,      \
-      std::source_location::current().file_name(),     \
-      std::source_location::current().line(),          \
-      std::source_location::current().function_name(), \
-      std::source_location::current().column())
 #else
 #define KOKKOSFFT_CHECK_HIPFFT_CALL(call)                                   \
   KokkosFFT::Impl::check_fft_call(call, #call, HIPFFT_SUCCESS,              \
                                   KokkosFFT::Impl::hipfft_result_to_string, \
-                                  __FILE__, __LINE__, __FUNCTION__)
-#define KOKKOSFFT_CHECK_HIP_CALL(call)                                        \
-  KokkosFFT::Impl::check_fft_call(call, #call, hipSuccess, hipGetErrorString, \
                                   __FILE__, __LINE__, __FUNCTION__)
 #endif
 
