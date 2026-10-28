@@ -9,6 +9,7 @@
 #include <string_view>
 #include <rocfft/rocfft.h>
 #include "KokkosFFT_Asserts.hpp"
+#include "KokkosFFT_HIP_runtime_asserts.hpp"
 
 #if defined(__cpp_lib_source_location) && __cpp_lib_source_location >= 201907L
 #include <source_location>
