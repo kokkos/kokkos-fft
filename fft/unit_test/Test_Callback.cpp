@@ -25,23 +25,24 @@ struct Params {
   unsigned int original_size;
 };
 
-// Templated on T (float or double) so the zero-padding logic is written
-// once rather than duplicated per precision. kokkosfftCallbackLoadR/LoadD
-// are backend-agnostic aliases (defined per backend in KokkosFFT_Cuda_types.hpp
-// and KokkosFFT_HIP_types.hpp) resolving to cufftCallbackLoadR/D or
-// hipfftCallbackLoadR/D depending on which backend is active, so this stays
-// portable without naming a vendor type directly.
-// A __device__ global itself can't be templated, so one concrete global per
-// precision below just instantiates this shared function template.
+// A __device__ global itself can't be templated, so the callbacks below are
+// function templates, and one concrete global per precision right under each
+// of them just instantiates it. kokkosfftCallbackLoadR/D and
+// kokkosfftCallbackStoreR/D are backend-agnostic aliases (defined per backend
+// in KokkosFFT_Cuda_types.hpp and KokkosFFT_HIP_types.hpp) resolving to the
+// cufft*/hipfft* callback typedefs depending on which backend is active, so
+// this stays portable without naming a vendor type directly.
+
+// Templated on T (float or double) so the zero-padding logic is written once
+// rather than duplicated per precision. Zero-padding: return 0 for indices
+// beyond original_size.
 template <typename T>
-KOKKOS_IMPL_DEVICE_FUNCTION T zero_pad_load_callback(void* dataIn,
-                                                     size_t offset,
-                                                     void* callerInfo,
-                                                     void* /*sharedPointer*/) {
+KOKKOS_IMPL_DEVICE_FUNCTION T pad_load_callback(void* dataIn, size_t offset,
+                                                void* callerInfo,
+                                                void* /*sharedPointer*/) {
   auto* callback_params = static_cast<Params*>(callerInfo);
   const T* in_data      = static_cast<const T*>(dataIn);
 
-  // Zero-padding: return 0 for indices beyond original_size
   if (offset >= callback_params->original_size) {
     return static_cast<T>(0);
   }
@@ -49,9 +50,9 @@ KOKKOS_IMPL_DEVICE_FUNCTION T zero_pad_load_callback(void* dataIn,
 }
 
 KOKKOS_IMPL_DEVICE_FUNCTION kokkosfftCallbackLoadR d_load_callback_symbol_fp32 =
-    zero_pad_load_callback<KokkosFFT::fft_data_type<float>>;
+    pad_load_callback<KokkosFFT::fft_data_type<float>>;
 KOKKOS_IMPL_DEVICE_FUNCTION kokkosfftCallbackLoadD d_load_callback_symbol_fp64 =
-    zero_pad_load_callback<KokkosFFT::fft_data_type<double>>;
+    pad_load_callback<KokkosFFT::fft_data_type<double>>;
 
 // Store-callback counterpart: only write within original_size, leaving the
 // padding region alone. Normalization is handled by KokkosFFT's own
@@ -63,9 +64,10 @@ KOKKOS_IMPL_DEVICE_FUNCTION kokkosfftCallbackLoadD d_load_callback_symbol_fp64 =
 // callback does). Only offset < original_size is a meaningful invariant to
 // check; offsets the callback intentionally skips are not.
 template <typename T>
-KOKKOS_IMPL_DEVICE_FUNCTION void store_callback(void* dataOut, size_t offset,
-                                                T element, void* callerInfo,
-                                                void* /*sharedPointer*/) {
+KOKKOS_IMPL_DEVICE_FUNCTION void crop_store_callback(void* dataOut,
+                                                     size_t offset, T element,
+                                                     void* callerInfo,
+                                                     void* /*sharedPointer*/) {
   auto* callback_params = static_cast<Params*>(callerInfo);
   T* out_data           = static_cast<T*>(dataOut);
 
@@ -76,10 +78,10 @@ KOKKOS_IMPL_DEVICE_FUNCTION void store_callback(void* dataOut, size_t offset,
 
 KOKKOS_IMPL_DEVICE_FUNCTION kokkosfftCallbackStoreR
     d_store_callback_symbol_fp32 =
-        store_callback<KokkosFFT::fft_data_type<float>>;
+        crop_store_callback<KokkosFFT::fft_data_type<float>>;
 KOKKOS_IMPL_DEVICE_FUNCTION kokkosfftCallbackStoreD
     d_store_callback_symbol_fp64 =
-        store_callback<KokkosFFT::fft_data_type<double>>;
+        crop_store_callback<KokkosFFT::fft_data_type<double>>;
 
 // Minimal scale callbacks, used only to exercise the one-load/one-store-per
 // -plan precondition below (not the zero-padding use case above). A plan's
@@ -119,11 +121,22 @@ KOKKOS_IMPL_DEVICE_FUNCTION kokkosfftCallbackStoreC d_scale_store_fp32 =
 KOKKOS_IMPL_DEVICE_FUNCTION kokkosfftCallbackStoreZ d_scale_store_fp64 =
     scale_store_callback<KokkosFFT::fft_data_type<Kokkos::complex<double>>>;
 
+// Value of the i-th bin of the half spectrum (n/2+1 bins) fed to the store
+// tests. It is a valid half of a Hermitian spectrum: the imaginary part is
+// non-zero except for bin 0 and, for even n, bin n/2, which must be real.
+template <typename FloatType>
+Kokkos::complex<FloatType> hermitian_bin_value(const int i, const int n) {
+  const bool must_be_real = (i == 0) || (n % 2 == 0 && i == n / 2);
+  return Kokkos::complex<FloatType>(
+      static_cast<FloatType>(i + 1),
+      must_be_real
+          ? static_cast<FloatType>(0)
+          : static_cast<FloatType>(i + 1) * static_cast<FloatType>(0.5));
+}
+
 template <typename T, typename LayoutType>
-void test_load_callback_1d() {
-  const int original_size = 20;
-  const int n             = 30;
-  using RealView1DType    = Kokkos::View<T*, LayoutType, execution_space>;
+void test_load_callback_1d(const int n, const int original_size) {
+  using RealView1DType = Kokkos::View<T*, LayoutType, execution_space>;
   using ComplexView1DType =
       Kokkos::View<Kokkos::complex<T>*, LayoutType, execution_space>;
 
@@ -172,10 +185,8 @@ void test_load_callback_1d() {
 }
 
 template <typename T, typename LayoutType>
-void test_store_callback_1d() {
-  const int original_size = 20;
-  const int n             = 30;
-  using RealView1DType    = Kokkos::View<T*, LayoutType, execution_space>;
+void test_store_callback_1d(const int n, const int original_size) {
+  using RealView1DType = Kokkos::View<T*, LayoutType, execution_space>;
   using ComplexView1DType =
       Kokkos::View<Kokkos::complex<T>*, LayoutType, execution_space>;
 
@@ -184,7 +195,7 @@ void test_store_callback_1d() {
 
   auto in_host = Kokkos::create_mirror_view(in);
   for (int i = 0; i < static_cast<int>(in_host.extent(0)); ++i) {
-    in_host(i) = Kokkos::complex<T>(static_cast<T>(i + 1), static_cast<T>(0));
+    in_host(i) = hermitian_bin_value<T>(i, n);
   }
   Kokkos::deep_copy(in, in_host);
 
@@ -213,7 +224,7 @@ void test_store_callback_1d() {
   Kokkos::fence();
 
   // Only offset < original_size is a meaningful invariant (see \warning on
-  // store_callback above).
+  // crop_store_callback above).
   auto out_sub     = Kokkos::subview(out, std::make_pair(0, original_size));
   auto out_ref_sub = Kokkos::subview(out_ref, std::make_pair(0, original_size));
   EXPECT_THAT(out_sub,
@@ -226,10 +237,8 @@ void test_store_callback_1d() {
 // explicit memory initialization -- see the parent repo's README) rather
 // than exercising each callback in isolation.
 template <typename T, typename LayoutType>
-void test_load_store_roundtrip_1d() {
-  const int original_size = 20;
-  const int n             = 30;
-  using RealView1DType    = Kokkos::View<T*, LayoutType, execution_space>;
+void test_load_store_roundtrip_1d(const int n, const int original_size) {
+  using RealView1DType = Kokkos::View<T*, LayoutType, execution_space>;
   using ComplexView1DType =
       Kokkos::View<Kokkos::complex<T>*, LayoutType, execution_space>;
 
@@ -358,22 +367,51 @@ void test_callback_precondition_1d() {
 
 TYPED_TEST_SUITE(TestCallback1D, test_types);
 
-TYPED_TEST(TestCallback1D, load_callback_1d) {
+// Transform lengths: one even and one odd, each zero-padded from
+// original_size. Vendor libraries handle them differently internally (for
+// real transforms, an even length can be computed as a complex transform of
+// half the length, an odd length cannot), which may also change how the
+// callbacks are called.
+constexpr int even_size     = 30;
+constexpr int even_original = 20;
+constexpr int odd_size      = 31;
+constexpr int odd_original  = 21;
+
+TYPED_TEST(TestCallback1D, load_r2c_callback_1d_even) {
   using float_type  = typename TestFixture::float_type;
   using layout_type = typename TestFixture::layout_type;
-  test_load_callback_1d<float_type, layout_type>();
+  test_load_callback_1d<float_type, layout_type>(even_size, even_original);
 }
 
-TYPED_TEST(TestCallback1D, store_callback_1d) {
+TYPED_TEST(TestCallback1D, load_r2c_callback_1d_odd) {
   using float_type  = typename TestFixture::float_type;
   using layout_type = typename TestFixture::layout_type;
-  test_store_callback_1d<float_type, layout_type>();
+  test_load_callback_1d<float_type, layout_type>(odd_size, odd_original);
 }
 
-TYPED_TEST(TestCallback1D, load_store_roundtrip_1d) {
+TYPED_TEST(TestCallback1D, store_c2r_callback_1d_even) {
   using float_type  = typename TestFixture::float_type;
   using layout_type = typename TestFixture::layout_type;
-  test_load_store_roundtrip_1d<float_type, layout_type>();
+  test_store_callback_1d<float_type, layout_type>(even_size, even_original);
+}
+
+TYPED_TEST(TestCallback1D, store_c2r_callback_1d_odd) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+  test_store_callback_1d<float_type, layout_type>(odd_size, odd_original);
+}
+
+TYPED_TEST(TestCallback1D, load_store_roundtrip_r2c_1d_even) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+  test_load_store_roundtrip_1d<float_type, layout_type>(even_size,
+                                                        even_original);
+}
+
+TYPED_TEST(TestCallback1D, load_store_roundtrip_r2c_1d_odd) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+  test_load_store_roundtrip_1d<float_type, layout_type>(odd_size, odd_original);
 }
 
 TYPED_TEST(TestCallback1D, callback_precondition_1d) {
