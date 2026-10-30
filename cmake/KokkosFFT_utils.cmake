@@ -33,9 +33,9 @@ function(kokkosfft_set_language kokkosfft_target)
   if(NOT KOKKOSFFT_COMPILE_LANGUAGE STREQUAL CXX)
     get_target_property(TARGET_SOURCES ${kokkosfft_target} SOURCES)
     set_source_files_properties(${TARGET_SOURCES} PROPERTIES LANGUAGE ${KOKKOSFFT_COMPILE_LANGUAGE})
-    set_property(
-      TARGET ${kokkosfft_target} PROPERTY ${KOKKOSFFT_COMPILE_LANGUAGE}_ARCHITECTURES
-                                          ${KOKKOSFFT_${KOKKOSFFT_COMPILE_LANGUAGE}_ARCHITECTURES}
+    set_target_properties(
+      ${kokkosfft_target} PROPERTIES ${KOKKOSFFT_COMPILE_LANGUAGE}_ARCHITECTURES
+                                     ${KOKKOSFFT_${KOKKOSFFT_COMPILE_LANGUAGE}_ARCHITECTURES}
     )
   endif()
 endfunction()
