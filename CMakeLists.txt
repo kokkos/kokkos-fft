@@ -84,7 +84,6 @@ if(NOT KOKKOSFFT_COMPILE_LANGUAGE STREQUAL CXX)
     message(FATAL_ERROR "Building KokkosFFT with CUDA as a CMake language requires CMake 3.25.2 or higher.")
   endif()
   enable_language(${KOKKOSFFT_COMPILE_LANGUAGE})
-  message(STATUS "KokkosFFT compile language: ${KOKKOSFFT_COMPILE_LANGUAGE}")
 endif()
 
 # Device specific options
