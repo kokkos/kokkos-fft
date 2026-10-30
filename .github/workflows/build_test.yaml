@@ -112,6 +112,18 @@ jobs:
               benchmark: ON
             cmake_build_type: Release
             build_procs: 2
+          - name: cuda_lang
+            image: nvcc
+            compiler:
+              c: gcc
+              cxx: g++
+            cmake_flags:
+              cxx_standard: 20
+              kokkos: -DKokkos_ENABLE_CUDA=ON -DKokkos_ENABLE_COMPILE_AS_CMAKE_LANGUAGE=ON -DKokkos_ARCH_AMPERE80=ON -DKokkos_ENABLE_SERIAL=ON
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror" -DCMAKE_CXX_EXTENSIONS=OFF
+              benchmark: OFF
+            cmake_build_type: Debug
+            build_procs: 2
           - name: hip
             image: rocm
             compiler:
@@ -123,6 +135,18 @@ jobs:
               kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror"
               benchmark: ON
             cmake_build_type: Release
+            build_procs: 4
+          - name: hip_lang
+            image: rocm
+            compiler:
+              c: hipcc
+              cxx: hipcc
+            cmake_flags:
+              cxx_standard: 20
+              kokkos: -DKokkos_ENABLE_HIP=ON -DKokkos_ENABLE_COMPILE_AS_CMAKE_LANGUAGE=ON -DKokkos_ARCH_AMD_GFX90A=ON -DKokkos_ENABLE_THREADS=ON
+              kokkos_fft: -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror" -DCMAKE_CXX_EXTENSIONS=OFF
+              benchmark: ON
+            cmake_build_type: Debug
             build_procs: 4
           - name: rocm
             image: rocm
@@ -263,6 +287,7 @@ jobs:
             install_test/as_subdirectory
           docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
           cmake --build install_test/as_subdirectory/build
+        if: ${{ matrix.target.name != 'cuda_lang' && matrix.target.name != 'hip_lang' }}
 
       - name: Configure, build and install Kokkos as library
         run: |
@@ -306,7 +331,7 @@ jobs:
             -DCMAKE_C_COMPILER=${{ matrix.backend.compiler.c }} \
             -DCMAKE_CXX_COMPILER=${{ matrix.backend.compiler.cxx }} \
             -DCMAKE_CXX_STANDARD=${{ matrix.backend.cmake_flags.cxx_standard }} \
-            install_test/as_library
+            -S ${{ (matrix.backend.name == 'hip_lang' || matrix.backend.name == 'cuda_lang') && 'install_test/as_library_cmake_lang' || 'install_test/as_library' }}
           docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
             cmake --build install_test/as_library/build -j ${{ matrix.backend.build_procs }}
 
