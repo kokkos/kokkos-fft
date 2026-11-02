@@ -23,7 +23,7 @@ By instance, let's say you want to add a new backend, which requires a new Docke
 
 ## CMake installation in Dockerfiles
 
-As the project requires CMake v3.23 at least, and as some Dockerfiles are based on Ubuntu 20.04 images, CMake has to be installed manually.
+As the project requires CMake v3.23 at least, and as some Dockerfiles are based on Ubuntu 22.04 images, CMake has to be installed manually.
 The installer is downloaded, its signature is verified, then its checksum is verified.
 To check the signature, the public key of the person who signed the binary is required.
 This public key can be extracted from the key ID.
