@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y \
         git \
         bc \
         ccache \
+        cmake \
         libfftw3-dev \
         python3 \
         gfortran \
@@ -20,6 +21,8 @@ RUN apt-get update && apt-get install -y \
         && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
+
+ENV FFTWDIR=/usr
 
 RUN git config --global --add safe.directory "*"
 

@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y \
         wget \
         git \
         ccache \
+        cmake \
         libfftw3-dev \
         openmpi-bin \
         libopenmpi-dev \
@@ -20,7 +21,7 @@ RUN apt-get update && apt-get install -y \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-ENV FFTWDIR=/usr 
+ENV FFTWDIR=/usr
 
 RUN git config --global --add safe.directory "*"
 

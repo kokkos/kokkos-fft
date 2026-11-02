@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y \
         kmod \
         wget \
         ccache \
+        cmake \
         git \
         file \
         hipfft \
@@ -29,7 +30,6 @@ ENV FFTWDIR=/usr
 RUN git config --global --add safe.directory "*"
 
 # Make sure MPI is discoverable
-ENV PATH=${CMAKE_DIR}/bin:/usr/lib/x86_64-linux-gnu/openmpi/bin:/opt/rocm/bin:$PATH
 ENV LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/openmpi/lib:/opt/rocm/hipfft/lib:$LD_LIBRARY_PATH
 ENV CMAKE_PREFIX_PATH=/usr/lib/x86_64-linux-gnu/openmpi:/opt/rocm/hip/:/opt/rocm/:$CMAKE_PREFIX_PATH
 
