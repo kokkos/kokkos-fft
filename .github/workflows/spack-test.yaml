@@ -2,11 +2,12 @@
 #
 # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
-name: CI (spack)
+name: Spack Nightly tests
 
 on:
-  pull_request:
-    branches: [ "main" ]
+  workflow_dispatch:
+  schedule:
+    - cron: "0 1 * * 1-5" # every weekday at 1am
 
 jobs:
   build:
@@ -40,7 +41,7 @@ jobs:
       - name: Clone and install spack
         run: |
           docker run -v ${{ github.workspace }}:/work ghcr.io/kokkos/kokkos-fft/base_${{ matrix.backend.image }}:latest \
-          bash -c "git clone --depth=2 --branch=v1.1.0 https://github.com/spack/spack.git"
+          bash -c "git clone --depth=1 --branch=v1.2.2 https://github.com/spack/spack.git"
 
       - name: Configure and build with CMake
         run: |
@@ -80,7 +81,7 @@ jobs:
           docker run -v ${{ github.workspace }}:/work ubuntu:24.04 \
           bash -c "apt update && \
             apt install --yes --no-install-recommends file bzip2 ca-certificates g++ gcc git gzip lsb-release patch python3 tar unzip xz-utils zstd && \
-            git clone --depth=1 --branch=v1.1.0 https://github.com/spack/spack.git && \
+            git clone --depth=1 --branch=v1.2.2 https://github.com/spack/spack.git && \
             . spack/share/spack/setup-env.sh && \
             spack install intel-oneapi-compilers@2025 && \
             spack spec ${{ matrix.backend.spec }} && \
