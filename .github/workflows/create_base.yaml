@@ -21,9 +21,11 @@ on:
       - 'main'
     paths:
       - 'docker/**/Dockerfile'
+      - '.github/workflows/create_base.yaml'
   pull_request:
     paths:
       - 'docker/**/Dockerfile'
+      - '.github/workflows/create_base.yaml'
   workflow_dispatch:
 
 env:
@@ -62,12 +64,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
-      - name: Get Apptainer
-        env:
-          APPTAINER_VERSION: 1.4.4
+      - name: Install Apptainer
         run: |
-          wget https://github.com/apptainer/apptainer/releases/download/v${{ env.APPTAINER_VERSION }}/apptainer_${{ env.APPTAINER_VERSION }}_amd64.deb
-          sudo apt-get install ./apptainer_${{ env.APPTAINER_VERSION }}_amd64.deb
+          sudo apt-get update && sudo apt-get install -y software-properties-common
+          sudo add-apt-repository -y ppa:apptainer/ppa
+          sudo apt-get update && sudo apt-get install -y apptainer
+          apptainer --version
 
       - name: Login in GitHub Containers Repository with Docker
         uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6  # v4.7.0
@@ -90,12 +92,12 @@ jobs:
 
       - name: Push Docker image
         run: docker push ghcr.io/kokkos/kokkos-fft/base_${{ matrix.image.name }}:latest
-        if: ${{ github.event != 'pull_request' }}
+        if: ${{ github.event_name != 'pull_request' }}
 
       - name: Convert Docker image to Apptainer
         run: apptainer build base.sif docker://ghcr.io/kokkos/kokkos-fft/base_${{ matrix.image.name }}:latest
-        if: ${{ matrix.image.use_apptainer && github.event != 'pull_request' }}
+        if: ${{ matrix.image.use_apptainer && github.event_name != 'pull_request' }}
 
       - name: Push Apptainer image
         run: apptainer push base.sif oras://ghcr.io/kokkos/kokkos-fft/base_${{ matrix.image.name }}_apptainer:latest
-        if: ${{ matrix.image.use_apptainer && github.event != 'pull_request' }}
+        if: ${{ matrix.image.use_apptainer && github.event_name != 'pull_request' }}
