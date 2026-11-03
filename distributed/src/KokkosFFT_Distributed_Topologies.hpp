@@ -833,32 +833,46 @@ std::vector<PencilState> find_minimal_path(
 
 /// \brief Get all pencil topologies for a given input and output topology
 ///
-/// Example: 3D case
+/// The topologies are the minimal path found by find_minimal_path. They start
+/// with the input topology and end with the output topology.
+///
+/// Example: 3D case, LayoutRight
 /// In topology: (1, Px, Py)
 /// Out topology: (Px, Py, 1)
 /// axes: {0, 1, 2}
-/// Output: {(1, Px, Py), (Py, Px, 1), (Py, 1, Px), (1, Py, Px), (Px, Py, 1)}
+/// all_topologies: {(1, Px, Py), (Py, Px, 1), (Py, 1, Px), (1, Py, Px),
+///                  (Px, Py, 1)}
+/// all_trans_axes: {0, 1, 0, 1, 0}
+/// all_layouts:    {1, 0, 0, 0, 1}
+/// all_axes:       {{}, {2}, {1}, {0}, {}}
 /// Operation:
-///    Transpose to (Py, Px, 1) -> FFT ax = {2}
-/// -> Transpose to (Py, 1, Px) -> FFT1 ax = {1}
-/// -> Transpose to (1, Py, Px) -> FFT1 ax = {0}
+/// Transpose to (Py, Px, 1) -> FFT ax = {2} -> Transpose to (Py, 1, Px)
+/// -> FFT ax = {1} -> Transpose to (1, Py, Px) -> FFT ax = {0}
 /// -> Transpose to (Px, Py, 1)
 ///
-/// \tparam iType The index type used for the topology.
+/// \tparam iType The index type used for the axes.
 /// \tparam DIM The dimensionality of the topology.
 /// \tparam FFT_DIM The dimensionality of the FFT axes.
+/// \tparam InLayoutType The layout type of the input topology.
+/// \tparam OutLayoutType The layout type of the output topology.
 ///
+/// \param[in] gin_extents The global input extents.
+/// \param[in] gout_extents The global output extents.
 /// \param[in] in_topology The input topology.
 /// \param[in] out_topology The output topology.
 /// \param[in] axes The axes along which the FFT is performed.
-/// \param[in] is_same_order If true, the in/out topologies are considered in
-/// the same order.
 /// \return A tuple of (all_topologies, all_trans_axes, all_layouts, all_axes).
 /// all_topologies is the sequence of pencil topologies from the input to the
 /// output topology. all_trans_axes and all_layouts are the transpose axis and
 /// the layout (1 for LayoutRight) of each topology. all_axes are the FFT axes
 /// that become ready on each topology, identical to
 /// decompose_axes(all_topologies, axes).
+/// \throws std::runtime_error
+/// 1. if the input and output topologies are not pencil topologies
+/// 2. if the input and output topologies do not have the same size
+/// 3. if the input and output extents include 0
+/// 4. if no valid path of pencil topologies is found for the given input
+/// topology and FFT axes
 template <typename iType, std::size_t DIM, std::size_t FFT_DIM,
           typename InLayoutType, typename OutLayoutType>
 auto get_all_pencil_topologies(
