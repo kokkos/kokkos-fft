@@ -49,8 +49,9 @@ jobs:
           bash -c "source spack/share/spack/setup-env.sh && \
             export SPACK_USER_CONFIG_PATH=${{ matrix.backend.spack_path }} && \
             spack compiler find && \
-            spack spec kokkos-fft ${{ matrix.backend.kokkos_fft }} +tests ^kokkos ${{ matrix.backend.kokkos }} && \
-            spack install kokkos-fft ${{ matrix.backend.kokkos_fft }} +tests ^kokkos ${{ matrix.backend.kokkos }} && \
+            spack spec kokkos-fft@main ${{ matrix.backend.kokkos_fft }} ^kokkos ${{ matrix.backend.kokkos }} && \
+            spack install -v --only=dependencies --test=root kokkos-fft@main ${{ matrix.backend.kokkos_fft }} ^kokkos ${{ matrix.backend.kokkos }} && \
+            spack dev-build -d /work --test=root kokkos-fft@main ${{ matrix.backend.kokkos_fft }} ^kokkos ${{ matrix.backend.kokkos }} && \
             spack load kokkos kokkos-fft && \
             cd install_test/as_library && \
             cmake -D CMAKE_CXX_COMPILER=${{ matrix.backend.compiler }} -B build && \
@@ -64,7 +65,7 @@ jobs:
           - name: sycl
             compiler: icpx
             image: intel
-            spec: kokkos-fft device_backend=onemkl +tests ^kokkos +sycl intel_gpu_arch=intel_gen %oneapi ^intel-oneapi-mkl@2025.1.0 ^intel-oneapi-tbb
+            spec: kokkos-fft@main device_backend=onemkl ^kokkos +sycl intel_gpu_arch=intel_gen %oneapi ^intel-oneapi-mkl@2025.1.0 ^intel-oneapi-tbb
 
     steps:
       - name: Free Disk Space (Ubuntu)
@@ -85,7 +86,8 @@ jobs:
             . spack/share/spack/setup-env.sh && \
             spack install intel-oneapi-compilers@2025 && \
             spack spec ${{ matrix.backend.spec }} && \
-            spack install ${{ matrix.backend.spec }} && \
+            spack install -v --only=dependencies --test=root ${{ matrix.backend.spec }} && \
+            spack dev-build -d /work --test=root ${{ matrix.backend.spec }} && \
             spack load cmake intel-oneapi-compilers kokkos kokkos-fft && \
             cd /work/install_test/as_library && \
             cmake -D CMAKE_CXX_COMPILER=${{ matrix.backend.compiler }} -B build && \
