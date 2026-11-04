@@ -339,8 +339,6 @@ inline constexpr bool always_false_v = false;
 /// real -> real is not a valid FFT and is rejected at compile time.
 template <typename InValueType, typename OutValueType>
 consteval TransformKind deduce_transform_kind() {
-  using KokkosFFT::Impl::is_complex_v;
-  using KokkosFFT::Impl::is_real_v;
   if constexpr (is_complex_v<InValueType> && is_complex_v<OutValueType>) {
     return TransformKind::C2C;
   } else if constexpr (is_real_v<InValueType> && is_complex_v<OutValueType>) {
