@@ -193,6 +193,21 @@ void test_admissible_complex_type() {
   }
 }
 
+// Tests for transform_kind_v
+template <typename T>
+void test_transform_kind() {
+  using KokkosFFT::Impl::transform_kind_v;
+  using KokkosFFT::Impl::TransformKind;
+  // transform_kind_v rejects non float/double types at compile time
+  if constexpr (KokkosFFT::Impl::is_real_v<T>) {
+    using complex_type = Kokkos::complex<T>;
+    static_assert(transform_kind_v<complex_type, complex_type> ==
+                  TransformKind::C2C);
+    static_assert(transform_kind_v<T, complex_type> == TransformKind::R2C);
+    static_assert(transform_kind_v<complex_type, T> == TransformKind::C2R);
+  }
+}
+
 // Tests for add_pointer helper
 template <typename T>
 void test_add_pointers() {
@@ -684,6 +699,12 @@ TYPED_TEST(CompileTestRealAndComplexTypes, admissible_complex_type) {
   using complex_type = typename TestFixture::complex_type;
 
   test_admissible_complex_type<complex_type>();
+}
+
+TYPED_TEST(CompileTestRealAndComplexTypes, transform_kind) {
+  using real_type = typename TestFixture::real_type;
+
+  test_transform_kind<real_type>();
 }
 
 TYPED_TEST(CompileTestRealAndComplexTypes, add_pointers) {

@@ -9,6 +9,7 @@
 #include <array>
 #include <vector>
 #include <Kokkos_Core.hpp>
+#include "KokkosFFT_Common_Types.hpp"
 
 namespace KokkosFFT {
 namespace Impl {
@@ -328,6 +329,37 @@ struct is_std_array<std::array<T, N>> : std::true_type {};
 /// \brief Helper to check if a type is std::array
 template <typename T>
 inline constexpr bool is_std_array_v = is_std_array<T>::value;
+
+/// \brief Helper for a static_assert that must only fire when the enclosing
+/// template is instantiated
+template <typename... Ts>
+inline constexpr bool always_false_v = false;
+
+/// \brief Deduce the transform kind from the in/out value types.
+/// real -> real is not a valid FFT and is rejected at compile time.
+template <typename InValueType, typename OutValueType>
+consteval TransformKind deduce_transform_kind() {
+  using KokkosFFT::Impl::is_complex_v;
+  using KokkosFFT::Impl::is_real_v;
+  if constexpr (is_complex_v<InValueType> && is_complex_v<OutValueType>) {
+    return TransformKind::C2C;
+  } else if constexpr (is_real_v<InValueType> && is_complex_v<OutValueType>) {
+    return TransformKind::R2C;
+  } else if constexpr (is_complex_v<InValueType> && is_real_v<OutValueType>) {
+    return TransformKind::C2R;
+  } else {
+    static_assert(
+        always_false_v<InValueType, OutValueType>,
+        "deduce_transform_kind: in/out value types must be complex->complex "
+        "(C2C), real->complex (R2C) or complex->real (C2R) of float or double");
+    return TransformKind::C2C;
+  }
+}
+
+/// \brief Helper to get the transform kind from the in/out value types
+template <typename InValueType, typename OutValueType>
+inline constexpr TransformKind transform_kind_v =
+    deduce_transform_kind<InValueType, OutValueType>();
 
 }  // namespace Impl
 }  // namespace KokkosFFT
