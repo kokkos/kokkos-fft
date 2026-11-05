@@ -6,6 +6,10 @@
 #define KOKKOSFFT_SYCL_TYPES_HPP
 
 #include <complex>
+#include <concepts>
+#include <string>
+#include <type_traits>
+#include <vector>
 #include <sycl/sycl.hpp>
 #include <mkl.h>
 #if defined(INTEL_MKL_VERSION) && INTEL_MKL_VERSION >= 20250100
@@ -48,7 +52,7 @@ struct ScopedoneMKLPlan {
   static constexpr TransformKind transform_kind = transform_kind_v<T1, T2>;
   using floating_point_type = KokkosFFT::Impl::base_floating_point_type<T1>;
   static constexpr oneapi::mkl::dft::precision prec =
-      std::is_same_v<floating_point_type, float>
+      std::same_as<floating_point_type, float>
           ? oneapi::mkl::dft::precision::SINGLE
           : oneapi::mkl::dft::precision::DOUBLE;
   static constexpr oneapi::mkl::dft::domain dom =
@@ -160,10 +164,10 @@ struct FFTDataType {
   using float64 = double;
 
   using complex64 =
-      std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::SYCL>,
+      std::conditional_t<std::same_as<ExecutionSpace, Kokkos::SYCL>,
                          std::complex<float>, fftwf_complex>;
   using complex128 =
-      std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::SYCL>,
+      std::conditional_t<std::same_as<ExecutionSpace, Kokkos::SYCL>,
                          std::complex<double>, fftw_complex>;
 };
 
@@ -172,14 +176,14 @@ struct FFTDataType {
 /// \tparam ExecutionSpace The type of Kokkos execution space
 template <typename ExecutionSpace>
 using FFTIndexType =
-    std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::SYCL>,
-                       std::int64_t, int>;
+    std::conditional_t<std::same_as<ExecutionSpace, Kokkos::SYCL>, std::int64_t,
+                       int>;
 
 template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTPlanType {
   using fftwHandle   = ScopedFFTWPlan<ExecutionSpace, T1, T2>;
   using onemklHandle = ScopedoneMKLPlan<T1, T2>;
-  using type = std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::SYCL>,
+  using type = std::conditional_t<std::same_as<ExecutionSpace, Kokkos::SYCL>,
                                   onemklHandle, fftwHandle>;
 };
 
@@ -187,18 +191,18 @@ template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTDynPlanType {
   using fftwHandle   = ScopedFFTWPlan<ExecutionSpace, T1, T2>;
   using onemklHandle = ScopedoneMKLPlan<T1, T2>;
-  using type = std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::SYCL>,
+  using type = std::conditional_t<std::same_as<ExecutionSpace, Kokkos::SYCL>,
                                   onemklHandle, fftwHandle>;
 };
 
 template <typename ExecutionSpace>
 auto direction_type(Direction direction) {
   static constexpr FFTDirectionType FORWARD =
-      std::is_same_v<ExecutionSpace, Kokkos::SYCL> ? MKL_FFT_FORWARD
-                                                   : FFTW_FORWARD;
+      std::same_as<ExecutionSpace, Kokkos::SYCL> ? MKL_FFT_FORWARD
+                                                 : FFTW_FORWARD;
   static constexpr FFTDirectionType BACKWARD =
-      std::is_same_v<ExecutionSpace, Kokkos::SYCL> ? MKL_FFT_BACKWARD
-                                                   : FFTW_BACKWARD;
+      std::same_as<ExecutionSpace, Kokkos::SYCL> ? MKL_FFT_BACKWARD
+                                                 : FFTW_BACKWARD;
   return direction == Direction::forward ? FORWARD : BACKWARD;
 }
 #else
