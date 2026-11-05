@@ -5,6 +5,7 @@
 #ifndef KOKKOSFFT_CUDA_PLANS_HPP
 #define KOKKOSFFT_CUDA_PLANS_HPP
 
+#include <array>
 #include <concepts>
 #include <memory>
 #include <Kokkos_Core.hpp>
@@ -57,27 +58,21 @@ auto create_plan(const ExecutionSpace& exec_space,
   static_assert(InViewType::rank() >= fft_rank,
                 "create_plan: Rank of View must be larger than Rank of FFT.");
 
-  using in_value_type  = typename InViewType::non_const_value_type;
-  using out_value_type = typename OutViewType::non_const_value_type;
-
   Kokkos::Profiling::ScopedRegion region("KokkosFFT::create_plan[TPL_cufft]");
-  constexpr auto type =
-      KokkosFFT::Impl::transform_type<ExecutionSpace, in_value_type,
-                                      out_value_type>::type();
   auto [in_extents, out_extents, fft_extents, howmany] =
       KokkosFFT::Impl::get_extents(in, out, axes, s, is_inplace);
 
   using index_type = FFTIndexType<Kokkos::Cuda>;
   if constexpr (InViewType::rank() == 1 && fft_rank == 1) {
     const index_type nx = fft_extents.at(0);
-    plan                = std::make_unique<PlanType>(nx, type, howmany);
+    plan                = std::make_unique<PlanType>(nx, howmany);
   } else if constexpr (InViewType::rank() == 2 && fft_rank == 2) {
     const index_type nx = fft_extents.at(0), ny = fft_extents.at(1);
-    plan = std::make_unique<PlanType>(nx, ny, type);
+    plan = std::make_unique<PlanType>(std::array<index_type, 2>{nx, ny});
   } else if constexpr (InViewType::rank() == 3 && fft_rank == 3) {
     const index_type nx = fft_extents.at(0), ny = fft_extents.at(1),
                      nz = fft_extents.at(2);
-    plan                = std::make_unique<PlanType>(nx, ny, nz, type);
+    plan = std::make_unique<PlanType>(std::array<index_type, 3>{nx, ny, nz});
   } else {
     // Batched plan
     index_type idist = total_size(in_extents);
@@ -91,7 +86,7 @@ auto create_plan(const ExecutionSpace& exec_space,
     index_type istride = 1, ostride = 1;
     plan = std::make_unique<PlanType>(
         int_fft_extents.size(), int_fft_extents.data(), int_in_extents.data(),
-        istride, idist, int_out_extents.data(), ostride, odist, type, howmany);
+        istride, idist, int_out_extents.data(), ostride, odist, howmany);
   }
   plan->commit(exec_space);
 
@@ -110,15 +105,9 @@ auto create_dynplan(const ExecutionSpace& exec_space,
       (KokkosFFT::Impl::are_operatable_views_v<ExecutionSpace, InViewType,
                                                OutViewType>),
       "create_dynplan");
-  using in_value_type  = typename InViewType::non_const_value_type;
-  using out_value_type = typename OutViewType::non_const_value_type;
-
   Kokkos::Profiling::ScopedRegion region(
       "KokkosFFT::create_dynplan[TPL_cufft]");
 
-  const auto type =
-      KokkosFFT::Impl::transform_type<ExecutionSpace, in_value_type,
-                                      out_value_type>::type();
   auto [in_extents, out_extents, fft_extents, howmany] =
       KokkosFFT::Impl::get_extents(in, out, dim, is_inplace);
 
@@ -128,19 +117,18 @@ auto create_dynplan(const ExecutionSpace& exec_space,
 
   if (dim == 1) {
     const index_type nx = fft_extents.at(0);
-    plan                = std::make_unique<PlanType>(nx, type, howmany);
+    plan                = std::make_unique<PlanType>(nx, howmany);
   } else if (dim == 2 || dim == 3) {
     auto int_fft_extents = convert_base_int_type<index_type>(fft_extents);
     if (InViewType::rank() == dim) {
-      plan = std::make_unique<PlanType>(int_fft_extents, type);
+      plan = std::make_unique<PlanType>(int_fft_extents);
     } else {
       auto int_in_extents  = convert_base_int_type<index_type>(in_extents);
       auto int_out_extents = convert_base_int_type<index_type>(out_extents);
       index_type istride = 1, ostride = 1;
       plan = std::make_unique<PlanType>(
           int_fft_extents.size(), int_fft_extents.data(), int_in_extents.data(),
-          istride, idist, int_out_extents.data(), ostride, odist, type,
-          howmany);
+          istride, idist, int_out_extents.data(), ostride, odist, howmany);
     }
   } else {
     KOKKOSFFT_THROW_IF(true,
