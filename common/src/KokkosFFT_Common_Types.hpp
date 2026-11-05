@@ -39,6 +39,11 @@ enum class Direction {
 //! Maximum FFT dimension allowed in KokkosFFT
 constexpr std::size_t MAX_FFT_DIM = 3;
 
+namespace Impl {
+//! Kind of transform, deduced from the input/output value types
+enum class TransformKind { C2C, R2C, C2R };
+}  // namespace Impl
+
 }  // namespace KokkosFFT
 
 #endif
