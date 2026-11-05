@@ -38,26 +38,21 @@ using FFTDirectionType                      = int;
 constexpr FFTDirectionType MKL_FFT_FORWARD  = 1;
 constexpr FFTDirectionType MKL_FFT_BACKWARD = -1;
 
-#if !defined(KOKKOSFFT_ENABLE_TPL_FFTW)
-enum class FFTWTransformType { R2C, D2Z, C2R, Z2D, C2C, Z2Z };
-#endif
-
-template <typename ExecutionSpace>
-using TransformType = FFTWTransformType;
-
 /// \brief A class that wraps oneMKL for RAII
 template <typename T1, typename T2>
 struct ScopedoneMKLPlan {
   static_assert(have_same_base_floating_point_type_v<T1, T2>,
                 "ScopedoneMKLPlan: must be constructed with the same base "
                 "floating point type");
+  //! Transform kind deduced from the input/output value types
+  static constexpr TransformKind transform_kind = transform_kind_v<T1, T2>;
   using floating_point_type = KokkosFFT::Impl::base_floating_point_type<T1>;
   static constexpr oneapi::mkl::dft::precision prec =
       std::is_same_v<floating_point_type, float>
           ? oneapi::mkl::dft::precision::SINGLE
           : oneapi::mkl::dft::precision::DOUBLE;
   static constexpr oneapi::mkl::dft::domain dom =
-      is_complex_v<T1> && is_complex_v<T2> ? oneapi::mkl::dft::domain::COMPLEX
+      transform_kind == TransformKind::C2C ? oneapi::mkl::dft::domain::COMPLEX
                                            : oneapi::mkl::dft::domain::REAL;
   using onemklHandle = oneapi::mkl::dft::descriptor<prec, dom>;
 
@@ -155,44 +150,6 @@ struct ScopedoneMKLPlan {
     sycl::queue q = exec_space.sycl_queue();
     m_plan.commit(q);
   }
-};
-
-// Define fft transform types
-template <typename ExecutionSpace, typename T1, typename T2>
-struct transform_type {
-  static_assert(std::is_same_v<T1, T2>,
-                "Real to real transform is unavailable");
-};
-
-template <typename ExecutionSpace, typename T1, typename T2>
-struct transform_type<ExecutionSpace, T1, Kokkos::complex<T2>> {
-  static_assert(std::is_same_v<T1, T2>,
-                "T1 and T2 should have the same precision");
-  static constexpr FFTWTransformType m_type = std::is_same_v<T1, float>
-                                                  ? FFTWTransformType::R2C
-                                                  : FFTWTransformType::D2Z;
-  static constexpr FFTWTransformType type() { return m_type; };
-};
-
-template <typename ExecutionSpace, typename T1, typename T2>
-struct transform_type<ExecutionSpace, Kokkos::complex<T1>, T2> {
-  static_assert(std::is_same_v<T1, T2>,
-                "T1 and T2 should have the same precision");
-  static constexpr FFTWTransformType m_type = std::is_same_v<T2, float>
-                                                  ? FFTWTransformType::C2R
-                                                  : FFTWTransformType::Z2D;
-  static constexpr FFTWTransformType type() { return m_type; };
-};
-
-template <typename ExecutionSpace, typename T1, typename T2>
-struct transform_type<ExecutionSpace, Kokkos::complex<T1>,
-                      Kokkos::complex<T2>> {
-  static_assert(std::is_same_v<T1, T2>,
-                "T1 and T2 should have the same precision");
-  static constexpr FFTWTransformType m_type = std::is_same_v<T1, float>
-                                                  ? FFTWTransformType::C2C
-                                                  : FFTWTransformType::Z2Z;
-  static constexpr FFTWTransformType type() { return m_type; };
 };
 
 #if defined(KOKKOSFFT_ENABLE_TPL_FFTW)
