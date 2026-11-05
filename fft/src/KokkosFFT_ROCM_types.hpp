@@ -292,7 +292,7 @@ struct ScopedRocfftPlan {
  private:
   using floating_point_type =
       KokkosFFT::Impl::base_floating_point_type<InValueType>;
-  rocfft_precision m_precision = std::is_same_v<floating_point_type, float>
+  rocfft_precision m_precision = std::same_as<floating_point_type, float>
                                      ? rocfft_precision_single
                                      : rocfft_precision_double;
   rocfft_plan m_plan;
@@ -520,10 +520,10 @@ struct FFTDataType {
   using float32 = float;
   using float64 = double;
   using complex64 =
-      std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>, float2,
+      std::conditional_t<std::same_as<ExecutionSpace, Kokkos::HIP>, float2,
                          fftwf_complex>;
   using complex128 =
-      std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>, double2,
+      std::conditional_t<std::same_as<ExecutionSpace, Kokkos::HIP>, double2,
                          fftw_complex>;
 };
 
@@ -532,14 +532,14 @@ struct FFTDataType {
 /// \tparam ExecutionSpace The type of Kokkos execution space
 template <typename ExecutionSpace>
 using FFTIndexType =
-    std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>, std::size_t,
+    std::conditional_t<std::same_as<ExecutionSpace, Kokkos::HIP>, std::size_t,
                        int>;
 
 template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTPlanType {
   using fftw_plan_type   = ScopedFFTWPlan<ExecutionSpace, T1, T2>;
   using rocfft_plan_type = ScopedRocfftPlan<T1, T2>;
-  using type = std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
+  using type = std::conditional_t<std::same_as<ExecutionSpace, Kokkos::HIP>,
                                   rocfft_plan_type, fftw_plan_type>;
 };
 
@@ -547,19 +547,18 @@ template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTDynPlanType {
   using fftw_plan_type   = ScopedFFTWPlan<ExecutionSpace, T1, T2>;
   using rocfft_plan_type = ScopedRocfftPlan<T1, T2>;
-  using type = std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
+  using type = std::conditional_t<std::same_as<ExecutionSpace, Kokkos::HIP>,
                                   rocfft_plan_type, fftw_plan_type>;
 };
 
 template <typename ExecutionSpace>
 auto direction_type(Direction direction) {
   static constexpr FFTDirectionType FORWARD =
-      std::is_same_v<ExecutionSpace, Kokkos::HIP> ? ROCFFT_FORWARD
-                                                  : FFTW_FORWARD;
+      std::same_as<ExecutionSpace, Kokkos::HIP> ? ROCFFT_FORWARD : FFTW_FORWARD;
 
   static constexpr FFTDirectionType BACKWARD =
-      std::is_same_v<ExecutionSpace, Kokkos::HIP> ? ROCFFT_BACKWARD
-                                                  : FFTW_BACKWARD;
+      std::same_as<ExecutionSpace, Kokkos::HIP> ? ROCFFT_BACKWARD
+                                                : FFTW_BACKWARD;
   return direction == Direction::forward ? FORWARD : BACKWARD;
 }
 #else
