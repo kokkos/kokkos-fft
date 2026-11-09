@@ -1,0 +1,55 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: Kokkos-FFT
+message: 'If you use this software, please cite it as below.'
+type: software
+authors:
+  - name: The Kokkos authors
+    website: 'https://kokkos.org/community/team/'
+identifiers:
+  - type: url
+    value: >-
+      https://kokkosfft.readthedocs.io/en/latest/citation.html
+repository-code: 'https://github.com/kokkos/kokkos-comm'
+url: 'https://kokkosfft.readthedocs.io'
+abstract: >-
+  Kokkos-FFT implements local interfaces between Kokkos and
+  de facto standard FFT libraries, including FFTW, cufft,
+  hipfft (rocfft), and oneMKL.
+keywords:
+  - Kokkos
+  - FFT
+license: Apache-2.0
+commit: 7d4f64db31ac4ef50f396d017048025d107c0834
+version: 1.1.0
+date-released: '2026-05-13'
+preferred-citation:
+  title: 'kokkos-fft: A shared-memory FFT for the Kokkos ecosystem'
+  type: article
+  journal: Journal of Open Source Software
+  pages: 8391
+  publisher:
+    name: The Open Journal
+  url: "https://doi.org/10.21105/joss.08391"
+  authors:
+    - family-names: Asahi
+      given-names: Yuuichi
+      orcid: 'https://orcid.org/0000-0002-9997-1274'
+    - family-names: Padioleau
+      given-names: Thomas
+      orcid: 'https://orcid.org/0000-0001-5496-0013'
+    - family-names: Zehner
+      given-names: Paul
+      orcid: 'https://orcid.org/0000-0002-4811-0079'
+    - family-names: Bigot
+      given-names: Julien
+      orcid: 'https://orcid.org/0000-0002-0015-4304'
+    - family-names: Lebrun-Grandié
+      given-names: Damien
+      orcid: 'https://orcid.org/0000-0003-1952-7219'
+  date-published: '2025-11-16'
+  identifiers:
+    - type: doi
+      value: 10.1145/3815572.3815748
