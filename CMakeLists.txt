@@ -81,7 +81,10 @@ endif()
 if(NOT KOKKOSFFT_COMPILE_LANGUAGE STREQUAL CXX)
   # We cannot enable callback for CMake language builds
   if(KokkosFFT_ENABLE_CALLBACK)
-    message(FATAL_ERROR "KokkosFFT_ENABLE_CALLBACK is not supported when building KokkosFFT with Kokkos_ENABLE_COMPILE_AS_CMAKE_LANGUAGE")
+    message(
+      FATAL_ERROR
+        "KokkosFFT_ENABLE_CALLBACK is not supported when building KokkosFFT with Kokkos_ENABLE_COMPILE_AS_CMAKE_LANGUAGE"
+    )
   endif()
   # Same requirement as Kokkos for CUDA language builds
   if(KOKKOSFFT_COMPILE_LANGUAGE STREQUAL CUDA AND CMAKE_VERSION VERSION_LESS 3.25.2)
