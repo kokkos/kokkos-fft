@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
 cmake_minimum_required(VERSION 3.25.2)
-project(kokkos-fft-as-library LANGUAGES CXX)
+project(kokkos-fft-as-library-cmake-language LANGUAGES CXX)
 
 find_package(Kokkos CONFIG REQUIRED)
 find_package(KokkosFFT CONFIG REQUIRED)
