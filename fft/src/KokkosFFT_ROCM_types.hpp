@@ -144,29 +144,27 @@ inline constexpr bool is_load_callback_v =
     deduce_callback_type<CallbackSymbol>::is_load;
 #endif
 
-#if !defined(KOKKOSFFT_ENABLE_TPL_FFTW)
-enum class FFTWTransformType { R2C, D2Z, C2R, Z2D, C2C, Z2Z };
-#endif
-
-template <typename ExecutionSpace>
-using TransformType = FFTWTransformType;
-
-// Helper to get input and output array type and direction from transform type
-inline auto get_in_out_array_type(FFTWTransformType type, Direction direction) {
+/// \brief Helper to get the input/output array types and the rocFFT
+/// transform type from the transform kind and direction
+/// \tparam Kind The kind of transform (C2C, R2C or C2R)
+/// \param[in] direction The direction of the transform (only used for C2C)
+template <TransformKind Kind>
+auto get_in_out_array_type(Direction direction) {
   rocfft_array_type in_array_type, out_array_type;
   rocfft_transform_type fft_direction;
 
-  if (type == FFTWTransformType::C2C || type == FFTWTransformType::Z2Z) {
+  if constexpr (Kind == TransformKind::C2C) {
     in_array_type  = rocfft_array_type_complex_interleaved;
     out_array_type = rocfft_array_type_complex_interleaved;
     fft_direction  = direction == Direction::forward
                          ? rocfft_transform_type_complex_forward
                          : rocfft_transform_type_complex_inverse;
-  } else if (type == FFTWTransformType::R2C || type == FFTWTransformType::D2Z) {
+  } else if constexpr (Kind == TransformKind::R2C) {
     in_array_type  = rocfft_array_type_real;
     out_array_type = rocfft_array_type_hermitian_interleaved;
     fft_direction  = rocfft_transform_type_real_forward;
-  } else if (type == FFTWTransformType::C2R || type == FFTWTransformType::Z2D) {
+  } else {
+    static_assert(Kind == TransformKind::C2R);
     in_array_type  = rocfft_array_type_hermitian_interleaved;
     out_array_type = rocfft_array_type_real;
     fft_direction  = rocfft_transform_type_real_inverse;
@@ -175,7 +173,7 @@ inline auto get_in_out_array_type(FFTWTransformType type, Direction direction) {
   return std::tuple<rocfft_array_type, rocfft_array_type,
                     rocfft_transform_type>(
       {in_array_type, out_array_type, fft_direction});
-};
+}
 
 // Helper to convert the integer type of vectors
 template <typename InType, typename OutType>
@@ -279,11 +277,22 @@ struct ScopedRocfftExecutionInfo {
 };
 
 /// \brief A class that wraps rocfft for RAII
-template <typename T>
+/// \tparam InValueType The value type of the input view
+/// \tparam OutValueType The value type of the output view
+template <typename InValueType, typename OutValueType>
 struct ScopedRocfftPlan {
+  static_assert(
+      have_same_base_floating_point_type_v<InValueType, OutValueType>,
+      "ScopedRocfftPlan: input and output must have the same precision");
+
+  //! Transform kind deduced from the input/output value types
+  static constexpr TransformKind transform_kind =
+      transform_kind_v<InValueType, OutValueType>;
+
  private:
-  using floating_point_type    = KokkosFFT::Impl::base_floating_point_type<T>;
-  rocfft_precision m_precision = std::is_same_v<floating_point_type, float>
+  using floating_point_type =
+      KokkosFFT::Impl::base_floating_point_type<InValueType>;
+  rocfft_precision m_precision = std::same_as<floating_point_type, float>
                                      ? rocfft_precision_single
                                      : rocfft_precision_double;
   rocfft_plan m_plan;
@@ -291,22 +300,18 @@ struct ScopedRocfftPlan {
   //! Internal work buffer
   void *m_workbuffer = nullptr;
   std::unique_ptr<ScopedRocfftExecutionInfo> m_execution_info;
-  //! Transform type, used to check store callbacks against the plan
-  [[maybe_unused]] FFTWTransformType m_transform_type;
   //! Device copies of the callerInfo of the load/store callbacks, owned by
   //! this plan (see set_callback()) and freed in its destructor
   void *m_load_callback_params  = nullptr;
   void *m_store_callback_params = nullptr;
 
  public:
-  ScopedRocfftPlan(const FFTWTransformType transform_type,
-                   const std::vector<std::size_t> &in_extents,
+  ScopedRocfftPlan(const std::vector<std::size_t> &in_extents,
                    const std::vector<std::size_t> &out_extents,
                    const std::vector<std::size_t> &fft_extents,
-                   std::size_t howmany, Direction direction, bool is_inplace)
-      : m_transform_type(transform_type) {
+                   std::size_t howmany, Direction direction, bool is_inplace) {
     auto [in_array_type, out_array_type, fft_direction] =
-        get_in_out_array_type(transform_type, direction);
+        get_in_out_array_type<transform_kind>(direction);
 
     // Compute dist and strides from extents
     std::size_t idist = total_size(in_extents);
@@ -419,12 +424,11 @@ struct ScopedRocfftPlan {
   /// CallbackSymbolType (the callback typedef, e.g. kokkosfftCallbackLoadR vs
   /// kokkosfftCallbackStoreR, already encodes which one it is).
   ///
-  /// The callback is checked against the plan, since rocFFT does not do it:
-  /// its precision and, for a load callback, its real/complex data type must
-  /// match the plan (compile-time check), and so must the real/complex data
-  /// type of a store callback (runtime check, because a complex-to-real and a
-  /// complex-to-complex plan have the same type). Each of load and store may
-  /// be set at most once per plan, as for the other backends.
+  /// The callback is checked against the plan at compile time, since rocFFT
+  /// does not do it: its precision and its real/complex data type must match
+  /// the input (load callback) or the output (store callback) of the plan.
+  /// Each of load and store may be set at most once per plan, as for the
+  /// other backends.
   ///
   /// \tparam CallbackSymbolType The type of the callback symbol
   /// \tparam CallbackParamsType The type of the caller-provided params
@@ -462,22 +466,21 @@ struct ScopedRocfftPlan {
     // set once per plan.
     void **callback_params_slot;
     if constexpr (callback_traits::is_load) {
-      // The input of the plan is real (R2C/D2Z) or complex (C2R, C2C)
-      static_assert(callback_traits::is_real == is_real_v<T>,
-                    "set_callback(): a load callback must take the same kind "
-                    "of data (real or complex) as the input of the plan");
+      // The input of the plan is real only for R2C transforms
+      static_assert(
+          callback_traits::is_real == (transform_kind == TransformKind::R2C),
+          "set_callback(): a load callback must take the same kind "
+          "of data (real or complex) as the input of the plan");
       KOKKOSFFT_THROW_IF(
           m_load_callback_params != nullptr,
           "set_callback() may only set a load callback once per plan");
       callback_params_slot = &m_load_callback_params;
     } else {
-      // The output of the plan is real only for C2R/Z2D transforms
-      const bool is_real_output = m_transform_type == FFTWTransformType::C2R ||
-                                  m_transform_type == FFTWTransformType::Z2D;
-      KOKKOSFFT_THROW_IF(callback_traits::is_real != is_real_output,
-                         "set_callback(): a store callback must take the same "
-                         "kind of data (real or complex) as the output of the "
-                         "plan");
+      // The output of the plan is real only for C2R transforms
+      static_assert(
+          callback_traits::is_real == (transform_kind == TransformKind::C2R),
+          "set_callback(): a store callback must take the same kind "
+          "of data (real or complex) as the output of the plan");
       KOKKOSFFT_THROW_IF(
           m_store_callback_params != nullptr,
           "set_callback() may only set a store callback once per plan");
@@ -510,44 +513,6 @@ struct ScopedRocfftPlan {
   }
 };
 
-// Define fft transform types
-template <typename ExecutionSpace, typename T1, typename T2>
-struct transform_type {
-  static_assert(std::is_same_v<T1, T2>,
-                "Real to real transform is unavailable");
-};
-
-template <typename ExecutionSpace, typename T1, typename T2>
-struct transform_type<ExecutionSpace, T1, Kokkos::complex<T2>> {
-  static_assert(std::is_same_v<T1, T2>,
-                "T1 and T2 should have the same precision");
-  static constexpr FFTWTransformType m_type = std::is_same_v<T1, float>
-                                                  ? FFTWTransformType::R2C
-                                                  : FFTWTransformType::D2Z;
-  static constexpr FFTWTransformType type() { return m_type; };
-};
-
-template <typename ExecutionSpace, typename T1, typename T2>
-struct transform_type<ExecutionSpace, Kokkos::complex<T1>, T2> {
-  static_assert(std::is_same_v<T1, T2>,
-                "T1 and T2 should have the same precision");
-  static constexpr FFTWTransformType m_type = std::is_same_v<T2, float>
-                                                  ? FFTWTransformType::C2R
-                                                  : FFTWTransformType::Z2D;
-  static constexpr FFTWTransformType type() { return m_type; };
-};
-
-template <typename ExecutionSpace, typename T1, typename T2>
-struct transform_type<ExecutionSpace, Kokkos::complex<T1>,
-                      Kokkos::complex<T2>> {
-  static_assert(std::is_same_v<T1, T2>,
-                "T1 and T2 should have the same precision");
-  static constexpr FFTWTransformType m_type = std::is_same_v<T1, float>
-                                                  ? FFTWTransformType::C2C
-                                                  : FFTWTransformType::Z2Z;
-  static constexpr FFTWTransformType type() { return m_type; };
-};
-
 #if defined(KOKKOSFFT_ENABLE_TPL_FFTW)
 
 template <typename ExecutionSpace>
@@ -555,10 +520,10 @@ struct FFTDataType {
   using float32 = float;
   using float64 = double;
   using complex64 =
-      std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>, float2,
+      std::conditional_t<std::same_as<ExecutionSpace, Kokkos::HIP>, float2,
                          fftwf_complex>;
   using complex128 =
-      std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>, double2,
+      std::conditional_t<std::same_as<ExecutionSpace, Kokkos::HIP>, double2,
                          fftw_complex>;
 };
 
@@ -567,34 +532,33 @@ struct FFTDataType {
 /// \tparam ExecutionSpace The type of Kokkos execution space
 template <typename ExecutionSpace>
 using FFTIndexType =
-    std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>, std::size_t,
+    std::conditional_t<std::same_as<ExecutionSpace, Kokkos::HIP>, std::size_t,
                        int>;
 
 template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTPlanType {
   using fftw_plan_type   = ScopedFFTWPlan<ExecutionSpace, T1, T2>;
-  using rocfft_plan_type = ScopedRocfftPlan<T1>;
-  using type = std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
+  using rocfft_plan_type = ScopedRocfftPlan<T1, T2>;
+  using type = std::conditional_t<std::same_as<ExecutionSpace, Kokkos::HIP>,
                                   rocfft_plan_type, fftw_plan_type>;
 };
 
 template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTDynPlanType {
   using fftw_plan_type   = ScopedFFTWPlan<ExecutionSpace, T1, T2>;
-  using rocfft_plan_type = ScopedRocfftPlan<T1>;
-  using type = std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::HIP>,
+  using rocfft_plan_type = ScopedRocfftPlan<T1, T2>;
+  using type = std::conditional_t<std::same_as<ExecutionSpace, Kokkos::HIP>,
                                   rocfft_plan_type, fftw_plan_type>;
 };
 
 template <typename ExecutionSpace>
 auto direction_type(Direction direction) {
   static constexpr FFTDirectionType FORWARD =
-      std::is_same_v<ExecutionSpace, Kokkos::HIP> ? ROCFFT_FORWARD
-                                                  : FFTW_FORWARD;
+      std::same_as<ExecutionSpace, Kokkos::HIP> ? ROCFFT_FORWARD : FFTW_FORWARD;
 
   static constexpr FFTDirectionType BACKWARD =
-      std::is_same_v<ExecutionSpace, Kokkos::HIP> ? ROCFFT_BACKWARD
-                                                  : FFTW_BACKWARD;
+      std::same_as<ExecutionSpace, Kokkos::HIP> ? ROCFFT_BACKWARD
+                                                : FFTW_BACKWARD;
   return direction == Direction::forward ? FORWARD : BACKWARD;
 }
 #else
@@ -611,12 +575,12 @@ using FFTIndexType = std::size_t;
 
 template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTPlanType {
-  using type = ScopedRocfftPlan<T1>;
+  using type = ScopedRocfftPlan<T1, T2>;
 };
 
 template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTDynPlanType {
-  using type = ScopedRocfftPlan<T1>;
+  using type = ScopedRocfftPlan<T1, T2>;
 };
 
 template <typename ExecutionSpace>
