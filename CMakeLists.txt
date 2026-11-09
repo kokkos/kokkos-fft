@@ -30,12 +30,18 @@ set(KOKKOSFFT_VERSION_PATCH ${PROJECT_VERSION_PATCH})
 
 set(KOKKOS_REQUIRED_VERSION 5.0.0)
 
+set(KOKKOSFFT_COMPILE_LANGUAGE CXX)
+set(KOKKOSFFT_CXX_STANDARD 20)
+set(KOKKOSFFT_STANDARD_FEATURE cxx_std_${KOKKOSFFT_CXX_STANDARD})
+
 if(NOT KokkosFFT_ENABLE_INTERNAL_KOKKOS)
   # First check, Kokkos is added as subdirectory or not
   if(NOT TARGET Kokkos::kokkos)
     find_package(Kokkos ${KOKKOS_REQUIRED_VERSION} REQUIRED)
     # Check the alignment of complex numbers
     kokkos_check(OPTIONS COMPLEX_ALIGN)
+    set(KOKKOSFFT_COMPILE_LANGUAGE ${Kokkos_COMPILE_LANGUAGE})
+    set(KOKKOSFFT_${KOKKOSFFT_COMPILE_LANGUAGE}_ARCHITECTURES ${Kokkos_${Kokkos_COMPILE_LANGUAGE}_ARCHITECTURES})
     if(KokkosFFT_ENABLE_CALLBACK)
       if(Kokkos_ENABLE_CUDA)
         kokkos_check(OPTIONS CUDA_RELOCATABLE_DEVICE_CODE)
@@ -60,7 +66,24 @@ else()
       set(Kokkos_ENABLE_HIP_RELOCATABLE_DEVICE_CODE ON)
     endif()
   endif()
+  if(Kokkos_ENABLE_COMPILE_AS_CMAKE_LANGUAGE)
+    message(FATAL_ERROR "Kokkos_ENABLE_COMPILE_AS_CMAKE_LANGUAGE is not supported when building Kokkos in-tree")
+  endif()
   add_subdirectory(tpls/kokkos)
+endif()
+
+if(KOKKOSFFT_COMPILE_LANGUAGE STREQUAL CUDA)
+  set(KOKKOSFFT_STANDARD_FEATURE cuda_std_${KOKKOSFFT_CXX_STANDARD})
+elseif(KOKKOSFFT_COMPILE_LANGUAGE STREQUAL HIP)
+  set(KOKKOSFFT_STANDARD_FEATURE hip_std_${KOKKOSFFT_CXX_STANDARD})
+endif()
+
+if(NOT KOKKOSFFT_COMPILE_LANGUAGE STREQUAL CXX)
+  # Same requirement as Kokkos for CUDA language builds
+  if(KOKKOSFFT_COMPILE_LANGUAGE STREQUAL CUDA AND CMAKE_VERSION VERSION_LESS 3.25.2)
+    message(FATAL_ERROR "Building KokkosFFT with CUDA as a CMake language requires CMake 3.25.2 or higher.")
+  endif()
+  enable_language(${KOKKOSFFT_COMPILE_LANGUAGE})
 endif()
 
 # Device specific options
