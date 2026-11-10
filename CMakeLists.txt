@@ -50,6 +50,25 @@ if(NOT KokkosFFT_ENABLE_INTERNAL_KOKKOS)
         kokkos_check(OPTIONS HIP_RELOCATABLE_DEVICE_CODE)
       endif()
     endif()
+  else()
+    # Kokkos is already added as a subdirectory
+    if(Kokkos_ENABLE_COMPILE_AS_CMAKE_LANGUAGE)
+      message(FATAL_ERROR "Kokkos_ENABLE_COMPILE_AS_CMAKE_LANGUAGE is not supported when building Kokkos in-tree")
+    endif()
+    if(KokkosFFT_ENABLE_CALLBACK)
+      if(Kokkos_ENABLE_CUDA AND NOT Kokkos_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE)
+        message(
+          FATAL_ERROR
+            "To enable KokkosFFT_ENABLE_CALLBACK with Cuda backend, it is necessary to enable Kokkos_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE"
+        )
+      endif()
+      if(Kokkos_ENABLE_HIP AND NOT Kokkos_ENABLE_HIP_RELOCATABLE_DEVICE_CODE)
+        message(
+          FATAL_ERROR
+            "To enable KokkosFFT_ENABLE_CALLBACK with Hip backend, it is necessary to enable Kokkos_ENABLE_HIP_RELOCATABLE_DEVICE_CODE"
+        )
+      endif()
+    endif()
   endif()
 else()
   # Legacy vendor callbacks (cufftXtSetCallback/hipfftXtSetCallback) resolve
@@ -59,11 +78,17 @@ else()
   # crash at execution time. Force RDC on for whichever GPU backend is in
   # use so this can't be silently misconfigured.
   if(KokkosFFT_ENABLE_CALLBACK)
-    if(Kokkos_ENABLE_CUDA)
-      set(Kokkos_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE ON)
+    if(Kokkos_ENABLE_CUDA AND NOT Kokkos_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE)
+      message(
+        FATAL_ERROR
+          "To enable KokkosFFT_ENABLE_CALLBACK with Cuda backend, it is necessary to enable Kokkos_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE"
+      )
     endif()
-    if(Kokkos_ENABLE_HIP)
-      set(Kokkos_ENABLE_HIP_RELOCATABLE_DEVICE_CODE ON)
+    if(Kokkos_ENABLE_HIP AND NOT Kokkos_ENABLE_HIP_RELOCATABLE_DEVICE_CODE)
+      message(
+        FATAL_ERROR
+          "To enable KokkosFFT_ENABLE_CALLBACK with Hip backend, it is necessary to enable Kokkos_ENABLE_HIP_RELOCATABLE_DEVICE_CODE"
+      )
     endif()
   endif()
   if(Kokkos_ENABLE_COMPILE_AS_CMAKE_LANGUAGE)
@@ -79,9 +104,16 @@ elseif(KOKKOSFFT_COMPILE_LANGUAGE STREQUAL HIP)
 endif()
 
 if(NOT KOKKOSFFT_COMPILE_LANGUAGE STREQUAL CXX)
+  # We cannot enable callback for CMake language builds
+  if(KokkosFFT_ENABLE_CALLBACK)
+    message(
+      FATAL_ERROR
+        "KokkosFFT_ENABLE_CALLBACK is not supported when building KokkosFFT with Kokkos_ENABLE_COMPILE_AS_CMAKE_LANGUAGE"
+    )
+  endif()
   # Same requirement as Kokkos for CUDA language builds
   if(KOKKOSFFT_COMPILE_LANGUAGE STREQUAL CUDA AND CMAKE_VERSION VERSION_LESS 3.25.2)
-    message(FATAL_ERROR "Building KokkosFFT with CUDA as a CMake language requires CMake 3.25.2 or higher.")
+    message(FATAL_ERROR "Building KokkosFFT with CUDA as a CMake language requires CMake 3.25.2 or higher")
   endif()
   enable_language(${KOKKOSFFT_COMPILE_LANGUAGE})
 endif()
