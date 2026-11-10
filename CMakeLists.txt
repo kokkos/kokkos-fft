@@ -51,16 +51,22 @@ if(NOT KokkosFFT_ENABLE_INTERNAL_KOKKOS)
       endif()
     endif()
   else()
-    # Kokkos is already added as a subdirectory, check the alignment of complex numbers
+    # Kokkos is already added as a subdirectory
     if(Kokkos_ENABLE_COMPILE_AS_CMAKE_LANGUAGE)
       message(FATAL_ERROR "Kokkos_ENABLE_COMPILE_AS_CMAKE_LANGUAGE is not supported when building Kokkos in-tree")
     endif()
     if(KokkosFFT_ENABLE_CALLBACK)
       if(Kokkos_ENABLE_CUDA AND NOT Kokkos_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE)
-        message(FATAL_ERROR "To enable KokkosFFT_ENABLE_CALLBACK with Cuda backend, it is necessary to enable Kokkos_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE")
+        message(
+          FATAL_ERROR
+            "To enable KokkosFFT_ENABLE_CALLBACK with Cuda backend, it is necessary to enable Kokkos_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE"
+        )
       endif()
       if(Kokkos_ENABLE_HIP AND NOT Kokkos_ENABLE_HIP_RELOCATABLE_DEVICE_CODE)
-        message(FATAL_ERROR "To enable KokkosFFT_ENABLE_CALLBACK with Hip backend, it is necessary to enable Kokkos_ENABLE_HIP_RELOCATABLE_DEVICE_CODE")
+        message(
+          FATAL_ERROR
+            "To enable KokkosFFT_ENABLE_CALLBACK with Hip backend, it is necessary to enable Kokkos_ENABLE_HIP_RELOCATABLE_DEVICE_CODE"
+        )
       endif()
     endif()
   endif()
@@ -73,10 +79,16 @@ else()
   # use so this can't be silently misconfigured.
   if(KokkosFFT_ENABLE_CALLBACK)
     if(Kokkos_ENABLE_CUDA AND NOT Kokkos_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE)
-      message(FATAL_ERROR "To enable KokkosFFT_ENABLE_CALLBACK with Cuda backend, it is necessary to enable Kokkos_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE")
+      message(
+        FATAL_ERROR
+          "To enable KokkosFFT_ENABLE_CALLBACK with Cuda backend, it is necessary to enable Kokkos_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE"
+      )
     endif()
     if(Kokkos_ENABLE_HIP AND NOT Kokkos_ENABLE_HIP_RELOCATABLE_DEVICE_CODE)
-      message(FATAL_ERROR "To enable KokkosFFT_ENABLE_CALLBACK with Hip backend, it is necessary to enable Kokkos_ENABLE_HIP_RELOCATABLE_DEVICE_CODE")
+      message(
+        FATAL_ERROR
+          "To enable KokkosFFT_ENABLE_CALLBACK with Hip backend, it is necessary to enable Kokkos_ENABLE_HIP_RELOCATABLE_DEVICE_CODE"
+      )
     endif()
   endif()
   if(Kokkos_ENABLE_COMPILE_AS_CMAKE_LANGUAGE)
