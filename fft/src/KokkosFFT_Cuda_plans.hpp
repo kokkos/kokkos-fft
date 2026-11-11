@@ -62,33 +62,28 @@ auto create_plan(const ExecutionSpace& exec_space,
   auto [in_extents, out_extents, fft_extents, howmany] =
       KokkosFFT::Impl::get_extents(in, out, axes, s, is_inplace);
 
-  using index_type = FFTIndexType<Kokkos::Cuda>;
-  if constexpr (InViewType::rank() == 1 && fft_rank == 1) {
+  using index_type = int;
+  if constexpr (fft_rank == 1) {
     const index_type nx = fft_extents.at(0);
     plan                = std::make_unique<PlanType>(nx, howmany);
-  } else if constexpr (InViewType::rank() == 2 && fft_rank == 2) {
-    const index_type nx = fft_extents.at(0), ny = fft_extents.at(1);
-    plan = std::make_unique<PlanType>(std::array<index_type, 2>{nx, ny});
-  } else if constexpr (InViewType::rank() == 3 && fft_rank == 3) {
-    const index_type nx = fft_extents.at(0), ny = fft_extents.at(1),
-                     nz = fft_extents.at(2);
-    plan = std::make_unique<PlanType>(std::array<index_type, 3>{nx, ny, nz});
-  } else {
-    // Batched plan
-    index_type idist = total_size(in_extents);
-    index_type odist = total_size(out_extents);
-
-    auto int_in_extents  = convert_base_int_type<index_type>(in_extents);
-    auto int_out_extents = convert_base_int_type<index_type>(out_extents);
+  } else if constexpr (fft_rank == 2 || fft_rank == 3) {
     auto int_fft_extents = convert_base_int_type<index_type>(fft_extents);
-
-    // For the moment, considering the contiguous layout only
-    index_type istride = 1, ostride = 1;
-    plan = std::make_unique<PlanType>(
-        int_fft_extents.size(), int_fft_extents.data(), int_in_extents.data(),
-        istride, idist, int_out_extents.data(), ostride, odist, howmany);
+    if (InViewType::rank() == fft_rank) {
+      plan = std::make_unique<PlanType>(int_fft_extents);
+    } else {
+      auto int_in_extents  = convert_base_int_type<index_type>(in_extents);
+      auto int_out_extents = convert_base_int_type<index_type>(out_extents);
+      index_type idist     = total_size(in_extents);
+      index_type odist     = total_size(out_extents);
+      index_type istride = 1, ostride = 1;
+      plan = std::make_unique<PlanType>(
+          int_fft_extents.size(), int_fft_extents.data(), int_in_extents.data(),
+          istride, idist, int_out_extents.data(), ostride, odist, howmany);
+    }
   }
+
   plan->commit(exec_space);
+  plan->set_work_area();
 
   return fft_extents;
 }
@@ -111,10 +106,7 @@ auto create_dynplan(const ExecutionSpace& exec_space,
   auto [in_extents, out_extents, fft_extents, howmany] =
       KokkosFFT::Impl::get_extents(in, out, dim, is_inplace);
 
-  using index_type = FFTIndexType<Kokkos::Cuda>;
-  index_type idist = total_size(in_extents);
-  index_type odist = total_size(out_extents);
-
+  using index_type = int;
   if (dim == 1) {
     const index_type nx = fft_extents.at(0);
     plan                = std::make_unique<PlanType>(nx, howmany);
@@ -123,6 +115,8 @@ auto create_dynplan(const ExecutionSpace& exec_space,
     if (InViewType::rank() == dim) {
       plan = std::make_unique<PlanType>(int_fft_extents);
     } else {
+      index_type idist     = total_size(in_extents);
+      index_type odist     = total_size(out_extents);
       auto int_in_extents  = convert_base_int_type<index_type>(in_extents);
       auto int_out_extents = convert_base_int_type<index_type>(out_extents);
       index_type istride = 1, ostride = 1;
