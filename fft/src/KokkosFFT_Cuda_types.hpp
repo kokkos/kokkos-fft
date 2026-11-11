@@ -10,6 +10,7 @@
 #include <vector>
 #include <cufft.h>
 #include <Kokkos_Abort.hpp>
+#include <Kokkos_Core.hpp>
 #include <Kokkos_Profiling_ScopedRegion.hpp>
 #include "KokkosFFT_Asserts.hpp"
 #include "KokkosFFT_Cuda_asserts.hpp"
@@ -203,34 +204,57 @@ struct ScopedCufftPlan {
 
  private:
   cufftHandle m_plan;
+  std::size_t m_workspace_size;
+
+  //! Internal work buffer for the plan
+  void *m_workbuffer = nullptr;
+
+  //! Parameters for the load and store callbacks
   void *m_load_callback_params  = nullptr;
   void *m_store_callback_params = nullptr;
 
  public:
   ScopedCufftPlan(int nx, int batch) {
-    KOKKOSFFT_CHECK_CUFFT_CALL(cufftPlan1d(&m_plan, nx, type, batch));
+    KOKKOSFFT_CHECK_CUFFT_CALL(cufftCreate(&m_plan));
+    KOKKOSFFT_CHECK_CUFFT_CALL(cufftSetAutoAllocation(m_plan, 0));
+    KOKKOSFFT_CHECK_CUFFT_CALL(
+        cufftMakePlan1d(m_plan, nx, type, batch, &m_workspace_size));
   }
 
-  explicit ScopedCufftPlan(const std::array<int, 2> &fft_extents) {
-    const auto [nx, ny] = fft_extents;
-    KOKKOSFFT_CHECK_CUFFT_CALL(cufftPlan2d(&m_plan, nx, ny, type));
-  }
+  explicit ScopedCufftPlan(const std::vector<int> &fft_extents) {
+    KOKKOSFFT_CHECK_CUFFT_CALL(cufftCreate(&m_plan));
+    KOKKOSFFT_CHECK_CUFFT_CALL(cufftSetAutoAllocation(m_plan, 0));
 
-  explicit ScopedCufftPlan(const std::array<int, 3> &fft_extents) {
-    const auto [nx, ny, nz] = fft_extents;
-    KOKKOSFFT_CHECK_CUFFT_CALL(cufftPlan3d(&m_plan, nx, ny, nz, type));
+    if (fft_extents.size() == 2) {
+      auto nx = fft_extents.at(0), ny = fft_extents.at(1);
+      KOKKOSFFT_CHECK_CUFFT_CALL(
+          cufftMakePlan2d(m_plan, nx, ny, type, &m_workspace_size));
+    } else if (fft_extents.size() == 3) {
+      auto nx = fft_extents.at(0), ny = fft_extents.at(1),
+           nz = fft_extents.at(2);
+      KOKKOSFFT_CHECK_CUFFT_CALL(
+          cufftMakePlan3d(m_plan, nx, ny, nz, type, &m_workspace_size));
+    } else {
+      KOKKOSFFT_THROW_IF(true, "FFT dimension can be 2D or 3D only");
+    }
   }
 
   ScopedCufftPlan(int rank, int *n, int *inembed, int istride, int idist,
                   int *onembed, int ostride, int odist, int batch) {
-    KOKKOSFFT_CHECK_CUFFT_CALL(cufftPlanMany(&m_plan, rank, n, inembed, istride,
-                                             idist, onembed, ostride, odist,
-                                             type, batch));
+    KOKKOSFFT_CHECK_CUFFT_CALL(cufftCreate(&m_plan));
+    KOKKOSFFT_CHECK_CUFFT_CALL(cufftSetAutoAllocation(m_plan, 0));
+    KOKKOSFFT_CHECK_CUFFT_CALL(
+        cufftMakePlanMany(m_plan, rank, n, inembed, istride, idist, onembed,
+                          ostride, odist, type, batch, &m_workspace_size));
   }
 
   ~ScopedCufftPlan() noexcept {
     Kokkos::Profiling::ScopedRegion region(
         "KokkosFFT::cleanup_plan[TPL_cufft]");
+    if (m_workbuffer != nullptr) {
+      Kokkos::kokkos_free<Kokkos::Cuda>(m_workbuffer);
+    }
+
     cufftResult cufft_rt = cufftDestroy(m_plan);
     if (cufft_rt != CUFFT_SUCCESS) Kokkos::abort("cufftDestroy failed");
 
@@ -255,7 +279,34 @@ struct ScopedCufftPlan {
   ScopedCufftPlan(ScopedCufftPlan &&)                 = delete;
 
   cufftHandle plan() const noexcept { return m_plan; }
-  void commit(const Kokkos::Cuda &exec_space) const {
+
+  /// \brief Return the workspace size in Byte
+  /// \return the workspace size in Byte
+  std::size_t workspace_size() const noexcept { return m_workspace_size; }
+
+  template <typename WorkViewType>
+  void set_work_area(const WorkViewType &work) {
+    using value_type           = typename WorkViewType::non_const_value_type;
+    std::size_t workspace_size = work.size() * sizeof(value_type);
+    KOKKOSFFT_THROW_IF(
+        workspace_size < m_workspace_size,
+        "insufficient work buffer size. buffer size: " +
+            std::to_string(workspace_size) +
+            ", required size: " + std::to_string(m_workspace_size));
+    void *work_area = static_cast<void *>(work.data());
+
+    KOKKOSFFT_CHECK_CUFFT_CALL(cufftSetWorkArea(m_plan, work_area));
+  }
+
+  void set_work_area() {
+    if (m_workspace_size > 0) {
+      m_workbuffer =
+          Kokkos::kokkos_malloc<Kokkos::Cuda>("workbuffer", m_workspace_size);
+      KOKKOSFFT_CHECK_CUFFT_CALL(cufftSetWorkArea(m_plan, m_workbuffer));
+    }
+  }
+
+  void commit(const Kokkos::Cuda &exec_space) {
     KOKKOSFFT_CHECK_CUFFT_CALL(
         cufftSetStream(m_plan, exec_space.cuda_stream()));
   }
@@ -336,192 +387,6 @@ struct ScopedCufftPlan {
   }
 };
 
-/// \brief A class that wraps cufft for RAII
-/// \tparam InValueType The value type of the input view
-/// \tparam OutValueType The value type of the output view
-template <typename InValueType, typename OutValueType>
-struct ScopedCufftDynPlan {
-  static_assert(
-      have_same_base_floating_point_type_v<InValueType, OutValueType>,
-      "ScopedCufftDynPlan: input and output must have the same precision");
-
-  //! Transform kind deduced from the input/output value types
-  static constexpr TransformKind transform_kind =
-      transform_kind_v<InValueType, OutValueType>;
-
-  //! cufftType deduced from the precision and the transform kind
-  static constexpr cufftType type =
-      deduce_cufft_type<base_floating_point_type<InValueType>,
-                        transform_kind>();
-
- private:
-  cufftHandle m_plan;
-  std::size_t m_workspace_size;
-  void *m_load_callback_params  = nullptr;
-  void *m_store_callback_params = nullptr;
-
- public:
-  ScopedCufftDynPlan(int nx, int batch) {
-    KOKKOSFFT_CHECK_CUFFT_CALL(cufftCreate(&m_plan));
-    KOKKOSFFT_CHECK_CUFFT_CALL(cufftSetAutoAllocation(m_plan, 0));
-    KOKKOSFFT_CHECK_CUFFT_CALL(
-        cufftMakePlan1d(m_plan, nx, type, batch, &m_workspace_size));
-  }
-
-  explicit ScopedCufftDynPlan(const std::vector<int> &fft_extents) {
-    KOKKOSFFT_CHECK_CUFFT_CALL(cufftCreate(&m_plan));
-    KOKKOSFFT_CHECK_CUFFT_CALL(cufftSetAutoAllocation(m_plan, 0));
-
-    if (fft_extents.size() == 2) {
-      auto nx = fft_extents.at(0), ny = fft_extents.at(1);
-      KOKKOSFFT_CHECK_CUFFT_CALL(
-          cufftMakePlan2d(m_plan, nx, ny, type, &m_workspace_size));
-    } else if (fft_extents.size() == 3) {
-      auto nx = fft_extents.at(0), ny = fft_extents.at(1),
-           nz = fft_extents.at(2);
-      KOKKOSFFT_CHECK_CUFFT_CALL(
-          cufftMakePlan3d(m_plan, nx, ny, nz, type, &m_workspace_size));
-    } else {
-      KOKKOSFFT_THROW_IF(true, "FFT dimension can be 2D or 3D only");
-    }
-  }
-
-  ScopedCufftDynPlan(int rank, int *n, int *inembed, int istride, int idist,
-                     int *onembed, int ostride, int odist, int batch) {
-    KOKKOSFFT_CHECK_CUFFT_CALL(cufftCreate(&m_plan));
-    KOKKOSFFT_CHECK_CUFFT_CALL(cufftSetAutoAllocation(m_plan, 0));
-    KOKKOSFFT_CHECK_CUFFT_CALL(
-        cufftMakePlanMany(m_plan, rank, n, inembed, istride, idist, onembed,
-                          ostride, odist, type, batch, &m_workspace_size));
-  }
-
-  ~ScopedCufftDynPlan() noexcept {
-    Kokkos::Profiling::ScopedRegion region(
-        "KokkosFFT::cleanup_plan[TPL_cufft]");
-    cufftResult cufft_rt = cufftDestroy(m_plan);
-    if (cufft_rt != CUFFT_SUCCESS) Kokkos::abort("cufftDestroy failed");
-
-    // cuFFT only borrows the callerInfo pointers set in set_callback() for
-    // the lifetime of the plan; it never frees them itself. This class owns
-    // those allocations, so free them here now that the plan (and anything
-    // that might still be reading them) is gone.
-    if (m_load_callback_params != nullptr) {
-      cudaError_t cuda_rt = cudaFree(m_load_callback_params);
-      if (cuda_rt != cudaSuccess) Kokkos::abort("cudaFree failed");
-    }
-    if (m_store_callback_params != nullptr) {
-      cudaError_t cuda_rt = cudaFree(m_store_callback_params);
-      if (cuda_rt != cudaSuccess) Kokkos::abort("cudaFree failed");
-    }
-  }
-
-  ScopedCufftDynPlan()                                      = delete;
-  ScopedCufftDynPlan(const ScopedCufftDynPlan &)            = delete;
-  ScopedCufftDynPlan &operator=(const ScopedCufftDynPlan &) = delete;
-  ScopedCufftDynPlan &operator=(ScopedCufftDynPlan &&)      = delete;
-  ScopedCufftDynPlan(ScopedCufftDynPlan &&)                 = delete;
-
-  cufftHandle plan() const noexcept { return m_plan; }
-
-  /// \brief Return the workspace size in Byte
-  /// \return the workspace size in Byte
-  std::size_t workspace_size() const noexcept { return m_workspace_size; }
-
-  template <typename WorkViewType>
-  void set_work_area(const WorkViewType &work) {
-    using value_type           = typename WorkViewType::non_const_value_type;
-    std::size_t workspace_size = work.size() * sizeof(value_type);
-    KOKKOSFFT_THROW_IF(
-        workspace_size < m_workspace_size,
-        "insufficient work buffer size. buffer size: " +
-            std::to_string(workspace_size) +
-            ", required size: " + std::to_string(m_workspace_size));
-    void *work_area = static_cast<void *>(work.data());
-
-    KOKKOSFFT_CHECK_CUFFT_CALL(cufftSetWorkArea(m_plan, work_area));
-  }
-
-  void commit(const Kokkos::Cuda &exec_space) {
-    KOKKOSFFT_CHECK_CUFFT_CALL(
-        cufftSetStream(m_plan, exec_space.cuda_stream()));
-  }
-
-  /// \brief Attach a load or store callback to this plan, deduced from
-  /// CallbackSymbolType (the vendor typedef, e.g. cufftCallbackLoadR vs
-  /// cufftCallbackStoreR, already encodes which one it is).
-  ///
-  /// The callback is checked against the plan at compile time: its precision
-  /// and its real/complex data type must match the input (load callback) or
-  /// the output (store callback) of the plan. Each of load and store may be
-  /// set at most once per plan.
-  ///
-  /// \tparam CallbackSymbolType The type of the callback symbol
-  /// \tparam CallbackParamsType The type of the caller-provided params
-  /// \param[in] d_callback_symbol The __device__ global holding the callback
-  /// function pointer
-  /// \param[in] params The callback parameters. Copied into a device allocation
-  /// owned by this ScopedCufftDynPlan, freed in its destructor -- the caller
-  /// never has to manage that memory themselves.
-  ///
-  /// \note When KOKKOSFFT_ENABLE_CALLBACK is off, calling this method fails
-  /// to compile (static_assert) rather than silently doing nothing.
-  ///
-  /// \note \p params must always be a real struct, even if the callback
-  /// itself never reads it. Passing nullptr fails to compile (static_assert)
-  /// rather than silently producing a non-null callerInfo on the device
-  /// that points to zeroed memory instead of a real struct.
-  template <typename CallbackSymbolType, typename CallbackParamsType>
-  void set_callback(const CallbackSymbolType &d_callback_symbol,
-                    const CallbackParamsType &params) {
-#if defined(KOKKOSFFT_ENABLE_CALLBACK)
-    static_assert(!std::is_null_pointer_v<CallbackParamsType>,
-                  "set_callback() requires a real params struct -- passing "
-                  "nullptr does not produce a null callerInfo on the "
-                  "device, it points to zeroed memory instead, which is "
-                  "almost certainly not what you want");
-    static_check_callback<CallbackSymbolType, InValueType, OutValueType>();
-    CallbackSymbolType callback{};
-    KOKKOSFFT_CHECK_CUDA_CALL(
-        cudaMemcpyFromSymbol(&callback, d_callback_symbol, sizeof(callback)));
-
-    constexpr cufftXtCallbackType cb_type =
-        deduce_callback_type_v<CallbackSymbolType>;
-    void *callback_ptr = reinterpret_cast<void *>(callback);
-
-    // Load and store callbacks each get their own device buffer -- cuFFT
-    // treats their caller-info as independent per callback type (confirmed
-    // against rocFFT's open-source native API and empirically against
-    // cuFFT itself), and each may only be set once per plan.
-    void **callback_params_slot;
-    if constexpr (is_load_callback_v<CallbackSymbolType>) {
-      KOKKOSFFT_THROW_IF(
-          m_load_callback_params != nullptr,
-          "set_callback() may only set a load callback once per plan");
-      callback_params_slot = &m_load_callback_params;
-    } else {
-      KOKKOSFFT_THROW_IF(
-          m_store_callback_params != nullptr,
-          "set_callback() may only set a store callback once per plan");
-      callback_params_slot = &m_store_callback_params;
-    }
-
-    KOKKOSFFT_CHECK_CUDA_CALL(
-        cudaMalloc(callback_params_slot, sizeof(CallbackParamsType)));
-    KOKKOSFFT_CHECK_CUDA_CALL(cudaMemcpy(*callback_params_slot, &params,
-                                         sizeof(CallbackParamsType),
-                                         cudaMemcpyHostToDevice));
-
-    void *callback_params_ptr = *callback_params_slot;
-    KOKKOSFFT_CHECK_CUFFT_CALL(cufftXtSetCallback(
-        m_plan, &callback_ptr, cb_type, &callback_params_ptr));
-#else
-    static_assert(std::is_void_v<CallbackSymbolType>,
-                  "set_callback() requires KokkosFFT to be built with "
-                  "-DKokkosFFT_ENABLE_CALLBACK=ON");
-#endif
-  }
-};
-
 #if defined(KOKKOSFFT_ENABLE_TPL_FFTW)
 template <typename ExecutionSpace>
 struct FFTDataType {
@@ -537,12 +402,6 @@ struct FFTDataType {
                          cufftDoubleComplex, fftw_complex>;
 };
 
-/// \brief The index type used in backend FFT plan
-/// Both cuFFT and FFTW use int as index type
-/// \tparam ExecutionSpace The type of Kokkos execution space
-template <typename ExecutionSpace>
-using FFTIndexType = int;
-
 template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTPlanType {
   using fftw_plan_type  = ScopedFFTWPlan<ExecutionSpace, T1, T2>;
@@ -554,7 +413,7 @@ struct FFTPlanType {
 template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTDynPlanType {
   using fftw_plan_type  = ScopedFFTWPlan<ExecutionSpace, T1, T2>;
-  using cufft_plan_type = ScopedCufftDynPlan<T1, T2>;
+  using cufft_plan_type = ScopedCufftPlan<T1, T2>;
   using type = std::conditional_t<std::same_as<ExecutionSpace, Kokkos::Cuda>,
                                   cufft_plan_type, fftw_plan_type>;
 };
@@ -577,9 +436,6 @@ struct FFTDataType {
   using complex128 = cufftDoubleComplex;
 };
 
-template <typename ExecutionSpace>
-using FFTIndexType = int;
-
 template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTPlanType {
   using type = ScopedCufftPlan<T1, T2>;
@@ -587,7 +443,7 @@ struct FFTPlanType {
 
 template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTDynPlanType {
-  using type = ScopedCufftDynPlan<T1, T2>;
+  using type = ScopedCufftPlan<T1, T2>;
 };
 
 template <typename ExecutionSpace>
