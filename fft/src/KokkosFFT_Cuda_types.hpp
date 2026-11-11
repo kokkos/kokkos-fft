@@ -5,12 +5,16 @@
 #ifndef KOKKOSFFT_CUDA_TYPES_HPP
 #define KOKKOSFFT_CUDA_TYPES_HPP
 
+#include <array>
+#include <concepts>
+#include <vector>
 #include <cufft.h>
 #include <Kokkos_Abort.hpp>
 #include <Kokkos_Profiling_ScopedRegion.hpp>
 #include "KokkosFFT_Asserts.hpp"
 #include "KokkosFFT_Cuda_asserts.hpp"
 #include "KokkosFFT_Common_Types.hpp"
+#include "KokkosFFT_Traits.hpp"
 
 #if defined(KOKKOSFFT_ENABLE_TPL_FFTW)
 #include "KokkosFFT_FFTW_Types.hpp"
@@ -62,41 +66,57 @@ template <>
 struct deduce_callback_type<cufftCallbackLoadR> {
   static constexpr cufftXtCallbackType value = CUFFT_CB_LD_REAL;
   static constexpr bool is_load              = true;
+  static constexpr bool is_real              = true;
+  using value_type                           = float;
 };
 template <>
 struct deduce_callback_type<cufftCallbackLoadD> {
   static constexpr cufftXtCallbackType value = CUFFT_CB_LD_REAL_DOUBLE;
   static constexpr bool is_load              = true;
+  static constexpr bool is_real              = true;
+  using value_type                           = double;
 };
 template <>
 struct deduce_callback_type<cufftCallbackLoadC> {
   static constexpr cufftXtCallbackType value = CUFFT_CB_LD_COMPLEX;
   static constexpr bool is_load              = true;
+  static constexpr bool is_real              = false;
+  using value_type                           = float;
 };
 template <>
 struct deduce_callback_type<cufftCallbackLoadZ> {
   static constexpr cufftXtCallbackType value = CUFFT_CB_LD_COMPLEX_DOUBLE;
   static constexpr bool is_load              = true;
+  static constexpr bool is_real              = false;
+  using value_type                           = double;
 };
 template <>
 struct deduce_callback_type<cufftCallbackStoreR> {
   static constexpr cufftXtCallbackType value = CUFFT_CB_ST_REAL;
   static constexpr bool is_load              = false;
+  static constexpr bool is_real              = true;
+  using value_type                           = float;
 };
 template <>
 struct deduce_callback_type<cufftCallbackStoreD> {
   static constexpr cufftXtCallbackType value = CUFFT_CB_ST_REAL_DOUBLE;
   static constexpr bool is_load              = false;
+  static constexpr bool is_real              = true;
+  using value_type                           = double;
 };
 template <>
 struct deduce_callback_type<cufftCallbackStoreC> {
   static constexpr cufftXtCallbackType value = CUFFT_CB_ST_COMPLEX;
   static constexpr bool is_load              = false;
+  static constexpr bool is_real              = false;
+  using value_type                           = float;
 };
 template <>
 struct deduce_callback_type<cufftCallbackStoreZ> {
   static constexpr cufftXtCallbackType value = CUFFT_CB_ST_COMPLEX_DOUBLE;
   static constexpr bool is_load              = false;
+  static constexpr bool is_real              = false;
+  using value_type                           = double;
 };
 
 /// \brief Helper to deduce the cufftXtCallbackType enum value for a vendor
@@ -110,31 +130,99 @@ inline constexpr cufftXtCallbackType deduce_callback_type_v =
 template <typename CallbackSymbol>
 inline constexpr bool is_load_callback_v =
     deduce_callback_type<CallbackSymbol>::is_load;
+
+/// \brief Compile-time check of a callback against a plan.
+///
+/// cuFFT does not check that a callback suits the plan before running it, so
+/// check here that the precision of the callback matches the plan and that it
+/// takes the same kind of data (real or complex) as the input (load
+/// callback) or the output (store callback) of the plan.
+///
+/// \tparam CallbackSymbolType The type of the callback symbol
+/// \tparam InValueType The value type of the input of the plan
+/// \tparam OutValueType The value type of the output of the plan
+template <typename CallbackSymbolType, typename InValueType,
+          typename OutValueType>
+constexpr void static_check_callback() {
+  using callback_traits        = deduce_callback_type<CallbackSymbolType>;
+  constexpr TransformKind kind = transform_kind_v<InValueType, OutValueType>;
+  static_assert(std::same_as<typename callback_traits::value_type,
+                             base_floating_point_type<InValueType>>,
+                "set_callback(): the precision of the callback does not match "
+                "the precision of the plan");
+  if constexpr (callback_traits::is_load) {
+    // The input of the plan is real only for R2C/D2Z transforms
+    static_assert(callback_traits::is_real == (kind == TransformKind::R2C),
+                  "set_callback(): a load callback must take the same kind "
+                  "of data (real or complex) as the input of the plan");
+  } else {
+    // The output of the plan is real only for C2R/Z2D transforms
+    static_assert(callback_traits::is_real == (kind == TransformKind::C2R),
+                  "set_callback(): a store callback must take the same kind "
+                  "of data (real or complex) as the output of the plan");
+  }
+}
 #endif
 
+/// \brief Deduce the cufftType from the base floating point type and the
+/// transform kind
+/// \tparam FloatType The base floating point type (float or double)
+/// \tparam Kind The kind of transform (C2C, R2C or C2R)
+template <typename FloatType, TransformKind Kind>
+consteval cufftType deduce_cufft_type() {
+  static_assert(is_real_v<FloatType>,
+                "deduce_cufft_type: FloatType must be float or double");
+  constexpr bool is_single = std::same_as<FloatType, float>;
+  if constexpr (Kind == TransformKind::C2C) {
+    return is_single ? CUFFT_C2C : CUFFT_Z2Z;
+  } else if constexpr (Kind == TransformKind::R2C) {
+    return is_single ? CUFFT_R2C : CUFFT_D2Z;
+  } else {
+    static_assert(Kind == TransformKind::C2R);
+    return is_single ? CUFFT_C2R : CUFFT_Z2D;
+  }
+}
+
 /// \brief A class that wraps cufft for RAII
+/// \tparam InValueType The value type of the input view
+/// \tparam OutValueType The value type of the output view
+template <typename InValueType, typename OutValueType>
 struct ScopedCufftPlan {
+  static_assert(
+      have_same_base_floating_point_type_v<InValueType, OutValueType>,
+      "ScopedCufftPlan: input and output must have the same precision");
+
+  //! Transform kind deduced from the input/output value types
+  static constexpr TransformKind transform_kind =
+      transform_kind_v<InValueType, OutValueType>;
+
+  //! cufftType deduced from the precision and the transform kind
+  static constexpr cufftType type =
+      deduce_cufft_type<base_floating_point_type<InValueType>,
+                        transform_kind>();
+
  private:
   cufftHandle m_plan;
   void *m_load_callback_params  = nullptr;
   void *m_store_callback_params = nullptr;
 
  public:
-  ScopedCufftPlan(int nx, cufftType type, int batch) {
+  ScopedCufftPlan(int nx, int batch) {
     KOKKOSFFT_CHECK_CUFFT_CALL(cufftPlan1d(&m_plan, nx, type, batch));
   }
 
-  ScopedCufftPlan(int nx, int ny, cufftType type) {
+  explicit ScopedCufftPlan(const std::array<int, 2> &fft_extents) {
+    const auto [nx, ny] = fft_extents;
     KOKKOSFFT_CHECK_CUFFT_CALL(cufftPlan2d(&m_plan, nx, ny, type));
   }
 
-  ScopedCufftPlan(int nx, int ny, int nz, cufftType type) {
+  explicit ScopedCufftPlan(const std::array<int, 3> &fft_extents) {
+    const auto [nx, ny, nz] = fft_extents;
     KOKKOSFFT_CHECK_CUFFT_CALL(cufftPlan3d(&m_plan, nx, ny, nz, type));
   }
 
   ScopedCufftPlan(int rank, int *n, int *inembed, int istride, int idist,
-                  int *onembed, int ostride, int odist, cufftType type,
-                  int batch) {
+                  int *onembed, int ostride, int odist, int batch) {
     KOKKOSFFT_CHECK_CUFFT_CALL(cufftPlanMany(&m_plan, rank, n, inembed, istride,
                                              idist, onembed, ostride, odist,
                                              type, batch));
@@ -176,6 +264,11 @@ struct ScopedCufftPlan {
   /// CallbackSymbolType (the vendor typedef, e.g. cufftCallbackLoadR vs
   /// cufftCallbackStoreR, already encodes which one it is).
   ///
+  /// The callback is checked against the plan at compile time: its precision
+  /// and its real/complex data type must match the input (load callback) or
+  /// the output (store callback) of the plan. Each of load and store may be
+  /// set at most once per plan.
+  ///
   /// \tparam CallbackSymbolType The type of the callback symbol
   /// \tparam CallbackParamsType The type of the caller-provided params
   /// \param[in] d_callback_symbol The __device__ global holding the callback
@@ -200,6 +293,7 @@ struct ScopedCufftPlan {
                   "nullptr does not produce a null callerInfo on the "
                   "device, it points to zeroed memory instead, which is "
                   "almost certainly not what you want");
+    static_check_callback<CallbackSymbolType, InValueType, OutValueType>();
     CallbackSymbolType callback{};
     KOKKOSFFT_CHECK_CUDA_CALL(
         cudaMemcpyFromSymbol(&callback, d_callback_symbol, sizeof(callback)));
@@ -243,7 +337,23 @@ struct ScopedCufftPlan {
 };
 
 /// \brief A class that wraps cufft for RAII
+/// \tparam InValueType The value type of the input view
+/// \tparam OutValueType The value type of the output view
+template <typename InValueType, typename OutValueType>
 struct ScopedCufftDynPlan {
+  static_assert(
+      have_same_base_floating_point_type_v<InValueType, OutValueType>,
+      "ScopedCufftDynPlan: input and output must have the same precision");
+
+  //! Transform kind deduced from the input/output value types
+  static constexpr TransformKind transform_kind =
+      transform_kind_v<InValueType, OutValueType>;
+
+  //! cufftType deduced from the precision and the transform kind
+  static constexpr cufftType type =
+      deduce_cufft_type<base_floating_point_type<InValueType>,
+                        transform_kind>();
+
  private:
   cufftHandle m_plan;
   std::size_t m_workspace_size;
@@ -251,14 +361,14 @@ struct ScopedCufftDynPlan {
   void *m_store_callback_params = nullptr;
 
  public:
-  ScopedCufftDynPlan(int nx, cufftType type, int batch) {
+  ScopedCufftDynPlan(int nx, int batch) {
     KOKKOSFFT_CHECK_CUFFT_CALL(cufftCreate(&m_plan));
     KOKKOSFFT_CHECK_CUFFT_CALL(cufftSetAutoAllocation(m_plan, 0));
     KOKKOSFFT_CHECK_CUFFT_CALL(
         cufftMakePlan1d(m_plan, nx, type, batch, &m_workspace_size));
   }
 
-  ScopedCufftDynPlan(const std::vector<int> &fft_extents, cufftType type) {
+  explicit ScopedCufftDynPlan(const std::vector<int> &fft_extents) {
     KOKKOSFFT_CHECK_CUFFT_CALL(cufftCreate(&m_plan));
     KOKKOSFFT_CHECK_CUFFT_CALL(cufftSetAutoAllocation(m_plan, 0));
 
@@ -277,8 +387,7 @@ struct ScopedCufftDynPlan {
   }
 
   ScopedCufftDynPlan(int rank, int *n, int *inembed, int istride, int idist,
-                     int *onembed, int ostride, int odist, cufftType type,
-                     int batch) {
+                     int *onembed, int ostride, int odist, int batch) {
     KOKKOSFFT_CHECK_CUFFT_CALL(cufftCreate(&m_plan));
     KOKKOSFFT_CHECK_CUFFT_CALL(cufftSetAutoAllocation(m_plan, 0));
     KOKKOSFFT_CHECK_CUFFT_CALL(
@@ -341,6 +450,11 @@ struct ScopedCufftDynPlan {
   /// CallbackSymbolType (the vendor typedef, e.g. cufftCallbackLoadR vs
   /// cufftCallbackStoreR, already encodes which one it is).
   ///
+  /// The callback is checked against the plan at compile time: its precision
+  /// and its real/complex data type must match the input (load callback) or
+  /// the output (store callback) of the plan. Each of load and store may be
+  /// set at most once per plan.
+  ///
   /// \tparam CallbackSymbolType The type of the callback symbol
   /// \tparam CallbackParamsType The type of the caller-provided params
   /// \param[in] d_callback_symbol The __device__ global holding the callback
@@ -365,6 +479,7 @@ struct ScopedCufftDynPlan {
                   "nullptr does not produce a null callerInfo on the "
                   "device, it points to zeroed memory instead, which is "
                   "almost certainly not what you want");
+    static_check_callback<CallbackSymbolType, InValueType, OutValueType>();
     CallbackSymbolType callback{};
     KOKKOSFFT_CHECK_CUDA_CALL(
         cudaMemcpyFromSymbol(&callback, d_callback_symbol, sizeof(callback)));
@@ -410,24 +525,17 @@ struct ScopedCufftDynPlan {
 #if defined(KOKKOSFFT_ENABLE_TPL_FFTW)
 template <typename ExecutionSpace>
 struct FFTDataType {
-  using float32 =
-      std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::Cuda>,
-                         cufftReal, float>;
-  using float64 =
-      std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::Cuda>,
-                         cufftDoubleReal, double>;
+  using float32 = std::conditional_t<std::same_as<ExecutionSpace, Kokkos::Cuda>,
+                                     cufftReal, float>;
+  using float64 = std::conditional_t<std::same_as<ExecutionSpace, Kokkos::Cuda>,
+                                     cufftDoubleReal, double>;
   using complex64 =
-      std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::Cuda>,
+      std::conditional_t<std::same_as<ExecutionSpace, Kokkos::Cuda>,
                          cufftComplex, fftwf_complex>;
   using complex128 =
-      std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::Cuda>,
+      std::conditional_t<std::same_as<ExecutionSpace, Kokkos::Cuda>,
                          cufftDoubleComplex, fftw_complex>;
 };
-
-template <typename ExecutionSpace>
-using TransformType =
-    std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::Cuda>, cufftType,
-                       FFTWTransformType>;
 
 /// \brief The index type used in backend FFT plan
 /// Both cuFFT and FFTW use int as index type
@@ -436,99 +544,28 @@ template <typename ExecutionSpace>
 using FFTIndexType = int;
 
 template <typename ExecutionSpace, typename T1, typename T2>
-struct transform_type {
-  static_assert(std::is_same_v<T1, T2>,
-                "Real to real transform is unavailable");
-};
-
-template <typename ExecutionSpace, typename T1, typename T2>
-struct transform_type<ExecutionSpace, T1, Kokkos::complex<T2>> {
-  static_assert(std::is_same_v<T1, T2>,
-                "T1 and T2 should have the same precision");
-  using TransformTypeOnExecSpace = TransformType<ExecutionSpace>;
-
-  static constexpr TransformTypeOnExecSpace m_cuda_type =
-      std::is_same_v<T1, float> ? CUFFT_R2C : CUFFT_D2Z;
-  static constexpr TransformTypeOnExecSpace m_cpu_type =
-      std::is_same_v<T1, float> ? FFTWTransformType::R2C
-                                : FFTWTransformType::D2Z;
-
-  static constexpr TransformTypeOnExecSpace type() {
-    if constexpr (std::is_same_v<ExecutionSpace, Kokkos::Cuda>) {
-      return m_cuda_type;
-    } else {
-      return m_cpu_type;
-    }
-  }
-};
-
-template <typename ExecutionSpace, typename T1, typename T2>
-struct transform_type<ExecutionSpace, Kokkos::complex<T1>, T2> {
-  static_assert(std::is_same_v<T1, T2>,
-                "T1 and T2 should have the same precision");
-  using TransformTypeOnExecSpace = TransformType<ExecutionSpace>;
-
-  static constexpr TransformTypeOnExecSpace m_cuda_type =
-      std::is_same_v<T1, float> ? CUFFT_C2R : CUFFT_Z2D;
-  static constexpr TransformTypeOnExecSpace m_cpu_type =
-      std::is_same_v<T1, float> ? FFTWTransformType::C2R
-                                : FFTWTransformType::Z2D;
-
-  static constexpr TransformTypeOnExecSpace type() {
-    if constexpr (std::is_same_v<ExecutionSpace, Kokkos::Cuda>) {
-      return m_cuda_type;
-    } else {
-      return m_cpu_type;
-    }
-  }
-};
-
-template <typename ExecutionSpace, typename T1, typename T2>
-struct transform_type<ExecutionSpace, Kokkos::complex<T1>,
-                      Kokkos::complex<T2>> {
-  static_assert(std::is_same_v<T1, T2>,
-                "T1 and T2 should have the same precision");
-  using TransformTypeOnExecSpace = TransformType<ExecutionSpace>;
-
-  static constexpr TransformTypeOnExecSpace m_cuda_type =
-      std::is_same_v<T1, float> ? CUFFT_C2C : CUFFT_Z2Z;
-  static constexpr TransformTypeOnExecSpace m_cpu_type =
-      std::is_same_v<T1, float> ? FFTWTransformType::C2C
-                                : FFTWTransformType::Z2Z;
-
-  static constexpr TransformTypeOnExecSpace type() {
-    if constexpr (std::is_same_v<ExecutionSpace, Kokkos::Cuda>) {
-      return m_cuda_type;
-    } else {
-      return m_cpu_type;
-    }
-  }
-};
-
-template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTPlanType {
   using fftw_plan_type  = ScopedFFTWPlan<ExecutionSpace, T1, T2>;
-  using cufft_plan_type = ScopedCufftPlan;
-  using type = std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::Cuda>,
+  using cufft_plan_type = ScopedCufftPlan<T1, T2>;
+  using type = std::conditional_t<std::same_as<ExecutionSpace, Kokkos::Cuda>,
                                   cufft_plan_type, fftw_plan_type>;
 };
 
 template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTDynPlanType {
   using fftw_plan_type  = ScopedFFTWPlan<ExecutionSpace, T1, T2>;
-  using cufft_plan_type = ScopedCufftDynPlan;
-  using type = std::conditional_t<std::is_same_v<ExecutionSpace, Kokkos::Cuda>,
+  using cufft_plan_type = ScopedCufftDynPlan<T1, T2>;
+  using type = std::conditional_t<std::same_as<ExecutionSpace, Kokkos::Cuda>,
                                   cufft_plan_type, fftw_plan_type>;
 };
 
 template <typename ExecutionSpace>
 auto direction_type(Direction direction) {
   static constexpr FFTDirectionType FORWARD =
-      std::is_same_v<ExecutionSpace, Kokkos::Cuda> ? CUFFT_FORWARD
-                                                   : FFTW_FORWARD;
+      std::same_as<ExecutionSpace, Kokkos::Cuda> ? CUFFT_FORWARD : FFTW_FORWARD;
   static constexpr FFTDirectionType BACKWARD =
-      std::is_same_v<ExecutionSpace, Kokkos::Cuda> ? CUFFT_INVERSE
-                                                   : FFTW_BACKWARD;
+      std::same_as<ExecutionSpace, Kokkos::Cuda> ? CUFFT_INVERSE
+                                                 : FFTW_BACKWARD;
   return direction == Direction::forward ? FORWARD : BACKWARD;
 }
 #else
@@ -541,53 +578,16 @@ struct FFTDataType {
 };
 
 template <typename ExecutionSpace>
-using TransformType = cufftType;
-
-template <typename ExecutionSpace>
 using FFTIndexType = int;
 
 template <typename ExecutionSpace, typename T1, typename T2>
-struct transform_type {
-  static_assert(std::is_same_v<T1, T2>,
-                "Real to real transform is unavailable");
-};
-
-template <typename ExecutionSpace, typename T1, typename T2>
-struct transform_type<ExecutionSpace, T1, Kokkos::complex<T2>> {
-  static_assert(std::is_same_v<T1, T2>,
-                "T1 and T2 should have the same precision");
-  static constexpr cufftType m_type =
-      std::is_same_v<T1, float> ? CUFFT_R2C : CUFFT_D2Z;
-  static constexpr cufftType type() { return m_type; };
-};
-
-template <typename ExecutionSpace, typename T1, typename T2>
-struct transform_type<ExecutionSpace, Kokkos::complex<T1>, T2> {
-  static_assert(std::is_same_v<T1, T2>,
-                "T1 and T2 should have the same precision");
-  static constexpr cufftType m_type =
-      std::is_same_v<T2, float> ? CUFFT_C2R : CUFFT_Z2D;
-  static constexpr cufftType type() { return m_type; };
-};
-
-template <typename ExecutionSpace, typename T1, typename T2>
-struct transform_type<ExecutionSpace, Kokkos::complex<T1>,
-                      Kokkos::complex<T2>> {
-  static_assert(std::is_same_v<T1, T2>,
-                "T1 and T2 should have the same precision");
-  static constexpr cufftType m_type =
-      std::is_same_v<T1, float> ? CUFFT_C2C : CUFFT_Z2Z;
-  static constexpr cufftType type() { return m_type; };
-};
-
-template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTPlanType {
-  using type = ScopedCufftPlan;
+  using type = ScopedCufftPlan<T1, T2>;
 };
 
 template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTDynPlanType {
-  using type = ScopedCufftDynPlan;
+  using type = ScopedCufftDynPlan<T1, T2>;
 };
 
 template <typename ExecutionSpace>
