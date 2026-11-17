@@ -62,13 +62,14 @@ auto create_plan(const ExecutionSpace& exec_space,
   auto [in_extents, out_extents, fft_extents, howmany] =
       KokkosFFT::Impl::get_extents(in, out, axes, s, is_inplace);
 
+  // cuFFT uses int as index type
   using index_type = int;
   if constexpr (fft_rank == 1) {
     const index_type nx = fft_extents.at(0);
     plan                = std::make_unique<PlanType>(nx, howmany);
   } else if constexpr (fft_rank == 2 || fft_rank == 3) {
     auto int_fft_extents = convert_base_int_type<index_type>(fft_extents);
-    if (InViewType::rank() == fft_rank) {
+    if constexpr (InViewType::rank() == fft_rank) {
       plan = std::make_unique<PlanType>(int_fft_extents);
     } else {
       auto int_in_extents  = convert_base_int_type<index_type>(in_extents);
@@ -106,6 +107,7 @@ auto create_dynplan(const ExecutionSpace& exec_space,
   auto [in_extents, out_extents, fft_extents, howmany] =
       KokkosFFT::Impl::get_extents(in, out, dim, is_inplace);
 
+  // cuFFT uses int as index type
   using index_type = int;
   if (dim == 1) {
     const index_type nx = fft_extents.at(0);
