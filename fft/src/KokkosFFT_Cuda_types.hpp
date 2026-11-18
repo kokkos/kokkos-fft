@@ -5,7 +5,6 @@
 #ifndef KOKKOSFFT_CUDA_TYPES_HPP
 #define KOKKOSFFT_CUDA_TYPES_HPP
 
-#include <array>
 #include <concepts>
 #include <vector>
 #include <cufft.h>
@@ -204,7 +203,7 @@ struct ScopedCufftPlan {
 
  private:
   cufftHandle m_plan;
-  std::size_t m_workspace_size;
+  std::size_t m_workspace_size = 0;
 
   //! Internal work buffer for the plan
   void *m_workbuffer = nullptr;
@@ -253,6 +252,7 @@ struct ScopedCufftPlan {
         "KokkosFFT::cleanup_plan[TPL_cufft]");
     if (m_workbuffer != nullptr) {
       Kokkos::kokkos_free<Kokkos::Cuda>(m_workbuffer);
+      m_workbuffer = nullptr;
     }
 
     cufftResult cufft_rt = cufftDestroy(m_plan);
