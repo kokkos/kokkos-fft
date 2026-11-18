@@ -438,7 +438,7 @@ struct FFTDataType {
 template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTPlanType {
   using fftw_plan_type   = ScopedFFTWPlan<ExecutionSpace, T1, T2>;
-  using hipfft_plan_type = ScopedHIPfftPlan;
+  using hipfft_plan_type = ScopedHIPfftPlan<T1, T2>;
   using type = std::conditional_t<std::same_as<ExecutionSpace, Kokkos::HIP>,
                                   hipfft_plan_type, fftw_plan_type>;
 };
@@ -446,7 +446,7 @@ struct FFTPlanType {
 template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTDynPlanType {
   using fftw_plan_type   = ScopedFFTWPlan<ExecutionSpace, T1, T2>;
-  using hipfft_plan_type = ScopedHIPfftDynPlan;
+  using hipfft_plan_type = ScopedHIPfftPlan<T1, T2>;
   using type = std::conditional_t<std::same_as<ExecutionSpace, Kokkos::HIP>,
                                   hipfft_plan_type, fftw_plan_type>;
 };
@@ -471,12 +471,12 @@ struct FFTDataType {
 
 template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTPlanType {
-  using type = ScopedHIPfftPlan;
+  using type = ScopedHIPfftPlan<T1, T2>;
 };
 
 template <typename ExecutionSpace, typename T1, typename T2>
 struct FFTDynPlanType {
-  using type = ScopedHIPfftDynPlan;
+  using type = ScopedHIPfftPlan<T1, T2>;
 };
 
 template <typename ExecutionSpace>
