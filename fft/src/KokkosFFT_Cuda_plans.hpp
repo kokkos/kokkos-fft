@@ -5,7 +5,6 @@
 #ifndef KOKKOSFFT_CUDA_PLANS_HPP
 #define KOKKOSFFT_CUDA_PLANS_HPP
 
-#include <array>
 #include <concepts>
 #include <memory>
 #include <Kokkos_Core.hpp>
