@@ -395,7 +395,18 @@ struct SlabState {
   }
 };
 
+/// \brief Hash function for SlabState used in unordered containers.
 struct SlabStateHash {
+  /// \param s The SlabState to hash.
+  /// \return The hash value of the SlabState.
+  /// \note The constant 0x9e3779b9 is floor(2^32 / phi), where phi is the
+  /// golden ratio. It is used because its bits look random. std::hash on
+  /// integers is often the identity function, and these fields are small values
+  /// (0, 1, 2, ...). Without the constant, those small values would leave most
+  /// bits of h unchanged, and the state (0, 0) would hash to 0. The shifts
+  /// (h << 6, h >> 2) spread h's bits into other positions, so the result
+  /// depends on field order (hash(a, b) != hash(b, a)) and equal fields do not
+  /// cancel out, as they would with a plain h ^ hash(value).
   std::size_t operator()(const SlabState& s) const {
     std::size_t h = std::hash<std::size_t>{}(s.m_pos);
     h ^= std::hash<std::size_t>{}(s.m_remaining) +
@@ -664,7 +675,18 @@ struct PencilState {
   }
 };
 
+/// \brief Hash function for PencilState used in unordered containers.
 struct PencilStateHash {
+  /// \param s The PencilState to hash.
+  /// \return The hash value of the SlabState.
+  /// \note The constant 0x9e3779b9 is floor(2^32 / phi), where phi is the
+  /// golden ratio. It is used because its bits look random. std::hash on
+  /// integers is often the identity function, and these fields are small values
+  /// (0, 1, 2, ...). Without the constant, those small values would leave most
+  /// bits of h unchanged, and the state (0, 0) would hash to 0. The shifts
+  /// (h << 6, h >> 2) spread h's bits into other positions, so the result
+  /// depends on field order (hash(a, b) != hash(b, a)) and equal fields do not
+  /// cancel out, as they would with a plain h ^ hash(value).
   std::size_t operator()(const PencilState& s) const {
     std::size_t h = std::hash<std::size_t>{}(s.m_p0_pos);
     auto combine  = [&h](std::size_t value) {
