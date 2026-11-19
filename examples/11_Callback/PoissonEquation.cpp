@@ -19,10 +19,17 @@
 /// solution φ = -f / k².
 ///
 /// Usage: ./PoissonEquation <Nx> <Ny> <Nz> <Lx> <Ly> <Lz> [px] [py] [pz]
+///                           [--dump <file.bin>]
 ///   px/py/pz: 1 = periodic, 0 = non-periodic (default: 0 0 0)
+///   --dump: write the callback-computed solution phi to <file.bin> as
+///           [int64 Nx, Ny, Nz][float64 Lx, Ly, Lz][Nx*Ny*Nz float64 phi],
+///           k-fastest (C order), for plotting with postscript.py
 
 #include <cmath>
+#include <cstdint>
+#include <fstream>
 #include <iostream>
+#include <string>
 
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Complex.hpp>
@@ -299,8 +306,11 @@ int main(int argc, char* argv[]) {
   {
     if (argc < 7) {
       std::cerr << "Usage: " << argv[0]
-                << " <Nx> <Ny> <Nz> <Lx> <Ly> <Lz> [px] [py] [pz]\n"
-                << "  px/py/pz: 1=periodic, 0=non-periodic (default: 0 0 0)\n";
+                << " <Nx> <Ny> <Nz> <Lx> <Ly> <Lz> [px] [py] [pz]"
+                   " [--dump <file.bin>]\n"
+                << "  px/py/pz: 1=periodic, 0=non-periodic (default: 0 0 0)\n"
+                << "  --dump: write the callback-computed solution to "
+                   "<file.bin> for postscript.py\n";
       Kokkos::finalize();
       return 1;
     }
@@ -313,6 +323,11 @@ int main(int argc, char* argv[]) {
     const bool px   = (argc > 7) ? std::atoi(argv[7]) != 0 : false;
     const bool py   = (argc > 8) ? std::atoi(argv[8]) != 0 : false;
     const bool pz   = (argc > 9) ? std::atoi(argv[9]) != 0 : false;
+
+    std::string dump_path;
+    for (int i = 7; i < argc - 1; ++i) {
+      if (std::string(argv[i]) == "--dump") dump_path = argv[i + 1];
+    }
 
     execution_space exec;
 
@@ -344,6 +359,24 @@ int main(int argc, char* argv[]) {
         Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, phi_cb);
     auto h_ref =
         Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, phi_ref);
+
+    // Optionally dump the callback-computed solution for postscript.py:
+    // [int64 Nx, Ny, Nz][float64 Lx, Ly, Lz][Nx*Ny*Nz float64], k-fastest.
+    if (!dump_path.empty()) {
+      std::ofstream ofs(dump_path, std::ios::binary);
+      if (!ofs) {
+        std::cerr << "Cannot open " << dump_path << " for writing\n";
+        Kokkos::finalize();
+        return 1;
+      }
+      const std::int64_t dims[3] = {Nx, Ny, Nz};
+      const double lens[3]       = {Lx, Ly, Lz};
+      ofs.write(reinterpret_cast<const char*>(dims), sizeof(dims));
+      ofs.write(reinterpret_cast<const char*>(lens), sizeof(lens));
+      ofs.write(reinterpret_cast<const char*>(h_cb.data()),
+                static_cast<std::streamsize>(sizeof(double) * h_cb.size()));
+      std::cout << "Wrote callback solution to " << dump_path << "\n";
+    }
 
     // Check 1: callbacks must reproduce the explicit-padding reference
     double max_diff = 0.0;
