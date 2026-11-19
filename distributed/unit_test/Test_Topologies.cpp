@@ -174,17 +174,24 @@ std::string error_are_topologies(
 /// \brief Generate error message for in_out_axes test failures.
 /// \tparam Topology1Type The type of the first topology input.
 /// \tparam Topology2Type The type of the second topology input.
+/// \tparam ActualType The type of the actual in/out axes (a pair of indices)
+/// \tparam ExpectedType The type of the expected in/out axes
+/// The in/out axes are template parameters: with nvcc and GCC 13, a
+/// std::tuple<std::size_t, std::size_t> in the signature of a function
+/// template fails with "use of built-in trait '__remove_cv' in function
+/// signature".
 /// \param[in] topo1 The first input topology that caused the failure.
 /// \param[in] topo2 The second input topology that caused the failure.
 /// \param[in] actual The actual in/out axes.
 /// \param[in] expected The expected in/out axes.
 /// \return Error message including the input topologies and the expected in/out
 /// axes.
-template <typename Topology1Type, typename Topology2Type>
-std::string error_in_out_axes(
-    const Topology1Type& topo1, const Topology2Type& topo2,
-    const std::tuple<std::size_t, std::size_t>& actual,
-    const std::tuple<std::size_t, std::size_t>& expected) {
+template <typename Topology1Type, typename Topology2Type, typename ActualType,
+          typename ExpectedType>
+std::string error_in_out_axes(const Topology1Type& topo1,
+                              const Topology2Type& topo2,
+                              const ActualType& actual,
+                              const ExpectedType& expected) {
   std::string msg = "Input topologies: ";
   msg += KokkosFFT::Impl::container_to_string("topology1: ", topo1);
   msg += " and ";
