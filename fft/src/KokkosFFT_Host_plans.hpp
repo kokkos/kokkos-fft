@@ -83,6 +83,7 @@ auto create_plan(const ExecutionSpace& exec_space,
   auto [in_extents, out_extents, fft_extents, howmany] =
       KokkosFFT::Impl::get_extents(in, out, axes, s, is_inplace);
 
+  // FFTW uses int as index type
   using index_type = int;
   index_type idist = total_size(in_extents);
   index_type odist = total_size(out_extents);
@@ -97,12 +98,11 @@ auto create_plan(const ExecutionSpace& exec_space,
   auto int_in_extents  = convert_base_int_type<index_type>(in_extents);
   auto int_out_extents = convert_base_int_type<index_type>(out_extents);
   auto int_fft_extents = convert_base_int_type<index_type>(fft_extents);
-  auto sign = KokkosFFT::Impl::direction_type<ExecutionSpace>(direction);
 
   plan = std::make_unique<PlanType>(
       exec_space, int_fft_extents.size(), int_fft_extents.data(), howmany,
       idata, int_in_extents.data(), istride, idist, odata,
-      int_out_extents.data(), ostride, odist, sign, FFTW_ESTIMATE);
+      int_out_extents.data(), ostride, odist, direction);
 
   return fft_extents;
 }
@@ -126,6 +126,7 @@ auto create_dynplan(const ExecutionSpace& exec_space,
   auto [in_extents, out_extents, fft_extents, howmany] =
       KokkosFFT::Impl::get_extents(in, out, dim, is_inplace);
 
+  // FFTW uses int as index type
   using index_type = int;
   index_type idist = total_size(in_extents);
   index_type odist = total_size(out_extents);
@@ -140,12 +141,11 @@ auto create_dynplan(const ExecutionSpace& exec_space,
   auto int_in_extents  = convert_base_int_type<index_type>(in_extents);
   auto int_out_extents = convert_base_int_type<index_type>(out_extents);
   auto int_fft_extents = convert_base_int_type<index_type>(fft_extents);
-  auto sign = KokkosFFT::Impl::direction_type<ExecutionSpace>(direction);
 
   plan = std::make_unique<PlanType>(
       exec_space, int_fft_extents.size(), int_fft_extents.data(), howmany,
       idata, int_in_extents.data(), istride, idist, odata,
-      int_out_extents.data(), ostride, odist, sign, FFTW_ESTIMATE);
+      int_out_extents.data(), ostride, odist, direction);
 
   return fft_extents;
 }
