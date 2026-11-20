@@ -20,19 +20,40 @@
 #include <hip/hip_runtime_api.h>
 #include <hipfft/hipfftXt.h>
 
-// Backend-agnostic aliases for the vendor callback function pointer types.
+// Backend-agnostic aliases for the callback function pointer types.
 // Users writing a callback function or __device__ global should use these
 // instead of naming hipfftCallbackLoadR/etc. directly, so the same callback
 // source stays portable across backends.
-using kokkosfftCallbackLoadR = hipfftCallbackLoadR;
-using kokkosfftCallbackLoadD = hipfftCallbackLoadD;
-using kokkosfftCallbackLoadC = hipfftCallbackLoadC;
-using kokkosfftCallbackLoadZ = hipfftCallbackLoadZ;
+//
+// Real data are plain float/double and complex data are Kokkos::complex<T>,
+// not the vendor types (hipfftReal, hipfftComplex, ...): they have the same
+// layout, and callbacks are written the same way on every backend.
+using kokkosfftCallbackLoadR = float (*)(void *dataIn, std::size_t offset,
+                                         void *callerInfo, void *sharedPointer);
+using kokkosfftCallbackLoadD = double (*)(void *dataIn, std::size_t offset,
+                                          void *callerInfo,
+                                          void *sharedPointer);
+using kokkosfftCallbackLoadC = Kokkos::complex<float> (*)(void *dataIn,
+                                                          std::size_t offset,
+                                                          void *callerInfo,
+                                                          void *sharedPointer);
+using kokkosfftCallbackLoadZ = Kokkos::complex<double> (*)(void *dataIn,
+                                                           std::size_t offset,
+                                                           void *callerInfo,
+                                                           void *sharedPointer);
 
-using kokkosfftCallbackStoreR = hipfftCallbackStoreR;
-using kokkosfftCallbackStoreD = hipfftCallbackStoreD;
-using kokkosfftCallbackStoreC = hipfftCallbackStoreC;
-using kokkosfftCallbackStoreZ = hipfftCallbackStoreZ;
+using kokkosfftCallbackStoreR = void (*)(void *dataOut, std::size_t offset,
+                                         float element, void *callerInfo,
+                                         void *sharedPointer);
+using kokkosfftCallbackStoreD = void (*)(void *dataOut, std::size_t offset,
+                                         double element, void *callerInfo,
+                                         void *sharedPointer);
+using kokkosfftCallbackStoreC = void (*)(void *dataOut, std::size_t offset,
+                                         Kokkos::complex<float> element,
+                                         void *callerInfo, void *sharedPointer);
+using kokkosfftCallbackStoreZ = void (*)(void *dataOut, std::size_t offset,
+                                         Kokkos::complex<double> element,
+                                         void *callerInfo, void *sharedPointer);
 #endif
 
 // Check the size of complex type
@@ -49,62 +70,68 @@ using FFTDirectionType = int;
 #if defined(KOKKOSFFT_ENABLE_CALLBACK)
 // hipfftXtCallbackType has distinct enum values for single vs double
 // precision (HIPFFT_CB_LD_REAL vs HIPFFT_CB_LD_REAL_DOUBLE, etc.), so each
-// vendor callback typedef maps to its own value.
+// callback alias maps to its own value.
 //
-// Primary template intentionally left undefined: instantiating it with an
-// unsupported CallbackSymbol fails to compile with that type named in the
-// error, instead of silently falling through.
+// Primary template: any other type, in particular a callback written with the
+// vendor complex type (hipfftComplex, float2, ...), is rejected with an
+// explanatory message.
 template <typename CallbackSymbol>
-struct deduce_callback_type;
+struct deduce_callback_type {
+  static_assert(sizeof(CallbackSymbol) == 0,
+                "set_callback(): unsupported callback type. Declare the "
+                "callback with the kokkosfftCallback{Load,Store}{R,D,C,Z} "
+                "aliases; complex data are Kokkos::complex<T>, not the vendor "
+                "complex type (hipfftComplex, float2, ...)");
+};
 
 template <>
-struct deduce_callback_type<hipfftCallbackLoadR> {
+struct deduce_callback_type<kokkosfftCallbackLoadR> {
   static constexpr hipfftXtCallbackType value = HIPFFT_CB_LD_REAL;
   static constexpr bool is_load               = true;
 };
 template <>
-struct deduce_callback_type<hipfftCallbackLoadD> {
+struct deduce_callback_type<kokkosfftCallbackLoadD> {
   static constexpr hipfftXtCallbackType value = HIPFFT_CB_LD_REAL_DOUBLE;
   static constexpr bool is_load               = true;
 };
 template <>
-struct deduce_callback_type<hipfftCallbackLoadC> {
+struct deduce_callback_type<kokkosfftCallbackLoadC> {
   static constexpr hipfftXtCallbackType value = HIPFFT_CB_LD_COMPLEX;
   static constexpr bool is_load               = true;
 };
 template <>
-struct deduce_callback_type<hipfftCallbackLoadZ> {
+struct deduce_callback_type<kokkosfftCallbackLoadZ> {
   static constexpr hipfftXtCallbackType value = HIPFFT_CB_LD_COMPLEX_DOUBLE;
   static constexpr bool is_load               = true;
 };
 template <>
-struct deduce_callback_type<hipfftCallbackStoreR> {
+struct deduce_callback_type<kokkosfftCallbackStoreR> {
   static constexpr hipfftXtCallbackType value = HIPFFT_CB_ST_REAL;
   static constexpr bool is_load               = false;
 };
 template <>
-struct deduce_callback_type<hipfftCallbackStoreD> {
+struct deduce_callback_type<kokkosfftCallbackStoreD> {
   static constexpr hipfftXtCallbackType value = HIPFFT_CB_ST_REAL_DOUBLE;
   static constexpr bool is_load               = false;
 };
 template <>
-struct deduce_callback_type<hipfftCallbackStoreC> {
+struct deduce_callback_type<kokkosfftCallbackStoreC> {
   static constexpr hipfftXtCallbackType value = HIPFFT_CB_ST_COMPLEX;
   static constexpr bool is_load               = false;
 };
 template <>
-struct deduce_callback_type<hipfftCallbackStoreZ> {
+struct deduce_callback_type<kokkosfftCallbackStoreZ> {
   static constexpr hipfftXtCallbackType value = HIPFFT_CB_ST_COMPLEX_DOUBLE;
   static constexpr bool is_load               = false;
 };
 
-/// \brief Helper to deduce the hipfftXtCallbackType enum value for a vendor
-/// callback symbol typedef (e.g. hipfftCallbackLoadR)
+/// \brief Helper to deduce the hipfftXtCallbackType enum value for a
+/// callback symbol alias (e.g. kokkosfftCallbackLoadR)
 template <typename CallbackSymbol>
 inline constexpr hipfftXtCallbackType deduce_callback_type_v =
     deduce_callback_type<CallbackSymbol>::value;
 
-/// \brief Helper to check whether a vendor callback symbol typedef is a load
+/// \brief Helper to check whether a callback symbol alias is a load
 /// callback (true) or a store callback (false)
 template <typename CallbackSymbol>
 inline constexpr bool is_load_callback_v =
@@ -180,8 +207,8 @@ struct ScopedHIPfftPlan {
   }
 
   /// \brief Attach a load or store callback to this plan, deduced from
-  /// CallbackSymbolType (the vendor typedef, e.g. hipfftCallbackLoadR vs
-  /// hipfftCallbackStoreR, already encodes which one it is).
+  /// CallbackSymbolType (the kokkosfft alias, e.g. kokkosfftCallbackLoadR vs
+  /// kokkosfftCallbackStoreR, already encodes which one it is).
   ///
   /// \tparam CallbackSymbolType The type of the callback symbol
   /// \tparam CallbackParamsType The type of the caller-provided params
@@ -359,8 +386,8 @@ struct ScopedHIPfftDynPlan {
   }
 
   /// \brief Attach a load or store callback to this plan, deduced from
-  /// CallbackSymbolType (the vendor typedef, e.g. hipfftCallbackLoadR vs
-  /// hipfftCallbackStoreR, already encodes which one it is).
+  /// CallbackSymbolType (the kokkosfft alias, e.g. kokkosfftCallbackLoadR vs
+  /// kokkosfftCallbackStoreR, already encodes which one it is).
   ///
   /// \tparam CallbackSymbolType The type of the callback symbol
   /// \tparam CallbackParamsType The type of the caller-provided params

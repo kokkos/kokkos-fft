@@ -24,19 +24,40 @@
 #include <cuda_runtime.h>
 #include <cufftXt.h>
 
-// Backend-agnostic aliases for the vendor callback function pointer types.
+// Backend-agnostic aliases for the callback function pointer types.
 // Users writing a callback function or __device__ global should use these
 // instead of naming cufftCallbackLoadR/etc. directly, so the same callback
 // source stays portable as more backends gain callback support.
-using kokkosfftCallbackLoadR = cufftCallbackLoadR;
-using kokkosfftCallbackLoadD = cufftCallbackLoadD;
-using kokkosfftCallbackLoadC = cufftCallbackLoadC;
-using kokkosfftCallbackLoadZ = cufftCallbackLoadZ;
+//
+// Real data are plain float/double and complex data are Kokkos::complex<T},
+// not the vendor types (cufftReal, cufftComplex, ...): they have the same
+// layout, and callbacks are written the same way on every backend.
+using kokkosfftCallbackLoadR = float (*)(void *dataIn, std::size_t offset,
+                                         void *callerInfo, void *sharedPointer);
+using kokkosfftCallbackLoadD = double (*)(void *dataIn, std::size_t offset,
+                                          void *callerInfo,
+                                          void *sharedPointer);
+using kokkosfftCallbackLoadC = Kokkos::complex<float> (*)(void *dataIn,
+                                                          std::size_t offset,
+                                                          void *callerInfo,
+                                                          void *sharedPointer);
+using kokkosfftCallbackLoadZ = Kokkos::complex<double> (*)(void *dataIn,
+                                                           std::size_t offset,
+                                                           void *callerInfo,
+                                                           void *sharedPointer);
 
-using kokkosfftCallbackStoreR = cufftCallbackStoreR;
-using kokkosfftCallbackStoreD = cufftCallbackStoreD;
-using kokkosfftCallbackStoreC = cufftCallbackStoreC;
-using kokkosfftCallbackStoreZ = cufftCallbackStoreZ;
+using kokkosfftCallbackStoreR = void (*)(void *dataOut, std::size_t offset,
+                                         float element, void *callerInfo,
+                                         void *sharedPointer);
+using kokkosfftCallbackStoreD = void (*)(void *dataOut, std::size_t offset,
+                                         double element, void *callerInfo,
+                                         void *sharedPointer);
+using kokkosfftCallbackStoreC = void (*)(void *dataOut, std::size_t offset,
+                                         Kokkos::complex<float> element,
+                                         void *callerInfo, void *sharedPointer);
+using kokkosfftCallbackStoreZ = void (*)(void *dataOut, std::size_t offset,
+                                         Kokkos::complex<double> element,
+                                         void *callerInfo, void *sharedPointer);
 #endif
 
 // Check the size of complex type
@@ -56,76 +77,82 @@ using FFTDirectionType = int;
 // R/D or C/Z onto the same value here would tell cufftXtSetCallback the
 // wrong callback type for any double-precision callback.
 //
-// Primary template intentionally left undefined: instantiating it with an
-// unsupported CallbackSymbol fails to compile with that type named in the
-// error, instead of silently falling through.
+// Primary template: any other type, in particular a callback written with the
+// vendor complex type (cufftComplex, float2, ...), is rejected with an
+// explanatory message.
 template <typename CallbackSymbol>
-struct deduce_callback_type;
+struct deduce_callback_type {
+  static_assert(sizeof(CallbackSymbol) == 0,
+                "set_callback(): unsupported callback type. Declare the "
+                "callback with the kokkosfftCallback{Load,Store}{R,D,C,Z} "
+                "aliases; complex data are Kokkos::complex<T>, not the vendor "
+                "complex type (cufftComplex, float2, ...)");
+};
 
 template <>
-struct deduce_callback_type<cufftCallbackLoadR> {
+struct deduce_callback_type<kokkosfftCallbackLoadR> {
   static constexpr cufftXtCallbackType value = CUFFT_CB_LD_REAL;
   static constexpr bool is_load              = true;
   static constexpr bool is_real              = true;
   using value_type                           = float;
 };
 template <>
-struct deduce_callback_type<cufftCallbackLoadD> {
+struct deduce_callback_type<kokkosfftCallbackLoadD> {
   static constexpr cufftXtCallbackType value = CUFFT_CB_LD_REAL_DOUBLE;
   static constexpr bool is_load              = true;
   static constexpr bool is_real              = true;
   using value_type                           = double;
 };
 template <>
-struct deduce_callback_type<cufftCallbackLoadC> {
+struct deduce_callback_type<kokkosfftCallbackLoadC> {
   static constexpr cufftXtCallbackType value = CUFFT_CB_LD_COMPLEX;
   static constexpr bool is_load              = true;
   static constexpr bool is_real              = false;
   using value_type                           = float;
 };
 template <>
-struct deduce_callback_type<cufftCallbackLoadZ> {
+struct deduce_callback_type<kokkosfftCallbackLoadZ> {
   static constexpr cufftXtCallbackType value = CUFFT_CB_LD_COMPLEX_DOUBLE;
   static constexpr bool is_load              = true;
   static constexpr bool is_real              = false;
   using value_type                           = double;
 };
 template <>
-struct deduce_callback_type<cufftCallbackStoreR> {
+struct deduce_callback_type<kokkosfftCallbackStoreR> {
   static constexpr cufftXtCallbackType value = CUFFT_CB_ST_REAL;
   static constexpr bool is_load              = false;
   static constexpr bool is_real              = true;
   using value_type                           = float;
 };
 template <>
-struct deduce_callback_type<cufftCallbackStoreD> {
+struct deduce_callback_type<kokkosfftCallbackStoreD> {
   static constexpr cufftXtCallbackType value = CUFFT_CB_ST_REAL_DOUBLE;
   static constexpr bool is_load              = false;
   static constexpr bool is_real              = true;
   using value_type                           = double;
 };
 template <>
-struct deduce_callback_type<cufftCallbackStoreC> {
+struct deduce_callback_type<kokkosfftCallbackStoreC> {
   static constexpr cufftXtCallbackType value = CUFFT_CB_ST_COMPLEX;
   static constexpr bool is_load              = false;
   static constexpr bool is_real              = false;
   using value_type                           = float;
 };
 template <>
-struct deduce_callback_type<cufftCallbackStoreZ> {
+struct deduce_callback_type<kokkosfftCallbackStoreZ> {
   static constexpr cufftXtCallbackType value = CUFFT_CB_ST_COMPLEX_DOUBLE;
   static constexpr bool is_load              = false;
   static constexpr bool is_real              = false;
   using value_type                           = double;
 };
 
-/// \brief Helper to deduce the cufftXtCallbackType enum value for a vendor
-/// callback symbol typedef (e.g. cufftCallbackLoadR)
+/// \brief Helper to deduce the cufftXtCallbackType enum value for a
+/// callback symbol alias (e.g. kokkosfftCallbackLoadR)
 template <typename CallbackSymbol>
 inline constexpr cufftXtCallbackType deduce_callback_type_v =
     deduce_callback_type<CallbackSymbol>::value;
 
-/// \brief Helper to check whether a vendor callback symbol typedef is a load
+/// \brief Helper to check whether a callback symbol alias is a load
 /// callback (true) or a store callback (false)
 template <typename CallbackSymbol>
 inline constexpr bool is_load_callback_v =
@@ -312,8 +339,8 @@ struct ScopedCufftPlan {
   }
 
   /// \brief Attach a load or store callback to this plan, deduced from
-  /// CallbackSymbolType (the vendor typedef, e.g. cufftCallbackLoadR vs
-  /// cufftCallbackStoreR, already encodes which one it is).
+  /// CallbackSymbolType (the kokkosfft alias, e.g. kokkosfftCallbackLoadR vs
+  /// kokkosfftCallbackStoreR, already encodes which one it is).
   ///
   /// The callback is checked against the plan at compile time: its precision
   /// and its real/complex data type must match the input (load callback) or

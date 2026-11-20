@@ -31,22 +31,25 @@
 #if defined(KOKKOSFFT_ENABLE_CALLBACK)
 #include <hip/hip_runtime_api.h>
 
-// Backend-agnostic aliases for the callback function pointer types. rocFFT
-// does not provide typedefs, so these mirror the ones of hipFFT/cuFFT
-// (opaque `void*` data pointer) and keep a callback function or __device__
-// global portable across backends. rocFFT documents a typed data pointer
-// (`Tdata*`), but a function pointer taking `void*` is passed through as is.
+// Backend-agnostic aliases for the callback function pointer types, spelled
+// out with plain float/double (and Kokkos::complex for complex data) exactly
+// like the cuFFT/hipFFT aliases resolve to, so a callback function or
+// __device__ global is portable across backends. rocFFT does not provide
+// typedefs and documents a typed data pointer (`Tdata*`), but a function
+// pointer taking `void*` is passed through as is.
 using kokkosfftCallbackLoadR = float (*)(void *dataIn, std::size_t offset,
                                          void *callerInfo, void *sharedPointer);
 using kokkosfftCallbackLoadD = double (*)(void *dataIn, std::size_t offset,
                                           void *callerInfo,
                                           void *sharedPointer);
-using kokkosfftCallbackLoadC = float2 (*)(void *dataIn, std::size_t offset,
-                                          void *callerInfo,
-                                          void *sharedPointer);
-using kokkosfftCallbackLoadZ = double2 (*)(void *dataIn, std::size_t offset,
-                                           void *callerInfo,
-                                           void *sharedPointer);
+using kokkosfftCallbackLoadC = Kokkos::complex<float> (*)(void *dataIn,
+                                                          std::size_t offset,
+                                                          void *callerInfo,
+                                                          void *sharedPointer);
+using kokkosfftCallbackLoadZ = Kokkos::complex<double> (*)(void *dataIn,
+                                                           std::size_t offset,
+                                                           void *callerInfo,
+                                                           void *sharedPointer);
 
 using kokkosfftCallbackStoreR = void (*)(void *dataOut, std::size_t offset,
                                          float element, void *callerInfo,
@@ -55,11 +58,11 @@ using kokkosfftCallbackStoreD = void (*)(void *dataOut, std::size_t offset,
                                          double element, void *callerInfo,
                                          void *sharedPointer);
 using kokkosfftCallbackStoreC = void (*)(void *dataOut, std::size_t offset,
-                                         float2 element, void *callerInfo,
-                                         void *sharedPointer);
+                                         Kokkos::complex<float> element,
+                                         void *callerInfo, void *sharedPointer);
 using kokkosfftCallbackStoreZ = void (*)(void *dataOut, std::size_t offset,
-                                         double2 element, void *callerInfo,
-                                         void *sharedPointer);
+                                         Kokkos::complex<double> element,
+                                         void *callerInfo, void *sharedPointer);
 #endif
 
 // Check the size of complex type
@@ -82,11 +85,17 @@ constexpr FFTDirectionType ROCFFT_BACKWARD = -1;
 // typedef (load or store, real or complex data, precision), so set_callback()
 // can pick the right setter and check the callback against the plan itself.
 //
-// Primary template intentionally left undefined: instantiating it with an
-// unsupported CallbackSymbol fails to compile with that type named in the
-// error, instead of silently falling through.
+// Primary template: any other type, in particular a callback written with the
+// vendor complex type (float2, double2), is rejected with an explanatory
+// message.
 template <typename CallbackSymbol>
-struct deduce_callback_type;
+struct deduce_callback_type {
+  static_assert(sizeof(CallbackSymbol) == 0,
+                "set_callback(): unsupported callback type. Declare the "
+                "callback with the kokkosfftCallback{Load,Store}{R,D,C,Z} "
+                "aliases; complex data are Kokkos::complex<T>, not the vendor "
+                "complex type (float2, double2)");
+};
 
 template <>
 struct deduce_callback_type<kokkosfftCallbackLoadR> {
