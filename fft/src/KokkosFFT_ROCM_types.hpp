@@ -31,15 +31,12 @@
 #if defined(KOKKOSFFT_ENABLE_CALLBACK)
 #include <hip/hip_runtime_api.h>
 
-// Backend-agnostic aliases for the callback function pointer types. rocFFT
-// does not provide typedefs, so these mirror the ones of hipFFT/cuFFT
-// (opaque `void*` data pointer) and keep a callback function or __device__
-// global portable across backends. rocFFT documents a typed data pointer
-// (`Tdata*`), but a function pointer taking `void*` is passed through as is.
-//
-// Complex data are Kokkos::complex<T>, not the vendor type (float2, ...): they
-// have the same layout, and callbacks are written the same way on every
-// backend.
+// Backend-agnostic aliases for the callback function pointer types, spelled
+// out with plain float/double (and Kokkos::complex for complex data) exactly
+// like the cuFFT/hipFFT aliases resolve to, so a callback function or
+// __device__ global is portable across backends. rocFFT does not provide
+// typedefs and documents a typed data pointer (`Tdata*`), but a function
+// pointer taking `void*` is passed through as is.
 using kokkosfftCallbackLoadR = float (*)(void *dataIn, std::size_t offset,
                                          void *callerInfo, void *sharedPointer);
 using kokkosfftCallbackLoadD = double (*)(void *dataIn, std::size_t offset,
