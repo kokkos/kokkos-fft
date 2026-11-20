@@ -57,9 +57,9 @@ KOKKOS_IMPL_DEVICE_FUNCTION T pad_load_callback(void* dataIn, size_t offset,
 
 // Real input (R2C), then complex input (C2C)
 KOKKOS_IMPL_DEVICE_FUNCTION kokkosfftCallbackLoadR d_load_callback_symbol_fp32 =
-    pad_load_callback<KokkosFFT::fft_data_type<float>>;
+    pad_load_callback<float>;
 KOKKOS_IMPL_DEVICE_FUNCTION kokkosfftCallbackLoadD d_load_callback_symbol_fp64 =
-    pad_load_callback<KokkosFFT::fft_data_type<double>>;
+    pad_load_callback<double>;
 KOKKOS_IMPL_DEVICE_FUNCTION kokkosfftCallbackLoadC
     d_load_callback_symbol_complex_fp32 =
         pad_load_callback<Kokkos::complex<float>>;
@@ -91,11 +91,9 @@ KOKKOS_IMPL_DEVICE_FUNCTION void crop_store_callback(void* dataOut,
 
 // Real output (C2R), then complex output (C2C)
 KOKKOS_IMPL_DEVICE_FUNCTION kokkosfftCallbackStoreR
-    d_store_callback_symbol_fp32 =
-        crop_store_callback<KokkosFFT::fft_data_type<float>>;
+    d_store_callback_symbol_fp32 = crop_store_callback<float>;
 KOKKOS_IMPL_DEVICE_FUNCTION kokkosfftCallbackStoreD
-    d_store_callback_symbol_fp64 =
-        crop_store_callback<KokkosFFT::fft_data_type<double>>;
+    d_store_callback_symbol_fp64 = crop_store_callback<double>;
 KOKKOS_IMPL_DEVICE_FUNCTION kokkosfftCallbackStoreC
     d_store_callback_symbol_complex_fp32 =
         crop_store_callback<Kokkos::complex<float>>;
@@ -121,9 +119,9 @@ KOKKOS_IMPL_DEVICE_FUNCTION T scale_load_callback(void* dataIn, size_t offset,
 }
 
 KOKKOS_IMPL_DEVICE_FUNCTION kokkosfftCallbackLoadR d_scale_load_fp32 =
-    scale_load_callback<KokkosFFT::fft_data_type<float>>;
+    scale_load_callback<float>;
 KOKKOS_IMPL_DEVICE_FUNCTION kokkosfftCallbackLoadD d_scale_load_fp64 =
-    scale_load_callback<KokkosFFT::fft_data_type<double>>;
+    scale_load_callback<double>;
 
 template <typename T>
 KOKKOS_IMPL_DEVICE_FUNCTION void scale_store_callback(void* dataOut,
