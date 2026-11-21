@@ -115,7 +115,6 @@ auto create_dynplan(const ExecutionSpace& exec_space,
     const index_type nx = int_fft_extents.at(0);
     plan                = std::make_unique<PlanType>(nx, int_howmany);
   } else if (dim == 2 || dim == 3) {
-    auto int_fft_extents = convert_base_int_type<index_type>(fft_extents);
     if (InViewType::rank() == dim) {
       plan = std::make_unique<PlanType>(int_fft_extents);
     } else {
