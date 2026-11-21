@@ -62,11 +62,12 @@ auto create_plan(const ExecutionSpace& exec_space,
       KokkosFFT::Impl::get_extents(in, out, axes, s, is_inplace);
 
   // hipFFT uses int as index type
-  using index_type     = int;
-  auto int_fft_extents = convert_base_int_type<index_type>(fft_extents);
+  using index_type       = int;
+  auto int_fft_extents   = convert_base_int_type<index_type>(fft_extents);
+  index_type int_howmany = convert_base_int_type<index_type>(howmany);
   if constexpr (fft_rank == 1) {
     const index_type nx = int_fft_extents.at(0);
-    plan                = std::make_unique<PlanType>(nx, howmany);
+    plan                = std::make_unique<PlanType>(nx, int_howmany);
   } else if constexpr (fft_rank == 2 || fft_rank == 3) {
     if constexpr (InViewType::rank() == fft_rank) {
       plan = std::make_unique<PlanType>(int_fft_extents);
@@ -78,7 +79,7 @@ auto create_plan(const ExecutionSpace& exec_space,
       index_type istride = 1, ostride = 1;
       plan = std::make_unique<PlanType>(
           int_fft_extents.size(), int_fft_extents.data(), int_in_extents.data(),
-          istride, idist, int_out_extents.data(), ostride, odist, howmany);
+          istride, idist, int_out_extents.data(), ostride, odist, int_howmany);
     }
   }
 
@@ -108,11 +109,12 @@ auto create_dynplan(const ExecutionSpace& exec_space,
       KokkosFFT::Impl::get_extents(in, out, dim, is_inplace);
 
   // hipFFT uses int as index type
-  using index_type     = int;
-  auto int_fft_extents = convert_base_int_type<index_type>(fft_extents);
+  using index_type       = int;
+  auto int_fft_extents   = convert_base_int_type<index_type>(fft_extents);
+  index_type int_howmany = convert_base_int_type<index_type>(howmany);
   if (dim == 1) {
     const index_type nx = int_fft_extents.at(0);
-    plan                = std::make_unique<PlanType>(nx, howmany);
+    plan                = std::make_unique<PlanType>(nx, int_howmany);
   } else if (dim == 2 || dim == 3) {
     if (InViewType::rank() == dim) {
       plan = std::make_unique<PlanType>(int_fft_extents);
@@ -124,7 +126,7 @@ auto create_dynplan(const ExecutionSpace& exec_space,
       index_type istride = 1, ostride = 1;
       plan = std::make_unique<PlanType>(
           int_fft_extents.size(), int_fft_extents.data(), int_in_extents.data(),
-          istride, idist, int_out_extents.data(), ostride, odist, howmany);
+          istride, idist, int_out_extents.data(), ostride, odist, int_howmany);
     }
   } else {
     KOKKOSFFT_THROW_IF(true,

@@ -3,6 +3,9 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
 #include <array>
+#include <cstdint>
+#include <limits>
+#include <stdexcept>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -306,6 +309,60 @@ void test_convert_base_int_type() {
   }
 }
 
+template <typename To, typename From>
+void test_convert_base_int_type_scalar() {
+  // Return type must be To
+  static_assert(
+      std::is_same_v<decltype(KokkosFFT::Impl::convert_base_int_type<To>(
+                         std::declval<From>())),
+                     To>,
+      "convert_base_int_type: scalar overload must return To");
+
+  From v      = 5;
+  To v_ref    = 5;
+  auto v_conv = KokkosFFT::Impl::convert_base_int_type<To>(v);
+  EXPECT_EQ(v_conv, v_ref);
+
+  // Zero is representable in every integral type
+  EXPECT_EQ(KokkosFFT::Impl::convert_base_int_type<To>(From{0}), To{0});
+
+  if constexpr (std::is_signed_v<From> && std::is_signed_v<To>) {
+    // Same signedness, negative values should be OK
+    From v2   = -5;
+    To v2_ref = -5;
+    EXPECT_EQ(KokkosFFT::Impl::convert_base_int_type<To>(v2), v2_ref);
+  } else if constexpr (std::is_signed_v<From> && std::is_unsigned_v<To>) {
+    // From signed to unsigned, negative value should raise error
+    From v2 = -1;
+    EXPECT_THROW(
+        {
+          [[maybe_unused]] auto v2_conv =
+              KokkosFFT::Impl::convert_base_int_type<To>(v2);
+        },
+        std::overflow_error);
+  } else if constexpr (std::is_unsigned_v<From>) {
+    // From std::size_t to int, overflow should raise error
+    if (std::numeric_limits<From>::max() > std::numeric_limits<To>::max()) {
+      From v2 = std::numeric_limits<From>::max();
+      EXPECT_THROW(
+          {
+            [[maybe_unused]] auto v2_conv =
+                KokkosFFT::Impl::convert_base_int_type<To>(v2);
+          },
+          std::overflow_error);
+    }
+  }
+
+  // The maximum value of To must be convertible if it is representable in
+  // From
+  if constexpr (std::numeric_limits<To>::digits <=
+                std::numeric_limits<From>::digits) {
+    const From v_max = static_cast<From>(std::numeric_limits<To>::max());
+    EXPECT_EQ(KokkosFFT::Impl::convert_base_int_type<To>(v_max),
+              std::numeric_limits<To>::max());
+  }
+}
+
 template <typename ContainerType>
 void test_reversed() {
   ContainerType v = {2, 3, 5}, v_fixed = {2, 3, 5};
@@ -385,6 +442,93 @@ TYPED_TEST(TestConvertBaseTypes, convert_vectors) {
   using vector_type1 = std::vector<value_type1>;
   using vector_type2 = std::vector<value_type2>;
   test_convert_base_int_type<vector_type1, vector_type2>();
+}
+
+TYPED_TEST(TestConvertBaseTypes, convert_scalars) {
+  using value_type1 = typename TestFixture::value_type1;
+  using value_type2 = typename TestFixture::value_type2;
+  test_convert_base_int_type_scalar<value_type1, value_type2>();
+}
+
+// Boundary checks with narrowing conversions covering all signedness branches
+TEST(TestConvertBaseIntTypeScalar, narrowing_boundaries) {
+  using KokkosFFT::Impl::convert_base_int_type;
+
+  // Signed-to-signed
+  constexpr std::int64_t i32_max = std::numeric_limits<std::int32_t>::max();
+  constexpr std::int64_t i32_min = std::numeric_limits<std::int32_t>::min();
+  EXPECT_EQ(convert_base_int_type<std::int32_t>(i32_max),
+            std::numeric_limits<std::int32_t>::max());
+  EXPECT_EQ(convert_base_int_type<std::int32_t>(i32_min),
+            std::numeric_limits<std::int32_t>::min());
+  EXPECT_THROW(
+      {
+        [[maybe_unused]] auto r =
+            convert_base_int_type<std::int32_t>(i32_max + 1);
+      },
+      std::overflow_error);
+  EXPECT_THROW(
+      {
+        [[maybe_unused]] auto r =
+            convert_base_int_type<std::int32_t>(i32_min - 1);
+      },
+      std::overflow_error);
+
+  // Signed-to-unsigned
+  EXPECT_EQ(convert_base_int_type<std::uint8_t>(std::int32_t{255}),
+            std::uint8_t{255});
+  EXPECT_THROW(
+      {
+        [[maybe_unused]] auto r =
+            convert_base_int_type<std::uint8_t>(std::int32_t{256});
+      },
+      std::overflow_error);
+  EXPECT_THROW(
+      {
+        [[maybe_unused]] auto r =
+            convert_base_int_type<std::uint8_t>(std::int32_t{-1});
+      },
+      std::overflow_error);
+  EXPECT_THROW(
+      {
+        [[maybe_unused]] auto r = convert_base_int_type<std::uint64_t>(
+            std::numeric_limits<std::int64_t>::min());
+      },
+      std::overflow_error);
+
+  // Unsigned-to-signed
+  EXPECT_EQ(convert_base_int_type<std::int8_t>(std::uint32_t{127}),
+            std::int8_t{127});
+  EXPECT_THROW(
+      {
+        [[maybe_unused]] auto r =
+            convert_base_int_type<std::int8_t>(std::uint32_t{128});
+      },
+      std::overflow_error);
+  EXPECT_THROW(
+      {
+        [[maybe_unused]] auto r = convert_base_int_type<std::int64_t>(
+            std::numeric_limits<std::uint64_t>::max());
+      },
+      std::overflow_error);
+
+  // Unsigned-to-unsigned
+  EXPECT_EQ(convert_base_int_type<std::uint16_t>(std::uint64_t{65535}),
+            std::uint16_t{65535});
+  EXPECT_THROW(
+      {
+        [[maybe_unused]] auto r =
+            convert_base_int_type<std::uint16_t>(std::uint64_t{65536});
+      },
+      std::overflow_error);
+
+  // Widening conversions never throw
+  EXPECT_EQ(convert_base_int_type<std::int64_t>(
+                std::numeric_limits<std::int32_t>::min()),
+            i32_min);
+  EXPECT_EQ(convert_base_int_type<std::uint64_t>(
+                std::numeric_limits<std::uint32_t>::max()),
+            std::uint64_t{std::numeric_limits<std::uint32_t>::max()});
 }
 
 TYPED_TEST(TestReversed, reversed_of_arrays) {
