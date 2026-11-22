@@ -203,11 +203,13 @@ class Plan {
                          "with forward direction.");
     }
 
+    // Throws if in and out overlap partially
+    m_is_inplace = Impl::check_inplace(in, out);
+
     std::tie(m_map, m_map_inv) = Impl::get_map_axes(in, axes);
     m_is_transpose_needed      = Impl::is_transpose_needed(m_map);
     m_shape                    = Impl::get_modified_shape(in, out, s, m_axes);
     m_is_crop_or_pad_needed    = m_in_extents != m_shape;
-    m_is_inplace               = Impl::are_aliasing(in.data(), out.data());
     KOKKOSFFT_THROW_IF(m_is_inplace && m_is_crop_or_pad_needed,
                        "In-place transform is not supported with reshape. "
                        "Please use out-of-place transform.");
@@ -357,10 +359,12 @@ class Plan {
                        "extents of output View for plan and "
                        "execution are not identical.");
 
-    bool is_inplace = Impl::are_aliasing(in.data(), out.data());
+    // Throws if in and out overlap partially
+    const bool is_inplace = Impl::check_inplace(in, out);
     KOKKOSFFT_THROW_IF(is_inplace != m_is_inplace,
                        "If the plan is in-place, the input and output Views "
-                       "must be identical.");
+                       "must be identical; if the plan is out-of-place, they "
+                       "must not overlap.");
   }
 };
 }  // namespace KokkosFFT

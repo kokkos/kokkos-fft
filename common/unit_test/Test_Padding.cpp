@@ -2,7 +2,9 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
+#include <concepts>
 #include <random>
+#include <stdexcept>
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
@@ -369,6 +371,64 @@ void test_padding() {
   }
 }
 
+template <typename LayoutType1, typename LayoutType2>
+void test_padding_overlap() {
+  using ViewLayout1type = Kokkos::View<double**, LayoutType1, execution_space>;
+  using ViewLayout2type = Kokkos::View<double**, LayoutType2, execution_space>;
+  using BufferType      = Kokkos::View<double*, execution_space>;
+
+  constexpr std::size_t n0 = 4, n1 = 5, n = n0 * n1;
+  constexpr bool same_layout = std::same_as<LayoutType1, LayoutType2>;
+
+  execution_space exec;
+  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
+
+  // Identical Views: nothing to copy, the data is unchanged
+  ViewLayout1type x("x", n0, n1), x_ref("x_ref", n0, n1);
+  Kokkos::fill_random(exec, x, random_pool, 1.0);
+  exec.fence();
+  Kokkos::deep_copy(x_ref, x);
+  EXPECT_NO_THROW(KokkosFFT::Impl::crop_or_pad(exec, x, x));
+  exec.fence();
+  EXPECT_THAT(x, KokkosFFT::Testing::allclose(x_ref, 1.e-5, 1.e-12));
+
+  // The same data and extents: identical only if the strides (layouts) match
+  ViewLayout2type x_same_extents(x.data(), n0, n1);
+  if constexpr (same_layout) {
+    EXPECT_NO_THROW(KokkosFFT::Impl::crop_or_pad(exec, x, x_same_extents));
+  } else {
+    EXPECT_THROW(KokkosFFT::Impl::crop_or_pad(exec, x, x_same_extents),
+                 std::runtime_error);
+  }
+
+  // The same data with other extents (crop in place)
+  ViewLayout2type x_cropped(x.data(), n0 - 1, n1);
+  EXPECT_THROW(KokkosFFT::Impl::crop_or_pad(exec, x, x_cropped),
+               std::runtime_error);
+  EXPECT_THROW(KokkosFFT::Impl::crop_or_pad(exec, x_cropped, x),
+               std::runtime_error);
+
+  // Partial overlap: dst starts inside src
+  BufferType buffer("buffer", 2 * n);
+  ViewLayout1type src(buffer.data(), n0, n1);
+  ViewLayout2type dst_partial(buffer.data() + 3, n0, n1);
+  EXPECT_THROW(KokkosFFT::Impl::crop_or_pad(exec, src, dst_partial),
+               std::runtime_error);
+  EXPECT_THROW(KokkosFFT::Impl::crop_or_pad(exec, dst_partial, src),
+               std::runtime_error);
+
+  // Adjacent Views do not overlap: the copy is performed
+  Kokkos::fill_random(exec, src, random_pool, 1.0);
+  exec.fence();
+  ViewLayout2type dst_adjacent(buffer.data() + n, n0, n1),
+      dst_ref("dst_ref", n0, n1);
+  Kokkos::deep_copy(dst_ref, src);
+  EXPECT_NO_THROW(KokkosFFT::Impl::crop_or_pad(exec, src, dst_adjacent));
+  exec.fence();
+  EXPECT_THAT(dst_adjacent,
+              KokkosFFT::Testing::allclose(dst_ref, 1.e-5, 1.e-12));
+}
+
 }  // namespace
 
 TYPED_TEST_SUITE(TestModifiedShape1D, test_types);
@@ -536,4 +596,11 @@ TYPED_TEST(TestPadding, 8DView) {
   using layout_type2 = typename TestFixture::layout_type2;
 
   test_padding<layout_type1, layout_type2, 8>();
+}
+
+TYPED_TEST(TestPadding, overlap) {
+  using layout_type1 = typename TestFixture::layout_type1;
+  using layout_type2 = typename TestFixture::layout_type2;
+
+  test_padding_overlap<layout_type1, layout_type2>();
 }

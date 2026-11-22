@@ -12,6 +12,8 @@
 #include <type_traits>
 #include <Kokkos_Core.hpp>
 
+#include "KokkosFFT_Asserts.hpp"
+#include "KokkosFFT_CheckConditions.hpp"
 #include "KokkosFFT_Common_Types.hpp"
 #include "KokkosFFT_Convert_Types.hpp"
 #include "KokkosFFT_Layout.hpp"
@@ -184,6 +186,11 @@ void transpose(const ExecutionSpace& exec_space, const InViewType& in,
       have_same_base_floating_point_type_v<InViewType, OutViewType>,
       "transpose: In and Out View must have the same base floating point "
       "type.");
+
+  // Reading in and writing out in one parallel_for races if they overlap.
+  // Checked before the deep_copy shortcut below, which has the same problem.
+  KOKKOSFFT_THROW_IF(are_overlapping(in, out),
+                     "transpose: the input and output Views must not overlap");
 
   if (!is_transpose_needed(map)) {
     // Just perform deep_copy (Layout may change)
