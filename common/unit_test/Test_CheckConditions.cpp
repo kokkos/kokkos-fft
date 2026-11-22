@@ -3,6 +3,8 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
 #include <array>
+#include <cstddef>
+#include <stdexcept>
 #include <type_traits>
 #include <utility>
 #include <vector>
@@ -54,6 +56,91 @@ void test_are_pointers_aliasing() {
 
   EXPECT_TRUE(KokkosFFT::Impl::are_aliasing(view1.data(), uview2.data()));
   EXPECT_FALSE(KokkosFFT::Impl::are_aliasing(view1.data(), view2.data()));
+}
+
+template <typename ValueType1, typename ValueType2>
+void test_are_overlapping() {
+  using View1 = Kokkos::View<ValueType1*, execution_space>;
+  using View2 = Kokkos::View<ValueType2*, execution_space>;
+  using LeftView1 =
+      Kokkos::View<ValueType1**, Kokkos::LayoutLeft, execution_space>;
+
+  // sizeof ValueType2 is a multiple of sizeof ValueType1
+  constexpr std::size_t ratio = sizeof(ValueType2) / sizeof(ValueType1);
+  View1 buffer("buffer", 16), other("other", 16);
+  ValueType1* ptr = buffer.data();
+
+  View1 a(ptr, 8);               // the first half of buffer
+  View1 b_partial(ptr + 4, 8);   // starts inside a
+  View1 c_adjacent(ptr + 8, 8);  // starts right after a
+  View2 a_same(reinterpret_cast<ValueType2*>(ptr), 1);  // same start
+  View2 c_adjacent2(reinterpret_cast<ValueType2*>(ptr + 8),
+                    8 / ratio);  // the bytes of c_adjacent
+  View1 empty(ptr, 0);
+
+  EXPECT_TRUE(KokkosFFT::Impl::are_overlapping(a, a));
+  EXPECT_TRUE(KokkosFFT::Impl::are_overlapping(a, a_same));
+  EXPECT_TRUE(KokkosFFT::Impl::are_overlapping(a_same, a));
+  EXPECT_TRUE(KokkosFFT::Impl::are_overlapping(a, b_partial));
+  EXPECT_TRUE(KokkosFFT::Impl::are_overlapping(b_partial, a));
+  EXPECT_FALSE(KokkosFFT::Impl::are_overlapping(a, c_adjacent));
+  EXPECT_FALSE(KokkosFFT::Impl::are_overlapping(c_adjacent, a));
+  EXPECT_FALSE(KokkosFFT::Impl::are_overlapping(a, c_adjacent2));
+  EXPECT_TRUE(KokkosFFT::Impl::are_overlapping(b_partial, c_adjacent2));
+  EXPECT_FALSE(KokkosFFT::Impl::are_overlapping(a, empty));
+  EXPECT_FALSE(KokkosFFT::Impl::are_overlapping(empty, a));
+  EXPECT_FALSE(KokkosFFT::Impl::are_overlapping(empty, empty));
+  EXPECT_FALSE(KokkosFFT::Impl::are_overlapping(buffer, other));
+
+  // Strided Views: the span counts, not the size. In a 4 x 4 LayoutLeft
+  // View, element (i, j) is at i + 4 j: a row spans [i, i + 13), a column
+  // [4 j, 4 j + 4)
+  LeftView1 matrix("matrix", 4, 4);
+  auto row0 = Kokkos::subview(matrix, 0, Kokkos::ALL);
+  auto row3 = Kokkos::subview(matrix, 3, Kokkos::ALL);
+  auto col0 = Kokkos::subview(matrix, Kokkos::ALL, 0);
+  auto col3 = Kokkos::subview(matrix, Kokkos::ALL, 3);
+  EXPECT_TRUE(KokkosFFT::Impl::are_overlapping(row0, col0));
+  EXPECT_TRUE(KokkosFFT::Impl::are_overlapping(row0, col3));
+  // Interleaved rows share no element, but their spans intersect
+  EXPECT_TRUE(KokkosFFT::Impl::are_overlapping(row0, row3));
+  EXPECT_FALSE(KokkosFFT::Impl::are_overlapping(col0, col3));
+}
+
+template <typename ValueType1, typename ValueType2>
+void test_check_inplace() {
+  using View1 = Kokkos::View<ValueType1*, execution_space>;
+  using View2 = Kokkos::View<ValueType2*, execution_space>;
+
+  // sizeof ValueType2 is a multiple of sizeof ValueType1
+  constexpr std::size_t ratio = sizeof(ValueType2) / sizeof(ValueType1);
+  View1 buffer("buffer", 16);
+  View2 other("other", 8);
+  ValueType1* ptr = buffer.data();
+
+  View1 in(ptr, 8);
+  View2 out_same(reinterpret_cast<ValueType2*>(ptr),
+                 8 / ratio);  // the same data, possibly another value type
+  View2 out_partial(reinterpret_cast<ValueType2*>(ptr + ratio),
+                    8 / ratio);  // starts inside in
+  View2 out_adjacent(reinterpret_cast<ValueType2*>(ptr + 8),
+                     8 / ratio);  // starts right after in
+  View1 empty_in;                 // no data
+
+  // In-place: the same start address
+  EXPECT_TRUE(KokkosFFT::Impl::check_inplace(in, out_same));
+  EXPECT_TRUE(KokkosFFT::Impl::check_inplace(buffer, buffer));
+
+  // Out-of-place: no overlap
+  EXPECT_FALSE(KokkosFFT::Impl::check_inplace(in, other));
+  EXPECT_FALSE(KokkosFFT::Impl::check_inplace(in, out_adjacent));
+  EXPECT_FALSE(KokkosFFT::Impl::check_inplace(empty_in, other));
+
+  // Partial overlap: neither in-place nor out-of-place
+  EXPECT_THROW(KokkosFFT::Impl::check_inplace(in, out_partial),
+               std::runtime_error);
+  EXPECT_THROW(KokkosFFT::Impl::check_inplace(out_partial, in),
+               std::runtime_error);
 }
 
 template <typename ContainerType0, typename ContainerType1,
@@ -175,6 +262,18 @@ TYPED_TEST(TestPointerTypes, are_pointers_aliasing) {
   using value_type1 = typename TestFixture::value_type1;
   using value_type2 = typename TestFixture::value_type2;
   test_are_pointers_aliasing<value_type1, value_type2>();
+}
+
+TYPED_TEST(TestPointerTypes, are_overlapping) {
+  using value_type1 = typename TestFixture::value_type1;
+  using value_type2 = typename TestFixture::value_type2;
+  test_are_overlapping<value_type1, value_type2>();
+}
+
+TYPED_TEST(TestPointerTypes, check_inplace) {
+  using value_type1 = typename TestFixture::value_type1;
+  using value_type2 = typename TestFixture::value_type2;
+  test_check_inplace<value_type1, value_type2>();
 }
 
 TYPED_TEST(TestContainerTypes, has_duplicate_values_in_vector) {

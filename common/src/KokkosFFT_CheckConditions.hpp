@@ -7,6 +7,8 @@
 
 #include <algorithm>
 #include <array>
+#include <cstddef>
+#include <cstdint>
 #include <set>
 #include <type_traits>
 #include <Kokkos_Core.hpp>
@@ -30,6 +32,53 @@ namespace Impl {
 template <typename ScalarType1, typename ScalarType2>
 bool are_aliasing(const ScalarType1* ptr1, const ScalarType2* ptr2) {
   return (static_cast<const void*>(ptr1) == static_cast<const void*>(ptr2));
+}
+
+/// \brief Whether the memory of two Views overlaps. The memory of a View is
+/// the byte range [data(), data() + span() * sizeof(value_type)). Views that
+/// start at the same address overlap; empty Views never overlap. The data is
+/// not accessed, so the Views may live in any memory space.
+///
+/// \tparam AViewType The type of the first View
+/// \tparam BViewType The type of the second View
+///
+/// \param[in] a The first View
+/// \param[in] b The second View
+/// \return True if the byte ranges of a and b intersect
+template <typename AViewType, typename BViewType>
+bool are_overlapping(const AViewType& a, const BViewType& b) {
+  using a_value_type        = typename AViewType::non_const_value_type;
+  using b_value_type        = typename BViewType::non_const_value_type;
+  const std::size_t a_bytes = a.span() * sizeof(a_value_type);
+  const std::size_t b_bytes = b.span() * sizeof(b_value_type);
+  if (a_bytes == 0 || b_bytes == 0) return false;
+
+  const auto a_begin = reinterpret_cast<std::uintptr_t>(a.data());
+  const auto b_begin = reinterpret_cast<std::uintptr_t>(b.data());
+  return a_begin < b_begin + b_bytes && b_begin < a_begin + a_bytes;
+}
+
+/// \brief Whether the input and output Views of a plan point to the same data,
+/// i.e. whether the transform is in-place. Views without data (empty) never
+/// do.
+///
+/// \tparam InViewType The type of the input View
+/// \tparam OutViewType The type of the output View
+///
+/// \param[in] in The input View
+/// \param[in] out The output View
+/// \return True if in and out start at the same address
+/// \throws std::runtime_error if the Views overlap partially, i.e. they
+/// overlap but do not start at the same address
+template <typename InViewType, typename OutViewType>
+bool check_inplace(const InViewType& in, const OutViewType& out) {
+  const bool is_aliasing =
+      in.data() != nullptr && are_aliasing(in.data(), out.data());
+  KOKKOSFFT_THROW_IF(!is_aliasing && are_overlapping(in, out),
+                     "the input and output Views overlap partially: they "
+                     "must either point to the same data (in-place) or not "
+                     "overlap (out-of-place)");
+  return is_aliasing;
 }
 
 /// \brief Check if a container has duplicate values
