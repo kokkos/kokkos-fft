@@ -74,8 +74,8 @@ auto create_plan(const ExecutionSpace& exec_space,
     } else {
       auto int_in_extents  = convert_base_int_type<index_type>(in_extents);
       auto int_out_extents = convert_base_int_type<index_type>(out_extents);
-      index_type idist     = total_size(in_extents);
-      index_type odist     = total_size(out_extents);
+      index_type idist     = total_size(int_in_extents);
+      index_type odist     = total_size(int_out_extents);
       index_type istride = 1, ostride = 1;
       plan = std::make_unique<PlanType>(
           int_fft_extents.size(), int_fft_extents.data(), int_in_extents.data(),
@@ -118,10 +118,11 @@ auto create_dynplan(const ExecutionSpace& exec_space,
     if (InViewType::rank() == dim) {
       plan = std::make_unique<PlanType>(int_fft_extents);
     } else {
-      index_type idist     = total_size(in_extents);
-      index_type odist     = total_size(out_extents);
       auto int_in_extents  = convert_base_int_type<index_type>(in_extents);
       auto int_out_extents = convert_base_int_type<index_type>(out_extents);
+      index_type idist     = total_size(int_in_extents);
+      index_type odist     = total_size(int_out_extents);
+
       index_type istride = 1, ostride = 1;
       plan = std::make_unique<PlanType>(
           int_fft_extents.size(), int_fft_extents.data(), int_in_extents.data(),
