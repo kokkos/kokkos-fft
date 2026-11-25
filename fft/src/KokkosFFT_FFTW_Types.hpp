@@ -51,10 +51,10 @@ struct ScopedFFTWPlan {
                  int odist, Direction direction) {
     init_threads(exec_space);
 
-    [[maybe_unused]] auto sign =
-        (direction == Direction::forward) ? FFTW_FORWARD : FFTW_BACKWARD;
     unsigned flags = FFTW_ESTIMATE;
     if constexpr (transform_kind == TransformKind::C2C) {
+      auto sign =
+          (direction == Direction::forward) ? FFTW_FORWARD : FFTW_BACKWARD;
       if constexpr (std::same_as<floating_point_type, float>) {
         m_plan =
             fftwf_plan_many_dft(rank, n, howmany, in, inembed, istride, idist,
