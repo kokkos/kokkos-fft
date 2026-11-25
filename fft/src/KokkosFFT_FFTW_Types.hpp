@@ -31,7 +31,7 @@ template <typename ExecutionSpace, typename InValueType, typename OutValueType>
 struct ScopedFFTWPlan {
   static_assert(
       have_same_base_floating_point_type_v<InValueType, OutValueType>,
-      "ScopedCufftPlan: input and output must have the same precision");
+      "ScopedFFTWPlan: input and output must have the same precision");
 
   //! Transform kind deduced from the input/output value types
   static constexpr TransformKind transform_kind =
