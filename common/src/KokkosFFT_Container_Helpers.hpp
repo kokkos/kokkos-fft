@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <concepts>
 #include <limits>
 #include <numeric>
 #include <stdexcept>
@@ -173,6 +174,72 @@ auto total_size(const ContainerType& values) {
   return std::accumulate(values.begin(), values.end(), init, safe_multiply);
 }
 
+/// \brief Convert an integral scalar to another integral type with
+/// overflow/underflow check
+/// Example usage:
+/// \code{.cpp}
+/// std::size_t n = 5;
+/// int m = convert_base_int_type<int>(n); // m will be 5
+/// \endcode
+/// \tparam To The target integral type
+/// \tparam From The source integral type
+///
+/// \param[in] v The source value
+/// \return The value converted to To
+/// \throws std::overflow_error if v is not representable in To
+template <typename To, typename From>
+  requires(std::integral<From>)
+To convert_base_int_type(const From v) {
+  static_assert(std::integral<To>,
+                "convert_base_int_type: To must be an integral type");
+
+  if constexpr (std::same_as<From, To>) {
+    return v;  // no conversion needed
+  } else {
+    // Check convertibility
+    static_assert(std::convertible_to<From, To>,
+                  "convert_base_int_type: From must be convertible to To");
+
+    // Check for overflow or underflow
+    constexpr auto to_min = std::numeric_limits<To>::min();
+    constexpr auto to_max = std::numeric_limits<To>::max();
+
+    if constexpr (std::is_signed_v<From> && std::is_signed_v<To>) {
+      // Both are signed
+      if (v < to_min || v > to_max) {
+        throw std::overflow_error(
+            "convert_base_int_type: Signed-to-signed overflow");
+      }
+    } else if constexpr (std::is_signed_v<From> && std::is_unsigned_v<To>) {
+      // From is signed, To is unsigned
+      if (v < 0) {
+        throw std::overflow_error(
+            "convert_base_int_type: negative value cannot be converted to "
+            "unsigned type");
+      }
+
+      if (static_cast<std::make_unsigned_t<From>>(v) > to_max) {
+        throw std::overflow_error(
+            "convert_base_int_type: Signed-to-unsigned overflow");
+      }
+    } else if constexpr (std::is_unsigned_v<From> && std::is_signed_v<To>) {
+      // From is unsigned, To is signed
+      if (v > static_cast<std::make_unsigned_t<To>>(to_max)) {
+        throw std::overflow_error(
+            "convert_base_int_type: Unsigned-to-signed overflow");
+      }
+    } else {
+      // Both are unsigned
+      if (v > to_max) {
+        throw std::overflow_error(
+            "convert_base_int_type: Unsigned-to-unsigned overflow");
+      }
+    }
+
+    return static_cast<To>(v);
+  }
+}
+
 /// \brief Helper to convert the base integral type of a container to another
 /// integral type
 /// \tparam To The target integral type
@@ -182,63 +249,26 @@ auto total_size(const ContainerType& values) {
 /// \param[in] src The source container
 /// \return A new container with the same type as src but with base integral
 /// type converted to To
-template <typename To, typename ContainerType,
-          std::enable_if_t<is_std_vector_v<ContainerType> ||
-                               is_std_array_v<ContainerType>,
-                           std::nullptr_t> = nullptr>
+/// \throws std::overflow_error if any element is not representable in To
+template <typename To, typename ContainerType>
+  requires(is_std_vector_v<ContainerType> || is_std_array_v<ContainerType>)
 auto convert_base_int_type(const ContainerType& src) {
-  using From = KokkosFFT::Impl::base_container_value_type<ContainerType>;
-  static_assert(std::is_integral_v<From>,
+  using From = base_container_value_type<ContainerType>;
+  static_assert(std::integral<From>,
                 "convert_base_int_type: Container value type must be an "
                 "integral type");
-  static_assert(std::is_integral_v<To>,
+  static_assert(std::integral<To>,
                 "convert_base_int_type: To must be an integral type");
 
-  if constexpr (std::is_same_v<From, To>) {
+  if constexpr (std::same_as<From, To>) {
     return src;  // no conversion needed
   } else {
     // Check convertibility
-    static_assert(std::is_convertible_v<From, To>,
+    static_assert(std::convertible_to<From, To>,
                   "convert_base_int_type: From must be convertible to To");
 
     auto safe_conversion = [](const From v) -> To {
-      // Check for overflow or underflow
-      constexpr auto to_min = std::numeric_limits<To>::min();
-      constexpr auto to_max = std::numeric_limits<To>::max();
-
-      if constexpr (std::is_signed_v<From> && std::is_signed_v<To>) {
-        // Both are signed
-        if (v < to_min || v > to_max) {
-          throw std::overflow_error(
-              "convert_base_int_type: Signed-to-signed overflow");
-        }
-      } else if constexpr (std::is_signed_v<From> && std::is_unsigned_v<To>) {
-        // From is signed, To is unsigned
-        if (v < 0) {
-          throw std::overflow_error(
-              "convert_base_int_type: negative value cannot be converted to "
-              "unsigned type");
-        }
-
-        if (static_cast<std::make_unsigned_t<From>>(v) > to_max) {
-          throw std::overflow_error(
-              "convert_base_int_type: Signed-to-unsigned overflow");
-        }
-      } else if constexpr (std::is_unsigned_v<From> && std::is_signed_v<To>) {
-        // From is unsigned, To is signed
-        if (v > static_cast<std::make_unsigned_t<To>>(to_max)) {
-          throw std::overflow_error(
-              "convert_base_int_type: Unsigned-to-signed overflow");
-        }
-      } else {
-        // Both are unsigned
-        if (v > to_max) {
-          throw std::overflow_error(
-              "convert_base_int_type: Unsigned-to-unsigned overflow");
-        }
-      }
-
-      return static_cast<To>(v);
+      return convert_base_int_type<To>(v);
     };
 
     if constexpr (is_std_vector_v<ContainerType>) {
