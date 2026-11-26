@@ -84,8 +84,8 @@ class DynPlan {
 
   //! The type of FFT plan
   using fft_plan_type =
-      typename KokkosFFT::Impl::FFTDynPlanType<ExecutionSpace, in_value_type,
-                                               out_value_type>::type;
+      typename KokkosFFT::Impl::FFTPlanType<ExecutionSpace, in_value_type,
+                                            out_value_type>;
 
   //! The type of extents of FFT
   using fft_extents_type = std::vector<std::size_t>;
@@ -189,10 +189,7 @@ class DynPlan {
         execSpace, in_value_type>::type*>(in.data());
     auto* odata = reinterpret_cast<typename KokkosFFT::Impl::fft_data_type<
         execSpace, out_value_type>::type*>(out.data());
-
-    auto const direction =
-        KokkosFFT::Impl::direction_type<execSpace>(m_direction);
-    KokkosFFT::Impl::exec_plan(*m_plan, idata, odata, direction);
+    KokkosFFT::Impl::exec_plan(*m_plan, idata, odata, m_direction);
 
     if constexpr (KokkosFFT::Impl::is_complex_v<in_value_type> &&
                   KokkosFFT::Impl::is_real_v<out_value_type>) {

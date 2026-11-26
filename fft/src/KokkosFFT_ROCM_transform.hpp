@@ -10,6 +10,7 @@
 #include <rocfft/rocfft.h>
 #include <Kokkos_Profiling_ScopedRegion.hpp>
 #include "KokkosFFT_Asserts.hpp"
+#include "KokkosFFT_Common_Types.hpp"
 #include "KokkosFFT_ROCM_types.hpp"
 #include "KokkosFFT_ROCM_asserts.hpp"
 
@@ -17,7 +18,7 @@ namespace KokkosFFT {
 namespace Impl {
 inline void exec_plan(
     const ScopedRocfftPlan<float, Kokkos::complex<float>>& scoped_plan,
-    float* idata, float2* odata, int /*direction*/) {
+    float* idata, float2* odata, KokkosFFT::Direction /*direction*/) {
   Kokkos::Profiling::ScopedRegion region(
       "KokkosFFT::exec_plan[TPL_rocfftExecR2C]");
   KOKKOSFFT_CHECK_ROCFFT_CALL(rocfft_execute(scoped_plan.plan(), (void**)&idata,
@@ -27,7 +28,7 @@ inline void exec_plan(
 
 inline void exec_plan(
     const ScopedRocfftPlan<double, Kokkos::complex<double>>& scoped_plan,
-    double* idata, double2* odata, int /*direction*/) {
+    double* idata, double2* odata, KokkosFFT::Direction /*direction*/) {
   Kokkos::Profiling::ScopedRegion region(
       "KokkosFFT::exec_plan[TPL_rocfftExecD2Z]");
   KOKKOSFFT_CHECK_ROCFFT_CALL(rocfft_execute(scoped_plan.plan(), (void**)&idata,
@@ -37,7 +38,7 @@ inline void exec_plan(
 
 inline void exec_plan(
     const ScopedRocfftPlan<Kokkos::complex<float>, float>& scoped_plan,
-    float2* idata, float* odata, int /*direction*/) {
+    float2* idata, float* odata, KokkosFFT::Direction /*direction*/) {
   Kokkos::Profiling::ScopedRegion region(
       "KokkosFFT::exec_plan[TPL_rocfftExecC2R]");
   KOKKOSFFT_CHECK_ROCFFT_CALL(rocfft_execute(scoped_plan.plan(), (void**)&idata,
@@ -47,7 +48,7 @@ inline void exec_plan(
 
 inline void exec_plan(
     const ScopedRocfftPlan<Kokkos::complex<double>, double>& scoped_plan,
-    double2* idata, double* odata, int /*direction*/) {
+    double2* idata, double* odata, KokkosFFT::Direction /*direction*/) {
   Kokkos::Profiling::ScopedRegion region(
       "KokkosFFT::exec_plan[TPL_rocfftExecZ2D]");
   KOKKOSFFT_CHECK_ROCFFT_CALL(rocfft_execute(scoped_plan.plan(), (void**)&idata,
@@ -58,7 +59,7 @@ inline void exec_plan(
 inline void exec_plan(
     const ScopedRocfftPlan<Kokkos::complex<float>, Kokkos::complex<float>>&
         scoped_plan,
-    float2* idata, float2* odata, int /*direction*/) {
+    float2* idata, float2* odata, KokkosFFT::Direction /*direction*/) {
   Kokkos::Profiling::ScopedRegion region(
       "KokkosFFT::exec_plan[TPL_rocfftExecC2C]");
   KOKKOSFFT_CHECK_ROCFFT_CALL(rocfft_execute(scoped_plan.plan(), (void**)&idata,
@@ -69,7 +70,7 @@ inline void exec_plan(
 inline void exec_plan(
     const ScopedRocfftPlan<Kokkos::complex<double>, Kokkos::complex<double>>&
         scoped_plan,
-    double2* idata, double2* odata, int /*direction*/) {
+    double2* idata, double2* odata, KokkosFFT::Direction /*direction*/) {
   Kokkos::Profiling::ScopedRegion region(
       "KokkosFFT::exec_plan[TPL_rocfftExecZ2Z]");
   KOKKOSFFT_CHECK_ROCFFT_CALL(rocfft_execute(scoped_plan.plan(), (void**)&idata,

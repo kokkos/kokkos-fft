@@ -74,10 +74,6 @@ static_assert(alignof(double2) <= alignof(Kokkos::complex<double>));
 
 namespace KokkosFFT {
 namespace Impl {
-using FFTDirectionType                     = int;
-constexpr FFTDirectionType ROCFFT_FORWARD  = 1;
-constexpr FFTDirectionType ROCFFT_BACKWARD = -1;
-
 #if defined(KOKKOSFFT_ENABLE_CALLBACK)
 // Unlike cuFFT/hipFFT, rocFFT has no callback type enum: load and store
 // callbacks are set through two different functions and nothing checks the
@@ -523,7 +519,6 @@ struct ScopedRocfftPlan {
 };
 
 #if defined(KOKKOSFFT_ENABLE_TPL_FFTW)
-
 template <typename ExecutionSpace>
 struct FFTDataType {
   using float32 = float;
@@ -536,40 +531,11 @@ struct FFTDataType {
                          fftw_complex>;
 };
 
-/// \brief The index type used in backend FFT plan
-/// rocFFT and FFTW use std::size_t and int as index type
-/// \tparam ExecutionSpace The type of Kokkos execution space
-template <typename ExecutionSpace>
-using FFTIndexType =
-    std::conditional_t<std::same_as<ExecutionSpace, Kokkos::HIP>, std::size_t,
-                       int>;
-
 template <typename ExecutionSpace, typename T1, typename T2>
-struct FFTPlanType {
-  using fftw_plan_type   = ScopedFFTWPlan<ExecutionSpace, T1, T2>;
-  using rocfft_plan_type = ScopedRocfftPlan<T1, T2>;
-  using type = std::conditional_t<std::same_as<ExecutionSpace, Kokkos::HIP>,
-                                  rocfft_plan_type, fftw_plan_type>;
-};
-
-template <typename ExecutionSpace, typename T1, typename T2>
-struct FFTDynPlanType {
-  using fftw_plan_type   = ScopedFFTWPlan<ExecutionSpace, T1, T2>;
-  using rocfft_plan_type = ScopedRocfftPlan<T1, T2>;
-  using type = std::conditional_t<std::same_as<ExecutionSpace, Kokkos::HIP>,
-                                  rocfft_plan_type, fftw_plan_type>;
-};
-
-template <typename ExecutionSpace>
-auto direction_type(Direction direction) {
-  static constexpr FFTDirectionType FORWARD =
-      std::same_as<ExecutionSpace, Kokkos::HIP> ? ROCFFT_FORWARD : FFTW_FORWARD;
-
-  static constexpr FFTDirectionType BACKWARD =
-      std::same_as<ExecutionSpace, Kokkos::HIP> ? ROCFFT_BACKWARD
-                                                : FFTW_BACKWARD;
-  return direction == Direction::forward ? FORWARD : BACKWARD;
-}
+using FFTPlanType =
+    std::conditional_t<std::same_as<ExecutionSpace, Kokkos::HIP>,
+                       ScopedRocfftPlan<T1, T2>,
+                       ScopedFFTWPlan<ExecutionSpace, T1, T2>>;
 #else
 template <typename ExecutionSpace>
 struct FFTDataType {
@@ -579,23 +545,8 @@ struct FFTDataType {
   using complex128 = double2;
 };
 
-template <typename ExecutionSpace>
-using FFTIndexType = std::size_t;
-
 template <typename ExecutionSpace, typename T1, typename T2>
-struct FFTPlanType {
-  using type = ScopedRocfftPlan<T1, T2>;
-};
-
-template <typename ExecutionSpace, typename T1, typename T2>
-struct FFTDynPlanType {
-  using type = ScopedRocfftPlan<T1, T2>;
-};
-
-template <typename ExecutionSpace>
-auto direction_type(Direction direction) {
-  return direction == Direction::forward ? ROCFFT_FORWARD : ROCFFT_BACKWARD;
-}
+using FFTPlanType = ScopedRocfftPlan<T1, T2>;
 #endif
 }  // namespace Impl
 }  // namespace KokkosFFT

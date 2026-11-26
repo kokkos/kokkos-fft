@@ -11,7 +11,6 @@
 #include <Kokkos_Abort.hpp>
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Profiling_ScopedRegion.hpp>
-#include "KokkosFFT_Asserts.hpp"
 #include "KokkosFFT_Cuda_asserts.hpp"
 #include "KokkosFFT_Common_Types.hpp"
 #include "KokkosFFT_Traits.hpp"
@@ -69,8 +68,6 @@ static_assert(alignof(cufftDoubleComplex) <= alignof(Kokkos::complex<double>));
 
 namespace KokkosFFT {
 namespace Impl {
-using FFTDirectionType = int;
-
 #if defined(KOKKOSFFT_ENABLE_CALLBACK)
 // cufftXtCallbackType has distinct enum values for single vs double
 // precision (CUFFT_CB_LD_REAL vs CUFFT_CB_LD_REAL_DOUBLE, etc.); collapsing
@@ -414,6 +411,10 @@ struct ScopedCufftPlan {
   }
 };
 
+inline auto cufft_direction(Direction direction) {
+  return direction == Direction::forward ? CUFFT_FORWARD : CUFFT_INVERSE;
+}
+
 #if defined(KOKKOSFFT_ENABLE_TPL_FFTW)
 template <typename ExecutionSpace>
 struct FFTDataType {
@@ -430,30 +431,10 @@ struct FFTDataType {
 };
 
 template <typename ExecutionSpace, typename T1, typename T2>
-struct FFTPlanType {
-  using fftw_plan_type  = ScopedFFTWPlan<ExecutionSpace, T1, T2>;
-  using cufft_plan_type = ScopedCufftPlan<T1, T2>;
-  using type = std::conditional_t<std::same_as<ExecutionSpace, Kokkos::Cuda>,
-                                  cufft_plan_type, fftw_plan_type>;
-};
-
-template <typename ExecutionSpace, typename T1, typename T2>
-struct FFTDynPlanType {
-  using fftw_plan_type  = ScopedFFTWPlan<ExecutionSpace, T1, T2>;
-  using cufft_plan_type = ScopedCufftPlan<T1, T2>;
-  using type = std::conditional_t<std::same_as<ExecutionSpace, Kokkos::Cuda>,
-                                  cufft_plan_type, fftw_plan_type>;
-};
-
-template <typename ExecutionSpace>
-auto direction_type(Direction direction) {
-  static constexpr FFTDirectionType FORWARD =
-      std::same_as<ExecutionSpace, Kokkos::Cuda> ? CUFFT_FORWARD : FFTW_FORWARD;
-  static constexpr FFTDirectionType BACKWARD =
-      std::same_as<ExecutionSpace, Kokkos::Cuda> ? CUFFT_INVERSE
-                                                 : FFTW_BACKWARD;
-  return direction == Direction::forward ? FORWARD : BACKWARD;
-}
+using FFTPlanType =
+    std::conditional_t<std::same_as<ExecutionSpace, Kokkos::Cuda>,
+                       ScopedCufftPlan<T1, T2>,
+                       ScopedFFTWPlan<ExecutionSpace, T1, T2>>;
 #else
 template <typename ExecutionSpace>
 struct FFTDataType {
@@ -464,19 +445,7 @@ struct FFTDataType {
 };
 
 template <typename ExecutionSpace, typename T1, typename T2>
-struct FFTPlanType {
-  using type = ScopedCufftPlan<T1, T2>;
-};
-
-template <typename ExecutionSpace, typename T1, typename T2>
-struct FFTDynPlanType {
-  using type = ScopedCufftPlan<T1, T2>;
-};
-
-template <typename ExecutionSpace>
-auto direction_type(Direction direction) {
-  return direction == Direction::forward ? CUFFT_FORWARD : CUFFT_INVERSE;
-}
+using FFTPlanType = ScopedCufftPlan<T1, T2>;
 #endif
 }  // namespace Impl
 }  // namespace KokkosFFT

@@ -38,10 +38,6 @@ static_assert(alignof(std::complex<double>) <=
 
 namespace KokkosFFT {
 namespace Impl {
-using FFTDirectionType                      = int;
-constexpr FFTDirectionType MKL_FFT_FORWARD  = 1;
-constexpr FFTDirectionType MKL_FFT_BACKWARD = -1;
-
 /// \brief A class that wraps oneMKL for RAII
 template <typename T1, typename T2>
 struct ScopedoneMKLPlan {
@@ -157,7 +153,6 @@ struct ScopedoneMKLPlan {
 };
 
 #if defined(KOKKOSFFT_ENABLE_TPL_FFTW)
-
 template <typename ExecutionSpace>
 struct FFTDataType {
   using float32 = float;
@@ -170,41 +165,11 @@ struct FFTDataType {
       std::conditional_t<std::same_as<ExecutionSpace, Kokkos::SYCL>,
                          std::complex<double>, fftw_complex>;
 };
-
-/// \brief The index type used in backend FFT plan
-/// oneMKL and FFTW use std::int64_t and int as index type
-/// \tparam ExecutionSpace The type of Kokkos execution space
-template <typename ExecutionSpace>
-using FFTIndexType =
-    std::conditional_t<std::same_as<ExecutionSpace, Kokkos::SYCL>, std::int64_t,
-                       int>;
-
 template <typename ExecutionSpace, typename T1, typename T2>
-struct FFTPlanType {
-  using fftwHandle   = ScopedFFTWPlan<ExecutionSpace, T1, T2>;
-  using onemklHandle = ScopedoneMKLPlan<T1, T2>;
-  using type = std::conditional_t<std::same_as<ExecutionSpace, Kokkos::SYCL>,
-                                  onemklHandle, fftwHandle>;
-};
-
-template <typename ExecutionSpace, typename T1, typename T2>
-struct FFTDynPlanType {
-  using fftwHandle   = ScopedFFTWPlan<ExecutionSpace, T1, T2>;
-  using onemklHandle = ScopedoneMKLPlan<T1, T2>;
-  using type = std::conditional_t<std::same_as<ExecutionSpace, Kokkos::SYCL>,
-                                  onemklHandle, fftwHandle>;
-};
-
-template <typename ExecutionSpace>
-auto direction_type(Direction direction) {
-  static constexpr FFTDirectionType FORWARD =
-      std::same_as<ExecutionSpace, Kokkos::SYCL> ? MKL_FFT_FORWARD
-                                                 : FFTW_FORWARD;
-  static constexpr FFTDirectionType BACKWARD =
-      std::same_as<ExecutionSpace, Kokkos::SYCL> ? MKL_FFT_BACKWARD
-                                                 : FFTW_BACKWARD;
-  return direction == Direction::forward ? FORWARD : BACKWARD;
-}
+using FFTPlanType =
+    std::conditional_t<std::same_as<ExecutionSpace, Kokkos::SYCL>,
+                       ScopedoneMKLPlan<T1, T2>,
+                       ScopedFFTWPlan<ExecutionSpace, T1, T2>>;
 #else
 template <typename ExecutionSpace>
 struct FFTDataType {
@@ -214,23 +179,8 @@ struct FFTDataType {
   using complex128 = std::complex<double>;
 };
 
-template <typename ExecutionSpace>
-using FFTIndexType = std::int64_t;
-
 template <typename ExecutionSpace, typename T1, typename T2>
-struct FFTPlanType {
-  using type = ScopedoneMKLPlan<T1, T2>;
-};
-
-template <typename ExecutionSpace, typename T1, typename T2>
-struct FFTDynPlanType {
-  using type = ScopedoneMKLPlan<T1, T2>;
-};
-
-template <typename ExecutionSpace>
-auto direction_type(Direction direction) {
-  return direction == Direction::forward ? MKL_FFT_FORWARD : MKL_FFT_BACKWARD;
-}
+using FFTPlanType = ScopedoneMKLPlan<T1, T2>;
 #endif
 }  // namespace Impl
 }  // namespace KokkosFFT

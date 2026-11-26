@@ -12,8 +12,8 @@
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Profiling_ScopedRegion.hpp>
 #include "KokkosFFT_Asserts.hpp"
-#include "KokkosFFT_HIP_asserts.hpp"
 #include "KokkosFFT_Common_Types.hpp"
+#include "KokkosFFT_HIP_asserts.hpp"
 #include "KokkosFFT_Traits.hpp"
 
 #if defined(KOKKOSFFT_ENABLE_TPL_FFTW)
@@ -69,8 +69,6 @@ static_assert(alignof(hipfftDoubleComplex) <= alignof(Kokkos::complex<double>));
 
 namespace KokkosFFT {
 namespace Impl {
-using FFTDirectionType = int;
-
 #if defined(KOKKOSFFT_ENABLE_CALLBACK)
 // hipfftXtCallbackType has distinct enum values for single vs double
 // precision (HIPFFT_CB_LD_REAL vs HIPFFT_CB_LD_REAL_DOUBLE, etc.), so each
@@ -420,6 +418,10 @@ struct ScopedHIPfftPlan {
   }
 };
 
+inline auto hipfft_direction(Direction direction) {
+  return direction == Direction::forward ? HIPFFT_FORWARD : HIPFFT_BACKWARD;
+}
+
 #if defined(KOKKOSFFT_ENABLE_TPL_FFTW)
 template <typename ExecutionSpace>
 struct FFTDataType {
@@ -436,30 +438,10 @@ struct FFTDataType {
 };
 
 template <typename ExecutionSpace, typename T1, typename T2>
-struct FFTPlanType {
-  using fftw_plan_type   = ScopedFFTWPlan<ExecutionSpace, T1, T2>;
-  using hipfft_plan_type = ScopedHIPfftPlan<T1, T2>;
-  using type = std::conditional_t<std::same_as<ExecutionSpace, Kokkos::HIP>,
-                                  hipfft_plan_type, fftw_plan_type>;
-};
-
-template <typename ExecutionSpace, typename T1, typename T2>
-struct FFTDynPlanType {
-  using fftw_plan_type   = ScopedFFTWPlan<ExecutionSpace, T1, T2>;
-  using hipfft_plan_type = ScopedHIPfftPlan<T1, T2>;
-  using type = std::conditional_t<std::same_as<ExecutionSpace, Kokkos::HIP>,
-                                  hipfft_plan_type, fftw_plan_type>;
-};
-
-template <typename ExecutionSpace>
-auto direction_type(Direction direction) {
-  static constexpr FFTDirectionType FORWARD =
-      std::same_as<ExecutionSpace, Kokkos::HIP> ? HIPFFT_FORWARD : FFTW_FORWARD;
-  static constexpr FFTDirectionType BACKWARD =
-      std::same_as<ExecutionSpace, Kokkos::HIP> ? HIPFFT_BACKWARD
-                                                : FFTW_BACKWARD;
-  return direction == Direction::forward ? FORWARD : BACKWARD;
-}
+using FFTPlanType =
+    std::conditional_t<std::same_as<ExecutionSpace, Kokkos::HIP>,
+                       ScopedHIPfftPlan<T1, T2>,
+                       ScopedFFTWPlan<ExecutionSpace, T1, T2>>;
 #else
 template <typename ExecutionSpace>
 struct FFTDataType {
@@ -470,19 +452,7 @@ struct FFTDataType {
 };
 
 template <typename ExecutionSpace, typename T1, typename T2>
-struct FFTPlanType {
-  using type = ScopedHIPfftPlan<T1, T2>;
-};
-
-template <typename ExecutionSpace, typename T1, typename T2>
-struct FFTDynPlanType {
-  using type = ScopedHIPfftPlan<T1, T2>;
-};
-
-template <typename ExecutionSpace>
-auto direction_type(Direction direction) {
-  return direction == Direction::forward ? HIPFFT_FORWARD : HIPFFT_BACKWARD;
-}
+using FFTPlanType = ScopedHIPfftPlan<T1, T2>;
 #endif
 }  // namespace Impl
 }  // namespace KokkosFFT
