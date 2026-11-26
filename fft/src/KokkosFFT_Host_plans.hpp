@@ -83,26 +83,26 @@ auto create_plan(const ExecutionSpace& exec_space,
   auto [in_extents, out_extents, fft_extents, howmany] =
       KokkosFFT::Impl::get_extents(in, out, axes, s, is_inplace);
 
-  using index_type = int;
-  index_type idist = total_size(in_extents);
-  index_type odist = total_size(out_extents);
-
   auto* idata = reinterpret_cast<typename KokkosFFT::Impl::fft_data_type<
       ExecutionSpace, in_value_type>::type*>(in.data());
   auto* odata = reinterpret_cast<typename KokkosFFT::Impl::fft_data_type<
       ExecutionSpace, out_value_type>::type*>(out.data());
 
   // For the moment, considering the contiguous layout only
+  // FFTW uses int as index type
+  using index_type   = int;
   index_type istride = 1, ostride = 1;
-  auto int_in_extents  = convert_base_int_type<index_type>(in_extents);
-  auto int_out_extents = convert_base_int_type<index_type>(out_extents);
-  auto int_fft_extents = convert_base_int_type<index_type>(fft_extents);
-  auto sign = KokkosFFT::Impl::direction_type<ExecutionSpace>(direction);
+  auto int_in_extents    = convert_base_int_type<index_type>(in_extents);
+  auto int_out_extents   = convert_base_int_type<index_type>(out_extents);
+  auto int_fft_extents   = convert_base_int_type<index_type>(fft_extents);
+  index_type idist       = total_size(int_in_extents);
+  index_type odist       = total_size(int_out_extents);
+  index_type int_howmany = convert_base_int_type<index_type>(howmany);
 
   plan = std::make_unique<PlanType>(
-      exec_space, int_fft_extents.size(), int_fft_extents.data(), howmany,
+      exec_space, int_fft_extents.size(), int_fft_extents.data(), int_howmany,
       idata, int_in_extents.data(), istride, idist, odata,
-      int_out_extents.data(), ostride, odist, sign, FFTW_ESTIMATE);
+      int_out_extents.data(), ostride, odist, direction);
 
   return fft_extents;
 }
@@ -126,26 +126,26 @@ auto create_dynplan(const ExecutionSpace& exec_space,
   auto [in_extents, out_extents, fft_extents, howmany] =
       KokkosFFT::Impl::get_extents(in, out, dim, is_inplace);
 
-  using index_type = int;
-  index_type idist = total_size(in_extents);
-  index_type odist = total_size(out_extents);
-
   auto* idata = reinterpret_cast<typename KokkosFFT::Impl::fft_data_type<
       ExecutionSpace, in_value_type>::type*>(in.data());
   auto* odata = reinterpret_cast<typename KokkosFFT::Impl::fft_data_type<
       ExecutionSpace, out_value_type>::type*>(out.data());
 
   // For the moment, considering the contiguous layout only
+  // FFTW uses int as index type
+  using index_type   = int;
   index_type istride = 1, ostride = 1;
-  auto int_in_extents  = convert_base_int_type<index_type>(in_extents);
-  auto int_out_extents = convert_base_int_type<index_type>(out_extents);
-  auto int_fft_extents = convert_base_int_type<index_type>(fft_extents);
-  auto sign = KokkosFFT::Impl::direction_type<ExecutionSpace>(direction);
+  auto int_in_extents    = convert_base_int_type<index_type>(in_extents);
+  auto int_out_extents   = convert_base_int_type<index_type>(out_extents);
+  auto int_fft_extents   = convert_base_int_type<index_type>(fft_extents);
+  index_type idist       = total_size(int_in_extents);
+  index_type odist       = total_size(int_out_extents);
+  index_type int_howmany = convert_base_int_type<index_type>(howmany);
 
   plan = std::make_unique<PlanType>(
-      exec_space, int_fft_extents.size(), int_fft_extents.data(), howmany,
+      exec_space, int_fft_extents.size(), int_fft_extents.data(), int_howmany,
       idata, int_in_extents.data(), istride, idist, odata,
-      int_out_extents.data(), ostride, odist, sign, FFTW_ESTIMATE);
+      int_out_extents.data(), ostride, odist, direction);
 
   return fft_extents;
 }
