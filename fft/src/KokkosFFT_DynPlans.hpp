@@ -148,8 +148,13 @@ class DynPlan {
 
     m_in_extents  = KokkosFFT::Impl::extract_extents(in);
     m_out_extents = KokkosFFT::Impl::extract_extents(out);
-    // Throws if in and out overlap partially
-    m_is_inplace = KokkosFFT::Impl::check_inplace(in, out);
+    // In-place if in and out start at the same address (also if both are
+    // null, so that a plan can be made before the data is allocated)
+    m_is_inplace = KokkosFFT::Impl::are_aliasing(in.data(), out.data());
+    KOKKOSFFT_THROW_IF(
+        !m_is_inplace && KokkosFFT::Impl::are_overlapping(in, out),
+        "the input and output Views overlap partially: they must either point "
+        "to the same data (in-place) or not overlap (out-of-place)");
     KokkosFFT::Impl::setup<ExecutionSpace, float_type>();
     m_fft_extents = KokkosFFT::Impl::create_dynplan(
         exec_space, m_plan, in, out, direction, dim, m_is_inplace);
@@ -230,8 +235,12 @@ class DynPlan {
                        "extents of output View for plan and "
                        "execution are not identical.");
 
-    // Throws if in and out overlap partially
-    const bool is_inplace = KokkosFFT::Impl::check_inplace(in, out);
+    const bool is_inplace =
+        KokkosFFT::Impl::are_aliasing(in.data(), out.data());
+    KOKKOSFFT_THROW_IF(
+        !is_inplace && KokkosFFT::Impl::are_overlapping(in, out),
+        "the input and output Views overlap partially: they must either point "
+        "to the same data (in-place) or not overlap (out-of-place)");
     KOKKOSFFT_THROW_IF(is_inplace != m_is_inplace,
                        "If the plan is in-place, the input and output Views "
                        "must be identical; if the plan is out-of-place, they "

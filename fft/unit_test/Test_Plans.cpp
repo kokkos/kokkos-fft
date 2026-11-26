@@ -879,6 +879,24 @@ void test_plan_1dfft_1dview_overlap() {
   EXPECT_THROW(KokkosFFT::execute(plan_in_place, a, b), std::runtime_error);
   EXPECT_THROW(KokkosFFT::execute(plan_in_place, in, out_partial),
                std::runtime_error);
+
+  // Views on null data, e.g. a plan made before the data is allocated: two
+  // null Views count as in-place, so the plan can be made and then executed on
+  // in-place Views
+  using complex_type = Kokkos::complex<T>;
+  ComplexView1DType in_null(static_cast<complex_type*>(nullptr), n),
+      out_null(static_cast<complex_type*>(nullptr), n);
+  KokkosFFT::Plan plan_null(exec, in_null, out_null,
+                            KokkosFFT::Direction::forward, /*axis=*/-1);
+
+  ComplexView1DType c("c", n), c_ref("c_ref", n), c_hat_ref("c_hat_ref", n);
+  Kokkos::fill_random(exec, c, random_pool, z);
+  Kokkos::deep_copy(exec, c_ref, c);
+  KokkosFFT::execute(plan_ref, c_ref, c_hat_ref);
+  KokkosFFT::execute(plan_null, c, c);
+  exec.fence();
+  EXPECT_TRUE(allclose(exec, c, c_hat_ref, 1.e-5, atol));
+  EXPECT_THROW(KokkosFFT::execute(plan_null, a, b), std::runtime_error);
 }
 
 }  // namespace

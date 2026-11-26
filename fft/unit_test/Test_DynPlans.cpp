@@ -2,6 +2,7 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
+#include <concepts>
 #include <stdexcept>
 #include <gtest/gtest.h>
 #include <Kokkos_Core.hpp>
@@ -312,6 +313,35 @@ void test_dynplan_overlap() {
   EXPECT_THROW(KokkosFFT::execute(plan_in_place, a, b), std::runtime_error);
   EXPECT_THROW(KokkosFFT::execute(plan_in_place, in, out_partial),
                std::runtime_error);
+
+  // Views on null data, e.g. a plan made before the data is allocated: two
+  // null Views count as in-place, so the plan can be made and then executed on
+  // in-place Views
+  using complex_type = Kokkos::complex<T>;
+  ComplexView1DType in_null(static_cast<complex_type*>(nullptr), n),
+      out_null(static_cast<complex_type*>(nullptr), n);
+  KokkosFFT::DynPlan plan_null(exec, in_null, out_null,
+                               KokkosFFT::Direction::forward, /*dim=*/1);
+  using BufferType = Kokkos::View<complex_type*, execution_space>;
+  BufferType work(
+      "work",
+      KokkosFFT::compute_required_workspace_size<complex_type>(plan_null));
+  plan_null.set_work_area(work);
+
+  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(/*seed=*/12345);
+  const complex_type z(1.0, 1.0);
+  ComplexView1DType c("c", n), c_ref("c_ref", n), c_hat_ref("c_hat_ref", n);
+  Kokkos::fill_random(exec, c, random_pool, z);
+  Kokkos::deep_copy(exec, c_ref, c);
+  KokkosFFT::Plan plan_ref(exec, c_ref, c_hat_ref,
+                           KokkosFFT::Direction::forward, /*axis=*/-1);
+  KokkosFFT::execute(plan_ref, c_ref, c_hat_ref);
+  KokkosFFT::execute(plan_null, c, c);
+  exec.fence();
+
+  const double atol = std::same_as<T, float> ? 1.0e-6 : 1.0e-12;
+  EXPECT_TRUE(allclose(exec, c, c_hat_ref, 1.e-5, atol));
+  EXPECT_THROW(KokkosFFT::execute(plan_null, a, b), std::runtime_error);
 }
 
 }  // namespace
