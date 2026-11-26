@@ -54,10 +54,10 @@ void exec_plan(PlanType& plan, std::complex<double>* idata, double* odata,
 
 template <typename PlanType>
 void exec_plan(PlanType& plan, std::complex<float>* idata,
-               KokkosFFT::Direction direction) {
+               std::complex<float>* odata, KokkosFFT::Direction direction) {
   Kokkos::Profiling::ScopedRegion region(
       "KokkosFFT::exec_plan[TPL_oneMKLExecC2C]");
-  if (direction == KokkosFFT::Direction::Forward) {
+  if (direction == KokkosFFT::Direction::forward) {
     oneapi::mkl::dft::compute_forward(plan.plan(), idata, odata);
   } else {
     oneapi::mkl::dft::compute_backward(plan.plan(), idata, odata);
@@ -66,10 +66,10 @@ void exec_plan(PlanType& plan, std::complex<float>* idata,
 
 template <typename PlanType>
 void exec_plan(PlanType& plan, std::complex<double>* idata,
-               KokkosFFT::Direction direction) {
+               std::complex<double>* odata, KokkosFFT::Direction direction) {
   Kokkos::Profiling::ScopedRegion region(
       "KokkosFFT::exec_plan[TPL_oneMKLExecZ2Z]");
-  if (direction == KokkosFFT::Direction::Forward) {
+  if (direction == KokkosFFT::Direction::forward) {
     oneapi::mkl::dft::compute_forward(plan.plan(), idata, odata);
   } else {
     oneapi::mkl::dft::compute_backward(plan.plan(), idata, odata);
