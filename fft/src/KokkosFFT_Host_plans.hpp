@@ -92,14 +92,15 @@ auto create_plan(const ExecutionSpace& exec_space,
   // FFTW uses int as index type
   using index_type   = int;
   index_type istride = 1, ostride = 1;
-  auto int_in_extents  = convert_base_int_type<index_type>(in_extents);
-  auto int_out_extents = convert_base_int_type<index_type>(out_extents);
-  auto int_fft_extents = convert_base_int_type<index_type>(fft_extents);
-  index_type idist     = total_size(int_in_extents);
-  index_type odist     = total_size(int_out_extents);
+  auto int_in_extents    = convert_base_int_type<index_type>(in_extents);
+  auto int_out_extents   = convert_base_int_type<index_type>(out_extents);
+  auto int_fft_extents   = convert_base_int_type<index_type>(fft_extents);
+  index_type idist       = total_size(int_in_extents);
+  index_type odist       = total_size(int_out_extents);
+  index_type int_howmany = convert_base_int_type<index_type>(howmany);
 
   plan = std::make_unique<PlanType>(
-      exec_space, int_fft_extents.size(), int_fft_extents.data(), howmany,
+      exec_space, int_fft_extents.size(), int_fft_extents.data(), int_howmany,
       idata, int_in_extents.data(), istride, idist, odata,
       int_out_extents.data(), ostride, odist, direction);
 
@@ -134,14 +135,15 @@ auto create_dynplan(const ExecutionSpace& exec_space,
   // FFTW uses int as index type
   using index_type   = int;
   index_type istride = 1, ostride = 1;
-  auto int_in_extents  = convert_base_int_type<index_type>(in_extents);
-  auto int_out_extents = convert_base_int_type<index_type>(out_extents);
-  auto int_fft_extents = convert_base_int_type<index_type>(fft_extents);
-  index_type idist     = total_size(int_in_extents);
-  index_type odist     = total_size(int_out_extents);
+  auto int_in_extents    = convert_base_int_type<index_type>(in_extents);
+  auto int_out_extents   = convert_base_int_type<index_type>(out_extents);
+  auto int_fft_extents   = convert_base_int_type<index_type>(fft_extents);
+  index_type idist       = total_size(int_in_extents);
+  index_type odist       = total_size(int_out_extents);
+  index_type int_howmany = convert_base_int_type<index_type>(howmany);
 
   plan = std::make_unique<PlanType>(
-      exec_space, int_fft_extents.size(), int_fft_extents.data(), howmany,
+      exec_space, int_fft_extents.size(), int_fft_extents.data(), int_howmany,
       idata, int_in_extents.data(), istride, idist, odata,
       int_out_extents.data(), ostride, odist, direction);
 

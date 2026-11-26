@@ -74,7 +74,7 @@ struct ScopedFFTWPlan {
             fftw_plan_many_dft_r2c(rank, n, howmany, in, inembed, istride,
                                    idist, out, onembed, ostride, odist, flags);
       }
-    } else {
+    } else if constexpr (transform_kind == TransformKind::C2R) {
       if constexpr (std::same_as<floating_point_type, float>) {
         m_plan =
             fftwf_plan_many_dft_c2r(rank, n, howmany, in, inembed, istride,
@@ -84,6 +84,9 @@ struct ScopedFFTWPlan {
             fftw_plan_many_dft_c2r(rank, n, howmany, in, inembed, istride,
                                    idist, out, onembed, ostride, odist, flags);
       }
+    } else {
+      static_assert(always_false<InValueType, OutValueType>,
+                    "ScopedFFTWPlan: unsupported transform kind");
     }
   }
 
