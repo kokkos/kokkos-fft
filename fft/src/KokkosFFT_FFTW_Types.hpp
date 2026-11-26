@@ -85,7 +85,7 @@ struct ScopedFFTWPlan {
                                    idist, out, onembed, ostride, odist, flags);
       }
     } else {
-      static_assert(always_false<InValueType, OutValueType>,
+      static_assert(always_false_v<InValueType, OutValueType>,
                     "ScopedFFTWPlan: unsupported transform kind");
     }
   }
