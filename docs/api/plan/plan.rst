@@ -12,6 +12,10 @@ KokkosFFT::Plan
 
    We can reuse the FFT plan created once to perform FFTs multiple times on different data given that they have the same properties. In some backend, FFT plan creation leads to some overhead, wherein we need this functionality.
 
+.. warning::
+
+   For the FFTW backend (Serial, OpenMP and Threads execution spaces), reusing a plan additionally requires the Views passed to ``execute`` to be at least as aligned as the Views used to create the plan: FFTW plans embed the SIMD alignment of the arrays used at plan creation, and executing a plan created on aligned Views on less-aligned Views is undefined behaviour (it can crash). KokkosFFT checks this at execution time and throws a ``std::runtime_error`` instead. Views freshly allocated by Kokkos are always sufficiently aligned; only Views overlapping the end of a larger allocation (e.g. a shifted 1D subview) can be misaligned. Executing a plan created on misaligned Views on aligned Views is safe and is not rejected.
+
 Examples
 ========
 
