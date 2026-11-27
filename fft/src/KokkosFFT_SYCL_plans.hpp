@@ -87,9 +87,11 @@ auto create_plan(const ExecutionSpace& exec_space,
   auto [in_extents, out_extents, fft_extents, howmany] =
       KokkosFFT::Impl::get_extents(in, out, axes, s, is_inplace);
 
-  using index_type = FFTIndexType<Kokkos::SYCL>;
-  index_type idist = total_size(in_extents);
-  index_type odist = total_size(out_extents);
+  // oneMKL uses int64_t as index type
+  using index_type = std::int64_t;
+  index_type idist = convert_base_int_type<index_type>(total_size(in_extents));
+  index_type odist = convert_base_int_type<index_type>(total_size(out_extents));
+  index_type int64_howmany = convert_base_int_type<index_type>(howmany);
 
   // Create plan
   auto in_strides  = compute_strides<std::size_t, index_type>(in_extents);
@@ -100,9 +102,9 @@ auto create_plan(const ExecutionSpace& exec_space,
   // idist is the larger one, and odist is the smaller one
   auto [max_odist, max_idist] = std::minmax({idist, odist});
 
-  plan = std::make_unique<PlanType>(
-      int64_fft_extents, in_strides, out_strides, max_idist, max_odist,
-      static_cast<index_type>(howmany), direction, is_inplace);
+  plan = std::make_unique<PlanType>(int64_fft_extents, in_strides, out_strides,
+                                    max_idist, max_odist, int64_howmany,
+                                    direction, is_inplace);
   plan->commit(exec_space);
 
   return fft_extents;
@@ -125,9 +127,11 @@ auto create_dynplan(const ExecutionSpace& exec_space,
   auto [in_extents, out_extents, fft_extents, howmany] =
       KokkosFFT::Impl::get_extents(in, out, dim, is_inplace);
 
-  using index_type = FFTIndexType<Kokkos::SYCL>;
-  index_type idist = total_size(in_extents);
-  index_type odist = total_size(out_extents);
+  // oneMKL uses int64_t as index type
+  using index_type = std::int64_t;
+  index_type idist = convert_base_int_type<index_type>(total_size(in_extents));
+  index_type odist = convert_base_int_type<index_type>(total_size(out_extents));
+  index_type int64_howmany = convert_base_int_type<index_type>(howmany);
 
   // Create plan
   auto in_strides  = compute_strides<std::size_t, index_type>(in_extents);
@@ -138,9 +142,9 @@ auto create_dynplan(const ExecutionSpace& exec_space,
   // idist is the larger one, and odist is the smaller one
   auto [max_odist, max_idist] = std::minmax({idist, odist});
 
-  plan = std::make_unique<PlanType>(
-      int64_fft_extents, in_strides, out_strides, max_idist, max_odist,
-      static_cast<index_type>(howmany), direction, is_inplace);
+  plan = std::make_unique<PlanType>(int64_fft_extents, in_strides, out_strides,
+                                    max_idist, max_odist, int64_howmany,
+                                    direction, is_inplace);
   plan->use_external_workspace();
   plan->commit(exec_space);
 

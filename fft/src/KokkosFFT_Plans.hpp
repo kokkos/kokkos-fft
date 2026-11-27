@@ -99,8 +99,7 @@ class Plan {
 
   //! The type of FFT plan
   using fft_plan_type =
-      typename Impl::FFTPlanType<ExecutionSpace, in_value_type,
-                                 out_value_type>::type;
+      typename Impl::FFTPlanType<ExecutionSpace, in_value_type, out_value_type>;
 
   //! The type of extents of FFT
   using fft_extents_type = std::vector<std::size_t>;
@@ -325,9 +324,7 @@ class Plan {
     auto* odata = reinterpret_cast<
         typename Impl::fft_data_type<execSpace, out_value_type>::type*>(
         out.data());
-
-    auto const direction = Impl::direction_type<execSpace>(m_direction);
-    Impl::exec_plan(*m_plan, idata, odata, direction);
+    Impl::exec_plan(*m_plan, idata, odata, m_direction);
 
     if constexpr (Impl::is_complex_v<in_value_type> &&
                   Impl::is_real_v<out_value_type>) {
