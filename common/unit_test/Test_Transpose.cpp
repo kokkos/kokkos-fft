@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
 #include <array>
+#include <stdexcept>
 #include <utility>
 
 #include <gtest/gtest.h>
@@ -365,6 +366,55 @@ void test_transpose_3d(bool bounds_check) {
   }
 }
 
+template <typename LayoutType1, typename LayoutType2>
+void test_transpose_overlap() {
+  using ViewLayout1type = Kokkos::View<double**, LayoutType1, execution_space>;
+  using ViewLayout2type = Kokkos::View<double**, LayoutType2, execution_space>;
+  using BufferType      = Kokkos::View<double*, execution_space>;
+
+  constexpr std::size_t n0 = 3, n1 = 5, n = n0 * n1;
+  const KokkosFFT::axis_type<2> map{1, 0}, identity_map{0, 1};
+
+  execution_space exec;
+  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(12345);
+
+  // The same View, or another View on the same data: in-place transpose is
+  // not supported, with or without permutation (the identity map is
+  // implemented by a deep_copy)
+  ViewLayout1type x("x", n0, n1);
+  ViewLayout2type xT_alias(x.data(), n1, n0), x_alias(x.data(), n0, n1);
+  EXPECT_THROW(KokkosFFT::Impl::transpose(exec, x, x, identity_map),
+               std::runtime_error);
+  EXPECT_THROW(KokkosFFT::Impl::transpose(exec, x, xT_alias, map),
+               std::runtime_error);
+  EXPECT_THROW(KokkosFFT::Impl::transpose(exec, x, x_alias, identity_map),
+               std::runtime_error);
+
+  // Partial overlap: out starts inside in
+  BufferType buffer("buffer", 2 * n);
+  ViewLayout1type in(buffer.data(), n0, n1);
+  ViewLayout2type out_partial(buffer.data() + 2, n1, n0),
+      out_partial_identity(buffer.data() + 2, n0, n1);
+  EXPECT_THROW(KokkosFFT::Impl::transpose(exec, in, out_partial, map),
+               std::runtime_error);
+  EXPECT_THROW(
+      KokkosFFT::Impl::transpose(exec, in, out_partial_identity, identity_map),
+      std::runtime_error);
+  EXPECT_THROW(KokkosFFT::Impl::transpose(exec, out_partial, in, map),
+               std::runtime_error);
+
+  // Adjacent Views do not overlap: the transpose is performed
+  Kokkos::fill_random(exec, in, random_pool, 1.0);
+  exec.fence();
+  ViewLayout2type out_adjacent(buffer.data() + n, n1, n0),
+      out_ref("out_ref", n1, n0);
+  make_transposed(in, out_ref, map);
+  EXPECT_NO_THROW(KokkosFFT::Impl::transpose(exec, in, out_adjacent, map));
+  exec.fence();
+  EXPECT_THAT(out_adjacent,
+              KokkosFFT::Testing::allclose(out_ref, 1.e-5, 1.e-12));
+}
+
 }  // namespace
 
 TYPED_TEST_SUITE(TestIsTransposeNeeded, int_types);
@@ -670,4 +720,11 @@ TYPED_TEST(TestTranspose3D, 8DView_with_bounds_check) {
   using layout_type2 = typename TestFixture::layout_type2;
 
   test_transpose_3d<layout_type1, layout_type2, 8>(true);
+}
+
+TYPED_TEST(TestTranspose2D, overlap) {
+  using layout_type1 = typename TestFixture::layout_type1;
+  using layout_type2 = typename TestFixture::layout_type2;
+
+  test_transpose_overlap<layout_type1, layout_type2>();
 }

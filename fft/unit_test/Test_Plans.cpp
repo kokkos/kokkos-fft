@@ -2,8 +2,13 @@
 //
 // SPDX-License-Identifier: MIT OR Apache-2.0 WITH LLVM-exception
 
+#include <concepts>
+#include <stdexcept>
 #include <gtest/gtest.h>
+#include <Kokkos_Random.hpp>
 #include "KokkosFFT_Plans.hpp"
+#include "KokkosFFT_Transform.hpp"
+#include "Test_Utils.hpp"
 
 namespace {
 #if defined(KOKKOSFFT_HAS_DEVICE_TPL)
@@ -798,6 +803,102 @@ void test_plan_3dfft_3dview() {
       std::runtime_error);
 }
 
+// Tests for overlapping input/output Views
+template <typename T, typename LayoutType>
+void test_plan_1dfft_1dview_overlap() {
+  const std::size_t n  = 16;
+  using RealView1DType = Kokkos::View<T*, LayoutType, execution_space>;
+  using ComplexView1DType =
+      Kokkos::View<Kokkos::complex<T>*, LayoutType, execution_space>;
+  execution_space exec;
+
+  // Views at different offsets in one buffer
+  ComplexView1DType buffer("buffer", 2 * n);
+  ComplexView1DType in(buffer.data(), n),
+      out_partial(buffer.data() + 1, n),   // starts inside in
+      out_adjacent(buffer.data() + n, n);  // starts right after in
+  RealView1DType in_r(reinterpret_cast<T*>(buffer.data()), n);
+  ComplexView1DType out_c_partial(buffer.data() + 1,
+                                  n / 2 + 1);  // starts inside in_r
+
+  // Partial overlap: neither in-place nor out-of-place
+  EXPECT_THROW(
+      {
+        KokkosFFT::Plan plan_c2c(exec, in, out_partial,
+                                 KokkosFFT::Direction::forward, /*axis=*/-1);
+      },
+      std::runtime_error);
+  EXPECT_THROW(
+      {
+        KokkosFFT::Plan plan_c2c(exec, out_partial, in,
+                                 KokkosFFT::Direction::backward, /*axis=*/-1);
+      },
+      std::runtime_error);
+  EXPECT_THROW(
+      {
+        KokkosFFT::Plan plan_r2c(exec, in_r, out_c_partial,
+                                 KokkosFFT::Direction::forward, /*axis=*/-1);
+      },
+      std::runtime_error);
+  EXPECT_THROW(
+      {
+        KokkosFFT::Plan plan_c2r(exec, out_c_partial, in_r,
+                                 KokkosFFT::Direction::backward, /*axis=*/-1);
+      },
+      std::runtime_error);
+
+  // Adjacent Views: out-of-place, with the same result as separate Views
+  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(/*seed=*/12345);
+  const Kokkos::complex<T> z(1.0, 1.0);
+  Kokkos::fill_random(exec, in, random_pool, z);
+  ComplexView1DType in_ref("in_ref", n), out_ref("out_ref", n);
+  Kokkos::deep_copy(exec, in_ref, in);
+
+  KokkosFFT::Plan plan_ref(exec, in_ref, out_ref, KokkosFFT::Direction::forward,
+                           /*axis=*/-1);
+  KokkosFFT::execute(plan_ref, in_ref, out_ref);
+  KokkosFFT::Plan plan_adjacent(exec, in, out_adjacent,
+                                KokkosFFT::Direction::forward, /*axis=*/-1);
+  KokkosFFT::execute(plan_adjacent, in, out_adjacent);
+  exec.fence();
+
+  const double atol = std::same_as<T, float> ? 1.0e-6 : 1.0e-12;
+  EXPECT_TRUE(allclose(exec, out_adjacent, out_ref, 1.e-5, atol));
+
+  // Plans executed with Views whose placement differs from the plan
+  ComplexView1DType a("a", n), b("b", n), a_alias(a.data(), n);
+  KokkosFFT::Plan plan_out_of_place(exec, a, b, KokkosFFT::Direction::forward,
+                                    /*axis=*/-1);
+  KokkosFFT::Plan plan_in_place(exec, a, a, KokkosFFT::Direction::forward,
+                                /*axis=*/-1);
+
+  EXPECT_THROW(KokkosFFT::execute(plan_out_of_place, a, a_alias),
+               std::runtime_error);
+  EXPECT_THROW(KokkosFFT::execute(plan_out_of_place, in, out_partial),
+               std::runtime_error);
+  EXPECT_THROW(KokkosFFT::execute(plan_in_place, a, b), std::runtime_error);
+  EXPECT_THROW(KokkosFFT::execute(plan_in_place, in, out_partial),
+               std::runtime_error);
+
+  // Views on null data, e.g. a plan made before the data is allocated: two
+  // null Views count as in-place, so the plan can be made and then executed on
+  // in-place Views
+  using complex_type = Kokkos::complex<T>;
+  ComplexView1DType in_null(static_cast<complex_type*>(nullptr), n),
+      out_null(static_cast<complex_type*>(nullptr), n);
+  KokkosFFT::Plan plan_null(exec, in_null, out_null,
+                            KokkosFFT::Direction::forward, /*axis=*/-1);
+
+  ComplexView1DType c("c", n), c_ref("c_ref", n), c_hat_ref("c_hat_ref", n);
+  Kokkos::fill_random(exec, c, random_pool, z);
+  Kokkos::deep_copy(exec, c_ref, c);
+  KokkosFFT::execute(plan_ref, c_ref, c_hat_ref);
+  KokkosFFT::execute(plan_null, c, c);
+  exec.fence();
+  EXPECT_TRUE(allclose(exec, c, c_hat_ref, 1.e-5, atol));
+  EXPECT_THROW(KokkosFFT::execute(plan_null, a, b), std::runtime_error);
+}
+
 }  // namespace
 
 TYPED_TEST_SUITE(ExecutionSpaceType, execution_spaces);
@@ -863,4 +964,12 @@ TYPED_TEST(Plans3D, 3DFFT_3DView) {
   using layout_type = typename TestFixture::layout_type;
 
   test_plan_3dfft_3dview<float_type, layout_type>();
+}
+
+// Tests for 1D FFT plans on overlapping input/output Views
+TYPED_TEST(Plans1D, 1DFFT_1DView_overlap) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  test_plan_1dfft_1dview_overlap<float_type, layout_type>();
 }

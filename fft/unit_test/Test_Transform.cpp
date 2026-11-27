@@ -4,7 +4,9 @@
 
 #include <gtest/gtest.h>
 #include <algorithm>
+#include <concepts>
 #include <random>
+#include <stdexcept>
 #include <Kokkos_Random.hpp>
 #include "KokkosFFT_Transform.hpp"
 #include "Test_Utils.hpp"
@@ -3300,6 +3302,68 @@ void test_fftn_3dfft_8dview(T atol = 1.e-12) {
     exec.fence();
   }
 }
+// Tests for hfft on overlapping input/output Views
+template <typename T, typename LayoutType>
+void test_fft1_hfft_overlap(T atol = 1.0e-12) {
+  const std::size_t n = 16, m = n / 2 + 1;
+  using RealView1DType = Kokkos::View<T*, LayoutType, execution_space>;
+  using ComplexView1DType =
+      Kokkos::View<Kokkos::complex<T>*, LayoutType, execution_space>;
+  using ConstComplexView1DType =
+      Kokkos::View<const Kokkos::complex<T>*, LayoutType, execution_space>;
+  execution_space exec;
+  Kokkos::Random_XorShift64_Pool<execution_space> random_pool(/*seed=*/12345);
+  const Kokkos::complex<T> z(1.0, 1.0);
+
+  // Random half spectrum whose first and last (Nyquist) terms are real, so
+  // that the C2R result does not depend on how a backend treats them
+  auto fill_half_spectrum = [&](const ComplexView1DType& x) {
+    Kokkos::fill_random(exec, x, random_pool, z);
+    exec.fence();
+    auto h_x   = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), x);
+    h_x(0)     = Kokkos::complex<T>(h_x(0).real(), 0);
+    h_x(m - 1) = Kokkos::complex<T>(h_x(m - 1).real(), 0);
+    Kokkos::deep_copy(x, h_x);
+  };
+
+  // Non-const complex input partly overlapping the output: throws before the
+  // input is conjugated in place, so the input is unchanged
+  ComplexView1DType buffer("buffer", 2 * n);
+  ComplexView1DType x(buffer.data(), m), x_ref("x_ref", m);
+  RealView1DType out_partial(reinterpret_cast<T*>(buffer.data() + 1),
+                             n);  // starts inside x
+  fill_half_spectrum(x);
+  Kokkos::deep_copy(x_ref, x);
+
+  EXPECT_THROW(KokkosFFT::hfft(exec, x, out_partial), std::runtime_error);
+  exec.fence();
+  EXPECT_TRUE(allclose(exec, x, x_ref, 0.0, 0.0));
+
+  // Non-const complex input with the output on the same data (in-place):
+  // allowed, with the same result as out-of-place
+  ComplexView1DType y("y", m), y_ref("y_ref", m);
+  RealView1DType y_out(reinterpret_cast<T*>(y.data()), n),
+      out_ref("out_ref", n);
+  fill_half_spectrum(y);
+  Kokkos::deep_copy(y_ref, y);
+  KokkosFFT::hfft(exec, y_ref, out_ref);
+  KokkosFFT::hfft(exec, y, y_out);
+  exec.fence();
+  EXPECT_TRUE(allclose(exec, y_out, out_ref, 1.e-5, atol));
+
+  // Const complex input partly overlapping the output: the input is copied
+  // before the output is written, so the overlap is harmless
+  fill_half_spectrum(x);
+  ComplexView1DType x_copy("x_copy", m);
+  RealView1DType out_ref2("out_ref2", n);
+  Kokkos::deep_copy(x_copy, x);
+  KokkosFFT::hfft(exec, x_copy, out_ref2);
+
+  ConstComplexView1DType x_const = x;
+  EXPECT_NO_THROW(KokkosFFT::hfft(exec, x_const, out_partial));
+  exec.fence();
+  EXPECT_TRUE(allclose(exec, out_partial, out_ref2, 1.e-5, atol));
+}
 }  // namespace
 
 TYPED_TEST_SUITE(FFT1D, test_types);
@@ -3664,4 +3728,13 @@ TYPED_TEST(FFTND, 3DFFT_batched_8DView) {
 
   float_type atol = std::is_same_v<float_type, float> ? 1.0e-5 : 1.0e-10;
   test_fftn_3dfft_8dview<float_type, layout_type>(atol);
+}
+
+// hfft on overlapping input/output Views
+TYPED_TEST(FFT1D, 1DFFT_1DView_hfft_overlap) {
+  using float_type  = typename TestFixture::float_type;
+  using layout_type = typename TestFixture::layout_type;
+
+  float_type atol = std::same_as<float_type, float> ? 1.0e-6 : 1.0e-12;
+  test_fft1_hfft_overlap<float_type, layout_type>(atol);
 }

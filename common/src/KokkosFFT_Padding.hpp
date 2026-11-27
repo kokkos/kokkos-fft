@@ -7,10 +7,12 @@
 
 #include <algorithm>
 #include <array>
+#include <concepts>
 #include <utility>
 #include <tuple>
 #include <Kokkos_Core.hpp>
 #include "KokkosFFT_Asserts.hpp"
+#include "KokkosFFT_CheckConditions.hpp"
 #include "KokkosFFT_Common_Types.hpp"
 #include "KokkosFFT_Traits.hpp"
 
@@ -92,6 +94,25 @@ void crop_or_pad(const ExecutionSpace& exec_space, const SrcViewType& src,
       have_same_base_floating_point_type_v<SrcViewType, DstViewType>,
       "crop_or_pad: Src and Dst View must have the same base floating point "
       "type.");
+
+  // Identical Views (same data, value type, extents and strides): nothing to
+  // copy
+  if constexpr (std::same_as<typename SrcViewType::non_const_value_type,
+                             typename DstViewType::non_const_value_type>) {
+    if (are_aliasing(src.data(), dst.data())) {
+      bool is_identical = true;
+      for (std::size_t i = 0; i < SrcViewType::rank(); i++) {
+        is_identical = is_identical && src.extent(i) == dst.extent(i) &&
+                       src.stride(i) == dst.stride(i);
+      }
+      if (is_identical) return;
+    }
+  }
+
+  // Otherwise the parallel copy races if src and dst overlap
+  KOKKOSFFT_THROW_IF(are_overlapping(src, dst),
+                     "crop_or_pad: the source and destination Views must not "
+                     "overlap");
 
   crop_or_pad_impl(exec_space, src, dst,
                    std::make_index_sequence<SrcViewType::rank()>{});

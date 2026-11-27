@@ -284,7 +284,10 @@ void hfft(const ExecutionSpace& exec_space, const InViewType& in,
     irfft(exec_space, cin, out, new_norm, axis, n);
   } else {
     // For non-const complex input, we can perform the conjugation in-place and
-    // save memory
+    // save memory. Reject partially overlapping in/out before in is modified:
+    // the checks in irfft (Plan) would only run after the conjugation.
+    [[maybe_unused]] const bool is_inplace =
+        KokkosFFT::Impl::check_inplace(in, out);
     if (in.span() >= std::size_t(std::numeric_limits<int>::max())) {
       KokkosFFT::Impl::md_unary_operation<std::int64_t>(
           "KokkosFFT::conjugate", exec_space, in, KokkosFFT::Impl::Conjugate());
