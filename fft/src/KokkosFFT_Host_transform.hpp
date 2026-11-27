@@ -14,6 +14,9 @@ namespace Impl {
 template <typename ScopedPlanType>
 void exec_plan(const ScopedPlanType& scoped_plan, float* idata,
                fftwf_complex* odata, int /*direction*/) {
+  // FFTW plans embed the SIMD alignment of the planning arrays: make sure
+  // the execution arrays do not violate it before executing.
+  scoped_plan.check_alignment(idata, odata);
   Kokkos::Profiling::ScopedRegion region(
       "KokkosFFT::exec_plan[TPL_fftwExecR2C]");
   fftwf_execute_dft_r2c(scoped_plan.plan(), idata, odata);
@@ -22,6 +25,7 @@ void exec_plan(const ScopedPlanType& scoped_plan, float* idata,
 template <typename ScopedPlanType>
 void exec_plan(const ScopedPlanType& scoped_plan, double* idata,
                fftw_complex* odata, int /*direction*/) {
+  scoped_plan.check_alignment(idata, odata);
   Kokkos::Profiling::ScopedRegion region(
       "KokkosFFT::exec_plan[TPL_fftwExecD2Z]");
   fftw_execute_dft_r2c(scoped_plan.plan(), idata, odata);
@@ -30,6 +34,7 @@ void exec_plan(const ScopedPlanType& scoped_plan, double* idata,
 template <typename ScopedPlanType>
 void exec_plan(const ScopedPlanType& scoped_plan, fftwf_complex* idata,
                float* odata, int /*direction*/) {
+  scoped_plan.check_alignment(idata, odata);
   Kokkos::Profiling::ScopedRegion region(
       "KokkosFFT::exec_plan[TPL_fftwExecC2R]");
   fftwf_execute_dft_c2r(scoped_plan.plan(), idata, odata);
@@ -38,6 +43,7 @@ void exec_plan(const ScopedPlanType& scoped_plan, fftwf_complex* idata,
 template <typename ScopedPlanType>
 void exec_plan(const ScopedPlanType& scoped_plan, fftw_complex* idata,
                double* odata, int /*direction*/) {
+  scoped_plan.check_alignment(idata, odata);
   Kokkos::Profiling::ScopedRegion region(
       "KokkosFFT::exec_plan[TPL_fftwExecZ2D]");
   fftw_execute_dft_c2r(scoped_plan.plan(), idata, odata);
@@ -46,6 +52,7 @@ void exec_plan(const ScopedPlanType& scoped_plan, fftw_complex* idata,
 template <typename ScopedPlanType>
 void exec_plan(const ScopedPlanType& scoped_plan, fftwf_complex* idata,
                fftwf_complex* odata, int /*direction*/) {
+  scoped_plan.check_alignment(idata, odata);
   Kokkos::Profiling::ScopedRegion region(
       "KokkosFFT::exec_plan[TPL_fftwExecC2C]");
   fftwf_execute_dft(scoped_plan.plan(), idata, odata);
@@ -54,6 +61,7 @@ void exec_plan(const ScopedPlanType& scoped_plan, fftwf_complex* idata,
 template <typename ScopedPlanType>
 void exec_plan(const ScopedPlanType& scoped_plan, fftw_complex* idata,
                fftw_complex* odata, int /*direction*/) {
+  scoped_plan.check_alignment(idata, odata);
   Kokkos::Profiling::ScopedRegion region(
       "KokkosFFT::exec_plan[TPL_fftwExecZ2Z]");
   fftw_execute_dft(scoped_plan.plan(), idata, odata);

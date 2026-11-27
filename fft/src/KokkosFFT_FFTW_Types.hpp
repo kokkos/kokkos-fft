@@ -9,6 +9,7 @@
 #include <fftw3.h>
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Profiling_ScopedRegion.hpp>
+#include "KokkosFFT_Asserts.hpp"
 #include "KokkosFFT_Common_Types.hpp"
 #include "KokkosFFT_Convert_Types.hpp"
 #include "KokkosFFT_Traits.hpp"
@@ -42,6 +43,10 @@ struct ScopedFFTWPlan {
   using plan_type = std::conditional_t<std::same_as<floating_point_type, float>,
                                        fftwf_plan, fftw_plan>;
   plan_type m_plan;
+
+  //! fftw_alignment_of of the arrays used to create this plan, compared
+  //! against the execution arrays by check_alignment()
+  int m_in_alignment = 0, m_out_alignment = 0;
 
  public:
   template <typename InScalarType, typename OutScalarType>
@@ -88,6 +93,13 @@ struct ScopedFFTWPlan {
       static_assert(always_false_v<InValueType, OutValueType>,
                     "ScopedFFTWPlan: unsupported transform kind");
     }
+
+    // Record the alignment of the planning arrays: FFTW plans embed the
+    // SIMD alignment of the arrays they are created on, and the new-array
+    // execute functions require the arrays passed at execution time to be
+    // as aligned (see check_alignment()).
+    m_in_alignment  = in ? alignment_of(in) : 0;
+    m_out_alignment = out ? alignment_of(out) : 0;
   }
 
   ~ScopedFFTWPlan() noexcept {
@@ -115,7 +127,60 @@ struct ScopedFFTWPlan {
   template <typename WorkViewType>
   void set_work_area(const WorkViewType & /*work*/) const {}
 
+  /// \brief Check the FFTW alignment rule for the arrays about to be
+  /// passed to the new-array execute functions, and throw a clear error
+  /// instead of the undefined behaviour (measured to segfault) FFTW would
+  /// otherwise give.
+  ///
+  /// FFTW plans embed the SIMD alignment of the arrays used to create
+  /// them, and executing on less-aligned arrays is undefined. The
+  /// opposite direction is safe: a plan created on misaligned arrays
+  /// uses non-SIMD codelets and runs on arrays of any alignment. Only
+  /// the crashing direction is rejected (see PR #572).
+  ///
+  /// \param[in] in The input array of the execution
+  /// \param[in] out The output array of the execution
+  void check_alignment(const void *in, const void *out) const {
+    check_alignment_impl(m_in_alignment, in, "input");
+    check_alignment_impl(m_out_alignment, out, "output");
+  }
+
  private:
+  /// \brief fftw_alignment_of of an array, in the units of the plan's
+  /// precision: float plans vectorize on floats, so their alignment is
+  /// measured by fftwf_alignment_of, double plans by fftw_alignment_of.
+  /// Both sides of every comparison made by check_alignment_impl() go
+  /// through this same function, so the verdict matches what the plan's
+  /// SIMD codelets assume.
+  static int alignment_of(const void *ptr) {
+    if constexpr (std::same_as<floating_point_type, float>) {
+      return fftwf_alignment_of(
+          reinterpret_cast<float *>(const_cast<void *>(ptr)));
+    } else {
+      return fftw_alignment_of(
+          reinterpret_cast<double *>(const_cast<void *>(ptr)));
+    }
+  }
+
+  static void check_alignment_impl(int plan_alignment, const void *ptr,
+                                  const char *which) {
+    // a null array (plans made from null Views, #580) has no alignment
+    // to check, and fftw_alignment_of(nullptr) would be meaningless
+    if (ptr == nullptr) {
+      return;
+    }
+
+    int exec_alignment = alignment_of(ptr);
+    KOKKOSFFT_THROW_IF(
+        plan_alignment == 0 && exec_alignment != 0,
+        "executing an FFTW plan on a less aligned array than the one used "
+        "to create it is not allowed: this plan was created on an aligned " +
+            std::string(which) + " array (fftw_alignment_of == 0), but the " +
+            "execution " + which + " array is misaligned (fftw_alignment_of == " +
+            std::to_string(exec_alignment) + "). FFTW plans embed the SIMD " +
+            "alignment of the planning arrays; reuse a plan only with Views " +
+            "at least as aligned as those used to create it");
+  }
   void init_threads([[maybe_unused]] const ExecutionSpace &exec_space) {
 #if defined(KOKKOS_ENABLE_OPENMP) || defined(KOKKOS_ENABLE_THREADS)
     if constexpr (std::same_as<ExecutionSpace,
